@@ -1,0 +1,18 @@
+{
+    "dimensions": [
+        {
+            "condition": {
+                "==": [{"var":"tier"}, "1"]
+            },
+            "overrideWithKeys": ["tier1"]
+
+        },
+        {
+            "condition": {
+                "==": [{"var":"merchantId"}, "zee5"]
+            },
+            "overrideWithKeys": ["zee5"]
+        }
+    ]
+
+}

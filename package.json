@@ -1,0 +1,21 @@
+{
+  "name": "test",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./test/index.js",
+    "compile": "npx tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "json-logic-js": "^2.0.2"
+  },
+  "devDependencies": {
+    "@types/json-logic-js": "^2.0.1",
+    "@types/node": "^18.11.9",
+    "typescript": "^4.9.3"
+  }
+}

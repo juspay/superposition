@@ -1,0 +1,41 @@
+{
+    "tier1" :{
+        "package": {
+            "in.juspay.hyperpay": "changed hyperpay by tier 1",
+            "in.juspay.upiintent": "changed upiintent by tier 1"
+        },
+        "package_dependencies": {
+            "in.juspay.ec": {
+                "entry": "changed entry of ec by tier 1",
+                "required_apps": [
+                    "in.juspay.dotp",
+                    "in.juspay.escrow",
+                    "in.juspay.flyer"
+                ]
+            }
+        },
+        "package_assets" : {
+            "in.juspay.upiintent": {
+                "config": "changed upiintent config by tier 1"
+            }
+        }
+
+
+    },
+    "zee5": {
+        "logs_should_push": "changed shoudl push by zee5",
+        "logs_public_key": "changed blogs public key by zee5",
+        "package_assets": {
+            "in.juspay.hyperpay": {
+              "configuration": "changed configuration by zee5",
+              "strings": "changed hyperpay strings by zee5"
+            },
+            "in.juspay.upiintent": {
+              "config": "changed upintent by zee5"
+            },
+            "new_key": {
+              "config" : "added by zee5"
+            }
+        }
+    }
+}
