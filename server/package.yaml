@@ -29,6 +29,8 @@ dependencies:
 - servant-server
 - wai >= 3.2.2.1
 - warp
+- text
+- unordered-containers
 - warp-tls
 
 ghc-options:

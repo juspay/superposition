@@ -1,2 +1,15 @@
 .stack-work/
-*~
+app/logs/*
+.DS_Store
+**/.DS_Store
+stack.yaml.lock
+dist-newstyle
+.vscode/*
+spec.prof
+.env
+venv
+.swp
+vim
+cli/generated/*
+/node_modules
+*.sql

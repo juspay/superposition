@@ -27,6 +27,7 @@ source-repository head
 library
   exposed-modules:
       Server
+      Types
   other-modules:
       Paths_server
   hs-source-dirs:
@@ -40,6 +41,8 @@ library
     , network
     , servant
     , servant-server
+    , text
+    , unordered-containers
     , wai >=3.2.2.1
     , warp
     , warp-tls
@@ -61,6 +64,8 @@ executable server-exe
     , servant
     , servant-server
     , server
+    , text
+    , unordered-containers
     , wai >=3.2.2.1
     , warp
     , warp-tls
@@ -83,6 +88,8 @@ test-suite server-test
     , servant
     , servant-server
     , server
+    , text
+    , unordered-containers
     , wai >=3.2.2.1
     , warp
     , warp-tls
