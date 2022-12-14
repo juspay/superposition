@@ -20,7 +20,16 @@ extra-source-files:
 description:         Backend service to update and server configs. For more information, please see the README on GitHub at <https://github.com/githubuser/server#readme>
 
 dependencies:
+- aeson
+- basic-prelude
 - base >= 4.7 && < 5
+- monad-control
+- network
+- servant
+- servant-server
+- wai >= 3.2.2.1
+- warp
+- warp-tls
 
 ghc-options:
 - -Wall
