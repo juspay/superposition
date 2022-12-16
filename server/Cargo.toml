@@ -1,0 +1,21 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "^4"
+uuid = { version = "^0.8", features = ["v4"] }
+
+# JSON serializing lib
+serde = { version = "^1", features = ["derive"] }
+
+# Logging lib for incoming requests
+env_logger = "0.8"
+log = "^0.4"
+
+
+strum_macros = "^0.24"
+strum = { version = "^0.24", features = ["derive"] }
