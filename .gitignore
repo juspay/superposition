@@ -8,8 +8,16 @@ node_modules/
 dist/
 build/
 
+
+
+/backend/target
+
 # Compiled Java class files
 *.class
+
+
+
+*Cargo.lock
 
 # Compiled Python bytecode
 *.py[cod]
