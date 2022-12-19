@@ -3,20 +3,29 @@ use actix_web:: {
     post,
     error::ResponseError,
     web::Path,
-    web::Json, 
+    web::Json,
+    web::Data,
     HttpResponse, 
     http::{header::ContentType, StatusCode}
 };
-use crate::model::dimensions::Dimension;
+use crate::models::db_models::Dimension;
 use strum_macros::{EnumString, Display};
 use serde::{Serialize, Deserialize};
 
+use crate::{
+    messages::dimensions::{
+        FetchDimensions, 
+        FetchDimension,
+        CreateDimension
+    }, AppState, DbActor};
+
+use actix::Addr;
 // Error codes and their implementation 
 #[derive(Debug, Display, EnumString)]
 pub enum DimensionError {
     DimensionNotFound,
     BadRequest,
-    FailedToAddDimension,
+    FailedToCreateDimension,
     SomethingWentWrong,
     FailedToGetDimensions,
 }
@@ -35,40 +44,63 @@ impl ResponseError for DimensionError{
             DimensionError::FailedToGetDimensions => StatusCode::FAILED_DEPENDENCY,
             DimensionError::SomethingWentWrong => StatusCode::INTERNAL_SERVER_ERROR,
             DimensionError::BadRequest => StatusCode::BAD_REQUEST,
-            DimensionError::FailedToAddDimension => StatusCode::FAILED_DEPENDENCY
+            DimensionError::FailedToCreateDimension => StatusCode::FAILED_DEPENDENCY
         }
     }
 }
 
-// Get global whole global config 
+// Get dimension table
 #[get("")]
-pub async fn get_config() -> Result<Json<Vec<Dimension>>, DimensionError> {
-    return Err(DimensionError::FailedToGetDimensions)
+pub async fn get_dimensions(state: Data<AppState>) -> Result<Json<Vec<Dimension>>, DimensionError> {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
 
+    match db.send(FetchDimensions).await {
+        Ok(Ok(info)) => Ok(Json(info)),
+        Ok(Err(_)) => Err(DimensionError::DimensionNotFound), 
+        _ => Err(DimensionError::SomethingWentWrong) 
+    }
+    
 }
 
-// Get request to fetch value for given key
+// Get request to fetch dimension from dimension name
 #[derive(Deserialize, Serialize)]
 pub struct Key {
     dimension: String,
 }
 
 #[get("/{dimension}")]
-pub async fn get_key(_params: Path<Key>) -> Result<Json<Dimension>, DimensionError> {
-    return Ok(Json(Dimension::new("something".to_string(),2)));    
+pub async fn get_dimension_key(state: Data<AppState>, params: Path<Key>) -> Result<Json<Dimension>, DimensionError> {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+    let dimension_key = params.into_inner().dimension;
+
+    match db.send(FetchDimension {dimension: dimension_key}).await {
+        Ok(Ok(info)) => Ok(Json(info)),
+        Ok(Err(_)) => Err(DimensionError::DimensionNotFound),
+        _ => Err(DimensionError::SomethingWentWrong)
+    }
+     
 }
 
 
-// Post request to add key, value
-#[derive(Deserialize, Serialize)]
+// Post request to add key, value to dimension table
+#[derive(Deserialize, Serialize, Clone)]
 pub struct KeyValue {
     dimension: String,
     priority: i32,
 }
 
 #[post("")]
-pub async fn post_config_key_value(_body: Json<KeyValue>) -> Result<Json<Dimension>, DimensionError> {
-    return Err(DimensionError::FailedToAddDimension);
+pub async fn post_dimension(state: Data<AppState>, body: Json<KeyValue>) -> Result<Json<Dimension>, DimensionError> {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+    
+    match db.send(CreateDimension {
+        dimension: body.dimension.clone(),
+        priority: body.priority
+    }).await {
+        
+        Ok(Ok(info)) => Ok(Json(info)),
+        _ => Err(DimensionError::FailedToCreateDimension)
+    } 
 
 }
 

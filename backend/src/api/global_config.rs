@@ -3,14 +3,22 @@ use actix_web:: {
     post,
     error::ResponseError,
     web::Path,
-    web::Json, 
+    web::Json,
+    web::Data,
     HttpResponse, 
     http::{header::ContentType, StatusCode}
 };
-use serde_json::{Value, json};
-use crate::model::global_config::GlobalConfig;
+use serde_json::Value;
+use crate::models::db_models::GlobalConfig;
 use strum_macros::{EnumString, Display};
 use serde::{Serialize, Deserialize};
+use crate::{
+    messages::global_config::{
+        FetchGlobalConfig, 
+        FetchConfigKey,
+        CreateGlobalKey,
+    }, AppState, DbActor};
+use actix::Addr;
 
 // Error codes and their implementation 
 #[derive(Debug, Display, EnumString)]
@@ -20,6 +28,7 @@ pub enum GlobalConfigError {
     FailedToAddToConfig,
     SomethingWentWrong,
     FailedToGetConfig,
+    ConfigNotFound,
 }
 
 
@@ -32,6 +41,7 @@ impl ResponseError for GlobalConfigError {
 
     fn status_code(&self) -> StatusCode {
         match self {
+            GlobalConfigError::ConfigNotFound => StatusCode::NOT_FOUND,
             GlobalConfigError::KeyNotFound => StatusCode::NOT_FOUND,
             GlobalConfigError::FailedToGetConfig => StatusCode::INTERNAL_SERVER_ERROR,
             GlobalConfigError::SomethingWentWrong => StatusCode::FAILED_DEPENDENCY,
@@ -43,8 +53,14 @@ impl ResponseError for GlobalConfigError {
 
 // Get whole global config 
 #[get("")]
-pub async fn get_config() -> Result<Json<Vec<GlobalConfig>>, GlobalConfigError> {
-    return Err(GlobalConfigError::FailedToGetConfig)
+pub async fn get_config(state: Data<AppState>) -> Result<Json<Vec<GlobalConfig>>, GlobalConfigError> {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    match db.send(FetchGlobalConfig).await {
+        Ok(Ok(info)) => Ok(Json(info)),
+        Ok(Err(_)) => Err(GlobalConfigError::ConfigNotFound), 
+        _ => Err(GlobalConfigError::SomethingWentWrong) 
+    }
 
 }
 
@@ -55,8 +71,15 @@ pub struct Key {
 }
 
 #[get("/{key}")]
-pub async fn get_key(params: Path<Key>) -> Result<Json<GlobalConfig>, GlobalConfigError> {
-    return Ok(Json(GlobalConfig::new("somthing".to_string(), json!(params.key))));    
+pub async fn get_global_config_key(state: Data<AppState>, params: Path<Key>) -> Result<Json<GlobalConfig>, GlobalConfigError> {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+    let key = params.into_inner().key;
+
+    match db.send(FetchConfigKey {key}).await {
+        Ok(Ok(info)) => Ok(Json(info)),
+        Ok(Err(_)) => Err(GlobalConfigError::KeyNotFound),
+        _ => Err(GlobalConfigError::SomethingWentWrong)
+    }
 }
 
 
@@ -68,8 +91,17 @@ pub struct KeyValue {
 }
 
 #[post("")]
-pub async fn post_config_key_value(_body: Json<KeyValue>) -> Result<Json<GlobalConfig>, GlobalConfigError> {
-    return Err(GlobalConfigError::FailedToAddToConfig);
+pub async fn post_config_key_value(state: Data<AppState>, body: Json<KeyValue>) -> Result<Json<GlobalConfig>, GlobalConfigError> {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+    
+    match db.send(CreateGlobalKey {
+        key: body.key.clone(),
+        value: body.value.clone()
+    }).await {
+        
+        Ok(Ok(info)) => Ok(Json(info)),
+        _ => Err(GlobalConfigError::FailedToAddToConfig)
+    } 
 
 }
 
