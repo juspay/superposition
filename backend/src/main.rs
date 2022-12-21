@@ -28,6 +28,7 @@ use api::{
         get_context
     }
 };
+// use crate::utils::validations::just_for_test;
 
 use dotenv;
 use std::env;
@@ -37,8 +38,10 @@ use db::utils::{get_pool, AppState, DbActor};
 use actix::SyncArbiter;
 use actix_web::{HttpServer, App, web::scope, middleware::Logger,web::Data};
 
+
 #[actix_web::main]
 async fn main() -> Result<()> {
+    // just_for_test();
     dotenv::dotenv().ok();
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "1");
