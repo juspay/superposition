@@ -1,4 +1,14 @@
 // @generated automatically by Diesel CLI.
+
+diesel::table! {
+    contexts (key) {
+        key -> Varchar,
+        value -> Json,
+        last_modified -> Timestamptz,
+        created_on -> Timestamptz,
+    }
+}
+
 diesel::table! {
     dimensions (dimension) {
         uuid -> Uuid,
@@ -19,7 +29,6 @@ diesel::table! {
     }
 }
 
-
 diesel::table! {
     overrides (key) {
         key -> Varchar,
@@ -30,6 +39,7 @@ diesel::table! {
 }
 
 diesel::allow_tables_to_appear_in_same_query!(
+    contexts,
     dimensions,
     global_config,
     overrides,

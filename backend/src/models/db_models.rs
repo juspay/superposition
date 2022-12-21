@@ -6,8 +6,17 @@ use chrono::offset::Utc;
 use diesel::{Identifiable, Queryable};
 use serde::Serialize;
 use serde_json::Value;
-use crate::db::schema::{dimensions, global_config, overrides};
+use crate::db::schema::{contexts, dimensions, global_config, overrides};
 
+#[derive(Queryable, Debug, Identifiable, Serialize)]
+#[diesel(table_name = contexts)]
+#[diesel(primary_key(key))]
+pub struct Contexts {
+    pub key: String,
+    pub value: Value,
+    pub last_modified: DateTime<Utc>,
+    pub created_on: DateTime<Utc>,
+}
 
 #[derive(Queryable, Debug, Identifiable, Serialize)]
 #[diesel(table_name = dimensions)]
@@ -19,8 +28,6 @@ pub struct Dimension {
     pub last_modified: DateTime<Utc>,
     pub created_on: DateTime<Utc>,
 }
-
-
 
 #[derive(Queryable, Debug, Identifiable, Serialize)]
 #[diesel(table_name = global_config)]

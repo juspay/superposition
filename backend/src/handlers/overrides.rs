@@ -8,7 +8,7 @@ use crate::messages::overrides::{CreateOverride, DeleteOverride, FetchOverride};
 use actix::Handler;
 use diesel::{self, prelude::*};
 
-use crate::models::insertables::overrides::OverrideInsertion;
+use crate::models::insertables::overrides::NewOverride;
 
 impl Handler<CreateOverride> for DbActor {
     type Result = QueryResult<Overrides>;
@@ -17,7 +17,7 @@ impl Handler<CreateOverride> for DbActor {
         let mut conn = self.0.get().expect("Error on making DB connection for creating override");
 
         diesel::insert_into(overrides)
-            .values(OverrideInsertion {
+            .values(NewOverride {
                 key: msg.key,
                 value: msg.value,
             })

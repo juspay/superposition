@@ -12,8 +12,9 @@ use serde::Serialize;
 use serde_json::Value;
 use strum_macros::{Display, EnumString};
 
+
 use crate::{
-    messages::overrides::{CreateOverride, DeleteOverride, FetchOverride},
+    messages::contexts::{CreateContext, DeleteContext, FetchContext},
     AppState, DbActor,
 };
 
@@ -24,17 +25,17 @@ use crate::utils::{
 
 
 #[derive(Debug, Display, EnumString)]
-pub enum OverrideError {
+pub enum ContextError {
     BadRequest,
-    FailedToAddOverride,
+    FailedToAddContext,
     SomethingWentWrong,
-    FailedToGetOverride,
-    OverrideNotFound,
+    FailedToGetContext,
+    ContextNotFound,
     DataAlreadyExists,
     DeletionFailed,
 }
 
-impl ResponseError for OverrideError {
+impl ResponseError for ContextError {
     fn error_response(&self) -> HttpResponse<actix_web::body::BoxBody> {
         HttpResponse::build(self.status_code())
             .insert_header(ContentType::json())
@@ -43,13 +44,13 @@ impl ResponseError for OverrideError {
 
     fn status_code(&self) -> StatusCode {
         match self {
-            OverrideError::OverrideNotFound => StatusCode::NOT_FOUND,
-            OverrideError::FailedToGetOverride => StatusCode::INTERNAL_SERVER_ERROR,
-            OverrideError::SomethingWentWrong => StatusCode::FAILED_DEPENDENCY,
-            OverrideError::BadRequest => StatusCode::BAD_REQUEST,
-            OverrideError::FailedToAddOverride => StatusCode::FAILED_DEPENDENCY,
-            OverrideError::DataAlreadyExists => StatusCode::FAILED_DEPENDENCY,
-            OverrideError::DeletionFailed => StatusCode::FAILED_DEPENDENCY,
+            ContextError::ContextNotFound => StatusCode::NOT_FOUND,
+            ContextError::FailedToGetContext => StatusCode::INTERNAL_SERVER_ERROR,
+            ContextError::SomethingWentWrong => StatusCode::FAILED_DEPENDENCY,
+            ContextError::BadRequest => StatusCode::BAD_REQUEST,
+            ContextError::FailedToAddContext => StatusCode::FAILED_DEPENDENCY,
+            ContextError::DataAlreadyExists => StatusCode::FAILED_DEPENDENCY,
+            ContextError::DeletionFailed => StatusCode::FAILED_DEPENDENCY,
         }
     }
 }
@@ -59,8 +60,9 @@ pub struct IDResponse {
     id: String,
 }
 
+
 #[post("")]
-pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<Json<IDResponse>, OverrideError> {
+pub async fn post_context(state: Data<AppState>, body: Json<Value>) -> Result<Json<IDResponse>, ContextError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     // TODO :: Handle unwraps properly
@@ -71,46 +73,46 @@ pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<J
 
 
     match db
-        .send(CreateOverride {
+        .send(CreateContext {
             key: hashed_value,
             value: formatted_value,
         })
         .await
     {
         Ok(Ok(info)) => Ok(Json(IDResponse {id: info.key})),
-        Ok(Err(_)) => Err(OverrideError::DataAlreadyExists),
-        _ => Err(OverrideError::FailedToAddOverride),
+        Ok(Err(_)) => Err(ContextError::DataAlreadyExists),
+        _ => Err(ContextError::FailedToAddContext),
     }
 }
 
 #[get("/{key}")]
-pub async fn get_override(state: Data<AppState>, key: Path<String>) -> Result<Json<Value>, OverrideError> {
+pub async fn get_context(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, ContextError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db
-        .send(FetchOverride {
-            key: key.to_string(),
-        })
-        .await
-    {
-        Ok(Ok(info)) => Ok(Json(info.value)),
-        Ok(Err(_)) => Err(OverrideError::OverrideNotFound),
-        _ => Err(OverrideError::FailedToGetOverride),
-    }
-}
-
-#[delete("/{key}")]
-pub async fn delete_override(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, OverrideError> {
-    let db: Addr<DbActor> = state.as_ref().db.clone();
-
-    match db
-        .send(DeleteOverride {
+        .send(FetchContext {
             key: id.to_string(),
         })
         .await
     {
         Ok(Ok(info)) => Ok(Json(info.value)),
-        Ok(_) => Err(OverrideError::OverrideNotFound),
-        _ => Err(OverrideError::DeletionFailed),
+        Ok(Err(_)) => Err(ContextError::ContextNotFound),
+        _ => Err(ContextError::FailedToGetContext),
+    }
+}
+
+#[delete("/{key}")]
+pub async fn delete_context(state: Data<AppState>, key: Path<String>) -> Result<Json<Value>, ContextError> {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    match db
+        .send(DeleteContext {
+            key: key.to_string(),
+        })
+        .await
+    {
+        Ok(Ok(info)) => Ok(Json(info.value)),
+        Ok(_) => Err(ContextError::ContextNotFound),
+        _ => Err(ContextError::DeletionFailed),
     }
 }

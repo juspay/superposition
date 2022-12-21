@@ -18,15 +18,20 @@ use api::{
         post_dimension
     },
     overrides::{
-        add_override,
+        post_override,
         delete_override,
         get_override,
+    },
+    contexts::{
+        post_context,
+        delete_context,
+        get_context
     }
 };
 
 use dotenv;
 use std::env;
-use std::io::{Result};
+use std::io::Result;
 
 use db::utils::{get_pool, AppState, DbActor};
 use actix::SyncArbiter;
@@ -60,9 +65,15 @@ async fn main() -> Result<()> {
         )
         .service(
             scope("/override")
-                .service(add_override)
+                .service(post_override)
                 .service(delete_override)
                 .service(get_override)
+        ).service(
+            scope("/context")
+                .service(post_context)
+                .service(delete_context)
+                .service(get_context)
+
         )
 
     })
