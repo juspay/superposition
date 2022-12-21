@@ -19,7 +19,18 @@ diesel::table! {
     }
 }
 
+
+diesel::table! {
+    overrides (key) {
+        key -> Varchar,
+        value -> Json,
+        last_modified -> Timestamptz,
+        created_on -> Timestamptz,
+    }
+}
+
 diesel::allow_tables_to_appear_in_same_query!(
     dimensions,
     global_config,
+    overrides,
 );

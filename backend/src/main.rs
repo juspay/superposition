@@ -3,38 +3,43 @@ mod models;
 mod db;
 mod messages;
 mod handlers;
-use api::global_config::{
-    get_global_config_key,
-    get_config,
-    post_config_key_value,
+mod utils;
+
+use api::{
+    global_config::{
+        get_global_config_key,
+        get_config,
+        post_config_key_value,
+    },
+
+    dimensions::{
+        get_dimensions,
+        get_dimension_key,
+        post_dimension
+    },
+    overrides::{
+        add_override,
+        delete_override,
+        get_override,
+    }
 };
 
-use api::dimensions::{
-    get_dimensions,
-    get_dimension_key,
-    post_dimension
-    
-};
-
-use diesel::{
-    r2d2::{ConnectionManager,Pool},
-    PgConnection
-};
 use dotenv;
 use std::env;
+use std::io::{Result};
 
 use db::utils::{get_pool, AppState, DbActor};
 use actix::SyncArbiter;
 use actix_web::{HttpServer, App, web::scope, middleware::Logger,web::Data};
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> Result<()> {
     dotenv::dotenv().ok();
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
     let db_url: String = env::var("DATABASE_URL").expect("DATABASE_URL must be set in environment");
-    let pool: Pool<ConnectionManager<PgConnection>> = get_pool(&db_url);
+    let pool = get_pool(&db_url);
     let db_addr = SyncArbiter::start(5, move || DbActor(pool.clone()));
     HttpServer::new(move || {
         let logger: Logger = Logger::default();
@@ -53,8 +58,15 @@ async fn main() -> std::io::Result<()> {
                 .service(get_dimension_key)
                 .service(post_dimension)
         )
+        .service(
+            scope("/override")
+                .service(add_override)
+                .service(delete_override)
+                .service(get_override)
+        )
+
     })
-    .bind(("127.0.0.1", 8000))?
+    .bind(("127.0.0.1", 8080))?
     .workers(5)
     .run()
     .await

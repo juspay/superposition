@@ -2,10 +2,8 @@ use actix_web:: {
     get,
     post,
     error::ResponseError,
-    web::Path,
-    web::Json,
-    web::Data,
-    HttpResponse, 
+    web::{Path, Json, Data},
+    HttpResponse,
     http::{header::ContentType, StatusCode}
 };
 use serde_json::Value;
@@ -14,13 +12,13 @@ use strum_macros::{EnumString, Display};
 use serde::{Serialize, Deserialize};
 use crate::{
     messages::global_config::{
-        FetchGlobalConfig, 
+        FetchGlobalConfig,
         FetchConfigKey,
         CreateGlobalKey,
     }, AppState, DbActor};
 use actix::Addr;
 
-// Error codes and their implementation 
+// Error codes and their implementation
 #[derive(Debug, Display, EnumString)]
 pub enum GlobalConfigError {
     KeyNotFound,
@@ -51,15 +49,15 @@ impl ResponseError for GlobalConfigError {
     }
 }
 
-// Get whole global config 
+// Get whole global config
 #[get("")]
 pub async fn get_config(state: Data<AppState>) -> Result<Json<Vec<GlobalConfig>>, GlobalConfigError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db.send(FetchGlobalConfig).await {
         Ok(Ok(info)) => Ok(Json(info)),
-        Ok(Err(_)) => Err(GlobalConfigError::ConfigNotFound), 
-        _ => Err(GlobalConfigError::SomethingWentWrong) 
+        Ok(Err(_)) => Err(GlobalConfigError::ConfigNotFound),
+        _ => Err(GlobalConfigError::SomethingWentWrong)
     }
 
 }
@@ -93,15 +91,15 @@ pub struct KeyValue {
 #[post("")]
 pub async fn post_config_key_value(state: Data<AppState>, body: Json<KeyValue>) -> Result<Json<GlobalConfig>, GlobalConfigError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
-    
+
     match db.send(CreateGlobalKey {
         key: body.key.clone(),
         value: body.value.clone()
     }).await {
-        
+
         Ok(Ok(info)) => Ok(Json(info)),
         _ => Err(GlobalConfigError::FailedToAddToConfig)
-    } 
+    }
 
 }
 

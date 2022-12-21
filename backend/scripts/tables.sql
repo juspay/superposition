@@ -17,3 +17,11 @@ CREATE TABLE global_config (
   created_on timestamp with time zone default CURRENT_TIMESTAMP NOT NULL,
   PRIMARY KEY(key)
 );
+
+CREATE TABLE overrides (
+  key VARCHAR NOT NULL,
+  value json NOT NULL,
+  last_modified timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+  created_on timestamp with time zone default CURRENT_TIMESTAMP NOT NULL,
+  PRIMARY KEY(key)
+);

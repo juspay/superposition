@@ -12,7 +12,7 @@ use diesel::{self, prelude::*};
 use crate::models::insertables::dimensions::NewDimension;
 
 impl Handler<FetchDimensions> for DbActor {
-    
+
     type Result = QueryResult<Vec<Dimension>>;
 
     fn handle(&mut self, _msg: FetchDimensions, _ctx: &mut Self::Context) -> Self::Result {
@@ -46,9 +46,9 @@ impl Handler<CreateDimension> for DbActor {
             dimension: msg.dimension,
             priority: msg.priority
         };
-        
+
         diesel::insert_into(dimensions)
-            .values(new_dimension) 
-            .get_result::<Dimension>(&mut conn)    
+            .values(new_dimension)
+            .get_result::<Dimension>(&mut conn)
     }
 }
