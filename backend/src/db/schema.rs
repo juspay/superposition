@@ -1,15 +1,6 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    contexts (key) {
-        key -> Varchar,
-        value -> Json,
-        last_modified -> Timestamptz,
-        created_on -> Timestamptz,
-    }
-}
-
-diesel::table! {
     dimensions (dimension) {
         uuid -> Uuid,
         dimension -> Varchar,
@@ -31,6 +22,15 @@ diesel::table! {
 
 diesel::table! {
     overrides (key) {
+        key -> Varchar,
+        value -> Json,
+        last_modified -> Timestamptz,
+        created_on -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    contexts (key) {
         key -> Varchar,
         value -> Json,
         last_modified -> Timestamptz,

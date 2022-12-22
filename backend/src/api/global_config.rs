@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use actix_web:: {
     get,
     post,
@@ -6,7 +8,7 @@ use actix_web:: {
     HttpResponse,
     http::{header::ContentType, StatusCode}
 };
-use serde_json::Value;
+use serde_json::{Value, to_value};
 use crate::models::db_models::GlobalConfig;
 use strum_macros::{EnumString, Display};
 use serde::{Serialize, Deserialize};
@@ -49,17 +51,44 @@ impl ResponseError for GlobalConfigError {
     }
 }
 
-// Get whole global config
-#[get("")]
-pub async fn get_config(state: Data<AppState>) -> Result<Json<Vec<GlobalConfig>>, GlobalConfigError> {
-    let db: Addr<DbActor> = state.as_ref().db.clone();
-
+async fn get_all_rows_from_global_config(db: Addr<DbActor>) -> Result<Vec<GlobalConfig>, GlobalConfigError> {
     match db.send(FetchGlobalConfig).await {
-        Ok(Ok(info)) => Ok(Json(info)),
+        Ok(Ok(info)) => Ok(info),
         Ok(Err(_)) => Err(GlobalConfigError::ConfigNotFound),
         _ => Err(GlobalConfigError::SomethingWentWrong)
     }
+}
 
+async fn get_complete_config(db: Addr<DbActor>) -> Result<Json<Value>, GlobalConfigError> {
+    let db_rows = get_all_rows_from_global_config(db).await?;
+    let mut hash_map: HashMap<String, Value> = HashMap::new();
+
+    for row in db_rows {
+        hash_map.insert(row.key, row.value);
+    }
+
+    let result = to_value(hash_map).map_err(|_| GlobalConfigError::FailedToGetConfig)?;
+
+    // ? Is there any better to do this using some `functors`
+    return Ok(Json(result));
+}
+
+
+// ? Do we need this ?
+// Get whole global config as rows
+#[get("/rows")]
+pub async fn get_config_rows(state: Data<AppState>) -> Result<Json<Vec<GlobalConfig>>, GlobalConfigError> {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+    let db_rows = get_all_rows_from_global_config(db).await?;
+    Ok(Json(db_rows))
+}
+
+
+// Get whole global config
+#[get("/")]
+pub async fn get_config(state: Data<AppState>) -> Result<Json<Value>, GlobalConfigError> {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+    get_complete_config(db).await
 }
 
 // Get request to fetch value for given key
