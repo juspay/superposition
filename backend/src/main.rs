@@ -26,6 +26,11 @@ use api::{
         post_context,
         delete_context,
         get_context
+    },
+    context_overrides::{
+        add_ctx_override,
+        delete_ctx_override,
+        get_ctx_override,
     }
 };
 // use crate::utils::validations::just_for_test;
@@ -67,6 +72,12 @@ async fn main() -> Result<()> {
                 .service(post_dimension)
         )
         .service(
+            scope("/context_overrides")
+                .service(add_ctx_override)
+                .service(delete_ctx_override)
+                .service(get_ctx_override)
+        )
+        .service(
             scope("/override")
                 .service(post_override)
                 .service(delete_override)
@@ -78,7 +89,6 @@ async fn main() -> Result<()> {
                 .service(get_context)
 
         )
-
     })
     .bind(("127.0.0.1", 8080))?
     .workers(5)

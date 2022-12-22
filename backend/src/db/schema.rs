@@ -38,9 +38,20 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    ctxoverrides (key) {
+        key -> Varchar,
+        context_id -> Varchar,
+        override_id -> Varchar,
+        last_modified -> Timestamptz,
+        created_on -> Timestamptz,
+    }
+}
+
 diesel::allow_tables_to_appear_in_same_query!(
     contexts,
     dimensions,
     global_config,
     overrides,
+    ctxoverrides
 );
