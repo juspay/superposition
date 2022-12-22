@@ -59,7 +59,7 @@ async fn get_all_rows_from_global_config(db: Addr<DbActor>) -> Result<Vec<Global
     }
 }
 
-async fn get_complete_config(db: Addr<DbActor>) -> Result<Json<Value>, GlobalConfigError> {
+pub async fn get_complete_config(db: Addr<DbActor>) -> Result<Json<Value>, GlobalConfigError> {
     let db_rows = get_all_rows_from_global_config(db).await?;
     let mut hash_map: HashMap<String, Value> = HashMap::new();
 

@@ -9,7 +9,7 @@ use actix_web::{
     HttpResponse,
 };
 use serde::Serialize;
-use serde_json::Value;
+use serde_json::{Value, to_value};
 use strum_macros::{Display, EnumString};
 
 use crate::{
@@ -22,6 +22,8 @@ use crate::utils::{
     helpers::sort_multi_level_keys_in_stringified_json,
 };
 
+use crate::api::global_config::{get_complete_config};
+use crate::utils::validations::validate_sub_tree;
 
 #[derive(Debug, Display, EnumString)]
 pub enum OverrideError {
@@ -64,6 +66,18 @@ pub struct IDResponse {
 #[post("")]
 pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<Json<IDResponse>, OverrideError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    let global_config =
+        get_complete_config(db.clone()).await
+        .map_err(|_| OverrideError::FailedToAddOverride)?;
+
+    let global_config_as_value = to_value(global_config).map_err(|_| OverrideError::FailedToAddOverride)?;
+
+    if let Err(error_message) = validate_sub_tree(&global_config_as_value, &body) {
+        // TODO :: Add code to parse error value into response body
+        return Err(OverrideError::ErrorOnParsingBody);
+    }
+
 
     // TODO :: Post as an array of value
     let override_value = body.clone();

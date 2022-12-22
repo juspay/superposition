@@ -61,15 +61,13 @@ pub struct IDResponse {
     id: String,
 }
 
-
-
 #[post("")]
 pub async fn add_ctx_override(state: Data<AppState>, body: Json<BodyType>) -> Result<Json<IDResponse>, CtxOverrideError> {
 
     let db: Addr<DbActor> = state.as_ref().db.clone();
     let ctx_id: String = body.context_id.clone();
     let ovr_id : String = body.override_id.clone();
-    let ctx_over_concat = format!( "{}{}" , ctx_id, ovr_id);
+    let ctx_over_concat = "".to_string() + &ctx_id + &ovr_id;
 
     match db
         .send(CreateCtxOverrides {
