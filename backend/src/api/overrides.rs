@@ -32,6 +32,7 @@ pub enum OverrideError {
     OverrideNotFound,
     DataAlreadyExists,
     DeletionFailed,
+    ErrorOnParsingBody,
 }
 
 impl ResponseError for OverrideError {
@@ -50,6 +51,7 @@ impl ResponseError for OverrideError {
             OverrideError::FailedToAddOverride => StatusCode::FAILED_DEPENDENCY,
             OverrideError::DataAlreadyExists => StatusCode::FAILED_DEPENDENCY,
             OverrideError::DeletionFailed => StatusCode::FAILED_DEPENDENCY,
+            OverrideError::ErrorOnParsingBody => StatusCode::BAD_REQUEST,
         }
     }
 }
@@ -63,12 +65,13 @@ pub struct IDResponse {
 pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<Json<IDResponse>, OverrideError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
-    // TODO :: Handle unwraps properly
     // TODO :: Post as an array of value
     let override_value = body.clone();
-    let formatted_value = sort_multi_level_keys_in_stringified_json(override_value).unwrap();
-    let hashed_value = string_based_b64_hash((&formatted_value).to_string()).to_string();
+    let formatted_value =
+        sort_multi_level_keys_in_stringified_json(override_value)
+        .ok_or(OverrideError::ErrorOnParsingBody)?;
 
+    let hashed_value = string_based_b64_hash((&formatted_value).to_string()).to_string();
 
     match db
         .send(CreateOverride {

@@ -33,6 +33,7 @@ pub enum ContextError {
     ContextNotFound,
     DataAlreadyExists,
     DeletionFailed,
+    ErrorOnParsingBody,
 }
 
 impl ResponseError for ContextError {
@@ -51,6 +52,7 @@ impl ResponseError for ContextError {
             ContextError::FailedToAddContext => StatusCode::FAILED_DEPENDENCY,
             ContextError::DataAlreadyExists => StatusCode::FAILED_DEPENDENCY,
             ContextError::DeletionFailed => StatusCode::FAILED_DEPENDENCY,
+            ContextError::ErrorOnParsingBody => StatusCode::BAD_REQUEST,
         }
     }
 }
@@ -65,10 +67,12 @@ pub struct IDResponse {
 pub async fn post_context(state: Data<AppState>, body: Json<Value>) -> Result<Json<IDResponse>, ContextError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
-    // TODO :: Handle unwraps properly
     // TODO :: Post as an array of value
     let override_value = body.clone();
-    let formatted_value = sort_multi_level_keys_in_stringified_json(override_value).unwrap();
+    let formatted_value =
+        sort_multi_level_keys_in_stringified_json(override_value)
+        .ok_or(ContextError::ErrorOnParsingBody)?;
+
     let hashed_value = string_based_b64_hash((&formatted_value).to_string()).to_string();
 
 

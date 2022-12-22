@@ -45,7 +45,6 @@ fn validate_sub_tree_helper(default_tree: &Value, overriding_tree: &Value, path:
     }
 
     if !default_tree.is_object() {
-        println!("{} => {}", &default_tree, &overriding_tree, );
         return (true, "".to_string());
     }
 
