@@ -5,10 +5,10 @@ mod messages;
 mod handlers;
 mod utils;
 
-use api::{
+use api::primary::{
     global_config::{
         get_global_config_key,
-        get_config,
+        get_global_config,
         post_config_key_value,
     },
 
@@ -33,6 +33,11 @@ use api::{
         get_ctx_override,
     }
 };
+
+use api::derived::{
+    config::{get_config}
+};
+
 // use crate::utils::validations::just_for_test;
 
 use dotenv;
@@ -59,9 +64,11 @@ async fn main() -> Result<()> {
         App::new()
         .app_data(Data::new(AppState {db: db_addr.clone()}))
         .wrap(logger)
+
+/***************************** Primary api routes *****************************/
         .service(
             scope("/global_config")
-                .service(get_config)
+                .service(get_global_config)
                 .service(get_global_config_key)
                 .service(post_config_key_value)
         )
@@ -87,6 +94,13 @@ async fn main() -> Result<()> {
                 .service(post_context)
                 .service(delete_context)
                 .service(get_context)
+
+        )
+
+/***************************** Derived api routes *****************************/
+        .service(
+            scope("/config")
+                .service(get_config)
 
         )
     })

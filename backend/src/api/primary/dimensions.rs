@@ -53,7 +53,7 @@ pub async fn get_dimensions(state: Data<AppState>) -> Result<Json<Vec<Dimension>
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db.send(FetchDimensions).await {
-        Ok(Ok(info)) => Ok(Json(info)),
+        Ok(Ok(result)) => Ok(Json(result)),
         Ok(Err(_)) => Err(DimensionError::DimensionNotFound),
         _ => Err(DimensionError::SomethingWentWrong)
     }
@@ -72,7 +72,7 @@ pub async fn get_dimension_key(state: Data<AppState>, params: Path<Key>) -> Resu
     let dimension_key = params.into_inner().dimension;
 
     match db.send(FetchDimension {dimension: dimension_key}).await {
-        Ok(Ok(info)) => Ok(Json(info)),
+        Ok(Ok(result)) => Ok(Json(result)),
         Ok(Err(_)) => Err(DimensionError::DimensionNotFound),
         _ => Err(DimensionError::SomethingWentWrong)
     }
@@ -96,7 +96,7 @@ pub async fn post_dimension(state: Data<AppState>, body: Json<KeyValue>) -> Resu
         priority: body.priority
     }).await {
 
-        Ok(Ok(info)) => Ok(Json(info)),
+        Ok(Ok(result)) => Ok(Json(result)),
         _ => Err(DimensionError::FailedToCreateDimension)
     }
 

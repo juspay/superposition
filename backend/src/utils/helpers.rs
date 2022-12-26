@@ -5,3 +5,26 @@ pub fn sort_multi_level_keys_in_stringified_json(json: Value) -> Option<Value> {
     let b_tree: &BTreeMap<String, Value> = &from_value(json).ok()?;
     to_value(b_tree).ok()
 }
+
+fn create_all_unique_subsets_helper(s: &Vec<&str> , idx: i32) -> Vec<String> {
+    let mut n = idx;
+	let mut vector_index = 0;
+	let mut result: Vec<String> = Vec::new();
+
+	while n > 0 {
+		if (n & 1) == 1 {
+			result.push(s[vector_index].to_owned());
+		}
+		n = n >> 1;
+        vector_index += 1;
+	}
+	return result;
+}
+
+pub fn create_all_unique_subsets(s: &Vec<&str>) -> Vec<Vec<String>> {
+	let mut res: Vec<Vec<String>> = Vec::new();
+    for i in 1..(1 << s.len()) {
+        res.push(create_all_unique_subsets_helper(s ,i));
+    }
+	return res;
+}

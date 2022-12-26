@@ -68,9 +68,11 @@ pub async fn post_context(state: Data<AppState>, body: Json<Value>) -> Result<Js
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     // TODO :: Post as an array of value
-    let override_value = body.clone();
+    let context_value = body.clone();
+
+    // TODO :: Sort query based on key and add to DB
     let formatted_value =
-        sort_multi_level_keys_in_stringified_json(override_value)
+        sort_multi_level_keys_in_stringified_json(context_value)
         .ok_or(ContextError::ErrorOnParsingBody)?;
 
     let hashed_value = string_based_b64_hash((&formatted_value).to_string()).to_string();
@@ -83,7 +85,7 @@ pub async fn post_context(state: Data<AppState>, body: Json<Value>) -> Result<Js
         })
         .await
     {
-        Ok(Ok(info)) => Ok(Json(IDResponse {id: info.key})),
+        Ok(Ok(result)) => Ok(Json(IDResponse {id: result.key})),
         Ok(Err(_)) => Err(ContextError::DataAlreadyExists),
         _ => Err(ContextError::FailedToAddContext),
     }
@@ -99,7 +101,7 @@ pub async fn get_context(state: Data<AppState>, id: Path<String>) -> Result<Json
         })
         .await
     {
-        Ok(Ok(info)) => Ok(Json(info.value)),
+        Ok(Ok(result)) => Ok(Json(result.value)),
         Ok(Err(_)) => Err(ContextError::ContextNotFound),
         _ => Err(ContextError::FailedToGetContext),
     }
@@ -115,7 +117,7 @@ pub async fn delete_context(state: Data<AppState>, key: Path<String>) -> Result<
         })
         .await
     {
-        Ok(Ok(info)) => Ok(Json(info.value)),
+        Ok(Ok(result)) => Ok(Json(result.value)),
         Ok(_) => Err(ContextError::ContextNotFound),
         _ => Err(ContextError::DeletionFailed),
     }

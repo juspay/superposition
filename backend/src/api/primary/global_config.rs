@@ -51,16 +51,17 @@ impl ResponseError for GlobalConfigError {
     }
 }
 
-async fn get_all_rows_from_global_config(db: Addr<DbActor>) -> Result<Vec<GlobalConfig>, GlobalConfigError> {
+async fn get_all_rows_from_global_config(state: Data<AppState>) -> Result<Vec<GlobalConfig>, GlobalConfigError> {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
     match db.send(FetchGlobalConfig).await {
-        Ok(Ok(info)) => Ok(info),
+        Ok(Ok(result)) => Ok(result),
         Ok(Err(_)) => Err(GlobalConfigError::ConfigNotFound),
         _ => Err(GlobalConfigError::SomethingWentWrong)
     }
 }
 
-pub async fn get_complete_config(db: Addr<DbActor>) -> Result<Json<Value>, GlobalConfigError> {
-    let db_rows = get_all_rows_from_global_config(db).await?;
+pub async fn get_complete_config(state: Data<AppState>) -> Result<Json<Value>, GlobalConfigError> {
+    let db_rows = get_all_rows_from_global_config(state).await?;
     let mut hash_map: HashMap<String, Value> = HashMap::new();
 
     for row in db_rows {
@@ -78,17 +79,14 @@ pub async fn get_complete_config(db: Addr<DbActor>) -> Result<Json<Value>, Globa
 // Get whole global config as rows
 #[get("/rows")]
 pub async fn get_config_rows(state: Data<AppState>) -> Result<Json<Vec<GlobalConfig>>, GlobalConfigError> {
-    let db: Addr<DbActor> = state.as_ref().db.clone();
-    let db_rows = get_all_rows_from_global_config(db).await?;
-    Ok(Json(db_rows))
+    Ok(Json(get_all_rows_from_global_config(state).await?))
 }
 
 
 // Get whole global config
 #[get("/")]
-pub async fn get_config(state: Data<AppState>) -> Result<Json<Value>, GlobalConfigError> {
-    let db: Addr<DbActor> = state.as_ref().db.clone();
-    get_complete_config(db).await
+pub async fn get_global_config(state: Data<AppState>) -> Result<Json<Value>, GlobalConfigError> {
+    get_complete_config(state).await
 }
 
 // Get request to fetch value for given key
@@ -103,7 +101,7 @@ pub async fn get_global_config_key(state: Data<AppState>, params: Path<Key>) -> 
     let key = params.into_inner().key;
 
     match db.send(FetchConfigKey {key}).await {
-        Ok(Ok(info)) => Ok(Json(info)),
+        Ok(Ok(result)) => Ok(Json(result)),
         Ok(Err(_)) => Err(GlobalConfigError::KeyNotFound),
         _ => Err(GlobalConfigError::SomethingWentWrong)
     }
@@ -126,7 +124,7 @@ pub async fn post_config_key_value(state: Data<AppState>, body: Json<KeyValue>) 
         value: body.value.clone()
     }).await {
 
-        Ok(Ok(info)) => Ok(Json(info)),
+        Ok(Ok(result)) => Ok(Json(result)),
         _ => Err(GlobalConfigError::FailedToAddToConfig)
     }
 

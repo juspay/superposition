@@ -77,7 +77,7 @@ pub async fn add_ctx_override(state: Data<AppState>, body: Json<BodyType>) -> Re
         })
         .await
     {
-        Ok(Ok(info)) => Ok(Json(IDResponse {id: info.key})),
+        Ok(Ok(result)) => Ok(Json(IDResponse {id: result.key})),
         Ok(Err(_)) => Err(CtxOverrideError::CtxOverrideNotFound),
         _ => Err(CtxOverrideError::FailedToGetCtxOverride),
     }
@@ -93,7 +93,7 @@ pub async fn get_ctx_override(state: Data<AppState>, id: Path<String>) -> Result
         })
         .await
     {
-        Ok(Ok(info)) => Ok(Json(serde_json::Value::String(info.key))),
+        Ok(Ok(result)) => Ok(Json(serde_json::Value::String(result.key))),
         Ok(Err(_)) => Err(CtxOverrideError::CtxOverrideNotFound),
         _ => Err(CtxOverrideError::FailedToGetCtxOverride),
     }
@@ -109,7 +109,7 @@ pub async fn delete_ctx_override(state: Data<AppState>, id: Path<String>) -> Res
         })
         .await
     {
-        Ok(Ok(info)) => Ok(Json(serde_json::Value::String(info.key))),
+        Ok(Ok(result)) => Ok(Json(serde_json::Value::String(result.key))),
         Ok(_) => Err(CtxOverrideError::CtxOverrideNotFound),
         _ => Err(CtxOverrideError::DeletionFailed),
     }
