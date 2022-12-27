@@ -22,7 +22,7 @@ use crate::utils::{
     helpers::sort_multi_level_keys_in_stringified_json,
 };
 
-use crate::api::primary::global_config::{get_complete_config};
+use crate::api::primary::global_config::get_complete_config;
 use crate::utils::validations::validate_sub_tree;
 
 #[derive(Debug, Display, EnumString)]

@@ -30,10 +30,6 @@ fn type_of(a: &Value) -> String{
     return "Object".to_string();
 }
 
-enum ValidationErrors {
-    ErrorMessageParsingError
-}
-
 
 fn create_type_mismatch_error(default_value: &Value, overriding_value: &Value, path: &mut Vec<String>) -> Value {
 

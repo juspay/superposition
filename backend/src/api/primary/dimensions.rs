@@ -1,13 +1,9 @@
 use actix_web:: {
     get,
     post,
-    error::ResponseError,
     web::{Path, Json, Data},
-    HttpResponse,
-    http::{header::ContentType, StatusCode}
 };
 use crate::models::db_models::Dimension;
-use strum_macros::{EnumString, Display};
 use serde::{Serialize, Deserialize};
 
 use crate::{
@@ -18,44 +14,33 @@ use crate::{
     }, AppState, DbActor};
 
 use actix::Addr;
-// Error codes and their implementation
-#[derive(Debug, Display, EnumString)]
-pub enum DimensionError {
-    DimensionNotFound,
-    BadRequest,
-    FailedToCreateDimension,
-    SomethingWentWrong,
-    FailedToGetDimensions,
-}
 
-
-impl ResponseError for DimensionError{
-    fn error_response(&self) -> HttpResponse<actix_web::body::BoxBody> {
-        HttpResponse::build(self.status_code())
-        .insert_header(ContentType::json())
-        .body(self.to_string())
+use crate::utils::errors::{
+    AppError,
+    AppErrorType::{
+        DBError,
+        NotFound,
+        AlreadyExists
     }
-
-    fn status_code(&self) -> StatusCode {
-        match self {
-            DimensionError::DimensionNotFound => StatusCode::NOT_FOUND,
-            DimensionError::FailedToGetDimensions => StatusCode::FAILED_DEPENDENCY,
-            DimensionError::SomethingWentWrong => StatusCode::INTERNAL_SERVER_ERROR,
-            DimensionError::BadRequest => StatusCode::BAD_REQUEST,
-            DimensionError::FailedToCreateDimension => StatusCode::FAILED_DEPENDENCY
-        }
-    }
-}
+};
 
 // Get dimension table
 #[get("")]
-pub async fn get_dimensions(state: Data<AppState>) -> Result<Json<Vec<Dimension>>, DimensionError> {
+pub async fn get_dimensions(state: Data<AppState>) -> Result<Json<Vec<Dimension>>, AppError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db.send(FetchDimensions).await {
         Ok(Ok(result)) => Ok(Json(result)),
-        Ok(Err(_)) => Err(DimensionError::DimensionNotFound),
-        _ => Err(DimensionError::SomethingWentWrong)
+        Ok(Err(err)) => Err(AppError {
+            message: Some("failed to get dimensions".to_string()),
+            cause: Some(err.to_string()),
+            status: NotFound
+        }),
+        Err(err) => Err(AppError {
+            message: None,
+            cause: Some(err.to_string()),
+            status: DBError
+        })
     }
 
 }
@@ -67,16 +52,23 @@ pub struct Key {
 }
 
 #[get("/{dimension}")]
-pub async fn get_dimension_key(state: Data<AppState>, params: Path<Key>) -> Result<Json<Dimension>, DimensionError> {
+pub async fn get_dimension_key(state: Data<AppState>, params: Path<Key>) -> Result<Json<Dimension>, AppError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
     let dimension_key = params.into_inner().dimension;
 
     match db.send(FetchDimension {dimension: dimension_key}).await {
         Ok(Ok(result)) => Ok(Json(result)),
-        Ok(Err(_)) => Err(DimensionError::DimensionNotFound),
-        _ => Err(DimensionError::SomethingWentWrong)
+        Ok(Err(err)) => Err(AppError {
+            message: Some("failed to get required dimension".to_string()),
+            cause: Some(err.to_string()),
+            status: NotFound
+        }),
+        Err(err) => Err(AppError {
+            message: None,
+            cause: Some(err.to_string()),
+            status: DBError
+        })
     }
-
 }
 
 
@@ -88,7 +80,7 @@ pub struct KeyValue {
 }
 
 #[post("")]
-pub async fn post_dimension(state: Data<AppState>, body: Json<KeyValue>) -> Result<Json<Dimension>, DimensionError> {
+pub async fn post_dimension(state: Data<AppState>, body: Json<KeyValue>) -> Result<Json<Dimension>, AppError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db.send(CreateDimension {
@@ -97,8 +89,16 @@ pub async fn post_dimension(state: Data<AppState>, body: Json<KeyValue>) -> Resu
     }).await {
 
         Ok(Ok(result)) => Ok(Json(result)),
-        _ => Err(DimensionError::FailedToCreateDimension)
+        Ok(Err(err)) => Err(AppError {
+            message: Some("failed to add dimension".to_string()),
+            cause: Some(err.to_string()),
+            status: AlreadyExists
+        }),
+        Err(err) => Err(AppError {
+            message: None,
+            cause: Some(err.to_string()),
+            status: DBError
+        })
     }
-
 }
 

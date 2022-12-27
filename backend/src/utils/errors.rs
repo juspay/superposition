@@ -7,6 +7,8 @@ pub enum AppErrorType {
     DBError,
     NotFound,
     SomethingWentWrong,
+    AlreadyExists,
+    BadRequest
 }
 
 #[derive(Debug)]
@@ -54,7 +56,9 @@ impl ResponseError for AppError {
         match self.status {
             AppErrorType::SomethingWentWrong => StatusCode::INTERNAL_SERVER_ERROR,
             AppErrorType::DBError => StatusCode::INTERNAL_SERVER_ERROR,
-            AppErrorType::NotFound => StatusCode::NOT_FOUND
+            AppErrorType::NotFound => StatusCode::NOT_FOUND,
+            AppErrorType::AlreadyExists => StatusCode::ALREADY_REPORTED,
+            AppErrorType::BadRequest => StatusCode::BAD_REQUEST
         }
     }
 

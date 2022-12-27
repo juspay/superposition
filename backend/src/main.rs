@@ -34,9 +34,7 @@ use api::primary::{
     }
 };
 
-use api::derived::{
-    config::{get_config}
-};
+use api::derived::config::get_config;
 
 // use crate::utils::validations::just_for_test;
 

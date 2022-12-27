@@ -9,7 +9,7 @@ use actix_web::{
     HttpResponse,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::{Value};
+use serde_json::Value;
 use strum_macros::{Display, EnumString};
 
 use crate::{

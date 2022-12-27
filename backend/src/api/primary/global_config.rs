@@ -20,7 +20,8 @@ use crate::utils::errors::{
     AppErrorType::{
         SomethingWentWrong,
         DBError,
-        NotFound
+        NotFound,
+        AlreadyExists
     }
 };
 
@@ -49,7 +50,7 @@ pub async fn get_complete_config(state: Data<AppState>) -> Result<Json<Value>, A
         hash_map.insert(row.key, row.value);
     }
 
-    match to_value(hash_map.clone()) {
+    match to_value(&hash_map) {
         Ok(res) => if hash_map.keys().len() == 0 {
                 Err(AppError {
                     message: Some("failed to get global config".to_string()),
@@ -117,7 +118,7 @@ pub async fn post_config_key_value(state: Data<AppState>, body: Json<KeyValue>) 
         Ok(Err(err)) => Err(AppError {
                 message: Some("failed to add new key to global config".to_string()),
                 cause: Some(err.to_string()),
-                status: NotFound
+                status: AlreadyExists
             }),
         Err(err) => Err(AppError {
                 message: None,

@@ -1,16 +1,12 @@
 use actix::Addr;
 use actix_web::{
     delete,
-    error::ResponseError,
     get,
-    http::{header::ContentType, StatusCode},
     post,
     web::{Data, Json, Path},
-    HttpResponse,
 };
 use serde::Serialize;
 use serde_json::Value;
-use strum_macros::{Display, EnumString};
 
 
 use crate::{
@@ -21,41 +17,17 @@ use crate::{
 use crate::utils::{
     hash::string_based_b64_hash,
     helpers::sort_multi_level_keys_in_stringified_json,
-};
-
-
-#[derive(Debug, Display, EnumString)]
-pub enum ContextError {
-    BadRequest,
-    FailedToAddContext,
-    SomethingWentWrong,
-    FailedToGetContext,
-    ContextNotFound,
-    DataAlreadyExists,
-    DeletionFailed,
-    ErrorOnParsingBody,
-}
-
-impl ResponseError for ContextError {
-    fn error_response(&self) -> HttpResponse<actix_web::body::BoxBody> {
-        HttpResponse::build(self.status_code())
-            .insert_header(ContentType::json())
-            .body(self.to_string())
-    }
-
-    fn status_code(&self) -> StatusCode {
-        match self {
-            ContextError::ContextNotFound => StatusCode::NOT_FOUND,
-            ContextError::FailedToGetContext => StatusCode::INTERNAL_SERVER_ERROR,
-            ContextError::SomethingWentWrong => StatusCode::FAILED_DEPENDENCY,
-            ContextError::BadRequest => StatusCode::BAD_REQUEST,
-            ContextError::FailedToAddContext => StatusCode::FAILED_DEPENDENCY,
-            ContextError::DataAlreadyExists => StatusCode::FAILED_DEPENDENCY,
-            ContextError::DeletionFailed => StatusCode::FAILED_DEPENDENCY,
-            ContextError::ErrorOnParsingBody => StatusCode::BAD_REQUEST,
+    errors::{
+        AppError,
+        AppErrorType::{
+            AlreadyExists,
+            NotFound,
+            DBError,
+            BadRequest
         }
     }
-}
+};
+
 
 #[derive(Serialize, Clone)]
 pub struct IDResponse {
@@ -64,7 +36,7 @@ pub struct IDResponse {
 
 
 #[post("")]
-pub async fn post_context(state: Data<AppState>, body: Json<Value>) -> Result<Json<IDResponse>, ContextError> {
+pub async fn post_context(state: Data<AppState>, body: Json<Value>) -> Result<Json<IDResponse>, AppError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     // TODO :: Post as an array of value
@@ -73,7 +45,11 @@ pub async fn post_context(state: Data<AppState>, body: Json<Value>) -> Result<Js
     // TODO :: Sort query based on key and add to DB
     let formatted_value =
         sort_multi_level_keys_in_stringified_json(context_value)
-        .ok_or(ContextError::ErrorOnParsingBody)?;
+        .ok_or(AppError {
+            message: Some("error in parsing context".to_string()),
+            cause: Some("ill formed context".to_string()),
+            status: BadRequest
+        })?;
 
     let hashed_value = string_based_b64_hash((&formatted_value).to_string()).to_string();
 
@@ -86,13 +62,21 @@ pub async fn post_context(state: Data<AppState>, body: Json<Value>) -> Result<Js
         .await
     {
         Ok(Ok(result)) => Ok(Json(IDResponse {id: result.key})),
-        Ok(Err(_)) => Err(ContextError::DataAlreadyExists),
-        _ => Err(ContextError::FailedToAddContext),
+        Ok(Err(err)) => Err(AppError {
+                message: Some("failed to add context".to_string()),
+                cause: Some(err.to_string()),
+                status: AlreadyExists
+            }),
+        Err(err) => Err(AppError {
+                message: None,
+                cause: Some(err.to_string()),
+                status: DBError
+            }),
     }
 }
 
 #[get("/{key}")]
-pub async fn get_context(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, ContextError> {
+pub async fn get_context(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, AppError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db
@@ -102,13 +86,22 @@ pub async fn get_context(state: Data<AppState>, id: Path<String>) -> Result<Json
         .await
     {
         Ok(Ok(result)) => Ok(Json(result.value)),
-        Ok(Err(_)) => Err(ContextError::ContextNotFound),
-        _ => Err(ContextError::FailedToGetContext),
+        Ok(Err(err)) => Err(AppError {
+                message: Some("failed to get context".to_string()),
+                cause: Some(err.to_string()),
+                status: NotFound
+            }),
+        Err(err) => Err(AppError {
+                message: None,
+                cause: Some(err.to_string()),
+                status: DBError
+            }),
+
     }
 }
 
 #[delete("/{key}")]
-pub async fn delete_context(state: Data<AppState>, key: Path<String>) -> Result<Json<Value>, ContextError> {
+pub async fn delete_context(state: Data<AppState>, key: Path<String>) -> Result<Json<Value>, AppError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db
@@ -118,7 +111,16 @@ pub async fn delete_context(state: Data<AppState>, key: Path<String>) -> Result<
         .await
     {
         Ok(Ok(result)) => Ok(Json(result.value)),
-        Ok(_) => Err(ContextError::ContextNotFound),
-        _ => Err(ContextError::DeletionFailed),
+        Ok(Err(err)) => Err(AppError {
+                message: Some("failed to remove context".to_string()),
+                cause: Some(err.to_string()),
+                status: NotFound
+            }),
+        Err(err) => Err(AppError {
+                message: None,
+                cause: Some(err.to_string()),
+                status: DBError
+            }),
+
     }
 }
