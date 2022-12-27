@@ -3,14 +3,10 @@ use std::collections::HashMap;
 use actix_web:: {
     get,
     post,
-    error::ResponseError,
     web::{Path, Json, Data},
-    HttpResponse,
-    http::{header::ContentType, StatusCode}
 };
 use serde_json::{Value, to_value};
 use crate::models::db_models::GlobalConfig;
-use strum_macros::{EnumString, Display};
 use serde::{Serialize, Deserialize};
 use crate::{
     messages::global_config::{
@@ -19,48 +15,33 @@ use crate::{
         CreateGlobalKey,
     }, AppState, DbActor};
 use actix::Addr;
-
-// Error codes and their implementation
-#[derive(Debug, Display, EnumString)]
-pub enum GlobalConfigError {
-    KeyNotFound,
-    BadRequest,
-    FailedToAddToConfig,
-    SomethingWentWrong,
-    FailedToGetConfig,
-    ConfigNotFound,
-}
-
-
-impl ResponseError for GlobalConfigError {
-    fn error_response(&self) -> HttpResponse<actix_web::body::BoxBody> {
-        HttpResponse::build(self.status_code())
-        .insert_header(ContentType::json())
-        .body(self.to_string())
+use crate::utils::errors::{
+    AppError,
+    AppErrorType::{
+        SomethingWentWrong,
+        DBError,
+        NotFound
     }
+};
 
-    fn status_code(&self) -> StatusCode {
-        match self {
-            GlobalConfigError::ConfigNotFound => StatusCode::NOT_FOUND,
-            GlobalConfigError::KeyNotFound => StatusCode::NOT_FOUND,
-            GlobalConfigError::FailedToGetConfig => StatusCode::INTERNAL_SERVER_ERROR,
-            GlobalConfigError::SomethingWentWrong => StatusCode::FAILED_DEPENDENCY,
-            GlobalConfigError::BadRequest => StatusCode::BAD_REQUEST,
-            GlobalConfigError::FailedToAddToConfig => StatusCode::FAILED_DEPENDENCY
-        }
-    }
-}
-
-async fn get_all_rows_from_global_config(state: Data<AppState>) -> Result<Vec<GlobalConfig>, GlobalConfigError> {
+async fn get_all_rows_from_global_config(state: Data<AppState>) -> Result<Vec<GlobalConfig>, AppError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
     match db.send(FetchGlobalConfig).await {
         Ok(Ok(result)) => Ok(result),
-        Ok(Err(_)) => Err(GlobalConfigError::ConfigNotFound),
-        _ => Err(GlobalConfigError::SomethingWentWrong)
+        Ok(Err(err)) => Err(AppError {
+            message: Some("config not found".to_string()),
+            cause: Some(err.to_string()),
+            status: NotFound
+        }),
+        Err(err) => Err(AppError {
+            message: None,
+            cause: Some(err.to_string()),
+            status: DBError
+        }),
     }
 }
 
-pub async fn get_complete_config(state: Data<AppState>) -> Result<Json<Value>, GlobalConfigError> {
+pub async fn get_complete_config(state: Data<AppState>) -> Result<Json<Value>, AppError> {
     let db_rows = get_all_rows_from_global_config(state).await?;
     let mut hash_map: HashMap<String, Value> = HashMap::new();
 
@@ -68,24 +49,29 @@ pub async fn get_complete_config(state: Data<AppState>) -> Result<Json<Value>, G
         hash_map.insert(row.key, row.value);
     }
 
-    let result = to_value(hash_map).map_err(|_| GlobalConfigError::FailedToGetConfig)?;
+    match to_value(hash_map.clone()) {
+        Ok(res) => if hash_map.keys().len() == 0 {
+                Err(AppError {
+                    message: Some("failed to get global config".to_string()),
+                    cause: Some("global config doesn't exist".to_string()),
+                    status: NotFound
+                })
+            } else {
+                Ok(Json(res))
+            },
+        Err(err) => Err(AppError {
+            message: None,
+            cause: Some(err.to_string()),
+            status: SomethingWentWrong
+        })
 
-    // ? Is there any better to do this using some `functors`
-    return Ok(Json(result));
-}
-
-
-// ? Do we need this ?
-// Get whole global config as rows
-#[get("/rows")]
-pub async fn get_config_rows(state: Data<AppState>) -> Result<Json<Vec<GlobalConfig>>, GlobalConfigError> {
-    Ok(Json(get_all_rows_from_global_config(state).await?))
+    }
 }
 
 
 // Get whole global config
-#[get("/")]
-pub async fn get_global_config(state: Data<AppState>) -> Result<Json<Value>, GlobalConfigError> {
+#[get("")]
+pub async fn get_global_config(state: Data<AppState>) -> Result<Json<Value>, AppError> {
     get_complete_config(state).await
 }
 
@@ -96,14 +82,18 @@ pub struct Key {
 }
 
 #[get("/{key}")]
-pub async fn get_global_config_key(state: Data<AppState>, params: Path<Key>) -> Result<Json<GlobalConfig>, GlobalConfigError> {
+pub async fn get_global_config_key(state: Data<AppState>, params: Path<Key>) -> Result<Json<GlobalConfig>, AppError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
     let key = params.into_inner().key;
 
     match db.send(FetchConfigKey {key}).await {
         Ok(Ok(result)) => Ok(Json(result)),
-        Ok(Err(_)) => Err(GlobalConfigError::KeyNotFound),
-        _ => Err(GlobalConfigError::SomethingWentWrong)
+        Ok(Err(err)) => Err(AppError {
+            message: Some("failed to fetch key value".to_string()),
+            cause: Some(err.to_string()),
+            status: NotFound
+        }),
+        Err(err) => Err(AppError {message: None, cause: Some(err.to_string()), status: DBError})
     }
 }
 
@@ -116,16 +106,24 @@ pub struct KeyValue {
 }
 
 #[post("")]
-pub async fn post_config_key_value(state: Data<AppState>, body: Json<KeyValue>) -> Result<Json<GlobalConfig>, GlobalConfigError> {
+pub async fn post_config_key_value(state: Data<AppState>, body: Json<KeyValue>) -> Result<Json<GlobalConfig>, AppError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db.send(CreateGlobalKey {
         key: body.key.clone(),
         value: body.value.clone()
     }).await {
-
         Ok(Ok(result)) => Ok(Json(result)),
-        _ => Err(GlobalConfigError::FailedToAddToConfig)
+        Ok(Err(err)) => Err(AppError {
+                message: Some("failed to add new key to global config".to_string()),
+                cause: Some(err.to_string()),
+                status: NotFound
+            }),
+        Err(err) => Err(AppError {
+                message: None,
+                cause: Some(err.to_string()),
+                status: DBError
+            })
     }
 
 }
