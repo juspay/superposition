@@ -30,7 +30,6 @@ fn type_of(a: &Value) -> String{
     return "Object".to_string();
 }
 
-
 fn create_type_mismatch_error(default_value: &Value, overriding_value: &Value, path: &mut Vec<String>) -> Value {
 
     let mut error_map = HashMap::new();
@@ -48,8 +47,8 @@ fn create_structure_mismatch_error(path: &mut Vec<String>) -> Value {
     let mut error_map = HashMap::new();
 
     error_map.insert("Path".to_string(), path.join("/"));
-    if let Some(key_name) = path.last() {
-        error_map.insert(key_name.to_string(), "Key not found in default config".to_string());
+    if let Some(_) = path.last() {
+        error_map.insert("Reason".to_string(), "Key not found in default config".to_string());
     }
 
     let error_message = to_value(error_map).unwrap(); // .map_err(|_| ValidationErrors::ErrorMessageParsingError)?;
@@ -92,7 +91,7 @@ fn validate_sub_tree_helper(default_tree: &Value, overriding_tree: &Value, path:
 
 
 pub fn validate_sub_tree(default_tree: &Value, overriding_tree: &Value) -> Result<bool, Value> {
-    validate_sub_tree_helper(default_tree, overriding_tree,&mut Vec::new())
+    validate_sub_tree_helper(default_tree, overriding_tree,&mut vec!["".to_string()])
 }
 
 

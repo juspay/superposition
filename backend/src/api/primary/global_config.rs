@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use actix_web:: {
+    Either::{Left},
     get,
     post,
     web::{Path, Json, Data},
@@ -21,7 +22,7 @@ use crate::utils::errors::{
         SomethingWentWrong,
         DBError,
         NotFound,
-        AlreadyExists
+        DataExists
     }
 };
 
@@ -30,7 +31,7 @@ async fn get_all_rows_from_global_config(state: Data<AppState>) -> Result<Vec<Gl
     match db.send(FetchGlobalConfig).await {
         Ok(Ok(result)) => Ok(result),
         Ok(Err(err)) => Err(AppError {
-            message: Some("config not found".to_string()),
+            message: Some(Left("config not found".to_string())),
             cause: Some(err.to_string()),
             status: NotFound
         }),
@@ -53,7 +54,7 @@ pub async fn get_complete_config(state: Data<AppState>) -> Result<Json<Value>, A
     match to_value(&hash_map) {
         Ok(res) => if hash_map.keys().len() == 0 {
                 Err(AppError {
-                    message: Some("failed to get global config".to_string()),
+                    message: Some(Left("failed to get global config".to_string())),
                     cause: Some("global config doesn't exist".to_string()),
                     status: NotFound
                 })
@@ -90,7 +91,7 @@ pub async fn get_global_config_key(state: Data<AppState>, params: Path<Key>) -> 
     match db.send(FetchConfigKey {key}).await {
         Ok(Ok(result)) => Ok(Json(result)),
         Ok(Err(err)) => Err(AppError {
-            message: Some("failed to fetch key value".to_string()),
+            message: Some(Left("failed to fetch key value".to_string())),
             cause: Some(err.to_string()),
             status: NotFound
         }),
@@ -116,9 +117,9 @@ pub async fn post_config_key_value(state: Data<AppState>, body: Json<KeyValue>) 
     }).await {
         Ok(Ok(result)) => Ok(Json(result)),
         Ok(Err(err)) => Err(AppError {
-                message: Some("failed to add new key to global config".to_string()),
+                message: Some(Left("failed to add new key to global config".to_string())),
                 cause: Some(err.to_string()),
-                status: AlreadyExists
+                status: DataExists
             }),
         Err(err) => Err(AppError {
                 message: None,

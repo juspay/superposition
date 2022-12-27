@@ -1,54 +1,29 @@
 use actix::Addr;
 use actix_web::{
+    Either::{Left},
     delete,
-    error::ResponseError,
     get,
-    http::{header::ContentType, StatusCode},
     post,
     web::{Data, Json, Path},
-    HttpResponse,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use strum_macros::{Display, EnumString};
 
 use crate::{
     messages::context_overrides::{CreateCtxOverrides, DeleteCtxOverrides, FetchCtxOverrides},
     AppState, DbActor,
 };
 
-
-#[derive(Debug, Display, EnumString)]
-pub enum CtxOverrideError {
-    BadRequest,
-    FailedToAddCtxOverride,
-    SomethingWentWrong,
-    FailedToGetCtxOverride,
-    CtxOverrideNotFound,
-    DataAlreadyExists,
-    DeletionFailed,
-}
-
-impl ResponseError for CtxOverrideError {
-    fn error_response(&self) -> HttpResponse<actix_web::body::BoxBody> {
-        HttpResponse::build(self.status_code())
-            .insert_header(ContentType::json())
-            .body(self.to_string())
-    }
-
-    fn status_code(&self) -> StatusCode {
-        match self {
-            CtxOverrideError::CtxOverrideNotFound => StatusCode::NOT_FOUND,
-            CtxOverrideError::FailedToGetCtxOverride => StatusCode::INTERNAL_SERVER_ERROR,
-            CtxOverrideError::SomethingWentWrong => StatusCode::FAILED_DEPENDENCY,
-            CtxOverrideError::BadRequest => StatusCode::BAD_REQUEST,
-            CtxOverrideError::FailedToAddCtxOverride => StatusCode::FAILED_DEPENDENCY,
-            CtxOverrideError::DataAlreadyExists => StatusCode::FAILED_DEPENDENCY,
-            CtxOverrideError::DeletionFailed => StatusCode::FAILED_DEPENDENCY,
+use crate::utils::{
+    errors::{
+        AppError,
+        AppErrorType::{
+            DataExists,
+            DBError,
+            NotFound
         }
-    }
-}
-
+    },
+};
 
 #[derive(Deserialize)]
 pub struct BodyType {
@@ -56,13 +31,14 @@ pub struct BodyType {
     override_id: String
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize)]
 pub struct IDResponse {
     id: String,
 }
 
+// TODO :: Have to re-think and re-implement all these apis
 #[post("")]
-pub async fn add_ctx_override(state: Data<AppState>, body: Json<BodyType>) -> Result<Json<IDResponse>, CtxOverrideError> {
+pub async fn add_ctx_override(state: Data<AppState>, body: Json<BodyType>) -> Result<Json<IDResponse>, AppError> {
 
     let db: Addr<DbActor> = state.as_ref().db.clone();
     let ctx_id: String = body.context_id.clone();
@@ -78,13 +54,17 @@ pub async fn add_ctx_override(state: Data<AppState>, body: Json<BodyType>) -> Re
         .await
     {
         Ok(Ok(result)) => Ok(Json(IDResponse {id: result.key})),
-        Ok(Err(_)) => Err(CtxOverrideError::CtxOverrideNotFound),
-        _ => Err(CtxOverrideError::FailedToGetCtxOverride),
+        Ok(Err(err)) => Err(AppError {
+            message: Some(Left("Data already exists".to_string())),
+            cause: Some(err.to_string()),
+            status: DataExists
+        }),
+        Err(err) => Err(AppError {message: None, cause: Some(err.to_string()), status: DBError})
     }
 }
 
 #[get("/{id}")]
-pub async fn get_ctx_override(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, CtxOverrideError> {
+pub async fn get_ctx_override(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, AppError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db
@@ -94,13 +74,17 @@ pub async fn get_ctx_override(state: Data<AppState>, id: Path<String>) -> Result
         .await
     {
         Ok(Ok(result)) => Ok(Json(serde_json::Value::String(result.key))),
-        Ok(Err(_)) => Err(CtxOverrideError::CtxOverrideNotFound),
-        _ => Err(CtxOverrideError::FailedToGetCtxOverride),
+        Ok(Err(err)) => Err(AppError {
+            message: Some(Left("failed to fetch key value".to_string())),
+            cause: Some(err.to_string()),
+            status: NotFound
+        }),
+        Err(err) => Err(AppError {message: None, cause: Some(err.to_string()), status: DBError})
     }
 }
 
 #[delete("/{id}")]
-pub async fn delete_ctx_override(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, CtxOverrideError> {
+pub async fn delete_ctx_override(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, AppError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db
@@ -110,7 +94,11 @@ pub async fn delete_ctx_override(state: Data<AppState>, id: Path<String>) -> Res
         .await
     {
         Ok(Ok(result)) => Ok(Json(serde_json::Value::String(result.key))),
-        Ok(_) => Err(CtxOverrideError::CtxOverrideNotFound),
-        _ => Err(CtxOverrideError::DeletionFailed),
+        Ok(Err(err)) => Err(AppError {
+            message: Some(Left("Data not found".to_string())),
+            cause: Some(err.to_string()),
+            status: NotFound
+        }),
+        Err(err) => Err(AppError {message: None, cause: Some(err.to_string()), status: DBError})
     }
 }

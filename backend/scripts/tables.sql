@@ -26,6 +26,14 @@ CREATE TABLE overrides (
   PRIMARY KEY(key)
 );
 
+CREATE TABLE contexts (
+  key VARCHAR NOT NULL,
+  value json NOT NULL,
+  last_modified timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_on timestamp with time zone default CURRENT_TIMESTAMP NOT NULL,
+  PRIMARY KEY(key)
+);
+
 CREATE TABLE ctxoverrides (
   key VARCHAR NOT NULL,
   context_id VARCHAR NOT NULL,

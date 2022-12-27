@@ -1,4 +1,5 @@
 use actix_web:: {
+    Either::{Left},
     get,
     post,
     web::{Path, Json, Data},
@@ -20,7 +21,7 @@ use crate::utils::errors::{
     AppErrorType::{
         DBError,
         NotFound,
-        AlreadyExists
+        DataExists
     }
 };
 
@@ -32,7 +33,7 @@ pub async fn get_dimensions(state: Data<AppState>) -> Result<Json<Vec<Dimension>
     match db.send(FetchDimensions).await {
         Ok(Ok(result)) => Ok(Json(result)),
         Ok(Err(err)) => Err(AppError {
-            message: Some("failed to get dimensions".to_string()),
+            message: Some(Left("failed to get dimensions".to_string())),
             cause: Some(err.to_string()),
             status: NotFound
         }),
@@ -59,7 +60,7 @@ pub async fn get_dimension_key(state: Data<AppState>, params: Path<Key>) -> Resu
     match db.send(FetchDimension {dimension: dimension_key}).await {
         Ok(Ok(result)) => Ok(Json(result)),
         Ok(Err(err)) => Err(AppError {
-            message: Some("failed to get required dimension".to_string()),
+            message: Some(Left("failed to get required dimension".to_string())),
             cause: Some(err.to_string()),
             status: NotFound
         }),
@@ -90,9 +91,9 @@ pub async fn post_dimension(state: Data<AppState>, body: Json<KeyValue>) -> Resu
 
         Ok(Ok(result)) => Ok(Json(result)),
         Ok(Err(err)) => Err(AppError {
-            message: Some("failed to add dimension".to_string()),
+            message: Some(Left("failed to add dimension".to_string())),
             cause: Some(err.to_string()),
-            status: AlreadyExists
+            status: DataExists
         }),
         Err(err) => Err(AppError {
             message: None,
