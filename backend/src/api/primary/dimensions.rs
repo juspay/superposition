@@ -33,13 +33,13 @@ pub async fn get_dimensions(state: Data<AppState>) -> Result<Json<Vec<Dimension>
     match db.send(FetchDimensions).await {
         Ok(Ok(result)) => Ok(Json(result)),
         Ok(Err(err)) => Err(AppError {
-            message: Some(Left("failed to get dimensions".to_string())),
-            cause: Some(err.to_string()),
+            message: Some("failed to get dimensions".to_string()),
+            cause: Some(Left(err.to_string())),
             status: NotFound
         }),
         Err(err) => Err(AppError {
             message: None,
-            cause: Some(err.to_string()),
+            cause: Some(Left(err.to_string())),
             status: DBError
         })
     }
@@ -60,13 +60,13 @@ pub async fn get_dimension_key(state: Data<AppState>, params: Path<Key>) -> Resu
     match db.send(FetchDimension {dimension: dimension_key}).await {
         Ok(Ok(result)) => Ok(Json(result)),
         Ok(Err(err)) => Err(AppError {
-            message: Some(Left("failed to get required dimension".to_string())),
-            cause: Some(err.to_string()),
+            message: Some("failed to get required dimension".to_string()),
+            cause: Some(Left(err.to_string())),
             status: NotFound
         }),
         Err(err) => Err(AppError {
             message: None,
-            cause: Some(err.to_string()),
+            cause: Some(Left(err.to_string())),
             status: DBError
         })
     }
@@ -91,13 +91,13 @@ pub async fn post_dimension(state: Data<AppState>, body: Json<KeyValue>) -> Resu
 
         Ok(Ok(result)) => Ok(Json(result)),
         Ok(Err(err)) => Err(AppError {
-            message: Some(Left("failed to add dimension".to_string())),
-            cause: Some(err.to_string()),
+            message: Some("failed to add dimension".to_string()),
+            cause: Some(Left(err.to_string())),
             status: DataExists
         }),
         Err(err) => Err(AppError {
             message: None,
-            cause: Some(err.to_string()),
+            cause: Some(Left(err.to_string())),
             status: DBError
         })
     }

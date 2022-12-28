@@ -15,33 +15,33 @@ pub enum AppErrorType {
 
 #[derive(Debug)]
 pub struct AppError {
-    pub message: Option<Either<String, Value>>,
-    pub cause: Option<String>,
+    pub message: Option<String>,
+    pub cause: Option<Either<String, Value>>,
     pub status: AppErrorType,
 }
 
 #[derive(Serialize)]
 pub struct ErrorResponse {
     status: AppErrorType,
-    message: Option<Value>,
-    cause: String,
+    message: String,
+    cause: Option<Value>,
 }
 
 impl AppError {
-    fn message(&self) -> Result<Value, Error> {
+    fn message(&self) -> String {
         match &*self {
-            AppError {message, ..} => match message {
-                Some(Left(val)) => to_value(val.clone()),
-                Some(Right(val)) => Ok(val.clone()),
-                _ => to_value("An unexpected error has occured".to_string()),
-            }
+            AppError { message: Some(message), ..} => message.clone(),
+            _ => "Reason not available".to_string()
         }
     }
 
-    fn cause(&self) -> String {
+    fn cause(&self) -> Option<Value> {
         match &*self {
-            AppError { cause: Some(cause), ..} => cause.clone(),
-            _ => "Reason not available".to_string()
+            AppError {cause, ..} => match cause {
+                Some(Left(val)) => to_value(val.clone()).ok(),
+                Some(Right(val)) => Some(val.clone()),
+                _ => None,
+            }
         }
     }
 }
@@ -67,7 +67,7 @@ impl ResponseError for AppError {
         let status_code = self.status_code();
 
         let json_body = ErrorResponse
-            { message: self.message().ok()
+            { message: self.message()
             , cause: self.cause()
             , status: self.status.clone()
             };

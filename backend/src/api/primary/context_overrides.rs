@@ -55,11 +55,11 @@ pub async fn add_ctx_override(state: Data<AppState>, body: Json<BodyType>) -> Re
     {
         Ok(Ok(result)) => Ok(Json(IDResponse {id: result.key})),
         Ok(Err(err)) => Err(AppError {
-            message: Some(Left("Data already exists".to_string())),
-            cause: Some(err.to_string()),
+            message: Some("Data already exists".to_string()),
+            cause: Some(Left(err.to_string())),
             status: DataExists
         }),
-        Err(err) => Err(AppError {message: None, cause: Some(err.to_string()), status: DBError})
+        Err(err) => Err(AppError {message: None, cause: Some(Left(err.to_string())), status: DBError})
     }
 }
 
@@ -75,11 +75,11 @@ pub async fn get_ctx_override(state: Data<AppState>, id: Path<String>) -> Result
     {
         Ok(Ok(result)) => Ok(Json(serde_json::Value::String(result.key))),
         Ok(Err(err)) => Err(AppError {
-            message: Some(Left("failed to fetch key value".to_string())),
-            cause: Some(err.to_string()),
+            message: Some("failed to fetch key value".to_string()),
+            cause: Some(Left(err.to_string())),
             status: NotFound
         }),
-        Err(err) => Err(AppError {message: None, cause: Some(err.to_string()), status: DBError})
+        Err(err) => Err(AppError {message: None, cause: Some(Left(err.to_string())), status: DBError})
     }
 }
 
@@ -95,10 +95,10 @@ pub async fn delete_ctx_override(state: Data<AppState>, id: Path<String>) -> Res
     {
         Ok(Ok(result)) => Ok(Json(serde_json::Value::String(result.key))),
         Ok(Err(err)) => Err(AppError {
-            message: Some(Left("Data not found".to_string())),
-            cause: Some(err.to_string()),
+            message: Some("Data not found".to_string()),
+            cause: Some(Left(err.to_string())),
             status: NotFound
         }),
-        Err(err) => Err(AppError {message: None, cause: Some(err.to_string()), status: DBError})
+        Err(err) => Err(AppError {message: None, cause: Some(Left(err.to_string())), status: DBError})
     }
 }

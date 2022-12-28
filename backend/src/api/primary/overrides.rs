@@ -44,8 +44,8 @@ pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<J
     let global_config =
         get_complete_config(state).await
         .map_err(|err| AppError {
-            message: Some(Left("Unable to fetch global config for validation".to_string())),
-            cause: Some(err.to_string()),
+            message: Some("Unable to fetch global config for validation".to_string()),
+            cause: Some(Left(err.to_string())),
             status: DBError
         })?;
 
@@ -54,15 +54,15 @@ pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<J
         // TODO :: Discuss and fix this
         to_value(global_config.get("global"))
         .map_err(|err| AppError {
-        message: Some(Left("Unable to parse global config for validation".to_string())),
-        cause: Some(err.to_string()),
+        message: Some("Unable to parse global config for validation".to_string()),
+        cause: Some(Left(err.to_string())),
         status: SomethingWentWrong
     })?;
 
     if let Err(error_message) = validate_sub_tree(&global_config_as_value, &body) {
         return Err(AppError {
-            message: Some(Right(error_message)),
-            cause: None,
+            message: Some("Validation failed".to_string()),
+            cause: Some(Right(error_message)),
             status: BadRequest
         })
     }
@@ -75,7 +75,7 @@ pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<J
         // TODO :: Fix this properly
         // .ok_or(OverrideError::ErrorOnParsingBody {error_message : to_value("Error on sorting keys".to_string())})?;
         .ok_or(AppError {
-            message: Some(Left("Unable to parse override value".to_string())),
+            message: Some("Unable to parse override value".to_string()),
             cause: None,
             status: SomethingWentWrong
         })?;
@@ -91,11 +91,11 @@ pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<J
     {
         Ok(Ok(result)) => Ok(Json(IDResponse {id: result.key})),
         Ok(Err(err)) => Err(AppError {
-            message: Some(Left("Data already exists".to_string())),
-            cause: Some(err.to_string()),
+            message: Some("Data already exists".to_string()),
+            cause: Some(Left(err.to_string())),
             status: DataExists
         }),
-        Err(err) => Err(AppError {message: None, cause: Some(err.to_string()), status: DBError})
+        Err(err) => Err(AppError {message: None, cause: Some(Left(err.to_string())), status: DBError})
     }
 }
 
@@ -110,11 +110,11 @@ pub async fn get_override_helper(state: Data<AppState>, key: String) -> Result<J
     {
         Ok(Ok(result)) => Ok(Json(result.value)),
         Ok(Err(err)) => Err(AppError {
-            message: Some(Left("failed to fetch key value".to_string())),
-            cause: Some(err.to_string()),
+            message: Some("failed to fetch key value".to_string()),
+            cause: Some(Left(err.to_string())),
             status: NotFound
         }),
-        Err(err) => Err(AppError {message: None, cause: Some(err.to_string()), status: DBError})
+        Err(err) => Err(AppError {message: None, cause: Some(Left(err.to_string())), status: DBError})
     }
 }
 
@@ -135,10 +135,10 @@ pub async fn delete_override(state: Data<AppState>, id: Path<String>) -> Result<
     {
         Ok(Ok(result)) => Ok(Json(result.value)),
         Ok(Err(err)) => Err(AppError {
-            message: Some(Left("Data not found".to_string())),
-            cause: Some(err.to_string()),
+            message: Some("Data not found".to_string()),
+            cause: Some(Left(err.to_string())),
             status: NotFound
         }),
-        Err(err) => Err(AppError {message: None, cause: Some(err.to_string()), status: DBError})
+        Err(err) => Err(AppError {message: None, cause: Some(Left(err.to_string())), status: DBError})
     }
 }

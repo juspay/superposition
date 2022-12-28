@@ -47,8 +47,8 @@ pub async fn post_context(state: Data<AppState>, body: Json<Value>) -> Result<Js
     let formatted_value =
         sort_multi_level_keys_in_stringified_json(context_value)
         .ok_or(AppError {
-            message: Some(Left("error in parsing context".to_string())),
-            cause: Some("ill formed context".to_string()),
+            message: Some("error in parsing context".to_string()),
+            cause: Some(Left("ill formed context".to_string())),
             status: BadRequest
         })?;
 
@@ -64,13 +64,13 @@ pub async fn post_context(state: Data<AppState>, body: Json<Value>) -> Result<Js
     {
         Ok(Ok(result)) => Ok(Json(IDResponse {id: result.key})),
         Ok(Err(err)) => Err(AppError {
-                message: Some(Left("failed to add context".to_string())),
-                cause: Some(err.to_string()),
+                message: Some("failed to add context".to_string()),
+                cause: Some(Left(err.to_string())),
                 status: DataExists
             }),
         Err(err) => Err(AppError {
                 message: None,
-                cause: Some(err.to_string()),
+                cause: Some(Left(err.to_string())),
                 status: DBError
             }),
     }
@@ -88,13 +88,13 @@ pub async fn get_context(state: Data<AppState>, id: Path<String>) -> Result<Json
     {
         Ok(Ok(result)) => Ok(Json(result.value)),
         Ok(Err(err)) => Err(AppError {
-                message: Some(Left("failed to get context".to_string())),
-                cause: Some(err.to_string()),
+                message: Some("failed to get context".to_string()),
+                cause: Some(Left(err.to_string())),
                 status: NotFound
             }),
         Err(err) => Err(AppError {
                 message: None,
-                cause: Some(err.to_string()),
+                cause: Some(Left(err.to_string())),
                 status: DBError
             }),
 
@@ -113,13 +113,13 @@ pub async fn delete_context(state: Data<AppState>, key: Path<String>) -> Result<
     {
         Ok(Ok(result)) => Ok(Json(result.value)),
         Ok(Err(err)) => Err(AppError {
-                message: Some(Left("failed to remove context".to_string())),
-                cause: Some(err.to_string()),
+                message: Some("failed to remove context".to_string()),
+                cause: Some(Left(err.to_string())),
                 status: NotFound
             }),
         Err(err) => Err(AppError {
                 message: None,
-                cause: Some(err.to_string()),
+                cause: Some(Left(err.to_string())),
                 status: DBError
             }),
 
