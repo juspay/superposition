@@ -30,7 +30,7 @@ diesel::table! {
 diesel::table! {
     contexts (key) {
         key -> Varchar,
-        value -> Json,
+        value -> Varchar,
         last_modified -> Timestamptz,
         created_on -> Timestamptz,
     }

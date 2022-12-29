@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use actix::Addr;
 use actix_web::{
     Either::{Left},
@@ -7,7 +9,7 @@ use actix_web::{
     web::{Data, Json, Path},
 };
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{to_value, Value};
 
 use crate::{
     messages::context_overrides::{CreateCtxOverrides, DeleteCtxOverrides, FetchCtxOverrides},
@@ -32,26 +34,20 @@ pub struct BodyType {
 }
 
 #[derive(Serialize)]
-pub struct IDResponse {
-    id: String,
+pub struct ContextOverrideResponse {
+    context_id: String,
 }
 
 // TODO :: Have to re-think and re-implement all these apis
-#[post("")]
-pub async fn add_ctx_override(state: Data<AppState>, body: Json<BodyType>) -> Result<Json<IDResponse>, AppError> {
+pub async fn add_ctx_override(state: &Data<AppState>, context_id: String, override_id: String) -> Result<Json<ContextOverrideResponse>, AppError> {
 
-    let db: Addr<DbActor> = state.as_ref().db.clone();
-    let ctx_id: String = body.context_id.clone();
-    let ovr_id : String = body.override_id.clone();
+    let db: Addr<DbActor> = state.db.clone();
 
     match db
-        .send(CreateCtxOverrides {
-            context_id: ctx_id,
-            override_id: ovr_id
-        })
+        .send(CreateCtxOverrides {context_id, override_id})
         .await
     {
-        Ok(Ok(result)) => Ok(Json(IDResponse {id: result.context_id})),
+        Ok(Ok(result)) => Ok(Json(ContextOverrideResponse {context_id: result.context_id})),
         Ok(Err(err)) => Err(AppError {
             message: Some("Data already exists".to_string()),
             cause: Some(Left(err.to_string())),
@@ -61,17 +57,16 @@ pub async fn add_ctx_override(state: Data<AppState>, body: Json<BodyType>) -> Re
     }
 }
 
-#[get("/{id}")]
-pub async fn get_ctx_override(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, AppError> {
+pub async fn fetch_override_from_ctx_id(state: &Data<AppState>, context_id: &str) -> Result<String, AppError> {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db
         .send(FetchCtxOverrides {
-            context_id: id.to_string(),
+            context_id: context_id.to_string()
         })
         .await
     {
-        Ok(Ok(result)) => Ok(Json(serde_json::Value::String(result.context_id))),
+        Ok(Ok(result)) => Ok(result.override_id),
         Ok(Err(err)) => Err(AppError {
             message: Some("failed to fetch key value".to_string()),
             cause: Some(Left(err.to_string())),
@@ -79,6 +74,32 @@ pub async fn get_ctx_override(state: Data<AppState>, id: Path<String>) -> Result
         }),
         Err(err) => Err(AppError {message: None, cause: Some(Left(err.to_string())), status: DBError})
     }
+}
+
+#[post("")]
+pub async fn post_ctx_override(state: Data<AppState>, body: Json<BodyType>) -> Result<Json<ContextOverrideResponse>, AppError> {
+    let ctx_id: String = body.context_id.clone();
+    let ovr_id : String = body.override_id.clone();
+    add_ctx_override(&state, ctx_id, ovr_id).await
+}
+
+#[get("/{id}")]
+pub async fn get_ctx_override(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, AppError> {
+    let context_id = id.to_string();
+    let override_id = fetch_override_from_ctx_id(&state, &context_id).await?;
+
+    Ok(Json(
+        to_value(
+            HashMap::from([
+                ("context_id", context_id),
+                ("override_id", override_id)
+            ])
+        ).map_err(|err| AppError {
+            message: None,
+            cause: Some(Left(err.to_string())),
+            status: DBError
+        })?
+    ))
 }
 
 #[delete("/{id}")]

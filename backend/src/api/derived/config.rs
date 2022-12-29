@@ -3,97 +3,155 @@
 use std::collections::HashMap;
 
 use actix_web::{
-    error::ResponseError,
+    Either::Left,
     get,
-    http::{header::ContentType, StatusCode},
     web::{Data, Json},
     HttpRequest,
-    HttpResponse,
 };
-use serde_json::{Value, to_value};
-use strum_macros::{Display, EnumString};
+use serde_json::{to_value, Error, Value};
 
 use crate::api::primary::{
-    global_config::get_complete_config,
-    overrides::get_override_helper
+    context_overrides::fetch_override_from_ctx_id, global_config::get_complete_config,
+    overrides::get_override_helper,
 };
 
-use crate::utils::helpers::create_all_unique_subsets;
-
-use log::{info};
-
-use crate::{AppState};
-
-#[derive(Debug, Display, EnumString)]
-pub enum ConfigError {
-    BadRequest,
-    SomethingWentWrong,
-    FailedToGetContextOverride {key: String},
-    FailedToGetGlobalConfig,
-}
-
-impl ResponseError for ConfigError {
-    fn error_response(&self) -> HttpResponse<actix_web::body::BoxBody> {
-        HttpResponse::build(self.status_code())
-            .insert_header(ContentType::json())
-            .body(self.to_string())
-    }
-
-    fn status_code(&self) -> StatusCode {
-        match self {
-            ConfigError::BadRequest => StatusCode::BAD_REQUEST,
-
-            ConfigError::SomethingWentWrong => StatusCode::FAILED_DEPENDENCY,
-
-            ConfigError::FailedToGetContextOverride {..} => StatusCode::FAILED_DEPENDENCY,
-            ConfigError::FailedToGetGlobalConfig => StatusCode::FAILED_DEPENDENCY,
+use crate::utils::{
+    errors::{
+        AppError,
+        AppErrorType::{
+            DBError,
+            SomethingWentWrong,
         }
+    },
+    hash::string_based_b64_hash,
+    helpers::create_all_unique_subsets,
+};
+
+use crate::AppState;
+
+fn default_error(err: Error) -> AppError{
+    AppError {
+        message: None,
+        cause: Some(Left(err.to_string())),
+        status: SomethingWentWrong
     }
 }
 
-async fn get_context_overrides_object(state: Data<AppState>, query_string: &str) -> Result<Value, ConfigError> {
-    let conditions_vector: Vec<&str> = query_string.split("&").collect();
+fn split_stringified_key_value_pair(input: &str) -> Vec<Vec<&str>> {
+    let conditions_vector_splits: Vec<&str> = input.split("&").collect();
+    let mut conditions_vector: Vec<Vec<&str>> = conditions_vector_splits
+        .iter()
+        .map(|&x| x.split("=").collect())
+        .collect();
 
-    info!("Input contexts =======> {:?}", conditions_vector);
+    conditions_vector.sort_by(|a, b| a[0].cmp(&b[0]));
+
+    return conditions_vector;
+}
+
+fn format_context_json(input: &str, override_with_keys: &str) -> Result<Value, AppError> {
+    let conditions_vector = split_stringified_key_value_pair(input);
+
+    let mut formatted_conditions_vector = Vec::new();
+
+    for condition in conditions_vector {
+        let var_map = to_value(HashMap::from([("var", condition[0])])).map_err(default_error)?;
+        let value_as_value = to_value(condition[1]).map_err(default_error)?;
+
+        let value_arr = vec![[var_map, value_as_value]];
+
+        // Add range based queries
+        let condition_map = to_value(HashMap::from([("==", value_arr)])).map_err(default_error)?;
+
+        formatted_conditions_vector.push(condition_map);
+    }
+
+    let condition_value = if formatted_conditions_vector.len() == 1 {
+        formatted_conditions_vector[0].to_owned()
+    } else {
+        to_value(HashMap::from([("and", formatted_conditions_vector)])).map_err(default_error)?
+    };
+
+    Ok(to_value(HashMap::from([
+        ("overrideWithKeys", &to_value(override_with_keys).map_err(default_error)?),
+        ("condition", &condition_value),
+    ]))
+    .map_err(default_error)?
+    )
+}
+
+async fn get_context_overrides_object(state: &Data<AppState>, query_string: &str) -> Result<Value, AppError> {
+    if query_string == "" {
+        return Ok(Value::default());
+    }
+
+/************************************************************************************************************/
+    // ! Optimize this section
+    let conditions_vector_temp: Vec<String> =
+        split_stringified_key_value_pair(&query_string)
+        .iter()
+        .map(|x| x.join("="))
+        .collect();
+
+    let conditions_vector: Vec<&str> =
+        conditions_vector_temp
+        .iter()
+        .map(|s| &**s)
+        .collect();
+
+/************************************************************************************************************/
 
     let keys = create_all_unique_subsets(&conditions_vector);
 
-    let mut context_override_map = HashMap::new();
+    let mut override_map = HashMap::new();
+    let mut contexts = Vec::new();
 
     for item in keys {
         // TODO :: Sort query based on key and fetch from DB
         // Add the same logic while posting new context
 
-        let key = item.join("&");
+        let key_string = item.to_owned().join("&");
+        let hashed_key = string_based_b64_hash(&key_string).to_string();
 
-        let fetched_value =
-            get_override_helper(state.to_owned(), key.to_owned())
-            .await
-            .map_err(|_| ConfigError::FailedToGetContextOverride {key: key.to_owned()})?;
+        let override_id = fetch_override_from_ctx_id(&state, &hashed_key).await?;
+        let fetched_override_value = get_override_helper(&state, override_id.to_owned()).await?;
 
-        context_override_map.insert(key, fetched_value);
+        override_map.insert(override_id.to_owned(), fetched_override_value);
+        contexts.push(format_context_json(&key_string, &override_id)?);
     }
 
-    to_value(context_override_map).map_err(|_| ConfigError::SomethingWentWrong)
+    to_value(HashMap::from([
+        ("context", to_value(contexts).map_err(default_error)?),
+        ("overrides", to_value(override_map).map_err(default_error)?),
+    ]))
+    .map_err(|err| AppError {
+        message: None,
+        cause: Some(Left(err.to_string())),
+        status: DBError,
+    })
 }
 
-#[get("/{key}")]
-pub async fn get_config(state: Data<AppState>, req: HttpRequest) -> Result<Json<Value>, ConfigError> {
 
+
+
+#[get("")]
+pub async fn get_config(state: Data<AppState>, req: HttpRequest) -> Result<Json<Value>, AppError> {
     let query_string = req.query_string();
 
-    let global_config =
-        to_value(
-            get_complete_config(state.to_owned())
-            .await
-            .map_err(|_| ConfigError::FailedToGetGlobalConfig)?
-        ).map_err(|_| ConfigError::SomethingWentWrong)?;
+    let global_config = to_value(get_complete_config(&state).await?).map_err(|err| AppError {
+        message: None,
+        cause: Some(Left(err.to_string())),
+        status: DBError,
+    })?;
 
-    let context_overrides = get_context_overrides_object(state.to_owned(), query_string).await?;
+    let context_overrides = get_context_overrides_object(&state, query_string).await?;
 
-    let mut result = HashMap::new();
-    result.insert("global_config", global_config);
-    result.insert("context_overrides", context_overrides);
-
-    Ok(Json(to_value(result).map_err(|_| ConfigError::SomethingWentWrong)?))
+    Ok(Json(to_value(HashMap::from([
+        ("global_config", global_config),
+        ("context_overrides", context_overrides)
+    ])).map_err(|err| AppError {
+        message: None,
+        cause: Some(Left(err.to_string())),
+        status: DBError,
+    })?))
 }

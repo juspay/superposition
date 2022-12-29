@@ -2,13 +2,12 @@
 use actix::Message;
 use crate::models::db_models::Contexts;
 use diesel::QueryResult;
-use serde_json::Value;
 
 #[derive(Message)]
 #[rtype(result="QueryResult<Contexts>")]
 pub struct CreateContext {
     pub key: String,
-    pub value: Value,
+    pub value: String,
 }
 
 #[derive(Message)]

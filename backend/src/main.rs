@@ -28,13 +28,16 @@ use api::primary::{
         get_context
     },
     context_overrides::{
-        add_ctx_override,
+        post_ctx_override,
         delete_ctx_override,
         get_ctx_override,
     }
 };
 
-use api::derived::config::get_config;
+use api::derived::{
+    config::get_config,
+    context_override::add_new_context_override
+};
 
 // use crate::utils::validations::just_for_test;
 
@@ -78,7 +81,7 @@ async fn main() -> Result<()> {
         )
         .service(
             scope("/context_overrides")
-                .service(add_ctx_override)
+                .service(post_ctx_override)
                 .service(delete_ctx_override)
                 .service(get_ctx_override)
         )
@@ -99,7 +102,10 @@ async fn main() -> Result<()> {
         .service(
             scope("/config")
                 .service(get_config)
-
+        )
+        .service(
+            scope("add_context_overrides")
+                .service(add_new_context_override)
         )
     })
     .bind(("127.0.0.1", 8080))?

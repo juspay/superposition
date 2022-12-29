@@ -26,8 +26,8 @@ use crate::utils::errors::{
     }
 };
 
-async fn get_all_rows_from_global_config(state: Data<AppState>) -> Result<Vec<GlobalConfig>, AppError> {
-    let db: Addr<DbActor> = state.as_ref().db.clone();
+async fn get_all_rows_from_global_config(state: &Data<AppState>) -> Result<Vec<GlobalConfig>, AppError> {
+    let db: Addr<DbActor> = state.db.clone();
     match db.send(FetchGlobalConfig).await {
         Ok(Ok(result)) => Ok(result),
         Ok(Err(err)) => Err(AppError {
@@ -43,8 +43,8 @@ async fn get_all_rows_from_global_config(state: Data<AppState>) -> Result<Vec<Gl
     }
 }
 
-pub async fn get_complete_config(state: Data<AppState>) -> Result<Json<Value>, AppError> {
-    let db_rows = get_all_rows_from_global_config(state).await?;
+pub async fn get_complete_config(state: &Data<AppState>) -> Result<Json<Value>, AppError> {
+    let db_rows = get_all_rows_from_global_config(&state).await?;
     let mut hash_map: HashMap<String, Value> = HashMap::new();
 
     for row in db_rows {
@@ -74,7 +74,7 @@ pub async fn get_complete_config(state: Data<AppState>) -> Result<Json<Value>, A
 // Get whole global config
 #[get("")]
 pub async fn get_global_config(state: Data<AppState>) -> Result<Json<Value>, AppError> {
-    get_complete_config(state).await
+    get_complete_config(&state).await
 }
 
 // Get request to fetch value for given key
@@ -91,7 +91,7 @@ pub async fn get_global_config_key(state: Data<AppState>, params: Path<Key>) -> 
     match db.send(FetchConfigKey {key}).await {
         Ok(Ok(result)) => Ok(Json(result)),
         Ok(Err(err)) => Err(AppError {
-            message: Some("failed to fetch key value".to_string()),
+            message: Some("Failed to fetch global config".to_string()),
             cause: Some(Left(err.to_string())),
             status: NotFound
         }),

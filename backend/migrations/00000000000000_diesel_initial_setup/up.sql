@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS overrides (
 
 CREATE TABLE IF NOT EXISTS contexts (
   key VARCHAR NOT NULL,
-  value json NOT NULL,
+  value VARCHAR NOT NULL,
   last_modified timestamp WITH time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
   created_on timestamp WITH time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY(key)

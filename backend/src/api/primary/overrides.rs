@@ -33,16 +33,16 @@ use crate::api::primary::global_config::get_complete_config;
 use crate::utils::validations::validate_sub_tree;
 
 #[derive(Serialize, Clone)]
-pub struct IDResponse {
-    id: String,
+pub struct OverrideIdResponse {
+    pub id: String,
 }
 
-#[post("")]
-pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<Json<IDResponse>, AppError> {
-    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+pub async fn add_new_override(state: &Data<AppState>, override_value: Value) -> Result<OverrideIdResponse, AppError> {
+    let db: Addr<DbActor> = state.db.clone();
 
     let global_config =
-        get_complete_config(state).await
+        get_complete_config(&state).await
         .map_err(|err| AppError {
             message: Some("Unable to fetch global config for validation".to_string()),
             cause: Some(Left(err.to_string())),
@@ -59,7 +59,7 @@ pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<J
         status: SomethingWentWrong
     })?;
 
-    if let Err(error_message) = validate_sub_tree(&global_config_as_value, &body) {
+    if let Err(error_message) = validate_sub_tree(&global_config_as_value, &override_value) {
         return Err(AppError {
             message: Some("Validation failed".to_string()),
             cause: Some(Right(error_message)),
@@ -69,7 +69,6 @@ pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<J
 
 
     // TODO :: Post as an array of value
-    let override_value = body.clone();
     let formatted_value =
         sort_multi_level_keys_in_stringified_json(override_value)
         // TODO :: Fix this properly
@@ -89,7 +88,7 @@ pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<J
         })
         .await
     {
-        Ok(Ok(result)) => Ok(Json(IDResponse {id: result.key})),
+        Ok(Ok(result)) => Ok(OverrideIdResponse {id: result.key}),
         Ok(Err(err)) => Err(AppError {
             message: Some("Data already exists".to_string()),
             cause: Some(Left(err.to_string())),
@@ -99,18 +98,22 @@ pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<J
     }
 }
 
-pub async fn get_override_helper(state: Data<AppState>, key: String) -> Result<Json<Value>, AppError> {
-    let db: Addr<DbActor> = state.as_ref().db.clone();
+#[post("")]
+pub async fn post_override(state: Data<AppState>, body: Json<Value>) -> Result<Json<OverrideIdResponse>, AppError> {
+    let override_value = body.clone();
+    Ok(Json(add_new_override(&state, override_value).await?))
+}
+
+pub async fn get_override_helper(state: &Data<AppState>, key: String) -> Result<Json<Value>, AppError> {
+    let db: Addr<DbActor> = state.db.clone();
 
     match db
-        .send(FetchOverride {
-            key: key.to_string(),
-        })
+        .send(FetchOverride {key})
         .await
     {
         Ok(Ok(result)) => Ok(Json(result.value)),
         Ok(Err(err)) => Err(AppError {
-            message: Some("failed to fetch key value".to_string()),
+            message: Some("Failed to fetch value for given override key".to_string()),
             cause: Some(Left(err.to_string())),
             status: NotFound
         }),
@@ -120,7 +123,7 @@ pub async fn get_override_helper(state: Data<AppState>, key: String) -> Result<J
 
 #[get("/{key}")]
 pub async fn get_override(state: Data<AppState>, key: Path<String>) -> Result<Json<Value>, AppError> {
-    get_override_helper(state, key.to_owned()).await
+    get_override_helper(&state, key.to_owned()).await
 }
 
 #[delete("/{key}")]
