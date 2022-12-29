@@ -18,7 +18,6 @@ impl Handler<CreateCtxOverrides> for DbActor {
 
         diesel::insert_into(ctxoverrides)
             .values(CtxOverrideInsertion {
-                key: msg.key,
                 context_id: msg.context_id,
                 override_id: msg.override_id
             })
@@ -33,7 +32,7 @@ impl Handler<FetchCtxOverrides> for DbActor {
         let mut conn = self.0.get().expect("Error on making DB connection for fetching context override");
 
         ctxoverrides
-            .filter(key.eq(msg.key))
+            .filter(context_id.eq(msg.context_id))
             .get_result::<CtxOverrides>(&mut conn)
     }
 }
@@ -45,7 +44,7 @@ impl Handler<DeleteCtxOverrides> for DbActor {
         let mut conn = self.0.get().expect("Error on making DB connection for fetching context override");
 
         diesel::delete(ctxoverrides)
-            .filter(key.eq(msg.key))
+            .filter(context_id.eq(msg.context_id))
             .get_result::<CtxOverrides>(&mut conn)
     }
 }

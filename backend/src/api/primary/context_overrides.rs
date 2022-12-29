@@ -43,17 +43,15 @@ pub async fn add_ctx_override(state: Data<AppState>, body: Json<BodyType>) -> Re
     let db: Addr<DbActor> = state.as_ref().db.clone();
     let ctx_id: String = body.context_id.clone();
     let ovr_id : String = body.override_id.clone();
-    let ctx_over_concat = "".to_string() + &ctx_id + &ovr_id;
 
     match db
         .send(CreateCtxOverrides {
-            key: ctx_over_concat,
             context_id: ctx_id,
             override_id: ovr_id
         })
         .await
     {
-        Ok(Ok(result)) => Ok(Json(IDResponse {id: result.key})),
+        Ok(Ok(result)) => Ok(Json(IDResponse {id: result.context_id})),
         Ok(Err(err)) => Err(AppError {
             message: Some("Data already exists".to_string()),
             cause: Some(Left(err.to_string())),
@@ -69,11 +67,11 @@ pub async fn get_ctx_override(state: Data<AppState>, id: Path<String>) -> Result
 
     match db
         .send(FetchCtxOverrides {
-            key: id.to_string(),
+            context_id: id.to_string(),
         })
         .await
     {
-        Ok(Ok(result)) => Ok(Json(serde_json::Value::String(result.key))),
+        Ok(Ok(result)) => Ok(Json(serde_json::Value::String(result.context_id))),
         Ok(Err(err)) => Err(AppError {
             message: Some("failed to fetch key value".to_string()),
             cause: Some(Left(err.to_string())),
@@ -89,11 +87,11 @@ pub async fn delete_ctx_override(state: Data<AppState>, id: Path<String>) -> Res
 
     match db
         .send(DeleteCtxOverrides {
-            key: id.to_string(),
+            context_id: id.to_string(),
         })
         .await
     {
-        Ok(Ok(result)) => Ok(Json(serde_json::Value::String(result.key))),
+        Ok(Ok(result)) => Ok(Json(serde_json::Value::String(result.context_id))),
         Ok(Err(err)) => Err(AppError {
             message: Some("Data not found".to_string()),
             cause: Some(Left(err.to_string())),

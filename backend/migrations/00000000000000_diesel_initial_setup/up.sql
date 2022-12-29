@@ -1,9 +1,5 @@
 -- Setting up DB
 
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
-
 CREATE OR REPLACE FUNCTION diesel_manage_updated_at(_tbl regclass) RETURNS VOID AS $$
 BEGIN
     EXECUTE format('CREATE TRIGGER set_updated_at BEFORE UPDATE ON %s
@@ -26,7 +22,6 @@ $$ LANGUAGE plpgsql;
 
 
 CREATE TABLE IF NOT EXISTS dimensions (
-  uuid uuid DEFAULT uuid_generate_v4() NOT NULL UNIQUE,
   dimension VARCHAR NOT NULL,
   priority integer NOT NULL,
   last_modified timestamp WITH time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -35,7 +30,6 @@ CREATE TABLE IF NOT EXISTS dimensions (
 );
 
 CREATE TABLE IF NOT EXISTS global_config (
-  uuid uuid DEFAULT uuid_generate_v4() NOT NULL UNIQUE,
   key VARCHAR NOT NULL,
   value json NOT NULL,
   last_modified timestamp WITH time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -59,7 +53,16 @@ CREATE TABLE IF NOT EXISTS contexts (
   PRIMARY KEY(key)
 );
 
+CREATE TABLE ctxoverrides (
+  context_id VARCHAR NOT NULL,
+  override_id VARCHAR NOT NULL,
+  last_modified timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_on timestamp with time zone default CURRENT_TIMESTAMP NOT NULL,
+  PRIMARY KEY(context_id)
+);
+
 SELECT diesel_manage_updated_at('dimensions');
 SELECT diesel_manage_updated_at('global_config');
 SELECT diesel_manage_updated_at('overrides');
 SELECT diesel_manage_updated_at('contexts');
+SELECT diesel_manage_updated_at('ctxoverrides');

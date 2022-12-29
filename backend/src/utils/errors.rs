@@ -1,7 +1,7 @@
 use serde::Serialize;
 use actix_web::{error::ResponseError, http::StatusCode, HttpResponse, Either::{Left, Right}};
 use actix_web::Either;
-use serde_json::{Value, Error, to_value};
+use serde_json::{Value, to_value};
 use std::fmt;
 
 #[derive(Debug, Clone, Serialize)]

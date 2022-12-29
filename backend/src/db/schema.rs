@@ -2,7 +2,6 @@
 
 diesel::table! {
     dimensions (dimension) {
-        uuid -> Uuid,
         dimension -> Varchar,
         priority -> Int4,
         last_modified -> Timestamptz,
@@ -12,7 +11,6 @@ diesel::table! {
 
 diesel::table! {
     global_config (key) {
-        uuid -> Uuid,
         key -> Varchar,
         value -> Json,
         last_modified -> Timestamptz,
@@ -39,8 +37,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    ctxoverrides (key) {
-        key -> Varchar,
+    ctxoverrides (context_id) {
         context_id -> Varchar,
         override_id -> Varchar,
         last_modified -> Timestamptz,

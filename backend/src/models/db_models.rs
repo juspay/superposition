@@ -1,6 +1,5 @@
 
 
-use uuid::Uuid;
 use chrono::DateTime;
 use chrono::offset::Utc;
 use diesel::{Identifiable, Queryable};
@@ -22,7 +21,6 @@ pub struct Contexts {
 #[diesel(table_name = dimensions)]
 #[diesel(primary_key(dimension))]
 pub struct Dimension {
-    pub uuid: Uuid,
     pub dimension: String,
     pub priority: i32,
     pub last_modified: DateTime<Utc>,
@@ -33,7 +31,6 @@ pub struct Dimension {
 #[diesel(table_name = global_config)]
 #[diesel(primary_key(key))]
 pub struct GlobalConfig {
-    pub uuid: Uuid,
     pub key: String,
     pub value: Value,
     pub last_modified: DateTime<Utc>,
@@ -52,9 +49,8 @@ pub struct Overrides {
 
 #[derive(Queryable, Debug, Identifiable, Serialize)]
 #[diesel(table_name = ctxoverrides)]
-#[diesel(primary_key(key))]
+#[diesel(primary_key(context_id))]
 pub struct CtxOverrides {
-    pub key: String,
     pub context_id: String,
     pub override_id: String,
     pub last_modified: DateTime<Utc>,
