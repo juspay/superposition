@@ -11,7 +11,9 @@ use actix_web::{
 use serde_json::{to_value, Error, Value};
 
 use crate::api::primary::{
-    context_overrides::fetch_override_from_ctx_id, global_config::get_complete_config,
+    context_overrides::fetch_override_from_ctx_id,
+    global_config::get_complete_config,
+    contexts::fetch_context,
     overrides::get_override_helper,
 };
 
@@ -24,12 +26,15 @@ use crate::utils::{
         }
     },
     hash::string_based_b64_hash,
-    helpers::create_all_unique_subsets,
+    helpers::{
+        create_all_unique_subsets,
+        split_stringified_key_value_pair,
+    },
 };
 
 use crate::AppState;
 
-fn default_error(err: Error) -> AppError{
+fn default_parsing_error(err: Error) -> AppError{
     AppError {
         message: None,
         cause: Some(Left(err.to_string())),
@@ -37,48 +42,6 @@ fn default_error(err: Error) -> AppError{
     }
 }
 
-fn split_stringified_key_value_pair(input: &str) -> Vec<Vec<&str>> {
-    let conditions_vector_splits: Vec<&str> = input.split("&").collect();
-    let mut conditions_vector: Vec<Vec<&str>> = conditions_vector_splits
-        .iter()
-        .map(|&x| x.split("=").collect())
-        .collect();
-
-    conditions_vector.sort_by(|a, b| a[0].cmp(&b[0]));
-
-    return conditions_vector;
-}
-
-fn format_context_json(input: &str, override_with_keys: &str) -> Result<Value, AppError> {
-    let conditions_vector = split_stringified_key_value_pair(input);
-
-    let mut formatted_conditions_vector = Vec::new();
-
-    for condition in conditions_vector {
-        let var_map = to_value(HashMap::from([("var", condition[0])])).map_err(default_error)?;
-        let value_as_value = to_value(condition[1]).map_err(default_error)?;
-
-        let value_arr = vec![[var_map, value_as_value]];
-
-        // Add range based queries
-        let condition_map = to_value(HashMap::from([("==", value_arr)])).map_err(default_error)?;
-
-        formatted_conditions_vector.push(condition_map);
-    }
-
-    let condition_value = if formatted_conditions_vector.len() == 1 {
-        formatted_conditions_vector[0].to_owned()
-    } else {
-        to_value(HashMap::from([("and", formatted_conditions_vector)])).map_err(default_error)?
-    };
-
-    Ok(to_value(HashMap::from([
-        ("overrideWithKeys", &to_value(override_with_keys).map_err(default_error)?),
-        ("condition", &condition_value),
-    ]))
-    .map_err(default_error)?
-    )
-}
 
 async fn get_context_overrides_object(state: &Data<AppState>, query_string: &str) -> Result<Value, AppError> {
     if query_string == "" {
@@ -117,12 +80,12 @@ async fn get_context_overrides_object(state: &Data<AppState>, query_string: &str
         let fetched_override_value = get_override_helper(&state, override_id.to_owned()).await?;
 
         override_map.insert(override_id.to_owned(), fetched_override_value);
-        contexts.push(format_context_json(&key_string, &override_id)?);
+        contexts.push(fetch_context(&state, &hashed_key).await?);
     }
 
     to_value(HashMap::from([
-        ("context", to_value(contexts).map_err(default_error)?),
-        ("overrides", to_value(override_map).map_err(default_error)?),
+        ("context", to_value(contexts).map_err(default_parsing_error)?),
+        ("overrides", to_value(override_map).map_err(default_parsing_error)?),
     ]))
     .map_err(|err| AppError {
         message: None,

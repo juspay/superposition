@@ -179,3 +179,64 @@ global config: key | value |
 context: context-id | merchant | sdk_version | ...... | dimension-n |
 override: override-id | key | value |
 context-override: context-override-id | context-id | override-id |
+
+
+
+
+
+
+
+
+
+# Output structure
+
+-| Sample 1
+{ "dimensions": [
+    { condition : {
+
+        "and" : [
+            { "==" : [{"var": "tier"}, "1"],
+            { "==" : [{"var": "mid"}, "zee5"]}
+        ]
+    }
+  ]
+}
+
+-| Sample 2
+{ "dimensions": [
+      {
+          "condition": {
+              "==": [{"var":"tier"}, "1"]
+          },
+          "overrideWithKeys": ["tier1"]
+
+      },
+      {
+          "condition": {
+              "==": [{"var":"merchantId"}, "zee5"]
+          },
+          "overrideWithKeys": ["zee5"]
+      }
+  ]
+}
+
+
+# Input structure
+{ "tier": { "==" : [{"var": "tier"}, "1"]},
+  "mid": { "==" : [{"var": "mid"}, "zee5"]}
+}
+
+# New input structure
+{ "tier":
+    { "operator": "=="
+    , "value" : "1"
+    },
+  "mid":
+    { "operator": "=="
+    , "value" : "zee5"
+    },
+}
+
+
+# DB structure
+tier=1&mid=zee5

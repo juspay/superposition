@@ -28,3 +28,16 @@ pub fn create_all_unique_subsets(s: &Vec<&str>) -> Vec<Vec<String>> {
     }
 	return res;
 }
+
+
+pub fn split_stringified_key_value_pair(input: &str) -> Vec<Vec<&str>> {
+    let conditions_vector_splits: Vec<&str> = input.split("&").collect();
+    let mut conditions_vector: Vec<Vec<&str>> = conditions_vector_splits
+        .iter()
+        .map(|&x| x.split("=").collect())
+        .collect();
+
+    conditions_vector.sort_by(|a, b| a[0].cmp(&b[0]));
+
+    return conditions_vector;
+}

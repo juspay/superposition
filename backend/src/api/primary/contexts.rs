@@ -12,7 +12,7 @@ use actix_web::{
     web::{Data, Json, Path},
 };
 use serde::Serialize;
-use serde_json::{from_value, Error, Value};
+use serde_json::{from_value, to_value, Error, Value};
 
 use crate::{
     messages::contexts::{CreateContext, DeleteContext, FetchContext},
@@ -20,7 +20,6 @@ use crate::{
 };
 
 use crate::utils::{
-    hash::string_based_b64_hash,
     errors::{
         AppError,
         AppErrorType::{
@@ -29,7 +28,9 @@ use crate::utils::{
             DBError,
             SomethingWentWrong
         }
-    }
+    },
+    hash::string_based_b64_hash,
+    helpers::split_stringified_key_value_pair,
 };
 
 
@@ -38,7 +39,7 @@ pub struct ContextIdResponse {
     pub id: String,
 }
 
-fn default_error(err: Error) -> AppError{
+fn default_parsing_error(err: Error) -> AppError{
     AppError {
         message: None,
         cause: Some(Left(err.to_string())),
@@ -50,12 +51,12 @@ fn default_error(err: Error) -> AppError{
 fn transform_context(raw_context_value: Value) -> Result<String, AppError> {
 
     // BTreeMap is used to make keys in sorted order
-    let b_tree: BTreeMap<String, Value> = from_value(raw_context_value).map_err(default_error)?;
+    let b_tree: BTreeMap<String, Value> = from_value(raw_context_value).map_err(default_parsing_error)?;
 
     let mut result: Vec<String> = Vec::new();
 
     for (key, value) in b_tree {
-        let value_object: HashMap<String, String> = from_value(value).map_err(default_error)?;
+        let value_object: HashMap<String, String> = from_value(value).map_err(default_parsing_error)?;
 
         let operator = value_object.get("operator").map(|val| val.to_string());
         let value = value_object.get("value").map(|val| val.to_string());
@@ -111,23 +112,48 @@ pub async fn add_new_context(state: &Data<AppState>, context_value: Value) -> Re
 }
 
 
-#[post("")]
-pub async fn post_context(state: Data<AppState>, body: Json<Value>) -> Result<Json<ContextIdResponse>, AppError> {
-    let context_value = body.clone();
-    Ok(Json(add_new_context(&state, context_value).await?))
+fn format_context_json(input: &str, override_with_keys: &str) -> Result<Value, AppError> {
+    let conditions_vector = split_stringified_key_value_pair(input);
+
+    let mut formatted_conditions_vector = Vec::new();
+
+    for condition in conditions_vector {
+        let var_map = to_value(HashMap::from([("var", condition[0])])).map_err(default_parsing_error)?;
+        let value_as_value = to_value(condition[1]).map_err(default_parsing_error)?;
+
+        let value_arr = vec![[var_map, value_as_value]];
+
+        // Add range based queries
+        let condition_map = to_value(HashMap::from([("==", value_arr)])).map_err(default_parsing_error)?;
+
+        formatted_conditions_vector.push(condition_map);
+    }
+
+    let condition_value = if formatted_conditions_vector.len() == 1 {
+        formatted_conditions_vector[0].to_owned()
+    } else {
+        to_value(HashMap::from([("and", formatted_conditions_vector)])).map_err(default_parsing_error)?
+    };
+
+    Ok(to_value(HashMap::from([
+        ("overrideWithKeys", &to_value(override_with_keys).map_err(default_parsing_error)?),
+        ("condition", &condition_value),
+    ]))
+    .map_err(default_parsing_error)?
+    )
 }
 
-#[get("/{key}")]
-pub async fn get_context(state: Data<AppState>, id: Path<String>) -> Result<Json<String>, AppError> {
-    let db: Addr<DbActor> = state.as_ref().db.clone();
 
-    match db
+pub async fn fetch_context(state: &Data<AppState>, key: &String) -> Result<Value, AppError>{
+    let db: Addr<DbActor> = state.db.clone();
+
+    let raw_context_string = match db
         .send(FetchContext {
-            key: id.to_string(),
+            key: key.to_owned()
         })
         .await
     {
-        Ok(Ok(result)) => Ok(Json(result.value)),
+        Ok(Ok(result)) => Ok(result.value),
         Ok(Err(err)) => Err(AppError {
                 message: Some("Failed to get context".to_string()),
                 cause: Some(Left(err.to_string())),
@@ -139,7 +165,21 @@ pub async fn get_context(state: Data<AppState>, id: Path<String>) -> Result<Json
                 status: DBError
             }),
 
-    }
+    }?;
+
+    format_context_json(&raw_context_string, key)
+
+}
+
+#[post("")]
+pub async fn post_context(state: Data<AppState>, body: Json<Value>) -> Result<Json<ContextIdResponse>, AppError> {
+    let context_value = body.clone();
+    Ok(Json(add_new_context(&state, context_value).await?))
+}
+
+#[get("/{key}")]
+pub async fn get_context(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, AppError> {
+    Ok(Json(fetch_context(&state, &id.to_string()).await?))
 }
 
 #[delete("/{key}")]
