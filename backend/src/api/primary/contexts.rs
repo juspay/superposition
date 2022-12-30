@@ -112,7 +112,7 @@ pub async fn add_new_context(state: &Data<AppState>, context_value: Value) -> Re
 }
 
 
-fn format_context_json(input: &str, override_with_keys: &str) -> Result<Value, AppError> {
+fn format_context_json(input: &str) -> Result<Value, AppError> {
     let conditions_vector = split_stringified_key_value_pair(input);
 
     let mut formatted_conditions_vector = Vec::new();
@@ -129,18 +129,11 @@ fn format_context_json(input: &str, override_with_keys: &str) -> Result<Value, A
         formatted_conditions_vector.push(condition_map);
     }
 
-    let condition_value = if formatted_conditions_vector.len() == 1 {
+    Ok(if formatted_conditions_vector.len() == 1 {
         formatted_conditions_vector[0].to_owned()
     } else {
         to_value(HashMap::from([("and", formatted_conditions_vector)])).map_err(default_parsing_error)?
-    };
-
-    Ok(to_value(HashMap::from([
-        ("overrideWithKeys", &to_value(override_with_keys).map_err(default_parsing_error)?),
-        ("condition", &condition_value),
-    ]))
-    .map_err(default_parsing_error)?
-    )
+    })
 }
 
 
@@ -167,7 +160,7 @@ pub async fn fetch_context(state: &Data<AppState>, key: &String) -> Result<Value
 
     }?;
 
-    format_context_json(&raw_context_string, key)
+    format_context_json(&raw_context_string)
 
 }
 

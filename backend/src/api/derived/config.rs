@@ -80,7 +80,18 @@ async fn get_context_overrides_object(state: &Data<AppState>, query_string: &str
         let fetched_override_value = get_override_helper(&state, override_id.to_owned()).await?;
 
         override_map.insert(override_id.to_owned(), fetched_override_value);
-        contexts.push(fetch_context(&state, &hashed_key).await?);
+
+        contexts.push(
+            to_value(HashMap::from([
+                ("overrideWithKeys", to_value(override_id).map_err(default_parsing_error)?),
+                ("condition", fetch_context(&state, &hashed_key).await?),
+            ]))
+            .map_err(|err| AppError {
+                message: None,
+                cause: Some(Left(err.to_string())),
+                status: DBError,
+            })?
+        );
     }
 
     to_value(HashMap::from([
