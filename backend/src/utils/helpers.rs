@@ -6,7 +6,7 @@ pub fn sort_multi_level_keys_in_stringified_json(json: Value) -> Option<Value> {
     to_value(b_tree).ok()
 }
 
-fn _create_all_unique_subsets_helper(s: &Vec<&str> , idx: i32) -> Vec<String> {
+fn create_all_unique_subsets_helper(s: &Vec<&str> , idx: i32) -> Vec<String> {
     let mut n = idx;
 	let mut vector_index = 0;
 	let mut result: Vec<String> = Vec::new();
@@ -21,7 +21,7 @@ fn _create_all_unique_subsets_helper(s: &Vec<&str> , idx: i32) -> Vec<String> {
 	return result;
 }
 
-pub fn _create_all_unique_subsets(s: &Vec<&str>) -> Vec<Vec<String>> {
+pub fn create_all_unique_subsets(s: &Vec<&str>) -> Vec<Vec<String>> {
 	let mut res: Vec<Vec<String>> = Vec::new();
     for i in 1..(1 << s.len()) {
         res.push(create_all_unique_subsets_helper(s ,i));
