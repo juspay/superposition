@@ -12,7 +12,7 @@ use serde_json::{to_value, Error, Value};
 
 use crate::api::primary::{
     context_overrides::fetch_override_from_ctx_id,
-    // global_config::get_complete_config,
+    global_config::get_complete_config,
     contexts::fetch_context,
     new_contexts::fetch_new_contexts,
     overrides::get_override_helper,
@@ -169,7 +169,7 @@ pub async fn get_config(state: Data<AppState>, req: HttpRequest) -> Result<Json<
     let query_string = req.query_string();
 
     Ok(Json(to_value(HashMap::from([
-        // ("global_config", get_complete_config(&state).await?),
+        ("global_config", get_complete_config(&state).await?),
         // ("context_overrides", get_context_overrides_object(&state, query_string).await?)
         ("context_overrides", get_new_context_overrides_object(&state, query_string).await?)
     ])).map_err(|err| AppError {
