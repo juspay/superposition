@@ -31,7 +31,11 @@ use api::primary::{
         post_ctx_override,
         delete_ctx_override,
         get_ctx_override,
-    }
+    },
+    new_contexts::{
+        get_new_context,
+        post_new_context,
+    },
 };
 
 use api::derived::{
@@ -91,10 +95,15 @@ async fn main() -> Result<()> {
                 .service(delete_override)
                 .service(get_override)
         ).service(
-            scope("/context")
+            scope("/oldcontext")
                 .service(post_context)
                 .service(delete_context)
                 .service(get_context)
+
+        ).service(
+            scope("/context")
+                .service(get_new_context)
+                .service(post_new_context)
 
         )
 

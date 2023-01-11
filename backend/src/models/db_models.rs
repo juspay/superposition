@@ -56,3 +56,18 @@ pub struct CtxOverrides {
     pub last_modified: DateTime<Utc>,
     pub created_on: DateTime<Utc>,
 }
+
+
+#[derive(Queryable, Debug, Identifiable, Serialize)]
+#[diesel(table_name = contexts)]
+#[diesel(primary_key(key))]
+pub struct NewContexts {
+    pub key: String,
+    pub value: Value,
+    pub column1: Option<String>,
+    pub column2: Option<String>,
+    pub column3: Option<String>,
+    pub column4: Option<String>,
+    pub last_modified: DateTime<Utc>,
+    pub created_on: DateTime<Utc>,
+}
