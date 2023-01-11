@@ -33,6 +33,7 @@ use api::primary::{
         get_ctx_override,
     },
     new_contexts::{
+        delete_new_context,
         get_new_context,
         post_new_context,
     },
@@ -40,7 +41,8 @@ use api::primary::{
 
 use api::derived::{
     config::get_config,
-    context_override::add_new_context_override
+    context_override::add_new_context_override,
+    reduce::reduce_contexts_overrides,
 };
 
 // use crate::utils::validations::just_for_test;
@@ -104,6 +106,7 @@ async fn main() -> Result<()> {
             scope("/context")
                 .service(get_new_context)
                 .service(post_new_context)
+                .service(delete_new_context)
 
         )
 
@@ -115,6 +118,10 @@ async fn main() -> Result<()> {
         .service(
             scope("add_context_overrides")
                 .service(add_new_context_override)
+        )
+        .service(
+            scope("reduce")
+                .service(reduce_contexts_overrides)
         )
     })
     .bind(("localhost", 8080))?

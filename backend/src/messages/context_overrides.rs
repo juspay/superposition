@@ -11,6 +11,10 @@ pub struct CreateCtxOverrides {
 }
 
 #[derive(Message)]
+#[rtype(result="QueryResult<Vec<CtxOverrides>>")]
+pub struct FetchAllCtxOverrides;
+
+#[derive(Message)]
 #[rtype(result="QueryResult<CtxOverrides>")]
 pub struct FetchCtxOverrides {
     pub context_id: String,

@@ -6,16 +6,17 @@ use std::{
 use actix::Addr;
 use actix_web::{
     Either::{Left},
+    delete,
     get,
     post,
-    web::{Data, Json},
+    web::{Data, Json, Path},
     HttpRequest,
 };
 use serde::Serialize;
 use serde_json::{from_value, to_value, Error, Value};
 
 use crate::{
-    messages::new_contexts::{CreateNewContext, FetchNewContext},
+    messages::new_contexts::{CreateNewContext, DeleteNewContext, FetchAllNewContexts, FetchNewContext},
     api::primary::{
         dimensions::fetch_dimensions
     },
@@ -240,6 +241,42 @@ pub async fn add_new_context_v2(state: &Data<AppState>, context_value: Value, re
     }
 }
 
+pub async fn fetch_all_new_contexts(state: &Data<AppState>) -> Result<Vec<NewContexts>, AppError> {
+    let db: Addr<DbActor> = state.db.clone();
+
+    match db.send(FetchAllNewContexts).await {
+        Ok(Ok(res)) => Ok(res),
+        Ok(Err(err)) => Err(AppError {
+                message: Some("Failed to get context".to_string()),
+                cause: Some(Left(err.to_string())),
+                status: NotFound
+            }),
+        Err(err) => Err(AppError {
+                message: None,
+                cause: Some(Left(err.to_string())),
+                status: DBError
+            }),
+    }
+}
+
+pub async fn delete_new_context_helper(state: &Data<AppState>, key: String) -> Result<NewContexts, AppError> {
+    let db: Addr<DbActor> = state.db.clone();
+
+    match db.send(DeleteNewContext {key}).await {
+        Ok(Ok(res)) => Ok(res),
+        Ok(Err(err)) => Err(AppError {
+                message: Some("Failed to delete context".to_string()),
+                cause: Some(Left(err.to_string())),
+                status: NotFound
+            }),
+        Err(err) => Err(AppError {
+                message: None,
+                cause: Some(Left(err.to_string())),
+                status: DBError
+            }),
+    }
+}
+
 pub async fn fetch_new_contexts(state: &Data<AppState>, query_string: String) -> Result<Vec<HashMap<&str, Value>>, AppError> {
     let key_value_pairs = split_stringified_key_value_pair(&query_string);
 
@@ -302,4 +339,10 @@ pub async fn get_new_context(state: Data<AppState>, req: HttpRequest) -> Result<
 pub async fn post_new_context(state: Data<AppState>, body: Json<Value>) -> Result<Json<ContextIdResponse>, AppError> {
     let context_value = body.clone();
     Ok(Json(add_new_context_v2(&state, context_value, false).await?))
+}
+
+
+#[delete("/{id}")]
+pub async fn delete_new_context(state: Data<AppState>, id: Path<String>) -> Result<Json<NewContexts>, AppError> {
+    Ok(Json(delete_new_context_helper(&state, id.to_string()).await?))
 }

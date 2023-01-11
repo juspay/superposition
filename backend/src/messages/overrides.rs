@@ -12,6 +12,10 @@ pub struct CreateOverride {
 }
 
 #[derive(Message)]
+#[rtype(result="QueryResult<Vec<Overrides>>")]
+pub struct FetchAllOverrides;
+
+#[derive(Message)]
 #[rtype(result="QueryResult<Overrides>")]
 pub struct FetchOverride {
     pub key: String,
