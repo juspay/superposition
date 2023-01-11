@@ -4,7 +4,7 @@ use crate::db::utils::DbActor;
 use crate::models::db_models::CtxOverrides;
 
 use crate::db::schema::ctxoverrides::dsl::*;
-use crate::messages::context_overrides::{CreateCtxOverrides, DeleteCtxOverrides, FetchCtxOverrides};
+use crate::messages::context_overrides::{CreateCtxOverrides, DeleteCtxOverrides, FetchAllCtxOverrides, FetchCtxOverrides};
 use actix::Handler;
 use diesel::{self, prelude::*};
 
@@ -34,6 +34,15 @@ impl Handler<FetchCtxOverrides> for DbActor {
         ctxoverrides
             .filter(context_id.eq(msg.context_id))
             .get_result::<CtxOverrides>(&mut conn)
+    }
+}
+
+impl Handler<FetchAllCtxOverrides> for DbActor {
+    type Result = QueryResult<Vec<CtxOverrides>>;
+
+    fn handle(&mut self, _msg: FetchAllCtxOverrides, _: &mut Self::Context) -> Self::Result {
+        let mut conn = self.0.get().expect("Error on making DB connection for fetching context override");
+        ctxoverrides.get_results::<CtxOverrides>(&mut conn)
     }
 }
 

@@ -4,7 +4,7 @@ use crate::db::utils::DbActor;
 use crate::models::db_models::NewContexts;
 
 use crate::db::schema::newcontexts::dsl::*;
-use crate::messages::new_contexts::{CreateNewContext, FetchNewContext, DeleteNewContext};
+use crate::messages::new_contexts::{CreateNewContext, FetchAllNewContexts, FetchNewContext, DeleteNewContext};
 use actix::Handler;
 use diesel::{self, prelude::*};
 
@@ -53,14 +53,23 @@ impl Handler<FetchNewContext> for DbActor {
     }
 }
 
+impl Handler<FetchAllNewContexts> for DbActor {
+    type Result = QueryResult<Vec<NewContexts>>;
+
+    fn handle(&mut self, _msg: FetchAllNewContexts, _: &mut Self::Context) -> Self::Result {
+        let mut conn = self.0.get().expect("Error on making DB connection for fetching context override");
+        newcontexts.get_results::<NewContexts>(&mut conn)
+    }
+}
+
 impl Handler<DeleteNewContext> for DbActor {
     type Result = QueryResult<NewContexts>;
 
-    fn handle(&mut self, _msg: DeleteNewContext, _: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: DeleteNewContext, _: &mut Self::Context) -> Self::Result {
         let mut conn = self.0.get().expect("Error on making DB connection for fetching context override");
 
         diesel::delete(newcontexts)
-            .filter(column1.eq("".to_string()))
+            .filter(key.eq(msg.key))
             .get_result::<NewContexts>(&mut conn)
     }
 }

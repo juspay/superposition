@@ -4,7 +4,7 @@ use crate::db::utils::DbActor;
 use crate::models::db_models::Overrides;
 
 use crate::db::schema::overrides::dsl::*;
-use crate::messages::overrides::{CreateOverride, DeleteOverride, FetchOverride};
+use crate::messages::overrides::{CreateOverride, DeleteOverride, FetchAllOverrides, FetchOverride};
 use actix::Handler;
 use diesel::{self, prelude::*};
 
@@ -34,6 +34,15 @@ impl Handler<FetchOverride> for DbActor {
         overrides
             .filter(key.eq(msg.key))
             .get_result::<Overrides>(&mut conn)
+    }
+}
+
+impl Handler<FetchAllOverrides> for DbActor {
+    type Result = QueryResult<Vec<Overrides>>;
+
+    fn handle(&mut self, _msg: FetchAllOverrides, _: &mut Self::Context) -> Self::Result {
+        let mut conn = self.0.get().expect("Error on making DB connection for fetching override");
+        overrides.get_results::<Overrides>(&mut conn)
     }
 }
 

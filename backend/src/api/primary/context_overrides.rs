@@ -12,8 +12,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{to_value, Value};
 
 use crate::{
-    messages::context_overrides::{CreateCtxOverrides, DeleteCtxOverrides, FetchCtxOverrides},
-    AppState, DbActor,
+    messages::context_overrides::{CreateCtxOverrides, DeleteCtxOverrides, FetchAllCtxOverrides, FetchCtxOverrides},
+    AppState, DbActor, models::db_models::CtxOverrides,
 };
 
 use crate::utils::{
@@ -81,6 +81,23 @@ pub async fn fetch_override_from_ctx_id(state: &Data<AppState>, context_id: &str
     }
 }
 
+pub async fn fetch_all_ctx_overrides(state: &Data<AppState>) -> Result<Vec<CtxOverrides>, AppError> {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    match db
+        .send(FetchAllCtxOverrides)
+        .await
+    {
+        Ok(Ok(result)) => Ok(result),
+        Ok(Err(err)) => Err(AppError {
+            message: Some("failed to fetch key value".to_string()),
+            cause: Some(Left(err.to_string())),
+            status: NotFound
+        }),
+        Err(err) => Err(AppError {message: None, cause: Some(Left(err.to_string())), status: DBError})
+    }
+}
+
 #[post("")]
 pub async fn post_ctx_override(state: Data<AppState>, body: Json<BodyType>) -> Result<Json<ContextOverrideResponse>, AppError> {
     let ctx_id: String = body.context_id.clone();
@@ -119,7 +136,7 @@ pub async fn delete_ctx_override(state: Data<AppState>, id: Path<String>) -> Res
     {
         Ok(Ok(result)) => Ok(Json(serde_json::Value::String(result.context_id))),
         Ok(Err(err)) => Err(AppError {
-            message: Some("Data not found".to_string()),
+            message: Some("Data not found for context override deletion".to_string()),
             cause: Some(Left(err.to_string())),
             status: NotFound
         }),

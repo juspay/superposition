@@ -10,8 +10,8 @@ use serde::Serialize;
 use serde_json::{Value};
 
 use crate::{
-    messages::overrides::{CreateOverride, DeleteOverride, FetchOverride},
-    AppState, DbActor,
+    messages::overrides::{CreateOverride, DeleteOverride, FetchAllOverrides, FetchOverride},
+    AppState, DbActor, models::db_models::Overrides,
 };
 
 use crate::utils::{
@@ -109,14 +109,30 @@ pub async fn get_override_helper(state: &Data<AppState>, key: String) -> Result<
     }
 }
 
+pub async fn get_all_overrides(state: &Data<AppState>) -> Result<Vec<Overrides>, AppError> {
+    let db: Addr<DbActor> = state.db.clone();
+
+    match db
+        .send(FetchAllOverrides)
+        .await
+    {
+        Ok(Ok(result)) => Ok(result),
+        Ok(Err(err)) => Err(AppError {
+            message: Some("Failed to fetch value for given override key".to_string()),
+            cause: Some(Left(err.to_string())),
+            status: NotFound
+        }),
+        Err(err) => Err(AppError {message: None, cause: Some(Left(err.to_string())), status: DBError})
+    }
+}
+
 #[get("/{key}")]
 pub async fn get_override(state: Data<AppState>, key: Path<String>) -> Result<Json<Value>, AppError> {
     get_override_helper(&state, key.to_owned()).await
 }
 
-#[delete("/{key}")]
-pub async fn delete_override(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, AppError> {
-    let db: Addr<DbActor> = state.as_ref().db.clone();
+pub async fn delete_override_helper(state: &Data<AppState>, id: String) -> Result<Json<Value>, AppError> {
+    let db: Addr<DbActor> = state.db.clone();
 
     match db
         .send(DeleteOverride {
@@ -126,10 +142,15 @@ pub async fn delete_override(state: Data<AppState>, id: Path<String>) -> Result<
     {
         Ok(Ok(result)) => Ok(Json(result.value)),
         Ok(Err(err)) => Err(AppError {
-            message: Some("Data not found".to_string()),
+            message: Some("Data not found for override deletion".to_string()),
             cause: Some(Left(err.to_string())),
             status: NotFound
         }),
         Err(err) => Err(AppError {message: None, cause: Some(Left(err.to_string())), status: DBError})
     }
+}
+
+#[delete("/{key}")]
+pub async fn delete_override(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, AppError> {
+    delete_override_helper(&state, id.to_string()).await
 }

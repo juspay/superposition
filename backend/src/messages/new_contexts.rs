@@ -15,6 +15,11 @@ pub struct CreateNewContext {
     pub column4: Option<String>,
 }
 
+
+#[derive(Message)]
+#[rtype(result="QueryResult<Vec<NewContexts>>")]
+pub struct FetchAllNewContexts;
+
 #[derive(Message)]
 #[rtype(result="QueryResult<Vec<NewContexts>>")]
 pub struct FetchNewContext {

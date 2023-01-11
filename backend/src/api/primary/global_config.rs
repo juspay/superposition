@@ -9,7 +9,6 @@ use actix_web:: {
     post,
     web::{Path, Json, Data},
 };
-use log::info;
 use serde_json::{Value, from_value, to_value};
 use crate::models::db_models::GlobalConfig;
 use serde::{Serialize, Deserialize};
@@ -102,7 +101,6 @@ pub async fn post_config_key_value(state: Data<AppState>, body: Json<Value>) -> 
         .map_err(|err| AppError {message: None, cause: Some(Left(err.to_string())), status: DBError})?;
 
     for (key, value) in b_tree {
-        info!("Key value pair {} {:?}", key, value);
         match db.send(CreateGlobalKey { key, value }).await {
             Ok(Ok(result)) => Ok(Json(result)),
             Ok(Err(err)) => Err(AppError {
