@@ -28,10 +28,14 @@ use crate::utils::errors::{
 // Get dimension table
 #[get("")]
 pub async fn get_dimensions(state: Data<AppState>) -> Result<Json<Vec<Dimension>>, AppError> {
-    let db: Addr<DbActor> = state.as_ref().db.clone();
+    fetch_dimensions(&state).await.map(Json)
+}
+
+pub async fn fetch_dimensions(state: &Data<AppState>) -> Result<Vec<Dimension>, AppError> {
+    let db: Addr<DbActor> = state.db.clone();
 
     match db.send(FetchDimensions).await {
-        Ok(Ok(result)) => Ok(Json(result)),
+        Ok(Ok(result)) => Ok(result),
         Ok(Err(err)) => Err(AppError {
             message: Some("failed to get dimensions".to_string()),
             cause: Some(Left(err.to_string())),

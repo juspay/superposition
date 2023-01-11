@@ -27,6 +27,10 @@ fn type_of(a: &Value) -> String{
         return "Array".to_string();
     }
 
+    if a.is_null() {
+        return "Null".to_string();
+    }
+
     return "Object".to_string();
 }
 

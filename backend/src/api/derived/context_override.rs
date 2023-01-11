@@ -20,8 +20,9 @@ use crate::utils::errors::{
 
 use crate::api::primary::{
     overrides::add_new_override,
-    contexts::add_new_context,
+    // contexts::add_new_context,
     context_overrides::add_ctx_override,
+    new_contexts::add_new_context_v2
 };
 
 
@@ -45,12 +46,13 @@ pub async fn add_new_context_override(state: Data<AppState>, body: Json<KeyValue
     // ! TODO:: Fix this asap
 
     // Ignore even there is an existing context
-    let context_id = add_new_context(&state, context_value_from_body).await?;
+    // let context_id = add_new_context(&state, context_value_from_body).await?;
+    let context_id = add_new_context_v2(&state, context_value_from_body, true).await?;
 
     // Ignore even there is an existing override
-    let override_id = add_new_override(&state, override_value_from_body.to_owned()).await?;
+    let override_id = add_new_override(&state, override_value_from_body.to_owned(), true).await?;
 
-    add_ctx_override(&state, context_id.clone().id, override_id.clone().id).await?;
+    add_ctx_override(&state, context_id.clone().id, override_id.clone().id, true).await?;
 
     Ok(Json(
         to_value(
