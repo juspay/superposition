@@ -23,6 +23,7 @@
 
     },
     "zee5": {
+        "app_list": [],
         "logs_should_push": "changed shoudl push by zee5",
         "logs_public_key": "changed blogs public key by zee5",
         "package_assets": {

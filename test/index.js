@@ -6,10 +6,10 @@ const dimensions = require('../samples/dimensions.json')
 
 
 const data = {
-    tier : "1",
+    tier : "2",
     merchantId : "zee5"
 }
-const configEvaluator = new Config(dimensions, overrides, defaultConfig); 
+const configEvaluator = new Config(dimensions, overrides, defaultConfig);
 const result = configEvaluator.evaluateConfig(data);
 
-console.log(result);
+console.log(JSON.stringify(result));

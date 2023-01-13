@@ -29,8 +29,7 @@ export const deepMerge = (target: IObject, ...sources: Array<IObject>) : IObject
               deepMerge(result[key], elm[key]);
             } else {
               if (Array.isArray(result[key]) && Array.isArray(elm[key])) {
-                // concatenate the two arrays and remove any duplicate primitive values
-                result[key] = Array.from(new Set(result[key].concat(elm[key])));
+                result[key] = [...elm[key]];
               } else {
                 result[key] = elm[key];
               }
