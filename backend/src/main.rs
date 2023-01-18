@@ -108,7 +108,7 @@ async fn main() -> Result<()> {
                 .service(add_new_context_override)
         )
     })
-    .bind(("0.0.0.0", 8080))?
+    .bind(("localhost", 8080))?
     .workers(5)
     .run()
     .await

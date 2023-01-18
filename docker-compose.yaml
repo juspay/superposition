@@ -5,7 +5,7 @@ services:
     command: ./context-aware-config
     build:
       dockerfile: Dockerfile
-      context: .
+      context: ./backend
     links:
       - postgres
     depends_on:
