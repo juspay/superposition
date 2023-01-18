@@ -1,0 +1,38 @@
+version: "3.4"
+services:
+  application:
+    container_name: "application"
+    command: ./context-aware-config
+    build:
+      dockerfile: Dockerfile
+      context: .
+    links:
+      - postgres
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgres://postgres:docker@postgres:5432/config?sslmode=disable
+      - DB_POOL_SIZE=10
+
+    networks:
+      - library-network
+    tty: true
+    ports:
+      - "8080:8080"
+
+  # Middleware
+  postgres:
+    image: postgres:12
+    environment:
+      POSTGRES_PASSWORD: "docker"
+      POSTGRES_DB: "config"
+    networks:
+      - library-network
+    ports:
+      - "5432:5432"
+
+
+networks:
+  library-network:
+    driver: bridge
+
