@@ -60,6 +60,8 @@ fn get_dimension_name (idx: usize) -> String {
     dimesions[idx].to_string()
 }
 
+type ContextValueAndDimensionMap = (HashMap<String, Value>, HashMap<String, String>);
+
 fn contexts_comparator(priority_map: HashMap<String, i32>) -> impl Fn(&NewContexts, &NewContexts) -> Ordering {
 
     let get_value_from_map = move |key: Option<String>| {
@@ -150,9 +152,10 @@ pub async fn fetch_raw_context_v2(
 }
 
 
-pub fn process_single_condition(value_object: &HashMap<String, Value>) -> HashMap<String, String> {
+pub fn process_single_condition(value_object: &HashMap<String, Value>, keys_to_be_excluded: Option<&Vec<String>>) -> ContextValueAndDimensionMap {
 
-    let mut result_map: HashMap<String, String>  = HashMap::new();
+    let mut result_map: HashMap<String, String> = HashMap::new();
+    let mut result_context: HashMap<String, Value> = HashMap::new();
 
     // Range check have to be implemented
     if value_object.contains_key("==") {
@@ -165,44 +168,60 @@ pub fn process_single_condition(value_object: &HashMap<String, Value>) -> HashMa
 
             if let Some(key) = variable_map.get("var") {
                 let key_string = key.to_string();
+                let to_be_included =
+                    keys_to_be_excluded.map_or(
+                        true,
+                        |vect| !vect.contains(&key_string)
+                    );
 
-                result_map.insert(
-                    // Removing double quotes at the start and end for both key and value
-                    strip_double_quotes(&key_string).to_owned(),
-                    strip_double_quotes(&mapped_value).to_owned()
-                );
+
+                if to_be_included {
+                    result_map.insert(
+                        // Removing double quotes at the start and end for both key and value
+                        strip_double_quotes(&key_string).to_owned(),
+                        strip_double_quotes(&mapped_value).to_owned()
+                    );
+
+                    result_context = value_object.to_owned();
+                }
             }
         }
     }
 
-    result_map
+    (result_context, result_map)
 }
 
-pub fn process_input_context_json(input_json: &Value) -> HashMap<String, String> {
+pub fn process_input_context_json(input_json: &Value, keys_to_be_excluded: Option<&Vec<String>>) -> Result<ContextValueAndDimensionMap, AppError> {
 
-    let input_as_map: HashMap<String, Value> = from_value(input_json.to_owned()).unwrap(); // map_err(default_parsing_error)?;
+    let input_as_map: HashMap<String, Value> = from_value(input_json.to_owned()).map_err(default_parsing_error)?;
+    let mut result_context: HashMap<String, Value> = HashMap::new();
 
+    // Single dimension or condition
     if !input_as_map.contains_key("and") {
-        return process_single_condition(&input_as_map);
+        return Ok(process_single_condition(&input_as_map, keys_to_be_excluded));
     }
 
-    let mut result_map: HashMap<String, String>  = HashMap::new();
+    let mut result_map = HashMap::new();
     let val = input_as_map.get("and").unwrap();
     let multiple_condition_array: Vec<Value> = from_value(val.to_owned()).unwrap();
 
 
     for item in multiple_condition_array {
-        let value_object: HashMap<String, Value> = from_value(item).unwrap(); // .map_err(default_parsing_error)?;
-        result_map.extend(process_single_condition(&value_object));
+        let value_object: HashMap<String, Value> = from_value(item).map_err(default_parsing_error)?;
+        let (ctx, map) = process_single_condition(&value_object, keys_to_be_excluded);
+        result_context.extend(ctx);
+        result_map.extend(map);
     }
 
-    result_map
+    Ok((result_context, result_map))
 }
 
-pub async fn add_new_context_v2(state: &Data<AppState>, context_value: Value, return_if_present: bool) -> Result<ContextIdResponse, AppError> {
+pub async fn add_new_context_v2(state: &Data<AppState>, raw_context_value: Value, return_if_present: bool) -> Result<ContextIdResponse, AppError> {
     let db: Addr<DbActor> = state.db.clone();
 
-    let key_value_map = process_input_context_json(&context_value);
+    let (processed_context_value, key_value_map) =
+        process_input_context_json(&raw_context_value, None)?;
+    let context_value = to_value(processed_context_value).map_err(default_parsing_error)?;
 
     // ? TODO :: Post as an array of value
     // ? TODO :: Sort query based on key and add to DB

@@ -15,7 +15,7 @@ use crate::api::primary::{
 };
 
 
-use crate::{AppState};
+use crate::AppState;
 
 use std::iter::FromIterator;
 
