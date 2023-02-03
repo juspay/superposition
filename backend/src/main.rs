@@ -43,6 +43,7 @@ use api::derived::{
     config::get_config,
     context_override::add_new_context_override,
     reduce::reduce_contexts_overrides,
+    promote::promote_contexts_overrides,
 };
 
 // use crate::utils::validations::just_for_test;
@@ -122,6 +123,10 @@ async fn main() -> Result<()> {
         .service(
             scope("reduce")
                 .service(reduce_contexts_overrides)
+        )
+        .service(
+            scope("promote")
+                .service(promote_contexts_overrides)
         )
     })
     .bind(("localhost", 8080))?
