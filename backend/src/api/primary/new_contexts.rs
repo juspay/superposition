@@ -61,6 +61,7 @@ fn get_dimension_name (idx: usize) -> String {
 }
 
 type ContextValueAndDimensionMap = (HashMap<String, Value>, HashMap<String, String>);
+type MaybeContextValueAndDimensionMap = (Option<HashMap<String, Value>>, HashMap<String, String>);
 
 fn contexts_comparator(priority_map: HashMap<String, i32>) -> impl Fn(&NewContexts, &NewContexts) -> Ordering {
 
@@ -152,10 +153,10 @@ pub async fn fetch_raw_context_v2(
 }
 
 
-pub fn process_single_condition(value_object: &HashMap<String, Value>, keys_to_be_excluded: Option<&Vec<String>>) -> ContextValueAndDimensionMap {
+pub fn process_single_condition(value_object: &HashMap<String, Value>, keys_to_be_excluded: Option<&Vec<String>>) -> MaybeContextValueAndDimensionMap {
 
     let mut result_map: HashMap<String, String> = HashMap::new();
-    let mut result_context: HashMap<String, Value> = HashMap::new();
+    let mut result_context: Option<HashMap<String, Value>> = None;
 
     // Range check have to be implemented
     if value_object.contains_key("==") {
@@ -167,13 +168,12 @@ pub fn process_single_condition(value_object: &HashMap<String, Value>, keys_to_b
             let mapped_value = variable_array[1].to_string();
 
             if let Some(key) = variable_map.get("var") {
-                let key_string = key.to_string();
+                let key_string = strip_double_quotes(&key.to_string()).to_string();
                 let to_be_included =
                     keys_to_be_excluded.map_or(
                         true,
                         |vect| !vect.contains(&key_string)
                     );
-
 
                 if to_be_included {
                     result_map.insert(
@@ -182,7 +182,7 @@ pub fn process_single_condition(value_object: &HashMap<String, Value>, keys_to_b
                         strip_double_quotes(&mapped_value).to_owned()
                     );
 
-                    result_context = value_object.to_owned();
+                    result_context = Some(value_object.to_owned());
                 }
             }
         }
@@ -194,11 +194,17 @@ pub fn process_single_condition(value_object: &HashMap<String, Value>, keys_to_b
 pub fn process_input_context_json(input_json: &Value, keys_to_be_excluded: Option<&Vec<String>>) -> Result<ContextValueAndDimensionMap, AppError> {
 
     let input_as_map: HashMap<String, Value> = from_value(input_json.to_owned()).map_err(default_parsing_error)?;
-    let mut result_context: HashMap<String, Value> = HashMap::new();
+    let mut result_context_array = Vec::new();
 
     // Single dimension or condition
     if !input_as_map.contains_key("and") {
-        return Ok(process_single_condition(&input_as_map, keys_to_be_excluded));
+        // ! TODO :: Fix this asap
+        return Err(AppError {
+            message: None,
+            cause: Some(Left("Case yet to handled properly".to_string())),
+            status: SomethingWentWrong
+        });
+        // return Ok(process_single_condition(&input_as_map, keys_to_be_excluded));
     }
 
     let mut result_map = HashMap::new();
@@ -208,12 +214,17 @@ pub fn process_input_context_json(input_json: &Value, keys_to_be_excluded: Optio
 
     for item in multiple_condition_array {
         let value_object: HashMap<String, Value> = from_value(item).map_err(default_parsing_error)?;
-        let (ctx, map) = process_single_condition(&value_object, keys_to_be_excluded);
-        result_context.extend(ctx);
-        result_map.extend(map);
+        let (maybe_ctx, map) = process_single_condition(&value_object, keys_to_be_excluded);
+
+        if let Some(ctx) = maybe_ctx {
+            result_context_array.push(ctx);
+            result_map.extend(map);
+        }
     }
 
-    Ok((result_context, result_map))
+    Ok((HashMap::from([
+        ("and".to_string(), to_value(result_context_array).map_err(default_parsing_error)?)
+    ]), result_map))
 }
 
 pub async fn add_new_context_v2(state: &Data<AppState>, raw_context_value: Value, return_if_present: bool) -> Result<ContextIdResponse, AppError> {

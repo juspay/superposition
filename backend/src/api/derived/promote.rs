@@ -8,8 +8,8 @@ use serde_json::{to_value, Error, Value};
 use serde::{Serialize, Deserialize};
 
 use crate::api::primary::{
-    context_overrides::{ContextOverrideResponse, add_ctx_override, fetch_override_from_ctx_id},
-    new_contexts::{add_new_context_v2, process_input_context_json}
+    context_overrides::{ContextOverrideResponse, add_ctx_override, delete_ctx_override_helper, fetch_override_from_ctx_id},
+    new_contexts::{add_new_context_v2, delete_new_context_helper, process_input_context_json}
 };
 use crate::AppState;
 use crate::utils::{
@@ -60,6 +60,9 @@ pub async fn promote_contexts_overrides(input_state: Data<AppState>, body: Json<
     // Add transaction wrapper here
     let override_id = fetch_override_from_ctx_id(&state, &existing_hashed_value).await?;
     let context_response = add_new_context_v2(&state, new_context_value, true).await?;
+
+    delete_new_context_helper(&state, existing_hashed_value.clone()).await?;
+    delete_ctx_override_helper(&state, existing_hashed_value).await?;
     add_ctx_override(&state, context_response.id, override_id, true).await
 
 }
