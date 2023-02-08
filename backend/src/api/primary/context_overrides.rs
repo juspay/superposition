@@ -124,9 +124,8 @@ pub async fn get_ctx_override(state: Data<AppState>, id: Path<String>) -> Result
     ))
 }
 
-#[delete("/{id}")]
-pub async fn delete_ctx_override(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, AppError> {
-    let db: Addr<DbActor> = state.as_ref().db.clone();
+pub async fn delete_ctx_override_helper(state: &Data<AppState>, id: String) -> Result<Json<Value>, AppError> {
+    let db: Addr<DbActor> = state.db.clone();
 
     match db
         .send(DeleteCtxOverrides {
@@ -142,4 +141,9 @@ pub async fn delete_ctx_override(state: Data<AppState>, id: Path<String>) -> Res
         }),
         Err(err) => Err(AppError {message: None, cause: Some(Left(err.to_string())), status: DBError})
     }
+}
+
+#[delete("/{id}")]
+pub async fn delete_ctx_override(state: Data<AppState>, id: Path<String>) -> Result<Json<Value>, AppError> {
+    delete_ctx_override_helper(&state, id.to_string()).await
 }
