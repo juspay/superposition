@@ -8,16 +8,10 @@ node_modules/
 dist/
 build/
 
-
-
 /backend/target
 
 # Compiled Java class files
 *.class
-
-
-
-*Cargo.lock
 
 # Compiled Python bytecode
 *.py[cod]
@@ -59,3 +53,8 @@ Thumbs.db
 
 .package-lock.json
 
+# nix build outputs
+backend/result
+backend/.tmp
+backend/logfile
+backend/*PGSQL*
