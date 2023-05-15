@@ -38,3 +38,15 @@ CREATE TABLE ctxoverrides (
   created_on timestamp with time zone default CURRENT_TIMESTAMP NOT NULL,
   PRIMARY KEY(context_id)
 );
+
+CREATE TABLE newcontexts (
+  key VARCHAR NOT NULL,
+  value JSON NOT NULL,
+  column1 VARCHAR,
+  column2 VARCHAR,
+  column3 VARCHAR,
+  column4 VARCHAR,
+  last_modified timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_on timestamp with time zone default CURRENT_TIMESTAMP NOT NULL,
+  PRIMARY KEY(key)
+);
