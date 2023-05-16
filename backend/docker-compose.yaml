@@ -5,12 +5,13 @@ services:
     command: ./context-aware-config
     build:
       dockerfile: Dockerfile
-      context: ./backend
+      context: .
     links:
       - postgres
     depends_on:
       - postgres
     environment:
+      # to access postgres outside of docker, use postgres://postgres:docker@localhost:5432 instead
       - DATABASE_URL=postgres://postgres:docker@postgres:5432/config?sslmode=disable
       - DB_POOL_SIZE=10
 
@@ -22,7 +23,8 @@ services:
 
   # Middleware
   postgres:
-    image: postgres:12
+    build: ./docker-compose/postgres/
+    container_name: context-aware-config_postgres_instance
     environment:
       POSTGRES_PASSWORD: "docker"
       POSTGRES_DB: "config"

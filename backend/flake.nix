@@ -30,6 +30,9 @@
             postgresql_12
             libiconv
             openssl
+            docker-compose
+            rust-analyzer
+            rustfmt
           ];
           # buildInputs = with pkgs; [ ];
         };
