@@ -51,10 +51,11 @@ Thumbs.db
 *.mov
 *.wmv
 
-.package-lock.json
+.env
 
 # nix build outputs
 backend/result
 backend/.tmp
 backend/logfile
 backend/*PGSQL*
+backend/.env
