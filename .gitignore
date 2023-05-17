@@ -59,3 +59,4 @@ backend/.tmp
 backend/logfile
 backend/*PGSQL*
 backend/.env
+.direnv
