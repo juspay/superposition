@@ -2,31 +2,25 @@
 use std::collections::HashMap;
 
 use actix_web::{
-    Either::Left,
     post,
     web::{Data, Json},
+    Either::Left,
 };
 
 use log::info;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json::{to_value, Value};
 
-use crate::utils::errors::{
-    AppError,
-    AppErrorType::{
-        SomethingWentWrong,
-    }
-};
+use crate::utils::errors::{AppError, AppErrorType::SomethingWentWrong};
 
 use crate::api::primary::{
-    overrides::add_new_override,
     // contexts::add_new_context,
     context_overrides::add_ctx_override,
-    new_contexts::add_new_context_v2
+    new_contexts::add_new_context_v2,
+    overrides::add_new_override,
 };
 
-
-use crate::{AppState};
+use crate::AppState;
 
 #[derive(Deserialize, Serialize)]
 pub struct KeyValue {
@@ -35,10 +29,12 @@ pub struct KeyValue {
 }
 
 #[post("")]
-pub async fn add_new_context_override(state: Data<AppState>, body: Json<KeyValue>) -> Result<Json<Value>, AppError> {
+pub async fn add_new_context_override(
+    state: Data<AppState>,
+    body: Json<KeyValue>,
+) -> Result<Json<Value>, AppError> {
     let override_value_from_body = body.override_value.clone();
     let context_value_from_body = body.context_value.clone();
-
 
     info!("Prithiv {:?}", context_value_from_body);
 
@@ -55,15 +51,14 @@ pub async fn add_new_context_override(state: Data<AppState>, body: Json<KeyValue
     add_ctx_override(&state, context_id.clone().id, override_id.clone().id, true).await?;
 
     Ok(Json(
-        to_value(
-            HashMap::from([
-                ("context_id", context_id.id),
-                ("override_id", override_id.id)
-            ])
-        ).map_err(|err| AppError {
+        to_value(HashMap::from([
+            ("context_id", context_id.id),
+            ("override_id", override_id.id),
+        ]))
+        .map_err(|err| AppError {
             message: None,
             cause: Some(Left(err.to_string())),
-            status: SomethingWentWrong
-        })?
+            status: SomethingWentWrong,
+        })?,
     ))
 }
