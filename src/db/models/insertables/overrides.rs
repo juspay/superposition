@@ -7,6 +7,6 @@ use crate::db::schema::overrides;
 #[derive(Debug, Insertable, Serialize)]
 #[diesel(table_name = overrides)]
 pub struct NewOverride {
-    pub key : String,
-    pub value : Value,
+    pub key: String,
+    pub value: Value,
 }

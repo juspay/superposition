@@ -7,7 +7,7 @@ use crate::db::schema::newcontexts;
 #[derive(Debug, Insertable, Serialize)]
 #[diesel(table_name = newcontexts)]
 pub struct NewContextInsertion {
-    pub key : String,
+    pub key: String,
     pub value: Value,
     pub column1: Option<String>,
     pub column2: Option<String>,

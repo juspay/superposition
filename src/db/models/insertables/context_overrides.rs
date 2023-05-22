@@ -6,6 +6,6 @@ use crate::db::schema::ctxoverrides;
 #[derive(Debug, Insertable, Serialize)]
 #[diesel(table_name = ctxoverrides)]
 pub struct CtxOverrideInsertion {
-    pub context_id : String,
-    pub override_id : String
+    pub context_id: String,
+    pub override_id: String,
 }
