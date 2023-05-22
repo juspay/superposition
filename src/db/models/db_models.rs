@@ -1,11 +1,9 @@
-
-
-use chrono::DateTime;
+use crate::db::schema::{contexts, ctxoverrides, dimensions, global_config, overrides};
 use chrono::offset::Utc;
+use chrono::DateTime;
 use diesel::{Identifiable, Queryable};
 use serde::Serialize;
 use serde_json::Value;
-use crate::db::schema::{ctxoverrides,contexts, dimensions, global_config, overrides};
 
 #[derive(Queryable, Debug, Identifiable, Serialize)]
 #[diesel(table_name = dimensions)]
@@ -56,7 +54,6 @@ pub struct CtxOverrides {
     pub last_modified: DateTime<Utc>,
     pub created_on: DateTime<Utc>,
 }
-
 
 #[derive(Queryable, Debug, Identifiable, Serialize)]
 #[diesel(table_name = contexts)]

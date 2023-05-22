@@ -25,14 +25,18 @@
         devShell = pkgs.mkShell {
           nativeBuildInputs = with pkgs;
           [
+            # Build requirements
             rustc
             cargo
-            postgresql_12
             libiconv
             openssl
-            docker-compose
+            postgresql_12
+            # Extras
             rust-analyzer
             rustfmt
+            bacon
+            cargo-watch
+            docker-compose
           ];
           # buildInputs = with pkgs; [ ];
         };

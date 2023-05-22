@@ -1,7 +1,12 @@
-use serde::Serialize;
-use actix_web::{error::ResponseError, http::StatusCode, HttpResponse, Either::{Left, Right}};
 use actix_web::Either;
-use serde_json::{Value, to_value};
+use actix_web::{
+    error::ResponseError,
+    http::StatusCode,
+    Either::{Left, Right},
+    HttpResponse,
+};
+use serde::Serialize;
+use serde_json::{to_value, Value};
 use std::fmt;
 
 #[derive(Debug, Clone, Serialize)]
@@ -10,7 +15,7 @@ pub enum AppErrorType {
     DBError,
     NotFound,
     SomethingWentWrong,
-    BadRequest
+    BadRequest,
 }
 
 #[derive(Debug)]
@@ -30,24 +35,27 @@ pub struct ErrorResponse {
 impl AppError {
     fn message(&self) -> String {
         match &*self {
-            AppError { message: Some(message), ..} => message.clone(),
-            _ => "Reason not available".to_string()
+            AppError {
+                message: Some(message),
+                ..
+            } => message.clone(),
+            _ => "Reason not available".to_string(),
         }
     }
 
     fn cause(&self) -> Option<Value> {
         match &*self {
-            AppError {cause, ..} => match cause {
+            AppError { cause, .. } => match cause {
                 Some(Left(val)) => to_value(val.clone()).ok(),
                 Some(Right(val)) => Some(val.clone()),
                 _ => None,
-            }
+            },
         }
     }
 }
 
 impl fmt::Display for AppError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error>{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         write!(f, "{:?}", self)
     }
 }
@@ -66,13 +74,12 @@ impl ResponseError for AppError {
     fn error_response(&self) -> HttpResponse {
         let status_code = self.status_code();
 
-        let json_body = ErrorResponse
-            { message: self.message()
-            , cause: self.cause()
-            , status: self.status.clone()
-            };
+        let json_body = ErrorResponse {
+            message: self.message(),
+            cause: self.cause(),
+            status: self.status.clone(),
+        };
 
         HttpResponse::build(status_code).json(json_body)
     }
 }
-
