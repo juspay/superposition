@@ -36,16 +36,6 @@ pub struct Overrides {
 }
 
 #[derive(Queryable, Debug, Identifiable, Serialize)]
-#[diesel(table_name = contexts)]
-#[diesel(primary_key(key))]
-pub struct Contexts {
-    pub key: String,
-    pub value: String,
-    pub last_modified: DateTime<Utc>,
-    pub created_on: DateTime<Utc>,
-}
-
-#[derive(Queryable, Debug, Identifiable, Serialize)]
 #[diesel(table_name = ctxoverrides)]
 #[diesel(primary_key(context_id))]
 pub struct CtxOverrides {
