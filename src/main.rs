@@ -4,7 +4,6 @@ mod utils;
 
 use api::primary::{
     context_overrides::{delete_ctx_override, get_ctx_override, post_ctx_override},
-    contexts::{delete_context, get_context, post_context},
     dimensions::{get_dimension_key, get_dimensions, post_dimension},
     global_config::{get_global_config, get_global_config_key, post_config_key_value},
     new_contexts::{delete_new_context, get_new_context, post_new_context},
@@ -67,12 +66,6 @@ async fn main() -> Result<()> {
                     .service(post_override)
                     .service(delete_override)
                     .service(get_override),
-            )
-            .service(
-                scope("/oldcontext")
-                    .service(post_context)
-                    .service(delete_context)
-                    .service(get_context),
             )
             .service(
                 scope("/context")
