@@ -36,6 +36,7 @@
             rustfmt
             bacon
             cargo-watch
+            diesel-cli
             docker-compose
           ];
           # buildInputs = with pkgs; [ ];

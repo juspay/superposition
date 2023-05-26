@@ -11,19 +11,15 @@ use actix_web::{
 use serde_json::{to_value, Error, Value};
 
 use crate::api::primary::{
-    context_overrides::fetch_override_from_ctx_id,
-    global_config::get_complete_config, new_contexts::fetch_new_contexts,
-    overrides::get_override_helper,
+    context_overrides::fetch_override_from_ctx_id, global_config::get_complete_config,
+    new_contexts::fetch_new_contexts, overrides::get_override_helper,
 };
 
-use crate::utils::{
-    errors::{
-        AppError,
-        AppErrorType::{DBError, SomethingWentWrong},
-    },
+use crate::utils::errors::{
+    AppError,
+    AppErrorType::{DBError, SomethingWentWrong},
 };
 use crate::utils::helpers::strip_double_quotes;
-
 
 use crate::AppState;
 
