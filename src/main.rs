@@ -1,12 +1,12 @@
 mod api;
 mod db;
 mod utils;
+mod v1;
 
 use api::primary::{
     context_overrides::{delete_ctx_override, get_ctx_override, post_ctx_override},
     dimensions::{get_dimension_key, get_dimensions, post_dimension},
     global_config::{get_global_config, get_global_config_key, post_config_key_value},
-    new_contexts::{delete_new_context, get_new_context, post_new_context},
     overrides::{delete_override, get_override, post_override},
 };
 
@@ -15,8 +15,6 @@ use api::derived::{
     promote::promote_contexts_overrides, reduce::reduce_contexts_overrides,
 };
 
-// use crate::utils::validations::just_for_test;
-
 use dotenv;
 use std::env;
 use std::io::Result;
@@ -24,6 +22,8 @@ use std::io::Result;
 use actix::SyncArbiter;
 use actix_web::{middleware::Logger, web::scope, web::Data, App, HttpServer};
 use db::utils::{get_pool, AppState, DbActor};
+
+use v1::api::*;
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -34,12 +34,14 @@ async fn main() -> Result<()> {
     env_logger::init();
     let db_url: String = env::var("DATABASE_URL").expect("DATABASE_URL must be set in environment");
     let pool = get_pool(&db_url);
-    let db_addr = SyncArbiter::start(5, move || DbActor(pool.clone()));
+    let pool_cl = pool.clone();
+    let db_addr = SyncArbiter::start(5, move || DbActor(pool_cl.clone()));
     HttpServer::new(move || {
         let logger: Logger = Logger::default();
         App::new()
             .app_data(Data::new(AppState {
                 db: db_addr.clone(),
+                db_pool: pool.clone(),
             }))
             .wrap(logger)
             /***************************** Primary api routes *****************************/
@@ -67,12 +69,7 @@ async fn main() -> Result<()> {
                     .service(delete_override)
                     .service(get_override),
             )
-            .service(
-                scope("/context")
-                    .service(get_new_context)
-                    .service(post_new_context)
-                    .service(delete_new_context),
-            )
+            .service(scope("/context").service(context::endpoints()))
             /***************************** Derived api routes *****************************/
             .service(scope("/config").service(get_config))
             .service(scope("add_context_overrides").service(add_new_context_override))

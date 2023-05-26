@@ -26,4 +26,5 @@ derive_more = "^0.99"
 # date and time
 chrono = { version = "0.4", features = ["serde"] }
 # ORM
-diesel = { version = "2.0.2", features = ["postgres", "r2d2", "serde_json", "chrono", "uuid"] }
+diesel = { version = "2.0.2", features = ["postgres", "r2d2", "serde_json", "chrono", "uuid", "postgres_backend"] }
+blake3 = "1.3.3"
