@@ -4,8 +4,10 @@ use diesel::{
     PgConnection,
 };
 
+//TODOP separate out AppState from DB
 pub struct AppState {
     pub db: Addr<DbActor>,
+    pub db_pool: Pool<ConnectionManager<PgConnection>>,
 }
 
 pub struct DbActor(pub Pool<ConnectionManager<PgConnection>>);
