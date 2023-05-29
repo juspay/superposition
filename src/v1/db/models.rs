@@ -2,9 +2,10 @@ use crate::v1::db::schema::*;
 use chrono::offset::Utc;
 use chrono::DateTime;
 use diesel::{Insertable, Queryable, Selectable};
+use serde::Serialize;
 use serde_json::Value;
 
-#[derive(Queryable, Selectable, Insertable)]
+#[derive(Queryable, Selectable, Insertable, Clone, Serialize)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(id))]
 pub struct Context {
