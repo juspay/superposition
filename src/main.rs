@@ -19,7 +19,9 @@ use dotenv;
 use std::io::Result;
 
 use actix::SyncArbiter;
-use actix_web::{middleware::Logger, web::scope, web::Data, App, HttpServer, web::get, HttpResponse};
+use actix_web::{
+    middleware::Logger, web::get, web::scope, web::Data, App, HttpResponse, HttpServer,
+};
 use db::utils::{get_pool, AppState, DbActor};
 
 use v1::api::*;
@@ -39,7 +41,10 @@ async fn main() -> Result<()> {
                 db_pool: pool.clone(),
             }))
             .wrap(logger)
-            .route("/health", get().to(|| async { HttpResponse::Ok().body("Health is good :D")}))
+            .route(
+                "/health",
+                get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
+            )
             /***************************** Primary api routes *****************************/
             .service(
                 scope("/global_config")
@@ -65,12 +70,14 @@ async fn main() -> Result<()> {
                     .service(delete_override)
                     .service(get_override),
             )
-            .service(scope("/context").service(context::endpoints()))
             /***************************** Derived api routes *****************************/
             .service(scope("/config").service(get_config))
             .service(scope("add_context_overrides").service(add_new_context_override))
             .service(scope("reduce").service(reduce_contexts_overrides))
             .service(scope("promote").service(promote_contexts_overrides))
+            /***************************** V1 Routes *****************************/
+            .service(scope("/context").service(context::endpoints()))
+            .service(scope("/dimension").service(dimension::endpoints()))
     })
     .bind(("0.0.0.0", 8080))?
     .workers(5)

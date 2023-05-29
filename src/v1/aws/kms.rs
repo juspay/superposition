@@ -6,7 +6,8 @@ use rusoto_signature::region::Region;
 //TODO refactor below code
 #[allow(deprecated)]
 pub async fn decrypt(client: KmsClient, secret_name: &str) -> String {
-    let cypher = get_from_env_unsafe(secret_name).map(|x: String| base64::decode(x).unwrap())
+    let cypher = get_from_env_unsafe(secret_name)
+        .map(|x: String| base64::decode(x).unwrap())
         .expect(format!("{secret_name} not found in env").as_str());
     let req = DecryptRequest {
         ciphertext_blob: Bytes::from(cypher),
@@ -32,15 +33,11 @@ pub fn new_client() -> KmsClient {
     let app_env: String = get_from_env_unsafe("APP_ENV").unwrap_or(String::from("PROD"));
 
     let kms_region = match app_env.as_str() {
-        "DEV" => {
-            Region::Custom {
-                name: get_from_env_unsafe("AWS_REGION").unwrap_or(String::from("ap-south-1")),
-                endpoint: "http://localhost:4566".to_owned(),
-            }
+        "DEV" => Region::Custom {
+            name: get_from_env_unsafe("AWS_REGION").unwrap_or(String::from("ap-south-1")),
+            endpoint: "http://localhost:4566".to_owned(),
         },
-        _     => {
-            get_from_env_unsafe("AWS_REGION").unwrap_or(Region::ApSouth1)
-        },
+        _ => get_from_env_unsafe("AWS_REGION").unwrap_or(Region::ApSouth1),
     };
 
     KmsClient::new(kms_region)
