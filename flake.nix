@@ -39,6 +39,7 @@
             diesel-cli
             docker-compose
             stdenv.cc
+            # move this to system specific devshell
             darwin.apple_sdk.frameworks.Security
           ];
           # buildInputs = with pkgs; [ ];
