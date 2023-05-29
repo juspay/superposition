@@ -9,19 +9,22 @@ use crate::{
     },
 };
 use actix_web::{
-    put,
+    put, get,
     web::{self, Data},
-    HttpResponse, Scope,
+    HttpResponse, Scope, Result, Responder, error
 };
 use chrono::Utc;
 use diesel::{
     result::{DatabaseErrorKind::*, Error::DatabaseError},
     RunQueryDsl,
+    QueryDsl, ExpressionMethods, QueryResult
 };
 use serde_json::json;
 
 pub fn endpoints() -> Scope {
-    Scope::new("").service(add_contexts_overrides)
+    Scope::new("")
+	.service(add_contexts_overrides)
+	.service(get_context)
 }
 
 #[put("add")]
@@ -84,5 +87,39 @@ async fn add_contexts_overrides(
             println!("DB transaction failed with error: {e:?}");
             return HttpResponse::InternalServerError().finish();
         }
+    }
+}
+
+#[get("/{ctx_id}")]
+async fn get_context(
+    path: web::Path<String>,
+    state: Data<AppState>
+) -> Result<impl Responder> {
+    use crate::v1::db::schema::contexts::dsl::*;
+
+    let ctx_id = path.into_inner();
+    let mut conn = match state.db_pool.get() {
+        Ok(conn) => conn,
+        Err(e) => {
+            println!("Unable to get db connection from pool, error: {e}");
+            return Err(error::ErrorInternalServerError(""));
+        }
+    };
+
+    let result: QueryResult<Vec<Context>> = contexts
+        .filter(id.eq(ctx_id))
+        .load(&mut conn);
+
+    let ctx_vec = match result {
+	Ok(ctx_vec) => ctx_vec,
+        Err(e)      => {
+            println!("Failed to execute query, error: {e}");
+            return Err(error::ErrorInternalServerError(""));
+        }
+    };
+
+    match ctx_vec.first() {
+	Some(ctx) => Ok(web::Json(ctx.clone())),
+	_         => Err(error::ErrorNotFound(""))
     }
 }
