@@ -23,10 +23,10 @@ registry-login:
 	    --password-stdin $(REGISTRY_HOST)
 
 run:
+	pkill -f context-aware-config &
 	touch ./docker-compose/localstack/export_cyphers.sh
 	cargo build --color always
 	docker-compose up -d postgres localstack
-	pkill -f context-aware-config &
 	source ./docker-compose/localstack/export_cyphers.sh && \
 		cargo run --color always
 

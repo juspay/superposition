@@ -483,6 +483,7 @@ dependencies = [
  "chrono",
  "derive_more",
  "diesel",
+ "diesel-derive-enum",
  "dotenv",
  "env_logger",
  "log",
@@ -658,6 +659,18 @@ dependencies = [
  "r2d2",
  "serde_json",
  "uuid",
+]
+
+[[package]]
+name = "diesel-derive-enum"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b10c03b954333d05bfd5be1d8a74eae2c9ca77b86e0f1c3a1ea29c49da1d6c2"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
