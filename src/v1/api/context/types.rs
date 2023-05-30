@@ -13,3 +13,9 @@ pub struct AddContextResp {
     pub override_id: String,
     pub priority: i32,
 }
+
+#[derive(Deserialize)]
+pub struct PaginationParams {
+    pub page: Option<u32>,
+    pub size: Option<u32>
+}
