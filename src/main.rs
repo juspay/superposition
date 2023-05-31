@@ -20,17 +20,14 @@ use std::env;
 use std::io::Result;
 
 use actix::SyncArbiter;
-use actix_web::{middleware::Logger, web::scope, web::Data, App, HttpServer};
+use actix_web::{middleware::Logger, web::scope, web::Data, App, HttpServer, web::get, HttpResponse};
 use db::utils::{get_pool, AppState, DbActor};
 
 use v1::api::*;
 
 #[actix_web::main]
 async fn main() -> Result<()> {
-    // just_for_test();
     dotenv::dotenv().ok();
-    std::env::set_var("RUST_LOG", "debug");
-    std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
     let db_url: String = env::var("DATABASE_URL").expect("DATABASE_URL must be set in environment");
     let pool = get_pool(&db_url);
@@ -44,6 +41,7 @@ async fn main() -> Result<()> {
                 db_pool: pool.clone(),
             }))
             .wrap(logger)
+            .route("/health", get().to(|| async { HttpResponse::Ok().body("Health is good :D")}))
             /***************************** Primary api routes *****************************/
             .service(
                 scope("/global_config")
