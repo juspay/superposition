@@ -36,3 +36,5 @@ cargo add diesel --features "diesel/postgres diesel/r2d2 diesel/serde_json diese
 cargo build
 echo "--------cargo build finished-------------"
 
+echo "------------mischellaneous---------------"
+touch docker-compose/localstack/export_cyphers.sh

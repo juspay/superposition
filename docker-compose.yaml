@@ -21,10 +21,9 @@ services:
     ports:
       - "8080:8080"
 
-  # Middleware
   postgres:
     build: ./docker-compose/postgres/
-    container_name: context-aware-config_postgres_instance
+    container_name: context-aware-config_postgres
     environment:
       POSTGRES_PASSWORD: "docker"
       POSTGRES_DB: "config"
@@ -33,6 +32,20 @@ services:
     ports:
       - "5432:5432"
 
+  localstack:
+    build : ./docker-compose/localstack/
+    container_name: context-aware-config_localstack_instance
+    ports:
+      - "4510-4559:4510-4559"  # external service port range
+      - "4566:4566"            # LocalStack Edge Proxy
+      - "4571:4571"
+    network_mode: bridge
+    environment:
+      LOCALSTACK_SERVICES: s3, sns, sqs, logs, cloudwatch, kms
+      AWS_DEFAULT_REGION: ap-south-1
+      EDGE_PORT: 4566
+    volumes:
+      - ./docker-compose/localstack/export_cyphers.sh:/etc/localstack/export_cyphers.sh
 
 networks:
   library-network:
