@@ -1,5 +1,7 @@
 IMAGE_NAME ?= context-aware-config
 
+SHELL := /bin/bash
+
 build:
 	cargo build
 
@@ -19,5 +21,13 @@ registry-login:
 	docker login \
 	    --username AWS \
 	    --password-stdin $(REGISTRY_HOST)
+
+run:
+	touch ./docker-compose/localstack/export_cyphers.sh
+	cargo build --color always
+	docker-compose up -d postgres localstack
+	pkill -f context-aware-config &
+	source ./docker-compose/localstack/export_cyphers.sh && \
+		cargo run --color always
 
 default: build

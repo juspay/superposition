@@ -38,6 +38,8 @@
             cargo-watch
             diesel-cli
             docker-compose
+            stdenv.cc
+            darwin.apple_sdk.frameworks.Security
           ];
           # buildInputs = with pkgs; [ ];
         };

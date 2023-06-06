@@ -60,3 +60,7 @@ backend/logfile
 backend/*PGSQL*
 backend/.env
 .direnv
+
+# dev
+bacon.toml
+docker-compose/localstack/export_cyphers.sh

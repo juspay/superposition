@@ -16,7 +16,6 @@ use api::derived::{
 };
 
 use dotenv;
-use std::env;
 use std::io::Result;
 
 use actix::SyncArbiter;
@@ -29,8 +28,7 @@ use v1::api::*;
 async fn main() -> Result<()> {
     dotenv::dotenv().ok();
     env_logger::init();
-    let db_url: String = env::var("DATABASE_URL").expect("DATABASE_URL must be set in environment");
-    let pool = get_pool(&db_url);
+    let pool = get_pool().await;
     let pool_cl = pool.clone();
     let db_addr = SyncArbiter::start(5, move || DbActor(pool_cl.clone()));
     HttpServer::new(move || {
