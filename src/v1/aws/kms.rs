@@ -3,13 +3,11 @@ use bytes::Bytes;
 use rusoto_kms::{DecryptRequest, DecryptResponse, Kms, KmsClient};
 use rusoto_signature::region::Region;
 
-//static REGION: Region = get_from_env_unsafe("AWS_REGION").expect("error: AWS_REGION env not found");
-//static KMS_CLIENT: KmsClient = KmsClient::new(REGION);
-
+//TODO refactor below code
+#[allow(deprecated)]
 pub async fn decrypt(client: KmsClient, secret_name: &str) -> String {
-    let cypher: String = get_from_env_unsafe(secret_name)
+    let cypher = get_from_env_unsafe(secret_name).map(|x: String| base64::decode(x).unwrap())
         .expect(format!("{secret_name} not found in env").as_str());
-    println!("KMS - secret: {secret_name}, cypher: {cypher}");
     let req = DecryptRequest {
         ciphertext_blob: Bytes::from(cypher),
         encryption_algorithm: None,
