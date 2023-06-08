@@ -52,20 +52,19 @@ pipeline {
       }
     }
 
-    // Disabled for now, as prod setup is not complete.
-    //stage('Push Image To Production Registry') {
-    //  when {
-    //    expression { SKIP_CI == 'false' }
-    //    branch 'main'
-    //  }
-    //  steps {
-    //    sh '''make ci-push -e \
-    //            VERSION=${COMMIT_HASH} \
-    //            REGION=${REGION} \
-    //            REGISTRY_HOST=${REGISTRY_HOST_PROD}
-    //       '''
-    //  }
-    //}
+    stage('Push Image To Production Registry') {
+      when {
+        expression { SKIP_CI == 'false' }
+        branch 'main'
+      }
+      steps {
+        sh '''make ci-push -e \
+                VERSION=${COMMIT_HASH} \
+                REGION=${REGION} \
+                REGISTRY_HOST=${REGISTRY_HOST_PROD}
+           '''
+      }
+    }
 
     stage('Create Integ Release Tracker') {
       when {
