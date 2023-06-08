@@ -19,7 +19,7 @@ RUN cargo build --release
 
 FROM debian:bullseye
 RUN apt-get update
-RUN apt-get install --yes libpq5
+RUN apt-get install --yes libpq5 ca-certificates
 COPY --from=builder /app/target/release/context-aware-config /app/context-aware-config
 WORKDIR /app
 
