@@ -9,6 +9,7 @@ use rusoto_signature::region::Region;
 pub async fn decrypt(client: KmsClient, secret_name: &str) -> String {
     let cypher: String = get_from_env_unsafe(secret_name)
         .expect(format!("{secret_name} not found in env").as_str());
+    println!("KMS - secret: {secret_name}, cypher: {cypher}");
     let req = DecryptRequest {
         ciphertext_blob: Bytes::from(cypher),
         encryption_algorithm: None,

@@ -10,5 +10,5 @@ where
 {
     std::env::var(name)
         .map(|val| val.parse().unwrap())
-        .map_err(|e| { println!("{e}"); return e;})
+        .map_err(|e| { println!("{name} env not found with error: {e}"); return e;})
 }
