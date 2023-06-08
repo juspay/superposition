@@ -72,7 +72,7 @@ async fn main() -> Result<()> {
             .service(scope("reduce").service(reduce_contexts_overrides))
             .service(scope("promote").service(promote_contexts_overrides))
     })
-    .bind(("localhost", 8080))?
+    .bind(("0.0.0.0", 8080))?
     .workers(5)
     .run()
     .await
