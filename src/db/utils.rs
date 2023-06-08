@@ -32,7 +32,7 @@ async fn get_database_url() -> String {
     let app_env: String = get_from_env_unsafe("APP_ENV").unwrap_or(String::from("PROD"));
     let db_password = match app_env.as_str() {
         "DEV" => String::from("docker"),
-        _     => kms::decrypt(kms_client, "AWS_REGION").await,
+        _     => kms::decrypt(kms_client, "DB_PASSWORD").await,
     };
     let db_host: String = get_from_env_unsafe("DB_HOST").unwrap();
     let db_name: String = get_from_env_unsafe("DB_NAME").unwrap();
