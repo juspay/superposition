@@ -13,6 +13,7 @@ diesel::table! {
         override_id -> Varchar,
         created_at -> Timestamptz,
         created_by -> Varchar,
+        priority -> Int4,
     }
 }
 
@@ -39,4 +40,8 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(contexts, dimensions, overrides,);
+diesel::allow_tables_to_appear_in_same_query!(
+    contexts,
+    dimensions,
+    overrides,
+);

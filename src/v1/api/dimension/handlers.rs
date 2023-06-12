@@ -19,6 +19,10 @@ pub fn endpoints() -> Scope {
 
 #[put("")]
 async fn create(state: Data<AppState>, req: web::Json<CreateReq>) -> HttpResponse {
+    //TODO move this to the type itself rather than special if check
+    if req.priority <= 0 {
+        return HttpResponse::BadRequest().body("Priority should be greater than 0");
+    }
     let new_dimension = Dimension {
         dimension: req.dimension.clone(),
         priority: i32::from(req.priority),
