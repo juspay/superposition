@@ -2,7 +2,7 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     naersk.url = "github:nix-community/naersk";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
   };
 
   outputs = { self, flake-utils, naersk, nixpkgs }:
@@ -23,26 +23,30 @@
 
         # For `nix develop`:
         devShell = pkgs.mkShell {
-          nativeBuildInputs = with pkgs;
-          [
-            # Build requirements
-            rustc
-            cargo
-            libiconv
-            openssl
-            postgresql_12
-            # Extras
-            rust-analyzer
-            rustfmt
-            bacon
-            cargo-watch
-            diesel-cli
-            docker-compose
-            stdenv.cc
-            # move this to system specific devshell
-            darwin.apple_sdk.frameworks.Security
-          ];
-          # buildInputs = with pkgs; [ ];
+          nativeBuildInputs =
+            let
+              univPkgs = with pkgs; [
+                  # Build requirements
+                  rustc
+                  cargo
+                  libiconv
+                  openssl
+                  postgresql_12
+                  # Extras
+                  rust-analyzer
+                  rustfmt
+                  bacon
+                  cargo-watch
+                  diesel-cli
+                  docker-compose
+                  stdenv.cc
+                  pkgconfig
+                ];
+              darwinPkgs = with pkgs; [
+                  darwin.apple_sdk.frameworks.Security
+                ];
+            in
+              univPkgs ++  (if pkgs.stdenv.isDarwin then darwinPkgs else []);
         };
       }
     );
