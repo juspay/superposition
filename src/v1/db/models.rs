@@ -14,6 +14,7 @@ pub struct Context {
     pub override_id: String,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
+    pub priority: i32,
 }
 
 #[derive(Queryable, Selectable, Insertable)]
