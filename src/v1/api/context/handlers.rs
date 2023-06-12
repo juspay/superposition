@@ -3,8 +3,8 @@ use crate::{
     v1::{
         api::context::types::{AddContextReq, AddContextResp},
         db::{
-            models::{Context, Override},
-            schema::{contexts::dsl::contexts, overrides::dsl::overrides},
+            models::{Context, Override, Dimension},
+            schema::{contexts::dsl::contexts, overrides::dsl::overrides, dimensions::dsl::dimensions},
         },
     },
 };
@@ -15,15 +15,49 @@ use actix_web::{
 };
 use chrono::Utc;
 use diesel::{
+    r2d2::{ConnectionManager, PooledConnection},
     result::{DatabaseErrorKind::*, Error::DatabaseError},
-    ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl,
+    ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
 };
-use serde_json::json;
+use serde_json::{json, Value};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(add_contexts_overrides)
         .service(get_context)
+}
+
+type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
+
+fn val_dimensions_cal_priority(
+    conn: &mut DBConnection,
+    cond: &Value,
+) -> Result<i32, String> {
+    let mut get_priority = |key: &String, val: &Value| -> Result<i32, String> {
+        if key == "var" {
+            let dimension_name = val
+                .as_str()
+                .ok_or_else(|| "Dimension name should be of String type")?;
+            dimensions.find(dimension_name)
+                .first(conn)
+                .map(|d: Dimension| d.priority)
+                .map_err(|e| format!("{dimension_name}: {}",e.to_string()))
+        } else {
+            val_dimensions_cal_priority(conn, val)
+        }
+    };
+
+    match cond {
+        Value::Object(x) => 
+            x.iter().try_fold(0, |acc, (key, val)| 
+                get_priority(key, val).map(|res| res + acc)
+            ),
+        Value::Array(x) => 
+            x.iter().try_fold(0, |acc, item|
+                val_dimensions_cal_priority(conn, item).map(|res| res + acc)
+            ),
+        _ => Ok(0),
+    }
 }
 
 #[put("add")]
@@ -34,6 +68,20 @@ async fn add_contexts_overrides(
     let ctxt_cond = json!({
         "and": req.context
     });
+
+    let mut conn = match state.db_pool.get() {
+        Ok(conn) => conn,
+        Err(e) => {
+            println!("unable to get db connection from pool, error: {e}");
+            return HttpResponse::InternalServerError().finish();
+        }
+    };
+
+    let priority = match val_dimensions_cal_priority(&mut conn, &ctxt_cond) {
+        Ok(0) => { return HttpResponse::BadRequest().body("No dimension found in contexts"); },
+        Err(e) => { return HttpResponse::BadRequest().body(e); }
+        Ok(p) => p,
+    };
     let context_id = blake3::hash((ctxt_cond).to_string().as_bytes()).to_string();
     let override_id = blake3::hash((req.r#override).to_string().as_bytes()).to_string();
 
@@ -47,17 +95,10 @@ async fn add_contexts_overrides(
     let new_ctxt = Context {
         id: context_id.clone(),
         value: ctxt_cond,
+        priority,
         override_id: override_id.clone(),
         created_at: Utc::now(),
         created_by: "some_user".to_string(),
-    };
-
-    let mut conn = match state.db_pool.get() {
-        Ok(conn) => conn,
-        Err(e) => {
-            println!("unable to get db connection from pool, error: {e}");
-            return HttpResponse::InternalServerError().finish();
-        }
     };
 
     let txn = conn.build_transaction().run(|conn| {
@@ -73,6 +114,7 @@ async fn add_contexts_overrides(
     let resp = AddContextResp {
         context_id,
         override_id,
+        priority,
     };
 
     match txn {
