@@ -6,15 +6,15 @@ use crate::{
     },
 };
 use actix_web::{
-    delete, put,
+    put,
     web::{self, Data},
     HttpResponse, Scope,
 };
 use chrono::Utc;
-use diesel::{prelude::*, QueryDsl, RunQueryDsl};
+use diesel::{RunQueryDsl};
 
 pub fn endpoints() -> Scope {
-    Scope::new("").service(create).service(delete)
+    Scope::new("").service(create)
 }
 
 #[put("")]
@@ -51,30 +51,6 @@ async fn create(state: Data<AppState>, req: web::Json<CreateReq>) -> HttpRespons
         Err(e) => {
             println!("Dimension upsert failed with error: {e}");
             return HttpResponse::InternalServerError().body("Failed to create/udpate dimension\n");
-        }
-    }
-}
-
-#[delete("/{dimension_name}")]
-async fn delete(state: Data<AppState>, path: web::Path<String>) -> HttpResponse {
-    let dimension_name = path.into_inner();
-
-    let mut conn = match state.db_pool.get() {
-        Ok(conn) => conn,
-        Err(e) => {
-            println!("unable to get db connection from pool, error: {e}");
-            return HttpResponse::InternalServerError().finish();
-        }
-    };
-
-    let delete = diesel::delete(QueryDsl::filter(dimensions, dimension.eq(&dimension_name)))
-        .execute(&mut conn);
-
-    match delete {
-        Ok(_) => HttpResponse::Ok().body("Dimension: {dimension_name} deleted successfully"),
-        Err(e) => {
-            println!("unable to delete dimension {dimension_name}, error: {e}");
-            return HttpResponse::InternalServerError().finish();
         }
     }
 }
