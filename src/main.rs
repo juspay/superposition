@@ -78,6 +78,8 @@ async fn main() -> Result<()> {
             /***************************** V1 Routes *****************************/
             .service(scope("/context").service(context::endpoints()))
             .service(scope("/dimension").service(dimension::endpoints()))
+            .service(scope("/default-config").service(default_config::endpoints()))
+
     })
     .bind(("0.0.0.0", 8080))?
     .workers(5)
