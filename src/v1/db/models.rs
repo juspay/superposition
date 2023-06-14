@@ -48,3 +48,13 @@ pub struct Dimension {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
 }
+
+#[derive(Queryable, Selectable, Insertable, AsChangeset)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+#[diesel(primary_key(key))]
+pub struct DefaultConfig {
+    pub key: String,
+    pub value: Value,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+}
