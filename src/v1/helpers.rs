@@ -1,4 +1,6 @@
-use std::{env::VarError, str::FromStr};
+use std::{env::VarError, str::FromStr, fmt};
+
+use actix_web::{Error, error::ErrorInternalServerError};
 
 //WARN Do NOT use this fxn inside api requests, instead add the required
 //env to AppState and get value from there. As this panics, it should
@@ -14,4 +16,26 @@ where
             println!("{name} env not found with error: {e}");
             return e;
         })
+}
+
+pub trait ToActixErr<T> {
+    fn map_err_to_internal_server<B>(self, log_prefix: &str, err_body: B) -> Result<T, Error>
+    where
+        B: fmt::Debug + fmt::Display + 'static,
+    ;
+}
+
+impl<T, E> ToActixErr<T> for Result<T, E> 
+where
+    E: fmt::Debug,
+{
+    fn map_err_to_internal_server<B>(self, log_prefix: &str, err_body: B) -> Result<T, Error>
+    where
+        B: fmt::Debug + fmt::Display + 'static,
+    {
+        self.map_err(|e| {
+            println!("{log_prefix}, err: {e:?}");
+            ErrorInternalServerError(err_body)
+        })
+    }
 }

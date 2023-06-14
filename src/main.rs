@@ -71,7 +71,7 @@ async fn main() -> Result<()> {
                     .service(get_override),
             )
             /***************************** Derived api routes *****************************/
-            .service(scope("/config").service(get_config))
+            .service(scope("/config-old").service(get_config))
             .service(scope("add_context_overrides").service(add_new_context_override))
             .service(scope("reduce").service(reduce_contexts_overrides))
             .service(scope("promote").service(promote_contexts_overrides))
@@ -79,7 +79,7 @@ async fn main() -> Result<()> {
             .service(scope("/context").service(context::endpoints()))
             .service(scope("/dimension").service(dimension::endpoints()))
             .service(scope("/default-config").service(default_config::endpoints()))
-
+            .service(scope("/config").service(config::endpoints()))
     })
     .bind(("0.0.0.0", 8080))?
     .workers(5)
