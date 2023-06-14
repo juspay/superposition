@@ -18,6 +18,15 @@ diesel::table! {
 }
 
 diesel::table! {
+    default_configs (key) {
+        key -> Varchar,
+        value -> Json,
+        created_at -> Timestamptz,
+        created_by -> Varchar,
+    }
+}
+
+diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::DimensionType;
 
@@ -42,6 +51,7 @@ diesel::table! {
 
 diesel::allow_tables_to_appear_in_same_query!(
     contexts,
+    default_configs,
     dimensions,
     overrides,
 );
