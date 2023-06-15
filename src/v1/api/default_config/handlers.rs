@@ -1,19 +1,57 @@
-use actix_web::{Scope, web::{self, Data}, HttpResponse, put};
-use chrono::Utc;
-use crate::{db::utils::AppState, v1::db::{models::DefaultConfig, schema::default_configs::dsl::default_configs}};
-use diesel::{RunQueryDsl};
+use super::helpers::validate_schema;
 use super::types::CreateReq;
+use crate::{
+    db::utils::AppState,
+    v1::db::{models::DefaultConfig, schema::default_configs::dsl::default_configs},
+};
+use actix_web::{
+    put,
+    web::{self, Data},
+    HttpResponse, Scope,
+};
+use chrono::Utc;
+use diesel::RunQueryDsl;
+use jsonschema::{Draft, JSONSchema};
+use serde_json::Value;
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create)
 }
 
 #[put("/{key}")]
-async fn create(state: Data<AppState>, key: web::Path<String>, request: web::Json<CreateReq> ) -> HttpResponse {
+async fn create(
+    state: Data<AppState>,
+    key: web::Path<String>,
+    request: web::Json<CreateReq>,
+) -> HttpResponse {
     let req = request.into_inner();
+    let schema = Value::Object(req.schema);
+    if let Err(e) = validate_schema(&state.default_config_validation_schema, schema.to_owned()) {
+        return HttpResponse::BadRequest().body(e);
+    };
+    let schema_compile_result = JSONSchema::options()
+        .with_draft(Draft::Draft7)
+        .compile(&schema);
+    let jschema = match schema_compile_result {
+        Ok(jschema) => jschema,
+        Err(e) => {
+            println!("Failed to compile as a Draft-7 JSON schema: {e}");
+            return HttpResponse::BadRequest().body("Bad json schema.");
+        }
+    };
+
+    match jschema.validate(&req.value) {
+        Ok(_) => (),
+        Err(_) => {
+            println!("Validation for value with given JSON schema failed.");
+            return HttpResponse::BadRequest().body("Validation with given schema failed.");
+        }
+    };
+
     let new_default_config = DefaultConfig {
         key: key.into_inner(),
         value: req.value,
+        schema: schema,
         created_by: String::from("some_user"), //TODO update after authentication is added
         created_at: Utc::now(),
     };
