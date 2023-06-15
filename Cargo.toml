@@ -35,3 +35,5 @@ rusoto_core = "0.48.0"
 base64 = "0.21.2"
 diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
 urlencoding = "~2.1.2"
+jsonschema = "~0.17"
+reqwest = { version = "*", features = [ "rustls-tls" ] }
