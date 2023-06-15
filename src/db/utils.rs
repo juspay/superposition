@@ -4,6 +4,7 @@ use diesel::{
     PgConnection,
 };
 use urlencoding::encode;
+use jsonschema::JSONSchema;
 
 use crate::v1::{aws::kms, helpers::get_from_env_unsafe};
 
@@ -11,6 +12,7 @@ use crate::v1::{aws::kms, helpers::get_from_env_unsafe};
 pub struct AppState {
     pub db: Addr<DbActor>,
     pub db_pool: Pool<ConnectionManager<PgConnection>>,
+    pub default_config_validation_schema: JSONSchema
 }
 
 pub struct DbActor(pub Pool<ConnectionManager<PgConnection>>);

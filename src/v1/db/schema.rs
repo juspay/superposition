@@ -23,6 +23,7 @@ diesel::table! {
         value -> Json,
         created_at -> Timestamptz,
         created_by -> Varchar,
+        schema -> Json,
     }
 }
 

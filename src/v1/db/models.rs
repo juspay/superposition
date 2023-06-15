@@ -55,6 +55,7 @@ pub struct Dimension {
 pub struct DefaultConfig {
     pub key: String,
     pub value: Value,
+    pub schema: Value,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
 }

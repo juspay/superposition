@@ -1,6 +1,8 @@
 use std::{env::VarError, str::FromStr, fmt};
 
 use actix_web::{Error, error::ErrorInternalServerError};
+use jsonschema::{JSONSchema, Draft};
+use serde_json::json;
 
 //WARN Do NOT use this fxn inside api requests, instead add the required
 //env to AppState and get value from there. As this panics, it should
@@ -38,4 +40,42 @@ where
             ErrorInternalServerError(err_body)
         })
     }
+}
+
+pub fn get_validation_schema() -> JSONSchema {
+    let my_schema = json!({
+	"type": "object",
+	"properties": {
+	    "type": {
+		"enum": ["string", "object", "enum", "number", "boolean", "array"]
+	    }
+	},
+	"required": ["type"],
+	"allOf": [
+	    {
+		"if": {
+		    "properties": { "type": { "const": "object" } }
+		},
+		"then": {
+		    "properties": { "properties": { "type": "object" } },
+		    "required": ["properties"]
+		}
+	    },
+	    {
+		"if": {
+		    "properties": { "type": { "const": "string" } }
+		},
+		"then": {
+		    "properties": { "pattern": { "type": "string" } },
+		    "required": ["pattern"]
+		}
+	    },
+	    // TODO: Add validations for Array types.
+	]
+    });
+
+    JSONSchema::options()
+        .with_draft(Draft::Draft7)
+        .compile(&my_schema)
+        .expect("THE IMPOSSIBLE HAPPENED, failed to compile the schema for the schema!")
 }
