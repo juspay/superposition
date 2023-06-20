@@ -37,6 +37,7 @@
                   rustfmt
                   bacon
                   cargo-watch
+                  clippy
                   diesel-cli
                   docker-compose
                   stdenv.cc
