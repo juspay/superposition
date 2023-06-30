@@ -1,6 +1,6 @@
 IMAGE_NAME ?= context-aware-config
 
-SHELL := /bin/bash
+SHELL := /usr/bin/env bash
 
 build:
 	cargo build
@@ -23,7 +23,7 @@ registry-login:
 	    --password-stdin $(REGISTRY_HOST)
 
 run:
-	pkill -f context-aware-config &
+	pkill -f target/debug/context-aware-config &
 	touch ./docker-compose/localstack/export_cyphers.sh
 	cargo build --color always
 	docker-compose up -d postgres localstack
