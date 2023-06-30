@@ -14,6 +14,8 @@ diesel::table! {
         created_at -> Timestamptz,
         created_by -> Varchar,
         priority -> Int4,
+        #[sql_name = "override"]
+        override_ -> Json,
     }
 }
 
@@ -41,18 +43,4 @@ diesel::table! {
     }
 }
 
-diesel::table! {
-    overrides (id) {
-        id -> Varchar,
-        value -> Json,
-        created_at -> Timestamptz,
-        created_by -> Varchar,
-    }
-}
-
-diesel::allow_tables_to_appear_in_same_query!(
-    contexts,
-    default_configs,
-    dimensions,
-    overrides,
-);
+diesel::allow_tables_to_appear_in_same_query!(contexts, default_configs, dimensions,);
