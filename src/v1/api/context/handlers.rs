@@ -3,10 +3,8 @@ use crate::{
     v1::{
         api::context::types::{AddContextReq, AddContextResp, PaginationParams},
         db::{
-            models::{Context, Dimension, Override},
-            schema::{
-                contexts::dsl::contexts, dimensions::dsl::dimensions, overrides::dsl::overrides,
-            },
+            models::{Context, Dimension},
+            schema::{contexts::dsl::contexts, dimensions::dsl::dimensions},
         },
         helpers::ToActixErr,
     },
@@ -89,31 +87,19 @@ async fn add_contexts_overrides(
     let context_id = blake3::hash((ctxt_cond).to_string().as_bytes()).to_string();
     let override_id = blake3::hash((req.r#override).to_string().as_bytes()).to_string();
 
-    let new_override = Override {
-        id: override_id.clone(),
-        value: req.r#override.clone(),
-        created_at: Utc::now(),
-        created_by: "some_user".to_string(), //TODO update once authentication is added
-    };
-
     let new_ctxt = Context {
         id: context_id.clone(),
         value: ctxt_cond,
         priority,
-        override_id: override_id.clone(),
+        override_id: override_id.to_owned(),
+        override_: req.r#override.to_owned(),
         created_at: Utc::now(),
         created_by: "some_user".to_string(),
     };
 
-    let txn = conn.build_transaction().run(|conn| {
-        diesel::insert_into(overrides)
-            .values(&new_override)
-            .on_conflict_do_nothing()
-            .execute(conn)?;
-        diesel::insert_into(contexts)
-            .values(&new_ctxt)
-            .execute(conn)
-    });
+    let insert = diesel::insert_into(contexts)
+        .values(&new_ctxt)
+        .execute(&mut conn);
 
     let resp = AddContextResp {
         context_id,
@@ -121,7 +107,7 @@ async fn add_contexts_overrides(
         priority,
     };
 
-    match txn {
+    match insert {
         Ok(_) => HttpResponse::Created()
             .insert_header(("x-info", "new context created"))
             .json(resp),

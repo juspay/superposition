@@ -15,16 +15,7 @@ pub struct Context {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub priority: i32,
-}
-
-#[derive(Queryable, Selectable, Insertable)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-#[diesel(primary_key(id))]
-pub struct Override {
-    pub id: String,
-    pub value: Value,
-    pub created_at: DateTime<Utc>,
-    pub created_by: String,
+    pub override_: Value,
 }
 
 #[derive(Debug, Clone, Copy, diesel_derive_enum::DbEnum, Deserialize, Serialize)]
