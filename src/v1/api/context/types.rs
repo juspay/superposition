@@ -3,7 +3,7 @@ use serde_json::{ Value, Map};
 
 #[derive(Deserialize)]
 pub struct AddContextReq {
-    pub context: Vec<Map<String, Value>>,
+    pub context: Map<String, Value>,
     pub r#override: Value,
 }
 
