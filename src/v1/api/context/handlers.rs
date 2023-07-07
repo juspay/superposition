@@ -20,7 +20,7 @@ use diesel::{
     result::{DatabaseErrorKind::*, Error::DatabaseError},
     ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
 };
-use serde_json::{json, Value, Value::Null};
+use serde_json::{Value, Value::Null};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -63,10 +63,7 @@ async fn add_contexts_overrides(
     req: web::Json<AddContextReq>,
     state: Data<AppState>,
 ) -> HttpResponse {
-    let ctxt_cond = json!({
-        "and": req.context
-    });
-
+    let ctxt_cond = Value::Object(req.context.to_owned());
     let mut conn = match state.db_pool.get() {
         Ok(conn) => conn,
         Err(e) => {
