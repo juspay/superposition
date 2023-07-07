@@ -24,7 +24,7 @@ use actix_web::{
 };
 use db::utils::{get_pool, AppState, DbActor};
 
-use v1::{api::*, helpers::get_validation_schema};
+use v1::{api::*, helpers::get_default_config_validation_schema};
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -39,7 +39,7 @@ async fn main() -> Result<()> {
             .app_data(Data::new(AppState {
                 db: db_addr.clone(),
                 db_pool: pool.clone(),
-                default_config_validation_schema: get_validation_schema(),
+                default_config_validation_schema: get_default_config_validation_schema(),
             }))
             .wrap(logger)
             .route(

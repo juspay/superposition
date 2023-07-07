@@ -1,7 +1,7 @@
-use std::{env::VarError, str::FromStr, fmt};
+use std::{env::VarError, fmt, str::FromStr};
 
-use actix_web::{Error, error::ErrorInternalServerError};
-use jsonschema::{JSONSchema, Draft};
+use actix_web::{error::ErrorInternalServerError, Error};
+use jsonschema::{Draft, JSONSchema};
 use serde_json::json;
 
 //WARN Do NOT use this fxn inside api requests, instead add the required
@@ -23,11 +23,10 @@ where
 pub trait ToActixErr<T> {
     fn map_err_to_internal_server<B>(self, log_prefix: &str, err_body: B) -> Result<T, Error>
     where
-        B: fmt::Debug + fmt::Display + 'static,
-    ;
+        B: fmt::Debug + fmt::Display + 'static;
 }
 
-impl<T, E> ToActixErr<T> for Result<T, E> 
+impl<T, E> ToActixErr<T> for Result<T, E>
 where
     E: fmt::Debug,
 {
@@ -42,36 +41,36 @@ where
     }
 }
 
-pub fn get_validation_schema() -> JSONSchema {
+pub fn get_default_config_validation_schema() -> JSONSchema {
     let my_schema = json!({
-	"type": "object",
-	"properties": {
-	    "type": {
-		"enum": ["string", "object", "enum", "number", "boolean", "array"]
-	    }
-	},
-	"required": ["type"],
-	"allOf": [
-	    {
-		"if": {
-		    "properties": { "type": { "const": "object" } }
-		},
-		"then": {
-		    "properties": { "properties": { "type": "object" } },
-		    "required": ["properties"]
-		}
-	    },
-	    {
-		"if": {
-		    "properties": { "type": { "const": "string" } }
-		},
-		"then": {
-		    "properties": { "pattern": { "type": "string" } },
-		    "required": ["pattern"]
-		}
-	    },
-	    // TODO: Add validations for Array types.
-	]
+    "type": "object",
+    "properties": {
+        "type": {
+        "enum": ["string", "object", "enum", "number", "boolean", "array"]
+        }
+    },
+    "required": ["type"],
+    "allOf": [
+//        {
+//        "if": {
+//            "properties": { "type": { "const": "object" } }
+//        },
+//        "then": {
+//            "properties": { "properties": { "type": "object" } },
+//            "required": ["properties"]
+//        }
+//        },
+        {
+        "if": {
+            "properties": { "type": { "const": "string" } }
+        },
+        "then": {
+            "properties": { "pattern": { "type": "string" } },
+            "required": ["pattern"]
+        }
+        },
+        // TODO: Add validations for Array types.
+    ]
     });
 
     JSONSchema::options()
