@@ -16,7 +16,7 @@ use api::derived::{
 };
 
 use dotenv;
-use std::io::Result;
+use std::{env, io::Result};
 
 use actix::SyncArbiter;
 use actix_web::{
@@ -33,6 +33,7 @@ async fn main() -> Result<()> {
     let pool = get_pool().await;
     let pool_cl = pool.clone();
     let db_addr = SyncArbiter::start(5, move || DbActor(pool_cl.clone()));
+    let admin_token = env::var("ADMIN_TOKEN").expect("Admin token is not set!");
     HttpServer::new(move || {
         let logger: Logger = Logger::default();
         App::new()
@@ -40,6 +41,7 @@ async fn main() -> Result<()> {
                 db: db_addr.clone(),
                 db_pool: pool.clone(),
                 default_config_validation_schema: get_default_config_validation_schema(),
+		admin_token: admin_token.to_owned()
             }))
             .wrap(logger)
             .route(

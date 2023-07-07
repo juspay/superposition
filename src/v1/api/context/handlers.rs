@@ -1,7 +1,10 @@
 use crate::{
     db::utils::AppState,
     v1::{
-        api::context::types::{AddContextReq, AddContextResp, PaginationParams},
+        api::{
+            context::types::{AddContextReq, AddContextResp, PaginationParams},
+            types::AuthenticationInfo,
+        },
         db::{
             models::{Context, Dimension},
             schema::{contexts::dsl::contexts, dimensions::dsl::dimensions},
@@ -31,7 +34,10 @@ pub fn endpoints() -> Scope {
 
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
-fn val_dimensions_cal_priority(conn: &mut DBConnection, cond: &Value) -> Result<i32, String> {
+fn val_dimensions_cal_priority(
+    conn: &mut DBConnection,
+    cond: &Value,
+) -> Result<i32, String> {
     let mut get_priority = |key: &String, val: &Value| -> Result<i32, String> {
         if key == "var" {
             let dimension_name = val
@@ -62,6 +68,7 @@ fn val_dimensions_cal_priority(conn: &mut DBConnection, cond: &Value) -> Result<
 async fn add_contexts_overrides(
     req: web::Json<AddContextReq>,
     state: Data<AppState>,
+    auth_info: AuthenticationInfo,
 ) -> HttpResponse {
     let ctxt_cond = Value::Object(req.context.to_owned());
     let mut conn = match state.db_pool.get() {
@@ -84,6 +91,7 @@ async fn add_contexts_overrides(
     let context_id = blake3::hash((ctxt_cond).to_string().as_bytes()).to_string();
     let override_id = blake3::hash((req.r#override).to_string().as_bytes()).to_string();
 
+    let AuthenticationInfo(email) = auth_info;
     let new_ctxt = Context {
         id: context_id.clone(),
         value: ctxt_cond,
@@ -91,7 +99,7 @@ async fn add_contexts_overrides(
         override_id: override_id.to_owned(),
         override_: req.r#override.to_owned(),
         created_at: Utc::now(),
-        created_by: "some_user".to_string(),
+        created_by: email,
     };
 
     let insert = diesel::insert_into(contexts)
@@ -119,7 +127,10 @@ async fn add_contexts_overrides(
 }
 
 #[get("/{ctx_id}")]
-async fn get_context(path: web::Path<String>, state: Data<AppState>) -> Result<impl Responder> {
+async fn get_context(
+    path: web::Path<String>,
+    state: Data<AppState>,
+) -> Result<impl Responder> {
     use crate::v1::db::schema::contexts::dsl::*;
 
     let ctx_id = path.into_inner();
@@ -131,7 +142,8 @@ async fn get_context(path: web::Path<String>, state: Data<AppState>) -> Result<i
         }
     };
 
-    let result: QueryResult<Vec<Context>> = contexts.filter(id.eq(ctx_id)).load(&mut conn);
+    let result: QueryResult<Vec<Context>> =
+        contexts.filter(id.eq(ctx_id)).load(&mut conn);
 
     let ctx_vec = match result {
         Ok(ctx_vec) => ctx_vec,
