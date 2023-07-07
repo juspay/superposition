@@ -3,8 +3,8 @@ use diesel::{
     r2d2::{ConnectionManager, Pool},
     PgConnection,
 };
-use urlencoding::encode;
 use jsonschema::JSONSchema;
+use urlencoding::encode;
 
 use crate::v1::{aws::kms, helpers::get_from_env_unsafe};
 
@@ -12,7 +12,8 @@ use crate::v1::{aws::kms, helpers::get_from_env_unsafe};
 pub struct AppState {
     pub db: Addr<DbActor>,
     pub db_pool: Pool<ConnectionManager<PgConnection>>,
-    pub default_config_validation_schema: JSONSchema
+    pub default_config_validation_schema: JSONSchema,
+    pub admin_token: String,
 }
 
 pub struct DbActor(pub Pool<ConnectionManager<PgConnection>>);
@@ -23,7 +24,8 @@ impl Actor for DbActor {
 
 pub async fn get_pool() -> Pool<ConnectionManager<PgConnection>> {
     let db_url = get_database_url().await;
-    let manager: ConnectionManager<PgConnection> = ConnectionManager::<PgConnection>::new(db_url);
+    let manager: ConnectionManager<PgConnection> =
+        ConnectionManager::<PgConnection>::new(db_url);
     Pool::builder()
         .build(manager)
         .expect("Error building a connection pool")
