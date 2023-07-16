@@ -1,0 +1,33 @@
+[package]
+name = "experimentation-platform"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# env
+dotenv = "0.15.0"
+# Https server framework
+actix = "0.13.0"
+actix-web = "4.0.0"
+# To help generate snowflake ids
+rs-snowflake = "0.6.0"
+# To help with generating uuids
+uuid = {version = "^0.8", features = ["v4","serde"]}
+# To serialize and deserialize objects from json
+serde = {version = "^1", features = ["derive"]}
+serde_json = {version = "1.0"}
+# For logging and debugging
+env_logger = "0.8"
+log = "^0.4"
+# to work with enums
+strum_macros = "^0.24"
+strum = {version = "^0.24"}
+derive_more = "^0.99"
+# date and time
+chrono = { version = "0.4", features = ["serde"] }
+# ORM
+diesel = { version = "2.0.2", features = ["postgres", "r2d2", "serde_json", "chrono", "uuid", "postgres_backend"] }
+diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
+service-utils = { path = "../service-utils" }
