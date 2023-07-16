@@ -11,10 +11,21 @@ use std::{
 
 use actix_web::{error, web::Data, Error, FromRequest};
 
+use snowflake::SnowflakeIdGenerator;
+use std::sync::Mutex;
+
+pub struct ExperimentationFlags {
+    pub allow_same_keys_overlapping_ctx : bool,
+    pub allow_diff_keys_overlapping_ctx : bool,
+    pub allow_same_keys_non_overlapping_ctx: bool,
+}
+
 pub struct AppState {
     pub db_pool: Pool<ConnectionManager<PgConnection>>,
     pub default_config_validation_schema: JSONSchema,
     pub admin_token: String,
+    pub experimentation_flags: ExperimentationFlags,
+    pub snowflake_generator: Mutex<SnowflakeIdGenerator>,
 }
 
 #[derive(Clone)]
