@@ -1,0 +1,19 @@
+diff --git a/crates/experimentation-platform/src/db/schema.rs b/crates/experimentation-platform/src/db/schema.rs
+index 670548b..3d4f52b 100644
+--- a/crates/experimentation-platform/src/db/schema.rs
++++ b/crates/experimentation-platform/src/db/schema.rs
+@@ -12,13 +12,13 @@ diesel::table! {
+ 
+     experiments (id) {
+         id -> Int8,
+         created_at -> Timestamptz,
+         created_by -> Text,
+         name -> Text,
+-        override_keys -> Array<Nullable<Text>>,
++        override_keys -> Array<Text>,
+         status -> ExperimentStatusType,
+         traffic_percentage -> Int4,
+         context -> Json,
+         variants -> Json,
+     }
+ }

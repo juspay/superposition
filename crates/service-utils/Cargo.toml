@@ -11,6 +11,8 @@ dotenv = "0.15.0"
 # Https server framework
 actix = "0.13.0"
 actix-web = "4.0.0"
+# To help generate snowflake ids
+rs-snowflake = "0.6.0"
 #ORM
 diesel = { version = "2.1.0", features = ["postgres", "r2d2", "serde_json", "chrono", "uuid", "postgres_backend"] }
 rusoto_kms = "0.48.0"
