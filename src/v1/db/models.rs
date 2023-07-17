@@ -5,7 +5,7 @@ use diesel::{AsChangeset, Insertable, Queryable, Selectable};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Queryable, Selectable, Insertable, Clone, Serialize)]
+#[derive(Queryable, Selectable, Insertable, Clone, Serialize, Debug)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(id))]
 pub struct Context {
@@ -15,6 +15,7 @@ pub struct Context {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub priority: i32,
+    #[serde(rename(serialize = "override"))]
     pub override_: Value,
 }
 
