@@ -7,18 +7,21 @@ use crate::{
         },
         db::{
             models::{Context, Dimension},
-            schema::{contexts::dsl::contexts, dimensions::dsl::dimensions},
+            schema::{contexts, dimensions::dsl::dimensions},
         },
         helpers::ToActixErr,
     },
 };
 use actix_web::{
-    error, get, put,
+    delete,
+    error::{self, ErrorInternalServerError, ErrorNotFound},
+    get, put,
     web::{self, Data},
     HttpResponse, Responder, Result, Scope,
 };
 use chrono::Utc;
 use diesel::{
+    delete,
     r2d2::{ConnectionManager, PooledConnection},
     result::{DatabaseErrorKind::*, Error::DatabaseError},
     ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
@@ -30,6 +33,7 @@ pub fn endpoints() -> Scope {
         .service(add_contexts_overrides)
         .service(get_context)
         .service(list_contexts)
+        .service(delete_context)
 }
 
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
@@ -70,6 +74,7 @@ async fn add_contexts_overrides(
     state: Data<AppState>,
     auth_info: AuthenticationInfo,
 ) -> HttpResponse {
+    use contexts::dsl::contexts;
     let ctxt_cond = Value::Object(req.context.to_owned());
     let mut conn = match state.db_pool.get() {
         Ok(conn) => conn,
@@ -193,4 +198,27 @@ async fn list_contexts(
         .load(&mut conn)
         .map_err_to_internal_server("Failed to execute query, error", Null)?;
     Ok(web::Json(result))
+}
+
+#[delete("/{ctx_id}")]
+async fn delete_context(
+    state: Data<AppState>,
+    path: web::Path<String>,
+) -> actix_web::Result<HttpResponse> {
+    use contexts::dsl;
+
+    let mut conn = state
+        .db_pool
+        .get()
+        .map_err_to_internal_server("Unable to get db connection from pool", Null)?;
+    let ctx_id = path.into_inner();
+    let deleted_row = delete(dsl::contexts.filter(dsl::id.eq(ctx_id))).execute(&mut conn);
+    match deleted_row {
+        Ok(0) => Err(ErrorNotFound("")),
+        Ok(_) => Ok(HttpResponse::NoContent().finish()),
+        Err(e) => {
+            log::error!("context delete query failed with error: {e}");
+            Err(ErrorInternalServerError(""))
+        }
+    }
 }
