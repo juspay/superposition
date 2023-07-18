@@ -34,6 +34,7 @@ pub fn endpoints() -> Scope {
         .service(get_context)
         .service(list_contexts)
         .service(delete_context)
+        .service(move_context)
 }
 
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
@@ -158,6 +159,53 @@ async fn put_context(
         }
         e => {
             println!("context insert failed with error: {e:?}");
+            Err(ErrorInternalServerError(""))
+        }
+    }
+}
+
+#[put("/move/{ctx_id}")]
+async fn move_context(
+    state: Data<AppState>,
+    path: Path<String>,
+    req: web::Json<PutReq>,
+    auth_info: AuthenticationInfo,
+) -> actix_web::Result<web::Json<PutResp>> {
+    use contexts::dsl;
+    let conn = &mut state
+        .db_pool
+        .get()
+        .map_err_to_internal_server("unable to get db connection from pool", "")?;
+    let new_ctx = create_ctx_from_put_req(req, conn, auth_info)?;
+    let old_ctx_id = path.into_inner();
+    let update = diesel::update(dsl::contexts)
+        .filter(dsl::id.eq(&old_ctx_id))
+        //NOTE we have to specifically set id because
+        //diesel's #derive(AsChangeset) by default
+        //assumes that we want to ignore it
+        .set((&new_ctx, dsl::id.eq(&new_ctx.id)))
+        .execute(conn);
+
+    let handle_unique_violation = |db_conn: &mut DBConnection, new_ctx: Context| {
+        db_conn
+            .build_transaction()
+            .read_write()
+            .run(|conn| {
+                diesel::delete(dsl::contexts)
+                    .filter(dsl::id.eq(&old_ctx_id))
+                    .execute(conn)?;
+                update_override_of_existing_ctx(conn, new_ctx)
+            })
+            .map_err_to_internal_server("update query failed", "")
+    };
+    match update {
+        Ok(0) => Err(ErrorNotFound(format!(
+            "context with id: {old_ctx_id} not found"
+        ))),
+        Ok(_) => Ok(web::Json(get_put_resp(new_ctx))),
+        Err(DatabaseError(UniqueViolation, _)) => handle_unique_violation(conn, new_ctx),
+        Err(e) => {
+            log::error!("update query failed with error: {e:?}");
             Err(ErrorInternalServerError(""))
         }
     }
