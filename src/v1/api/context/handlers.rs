@@ -2,7 +2,7 @@ use crate::{
     db::utils::AppState,
     v1::{
         api::{
-            context::types::{AddContextReq, AddContextResp, PaginationParams},
+            context::types::{PaginationParams, PutReq, PutResp},
             types::AuthenticationInfo,
         },
         db::{
@@ -14,9 +14,9 @@ use crate::{
 };
 use actix_web::{
     delete,
-    error::{self, ErrorInternalServerError, ErrorNotFound},
+    error::{self, ErrorBadRequest, ErrorInternalServerError, ErrorNotFound},
     get, put,
-    web::{self, Data},
+    web::{self, Data, Path},
     HttpResponse, Responder, Result, Scope,
 };
 use chrono::Utc;
@@ -30,7 +30,7 @@ use serde_json::{Value, Value::Null};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
-        .service(add_contexts_overrides)
+        .service(put_context)
         .service(get_context)
         .service(list_contexts)
         .service(delete_context)
@@ -68,65 +68,97 @@ fn val_dimensions_cal_priority(
     }
 }
 
-#[put("add")]
-async fn add_contexts_overrides(
-    req: web::Json<AddContextReq>,
-    state: Data<AppState>,
+fn create_ctx_from_put_req(
+    req: web::Json<PutReq>,
+    conn: &mut DBConnection,
     auth_info: AuthenticationInfo,
-) -> HttpResponse {
-    use contexts::dsl::contexts;
-    let ctxt_cond = Value::Object(req.context.to_owned());
-    let mut conn = match state.db_pool.get() {
-        Ok(conn) => conn,
-        Err(e) => {
-            println!("unable to get db connection from pool, error: {e}");
-            return HttpResponse::InternalServerError().finish();
-        }
-    };
-
-    let priority = match val_dimensions_cal_priority(&mut conn, &ctxt_cond) {
+) -> actix_web::Result<Context> {
+    let ctx_condition = Value::Object(req.context.to_owned());
+    let priority = match val_dimensions_cal_priority(conn, &ctx_condition) {
         Ok(0) => {
-            return HttpResponse::BadRequest().body("No dimension found in contexts");
+            return Err(ErrorBadRequest("No dimension found in context"));
         }
         Err(e) => {
-            return HttpResponse::BadRequest().body(e);
+            return Err(ErrorBadRequest(e));
         }
         Ok(p) => p,
     };
-    let context_id = blake3::hash((ctxt_cond).to_string().as_bytes()).to_string();
+    let context_id = blake3::hash((ctx_condition).to_string().as_bytes()).to_string();
     let override_id = blake3::hash((req.r#override).to_string().as_bytes()).to_string();
 
     let AuthenticationInfo(email) = auth_info;
-    let new_ctxt = Context {
+    Ok(Context {
         id: context_id.clone(),
-        value: ctxt_cond,
+        value: ctx_condition,
         priority,
         override_id: override_id.to_owned(),
         override_: req.r#override.to_owned(),
         created_at: Utc::now(),
         created_by: email,
+    })
+}
+
+fn update_override_of_existing_ctx(
+    conn: &mut PgConnection,
+    ctx: Context,
+) -> Result<web::Json<PutResp>, diesel::result::Error> {
+    use contexts::dsl;
+    let mut new_override: Value = dsl::contexts
+        .filter(dsl::id.eq(&ctx.id))
+        .select(dsl::override_)
+        .first(conn)?;
+    json_patch::merge(&mut new_override, &ctx.override_);
+    let new_override_id = blake3::hash((new_override).to_string().as_bytes()).to_string();
+    let new_ctx = Context {
+        override_: new_override,
+        override_id: new_override_id,
+        ..ctx
     };
+    diesel::update(dsl::contexts)
+        .filter(dsl::id.eq(&new_ctx.id))
+        .set(&new_ctx)
+        .execute(conn)?;
+    Ok(web::Json(get_put_resp(new_ctx)))
+}
+
+fn get_put_resp(ctx: Context) -> PutResp {
+    PutResp {
+        context_id: ctx.id,
+        override_id: ctx.override_id,
+        priority: ctx.priority,
+    }
+}
+
+#[put("")]
+async fn put_context(
+    req: web::Json<PutReq>,
+    state: Data<AppState>,
+    auth_info: AuthenticationInfo,
+) -> actix_web::Result<web::Json<PutResp>> {
+    use contexts::dsl::contexts;
+    let mut conn = state
+        .db_pool
+        .get()
+        .map_err_to_internal_server("unable to get db connection from pool", "")?;
+
+    let new_ctx = create_ctx_from_put_req(req, &mut conn, auth_info)?;
 
     let insert = diesel::insert_into(contexts)
-        .values(&new_ctxt)
+        .values(&new_ctx)
         .execute(&mut conn);
 
-    let resp = AddContextResp {
-        context_id,
-        override_id,
-        priority,
-    };
-
     match insert {
-        Ok(_) => HttpResponse::Created()
-            .insert_header(("x-info", "new context created"))
-            .json(resp),
-        Err(DatabaseError(UniqueViolation, _)) => HttpResponse::Ok()
-            .insert_header(("x-info", "context already exists"))
-            .json(resp),
+        Ok(_) => Ok(web::Json(get_put_resp(new_ctx))),
+        Err(DatabaseError(UniqueViolation, _)) => {
+            update_override_of_existing_ctx(&mut conn, new_ctx)
+                .map_err_to_internal_server(
+                    "override update of existing context failed",
+                    "",
+                )
+        }
         e => {
-            println!("DB transaction failed with error: {e:?}");
-            return HttpResponse::InternalServerError().finish();
+            println!("context insert failed with error: {e:?}");
+            Err(ErrorInternalServerError(""))
         }
     }
 }
@@ -203,14 +235,14 @@ async fn list_contexts(
 #[delete("/{ctx_id}")]
 async fn delete_context(
     state: Data<AppState>,
-    path: web::Path<String>,
+    path: Path<String>,
 ) -> actix_web::Result<HttpResponse> {
     use contexts::dsl;
 
     let mut conn = state
         .db_pool
         .get()
-        .map_err_to_internal_server("Unable to get db connection from pool", Null)?;
+        .map_err_to_internal_server("Unable to get db connection from pool", "")?;
     let ctx_id = path.into_inner();
     let deleted_row = delete(dsl::contexts.filter(dsl::id.eq(ctx_id))).execute(&mut conn);
     match deleted_row {
