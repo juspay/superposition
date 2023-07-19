@@ -1,5 +1,6 @@
 [print_schema]
 file = "src/v1/db/schema.rs"
+schema = "cac_v1"
 
 [migrations_directory]
 dir = "migrations/v1"

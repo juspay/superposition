@@ -2,7 +2,7 @@ use crate::{
     db::utils::AppState,
     v1::{
         api::dimension::types::CreateReq,
-        db::{models::Dimension, schema::dimensions::dsl::*},
+        db::{models::Dimension, schema::cac_v1::dimensions::dsl::*},
     },
 };
 use actix_web::{

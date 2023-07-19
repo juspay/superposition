@@ -2,7 +2,7 @@ use super::helpers::validate_schema;
 use super::types::CreateReq;
 use crate::{
     db::utils::AppState,
-    v1::db::{models::DefaultConfig, schema::default_configs::dsl::default_configs},
+    v1::db::{models::DefaultConfig, schema::cac_v1::default_configs::dsl::default_configs},
 };
 use actix_web::{
     put,

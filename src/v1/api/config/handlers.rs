@@ -2,7 +2,7 @@ use super::types::Config;
 use crate::{
     db::utils::AppState,
     v1::{
-        db::schema::{contexts::dsl as ctxt, default_configs::dsl as def_conf},
+        db::schema::cac_v1::{contexts::dsl as ctxt, default_configs::dsl as def_conf},
         helpers::ToActixErr,
     },
 };
