@@ -7,7 +7,7 @@ use crate::{
         },
         db::{
             models::{Context, Dimension},
-            schema::{contexts, dimensions::dsl::dimensions},
+            schema::cac_v1::{contexts, dimensions::dsl::dimensions},
         },
         helpers::ToActixErr,
     },
@@ -136,7 +136,7 @@ async fn get_context(
     path: web::Path<String>,
     state: Data<AppState>,
 ) -> Result<impl Responder> {
-    use crate::v1::db::schema::contexts::dsl::*;
+    use crate::v1::db::schema::cac_v1::contexts::dsl::*;
 
     let ctx_id = path.into_inner();
     let mut conn = match state.db_pool.get() {
@@ -169,7 +169,7 @@ async fn list_contexts(
     qparams: web::Query<PaginationParams>,
     state: Data<AppState>,
 ) -> Result<impl Responder> {
-    use crate::v1::db::schema::contexts::dsl::*;
+    use crate::v1::db::schema::cac_v1::contexts::dsl::*;
 
     let mut conn = state
         .db_pool

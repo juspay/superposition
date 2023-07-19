@@ -38,16 +38,5 @@ async fn get_database_url() -> String {
     let db_password = encode(db_password_raw.as_str()).to_string();
     let db_host: String = get_from_env_unsafe("DB_HOST").unwrap();
     let db_name: String = get_from_env_unsafe("DB_NAME").unwrap();
-    let options_search_path = String::from("?options=-c search_path%3D");
-    let db_schema = match (
-        get_from_env_unsafe::<String>("DB_SCHEMA"),
-        get_from_env_unsafe::<String>("APP_ENV"),
-    ) {
-        (Ok(schema_name), _) => format!("{options_search_path}{schema_name}"),
-        (Err(_), Ok(env)) if env.as_str() == "PROD" => {
-            format!("{options_search_path}cac_v1")
-        }
-        _ => String::from(""),
-    };
-    format!("postgres://{db_user}:{db_password}@{db_host}/{db_name}{db_schema}")
+    format!("postgres://{db_user}:{db_password}@{db_host}/{db_name}")
 }
