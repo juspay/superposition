@@ -1,8 +1,9 @@
 // @generated automatically by Diesel CLI.
+
 pub mod cac_v1 {
     pub mod sql_types {
         #[derive(diesel::sql_types::SqlType)]
-        #[diesel(postgres_type(name = "dimension_type"))]
+        #[diesel(postgres_type(name = "dimension_type", schema = "cac_v1"))]
         pub struct DimensionType;
     }
 
