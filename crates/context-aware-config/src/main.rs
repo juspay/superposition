@@ -13,12 +13,14 @@ use std::sync::Mutex;
 
 use service_utils::{
     db::utils::get_pool,
-    service::types::{AppState, ExperimentationFlags},
-    helpers::get_from_env_unsafe
+    helpers::get_from_env_unsafe,
+    service::types::{AppState, ExperimentationFlags}
 };
 
 use api::*;
 use helpers::get_default_config_validation_schema;
+
+use experimentation_platform::api::*;
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -29,9 +31,15 @@ async fn main() -> Result<()> {
 
     /****** EXPERIMENTATION PLATFORM ENVs *********/
 
-    let allow_same_keys_overlapping_ctx: bool = get_from_env_unsafe("ALLOW_SAME_KEYS_OVERLAPPING_CTX").expect("ALLOW_SAME_KEYS_OVERLAPPING_CTX not set");
-    let allow_diff_keys_overlapping_ctx: bool = get_from_env_unsafe("ALLOW_DIFF_KEYS_OVERLAPPING_CTX").expect("ALLOW_DIFF_KEYS_OVERLAPPING_CTX not set");
-    let allow_same_keys_non_overlapping_ctx: bool = get_from_env_unsafe("ALLOW_SAME_KEYS_NON_OVERLAPPING_CTX").expect("ALLOW_SAME_KEYS_NON_OVERLAPPING_CTX not set");
+    let allow_same_keys_overlapping_ctx: bool =
+        get_from_env_unsafe("ALLOW_SAME_KEYS_OVERLAPPING_CTX")
+            .expect("ALLOW_SAME_KEYS_OVERLAPPING_CTX not set");
+    let allow_diff_keys_overlapping_ctx: bool =
+        get_from_env_unsafe("ALLOW_DIFF_KEYS_OVERLAPPING_CTX")
+            .expect("ALLOW_DIFF_KEYS_OVERLAPPING_CTX not set");
+    let allow_same_keys_non_overlapping_ctx: bool =
+        get_from_env_unsafe("ALLOW_SAME_KEYS_NON_OVERLAPPING_CTX")
+            .expect("ALLOW_SAME_KEYS_NON_OVERLAPPING_CTX not set");
 
     /****** EXPERIMENTATION PLATFORM ENVs *********/
 
@@ -41,13 +49,13 @@ async fn main() -> Result<()> {
             .app_data(Data::new(AppState {
                 db_pool: pool.clone(),
                 default_config_validation_schema: get_default_config_validation_schema(),
-		        admin_token: admin_token.to_owned(),
+                admin_token: admin_token.to_owned(),
 
                 experimentation_flags: ExperimentationFlags {
-                    allow_same_keys_overlapping_ctx:
-                        allow_same_keys_overlapping_ctx.to_owned(),
-                    allow_diff_keys_overlapping_ctx:
-                        allow_diff_keys_overlapping_ctx.to_owned(),
+                    allow_same_keys_overlapping_ctx: allow_same_keys_overlapping_ctx
+                        .to_owned(),
+                    allow_diff_keys_overlapping_ctx: allow_diff_keys_overlapping_ctx
+                        .to_owned(),
                     allow_same_keys_non_overlapping_ctx:
                         allow_same_keys_non_overlapping_ctx.to_owned(),
                 },
@@ -64,6 +72,7 @@ async fn main() -> Result<()> {
             .service(scope("/dimension").service(dimension::endpoints()))
             .service(scope("/default-config").service(default_config::endpoints()))
             .service(scope("/config").service(config::endpoints()))
+            .service(experiments::endpoints())
     })
     .bind(("0.0.0.0", 8080))?
     .workers(5)
