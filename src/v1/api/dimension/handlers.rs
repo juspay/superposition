@@ -1,7 +1,7 @@
 use crate::{
     db::utils::AppState,
     v1::{
-        api::dimension::types::CreateReq,
+        api::{dimension::types::CreateReq, types::AuthenticationInfo},
         db::{models::Dimension, schema::cac_v1::dimensions::dsl::*},
     },
 };
@@ -11,23 +11,30 @@ use actix_web::{
     HttpResponse, Scope,
 };
 use chrono::Utc;
-use diesel::{RunQueryDsl};
+use diesel::RunQueryDsl;
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create)
 }
 
 #[put("")]
-async fn create(state: Data<AppState>, req: web::Json<CreateReq>) -> HttpResponse {
+async fn create(
+    state: Data<AppState>,
+    req: web::Json<CreateReq>,
+    auth_info: AuthenticationInfo,
+) -> HttpResponse {
     //TODO move this to the type itself rather than special if check
     if req.priority <= 0 {
         return HttpResponse::BadRequest().body("Priority should be greater than 0");
     }
+
+    let AuthenticationInfo(email) = auth_info;
+
     let new_dimension = Dimension {
         dimension: req.dimension.clone(),
         priority: i32::from(req.priority),
         type_: req.r#type,
-        created_by: String::from("some_user"), //TODO update after authentication is added
+        created_by: email,
         created_at: Utc::now(),
     };
 
@@ -47,10 +54,14 @@ async fn create(state: Data<AppState>, req: web::Json<CreateReq>) -> HttpRespons
         .execute(&mut conn);
 
     match upsert {
-        Ok(_) => return HttpResponse::Created().body("Dimension created/updated successfully."),
+        Ok(_) => {
+            return HttpResponse::Created()
+                .body("Dimension created/updated successfully.")
+        }
         Err(e) => {
             println!("Dimension upsert failed with error: {e}");
-            return HttpResponse::InternalServerError().body("Failed to create/udpate dimension\n");
+            return HttpResponse::InternalServerError()
+                .body("Failed to create/udpate dimension\n");
         }
     }
 }
