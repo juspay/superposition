@@ -14,6 +14,6 @@ CREATE TABLE experiments (
   context JSON NOT NULL,
   variants JSON NOT NULL,
 
-  constraint check_override_keys_not_null 
+  constraint check_override_keys_not_null
     check ( array_position(override_keys, null) is null and override_keys <> '{}' )
 )

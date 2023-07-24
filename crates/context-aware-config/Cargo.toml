@@ -11,6 +11,8 @@ dotenv = "0.15.0"
 # Https server framework
 actix = "0.13.0"
 actix-web = "4.0.0"
+# To help generate snowflake ids
+rs-snowflake = "0.6.0"
 # To help with generating uuids
 uuid = {version = "^0.8", features = ["v4","serde"]}
 # To serialize and deserialize objects from json
@@ -40,3 +42,4 @@ reqwest = { version = "*", features = [ "rustls-tls" ] }
 json-patch = "1.0.0"
 
 service-utils = { path = "../service-utils" }
+experimentation-platform = { path = "../experimentation-platform"}
