@@ -1,7 +1,7 @@
 use crate::db::schema::*;
 use chrono::offset::Utc;
 use chrono::DateTime;
-use diesel::{Selectable, Queryable, Insertable, QueryableByName};
+use diesel::{Insertable, Queryable, QueryableByName, Selectable};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -9,9 +9,9 @@ use serde_json::Value;
 #[DbValueStyle = "UPPERCASE"]
 #[ExistingTypePath = "crate::db::schema::sql_types::ExperimentStatusType"]
 pub enum ExperimentStatusType {
-  CREATED,
-  CONCLUDED,
-  INPROGRESS,
+    CREATED,
+    CONCLUDED,
+    INPROGRESS,
 }
 
 /***
@@ -28,7 +28,7 @@ impl ToSql<crate::db::schema::sql_types::ExperimentStatusType, Pg> for Experimen
 
 impl FromSql<crate::db::schema::sql_types::ExperimentStatusType, Pg> for ExperimentStatusType {
     fn from_sql(bytes: PgValue<'_>)-> deserialize::Result<Self> {
-        match bytes.as_bytes() { 
+        match bytes.as_bytes() {
             b"CREATED" => Ok(ExperimentStatusType::CREATED),
             b"CONCLUDED" => Ok(ExperimentStatusType::CONCLUDED),
             b"INPROGRESS" => Ok(ExperimentStatusType::INPROGRESS),
@@ -54,3 +54,5 @@ pub struct Experiment {
   pub context: Value,
   pub variants: Value
 }
+
+pub type Experiments = Vec<Experiment>;

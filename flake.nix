@@ -23,6 +23,7 @@
 
         # For `nix develop`:
         devShell = pkgs.mkShell {
+          RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
           nativeBuildInputs =
             let
               univPkgs = with pkgs; [
