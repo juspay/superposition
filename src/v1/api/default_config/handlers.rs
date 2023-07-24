@@ -2,7 +2,12 @@ use super::helpers::validate_schema;
 use super::types::CreateReq;
 use crate::{
     db::utils::AppState,
-    v1::db::{models::DefaultConfig, schema::cac_v1::default_configs::dsl::default_configs},
+    v1::{
+        api::types::AuthenticationInfo,
+        db::{
+            models::DefaultConfig, schema::cac_v1::default_configs::dsl::default_configs,
+        },
+    },
 };
 use actix_web::{
     put,
@@ -23,10 +28,13 @@ async fn create(
     state: Data<AppState>,
     key: web::Path<String>,
     request: web::Json<CreateReq>,
+    auth_info: AuthenticationInfo,
 ) -> HttpResponse {
     let req = request.into_inner();
     let schema = Value::Object(req.schema);
-    if let Err(e) = validate_schema(&state.default_config_validation_schema, schema.to_owned()) {
+    if let Err(e) =
+        validate_schema(&state.default_config_validation_schema, schema.to_owned())
+    {
         return HttpResponse::BadRequest().body(e);
     };
     let schema_compile_result = JSONSchema::options()
@@ -44,15 +52,18 @@ async fn create(
         Ok(_) => (),
         Err(_) => {
             println!("Validation for value with given JSON schema failed.");
-            return HttpResponse::BadRequest().body("Validation with given schema failed.");
+            return HttpResponse::BadRequest()
+                .body("Validation with given schema failed.");
         }
     };
+
+    let AuthenticationInfo(email) = auth_info;
 
     let new_default_config = DefaultConfig {
         key: key.into_inner(),
         value: req.value,
         schema: schema,
-        created_by: String::from("some_user"), //TODO update after authentication is added
+        created_by: email,
         created_at: Utc::now(),
     };
 
@@ -69,10 +80,13 @@ async fn create(
         .execute(&mut conn);
 
     match upsert {
-        Ok(_) => return HttpResponse::Created().body("DefaultConfig created successfully."),
+        Ok(_) => {
+            return HttpResponse::Created().body("DefaultConfig created successfully.")
+        }
         Err(e) => {
             println!("DefaultConfig creation failed with error: {e}");
-            return HttpResponse::InternalServerError().body("Failed to create DefaultConfig");
+            return HttpResponse::InternalServerError()
+                .body("Failed to create DefaultConfig");
         }
     }
 }

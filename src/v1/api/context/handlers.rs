@@ -26,6 +26,7 @@ use diesel::{
     result::{DatabaseErrorKind::*, Error::DatabaseError},
     ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
 };
+use log::info;
 use serde_json::{Value, Value::Null};
 
 pub fn endpoints() -> Scope {
@@ -284,6 +285,7 @@ async fn list_contexts(
 async fn delete_context(
     state: Data<AppState>,
     path: Path<String>,
+    auth_info: AuthenticationInfo,
 ) -> actix_web::Result<HttpResponse> {
     use contexts::dsl;
 
@@ -292,10 +294,15 @@ async fn delete_context(
         .get()
         .map_err_to_internal_server("Unable to get db connection from pool", "")?;
     let ctx_id = path.into_inner();
-    let deleted_row = delete(dsl::contexts.filter(dsl::id.eq(ctx_id))).execute(&mut conn);
+    let deleted_row =
+        delete(dsl::contexts.filter(dsl::id.eq(&ctx_id))).execute(&mut conn);
+    let AuthenticationInfo(email) = auth_info;
     match deleted_row {
         Ok(0) => Err(ErrorNotFound("")),
-        Ok(_) => Ok(HttpResponse::NoContent().finish()),
+        Ok(_) => {
+            info!("{ctx_id} context deleted by {email}");
+            Ok(HttpResponse::NoContent().finish())
+        }
         Err(e) => {
             log::error!("context delete query failed with error: {e}");
             Err(ErrorInternalServerError(""))
