@@ -32,10 +32,10 @@ use serde_json::{Value, Value::Null};
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(put_context)
-        .service(get_context)
         .service(list_contexts)
-        .service(delete_context)
         .service(move_context)
+        .service(get_context)
+        .service(delete_context)
 }
 
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;

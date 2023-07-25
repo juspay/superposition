@@ -27,6 +27,7 @@ run:
 	touch ./docker-compose/localstack/export_cyphers.sh
 	cargo build --color always
 	docker-compose up -d postgres localstack
+	diesel migration run
 	source ./docker-compose/localstack/export_cyphers.sh && \
 		cargo run --color always
 
