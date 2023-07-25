@@ -1,0 +1,29 @@
+{
+  "method": "PUT",
+  "header": [
+    {
+      "key": "Authorization",
+      "value": "Bearer {{token}}",
+      "type": "default"
+    }
+  ],
+  "body": {
+    "mode": "raw",
+    "raw": "{\n    \"value\": \"value1\",\n    \"schema\": {\n        \"type\": \"string\",\n        \"pattern\": \".*\"\n    }\n}",
+    "options": {
+      "raw": {
+        "language": "json"
+      }
+    }
+  },
+  "url": {
+    "raw": "{{host}}/default-config/key1",
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "default-config",
+      "key1"
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "method": "PUT",
+  "header": [
+    {
+      "key": "Authorization",
+      "value": "Bearer {{token}}",
+      "type": "default"
+    }
+  ],
+  "body": {
+    "mode": "raw",
+    "raw": "{\n    \"dimension\": \"clientId\",\n    \"priority\": 100,\n    \"type\": \"STRING\"\n}",
+    "options": {
+      "raw": {
+        "language": "json"
+      }
+    }
+  },
+  "url": {
+    "raw": "{{host}}/dimension",
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "dimension"
+    ]
+  }
+}

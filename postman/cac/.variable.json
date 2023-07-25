@@ -1,0 +1,14 @@
+{
+  "variable": [
+    {
+      "key": "host",
+      "value": "http://localhost:8080",
+      "type": "default"
+    },
+    {
+      "key": "token",
+      "value": "12345678",
+      "type": "default"
+    }
+  ]
+}

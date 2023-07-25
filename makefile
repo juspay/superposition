@@ -6,8 +6,11 @@ build:
 	cargo build
 
 ci-test:
-## Un-comment once agent has 'cargo' & 'libpq5'.
-	#cargo build
+	npm ci --loglevel=error
+	-docker rm -f $$(docker container ls --filter name=^context-aware-config -q)
+	make run 2>&1 | tee test_logs &
+	while ! grep -q "starting in Actix" test_logs; do echo "waiting for bootup..." && sleep 2; done
+	npm run test
 
 ci-build:
 	docker build -t $(IMAGE_NAME):$(VERSION) .
@@ -25,9 +28,13 @@ registry-login:
 run:
 	pkill -f target/debug/context-aware-config &
 	touch ./docker-compose/localstack/export_cyphers.sh
-	cargo build --color always
 	docker-compose up -d postgres localstack
-	diesel migration run
+	cp .env.example .env
+	#NOTE need to sleep here because locastack takes some time to internally
+	#populate the kms keyId
+	sleep 10 #TODO move this sleep to aws cli list-keys command instead
+	cargo build --color always
+#	diesel migration run
 	source ./docker-compose/localstack/export_cyphers.sh && \
 		cargo run --color always
 

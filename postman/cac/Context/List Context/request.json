@@ -1,0 +1,20 @@
+{
+  "method": "GET",
+  "header": [
+    {
+      "key": "Authorization",
+      "value": "Bearer {{token}}",
+      "type": "default"
+    }
+  ],
+  "url": {
+    "raw": "{{host}}/context/list",
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "context",
+      "list"
+    ]
+  }
+}

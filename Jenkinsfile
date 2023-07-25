@@ -25,10 +25,10 @@ pipeline {
       }
     }
 
-    stage('Test') {
-      when { expression { SKIP_CI == 'false' } }
-      steps { sh 'make ci-test' }
-    }
+//    stage('Test') {
+//      when { expression { SKIP_CI == 'false' } }
+//      steps { sh 'make ci-test' }
+//    }
 
     stage('Build Image') {
       when {

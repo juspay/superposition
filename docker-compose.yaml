@@ -1,4 +1,5 @@
 version: "3.4"
+
 services:
   application:
     container_name: "application"
@@ -15,8 +16,7 @@ services:
       - DATABASE_URL=postgres://postgres:docker@postgres:5432/config?sslmode=disable
       - DB_POOL_SIZE=10
 
-    networks:
-      - library-network
+    network_mode: bridge
     tty: true
     ports:
       - "8080:8080"
@@ -24,17 +24,17 @@ services:
   postgres:
     build: ./docker-compose/postgres/
     container_name: context-aware-config_postgres
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_PASSWORD: "docker"
       POSTGRES_DB: "config"
-    networks:
-      - library-network
-    ports:
-      - "5432:5432"
+    restart: on-failure
+    network_mode: bridge
 
   localstack:
     build : ./docker-compose/localstack/
-    container_name: context-aware-config_localstack_instance
+    container_name: context-aware-config_localstack
     ports:
       - "4510-4559:4510-4559"  # external service port range
       - "4566:4566"            # LocalStack Edge Proxy
@@ -46,8 +46,3 @@ services:
       EDGE_PORT: 4566
     volumes:
       - ./docker-compose/localstack/export_cyphers.sh:/etc/localstack/export_cyphers.sh
-
-networks:
-  library-network:
-    driver: bridge
-
