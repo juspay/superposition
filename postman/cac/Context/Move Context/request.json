@@ -1,0 +1,30 @@
+{
+  "method": "PUT",
+  "header": [
+    {
+      "key": "Authorization",
+      "value": "Bearer {{token}}",
+      "type": "default"
+    }
+  ],
+  "body": {
+    "mode": "raw",
+    "raw": "{\n    \"override\": {\n        \"key1\": \"value3\"\n    },\n    \"context\": {\n        \"==\": [\n            {\n                \"var\": \"clientId\"\n            },\n            \"tamatar\"\n        ]\n    }\n}",
+    "options": {
+      "raw": {
+        "language": "json"
+      }
+    }
+  },
+  "url": {
+    "raw": "{{host}}/context/move/{{context_id}}",
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "context",
+      "move",
+      "{{context_id}}"
+    ]
+  }
+}
