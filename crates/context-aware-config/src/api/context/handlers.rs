@@ -1,19 +1,24 @@
+use std::collections::HashMap;
+
 use crate::{
-    api::context::types::{
-        ContextAction, ContextBulkResponse, MoveReq, PaginationParams, PutReq, PutResp,
+    api::{
+        context::types::{
+            ContextAction, ContextBulkResponse, DimensionCondition, PaginationParams,
+            PutReq, PutResp, MoveReq
+        },
+        dimension::get_all_dimension_schema_map,
     },
     db::{
-        models::{Context, Dimension},
+        models::Context,
         schema::cac_v1::{
             contexts::{self, id},
             default_configs::dsl,
-            dimensions::dsl::dimensions,
         },
     },
 };
 use actix_web::{
     delete,
-    error::{self, ErrorBadRequest, ErrorInternalServerError, ErrorNotFound},
+    error::{self, ErrorInternalServerError, ErrorNotFound},
     get, put,
     web::{self, Data, Path},
     HttpResponse, Responder, Result, Scope,
@@ -27,9 +32,9 @@ use diesel::{
     result::{DatabaseErrorKind::*, Error::DatabaseError},
     Connection, ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
 };
-use jsonschema::{Draft, JSONSchema, ValidationError};
-use serde_json::{json, Map, Value, Value::Null};
+use serde_json::{from_value, json, Map, Value, Value::Null};
 use service_utils::{helpers::ToActixErr, service::types::AppState};
+use jsonschema::{Draft, JSONSchema, ValidationError};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -44,22 +49,27 @@ pub fn endpoints() -> Scope {
 
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
-fn val_dimensions_cal_priority(
-    conn: &mut DBConnection,
+fn validate_dimensions_and_calculate_priority(
     cond: &Value,
+    dimension_schema_map: &HashMap<String, (JSONSchema, i32)>,
 ) -> Result<i32, String> {
-    let mut get_priority = |key: &String, val: &Value| -> Result<i32, String> {
+    let get_priority = |key: &String, val: &Value| -> Result<i32, String> {
         if key == "var" {
             let dimension_name = val
                 .as_str()
                 .ok_or_else(|| "Dimension name should be of String type")?;
-            dimensions
-                .find(dimension_name)
-                .first(conn)
-                .map(|d: Dimension| d.priority)
-                .map_err(|e| format!("{dimension_name}: {}", e.to_string()))
+            dimension_schema_map
+                .get(dimension_name)
+                .map(|(_, priority)| priority)
+                .ok_or(String::from(
+                    "No matching `dimension` found in dimension table",
+                ))
+                .copied()
         } else {
-            val_dimensions_cal_priority(conn, val)
+            validate_dimensions_and_calculate_priority(
+                val,
+                dimension_schema_map,
+            )
         }
     };
 
@@ -67,9 +77,45 @@ fn val_dimensions_cal_priority(
         Value::Object(x) => x.iter().try_fold(0, |acc, (key, val)| {
             get_priority(key, val).map(|res| res + acc)
         }),
-        Value::Array(x) => x.iter().try_fold(0, |acc, item| {
-            val_dimensions_cal_priority(conn, item).map(|res| res + acc)
-        }),
+        Value::Array(arr) => {
+            let mut val: Option<Value> = None;
+            let mut condition: Option<DimensionCondition> = None;
+            for i in arr {
+                if let (None, Ok(x)) =
+                    (&condition, from_value::<DimensionCondition>(json!(i)))
+                {
+                    condition = Some(x);
+                } else if val == None {
+                    val = Some(i.clone());
+                }
+
+                if let (Some(_dimension_value), Some(_dimension_condition)) = (&val, &condition) {
+                    break;
+                }
+            }
+
+            if let (Some(dimension_value), Some(dimension_condition)) = (val, condition) {
+                let expected_dimension_name = dimension_condition.var;
+                let (dimension_value_schema, _) = dimension_schema_map
+                    .get(&expected_dimension_name)
+                    .ok_or("No matching `dimension` for in dimension table")?;
+
+                dimension_value_schema
+                    .validate(&dimension_value)
+                    .map_err(|e| {
+                        let verrors = e.collect::<Vec<ValidationError>>();
+                        String::from(format!("Bad schema: {:?}", verrors.as_slice()))
+                    })?;
+            };
+
+            arr.iter().try_fold(0, |acc, item| {
+                validate_dimensions_and_calculate_priority(
+                    item,
+                    dimension_schema_map,
+                )
+                .map(|res| res + acc)
+            })
+        }
         _ => Ok(0),
     }
 }
@@ -121,18 +167,22 @@ fn create_ctx_from_put_req(
     req: web::Json<PutReq>,
     conn: &mut DBConnection,
     user: &User,
-) -> actix_web::Result<Context> {
+) -> anyhow::Result<Context> {
     let ctx_condition = Value::Object(req.context.to_owned());
     let ctx_override: Value = req.r#override.to_owned().into();
-    validate_override_with_default_configs(conn, &req.r#override)
-        .map_err(|e| ErrorBadRequest(json!({"message" : e.to_string()})))?;
+    validate_override_with_default_configs(conn, &req.r#override)?;
 
-    let priority = match val_dimensions_cal_priority(conn, &ctx_condition) {
+    let dimension_schema_map = get_all_dimension_schema_map(conn)?;
+
+    let priority = match validate_dimensions_and_calculate_priority(
+        &ctx_condition,
+        &dimension_schema_map,
+    ) {
         Ok(0) => {
-            return Err(ErrorBadRequest("No dimension found in context"));
+            return Err(anyhow!("No dimension found in context"));
         }
         Err(e) => {
-            return Err(ErrorBadRequest(e));
+            return Err(anyhow!(e));
         }
         Ok(p) => p,
     };
@@ -156,7 +206,7 @@ fn generate_context_id(ctx_condition: &Value) -> String {
 fn update_override_of_existing_ctx(
     conn: &mut PgConnection,
     ctx: Context,
-) -> Result<PutResp, diesel::result::Error> {
+) -> anyhow::Result<PutResp> {
     use contexts::dsl;
     let mut new_override: Value = dsl::contexts
         .filter(dsl::id.eq(&ctx.id))
@@ -183,30 +233,20 @@ fn get_put_resp(ctx: Context) -> PutResp {
         priority: ctx.priority,
     }
 }
-//TO-DO : Need to create a custom error type which implements error traits
-#[derive(Debug)]
-enum Error {
-    DIESEL(diesel::result::Error),
-    STRTYPE(String),
-}
 
 fn put(
     req: web::Json<PutReq>,
     user: &User,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
-) -> Result<PutResp, Error> {
+) -> anyhow::Result<PutResp> {
     use contexts::dsl::contexts;
 
-    let new_ctx = create_ctx_from_put_req(req, conn, user).map_err(|e| {
-        log::error!("context struct creation failed with err: {e:?}");
-        Error::STRTYPE(e.to_string())
-    })?;
+    let new_ctx = create_ctx_from_put_req(req, conn, user)?;
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint")
-            .execute(conn)
-            .map_err(|e| Error::DIESEL(e))?;
+            .execute(conn)?;
     }
     let insert = diesel::insert_into(contexts).values(&new_ctx).execute(conn);
 
@@ -215,14 +255,13 @@ fn put(
         Err(DatabaseError(UniqueViolation, _)) => {
             if already_under_txn {
                 diesel::sql_query("ROLLBACK TO put_ctx_savepoint")
-                    .execute(conn)
-                    .map_err(|e| Error::DIESEL(e))?;
+                    .execute(conn)?;
             }
-            update_override_of_existing_ctx(conn, new_ctx).map_err(|e| Error::DIESEL(e))
+            update_override_of_existing_ctx(conn, new_ctx)
         }
         Err(e) => {
             log::error!("update query failed with error: {e:?}");
-            Err(Error::DIESEL(e))
+            Err(anyhow!(e))
         }
     }
 }
@@ -251,25 +290,25 @@ fn r#move(
     user: &User,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
-) -> Result<PutResp, Error> {
+) -> anyhow::Result<PutResp> {
     use contexts::dsl;
     let req = req.into_inner();
     let ctx_condition = Value::Object(req.context);
     let new_ctx_id = generate_context_id(&ctx_condition);
-    let priority = match val_dimensions_cal_priority(conn, &ctx_condition) {
+    let dimension_schema_map = get_all_dimension_schema_map(conn)?;
+    let priority = match validate_dimensions_and_calculate_priority(&ctx_condition, &dimension_schema_map) {
         Ok(0) => {
-            return Err(Error::STRTYPE("No dimension found in context".to_string()));
+            return Err(anyhow!(String::from("No dimension found in context")));
         }
         Err(e) => {
-            return Err(Error::STRTYPE(e));
+            return Err(anyhow!(e));
         }
         Ok(p) => p,
     };
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT update_ctx_savepoint")
-            .execute(conn)
-            .map_err(|e| Error::DIESEL(e))?;
+            .execute(conn)?;
     }
 
     let context = diesel::update(dsl::contexts)
@@ -312,14 +351,13 @@ fn r#move(
         Err(DatabaseError(UniqueViolation, _)) => {
             if already_under_txn {
                 diesel::sql_query("ROLLBACK TO update_ctx_savepoint")
-                    .execute(conn)
-                    .map_err(|e| Error::DIESEL(e))?;
+                    .execute(conn)?;
             }
-            handle_unique_violation(conn, already_under_txn).map_err(|e| Error::DIESEL(e))
+            handle_unique_violation(conn, already_under_txn)
         }
         Err(e) => {
             log::error!("update query failed with error: {e:?}");
-            Err(Error::DIESEL(e))
+            Err(anyhow!(e))
         }
     }
 }
