@@ -26,15 +26,16 @@ async fn get(state: Data<AppState>) -> actix_web::Result<Json<Config>> {
         .map_err_to_internal_server("error getting a connection from db pool", Null)?;
 
     let contexts_vec = ctxt::contexts
-        .select((ctxt::value, ctxt::override_id, ctxt::override_))
+        .select((ctxt::id, ctxt::value, ctxt::override_id, ctxt::override_))
         .order_by(ctxt::priority.asc())
-        .load::<(Value, String, Value)>(&mut conn)
+        .load::<(String, Value, String, Value)>(&mut conn)
         .map_err_to_internal_server("error getting contexts", Null)?;
 
     let (contexts, overrides) = contexts_vec.into_iter().fold(
         (Vec::new(), Map::new()),
-        |(mut ctxts, mut overrides), (condition, override_id, override_)| {
+        |(mut ctxts, mut overrides), (context_id, condition, override_id, override_)| {
             let ctxt = super::types::Context {
+                context_id: context_id,
                 condition,
                 override_with_keys: [override_id.to_owned()],
             };
@@ -49,12 +50,13 @@ async fn get(state: Data<AppState>) -> actix_web::Result<Json<Config>> {
         .load::<(String, Value)>(&mut conn)
         .map_err_to_internal_server("error getting default configs", Null)?;
 
-    let default_configs = default_config_vec
-        .into_iter()
-        .fold(Map::new(), |mut acc, item| {
-            acc.insert(item.0, item.1);
-            acc
-        });
+    let default_configs =
+        default_config_vec
+            .into_iter()
+            .fold(Map::new(), |mut acc, item| {
+                acc.insert(item.0, item.1);
+                acc
+            });
 
     let config = Config {
         contexts,
