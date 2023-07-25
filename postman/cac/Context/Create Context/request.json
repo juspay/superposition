@@ -1,0 +1,28 @@
+{
+  "method": "PUT",
+  "header": [
+    {
+      "key": "Authorization",
+      "value": "Bearer {{token}}",
+      "type": "default"
+    }
+  ],
+  "body": {
+    "mode": "raw",
+    "raw": "{\n    \"override\": {\n        \"key1\": \"value2\"\n    },\n    \"context\": {\n        \"==\": [\n            {\n                \"var\": \"clientId\"\n            },\n            \"piyaz\"\n        ]\n    }\n}",
+    "options": {
+      "raw": {
+        "language": "json"
+      }
+    }
+  },
+  "url": {
+    "raw": "{{host}}/context",
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "context"
+    ]
+  }
+}
