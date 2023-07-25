@@ -10,7 +10,7 @@ pub struct Config {
 
 #[derive(Serialize)]
 pub struct Context {
-    pub context_id: String,
+    pub id: String,
     pub condition: Value,
     pub override_with_keys: [String; 1],
 }

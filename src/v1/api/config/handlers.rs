@@ -33,9 +33,9 @@ async fn get(state: Data<AppState>) -> actix_web::Result<Json<Config>> {
 
     let (contexts, overrides) = contexts_vec.into_iter().fold(
         (Vec::new(), Map::new()),
-        |(mut ctxts, mut overrides), (context_id, condition, override_id, override_)| {
+        |(mut ctxts, mut overrides), (id, condition, override_id, override_)| {
             let ctxt = super::types::Context {
-                context_id: context_id,
+                id: id,
                 condition,
                 override_with_keys: [override_id.to_owned()],
             };
