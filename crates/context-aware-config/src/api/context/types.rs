@@ -12,6 +12,11 @@ pub struct MoveReq {
     pub context: Map<String, Value>,
 }
 
+#[derive(Deserialize, Clone)]
+pub struct DimensionCondition {
+    pub var: String,
+}
+
 #[derive(Serialize, Debug)]
 pub struct PutResp {
     pub context_id: String,

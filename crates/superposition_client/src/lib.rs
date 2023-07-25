@@ -84,7 +84,7 @@ impl Client {
         running_experiments
             .iter()
             .filter(|(_, exp)| {
-                (jsonlogic::apply(&exp.context, context) == Ok(Value::Bool(true)))
+                jsonlogic::apply(&exp.context, context) == Ok(Value::Bool(true))
             })
             .map(|(_, exp)| exp.clone())
             .collect::<Experiments>()

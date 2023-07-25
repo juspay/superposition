@@ -28,6 +28,8 @@ pub struct AppState {
     pub snowflake_generator: Mutex<SnowflakeIdGenerator>,
 }
 
+pub type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
+
 pub struct DbConnection(pub PooledConnection<ConnectionManager<PgConnection>>);
 impl FromRequest for DbConnection {
     type Error = Error;

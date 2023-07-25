@@ -78,7 +78,7 @@ async fn create(
         Err(e) => {
             log::info!("Dimension upsert failed with error: {e}");
             return HttpResponse::InternalServerError()
-                .body("Failed to create/udpate dimension\n");
+                .body("Failed to create/update dimension\n");
         }
     }
 }
