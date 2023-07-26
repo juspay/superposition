@@ -2,8 +2,18 @@ IMAGE_NAME ?= context-aware-config
 
 SHELL := /usr/bin/env bash
 
+setup:
+	touch ./docker-compose/localstack/export_cyphers.sh
+	docker-compose up -d
+	cp .env.example .env
+	sleep 10 #TODO move this sleep to aws cli list-keys command instead
+
+db-init:
+	diesel migration run --config-file=crates/context-aware-config/diesel.toml
+	diesel migration run --config-file=crates/experimentation-platform/diesel.toml
+
 build:
-	cargo build
+	cargo build --color always
 
 ci-test:
 	npm ci --loglevel=error
@@ -25,18 +35,19 @@ registry-login:
 	    --username AWS \
 	    --password-stdin $(REGISTRY_HOST)
 
-run:
-	pkill -f target/debug/context-aware-config &
-	touch ./docker-compose/localstack/export_cyphers.sh
-	docker-compose up -d postgres localstack
-	cp .env.example .env
-	#NOTE need to sleep here because locastack takes some time to internally
-	#populate the kms keyId
-	sleep 10 #TODO move this sleep to aws cli list-keys command instead
-	diesel migration run --config-file=crates/context-aware-config/diesel.toml
-	diesel migration run --config-file=crates/experimentation-platform/diesel.toml
-	cargo build --color always
+cac:
 	source ./docker-compose/localstack/export_cyphers.sh && \
-		cargo run --color always
+		cargo run --package context-aware-config --color always
+
+example:
+	cargo run --package example
+
+ls-packages:
+	cargo run --package
+
+kill:
+	pkill -f target/debug/context-aware-config &
+
+run: kill setup db-init build cac
 
 default: build

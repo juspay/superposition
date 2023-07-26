@@ -24,6 +24,11 @@
         # For `nix develop`:
         devShell = pkgs.mkShell {
           RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+          # bring your local shell properties into nix env
+          shellHook = ''
+            echo "you are now in the nix shell"
+            eval $($SHELL)
+            '';
           nativeBuildInputs =
             let
               univPkgs = with pkgs; [

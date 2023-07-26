@@ -56,7 +56,7 @@ pub mod cac_v1 {
             id -> Int8,
             created_at -> Timestamptz,
             created_by -> Text,
-            last_modified -> Nullable<Timestamptz>,
+            last_modified -> Timestamptz,
             name -> Text,
             override_keys -> Array<Text>,
             status -> ExperimentStatusType,
