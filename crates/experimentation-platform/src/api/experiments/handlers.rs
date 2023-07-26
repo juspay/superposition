@@ -17,7 +17,7 @@ use super::{
     },
     types::{
         ConcludeExperimentRequest, ContextAction, ContextPutReq, ContextPutResp,
-        ExperimentCreateRequest, ExperimentCreateResponse, Variant,
+        ExperimentCreateRequest, ExperimentCreateResponse, Variant, RampRequest,
     },
 };
 use crate::{
@@ -31,6 +31,7 @@ pub fn endpoints() -> Scope {
         .service(conclude)
         .service(list_experiments)
         .service(get_experiment)
+        .service(ramp)
 }
 
 #[post("")]
@@ -362,3 +363,64 @@ async fn get_experiment(
 
     return Ok(Json(response));
 }
+
+#[patch("/{id}/ramp")]
+async fn ramp(
+    params: web::Path<i64>,
+    req: web::Json<RampRequest>,
+    db_conn: DbConnection,
+) -> actix_web::Result<Json<String>>  {
+    let DbConnection(mut conn) = db_conn;
+    let exp_id = params.into_inner();
+
+    use crate::db::schema::cac_v1::experiments::dsl::*;
+    let db_result: Result<Experiment, _> = experiments
+        .find(exp_id)
+        .get_result::<Experiment>(&mut conn);
+
+    let experiment = match db_result {
+        Ok(result) => result,
+        Err(diesel::result::Error::NotFound) => 
+            return Err(actix_web::error::ErrorNotFound("No results found")),
+        Err(e) => {
+            println!("{e}");
+            return Err(actix_web::error::ErrorInternalServerError("Something went wrong"));
+        }
+    };
+
+    let old_traffic_percentage = experiment.traffic_percentage as u8;
+    let new_traffic_percentage = req.traffic_percentage as u8;
+    let experiment_variants: Vec<Variant> = serde_json::from_value(experiment.variants)
+        .map_err(|e| {
+            log::error!("parsing to variant type failed with err: {e}");
+            actix_web::error::ErrorInternalServerError("")
+        })?;
+    let variants_count = experiment_variants.len() as u8;
+    let max = 100 / variants_count;
+
+    if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
+        return Err(actix_web::error::ErrorBadRequest("Experiment is already concluded"));
+    } else if new_traffic_percentage > max {
+        println!("The Traffic percentage provided exceeds the range");
+        return Err(actix_web::error::ErrorBadRequest(
+            format!("The traffic_percentage cannot exceed {}", max),
+        ));
+    } else if new_traffic_percentage == old_traffic_percentage {
+        return Err(actix_web::error::ErrorBadRequest("The traffic_percentage is same as provided"));
+    }
+
+    let update = diesel::update(experiments)
+        .filter(id.eq(exp_id))
+        .set(traffic_percentage.eq(req.traffic_percentage as i32))
+        .execute(&mut conn);
+    
+    match update {
+        Ok(0) => return Err(actix_web::error::ErrorInternalServerError("Failed to update the traffic_percentage")),
+        Ok(_) => return Ok(Json(format!("Traffic percentage has been updated for the experiment id : {}", exp_id))),
+        Err(e)   => {
+            println!("Failed to update the traffic_percentage: {e}");
+            return Err(actix_web::error::ErrorInternalServerError("Failed to update the traffic_percentage"));
+        }
+    }
+}
+

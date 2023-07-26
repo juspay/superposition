@@ -120,3 +120,8 @@ where
 
     deserializer.deserialize_any(StringVecVisitor(std::marker::PhantomData::<I>))
 }
+
+#[derive(Deserialize,Debug)]
+pub struct RampRequest {
+    pub traffic_percentage: u64,
+}
