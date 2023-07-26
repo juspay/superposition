@@ -1,26 +1,6 @@
 version: "3.4"
 
 services:
-  application:
-    container_name: "application"
-    command: ./context-aware-config
-    build:
-      dockerfile: Dockerfile
-      context: .
-    links:
-      - postgres
-    depends_on:
-      - postgres
-    environment:
-      # to access postgres outside of docker, use postgres://postgres:docker@localhost:5432 instead
-      - DATABASE_URL=postgres://postgres:docker@postgres:5432/config?sslmode=disable
-      - DB_POOL_SIZE=10
-
-    network_mode: bridge
-    tty: true
-    ports:
-      - "8080:8080"
-
   postgres:
     build: ./docker-compose/postgres/
     container_name: context-aware-config_postgres

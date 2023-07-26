@@ -68,7 +68,13 @@ async fn create(
     }
 
     //traffic_percentage should be max 100/length of variants
-    // TODO: Add traffic_percentage validation
+    let allowed_traffic = (100 / variants.len()) as i32;
+    if req.traffic_percentage > allowed_traffic {
+        return Err(actix_web::error::ErrorBadRequest(format!(
+            "the traffic percentage specified ({}) is greater than what can be evenly distributed among variants. Reduce the traffic percentage to a value <= {}",
+            req.traffic_percentage, allowed_traffic
+        )));
+    }
 
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;
@@ -144,7 +150,7 @@ async fn create(
         id: experiment_id,
         created_by: email,
         created_at: Utc::now(),
-        last_modified: Option::None,
+        last_modified: Utc::now(),
         name: req.name.to_string(),
         override_keys: req.override_keys.to_vec(),
         traffic_percentage: req.traffic_percentage,
@@ -295,8 +301,8 @@ async fn list_experiments(
         Err(e) => {
             log::info!("Unable to get db connection from pool, error: {e}");
             return Err(AppError {
-                message: "Could not connect to the database".to_string(),
-                possible_fix: "Try after sometime".to_string(),
+                message: "Something went wrong".to_string(),
+                possible_fix: "Try again after some time".to_string(),
                 status_code: StatusCode::INTERNAL_SERVER_ERROR,
             });
             // return an error
@@ -306,15 +312,12 @@ async fn list_experiments(
     use crate::db::schema::cac_v1::experiments::dsl::*;
     let query = experiments
         .filter(status.eq_any(filters.status.clone()))
-        .filter(created_at.ge(filters.from_date))
-        .filter(created_at.le(filters.to_date))
+        .filter(last_modified.ge(filters.from_date))
+        .filter(last_modified.le(filters.to_date))
+        .order(last_modified.desc())
         .limit(filters.count)
         .offset((filters.page - 1) * filters.count);
 
-    // log::info!(
-    //     "List filter query: {:?}",
-    //     diesel::debug_query::<diesel::pg::Pg, _>(&query)
-    // );
     let db_result = query.load::<Experiment>(&mut conn);
 
     match db_result {

@@ -23,7 +23,7 @@ pub struct Experiment {
     pub id: i64,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
-    pub last_modified: Option<DateTime<Utc>>,
+    pub last_modified: DateTime<Utc>,
 
     pub name: String,
     pub override_keys: Vec<String>,
