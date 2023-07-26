@@ -3,4 +3,7 @@
 members = [
   "crates/service-utils",
   "crates/context-aware-config",
+  "crates/superposition_client",
+  "crates/cac_client",
+  "crates/superposition_client_integration_example"
 ]
