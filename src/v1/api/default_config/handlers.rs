@@ -1,14 +1,13 @@
 use super::helpers::validate_schema;
 use super::types::CreateReq;
 use crate::{
-    db::utils::AppState,
     v1::{
-        api::types::AuthenticationInfo,
         db::{
             models::DefaultConfig, schema::cac_v1::default_configs::dsl::default_configs,
         },
     },
 };
+use service_utils::service::types::{AppState, AuthenticationInfo};
 use actix_web::{
     put,
     web::{self, Data},

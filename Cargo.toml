@@ -38,3 +38,5 @@ urlencoding = "~2.1.2"
 jsonschema = "~0.17"
 reqwest = { version = "*", features = [ "rustls-tls" ] }
 json-patch = "1.0.0"
+
+service-utils = { path = "crates/service-utils" }

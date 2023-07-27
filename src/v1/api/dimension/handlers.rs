@@ -1,9 +1,11 @@
 use crate::{
-    db::utils::AppState,
     v1::{
-        api::{dimension::types::CreateReq, types::AuthenticationInfo},
+        api::{dimension::types::CreateReq},
         db::{models::Dimension, schema::cac_v1::dimensions::dsl::*},
     },
+};
+use service_utils::{
+    service::types::{AppState, AuthenticationInfo},
 };
 use actix_web::{
     put,

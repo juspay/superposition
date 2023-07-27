@@ -1,4 +1,4 @@
-use crate::v1::helpers::get_from_env_unsafe;
+use crate::helpers::get_from_env_unsafe;
 use bytes::Bytes;
 use rusoto_kms::{DecryptRequest, DecryptResponse, Kms, KmsClient};
 use rusoto_signature::region::Region;
@@ -22,8 +22,9 @@ pub async fn decrypt(client: KmsClient, secret_name: &str) -> String {
         Ok(DecryptResponse {
             plaintext: Some(data),
             ..
-        }) => String::from_utf8(data.to_vec())
-            .expect(format!("Could not convert kms val for {secret_name} to utf8").as_str()),
+        }) => String::from_utf8(data.to_vec()).expect(
+            format!("Could not convert kms val for {secret_name} to utf8").as_str(),
+        ),
         e => panic!("KMS decryption failed for {secret_name} with error {e:?}"),
     }
 }

@@ -1,16 +1,17 @@
 use crate::{
-    db::utils::AppState,
     v1::{
         api::{
             context::types::{PaginationParams, PutReq, PutResp},
-            types::AuthenticationInfo,
         },
         db::{
             models::{Context, Dimension},
             schema::cac_v1::{contexts, dimensions::dsl::dimensions},
         },
-        helpers::ToActixErr,
     },
+};
+use service_utils::{
+    service::types::{AppState, AuthenticationInfo},
+    helpers::ToActixErr,
 };
 use actix_web::{
     delete,
