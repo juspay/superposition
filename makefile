@@ -34,7 +34,7 @@ run:
 	#populate the kms keyId
 	sleep 10 #TODO move this sleep to aws cli list-keys command instead
 	cargo build --color always
-#	diesel migration run
+	diesel migration run
 	source ./docker-compose/localstack/export_cyphers.sh && \
 		cargo run --color always
 

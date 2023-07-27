@@ -1,3 +1,9 @@
+use diesel::{
+    r2d2::{ConnectionManager, Pool},
+    PgConnection,
+};
+use jsonschema::JSONSchema;
+
 use std::{
     future::{ready, Ready},
     println,
@@ -5,7 +11,11 @@ use std::{
 
 use actix_web::{error, web::Data, Error, FromRequest};
 
-use crate::db::utils::AppState;
+pub struct AppState {
+    pub db_pool: Pool<ConnectionManager<PgConnection>>,
+    pub default_config_validation_schema: JSONSchema,
+    pub admin_token: String,
+}
 
 #[derive(Clone)]
 pub struct AuthenticationInfo(pub String);

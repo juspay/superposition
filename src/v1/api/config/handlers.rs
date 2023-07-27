@@ -1,10 +1,12 @@
 use super::types::Config;
 use crate::{
-    db::utils::AppState,
     v1::{
         db::schema::cac_v1::{contexts::dsl as ctxt, default_configs::dsl as def_conf},
-        helpers::ToActixErr,
     },
+};
+use service_utils::{
+    service::types::AppState,
+    helpers::ToActixErr,
 };
 use actix_web::{
     get,
