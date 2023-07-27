@@ -2,7 +2,10 @@ use crate::{
     api::context::types::{PaginationParams, PutReq, PutResp},
     db::{
         models::{Context, Dimension},
-        schema::cac_v1::{contexts, dimensions::dsl::dimensions},
+        schema::cac_v1::{
+            contexts::{self, id},
+            dimensions::dsl::dimensions,
+        },
     },
 };
 use actix_web::{
@@ -17,10 +20,10 @@ use diesel::{
     delete,
     r2d2::{ConnectionManager, PooledConnection},
     result::{DatabaseErrorKind::*, Error::DatabaseError},
-    ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
+    Connection, ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
 };
 use log::info;
-use serde_json::{Value, Value::Null};
+use serde_json::{json, Value, Value::Null};
 use service_utils::{
     helpers::ToActixErr,
     service::types::{AppState, AuthenticationInfo},
@@ -28,11 +31,12 @@ use service_utils::{
 
 pub fn endpoints() -> Scope {
     Scope::new("")
-        .service(put_context)
+        .service(put_handler)
         .service(list_contexts)
-        .service(move_context)
+        .service(move_handler)
         .service(get_context)
         .service(delete_context)
+        .service(bulk_operations)
 }
 
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
@@ -70,7 +74,7 @@ fn val_dimensions_cal_priority(
 fn create_ctx_from_put_req(
     req: web::Json<PutReq>,
     conn: &mut DBConnection,
-    auth_info: AuthenticationInfo,
+    auth_info: &AuthenticationInfo,
 ) -> actix_web::Result<Context> {
     let ctx_condition = Value::Object(req.context.to_owned());
     let priority = match val_dimensions_cal_priority(conn, &ctx_condition) {
@@ -84,7 +88,6 @@ fn create_ctx_from_put_req(
     };
     let context_id = blake3::hash((ctx_condition).to_string().as_bytes()).to_string();
     let override_id = blake3::hash((req.r#override).to_string().as_bytes()).to_string();
-
     let AuthenticationInfo(email) = auth_info;
     Ok(Context {
         id: context_id.clone(),
@@ -93,14 +96,14 @@ fn create_ctx_from_put_req(
         override_id: override_id.to_owned(),
         override_: req.r#override.to_owned(),
         created_at: Utc::now(),
-        created_by: email,
+        created_by: email.to_owned(),
     })
 }
 
 fn update_override_of_existing_ctx(
     conn: &mut PgConnection,
     ctx: Context,
-) -> Result<web::Json<PutResp>, diesel::result::Error> {
+) -> Result<PutResp, diesel::result::Error> {
     use contexts::dsl;
     let mut new_override: Value = dsl::contexts
         .filter(dsl::id.eq(&ctx.id))
@@ -117,7 +120,7 @@ fn update_override_of_existing_ctx(
         .filter(dsl::id.eq(&new_ctx.id))
         .set(&new_ctx)
         .execute(conn)?;
-    Ok(web::Json(get_put_resp(new_ctx)))
+    Ok(get_put_resp(new_ctx))
 }
 
 fn get_put_resp(ctx: Context) -> PutResp {
@@ -127,86 +130,124 @@ fn get_put_resp(ctx: Context) -> PutResp {
         priority: ctx.priority,
     }
 }
+//TO-DO : Need to create a custom error type which implements error traits
+#[derive(Debug)]
+enum Error {
+    DIESEL(diesel::result::Error),
+    STRTYPE(String),
+}
+
+fn put(
+    req: web::Json<PutReq>,
+    auth_info: &AuthenticationInfo,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> Result<PutResp, Error> {
+    use contexts::dsl::contexts;
+
+    let new_ctx = create_ctx_from_put_req(req, conn, auth_info).map_err(|e| {
+        log::error!("context struct creation failed with err: {e:?}");
+        Error::STRTYPE(e.to_string())
+    })?;
+
+    let insert = diesel::insert_into(contexts).values(&new_ctx).execute(conn);
+    match insert {
+        Ok(_) => Ok(get_put_resp(new_ctx)),
+        Err(DatabaseError(UniqueViolation, _)) => {
+            update_override_of_existing_ctx(conn, new_ctx).map_err(|e| Error::DIESEL(e))
+        }
+        Err(e) => {
+            log::error!("update query failed with error: {e:?}");
+            Err(Error::DIESEL(e))
+        }
+    }
+}
 
 #[put("")]
-async fn put_context(
+async fn put_handler(
     req: web::Json<PutReq>,
     state: Data<AppState>,
     auth_info: AuthenticationInfo,
 ) -> actix_web::Result<web::Json<PutResp>> {
-    use contexts::dsl::contexts;
-    let mut conn = state
+    let conn = &mut state
         .db_pool
         .get()
         .map_err_to_internal_server("unable to get db connection from pool", "")?;
+    put(req, &auth_info, conn)
+        .map(|resp| web::Json(resp))
+        .map_err(|e| {
+            println!("context put failed with error: {:?}", e);
+            ErrorInternalServerError("")
+        })
+}
 
-    let new_ctx = create_ctx_from_put_req(req, &mut conn, auth_info)?;
+fn r#move(
+    old_ctx_id: String,
+    req: web::Json<PutReq>,
+    auth_info: &AuthenticationInfo,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    with_transaction: bool,
+) -> Result<PutResp, Error> {
+    use contexts::dsl;
+    let new_ctx = create_ctx_from_put_req(req, conn, auth_info).map_err(|e| {
+        log::error!("update query failed with error: {e:?}");
+        Error::STRTYPE(e.to_string())
+    })?;
+    let update = diesel::update(dsl::contexts)
+        .filter(dsl::id.eq(&old_ctx_id))
+        .set((&new_ctx, dsl::id.eq(&new_ctx.id)))
+        .execute(conn);
 
-    let insert = diesel::insert_into(contexts)
-        .values(&new_ctx)
-        .execute(&mut conn);
+    let handle_unique_violation =
+        |db_conn: &mut DBConnection, new_ctx: Context, with_transaction: bool| {
+            if with_transaction {
+                db_conn.build_transaction().read_write().run(|conn| {
+                    diesel::delete(dsl::contexts)
+                        .filter(dsl::id.eq(&old_ctx_id))
+                        .execute(conn)?;
+                    update_override_of_existing_ctx(conn, new_ctx)
+                })
+            } else {
+                diesel::delete(dsl::contexts)
+                    .filter(dsl::id.eq(&old_ctx_id))
+                    .execute(db_conn)?;
+                update_override_of_existing_ctx(db_conn, new_ctx)
+            }
+        };
 
-    match insert {
-        Ok(_) => Ok(web::Json(get_put_resp(new_ctx))),
+    match update {
+        Ok(0) => Err(Error::STRTYPE(format!(
+            "context with id: {old_ctx_id} not found"
+        ))),
+        Ok(_) => Ok(get_put_resp(new_ctx)),
         Err(DatabaseError(UniqueViolation, _)) => {
-            update_override_of_existing_ctx(&mut conn, new_ctx)
-                .map_err_to_internal_server(
-                    "override update of existing context failed",
-                    "",
-                )
+            handle_unique_violation(conn, new_ctx, with_transaction)
+                .map_err(|e| Error::DIESEL(e))
         }
-        e => {
-            println!("context insert failed with error: {e:?}");
-            Err(ErrorInternalServerError(""))
+        Err(e) => {
+            log::error!("update query failed with error: {e:?}");
+            Err(Error::DIESEL(e))
         }
     }
 }
 
 #[put("/move/{ctx_id}")]
-async fn move_context(
+async fn move_handler(
     state: Data<AppState>,
     path: Path<String>,
     req: web::Json<PutReq>,
     auth_info: AuthenticationInfo,
 ) -> actix_web::Result<web::Json<PutResp>> {
-    use contexts::dsl;
     let conn = &mut state
         .db_pool
         .get()
         .map_err_to_internal_server("unable to get db connection from pool", "")?;
-    let new_ctx = create_ctx_from_put_req(req, conn, auth_info)?;
-    let old_ctx_id = path.into_inner();
-    let update = diesel::update(dsl::contexts)
-        .filter(dsl::id.eq(&old_ctx_id))
-        //NOTE we have to specifically set id because
-        //diesel's #derive(AsChangeset) by default
-        //assumes that we want to ignore it
-        .set((&new_ctx, dsl::id.eq(&new_ctx.id)))
-        .execute(conn);
 
-    let handle_unique_violation = |db_conn: &mut DBConnection, new_ctx: Context| {
-        db_conn
-            .build_transaction()
-            .read_write()
-            .run(|conn| {
-                diesel::delete(dsl::contexts)
-                    .filter(dsl::id.eq(&old_ctx_id))
-                    .execute(conn)?;
-                update_override_of_existing_ctx(conn, new_ctx)
-            })
-            .map_err_to_internal_server("update query failed", "")
-    };
-    match update {
-        Ok(0) => Err(ErrorNotFound(format!(
-            "context with id: {old_ctx_id} not found"
-        ))),
-        Ok(_) => Ok(web::Json(get_put_resp(new_ctx))),
-        Err(DatabaseError(UniqueViolation, _)) => handle_unique_violation(conn, new_ctx),
-        Err(e) => {
-            log::error!("update query failed with error: {e:?}");
-            Err(ErrorInternalServerError(""))
-        }
-    }
+    r#move(path.into_inner(), req, &auth_info, conn, true)
+        .map(|resp| web::Json(resp))
+        .map_err(|e| {
+            println!("move api failed with error: {:?}", e);
+            ErrorInternalServerError("")
+        })
 }
 
 #[get("/{ctx_id}")]
@@ -285,7 +326,6 @@ async fn delete_context(
     auth_info: AuthenticationInfo,
 ) -> actix_web::Result<HttpResponse> {
     use contexts::dsl;
-
     let mut conn = state
         .db_pool
         .get()
@@ -304,5 +344,89 @@ async fn delete_context(
             log::error!("context delete query failed with error: {e}");
             Err(ErrorInternalServerError(""))
         }
+    }
+}
+
+#[derive(serde::Deserialize)]
+enum ContextAction {
+    PUT(PutReq),
+    DELETE(String),
+    MOVE((String, PutReq)),
+}
+
+#[put("/bulk-operations")]
+async fn bulk_operations(
+    reqs: web::Json<Vec<ContextAction>>,
+    state: Data<AppState>,
+    auth_info: AuthenticationInfo,
+) -> actix_web::Result<HttpResponse> {
+    use contexts::dsl::contexts;
+    let mut conn = state
+        .db_pool
+        .get()
+        .map_err_to_internal_server("Unable to get db connection from pool", "")?;
+
+    let mut resp = Vec::<Result<Value, String>>::new();
+    let result = conn.transaction::<_, diesel::result::Error, _>(|transaction_conn| {
+        for action in reqs.into_inner().into_iter() {
+            match action {
+                ContextAction::PUT(put_req) => {
+                    let resp_result =
+                        put(actix_web::web::Json(put_req), &auth_info, transaction_conn);
+
+                    match resp_result {
+                        Ok(put_resp) => {
+                            resp.push(Ok(json!(put_resp)));
+                        }
+                        Err(e) => {
+                            log::error!("Failed at insert into contexts due to {:?}", e);
+                            return Err(diesel::result::Error::RollbackTransaction);
+                        }
+                    }
+                }
+                ContextAction::DELETE(ctx_id) => {
+                    let deleted_row =
+                        delete(contexts.filter(id.eq(&ctx_id))).execute(transaction_conn);
+                    let AuthenticationInfo(email) = auth_info.clone();
+                    match deleted_row {
+                        Ok(0) => return Err(diesel::result::Error::RollbackTransaction),
+                        Ok(_) => {
+                            info!("{ctx_id} context deleted by {email}");
+                            resp.push(Ok(json!(format!("{ctx_id} deleted succesfully"))))
+                        }
+                        Err(e) => {
+                            log::error!("Delete context failed due to {:?}", e);
+                            return Err(diesel::result::Error::RollbackTransaction);
+                        }
+                    };
+                }
+                ContextAction::MOVE((old_ctx_id, put_req)) => {
+                    let move_context_resp = r#move(
+                        old_ctx_id,
+                        actix_web::web::Json(put_req),
+                        &auth_info,
+                        transaction_conn,
+                        false,
+                    );
+
+                    match move_context_resp {
+                        Ok(move_resp) => resp.push(Ok(json!(move_resp))),
+                        Err(e) => {
+                            log::error!(
+                                "Failed at moving context reponse due to {:?}",
+                                e
+                            );
+                            return Err(diesel::result::Error::RollbackTransaction);
+                        }
+                    };
+                }
+            }
+        }
+        Ok(()) // Commit the transaction
+    });
+
+    match result {
+        Ok(_) => Ok(HttpResponse::Ok().json(resp)), // If the transaction was successful, return the responses
+        Err(_) => Err(ErrorInternalServerError("")), // If the transaction failed, return an error
     }
 }
