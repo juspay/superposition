@@ -1,4 +1,4 @@
-use crate::v1::db::schema::cac_v1::*;
+use crate::db::schema::cac_v1::*;
 use chrono::offset::Utc;
 use chrono::DateTime;
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
@@ -20,9 +20,9 @@ pub struct Context {
 }
 
 #[derive(Debug, Clone, Copy, diesel_derive_enum::DbEnum, Deserialize, Serialize)]
-#[ExistingTypePath = "crate::v1::db::schema::cac_v1::sql_types::DimensionType"]
+#[ExistingTypePath = "crate::db::schema::cac_v1::sql_types::DimensionType"]
 #[DbValueStyle = "UPPERCASE"]
-#[ExistingTypePath = "crate::v1::db::schema::sql_types::DimensionType"]
+#[ExistingTypePath = "crate::db::schema::sql_types::DimensionType"]
 pub enum DimensionType {
     BOOL,
     NUMBER,

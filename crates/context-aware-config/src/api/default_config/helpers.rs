@@ -7,7 +7,10 @@ use serde_json::Value;
   validations for the input.
 */
 // TODO: Recursive validation.
-pub fn validate_schema(validation_schema: &JSONSchema, schema: Value) -> Result<(), String> {
+pub fn validate_schema(
+    validation_schema: &JSONSchema,
+    schema: Value,
+) -> Result<(), String> {
     let res = match validation_schema.validate(&schema) {
         Ok(_) => Ok(()),
         Err(e) => {

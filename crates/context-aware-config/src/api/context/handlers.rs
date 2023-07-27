@@ -1,17 +1,9 @@
 use crate::{
-    v1::{
-        api::{
-            context::types::{PaginationParams, PutReq, PutResp},
-        },
-        db::{
-            models::{Context, Dimension},
-            schema::cac_v1::{contexts, dimensions::dsl::dimensions},
-        },
+    api::context::types::{PaginationParams, PutReq, PutResp},
+    db::{
+        models::{Context, Dimension},
+        schema::cac_v1::{contexts, dimensions::dsl::dimensions},
     },
-};
-use service_utils::{
-    service::types::{AppState, AuthenticationInfo},
-    helpers::ToActixErr,
 };
 use actix_web::{
     delete,
@@ -29,6 +21,10 @@ use diesel::{
 };
 use log::info;
 use serde_json::{Value, Value::Null};
+use service_utils::{
+    helpers::ToActixErr,
+    service::types::{AppState, AuthenticationInfo},
+};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -218,7 +214,7 @@ async fn get_context(
     path: web::Path<String>,
     state: Data<AppState>,
 ) -> Result<impl Responder> {
-    use crate::v1::db::schema::cac_v1::contexts::dsl::*;
+    use crate::db::schema::cac_v1::contexts::dsl::*;
 
     let ctx_id = path.into_inner();
     let mut conn = match state.db_pool.get() {
@@ -251,7 +247,7 @@ async fn list_contexts(
     qparams: web::Query<PaginationParams>,
     state: Data<AppState>,
 ) -> Result<impl Responder> {
-    use crate::v1::db::schema::cac_v1::contexts::dsl::*;
+    use crate::db::schema::cac_v1::contexts::dsl::*;
 
     let mut conn = state
         .db_pool

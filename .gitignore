@@ -65,3 +65,5 @@ backend/.env
 bacon.toml
 docker-compose/localstack/export_cyphers.sh
 test_logs
+
+.keep

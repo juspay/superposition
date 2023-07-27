@@ -1,4 +1,6 @@
-mod v1;
+mod api;
+mod db;
+mod helpers;
 
 use dotenv;
 use std::{env, io::Result};
@@ -7,12 +9,10 @@ use actix_web::{
     middleware::Logger, web::get, web::scope, web::Data, App, HttpResponse, HttpServer,
 };
 
-use service_utils::{
-    db::utils::get_pool,
-    service::types::AppState,
-};
+use service_utils::{db::utils::get_pool, service::types::AppState};
 
-use v1::{api::*, helpers::get_default_config_validation_schema};
+use api::*;
+use helpers::get_default_config_validation_schema;
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -26,7 +26,7 @@ async fn main() -> Result<()> {
             .app_data(Data::new(AppState {
                 db_pool: pool.clone(),
                 default_config_validation_schema: get_default_config_validation_schema(),
-		admin_token: admin_token.to_owned()
+                admin_token: admin_token.to_owned(),
             }))
             .wrap(logger)
             .route(

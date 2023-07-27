@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_json::{ Value, Map};
+use serde_json::{Map, Value};
 
 #[derive(Deserialize)]
 pub struct PutReq {
@@ -17,5 +17,5 @@ pub struct PutResp {
 #[derive(Deserialize)]
 pub struct PaginationParams {
     pub page: Option<u32>,
-    pub size: Option<u32>
+    pub size: Option<u32>,
 }
