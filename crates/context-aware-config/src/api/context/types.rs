@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct PutReq {
     pub context: Map<String, Value>,
     pub r#override: Value,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct PutResp {
     pub context_id: String,
     pub override_id: String,
