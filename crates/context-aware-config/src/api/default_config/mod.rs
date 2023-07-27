@@ -1,4 +1,4 @@
 mod handlers;
-mod types;
 mod helpers;
+mod types;
 pub use handlers::endpoints;

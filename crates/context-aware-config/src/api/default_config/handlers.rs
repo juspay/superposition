@@ -1,13 +1,8 @@
 use super::helpers::validate_schema;
 use super::types::CreateReq;
-use crate::{
-    v1::{
-        db::{
-            models::DefaultConfig, schema::cac_v1::default_configs::dsl::default_configs,
-        },
-    },
+use crate::db::{
+    models::DefaultConfig, schema::cac_v1::default_configs::dsl::default_configs,
 };
-use service_utils::service::types::{AppState, AuthenticationInfo};
 use actix_web::{
     put,
     web::{self, Data},
@@ -17,6 +12,7 @@ use chrono::Utc;
 use diesel::RunQueryDsl;
 use jsonschema::{Draft, JSONSchema};
 use serde_json::Value;
+use service_utils::service::types::{AppState, AuthenticationInfo};
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create)

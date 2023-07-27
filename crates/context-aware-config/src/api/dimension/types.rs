@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::v1::db::models::DimensionType;
+use crate::db::models::DimensionType;
 
 #[derive(Deserialize)]
 pub struct CreateReq {
