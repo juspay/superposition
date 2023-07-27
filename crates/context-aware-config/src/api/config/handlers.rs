@@ -1,5 +1,5 @@
 use super::types::Config;
-use crate::v1::db::schema::cac_v1::{
+use crate::db::schema::cac_v1::{
     contexts::dsl as ctxt, default_configs::dsl as def_conf,
 };
 use actix_web::{get, web::Data, HttpRequest, HttpResponse, Scope};
@@ -33,8 +33,7 @@ async fn get(req: HttpRequest, state: Data<AppState>) -> actix_web::Result<HttpR
                 .ok()
         });
 
-    if max_created_at.is_some() && max_created_at < last_modified
-    {
+    if max_created_at.is_some() && max_created_at < last_modified {
         return Ok(HttpResponse::NotModified().finish());
     };
 

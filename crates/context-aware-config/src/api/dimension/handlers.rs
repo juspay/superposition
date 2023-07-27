@@ -1,11 +1,6 @@
 use crate::{
-    v1::{
-        api::{dimension::types::CreateReq},
-        db::{models::Dimension, schema::cac_v1::dimensions::dsl::*},
-    },
-};
-use service_utils::{
-    service::types::{AppState, AuthenticationInfo},
+    api::dimension::types::CreateReq,
+    db::{models::Dimension, schema::cac_v1::dimensions::dsl::*},
 };
 use actix_web::{
     put,
@@ -14,6 +9,7 @@ use actix_web::{
 };
 use chrono::Utc;
 use diesel::RunQueryDsl;
+use service_utils::service::types::{AppState, AuthenticationInfo};
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create)
