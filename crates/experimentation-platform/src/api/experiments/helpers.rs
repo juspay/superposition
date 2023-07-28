@@ -2,7 +2,7 @@ use super::types::{ExperimentCreateRequest, Variant, VariantType};
 use crate::db::models::{Experiment, ExperimentStatusType};
 use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
-use serde_json::Value;
+use serde_json::{Map, Value};
 use service_utils::service::types::ExperimentationFlags;
 use std::collections::{HashMap, HashSet};
 
@@ -30,30 +30,79 @@ pub fn check_variant_types(variants: &Vec<Variant>) -> Result<(), &'static str> 
     Ok(())
 }
 
+pub fn extract_dimensions(
+    context_json: &Value,
+) -> Result<Map<String, Value>, &'static str> {
+    // Assuming max 2-level nesting in context json logic
+    let context = context_json
+        .as_object()
+        .ok_or("extract_dimensions: context not an object")?;
+
+    let conditions = match context.get("and") {
+        Some(conditions_json) => conditions_json
+            .as_array()
+            .ok_or("extract_dimension: failed parsing conditions as an array")?
+            .clone(),
+        None => vec![context_json.clone()],
+    };
+
+    let mut dimension_tuples = Vec::new();
+    for condition in &conditions {
+        let condition_obj = condition
+            .as_object()
+            .ok_or("extract_dimensions: failed to parse condition as an object")?;
+        let operators = condition_obj.keys();
+
+        for operator in operators {
+            let operands = condition_obj[operator]
+                .as_array()
+                .ok_or("extract_dimension: failed to parse operands as an arrays")?;
+
+            let variable_name = operands
+                .get(0) // getting first element which should contain an object with property `var` with string value
+                .ok_or(
+                    "extract_dimension: failed to get variable name from operands list",
+                )?
+                .as_object() // parsing json value as an object/map
+                .ok_or("extract_dimension: failed to parse variable as an object")?
+                .get("var") // accessing `var` from object/map which contains variable name
+                .ok_or("extract_dimension: var property not present in variable object")?
+                .as_str() // parsing json value as raw string
+                .ok_or("extract_dimension: var propery value is not a string")?;
+
+            let variable_value = operands
+                .get(1) // getting second element which should be the value of the variable
+                .ok_or(
+                    "extract_dimension: failed to get variable value from operands list",
+                )?;
+
+            dimension_tuples.push((String::from(variable_name), variable_value.clone()));
+        }
+    }
+
+    Ok(Map::from_iter(dimension_tuples))
+}
+
 pub fn are_overlapping_contexts(
-    context_a_json: &Value,
-    context_b_json: &Value,
+    context_a: &Value,
+    context_b: &Value,
 ) -> Result<bool, &'static str> {
-    let context_a = context_a_json
-        .as_object()
-        .ok_or("context_a not an object")?;
-    let context_b = context_b_json
-        .as_object()
-        .ok_or("context_b not an object")?;
+    let dimensions_a = extract_dimensions(context_a)?;
+    let dimensions_b = extract_dimensions(context_b)?;
 
-    let context_a_keys = context_a.keys();
-    let context_b_keys = context_b.keys();
+    let dim_a_keys = dimensions_a.keys();
+    let dim_b_keys = dimensions_b.keys();
 
-    let ref_keys = if context_a_keys.len() > context_b_keys.len() {
-        context_b_keys
+    let ref_keys = if dim_a_keys.len() > dim_b_keys.len() {
+        dim_b_keys
     } else {
-        context_a_keys
+        dim_a_keys
     };
 
     let mut is_overlapping = true;
     for key in ref_keys {
-        let test = (context_a.contains_key(key) && context_b.contains_key(key))
-            && (context_a[key] == context_b[key]);
+        let test = (dimensions_a.contains_key(key) && dimensions_b.contains_key(key))
+            && (dimensions_a[key] == dimensions_b[key]);
         is_overlapping = is_overlapping && test;
 
         if !test {
