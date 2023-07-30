@@ -133,6 +133,7 @@ async fn create(
         id: experiment_id,
         created_by: email,
         created_at: Utc::now(),
+        last_modified: Option::None,
         name: req.name.to_string(),
         override_keys: req.override_keys.to_vec(),
         traffic_percentage: req.traffic_percentage,
@@ -166,7 +167,7 @@ async fn create(
     }
 }
 
-#[get("/list")]
+#[get("")]
 async fn list_experiments(
     state: Data<AppState>,
     filters: Query<ListFilters>,

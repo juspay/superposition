@@ -1,13 +1,13 @@
 diff --git a/crates/experimentation-platform/src/db/schema.rs b/crates/experimentation-platform/src/db/schema.rs
-index 670548b..3d4f52b 100644
+index fc346c1..887ba9e 100644
 --- a/crates/experimentation-platform/src/db/schema.rs
 +++ b/crates/experimentation-platform/src/db/schema.rs
-@@ -12,13 +12,13 @@ diesel::table! {
- 
+@@ -13,13 +13,13 @@ diesel::table! {
      experiments (id) {
          id -> Int8,
          created_at -> Timestamptz,
          created_by -> Text,
+         last_modified -> Nullable<Timestamptz>,
          name -> Text,
 -        override_keys -> Array<Nullable<Text>>,
 +        override_keys -> Array<Text>,

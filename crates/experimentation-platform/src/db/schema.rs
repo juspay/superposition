@@ -14,6 +14,7 @@ diesel::table! {
         id -> Int8,
         created_at -> Timestamptz,
         created_by -> Text,
+        last_modified -> Nullable<Timestamptz>,
         name -> Text,
         override_keys -> Array<Text>,
         status -> ExperimentStatusType,
