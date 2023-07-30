@@ -35,6 +35,7 @@ run:
 	sleep 10 #TODO move this sleep to aws cli list-keys command instead
 	cargo build --color always
 	diesel migration run --config-file=crates/context-aware-config/diesel.toml
+	diesel migration run --config-file=crates/experimentation-platform/diesel.toml
 	source ./docker-compose/localstack/export_cyphers.sh && \
 		cargo run --color always
 
