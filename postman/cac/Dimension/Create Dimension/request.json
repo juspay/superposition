@@ -22,7 +22,10 @@
     "raw_json_formatted": {
       "dimension": "clientId",
       "priority": 100,
-      "type": "STRING"
+      "schema": {
+        "type": "string",
+        "pattern": "^[a-z0-9].*$"
+      }
     }
   },
   "url": {

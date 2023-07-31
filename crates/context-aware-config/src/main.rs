@@ -20,7 +20,7 @@ use service_utils::{
 };
 
 use api::*;
-use helpers::get_default_config_validation_schema;
+use helpers::{get_default_config_validation_schema, get_meta_schema};
 
 use experimentation_platform::api::*;
 
@@ -86,6 +86,7 @@ async fn main() -> Result<()> {
                     string_to_int(&deployment_id),
                     string_to_int(&pod_identifier),
                 )),
+                meta_schema: get_meta_schema(),
             }))
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()
