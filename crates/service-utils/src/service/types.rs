@@ -1,5 +1,5 @@
 use diesel::{
-    r2d2::{ConnectionManager, Pool},
+    r2d2::{PooledConnection, ConnectionManager, Pool},
     PgConnection,
 };
 use jsonschema::JSONSchema;
@@ -64,6 +64,34 @@ impl FromRequest for AuthenticationInfo {
                 Ok(auth_info)
             }
         };
+        ready(result)
+    }
+}
+
+pub struct DbConnection(pub PooledConnection<ConnectionManager<PgConnection>>);
+impl FromRequest for DbConnection {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        let app_state = match req.app_data::<Data<AppState>>() {
+            Some(state) => state,
+            None => {
+                println!("Unable to get app_data from request");
+                return ready(Err(error::ErrorInternalServerError("")));
+            }
+        };
+        let result = match app_state.db_pool.get() {
+            Ok(conn) => Ok(DbConnection(conn)),
+            Err(e) => {
+                println!("Unable to get db connection from pool, error: {e}");
+                Err(error::ErrorInternalServerError(""))
+            }
+        };
+
         ready(result)
     }
 }
