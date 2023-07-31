@@ -175,7 +175,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"dimension\":\"clientId\",\"priority\":100,\"type\":\"STRING\"}"
+              "raw": "{\"dimension\":\"clientId\",\"priority\":100,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
             },
             "url": {
               "raw": "{{host}}/dimension",

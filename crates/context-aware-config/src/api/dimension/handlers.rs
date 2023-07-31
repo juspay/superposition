@@ -1,6 +1,7 @@
 use crate::{
     api::dimension::types::CreateReq,
     db::{models::Dimension, schema::cac_v1::dimensions::dsl::*},
+    helpers::validate_jsonschema,
 };
 use actix_web::{
     put,
@@ -10,6 +11,7 @@ use actix_web::{
 use chrono::Utc;
 use diesel::RunQueryDsl;
 use service_utils::service::types::{AppState, AuthenticationInfo};
+use jsonschema::{Draft, JSONSchema};
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create)
@@ -28,10 +30,28 @@ async fn create(
 
     let AuthenticationInfo(email) = auth_info;
 
+    let create_req = req.into_inner();
+    let schema_value = create_req.schema;
+
+    if let Err(e) =
+        validate_jsonschema(&state.meta_schema, &schema_value)
+    {
+        return HttpResponse::BadRequest().body(e);
+    };
+
+
+    let schema_compile_result = JSONSchema::options()
+        .with_draft(Draft::Draft7)
+        .compile(&schema_value);
+
+    if let Err(e) = schema_compile_result {
+        return HttpResponse::BadRequest().body(String::from(format!("Bad schema: {:?}", e )));
+    };
+
     let new_dimension = Dimension {
-        dimension: req.dimension.clone(),
-        priority: i32::from(req.priority),
-        type_: req.r#type,
+        dimension: create_req.dimension,
+        priority: i32::from(create_req.priority),
+        schema: schema_value,
         created_by: email,
         created_at: Utc::now(),
     };
