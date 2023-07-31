@@ -23,6 +23,7 @@ pub struct AppState {
     pub admin_token: String,
     pub db_pool: Pool<ConnectionManager<PgConnection>>,
     pub default_config_validation_schema: JSONSchema,
+    pub meta_schema: JSONSchema,
     pub experimentation_flags: ExperimentationFlags,
     pub snowflake_generator: Mutex<SnowflakeIdGenerator>,
 }

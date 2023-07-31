@@ -1,12 +1,6 @@
 // @generated automatically by Diesel CLI.
 
 pub mod cac_v1 {
-    pub mod sql_types {
-        #[derive(diesel::sql_types::SqlType)]
-        #[diesel(postgres_type(name = "dimension_type", schema = "cac_v1"))]
-        pub struct DimensionType;
-    }
-
     diesel::table! {
         cac_v1.contexts (id) {
             id -> Varchar,
@@ -31,16 +25,12 @@ pub mod cac_v1 {
     }
 
     diesel::table! {
-        use diesel::sql_types::*;
-        use super::sql_types::DimensionType;
-
         cac_v1.dimensions (dimension) {
             dimension -> Varchar,
             priority -> Int4,
-            #[sql_name = "type"]
-            type_ -> DimensionType,
             created_at -> Timestamptz,
             created_by -> Varchar,
+            schema -> Json,
         }
     }
 

@@ -1,7 +1,7 @@
-use super::helpers::validate_schema;
 use super::types::CreateReq;
-use crate::db::{
-    models::DefaultConfig, schema::cac_v1::default_configs::dsl::default_configs,
+use crate::{
+    db::{models::DefaultConfig, schema::cac_v1::default_configs::dsl::default_configs},
+    helpers::validate_jsonschema
 };
 use actix_web::{
     put,
@@ -28,7 +28,7 @@ async fn create(
     let req = request.into_inner();
     let schema = Value::Object(req.schema);
     if let Err(e) =
-        validate_schema(&state.default_config_validation_schema, schema.to_owned())
+        validate_jsonschema(&state.default_config_validation_schema, &schema)
     {
         return HttpResponse::BadRequest().body(e);
     };
