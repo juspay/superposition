@@ -1,6 +1,5 @@
 use std::fmt;
 
-use crate::db::models;
 use chrono::{DateTime, Utc};
 use serde::{
     de::{self, IntoDeserializer},
@@ -20,8 +19,12 @@ pub enum VariantType {
 pub struct Variant {
     pub id: String,
     pub variant_type: VariantType,
+    pub context_id: Option<String>,
+    pub override_id: Option<String>,
     pub overrides: Value,
 }
+
+/********** Experiment Create Req Types ************/
 
 #[derive(Deserialize)]
 pub struct ExperimentCreateRequest {
@@ -35,9 +38,34 @@ pub struct ExperimentCreateRequest {
 
 #[derive(Serialize)]
 pub struct ExperimentCreateResponse {
-    pub message: String,
-    pub data: models::Experiment,
+    pub experiment_id: i64,
 }
+
+/********** Experiment Create Req Types END ************/
+
+/********** Context Bulk API Type *************/
+
+#[derive(Deserialize, Serialize, Clone)]
+pub struct ContextPutReq {
+    pub context: serde_json::Map<String, Value>,
+    pub r#override: Value,
+}
+
+#[derive(Deserialize, Serialize)]
+pub enum ContextAction {
+    PUT(ContextPutReq),
+    DELETE(String),
+    MOVE((String, ContextPutReq)),
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct ContextPutResp {
+    pub context_id: String,
+    pub override_id: String,
+    pub priority: i32,
+}
+
+/********** Context Bulk API Type *************/
 
 #[derive(Deserialize, Debug)]
 pub struct ListFilters {

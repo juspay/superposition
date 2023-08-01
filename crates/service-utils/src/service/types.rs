@@ -21,6 +21,7 @@ pub struct ExperimentationFlags {
 }
 
 pub struct AppState {
+    pub cac_host: String,
     pub db_pool: Pool<ConnectionManager<PgConnection>>,
     pub default_config_validation_schema: JSONSchema,
     pub admin_token: String,

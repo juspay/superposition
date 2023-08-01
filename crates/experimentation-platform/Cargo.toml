@@ -31,3 +31,4 @@ chrono = { version = "0.4", features = ["serde"] }
 diesel = { version = "2.0.2", features = ["postgres", "r2d2", "serde_json", "chrono", "uuid", "postgres_backend"] }
 diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
 service-utils = { path = "../service-utils" }
+reqwest = {version = "0.9.11"}

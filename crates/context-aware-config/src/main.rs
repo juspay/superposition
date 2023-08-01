@@ -28,6 +28,7 @@ async fn main() -> Result<()> {
     env_logger::init();
     let pool = get_pool().await;
     let admin_token = env::var("ADMIN_TOKEN").expect("Admin token is not set!");
+    let cac_host: String = get_from_env_unsafe("CAC_HOST").expect("CAC host is not set");
 
     /****** EXPERIMENTATION PLATFORM ENVs *********/
 
@@ -50,6 +51,7 @@ async fn main() -> Result<()> {
                 db_pool: pool.clone(),
                 default_config_validation_schema: get_default_config_validation_schema(),
                 admin_token: admin_token.to_owned(),
+                cac_host: cac_host.to_owned(),
 
                 experimentation_flags: ExperimentationFlags {
                     allow_same_keys_overlapping_ctx: allow_same_keys_overlapping_ctx
