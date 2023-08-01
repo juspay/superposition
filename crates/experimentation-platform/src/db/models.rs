@@ -5,7 +5,9 @@ use diesel::{Insertable, Queryable, QueryableByName, Selectable};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize, diesel_derive_enum::DbEnum)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Deserialize, Serialize, diesel_derive_enum::DbEnum,
+)]
 #[DbValueStyle = "UPPERCASE"]
 #[ExistingTypePath = "crate::db::schema::cac_v1::sql_types::ExperimentStatusType"]
 pub enum ExperimentStatusType {

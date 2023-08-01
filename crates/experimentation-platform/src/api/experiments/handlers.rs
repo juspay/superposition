@@ -1,7 +1,7 @@
 use actix_web::{
     get,
     http::StatusCode,
-    post,
+    patch, post,
     web::{self, Data, Json, Query},
     Scope,
 };
@@ -16,8 +16,8 @@ use super::{
         check_variants_override_coverage, validate_experiment,
     },
     types::{
-        ContextAction, ContextPutReq, ContextPutResp, ExperimentCreateRequest,
-        ExperimentCreateResponse,
+        ConcludeExperimentRequest, ContextAction, ContextPutReq, ContextPutResp,
+        ExperimentCreateRequest, ExperimentCreateResponse, Variant,
     },
 };
 use crate::{
@@ -28,6 +28,7 @@ use crate::{
 pub fn endpoints() -> Scope {
     Scope::new("/experiments")
         .service(create)
+        .service(conclude)
         .service(list_experiments)
 }
 
@@ -168,6 +169,116 @@ async fn create(
             return Err(actix_web::error::ErrorInternalServerError(
                 "Failed to create experiment".to_string(),
             ));
+        }
+    }
+}
+
+#[patch("/{experiment_id}/conclude")]
+async fn conclude(
+    state: Data<AppState>,
+    path: web::Path<i64>,
+    req: web::Json<ConcludeExperimentRequest>,
+    db_conn: DbConnection,
+    _auth_info: AuthenticationInfo
+) -> actix_web::Result<Json<Experiment>> {
+    use crate::db::schema::cac_v1::experiments::dsl;
+
+    let experiment_id: i64 = path.into_inner();
+    let winner_variant_id: String = req.into_inner().winner_variant.to_owned();
+
+    let DbConnection(mut conn) = db_conn;
+    let db_result = dsl::experiments
+        .find(experiment_id)
+        .get_result::<Experiment>(&mut conn);
+
+    let experiment = match db_result {
+        Ok(response) => response,
+        Err(diesel::result::Error::NotFound) => {
+            return Err(actix_web::error::ErrorNotFound("experiment not found"));
+        }
+        Err(e) => {
+            println!("failed to fetch experiment from db: {e}");
+            return Err(actix_web::error::ErrorInternalServerError(
+                "something went wrong.",
+            ));
+        }
+    };
+
+    if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
+        return Err(actix_web::error::ErrorBadRequest(
+            "experiment is already concluded",
+        ));
+    }
+
+    let experiment_context = experiment
+        .context
+        .as_object()
+        .ok_or(actix_web::error::ErrorInternalServerError(""))?;
+
+    let mut operations: Vec<ContextAction> = vec![];
+    let experiment_variants: Vec<Variant> = serde_json::from_value(experiment.variants)
+        .map_err(|e| {
+            log::error!("parsing to variant type failed with err: {e}");
+            actix_web::error::ErrorInternalServerError("")
+        })?;
+
+    let mut is_valid_winner_variant = false;
+    for variant in experiment_variants {
+        let context_id = variant
+            .context_id
+            .ok_or(actix_web::error::ErrorInternalServerError(""))?;
+
+        if variant.id == winner_variant_id {
+            let context_put_req = ContextPutReq {
+                context: experiment_context.clone(),
+                r#override: variant.overrides,
+            };
+
+            is_valid_winner_variant = true;
+            operations.push(ContextAction::MOVE((context_id, context_put_req)));
+        } else {
+            // delete this context
+            operations.push(ContextAction::DELETE(context_id));
+        }
+    }
+
+    if !is_valid_winner_variant {
+        return Err(actix_web::error::ErrorNotFound("winner varaint not found"));
+    }
+
+    // calling CAC bulk api with operations as payload
+    let http_client = reqwest::Client::new();
+    let url = state.cac_host.clone() + "/context/bulk-operations";
+    let response = http_client
+        .put(&url)
+        .bearer_auth(&state.admin_token)
+        .json(&operations)
+        .send()
+        .map_err(|e| {
+            println!("Failed to update contexts in CAC: {e}");
+            actix_web::error::ErrorInternalServerError("")
+        })?;
+
+    if !response.status().is_success() {
+        return Err(actix_web::error::ErrorInternalServerError(""));
+    }
+
+    // updating experiment status in db
+    let experiment_update_result = diesel::update(dsl::experiments)
+        .filter(dsl::id.eq(experiment_id))
+        .set((
+            dsl::status.eq(ExperimentStatusType::CONCLUDED),
+            dsl::last_modified.eq(Utc::now()),
+        ))
+        .get_result::<Experiment>(&mut conn);
+
+    match experiment_update_result {
+        Ok(updated_experiment) => {
+            return Ok(Json(updated_experiment));
+        }
+        Err(e) => {
+            println!("Failed to updated experiment status: {e}");
+            return Err(actix_web::error::ErrorInternalServerError(""));
         }
     }
 }
