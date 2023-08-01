@@ -366,7 +366,7 @@ async fn bulk_operations(
         .get()
         .map_err_to_internal_server("Unable to get db connection from pool", "")?;
 
-    let mut resp = Vec::<Result<Value, String>>::new();
+    let mut resp = Vec::<Value>::new();
     let result = conn.transaction::<_, diesel::result::Error, _>(|transaction_conn| {
         for action in reqs.into_inner().into_iter() {
             match action {
@@ -376,7 +376,7 @@ async fn bulk_operations(
 
                     match resp_result {
                         Ok(put_resp) => {
-                            resp.push(Ok(json!(put_resp)));
+                            resp.push(json!(put_resp));
                         }
                         Err(e) => {
                             log::error!("Failed at insert into contexts due to {:?}", e);
@@ -392,7 +392,7 @@ async fn bulk_operations(
                         Ok(0) => return Err(diesel::result::Error::RollbackTransaction),
                         Ok(_) => {
                             info!("{ctx_id} context deleted by {email}");
-                            resp.push(Ok(json!(format!("{ctx_id} deleted succesfully"))))
+                            resp.push(json!(format!("{ctx_id} deleted succesfully")))
                         }
                         Err(e) => {
                             log::error!("Delete context failed due to {:?}", e);
@@ -410,7 +410,7 @@ async fn bulk_operations(
                     );
 
                     match move_context_resp {
-                        Ok(move_resp) => resp.push(Ok(json!(move_resp))),
+                        Ok(move_resp) => resp.push(json!(move_resp)),
                         Err(e) => {
                             log::error!(
                                 "Failed at moving context reponse due to {:?}",
