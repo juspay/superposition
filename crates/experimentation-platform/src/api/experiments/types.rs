@@ -43,6 +43,15 @@ pub struct ExperimentCreateResponse {
 
 /********** Experiment Create Req Types END ************/
 
+/********** Experiment Conclude Req Types **********/
+
+#[derive(Deserialize, Debug)]
+pub struct ConcludeExperimentRequest {
+    pub winner_variant: String,
+}
+
+/********** Experiment Conclude Req Types END **********/
+
 /********** Context Bulk API Type *************/
 
 #[derive(Deserialize, Serialize, Clone)]
