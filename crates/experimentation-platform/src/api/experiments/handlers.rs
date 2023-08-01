@@ -121,12 +121,12 @@ async fn create(
         .json(&cac_operations)
         .send()
         .map_err(|e| {
-            println!("failed to create contexts in cac: {e}");
+            log::info!("failed to create contexts in cac: {e}");
             actix_web::error::ErrorInternalServerError("")
         })?
         .json::<Vec<ContextPutResp>>()
         .map_err(|e| {
-            println!("failed to parse response: {e}");
+            log::info!("failed to parse response: {e}");
             actix_web::error::ErrorInternalServerError("")
         })?;
 
@@ -167,7 +167,7 @@ async fn create(
             return Ok(Json(response));
         }
         Err(e) => {
-            println!("Experiment creation failed with error: {e}");
+            log::info!("Experiment creation failed with error: {e}");
             return Err(actix_web::error::ErrorInternalServerError(
                 "Failed to create experiment".to_string(),
             ));
@@ -199,7 +199,7 @@ async fn conclude(
             return Err(actix_web::error::ErrorNotFound("experiment not found"));
         }
         Err(e) => {
-            println!("failed to fetch experiment from db: {e}");
+            log::info!("failed to fetch experiment from db: {e}");
             return Err(actix_web::error::ErrorInternalServerError(
                 "something went wrong.",
             ));
@@ -257,7 +257,7 @@ async fn conclude(
         .json(&operations)
         .send()
         .map_err(|e| {
-            println!("Failed to update contexts in CAC: {e}");
+            log::info!("Failed to update contexts in CAC: {e}");
             actix_web::error::ErrorInternalServerError("")
         })?;
 
@@ -279,7 +279,7 @@ async fn conclude(
             return Ok(Json(updated_experiment));
         }
         Err(e) => {
-            println!("Failed to updated experiment status: {e}");
+            log::info!("Failed to updated experiment status: {e}");
             return Err(actix_web::error::ErrorInternalServerError(""));
         }
     }
@@ -293,7 +293,7 @@ async fn list_experiments(
     let mut conn = match state.db_pool.get() {
         Ok(conn) => conn,
         Err(e) => {
-            println!("Unable to get db connection from pool, error: {e}");
+            log::info!("Unable to get db connection from pool, error: {e}");
             return Err(AppError {
                 message: "Could not connect to the database".to_string(),
                 possible_fix: "Try after sometime".to_string(),
@@ -311,7 +311,7 @@ async fn list_experiments(
         .limit(filters.count)
         .offset((filters.page - 1) * filters.count);
 
-    // println!(
+    // log::info!(
     //     "List filter query: {:?}",
     //     diesel::debug_query::<diesel::pg::Pg, _>(&query)
     // );
@@ -380,10 +380,10 @@ async fn ramp(
 
     let experiment = match db_result {
         Ok(result) => result,
-        Err(diesel::result::Error::NotFound) => 
+        Err(diesel::result::Error::NotFound) =>
             return Err(actix_web::error::ErrorNotFound("No results found")),
         Err(e) => {
-            println!("{e}");
+            log::info!("{e}");
             return Err(actix_web::error::ErrorInternalServerError("Something went wrong"));
         }
     };
@@ -401,7 +401,7 @@ async fn ramp(
     if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
         return Err(actix_web::error::ErrorBadRequest("Experiment is already concluded"));
     } else if new_traffic_percentage > max {
-        println!("The Traffic percentage provided exceeds the range");
+        log::info!("The Traffic percentage provided exceeds the range");
         return Err(actix_web::error::ErrorBadRequest(
             format!("The traffic_percentage cannot exceed {}", max),
         ));
@@ -413,12 +413,12 @@ async fn ramp(
         .filter(id.eq(exp_id))
         .set(traffic_percentage.eq(req.traffic_percentage as i32))
         .execute(&mut conn);
-    
+
     match update {
         Ok(0) => return Err(actix_web::error::ErrorInternalServerError("Failed to update the traffic_percentage")),
         Ok(_) => return Ok(Json(format!("Traffic percentage has been updated for the experiment id : {}", exp_id))),
         Err(e)   => {
-            println!("Failed to update the traffic_percentage: {e}");
+            log::info!("Failed to update the traffic_percentage: {e}");
             return Err(actix_web::error::ErrorInternalServerError("Failed to update the traffic_percentage"));
         }
     }

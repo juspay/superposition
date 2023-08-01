@@ -154,7 +154,7 @@ pub fn validate_experiment(
 
     let active_experiments: Vec<Experiment> =
         active_experiments_filter.load(conn).map_err(|e| {
-            println!("validate_experiment: {e}");
+            log::info!("validate_experiment: {e}");
             "Failed to fetch active experiments"
         })?;
 
@@ -168,7 +168,7 @@ pub fn validate_experiment(
             let are_overlapping =
                 are_overlapping_contexts(&experiment.context, &active_experiment.context)
                     .map_err(|e| {
-                        println!("validate_experiment: {e}");
+                        log::info!("validate_experiment: {e}");
                         "Failed to validate for overlapping context"
                     })?;
 
@@ -229,7 +229,7 @@ pub fn add_variant_dimension_to_ctx(
     match serde_json::to_value(updated_ctx) {
         Ok(value) => Ok(value),
         Err(e) => {
-            println!("add_variant_dimension_to_ctx: Failed to convert context to serde_json::Value {e}");
+            log::info!("add_variant_dimension_to_ctx: Failed to convert context to serde_json::Value {e}");
             Err("add_variant_dimension_to_ctx: Failed to convert context to serde_json::Value")
         }
     }

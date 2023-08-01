@@ -12,7 +12,7 @@ where
     std::env::var(name)
         .map(|val| val.parse().unwrap())
         .map_err(|e| {
-            println!("{name} env not found with error: {e}");
+            log::info!("{name} env not found with error: {e}");
             return e;
         })
 }
@@ -40,11 +40,11 @@ where
         B: fmt::Debug + fmt::Display + 'static,
     {
         self.map_err(|e| {
-            println!("{log_prefix}, err: {e:?}");
+            log::info!("{log_prefix}, err: {e:?}");
             ErrorInternalServerError(err_body)
         })
     }
 }
 
 
-// pub fn db_connection_from_state(state: T) -> 
+// pub fn db_connection_from_state(state: T) ->
