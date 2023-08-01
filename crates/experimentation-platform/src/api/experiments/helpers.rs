@@ -145,7 +145,7 @@ pub fn validate_experiment(
     flags: &ExperimentationFlags,
     conn: &mut PgConnection,
 ) -> Result<bool, &'static str> {
-    use crate::db::schema::experiments::dsl::*;
+    use crate::db::schema::cac_v1::experiments::dsl::*;
 
     let created_perdicate = status.eq(ExperimentStatusType::CREATED);
     let inprogress_predicate = status.eq(ExperimentStatusType::INPROGRESS);
