@@ -38,7 +38,7 @@ async fn create(
     let jschema = match schema_compile_result {
         Ok(jschema) => jschema,
         Err(e) => {
-            println!("Failed to compile as a Draft-7 JSON schema: {e}");
+            log::info!("Failed to compile as a Draft-7 JSON schema: {e}");
             return HttpResponse::BadRequest().body("Bad json schema.");
         }
     };
@@ -46,7 +46,7 @@ async fn create(
     match jschema.validate(&req.value) {
         Ok(_) => (),
         Err(_) => {
-            println!("Validation for value with given JSON schema failed.");
+            log::info!("Validation for value with given JSON schema failed.");
             return HttpResponse::BadRequest()
                 .body("Validation with given schema failed.");
         }
@@ -65,7 +65,7 @@ async fn create(
     let mut conn = match state.db_pool.get() {
         Ok(conn) => conn,
         Err(e) => {
-            println!("unable to get db connection from pool, error: {e}");
+            log::info!("unable to get db connection from pool, error: {e}");
             return HttpResponse::InternalServerError().finish();
         }
     };
@@ -79,7 +79,7 @@ async fn create(
             return HttpResponse::Created().body("DefaultConfig created successfully.")
         }
         Err(e) => {
-            println!("DefaultConfig creation failed with error: {e}");
+            log::info!("DefaultConfig creation failed with error: {e}");
             return HttpResponse::InternalServerError()
                 .body("Failed to create DefaultConfig");
         }

@@ -6,7 +6,7 @@ use crate::{
             contexts::{self, id},
             dimensions::dsl::dimensions,
         },
-    },
+    }
 };
 use actix_web::{
     delete,
@@ -22,7 +22,6 @@ use diesel::{
     result::{DatabaseErrorKind::*, Error::DatabaseError},
     Connection, ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
 };
-use log::info;
 use serde_json::{json, Value, Value::Null};
 use service_utils::{
     helpers::ToActixErr,
@@ -175,7 +174,7 @@ async fn put_handler(
     put(req, &auth_info, conn)
         .map(|resp| web::Json(resp))
         .map_err(|e| {
-            println!("context put failed with error: {:?}", e);
+            log::info!("context put failed with error: {:?}", e);
             ErrorInternalServerError("")
         })
 }
@@ -245,7 +244,7 @@ async fn move_handler(
     r#move(path.into_inner(), req, &auth_info, conn, true)
         .map(|resp| web::Json(resp))
         .map_err(|e| {
-            println!("move api failed with error: {:?}", e);
+            log::info!("move api failed with error: {:?}", e);
             ErrorInternalServerError("")
         })
 }
@@ -261,7 +260,7 @@ async fn get_context(
     let mut conn = match state.db_pool.get() {
         Ok(conn) => conn,
         Err(e) => {
-            println!("Unable to get db connection from pool, error: {e}");
+            log::info!("Unable to get db connection from pool, error: {e}");
             return Err(error::ErrorInternalServerError(""));
         }
     };
@@ -272,7 +271,7 @@ async fn get_context(
     let ctx_vec = match result {
         Ok(ctx_vec) => ctx_vec,
         Err(e) => {
-            println!("Failed to execute query, error: {e}");
+            log::info!("Failed to execute query, error: {e}");
             return Err(error::ErrorInternalServerError(""));
         }
     };
@@ -337,7 +336,7 @@ async fn delete_context(
     match deleted_row {
         Ok(0) => Err(ErrorNotFound("")),
         Ok(_) => {
-            info!("{ctx_id} context deleted by {email}");
+            log::info!("{ctx_id} context deleted by {email}");
             Ok(HttpResponse::NoContent().finish())
         }
         Err(e) => {
@@ -391,7 +390,7 @@ async fn bulk_operations(
                     match deleted_row {
                         Ok(0) => return Err(diesel::result::Error::RollbackTransaction),
                         Ok(_) => {
-                            info!("{ctx_id} context deleted by {email}");
+                            log::info!("{ctx_id} context deleted by {email}");
                             resp.push(json!(format!("{ctx_id} deleted succesfully")))
                         }
                         Err(e) => {

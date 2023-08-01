@@ -75,7 +75,7 @@ impl Client {
             StatusCode::NOT_MODIFIED => {
                 return Err(String::from("CAC: skipping update, remote not modified"));
             }
-            StatusCode::OK => println!("CAC: new config received, updating"),
+            StatusCode::OK => log::info!("CAC: new config received, updating"),
             x => return Err(format!("CAC: fetch failed, status: {}", x,)),
         };
         resp.json::<Config>().await.map_err_to_string()
@@ -99,7 +99,7 @@ impl Client {
                     .update_cac()
                     .await
                     .unwrap_or_else(identity);
-                println!("{result}",);
+                log::info!("{result}",);
             }
         });
     }

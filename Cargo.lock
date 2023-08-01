@@ -2934,6 +2934,7 @@ dependencies = [
  "diesel",
  "dotenv",
  "jsonschema",
+ "log",
  "rs-snowflake",
  "rusoto_core",
  "rusoto_kms",
