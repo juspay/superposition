@@ -33,9 +33,9 @@ run:
 	#NOTE need to sleep here because locastack takes some time to internally
 	#populate the kms keyId
 	sleep 10 #TODO move this sleep to aws cli list-keys command instead
-	cargo build --color always
 	diesel migration run --config-file=crates/context-aware-config/diesel.toml
 	diesel migration run --config-file=crates/experimentation-platform/diesel.toml
+	cargo build --color always
 	source ./docker-compose/localstack/export_cyphers.sh && \
 		cargo run --color always
 

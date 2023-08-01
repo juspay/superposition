@@ -35,7 +35,7 @@ async fn create(
     req: web::Json<ExperimentCreateRequest>,
     auth_info: AuthenticationInfo
 ) -> actix_web::Result<Json<ExperimentCreateResponse>, AppError> {
-    use crate::db::schema::experiments::dsl::experiments;
+    use crate::db::schema::cac_v1::experiments::dsl::experiments;
 
     let override_keys = &req.override_keys;
     let mut variants = req.variants.to_vec();
@@ -185,7 +185,7 @@ async fn list_experiments(
         }
     };
 
-    use crate::db::schema::experiments::dsl::*;
+    use crate::db::schema::cac_v1::experiments::dsl::*;
     let query = experiments
         .filter(status.eq_any(filters.status.clone()))
         .filter(created_at.ge(filters.from_date))
