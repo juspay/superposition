@@ -4,7 +4,7 @@ use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
 use service_utils::service::types::ExperimentationFlags;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 pub fn check_variant_types(variants: &Vec<Variant>) -> Result<(), &'static str> {
     let mut experimental_variant_cnt = 0;
@@ -199,16 +199,38 @@ pub fn validate_experiment(
     Ok(valid_experiment)
 }
 
-pub fn add_fields_to_json(json: &Value, fields: &HashMap<String, String>) -> Value {
-    match json {
-        Value::Object(m) => {
-            let mut m = m.clone();
-            for (k, v) in fields {
-                m.insert(k.clone(), Value::String(v.clone()));
-            }
-            Value::Object(m)
-        }
+pub fn add_variant_dimension_to_ctx(
+    context_json: &Value,
+    variant: String,
+) -> Result<Value, &'static str> {
+    let context = context_json
+        .as_object()
+        .ok_or("extract_dimensions: context not an object")?;
 
-        v => v.clone(),
+    let mut conditions = match context.get("and") {
+        Some(conditions_json) => conditions_json
+            .as_array()
+            .ok_or("extract_dimension: failed parsing conditions as an array")?
+            .clone(),
+        None => vec![context_json.clone()],
+    };
+
+    let variant_condition = serde_json::json!({
+        "==" : [
+            { "var": "variant" },
+            variant
+        ]
+    });
+    conditions.push(variant_condition);
+
+    let mut updated_ctx = Map::new();
+    updated_ctx.insert(String::from("and"), serde_json::Value::Array(conditions));
+
+    match serde_json::to_value(updated_ctx) {
+        Ok(value) => Ok(value),
+        Err(e) => {
+            println!("add_variant_dimension_to_ctx: Failed to convert context to serde_json::Value {e}");
+            Err("add_variant_dimension_to_ctx: Failed to convert context to serde_json::Value")
+        }
     }
 }
