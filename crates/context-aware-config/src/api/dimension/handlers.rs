@@ -39,7 +39,7 @@ async fn create(
     let mut conn = match state.db_pool.get() {
         Ok(conn) => conn,
         Err(e) => {
-            println!("unable to get db connection from pool, error: {e}");
+            log::info!("unable to get db connection from pool, error: {e}");
             return HttpResponse::InternalServerError().finish();
         }
     };
@@ -57,7 +57,7 @@ async fn create(
                 .body("Dimension created/updated successfully.")
         }
         Err(e) => {
-            println!("Dimension upsert failed with error: {e}");
+            log::info!("Dimension upsert failed with error: {e}");
             return HttpResponse::InternalServerError()
                 .body("Failed to create/udpate dimension\n");
         }

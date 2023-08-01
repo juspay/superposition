@@ -4,10 +4,7 @@ use diesel::{
 };
 use jsonschema::JSONSchema;
 
-use std::{
-    future::{ready, Ready},
-    println,
-};
+use std::future::{ready, Ready};
 
 use actix_web::{error, web::Data, Error, FromRequest};
 
@@ -63,7 +60,7 @@ impl FromRequest for AuthenticationInfo {
 
         let result = match (opt_token, opt_admin_token) {
             (_, None) => {
-                println!("ERROR: ADMIN TOKEN NOT FOUND!!!!");
+                log::info!("ERROR: ADMIN TOKEN NOT FOUND!!!!");
                 Err(error::ErrorInternalServerError(""))
             }
             (None, _) => Err(error::ErrorUnauthorized("Bearer token required.")),
@@ -92,14 +89,14 @@ impl FromRequest for DbConnection {
         let app_state = match req.app_data::<Data<AppState>>() {
             Some(state) => state,
             None => {
-                println!("Unable to get app_data from request");
+                log::info!("Unable to get app_data from request");
                 return ready(Err(error::ErrorInternalServerError("")));
             }
         };
         let result = match app_state.db_pool.get() {
             Ok(conn) => Ok(DbConnection(conn)),
             Err(e) => {
-                println!("Unable to get db connection from pool, error: {e}");
+                log::info!("Unable to get db connection from pool, error: {e}");
                 Err(error::ErrorInternalServerError(""))
             }
         };

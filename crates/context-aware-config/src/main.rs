@@ -1,8 +1,10 @@
 mod api;
 mod db;
 mod helpers;
+mod logger;
 
 use dotenv;
+use logger::init_logger;
 use std::{env, io::Result};
 
 use actix_web::{
@@ -25,7 +27,7 @@ use experimentation_platform::api::*;
 #[actix_web::main]
 async fn main() -> Result<()> {
     dotenv::dotenv().ok();
-    env_logger::init();
+    init_logger();
     let pool = get_pool().await;
     let admin_token = env::var("ADMIN_TOKEN").expect("Admin token is not set!");
     let cac_host: String = get_from_env_unsafe("CAC_HOST").expect("CAC host is not set");
