@@ -2,7 +2,7 @@
   "variable": [
     {
       "key": "host",
-      "value": "http://localhost:8080",
+      "value": "http://127.0.0.1:8080",
       "type": "default"
     },
     {

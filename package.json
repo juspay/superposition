@@ -4,9 +4,9 @@
   "private": true,
   "description": "This is just to run automated newman tests for this service",
   "scripts": {
-    "test": "./node_modules/.bin/newmandir -n postman/cac"
+    "test": "./node_modules/.bin/newman dir-run postman/cac"
   },
   "devDependencies": {
-    "newmandir": "git+ssh://git@ssh.bitbucket.juspay.net/~natarajan_juspay.in/newmandir.git"
+    "newmandir": "git+ssh://git@github.com:knutties/newman.git#feature/newman-dir"
   }
 }
