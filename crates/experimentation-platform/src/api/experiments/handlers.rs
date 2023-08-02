@@ -30,6 +30,7 @@ pub fn endpoints() -> Scope {
         .service(create)
         .service(conclude)
         .service(list_experiments)
+        .service(get_experiment)
 }
 
 #[post("")]
@@ -332,4 +333,32 @@ async fn list_experiments(
             })
         }
     };
+}
+
+#[get("/{id}")]
+async fn get_experiment(
+    params: web::Path<i64>,
+    db_conn: DbConnection,
+) -> actix_web::Result<Json<Experiment>> {
+    use crate::db::schema::cac_v1::experiments::dsl::*;
+
+    let experiment_id = params.into_inner();
+    let DbConnection(mut conn) = db_conn;
+
+    let db_result = experiments.find(experiment_id).get_result(&mut conn);
+
+    let response = match db_result {
+        Ok(result) => result,
+        Err(diesel::result::Error::NotFound) => {
+            return Err(actix_web::error::ErrorNotFound(
+                "Experiment not found".to_string(),
+            ));
+        }
+        Err(e) => {
+            log::error!("{}", format!("get experiments failed due to : {e:?}"));
+            return Err(actix_web::error::ErrorInternalServerError(""));
+        }
+    };
+
+    return Ok(Json(response));
 }
