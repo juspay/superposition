@@ -1,0 +1,40 @@
+{
+  "method": "GET",
+  "header": [
+    {
+      "key": "Authorization",
+      "value": "Bearer {{token}}"
+    }
+  ],
+  "url": {
+    "raw": "{{host}}/experiments?from_date=2023-01-01%2000%3A00%3A00%20UTC&to_date=2023-08-04%2005%3A52%3A39.889727%20UTC&page=1&count=100&status=CREATED,INPROGRESS",
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "experiments"
+    ],
+    "query": [
+      {
+        "key": "from_date",
+        "value": "2023-01-01%2000%3A00%3A00%20UTC"
+      },
+      {
+        "key": "to_date",
+        "value": "2023-08-04%2005%3A52%3A39.889727%20UTC"
+      },
+      {
+        "key": "page",
+        "value": "1"
+      },
+      {
+        "key": "count",
+        "value": "100"
+      },
+      {
+        "key": "status",
+        "value": "CREATED,INPROGRESS"
+      }
+    ]
+  }
+}
