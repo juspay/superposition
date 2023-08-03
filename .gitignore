@@ -1,3 +1,6 @@
+# Node artifact files
+node_modules/
+
 # Log files
 *.log
 

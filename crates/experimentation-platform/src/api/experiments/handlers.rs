@@ -17,12 +17,13 @@ use super::{
     },
     types::{
         ConcludeExperimentRequest, ContextAction, ContextPutReq, ContextPutResp,
-        ExperimentCreateRequest, ExperimentCreateResponse, Variant, RampRequest,
+        ExperimentCreateRequest, ExperimentCreateResponse, ExperimentResponse,
+        ExperimentsResponse, RampRequest, Variant,
     },
 };
 use crate::{
     api::{errors::AppError, experiments::types::ListFilters},
-    db::models::{Experiment, ExperimentStatusType, Experiments},
+    db::models::{Experiment, ExperimentStatusType},
 };
 
 pub fn endpoints() -> Scope {
@@ -166,9 +167,7 @@ async fn create(
     match insert {
         Ok(mut inserted_experiments) => {
             let inserted_experiment: Experiment = inserted_experiments.remove(0);
-            let response = ExperimentCreateResponse {
-                experiment_id: inserted_experiment.id,
-            };
+            let response = ExperimentCreateResponse::from(inserted_experiment);
 
             return Ok(Json(response));
         }
@@ -187,8 +186,8 @@ async fn conclude(
     path: web::Path<i64>,
     req: web::Json<ConcludeExperimentRequest>,
     db_conn: DbConnection,
-    _auth_info: AuthenticationInfo
-) -> actix_web::Result<Json<Experiment>> {
+    _auth_info: AuthenticationInfo,
+) -> actix_web::Result<Json<ExperimentResponse>> {
     use crate::db::schema::cac_v1::experiments::dsl;
 
     let experiment_id: i64 = path.into_inner();
@@ -282,7 +281,7 @@ async fn conclude(
 
     match experiment_update_result {
         Ok(updated_experiment) => {
-            return Ok(Json(updated_experiment));
+            return Ok(Json(ExperimentResponse::from(updated_experiment)));
         }
         Err(e) => {
             log::info!("Failed to updated experiment status: {e}");
@@ -295,7 +294,7 @@ async fn conclude(
 async fn list_experiments(
     state: Data<AppState>,
     filters: Query<ListFilters>,
-) -> actix_web::Result<Json<Experiments>, AppError> {
+) -> actix_web::Result<Json<ExperimentsResponse>, AppError> {
     let mut conn = match state.db_pool.get() {
         Ok(conn) => conn,
         Err(e) => {
@@ -321,7 +320,14 @@ async fn list_experiments(
     let db_result = query.load::<Experiment>(&mut conn);
 
     match db_result {
-        Ok(response) => return Ok(Json(response)),
+        Ok(response) => {
+            return Ok(Json(
+                response
+                    .into_iter()
+                    .map(|entry| ExperimentResponse::from(entry))
+                    .collect(),
+            ))
+        }
         Err(e) => {
             return Err(match e {
                 diesel::result::Error::NotFound => AppError {
@@ -343,16 +349,18 @@ async fn list_experiments(
 async fn get_experiment(
     params: web::Path<i64>,
     db_conn: DbConnection,
-) -> actix_web::Result<Json<Experiment>> {
+) -> actix_web::Result<Json<ExperimentResponse>> {
     use crate::db::schema::cac_v1::experiments::dsl::*;
 
     let experiment_id = params.into_inner();
     let DbConnection(mut conn) = db_conn;
 
-    let db_result = experiments.find(experiment_id).get_result(&mut conn);
+    let db_result = experiments
+        .find(experiment_id)
+        .get_result::<Experiment>(&mut conn);
 
     let response = match db_result {
-        Ok(result) => result,
+        Ok(result) => ExperimentResponse::from(result),
         Err(diesel::result::Error::NotFound) => {
             return Err(actix_web::error::ErrorNotFound(
                 "Experiment not found".to_string(),
@@ -372,14 +380,13 @@ async fn ramp(
     params: web::Path<i64>,
     req: web::Json<RampRequest>,
     db_conn: DbConnection,
-) -> actix_web::Result<Json<String>>  {
+) -> actix_web::Result<Json<String>> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
 
     use crate::db::schema::cac_v1::experiments::dsl::*;
-    let db_result: Result<Experiment, _> = experiments
-        .find(exp_id)
-        .get_result::<Experiment>(&mut conn);
+    let db_result: Result<Experiment, _> =
+        experiments.find(exp_id).get_result::<Experiment>(&mut conn);
 
     let experiment = match db_result {
         Ok(result) => result,
@@ -402,14 +409,18 @@ async fn ramp(
     let max = 100 / variants_count;
 
     if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
-        return Err(actix_web::error::ErrorBadRequest("Experiment is already concluded"));
+        return Err(actix_web::error::ErrorBadRequest(
+            "Experiment is already concluded",
+        ));
     } else if new_traffic_percentage > max {
         log::info!("The Traffic percentage provided exceeds the range");
         return Err(actix_web::error::ErrorBadRequest(
             format!("The traffic_percentage cannot exceed {}", max),
         ));
     } else if new_traffic_percentage == old_traffic_percentage {
-        return Err(actix_web::error::ErrorBadRequest("The traffic_percentage is same as provided"));
+        return Err(actix_web::error::ErrorBadRequest(
+            "The traffic_percentage is same as provided",
+        ));
     }
 
     let update = diesel::update(experiments)
