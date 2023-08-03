@@ -7,7 +7,7 @@ use serde::{
 };
 use serde_json::Value;
 
-use crate::db::models::ExperimentStatusType;
+use crate::db::models;
 
 #[derive(Deserialize, Serialize, Clone)]
 pub enum VariantType {
@@ -38,10 +38,57 @@ pub struct ExperimentCreateRequest {
 
 #[derive(Serialize)]
 pub struct ExperimentCreateResponse {
-    pub experiment_id: i64,
+    pub experiment_id: String,
 }
 
-/********** Experiment Create Req Types END ************/
+impl From<models::Experiment> for ExperimentCreateResponse {
+    fn from(experiment: models::Experiment) -> Self {
+        ExperimentCreateResponse {
+            experiment_id: experiment.id.to_string(),
+        }
+    }
+}
+
+/********** Experiment Response Type **************/
+// Same as models::Experiments but `id` field is String
+// JS have limitation of 53-bit integers, so on
+// deserializing from JSON to JS Object will lead incorrect `id` values
+#[derive(Serialize)]
+pub struct ExperimentResponse {
+    pub id: String,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub last_modified: DateTime<Utc>,
+
+    pub name: String,
+    pub override_keys: Vec<String>,
+    pub status: models::ExperimentStatusType,
+    pub traffic_percentage: i32,
+
+    pub context: Value,
+    pub variants: Value,
+}
+
+impl From<models::Experiment> for ExperimentResponse {
+    fn from(experiment: models::Experiment) -> Self {
+        ExperimentResponse {
+            id: experiment.id.to_string(),
+            created_at: experiment.created_at,
+            created_by: experiment.created_by,
+            last_modified: experiment.last_modified,
+
+            name: experiment.name,
+            override_keys: experiment.override_keys,
+            status: experiment.status,
+            traffic_percentage: experiment.traffic_percentage,
+
+            context: experiment.context,
+            variants: experiment.variants,
+        }
+    }
+}
+
+pub type ExperimentsResponse = Vec<ExperimentResponse>;
 
 /********** Experiment Conclude Req Types **********/
 
@@ -49,8 +96,6 @@ pub struct ExperimentCreateResponse {
 pub struct ConcludeExperimentRequest {
     pub winner_variant: String,
 }
-
-/********** Experiment Conclude Req Types END **********/
 
 /********** Context Bulk API Type *************/
 
@@ -74,12 +119,12 @@ pub struct ContextPutResp {
     pub priority: i32,
 }
 
-/********** Context Bulk API Type *************/
+/********** List API Filter Type *************/
 
 #[derive(Deserialize, Debug)]
 pub struct ListFilters {
     #[serde(deserialize_with = "deserialize_stringified_list")]
-    pub status: Vec<ExperimentStatusType>,
+    pub status: Vec<models::ExperimentStatusType>,
     pub from_date: DateTime<Utc>,
     pub to_date: DateTime<Utc>,
     pub page: i64,
@@ -121,7 +166,7 @@ where
     deserializer.deserialize_any(StringVecVisitor(std::marker::PhantomData::<I>))
 }
 
-#[derive(Deserialize,Debug)]
+#[derive(Deserialize, Debug)]
 pub struct RampRequest {
     pub traffic_percentage: u64,
 }
