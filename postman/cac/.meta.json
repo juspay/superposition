@@ -1,8 +1,8 @@
 {
   "childrenOrder": [
+    "config",
     "Default Config",
     "Dimension",
-    "Context",
-    "Config"
+    "Context"
   ]
 }

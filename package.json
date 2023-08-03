@@ -4,7 +4,7 @@
   "private": true,
   "description": "This is just to run automated newman tests for this service",
   "scripts": {
-    "test": "./node_modules/.bin/newman dir-run postman/cac"
+    "test": "./node_modules/.bin/newman dir-run ./postman/cac && ./node_modules/.bin/newman dir-run -e postman/experiment-platform-local-env.postman_environment.json ./postman/experimentation-platform "
   },
   "devDependencies": {
     "newman": "git+ssh://git@github.com:knutties/newman.git#feature/newman-dir"

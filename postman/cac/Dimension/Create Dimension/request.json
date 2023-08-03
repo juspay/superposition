@@ -4,16 +4,25 @@
     {
       "key": "Authorization",
       "value": "Bearer {{token}}",
-      "type": "default"
+      "type": "text"
+    },
+    {
+      "key": "Content-Type",
+      "value": "application/json",
+      "type": "text"
     }
   ],
   "body": {
     "mode": "raw",
-    "raw": "{\n    \"dimension\": \"clientId\",\n    \"priority\": 100,\n    \"type\": \"STRING\"\n}",
     "options": {
       "raw": {
         "language": "json"
       }
+    },
+    "raw_json_formatted": {
+      "dimension": "clientId",
+      "priority": 100,
+      "type": "STRING"
     }
   },
   "url": {
