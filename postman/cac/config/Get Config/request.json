@@ -4,7 +4,7 @@
     {
       "key": "Authorization",
       "value": "Bearer {{token}}",
-      "type": "default"
+      "type": "text"
     }
   ],
   "url": {

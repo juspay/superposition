@@ -1,15 +1,15 @@
 {
-  "method": "PUT",
+  "method": "PATCH",
   "header": [
     {
       "key": "Authorization",
       "value": "Bearer {{token}}",
-      "type": "text"
+      "type": "default"
     },
     {
       "key": "Content-Type",
       "value": "application/json",
-      "type": "text"
+      "type": "default"
     }
   ],
   "body": {
@@ -20,26 +20,18 @@
       }
     },
     "raw_json_formatted": {
-      "override": {
-        "key1": "value2"
-      },
-      "context": {
-        "==": [
-          {
-            "var": "clientId"
-          },
-          "piyaz"
-        ]
-      }
+      "traffic_percentage": 46
     }
   },
   "url": {
-    "raw": "{{host}}/context",
+    "raw": "{{host}}/experiments/{{experiment_id}}/ramp",
     "host": [
       "{{host}}"
     ],
     "path": [
-      "context"
+      "experiments",
+      "{{experiment_id}}",
+      "ramp"
     ]
   }
 }
