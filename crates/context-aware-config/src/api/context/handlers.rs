@@ -6,7 +6,7 @@ use crate::{
             contexts::{self, id},
             dimensions::dsl::dimensions,
         },
-    }
+    },
 };
 use actix_web::{
     delete,
@@ -140,6 +140,7 @@ fn put(
     req: web::Json<PutReq>,
     auth_info: &AuthenticationInfo,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    already_under_txn: bool,
 ) -> Result<PutResp, Error> {
     use contexts::dsl::contexts;
 
@@ -148,10 +149,21 @@ fn put(
         Error::STRTYPE(e.to_string())
     })?;
 
+    if already_under_txn {
+        diesel::sql_query("SAVEPOINT put_ctx_savepoint")
+            .execute(conn)
+            .map_err(|e| Error::DIESEL(e))?;
+    }
     let insert = diesel::insert_into(contexts).values(&new_ctx).execute(conn);
+
     match insert {
         Ok(_) => Ok(get_put_resp(new_ctx)),
         Err(DatabaseError(UniqueViolation, _)) => {
+            if already_under_txn {
+                diesel::sql_query("ROLLBACK TO put_ctx_savepoint")
+                    .execute(conn)
+                    .map_err(|e| Error::DIESEL(e))?;
+            }
             update_override_of_existing_ctx(conn, new_ctx).map_err(|e| Error::DIESEL(e))
         }
         Err(e) => {
@@ -171,7 +183,7 @@ async fn put_handler(
         .db_pool
         .get()
         .map_err_to_internal_server("unable to get db connection from pool", "")?;
-    put(req, &auth_info, conn)
+    put(req, &auth_info, conn, false)
         .map(|resp| web::Json(resp))
         .map_err(|e| {
             log::info!("context put failed with error: {:?}", e);
@@ -184,32 +196,39 @@ fn r#move(
     req: web::Json<PutReq>,
     auth_info: &AuthenticationInfo,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-    with_transaction: bool,
+    already_under_txn: bool,
 ) -> Result<PutResp, Error> {
     use contexts::dsl;
     let new_ctx = create_ctx_from_put_req(req, conn, auth_info).map_err(|e| {
         log::error!("update query failed with error: {e:?}");
         Error::STRTYPE(e.to_string())
     })?;
+
+    if already_under_txn {
+        diesel::sql_query("SAVEPOINT update_ctx_savepoint")
+            .execute(conn)
+            .map_err(|e| Error::DIESEL(e))?;
+    }
+
     let update = diesel::update(dsl::contexts)
         .filter(dsl::id.eq(&old_ctx_id))
         .set((&new_ctx, dsl::id.eq(&new_ctx.id)))
         .execute(conn);
 
     let handle_unique_violation =
-        |db_conn: &mut DBConnection, new_ctx: Context, with_transaction: bool| {
-            if with_transaction {
+        |db_conn: &mut DBConnection, new_ctx: Context, already_under_txn: bool| {
+            if already_under_txn {
+                diesel::delete(dsl::contexts)
+                    .filter(dsl::id.eq(&old_ctx_id))
+                    .execute(db_conn)?;
+                update_override_of_existing_ctx(db_conn, new_ctx)
+            } else {
                 db_conn.build_transaction().read_write().run(|conn| {
                     diesel::delete(dsl::contexts)
                         .filter(dsl::id.eq(&old_ctx_id))
                         .execute(conn)?;
                     update_override_of_existing_ctx(conn, new_ctx)
                 })
-            } else {
-                diesel::delete(dsl::contexts)
-                    .filter(dsl::id.eq(&old_ctx_id))
-                    .execute(db_conn)?;
-                update_override_of_existing_ctx(db_conn, new_ctx)
             }
         };
 
@@ -219,7 +238,12 @@ fn r#move(
         ))),
         Ok(_) => Ok(get_put_resp(new_ctx)),
         Err(DatabaseError(UniqueViolation, _)) => {
-            handle_unique_violation(conn, new_ctx, with_transaction)
+            if already_under_txn {
+                diesel::sql_query("ROLLBACK TO update_ctx_savepoint")
+                    .execute(conn)
+                    .map_err(|e| Error::DIESEL(e))?;
+            }
+            handle_unique_violation(conn, new_ctx, already_under_txn)
                 .map_err(|e| Error::DIESEL(e))
         }
         Err(e) => {
@@ -241,7 +265,7 @@ async fn move_handler(
         .get()
         .map_err_to_internal_server("unable to get db connection from pool", "")?;
 
-    r#move(path.into_inner(), req, &auth_info, conn, true)
+    r#move(path.into_inner(), req, &auth_info, conn, false)
         .map(|resp| web::Json(resp))
         .map_err(|e| {
             log::info!("move api failed with error: {:?}", e);
@@ -370,8 +394,12 @@ async fn bulk_operations(
         for action in reqs.into_inner().into_iter() {
             match action {
                 ContextAction::PUT(put_req) => {
-                    let resp_result =
-                        put(actix_web::web::Json(put_req), &auth_info, transaction_conn);
+                    let resp_result = put(
+                        actix_web::web::Json(put_req),
+                        &auth_info,
+                        transaction_conn,
+                        true,
+                    );
 
                     match resp_result {
                         Ok(put_resp) => {
@@ -405,7 +433,7 @@ async fn bulk_operations(
                         actix_web::web::Json(put_req),
                         &auth_info,
                         transaction_conn,
-                        false,
+                        true,
                     );
 
                     match move_context_resp {
