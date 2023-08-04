@@ -411,7 +411,10 @@ async fn ramp(
 
     let update = diesel::update(experiments)
         .filter(id.eq(exp_id))
-        .set(traffic_percentage.eq(req.traffic_percentage as i32))
+        .set((
+                traffic_percentage.eq(req.traffic_percentage as i32),
+                last_modified.eq(Utc::now()),
+            ))
         .execute(&mut conn);
 
     match update {
