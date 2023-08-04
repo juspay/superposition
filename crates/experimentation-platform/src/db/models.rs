@@ -32,6 +32,7 @@ pub struct Experiment {
 
     pub context: Value,
     pub variants: Value,
+    pub last_modified_by: String,
 }
 
 pub type Experiments = Vec<Experiment>;
