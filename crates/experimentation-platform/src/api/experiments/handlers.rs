@@ -149,7 +149,7 @@ async fn create(
     let AuthenticationInfo(email) = auth_info;
     let new_experiment = Experiment {
         id: experiment_id,
-        created_by: email,
+        created_by: email.to_string(),
         created_at: Utc::now(),
         last_modified: Utc::now(),
         name: req.name.to_string(),
@@ -158,6 +158,7 @@ async fn create(
         status: ExperimentStatusType::CREATED,
         context: req.context.clone(),
         variants: serde_json::to_value(variants).unwrap(),
+        last_modified_by: email,
     };
 
     let insert = diesel::insert_into(experiments)
@@ -186,7 +187,7 @@ async fn conclude(
     path: web::Path<i64>,
     req: web::Json<ConcludeExperimentRequest>,
     db_conn: DbConnection,
-    _auth_info: AuthenticationInfo,
+    auth_info: AuthenticationInfo,
 ) -> actix_web::Result<Json<ExperimentResponse>> {
     use crate::db::schema::cac_v1::experiments::dsl;
 
@@ -225,9 +226,9 @@ async fn conclude(
     let mut operations: Vec<ContextAction> = vec![];
     let experiment_variants: Vec<Variant> = serde_json::from_value(experiment.variants)
         .map_err(|e| {
-            log::error!("parsing to variant type failed with err: {e}");
-            actix_web::error::ErrorInternalServerError("")
-        })?;
+        log::error!("parsing to variant type failed with err: {e}");
+        actix_web::error::ErrorInternalServerError("")
+    })?;
 
     let mut is_valid_winner_variant = false;
     for variant in experiment_variants {
@@ -270,12 +271,15 @@ async fn conclude(
         return Err(actix_web::error::ErrorInternalServerError(""));
     }
 
+    let AuthenticationInfo(email) = auth_info;
+
     // updating experiment status in db
     let experiment_update_result = diesel::update(dsl::experiments)
         .filter(dsl::id.eq(experiment_id))
         .set((
             dsl::status.eq(ExperimentStatusType::CONCLUDED),
             dsl::last_modified.eq(Utc::now()),
+            dsl::last_modified_by.eq(email),
         ))
         .get_result::<Experiment>(&mut conn);
 
@@ -328,21 +332,20 @@ async fn list_experiments(
                     .collect(),
             ))
         }
+        Err(diesel::result::Error::NotFound) => Err(AppError {
+            message: String::from("No results found for your query"),
+            possible_fix: String::from("Update your filter parameters"),
+            status_code: StatusCode::NOT_FOUND,
+        }),
         Err(e) => {
-            return Err(match e {
-                diesel::result::Error::NotFound => AppError {
-                    message: String::from("No results found"),
-                    possible_fix: String::from("Update your filter parameters"),
-                    status_code: StatusCode::NOT_FOUND,
-                },
-                _ => AppError {
-                    message: String::from("Something went wrong"),
-                    possible_fix: String::from("Please try again later"),
-                    status_code: StatusCode::INTERNAL_SERVER_ERROR,
-                },
+            println!("Error occurred in list experiments API {:?}", e);
+            Err(AppError {
+                message: String::from("Something went wrong"),
+                possible_fix: String::from("Please try again later"),
+                status_code: StatusCode::INTERNAL_SERVER_ERROR,
             })
         }
-    };
+    }
 }
 
 #[get("/{id}")]
@@ -380,6 +383,7 @@ async fn ramp(
     params: web::Path<i64>,
     req: web::Json<RampRequest>,
     db_conn: DbConnection,
+    auth_info: AuthenticationInfo,
 ) -> actix_web::Result<Json<String>> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
@@ -390,11 +394,14 @@ async fn ramp(
 
     let experiment = match db_result {
         Ok(result) => result,
-        Err(diesel::result::Error::NotFound) =>
-            return Err(actix_web::error::ErrorNotFound("No results found")),
+        Err(diesel::result::Error::NotFound) => {
+            return Err(actix_web::error::ErrorNotFound("No results found"))
+        }
         Err(e) => {
             log::info!("{e}");
-            return Err(actix_web::error::ErrorInternalServerError("Something went wrong"));
+            return Err(actix_web::error::ErrorInternalServerError(
+                "Something went wrong",
+            ));
         }
     };
 
@@ -402,9 +409,9 @@ async fn ramp(
     let new_traffic_percentage = req.traffic_percentage as u8;
     let experiment_variants: Vec<Variant> = serde_json::from_value(experiment.variants)
         .map_err(|e| {
-            log::error!("parsing to variant type failed with err: {e}");
-            actix_web::error::ErrorInternalServerError("")
-        })?;
+        log::error!("parsing to variant type failed with err: {e}");
+        actix_web::error::ErrorInternalServerError("")
+    })?;
     let variants_count = experiment_variants.len() as u8;
     let max = 100 / variants_count;
 
@@ -414,30 +421,43 @@ async fn ramp(
         ));
     } else if new_traffic_percentage > max {
         log::info!("The Traffic percentage provided exceeds the range");
-        return Err(actix_web::error::ErrorBadRequest(
-            format!("The traffic_percentage cannot exceed {}", max),
-        ));
+        return Err(actix_web::error::ErrorBadRequest(format!(
+            "The traffic_percentage cannot exceed {}",
+            max
+        )));
     } else if new_traffic_percentage == old_traffic_percentage {
         return Err(actix_web::error::ErrorBadRequest(
             "The traffic_percentage is same as provided",
         ));
     }
+    let AuthenticationInfo(email) = auth_info;
 
     let update = diesel::update(experiments)
         .filter(id.eq(exp_id))
         .set((
-                traffic_percentage.eq(req.traffic_percentage as i32),
-                last_modified.eq(Utc::now()),
-            ))
+            traffic_percentage.eq(req.traffic_percentage as i32),
+            last_modified.eq(Utc::now()),
+            last_modified_by.eq(email),
+        ))
         .execute(&mut conn);
 
     match update {
-        Ok(0) => return Err(actix_web::error::ErrorInternalServerError("Failed to update the traffic_percentage")),
-        Ok(_) => return Ok(Json(format!("Traffic percentage has been updated for the experiment id : {}", exp_id))),
-        Err(e)   => {
+        Ok(0) => {
+            return Err(actix_web::error::ErrorInternalServerError(
+                "Failed to update the traffic_percentage",
+            ))
+        }
+        Ok(_) => {
+            return Ok(Json(format!(
+                "Traffic percentage has been updated for the experiment id : {}",
+                exp_id
+            )))
+        }
+        Err(e) => {
             log::info!("Failed to update the traffic_percentage: {e}");
-            return Err(actix_web::error::ErrorInternalServerError("Failed to update the traffic_percentage"));
+            return Err(actix_web::error::ErrorInternalServerError(
+                "Failed to update the traffic_percentage",
+            ));
         }
     }
 }
-
