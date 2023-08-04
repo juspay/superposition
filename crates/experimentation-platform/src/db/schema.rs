@@ -63,6 +63,7 @@ pub mod cac_v1 {
             traffic_percentage -> Int4,
             context -> Json,
             variants -> Json,
+            last_modified_by -> Text,
         }
     }
 
