@@ -27,7 +27,7 @@ pub type Variants = Vec<Variant>;
 pub(crate) struct Experiment {
     pub(crate) variants: Variants,
     pub(crate) name: String,
-    pub(crate) id: i64,
+    pub(crate) id: String,
     pub(crate) traffic_percentage: u8,
     pub(crate) context: Value,
     pub(crate) status: ExperimentStatusType,

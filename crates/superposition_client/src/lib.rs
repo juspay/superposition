@@ -39,6 +39,9 @@ impl Client {
         let mut interval = time::interval(Duration::from_secs(poll_interval));
         let mut start_date = self.last_polled.write().await;
         loop {
+            // NOTE: this additional block scopes the write lock
+            // at the end of this block, the write lock on exp store is released
+            // allowing other threads to read updated data
             {
                 let experiments = get_experiments(
                     hostname.clone(),
@@ -59,7 +62,7 @@ impl Client {
                         }
                     };
                 }
-            }
+            } // write lock on exp store releases here
             *start_date = Utc::now();
             interval.tick().await;
         }
@@ -67,15 +70,15 @@ impl Client {
 
     pub async fn get_applicable_variant(
         &self,
-        contexts: &Value,
+        context: &Value,
         toss: u8,
     ) -> Vec<String> {
         let running_experiments = self.experiments.read().await;
         // try and if json logic works
         let mut experiments: Experiments = Vec::new();
-        for (_, exps) in running_experiments.iter() {
-            if let Ok(Value::Bool(true)) = jsonlogic::apply(&exps.context, contexts) {
-                experiments.push(exps.clone());
+        for (_, exp) in running_experiments.iter() {
+            if let Ok(Value::Bool(true)) = jsonlogic::apply(&exp.context, context) {
+                experiments.push(exp.clone());
             }
         }
 
@@ -95,10 +98,10 @@ impl Client {
     fn decide_variant(
         &self,
         traffic: u8,
-        applicable_exps: Variants,
+        applicable_vars: Variants,
         toss: u8,
     ) -> Option<Variant> {
-        let variant_count = applicable_exps.len() as u8;
+        let variant_count = applicable_vars.len() as u8;
         let range = (traffic * variant_count) as u32;
         if (toss as u32) > range {
             return None
@@ -107,7 +110,7 @@ impl Client {
             .map(|i| traffic * i)
             .collect::<Vec<u8>>();
         let index = buckets.into_iter().position(|x| toss < x);
-        applicable_exps.get(index.unwrap()).map(|x| x.clone())
+        applicable_vars.get(index.unwrap()).map(|x| x.clone())
     }
 }
 
@@ -132,8 +135,8 @@ async fn get_experiments(
 
     // println!("got these running experiments: {:?}", running_experiments);
 
-    for experiments in experiments.into_iter() {
-        curr_exp_store.insert(experiments.id.to_string(), experiments);
+    for experiment in experiments.into_iter() {
+        curr_exp_store.insert(experiment.id.to_string(), experiment);
     }
 
     Ok(curr_exp_store)
