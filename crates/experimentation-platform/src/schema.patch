@@ -1,11 +1,8 @@
 diff --git a/crates/experimentation-platform/src/db/schema.rs b/crates/experimentation-platform/src/db/schema.rs
-index ca23ca2..e6083a7 100644
+index ef6ee2d..8199439 100644
 --- a/crates/experimentation-platform/src/db/schema.rs
 +++ b/crates/experimentation-platform/src/db/schema.rs
-@@ -6,16 +6,12 @@ pub mod cac_v1 {
-         #[diesel(postgres_type(name = "dimension_type", schema = "cac_v1"))]
-         pub struct DimensionType;
-
+@@ -9,10 +9,6 @@ pub mod cac_v1 {
          #[derive(diesel::sql_types::SqlType)]
          #[diesel(postgres_type(name = "experiment_status_type", schema = "cac_v1"))]
          pub struct ExperimentStatusType;
@@ -14,24 +11,17 @@ index ca23ca2..e6083a7 100644
 -        #[diesel(postgres_type(name = "not_null_text", schema = "cac_v1"))]
 -        pub struct NotNullText;
      }
-
+ 
      diesel::table! {
-         cac_v1.contexts (id) {
-             id -> Varchar,
-             value -> Json,
-@@ -51,22 +47,21 @@ pub mod cac_v1 {
-             created_by -> Varchar,
-         }
-     }
-
+@@ -54,7 +50,6 @@ pub mod cac_v1 {
+ 
      diesel::table! {
          use diesel::sql_types::*;
 -        use super::sql_types::NotNullText;
          use super::sql_types::ExperimentStatusType;
-
+ 
          cac_v1.experiments (id) {
-             id -> Int8,
-             created_at -> Timestamptz,
+@@ -63,7 +58,7 @@ pub mod cac_v1 {
              created_by -> Text,
              last_modified -> Timestamptz,
              name -> Text,
@@ -40,6 +30,3 @@ index ca23ca2..e6083a7 100644
              status -> ExperimentStatusType,
              traffic_percentage -> Int4,
              context -> Json,
-             variants -> Json,
-         }
-     }
