@@ -103,7 +103,7 @@ impl Client {
     ) -> Option<Variant> {
         let variant_count = applicable_vars.len() as u8;
         let range = (traffic * variant_count) as u32;
-        if (toss as u32) > range {
+        if (toss as u32) >= range {
             return None
         }
         let buckets = (1..=variant_count)

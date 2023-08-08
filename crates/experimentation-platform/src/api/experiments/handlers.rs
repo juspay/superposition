@@ -415,6 +415,7 @@ async fn ramp(
     let variants_count = experiment_variants.len() as u8;
     let max = 100 / variants_count;
 
+
     if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
         return Err(actix_web::error::ErrorBadRequest(
             "Experiment is already concluded",
@@ -438,6 +439,7 @@ async fn ramp(
             traffic_percentage.eq(req.traffic_percentage as i32),
             last_modified.eq(Utc::now()),
             last_modified_by.eq(email),
+            status.eq(ExperimentStatusType::INPROGRESS)
         ))
         .execute(&mut conn);
 
