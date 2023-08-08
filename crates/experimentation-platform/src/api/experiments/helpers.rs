@@ -216,9 +216,9 @@ pub fn add_variant_dimension_to_ctx(
     };
 
     let variant_condition = serde_json::json!({
-        "==" : [
-            { "var": "variant" },
-            variant
+        "in" : [
+            variant,
+            { "var": "variantIds" }
         ]
     });
     conditions.push(variant_condition);
