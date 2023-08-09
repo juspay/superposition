@@ -44,7 +44,6 @@ pub mod cac_v1 {
         }
     }
 
-
     diesel::allow_tables_to_appear_in_same_query!(
         contexts,
         default_configs,
