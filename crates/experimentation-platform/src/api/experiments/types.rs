@@ -7,7 +7,7 @@ use serde::{
 };
 use serde_json::Value;
 
-use crate::db::models;
+use crate::db::models::{self, ExperimentStatusType};
 
 #[derive(Deserialize, Serialize, Clone)]
 pub enum VariantType {
@@ -87,7 +87,12 @@ impl From<models::Experiment> for ExperimentResponse {
     }
 }
 
-pub type ExperimentsResponse = Vec<ExperimentResponse>;
+#[derive(Serialize)]
+pub struct ExperimentsResponse {
+    pub total_items: i64,
+    pub total_pages: i64,
+    pub data: Vec<ExperimentResponse>,
+}
 
 /********** Experiment Conclude Req Types **********/
 
@@ -120,15 +125,22 @@ pub struct ContextPutResp {
 
 /********** List API Filter Type *************/
 
+#[derive(Deserialize, Debug, Clone)]
+pub struct StatusTypes(
+    #[serde(deserialize_with = "deserialize_stringified_list")]
+    pub Vec<ExperimentStatusType>
+);
+
+
 #[derive(Deserialize, Debug)]
 pub struct ListFilters {
-    #[serde(deserialize_with = "deserialize_stringified_list")]
-    pub status: Vec<models::ExperimentStatusType>,
-    pub from_date: DateTime<Utc>,
-    pub to_date: DateTime<Utc>,
-    pub page: i64,
-    pub count: i64,
+    pub status: Option<StatusTypes>,
+    pub from_date: Option<DateTime<Utc>>,
+    pub to_date: Option<DateTime<Utc>>,
+    pub page: Option<i64>,
+    pub count: Option<i64>,
 }
+
 
 pub fn deserialize_stringified_list<'de, D, I>(
     deserializer: D,
@@ -146,7 +158,7 @@ where
         type Value = Vec<I>;
 
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("a string containing a list")
+            formatter.write_str("a string containing comma separated values eg: CREATED,INPROGRESS")
         }
 
         fn visit_str<E>(self, v: &str) -> std::result::Result<Self::Value, E>
