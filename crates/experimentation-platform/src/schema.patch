@@ -1,5 +1,5 @@
 diff --git a/crates/experimentation-platform/src/db/schema.rs b/crates/experimentation-platform/src/db/schema.rs
-index ef6ee2d..8199439 100644
+index 65aa8b6..722a39a 100644
 --- a/crates/experimentation-platform/src/db/schema.rs
 +++ b/crates/experimentation-platform/src/db/schema.rs
 @@ -9,10 +9,6 @@ pub mod cac_v1 {
