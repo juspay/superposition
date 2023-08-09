@@ -24,7 +24,7 @@ pub struct Variant {
 pub type Variants = Vec<Variant>;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub(crate) struct Experiment {
+pub struct Experiment {
     pub(crate) variants: Variants,
     pub(crate) name: String,
     pub(crate) id: String,
@@ -33,6 +33,6 @@ pub(crate) struct Experiment {
     pub(crate) status: ExperimentStatusType,
 }
 
-pub(crate) type Experiments = Vec<Experiment>;
+pub type Experiments = Vec<Experiment>;
 
 pub(crate) type ExperimentStore = HashMap<String, Experiment>;
