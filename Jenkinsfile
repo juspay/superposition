@@ -10,6 +10,7 @@ pipeline {
     REGISTRY_HOST_SBX = getRegistryHost("701342709052", REGION);
     REGISTRY_HOST_PROD = getRegistryHost("980691203742", REGION);
     AUTOPILOT_HOST_INTEG = "autopilot-eks2.internal.svc.k8s.integ.mum.juspay.net";
+    DOCKER_DIND_DNS = "jenkins-newton-dind.jp-internal.svc.cluster.local"
   }
   stages {
     stage('Checkout') {
@@ -25,10 +26,10 @@ pipeline {
       }
     }
 
-//    stage('Test') {
-//      when { expression { SKIP_CI == 'false' } }
-//      steps { sh 'make ci-test' }
-//    }
+    stage('Test') {
+      when { expression { SKIP_CI == 'false' } }
+      steps { sh 'make ci-test -e DOCKER_DNS=${DOCKER_DIND_DNS}' }
+    }
 
     stage('Build Image') {
       when {

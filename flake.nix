@@ -48,6 +48,7 @@
                   docker-compose
                   stdenv.cc
                   pkgconfig
+                  awscli
                 ];
               darwinPkgs = with pkgs; [
                   darwin.apple_sdk.frameworks.Security
