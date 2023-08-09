@@ -68,11 +68,7 @@ impl Client {
         }
     }
 
-    pub async fn get_applicable_variant(
-        &self,
-        context: &Value,
-        toss: u8,
-    ) -> Vec<String> {
+    pub async fn get_applicable_variant(&self, context: &Value, toss: u8) -> Vec<String> {
         let running_experiments = self.experiments.read().await;
         // try and if json logic works
         let mut experiments: Experiments = Vec::new();
@@ -94,6 +90,12 @@ impl Client {
         variants
     }
 
+    pub async fn get_running_experiments(&self) -> Experiments {
+        let running_experiments = self.experiments.read().await;
+        let experiments: Experiments = running_experiments.values().cloned().collect();
+        experiments
+    }
+
     // decide which variant to return among all applicable experiments
     fn decide_variant(
         &self,
@@ -104,7 +106,7 @@ impl Client {
         let variant_count = applicable_vars.len() as u8;
         let range = (traffic * variant_count) as u32;
         if (toss as u32) >= range {
-            return None
+            return None;
         }
         let buckets = (1..=variant_count)
             .map(|i| traffic * i)
