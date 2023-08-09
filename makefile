@@ -1,25 +1,60 @@
 IMAGE_NAME ?= context-aware-config
-
+DOCKER_DNS ?= localhost
 SHELL := /usr/bin/env bash
 
-setup:
-	touch ./docker-compose/localstack/export_cyphers.sh
-	docker-compose up -d
-	cp .env.example .env
-	sleep 10 #TODO move this sleep to aws cli list-keys command instead
+.PHONY:
+	db-init
+	setup
+	kill
+	run
+	ci-test
+	ci-build
+	ci-push
+	registry-login
+	validate-aws-connection
+	validate-psql-connection
+	cac
 
 db-init:
 	diesel migration run --config-file=crates/context-aware-config/diesel.toml
 	diesel migration run --config-file=crates/experimentation-platform/diesel.toml
 
-build:
+validate-aws-connection:
+	aws --endpoint-url=http://$(DOCKER_DNS):4566 --region=ap-south-1 sts get-caller-identity
+
+validate-psql-connection:
+	pg_isready -h $(DOCKER_DNS) -p 5432
+
+setup:
+	docker-compose up -d postgres localstack
+	cp .env.example .env
+	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
+	while ! make validate-psql-connection validate-aws-connection; \
+		do echo "waiting for postgres, localstack bootup"; \
+		sleep 0.5; \
+		done
+	make db-init
+
+kill:
+	-pkill -f target/debug/context-aware-config &
+
+cac:
+	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
+	cargo run --color always --bin context-aware-config
+
+run:
+	-make kill
 	cargo build --color always
+	make setup
+	make cac -e DOCKER_DNS=$(DOCKER_DNS)
 
 ci-test:
-	npm ci --loglevel=error
 	-docker rm -f $$(docker container ls --filter name=^context-aware-config -q)
-	make run 2>&1 | tee test_logs &
-	while ! grep -q "starting in Actix" test_logs; do echo "waiting for bootup..." && sleep 2; done
+	npm ci --loglevel=error
+	make run -e DOCKER_DNS=$(DOCKER_DNS) 2>&1 | tee test_logs &
+	while ! grep -q "starting in Actix" test_logs; \
+		do echo "ci-test: waiting for bootup..." && sleep 4; \
+		done
 	npm run test
 
 ci-build:
@@ -35,19 +70,5 @@ registry-login:
 	    --username AWS \
 	    --password-stdin $(REGISTRY_HOST)
 
-cac:
-	source ./docker-compose/localstack/export_cyphers.sh && \
-		cargo run --package context-aware-config --color always
 
-example:
-	cargo run --package example
-
-ls-packages:
-	cargo run --package
-
-kill:
-	pkill -f target/debug/context-aware-config &
-
-run: kill setup db-init build cac
-
-default: build
+default: dev-build

@@ -36,7 +36,7 @@ pub fn new_client() -> KmsClient {
     let kms_region = match app_env.as_str() {
         "DEV" => Region::Custom {
             name: get_from_env_unsafe("AWS_REGION").unwrap_or(String::from("ap-south-1")),
-            endpoint: "http://localhost:4566".to_owned(),
+            endpoint: get_from_env_unsafe("AWS_REGION_ENDPOINT").unwrap_or(String::from("http://localhost:4566")),
         },
         _ => get_from_env_unsafe("AWS_REGION").unwrap_or(Region::ApSouth1),
     };

@@ -24,5 +24,3 @@ services:
       LOCALSTACK_SERVICES: s3, sns, sqs, logs, cloudwatch, kms
       AWS_DEFAULT_REGION: ap-south-1
       EDGE_PORT: 4566
-    volumes:
-      - ./docker-compose/localstack/export_cyphers.sh:/etc/localstack/export_cyphers.sh
