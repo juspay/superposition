@@ -5,7 +5,7 @@ use actix_web::{
     web::{self, Data, Json, Query},
     Scope,
 };
-use chrono::Utc;
+use chrono::{Duration, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 
 use service_utils::service::types::{AppState, AuthenticationInfo, DbConnection};
@@ -287,41 +287,62 @@ async fn conclude(
 
 #[get("")]
 async fn list_experiments(
-    state: Data<AppState>,
     filters: Query<ListFilters>,
+    db_conn: DbConnection,
 ) -> actix_web::Result<Json<ExperimentsResponse>, AppError> {
-    let mut conn = match state.db_pool.get() {
-        Ok(conn) => conn,
+    let DbConnection(mut conn) = db_conn;
+    use crate::db::schema::cac_v1::experiments::dsl::*;
+    let query_builder = |filters: &ListFilters| {
+        let mut builder = experiments.into_boxed();
+        if let Some(states) = filters.status.clone() {
+            builder = builder.filter(status.eq_any(states.0.clone()));
+        }
+        let now = Utc::now();
+        builder
+        .filter(last_modified.ge(filters.from_date.unwrap_or(now - Duration::hours(24))))
+        .filter(last_modified.le(filters.to_date.unwrap_or(now)))
+    };
+    let filters = filters.into_inner();
+    let base_query = query_builder(&filters);
+    let count_query = query_builder(&filters);
+
+    let limit = filters.count.unwrap_or(10);
+    let offset = (filters.page.unwrap_or(1) - 1) * limit;
+    let query = base_query
+        .order(last_modified.desc())
+        .limit(limit)
+        .offset(offset);
+
+    let number_of_experiments = match count_query.count().get_result(&mut conn) {
+        Ok(count) => count,
+        Err(diesel::result::Error::NotFound) => 0,
         Err(e) => {
-            log::info!("Unable to get db connection from pool, error: {e}");
+            println!(
+                "Error occurred while counting items in list experiments API {:?}",
+                e
+            );
             return Err(AppError {
-                message: "Something went wrong".to_string(),
-                possible_fix: "Try again after some time".to_string(),
+                message: String::from("Something went wrong"),
+                possible_fix: String::from("Please try again later"),
                 status_code: StatusCode::INTERNAL_SERVER_ERROR,
             });
-            // return an error
         }
     };
 
-    use crate::db::schema::cac_v1::experiments::dsl::*;
-    let query = experiments
-        .filter(status.eq_any(filters.status.clone()))
-        .filter(last_modified.ge(filters.from_date))
-        .filter(last_modified.le(filters.to_date))
-        .order(last_modified.desc())
-        .limit(filters.count)
-        .offset((filters.page - 1) * filters.count);
-
     let db_result = query.load::<Experiment>(&mut conn);
+
+    let total_pages = (number_of_experiments as f64 / limit as f64).ceil() as i64;
 
     match db_result {
         Ok(response) => {
-            return Ok(Json(
-                response
+            return Ok(Json(ExperimentsResponse {
+                total_items: number_of_experiments,
+                total_pages: total_pages,
+                data: response
                     .into_iter()
                     .map(|entry| ExperimentResponse::from(entry))
                     .collect(),
-            ))
+            }))
         }
         Err(diesel::result::Error::NotFound) => Err(AppError {
             message: String::from("No results found for your query"),
@@ -406,7 +427,6 @@ async fn ramp(
     let variants_count = experiment_variants.len() as u8;
     let max = 100 / variants_count;
 
-
     if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
         return Err(actix_web::error::ErrorBadRequest(
             "Experiment is already concluded",
@@ -430,7 +450,7 @@ async fn ramp(
             traffic_percentage.eq(req.traffic_percentage as i32),
             last_modified.eq(Utc::now()),
             last_modified_by.eq(email),
-            status.eq(ExperimentStatusType::INPROGRESS)
+            status.eq(ExperimentStatusType::INPROGRESS),
         ))
         .execute(&mut conn);
 

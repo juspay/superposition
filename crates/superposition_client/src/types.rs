@@ -36,3 +36,10 @@ pub struct Experiment {
 pub type Experiments = Vec<Experiment>;
 
 pub(crate) type ExperimentStore = HashMap<String, Experiment>;
+
+#[derive(Serialize, Deserialize, Default)]
+pub(crate) struct ListExperimentsResponse {
+    pub(crate) total_items: i64,
+    pub(crate) total_pages: i64,
+    pub(crate) data: Experiments,
+}

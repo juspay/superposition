@@ -8,7 +8,7 @@ use tokio::{
     time::{self, Duration},
 };
 pub use types::{Config, Variants};
-use types::{ExperimentStore, Experiments, Variant};
+use types::{ExperimentStore, Experiments, ListExperimentsResponse, Variant};
 
 #[derive(Clone, Debug)]
 pub struct Client {
@@ -122,23 +122,33 @@ async fn get_experiments(
     start_date: String,
 ) -> Result<ExperimentStore, String> {
     let mut curr_exp_store: ExperimentStore = HashMap::new();
+    let requesting_count = 10;
+    let mut page = 1;
     let now = Utc::now();
-    let endpoint = format!(
-        "{hostname}/experiments?from_date={start_date}&to_date={now}&page=1&count=100"
-    );
-    let experiments = http_client
-        .get(format!("{endpoint}&status=INPROGRESS,CONCLUDED"))
-        .send()
-        .await
-        .unwrap()
-        .json::<Experiments>()
-        .await
-        .unwrap_or_default();
+    loop {
+        let endpoint = format!(
+            "{hostname}/experiments?from_date={start_date}&to_date={now}&page={page}&count={requesting_count}"
+        );
+        let list_experiments_response = http_client
+            .get(format!("{endpoint}&status=INPROGRESS,CONCLUDED"))
+            .send()
+            .await
+            .unwrap()
+            .json::<ListExperimentsResponse>()
+            .await
+            .unwrap_or_default();
 
-    // println!("got these running experiments: {:?}", running_experiments);
+        let experiments = list_experiments_response.data;
+        // println!("got these running experiments: {:?}", running_experiments);
 
-    for experiment in experiments.into_iter() {
-        curr_exp_store.insert(experiment.id.to_string(), experiment);
+        for experiment in experiments.into_iter() {
+            curr_exp_store.insert(experiment.id.to_string(), experiment);
+        }
+        if page < list_experiments_response.total_pages {
+            page += 1;
+        } else {
+            break;
+        }
     }
 
     Ok(curr_exp_store)
