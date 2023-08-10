@@ -30,7 +30,6 @@ pub struct Variant {
 pub struct ExperimentCreateRequest {
     pub name: String,
     pub override_keys: Vec<String>,
-    pub traffic_percentage: i32,
 
     pub context: Value,
     pub variants: Vec<Variant>,

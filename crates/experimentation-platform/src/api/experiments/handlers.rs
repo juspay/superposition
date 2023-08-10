@@ -68,15 +68,6 @@ async fn create(
         ));
     }
 
-    //traffic_percentage should be max 100/length of variants
-    let allowed_traffic = (100 / variants.len()) as i32;
-    if req.traffic_percentage > allowed_traffic {
-        return Err(actix_web::error::ErrorBadRequest(format!(
-            "the traffic percentage specified ({}) is greater than what can be evenly distributed among variants. Reduce the traffic percentage to a value <= {}",
-            req.traffic_percentage, allowed_traffic
-        )));
-    }
-
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;
     match validate_experiment(&req, &flags, &mut conn) {
@@ -154,7 +145,7 @@ async fn create(
         last_modified: Utc::now(),
         name: req.name.to_string(),
         override_keys: req.override_keys.to_vec(),
-        traffic_percentage: req.traffic_percentage,
+        traffic_percentage: 0,
         status: ExperimentStatusType::CREATED,
         context: req.context.clone(),
         variants: serde_json::to_value(variants).unwrap(),
