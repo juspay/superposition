@@ -3,9 +3,9 @@ use actix_web::{
     http::StatusCode,
     patch, post,
     web::{self, Data, Json, Query},
-    Scope,
+    HttpRequest, HttpResponse, Scope,
 };
-use chrono::{Duration, Utc};
+use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 
 use service_utils::service::types::{AppState, AuthenticationInfo, DbConnection};
@@ -24,6 +24,7 @@ use super::{
 use crate::{
     api::{errors::AppError, experiments::types::ListFilters},
     db::models::{Experiment, ExperimentStatusType},
+    db::schema::cac_v1::{event_log::dsl as event_log, experiments::dsl as experiments},
 };
 
 pub fn endpoints() -> Scope {
@@ -287,20 +288,51 @@ async fn conclude(
 
 #[get("")]
 async fn list_experiments(
+    req: HttpRequest,
     filters: Query<ListFilters>,
     db_conn: DbConnection,
-) -> actix_web::Result<Json<ExperimentsResponse>, AppError> {
+) -> actix_web::Result<HttpResponse, AppError> {
     let DbConnection(mut conn) = db_conn;
-    use crate::db::schema::cac_v1::experiments::dsl::*;
+
+    let max_event_timestamp: Option<NaiveDateTime> = event_log::event_log
+        .filter(event_log::table_name.eq("experiments"))
+        .select(diesel::dsl::max(event_log::timestamp))
+        .first(&mut conn)
+        .map_err(|e| {
+            println!("error fetching max_event_timestamp: {e}");
+            AppError {
+                message: String::from("Something went wrong"),
+                possible_fix: String::from("Please try again later"),
+                status_code: StatusCode::INTERNAL_SERVER_ERROR,
+            }
+        })?;
+
+    let last_modified = req
+        .headers()
+        .get("If-Modified-Since")
+        .and_then(|header_val| header_val.to_str().ok())
+        .and_then(|header_str| {
+            DateTime::parse_from_rfc2822(header_str)
+                .map(|datetime| datetime.with_timezone(&Utc).naive_utc())
+                .ok()
+        });
+
+    if max_event_timestamp.is_some() && max_event_timestamp < last_modified {
+        return Ok(HttpResponse::NotModified().finish());
+    };
+
     let query_builder = |filters: &ListFilters| {
-        let mut builder = experiments.into_boxed();
+        let mut builder = experiments::experiments.into_boxed();
         if let Some(states) = filters.status.clone() {
-            builder = builder.filter(status.eq_any(states.0.clone()));
+            builder = builder.filter(experiments::status.eq_any(states.0.clone()));
         }
         let now = Utc::now();
         builder
-        .filter(last_modified.ge(filters.from_date.unwrap_or(now - Duration::hours(24))))
-        .filter(last_modified.le(filters.to_date.unwrap_or(now)))
+            .filter(
+                experiments::last_modified
+                    .ge(filters.from_date.unwrap_or(now - Duration::hours(24))),
+            )
+            .filter(experiments::last_modified.le(filters.to_date.unwrap_or(now)))
     };
     let filters = filters.into_inner();
     let base_query = query_builder(&filters);
@@ -309,7 +341,7 @@ async fn list_experiments(
     let limit = filters.count.unwrap_or(10);
     let offset = (filters.page.unwrap_or(1) - 1) * limit;
     let query = base_query
-        .order(last_modified.desc())
+        .order(experiments::last_modified.desc())
         .limit(limit)
         .offset(offset);
 
@@ -335,7 +367,7 @@ async fn list_experiments(
 
     match db_result {
         Ok(response) => {
-            return Ok(Json(ExperimentsResponse {
+            return Ok(HttpResponse::Ok().json(ExperimentsResponse {
                 total_items: number_of_experiments,
                 total_pages: total_pages,
                 data: response

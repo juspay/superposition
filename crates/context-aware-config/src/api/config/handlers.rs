@@ -1,9 +1,10 @@
 use super::types::Config;
 use crate::db::schema::cac_v1::{
     contexts::dsl as ctxt, default_configs::dsl as def_conf,
+    event_log::dsl as event_log,
 };
 use actix_web::{get, web::Data, HttpRequest, HttpResponse, Scope};
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use diesel::{dsl::max, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value, Value::Null};
 use service_utils::{helpers::ToActixErr, service::types::AppState};
@@ -18,8 +19,9 @@ async fn get(req: HttpRequest, state: Data<AppState>) -> actix_web::Result<HttpR
         .db_pool
         .get()
         .map_err_to_internal_server("error getting a connection from db pool", Null)?;
-    let max_created_at: Option<DateTime<Utc>> = ctxt::contexts
-        .select(max(ctxt::created_at))
+    let max_created_at: Option<NaiveDateTime> = event_log::event_log
+        .select(max(event_log::timestamp))
+        .filter(event_log::table_name.eq("contexts"))
         .first(&mut conn)
         .map_err_to_internal_server("error getting created at", Null)?;
 
@@ -29,7 +31,7 @@ async fn get(req: HttpRequest, state: Data<AppState>) -> actix_web::Result<HttpR
         .and_then(|header_val| {
             let header_str = header_val.to_str().ok()?;
             DateTime::parse_from_rfc2822(header_str)
-                .map(|datetime| datetime.with_timezone(&Utc))
+                .map(|datetime| datetime.with_timezone(&Utc).naive_utc())
                 .ok()
         });
 
