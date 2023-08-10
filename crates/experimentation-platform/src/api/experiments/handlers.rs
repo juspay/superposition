@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use actix_web::{
     get,
     http::StatusCode,
@@ -48,6 +50,18 @@ async fn create(
     let DbConnection(mut conn) = db_conn;
     let override_keys = &req.override_keys;
     let mut variants = req.variants.to_vec();
+
+    let unique_ids_of_variants_from_req: HashSet<&str> = HashSet::from_iter(
+        variants
+        .iter()
+        .map(|v| v.id.as_str())
+    );
+
+    if unique_ids_of_variants_from_req.len() != variants.len() {
+        return Err(actix_web::error::ErrorBadRequest(
+            "variant ids are expected to be unique".to_string(),
+        ));
+    }
 
     // Checking if experiment has exactly 1 control variant, and
     // atleast 1 experimental variant
