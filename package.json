@@ -7,6 +7,6 @@
     "test": "./node_modules/.bin/newman dir-run postman/cac"
   },
   "devDependencies": {
-    "newmandir": "git+ssh://git@github.com:knutties/newman.git#feature/newman-dir"
+    "newman": "git+ssh://git@github.com:knutties/newman.git#feature/newman-dir"
   }
 }
