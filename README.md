@@ -1,29 +1,39 @@
 # Context Aware Config #
 
-This README would normally document whatever steps are necessary to get your application up and running.
-
-### What is this repository for? ###
-
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
 
 ### How do I get set up? ###
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+* Clone this repo
+* [Install nix](https://zero-to-nix.com/start/install)
+* Start docker daemon either through docker desktop or using the command given below
+    ```bash
+    $ open --background -a Docker
+    ```
+* Make sure your brew's postgres service is not running
 
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+    ```bash
+    # Check if service is running
+    $ brew services
+    # If postgres is running, stop it via brew
+    $ brew services stop postgresql@<your_postgres_version>
+    $ cd context-aware-config
+    ```
+* cd to the repo dir
+    ```bash
+    $ cd context-aware-config
+    ```
+* run these commands
+     ```bash
+    $ nix develop
+    $ make run
+    ```
+* If you get something like this in the output, you are good to go
+     ```bash
+   {"level":"INFO","service":"context-aware-config","timestamp":"2023-08-14T08:08:20.291Z","value":"starting 5 workers"}
+    {"level":"INFO","service":"context-aware-config","timestamp":"2023-08-14T08:08:20.292Z","value":"Actix runtime found; starting in Actix runtime"}
+    ```
+* You can hit the `/health` endpoint to confirm server is ready to serve
+     ```bash
+    $ curl --location 'http://localhost:8080/health'
+    #Expected Response : "Health is good :D"
+    ```

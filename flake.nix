@@ -49,6 +49,7 @@
                   stdenv.cc
                   pkgconfig
                   awscli
+                  jq
                 ];
               darwinPkgs = with pkgs; [
                   darwin.apple_sdk.frameworks.Security
