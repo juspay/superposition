@@ -24,7 +24,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(get_variants)
     })
-    .bind(("127.0.0.1", 8082))?
+    .bind(("127.0.0.1", 8083))?
     .run()
     .await
 }
@@ -32,7 +32,7 @@ async fn main() -> std::io::Result<()> {
 #[get("/variants/{client_id}/{platform}/{toss}")]
 async fn get_variants(
     state: Data<exp::Client>,
-    path: Path<(String, String, u8)>,
+    path: Path<(String, String, i8)>,
 ) -> HttpResponse {
     let (client_id, platform, toss) = path.into_inner();
     println!("client state on the server = {:?}", state);
