@@ -49,7 +49,7 @@ run:
 	make cac -e DOCKER_DNS=$(DOCKER_DNS)
 
 ci-test:
-	-docker rm -f $$(docker container ls --filter name=^context-aware-config -q)
+	-docker rm -f $$(docker container ls --filter name=^context-aware-config -a -q)
 	npm ci --loglevel=error
 	make run -e DOCKER_DNS=$(DOCKER_DNS) 2>&1 | tee test_logs &
 	while ! grep -q "starting in Actix" test_logs; \
