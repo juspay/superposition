@@ -55,11 +55,14 @@ pub fn extract_dimensions(context_json: &Value) -> app::Result<Map<String, Value
     let mut dimension_tuples = Vec::new();
     for condition in &conditions {
         let condition_obj =
-            condition.as_object().ok_or(err::BadArgument(ErrorResponse {
-                message: " failed to parse condition as an object".to_string(),
-                possible_fix: "ensure the context provided obeys the rules of JSON logic"
-                    .to_string(),
-            }))?;
+            condition
+                .as_object()
+                .ok_or(err::BadArgument(ErrorResponse {
+                    message: " failed to parse condition as an object".to_string(),
+                    possible_fix:
+                        "ensure the context provided obeys the rules of JSON logic"
+                            .to_string(),
+                }))?;
         let operators = condition_obj.keys();
 
         for operator in operators {
@@ -120,7 +123,10 @@ pub fn extract_dimensions(context_json: &Value) -> app::Result<Map<String, Value
     Ok(Map::from_iter(dimension_tuples))
 }
 
-pub fn are_overlapping_contexts(context_a: &Value, context_b: &Value) -> app::Result<bool> {
+pub fn are_overlapping_contexts(
+    context_a: &Value,
+    context_b: &Value,
+) -> app::Result<bool> {
     let dimensions_a = extract_dimensions(context_a)?;
     let dimensions_b = extract_dimensions(context_b)?;
 
@@ -190,15 +196,13 @@ pub fn validate_experiment(
 
     let mut valid_experiment = true;
     let mut invalid_reason = String::new();
-    if flags.allow_same_keys_overlapping_ctx
-        && flags.allow_diff_keys_overlapping_ctx
-        && flags.allow_same_keys_non_overlapping_ctx
+    if !flags.allow_same_keys_overlapping_ctx
+        || !flags.allow_diff_keys_overlapping_ctx
+        || !flags.allow_same_keys_non_overlapping_ctx
     {
-        return Ok((valid_experiment, invalid_reason));
-    }
-    let override_keys_set: HashSet<_> = experiment.override_keys.iter().collect();
-    for active_experiment in active_experiments.iter() {
-        let are_overlapping =
+        let override_keys_set: HashSet<_> = experiment.override_keys.iter().collect();
+        for active_experiment in active_experiments.iter() {
+            let are_overlapping =
             are_overlapping_contexts(&experiment.context, &active_experiment.context)
                 .map_err(|e| {
                     log::info!("validate_experiment: {e}");
@@ -226,9 +230,10 @@ pub fn validate_experiment(
                 valid_experiment && !(!are_overlapping && have_intersecting_key_set);
         }
 
-        if !valid_experiment {
-            invalid_reason.push_str("This current context overlaps with an existing experiment or the keys in the context are overlapping");
-            break;
+            if !valid_experiment {
+                invalid_reason.push_str("This current context overlaps with an existing experiment or the keys in the context are overlapping");
+                break;
+            }
         }
     }
 
