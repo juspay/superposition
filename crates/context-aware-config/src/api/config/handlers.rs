@@ -41,7 +41,7 @@ async fn get(req: HttpRequest, state: Data<AppState>) -> actix_web::Result<HttpR
 
     let contexts_vec = ctxt::contexts
         .select((ctxt::id, ctxt::value, ctxt::override_id, ctxt::override_))
-        .order_by(ctxt::priority.asc())
+        .order_by((ctxt::priority.asc(), ctxt::created_at.asc()))
         .load::<(String, Value, String, Value)>(&mut conn)
         .map_err_to_internal_server("error getting contexts", Null)?;
 
