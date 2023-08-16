@@ -23,3 +23,6 @@ base64 = "0.21.2"
 urlencoding = "~2.1.2"
 jsonschema = "~0.17"
 log = "^0.4"
+serde = {version = "^1", features = ["derive"]}
+serde_json = {version = "1.0"}
+derive_more = "^0.99"

@@ -3,10 +3,12 @@ use crate::db::models::{Experiment, ExperimentStatusType};
 use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
+use service_utils::errors::types::ErrorResponse;
 use service_utils::service::types::ExperimentationFlags;
+use service_utils::{errors::types::Error as err, types as app};
 use std::collections::HashSet;
 
-pub fn check_variant_types(variants: &Vec<Variant>) -> Result<(), &'static str> {
+pub fn check_variant_types(variants: &Vec<Variant>) -> app::Result<()> {
     let mut experimental_variant_cnt = 0;
     let mut control_variant_cnt = 0;
 
@@ -22,59 +24,94 @@ pub fn check_variant_types(variants: &Vec<Variant>) -> Result<(), &'static str> 
     }
 
     if control_variant_cnt > 1 || control_variant_cnt == 0 {
-        return Err("experiment should have exactly 1 control variant.");
+        return Err(err::BadArgument(ErrorResponse {
+            message: "experiment should have exactly 1 control variant".to_string(),
+            possible_fix: "ensure only one control variant is present".to_string(),
+        }));
     } else if experimental_variant_cnt < 1 {
-        return Err("experiment should have atlease 1 experimental variant");
+        return Err(err::BadArgument(ErrorResponse {
+            message: "experiment should have at least 1 experimental variant".to_string(),
+            possible_fix: "ensure only one control variant is present".to_string(),
+        }));
     }
 
     Ok(())
 }
 
-pub fn extract_dimensions(
-    context_json: &Value,
-) -> Result<Map<String, Value>, &'static str> {
+pub fn extract_dimensions(context_json: &Value) -> app::Result<Map<String, Value>> {
     // Assuming max 2-level nesting in context json logic
     let context = context_json
         .as_object()
-        .ok_or("extract_dimensions: context not an object")?;
+        .ok_or(err::BadArgument(ErrorResponse { message: "An error occurred while extracting dimensions: context not a valid JSON object".to_string(), possible_fix: "send a valid JSON context".to_string() }))?;
 
     let conditions = match context.get("and") {
         Some(conditions_json) => conditions_json
             .as_array()
-            .ok_or("extract_dimension: failed parsing conditions as an array")?
+            .ok_or(err::BadArgument(ErrorResponse { message: "An error occurred while extracting dimensions: failed parsing conditions as an array".to_string(), possible_fix: "ensure the context provided obeys the rules of JSON logic".to_string() }))?
             .clone(),
         None => vec![context_json.clone()],
     };
 
     let mut dimension_tuples = Vec::new();
     for condition in &conditions {
-        let condition_obj = condition
-            .as_object()
-            .ok_or("extract_dimensions: failed to parse condition as an object")?;
+        let condition_obj =
+            condition.as_object().ok_or(err::BadArgument(ErrorResponse {
+                message: " failed to parse condition as an object".to_string(),
+                possible_fix: "ensure the context provided obeys the rules of JSON logic"
+                    .to_string(),
+            }))?;
         let operators = condition_obj.keys();
 
         for operator in operators {
-            let operands = condition_obj[operator]
-                .as_array()
-                .ok_or("extract_dimension: failed to parse operands as an arrays")?;
+            let operands = condition_obj[operator].as_array().ok_or(err::BadArgument(
+                ErrorResponse {
+                    message: " failed to parse operands as an arrays".to_string(),
+                    possible_fix:
+                        "ensure the context provided obeys the rules of JSON logic"
+                            .to_string(),
+                },
+            ))?;
 
             let variable_name = operands
                 .get(0) // getting first element which should contain an object with property `var` with string value
-                .ok_or(
-                    "extract_dimension: failed to get variable name from operands list",
-                )?
+                .ok_or(err::BadArgument(ErrorResponse {
+                    message: " failed to get variable name from operands list"
+                        .to_string(),
+                    possible_fix:
+                        "ensure the context provided obeys the rules of JSON logic"
+                            .to_string(),
+                }))?
                 .as_object() // parsing json value as an object/map
-                .ok_or("extract_dimension: failed to parse variable as an object")?
+                .ok_or(err::BadArgument(ErrorResponse {
+                    message: " failed to parse variable as an object".to_string(),
+                    possible_fix:
+                        "ensure the context provided obeys the rules of JSON logic"
+                            .to_string(),
+                }))?
                 .get("var") // accessing `var` from object/map which contains variable name
-                .ok_or("extract_dimension: var property not present in variable object")?
+                .ok_or(err::BadArgument(ErrorResponse {
+                    message: " var property not present in variable object".to_string(),
+                    possible_fix:
+                        "ensure the context provided obeys the rules of JSON logic"
+                            .to_string(),
+                }))?
                 .as_str() // parsing json value as raw string
-                .ok_or("extract_dimension: var propery value is not a string")?;
+                .ok_or(err::BadArgument(ErrorResponse {
+                    message: " var propery value is not a string".to_string(),
+                    possible_fix:
+                        "ensure the context provided obeys the rules of JSON logic"
+                            .to_string(),
+                }))?;
 
             let variable_value = operands
                 .get(1) // getting second element which should be the value of the variable
-                .ok_or(
-                    "extract_dimension: failed to get variable value from operands list",
-                )?;
+                .ok_or(err::BadArgument(ErrorResponse {
+                    message: " failed to get variable value from operands list"
+                        .to_string(),
+                    possible_fix:
+                        "ensure the context provided obeys the rules of JSON logic"
+                            .to_string(),
+                }))?;
 
             dimension_tuples.push((String::from(variable_name), variable_value.clone()));
         }
@@ -83,10 +120,7 @@ pub fn extract_dimensions(
     Ok(Map::from_iter(dimension_tuples))
 }
 
-pub fn are_overlapping_contexts(
-    context_a: &Value,
-    context_b: &Value,
-) -> Result<bool, &'static str> {
+pub fn are_overlapping_contexts(context_a: &Value, context_b: &Value) -> app::Result<bool> {
     let dimensions_a = extract_dimensions(context_a)?;
     let dimensions_b = extract_dimensions(context_b)?;
 
@@ -144,7 +178,7 @@ pub fn validate_experiment(
     experiment: &ExperimentCreateRequest,
     flags: &ExperimentationFlags,
     conn: &mut PgConnection,
-) -> Result<bool, &'static str> {
+) -> app::Result<(bool, String)> {
     use crate::db::schema::cac_v1::experiments::dsl::*;
 
     let created_perdicate = status.eq(ExperimentStatusType::CREATED);
@@ -152,65 +186,75 @@ pub fn validate_experiment(
     let active_experiments_filter =
         experiments.filter(created_perdicate.or(inprogress_predicate));
 
-    let active_experiments: Vec<Experiment> =
-        active_experiments_filter.load(conn).map_err(|e| {
-            log::info!("validate_experiment: {e}");
-            "Failed to fetch active experiments"
-        })?;
+    let active_experiments: Vec<Experiment> = active_experiments_filter.load(conn)?;
 
     let mut valid_experiment = true;
-    if !flags.allow_same_keys_overlapping_ctx
-        || !flags.allow_diff_keys_overlapping_ctx
-        || !flags.allow_same_keys_non_overlapping_ctx
+    let mut invalid_reason = String::new();
+    if flags.allow_same_keys_overlapping_ctx
+        && flags.allow_diff_keys_overlapping_ctx
+        && flags.allow_same_keys_non_overlapping_ctx
     {
-        let override_keys_set: HashSet<_> = experiment.override_keys.iter().collect();
-        for active_experiment in active_experiments.iter() {
-            let are_overlapping =
-                are_overlapping_contexts(&experiment.context, &active_experiment.context)
-                    .map_err(|e| {
-                        log::info!("validate_experiment: {e}");
-                        "Failed to validate for overlapping context"
-                    })?;
+        return Ok((valid_experiment, invalid_reason));
+    }
+    let override_keys_set: HashSet<_> = experiment.override_keys.iter().collect();
+    for active_experiment in active_experiments.iter() {
+        let are_overlapping =
+            are_overlapping_contexts(&experiment.context, &active_experiment.context)
+                .map_err(|e| {
+                    log::info!("validate_experiment: {e}");
+                    err::BadArgument(ErrorResponse {
+                        message: "Failed to validate for overlapping context. One of the current running experiments already has this context or overlaps with it".into(),
+                        possible_fix: "Overlapping contexts are not allowed currently as per your configuration of CAC".into(),
+                    })
+                })?;
 
-            let have_intersecting_key_set = active_experiment
-                .override_keys
-                .iter()
-                .any(|key| override_keys_set.contains(key));
+        let have_intersecting_key_set = active_experiment
+            .override_keys
+            .iter()
+            .any(|key| override_keys_set.contains(key));
 
-            if !flags.allow_diff_keys_overlapping_ctx {
-                valid_experiment =
-                    valid_experiment && !(are_overlapping && !have_intersecting_key_set);
-            }
-            if !flags.allow_same_keys_overlapping_ctx {
-                valid_experiment =
-                    valid_experiment && !(are_overlapping && have_intersecting_key_set);
-            }
-            if !flags.allow_same_keys_non_overlapping_ctx {
-                valid_experiment =
-                    valid_experiment && !(!are_overlapping && have_intersecting_key_set);
-            }
+        if !flags.allow_diff_keys_overlapping_ctx {
+            valid_experiment =
+                valid_experiment && !(are_overlapping && !have_intersecting_key_set);
+        }
+        if !flags.allow_same_keys_overlapping_ctx {
+            valid_experiment =
+                valid_experiment && !(are_overlapping && have_intersecting_key_set);
+        }
+        if !flags.allow_same_keys_non_overlapping_ctx {
+            valid_experiment =
+                valid_experiment && !(!are_overlapping && have_intersecting_key_set);
+        }
 
-            if !valid_experiment {
-                break;
-            }
+        if !valid_experiment {
+            invalid_reason.push_str("This current context overlaps with an existing experiment or the keys in the context are overlapping");
+            break;
         }
     }
 
-    Ok(valid_experiment)
+    Ok((valid_experiment, invalid_reason))
 }
 
 pub fn add_variant_dimension_to_ctx(
     context_json: &Value,
     variant: String,
-) -> Result<Value, &'static str> {
+) -> app::Result<Value> {
     let context = context_json
         .as_object()
-        .ok_or("extract_dimensions: context not an object")?;
+        .ok_or(err::BadArgument(ErrorResponse {
+            message: "context not an object".to_string(),
+            possible_fix: "ensure the context provided obeys the rules of JSON logic"
+                .to_string(),
+        }))?;
 
     let mut conditions = match context.get("and") {
         Some(conditions_json) => conditions_json
             .as_array()
-            .ok_or("extract_dimension: failed parsing conditions as an array")?
+            .ok_or(err::BadArgument(ErrorResponse {
+                message: " failed parsing conditions as an array".to_string(),
+                possible_fix: "ensure the context provided obeys the rules of JSON logic"
+                    .to_string(),
+            }))?
             .clone(),
         None => vec![context_json.clone()],
     };
@@ -228,9 +272,9 @@ pub fn add_variant_dimension_to_ctx(
 
     match serde_json::to_value(updated_ctx) {
         Ok(value) => Ok(value),
-        Err(e) => {
-            log::info!("add_variant_dimension_to_ctx: Failed to convert context to serde_json::Value {e}");
-            Err("add_variant_dimension_to_ctx: Failed to convert context to serde_json::Value")
-        }
+        Err(_) => Err(err::BadArgument(ErrorResponse {
+            message: "Failed to convert context to a valid JSON object".to_string(),
+            possible_fix: "Check the request sent for correctness".to_string(),
+        })),
     }
 }
