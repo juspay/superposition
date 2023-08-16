@@ -11,14 +11,22 @@ pub struct Config {
 
 #[derive(Debug, Clone, Copy, PartialEq, Deserialize, Serialize)]
 pub(crate) enum ExperimentStatusType {
+    CREATED,
     INPROGRESS,
     CONCLUDED,
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
+pub(crate) enum VariantType {
+    CONTROL,
+    EXPERIMENTAL,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Variant {
     pub id: String,
     pub overrides: Value,
+    pub(crate) variant_type: VariantType,
 }
 
 pub type Variants = Vec<Variant>;

@@ -8,7 +8,10 @@ use tokio::{
     time::{self, Duration},
 };
 pub use types::{Config, Variants};
-use types::{ExperimentStore, Experiments, ListExperimentsResponse, Variant};
+use types::{
+    ExperimentStatusType, ExperimentStore, Experiments, ListExperimentsResponse, Variant,
+    VariantType,
+};
 
 #[derive(Clone, Debug)]
 pub struct Client {
@@ -57,9 +60,7 @@ impl Client {
                         types::ExperimentStatusType::CONCLUDED => {
                             exp_store.remove(&exp_id)
                         }
-                        types::ExperimentStatusType::INPROGRESS => {
-                            exp_store.insert(exp_id, experiment)
-                        }
+                        _ => exp_store.insert(exp_id, experiment),
                     };
                 }
             } // write lock on exp store releases here
@@ -68,7 +69,7 @@ impl Client {
         }
     }
 
-    pub async fn get_applicable_variant(&self, context: &Value, toss: u8) -> Vec<String> {
+    pub async fn get_applicable_variant(&self, context: &Value, toss: i8) -> Vec<String> {
         let running_experiments = self.experiments.read().await;
         // try and if json logic works
         let mut experiments: Experiments = Vec::new();
@@ -81,9 +82,12 @@ impl Client {
         let mut variants: Vec<String> = Vec::new();
 
         for exp in experiments {
-            if let Some(v) =
-                self.decide_variant(exp.traffic_percentage, exp.variants, toss)
-            {
+            if let Some(v) = self.decide_variant(
+                exp.traffic_percentage,
+                exp.variants,
+                toss,
+                exp.status,
+            ) {
                 variants.push(v.id)
             }
         }
@@ -100,19 +104,29 @@ impl Client {
     fn decide_variant(
         &self,
         traffic: u8,
-        applicable_vars: Variants,
-        toss: u8,
+        applicable_variants: Variants,
+        toss: i8,
+        status: ExperimentStatusType,
     ) -> Option<Variant> {
-        let variant_count = applicable_vars.len() as u8;
-        let range = (traffic * variant_count) as u32;
-        if (toss as u32) >= range {
+        if toss < 0 && status != ExperimentStatusType::CREATED {
+            return None;
+        } else if toss < 0 {
+            for variant in applicable_variants.iter() {
+                if variant.variant_type == VariantType::EXPERIMENTAL {
+                    return Some(variant.clone());
+                }
+            }
+        }
+        let variant_count = applicable_variants.len() as u8;
+        let range = (traffic * variant_count) as i32;
+        if (toss as i32) >= range {
             return None;
         }
         let buckets = (1..=variant_count)
-            .map(|i| traffic * i)
-            .collect::<Vec<u8>>();
+            .map(|i| (traffic * i) as i8)
+            .collect::<Vec<i8>>();
         let index = buckets.into_iter().position(|x| toss < x);
-        applicable_vars.get(index.unwrap()).map(|x| x.clone())
+        applicable_variants.get(index.unwrap()).map(Variant::clone)
     }
 }
 
@@ -130,7 +144,7 @@ async fn get_experiments(
             "{hostname}/experiments?from_date={start_date}&to_date={now}&page={page}&count={requesting_count}"
         );
         let list_experiments_response = http_client
-            .get(format!("{endpoint}&status=INPROGRESS,CONCLUDED"))
+            .get(format!("{endpoint}&status=CREATED,INPROGRESS,CONCLUDED"))
             .send()
             .await
             .unwrap()
