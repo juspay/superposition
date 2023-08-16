@@ -1,0 +1,19 @@
+{
+  "method": "GET",
+  "header": [
+    {
+      "key": "Authorization",
+      "value": "Bearer {{token}}",
+      "type": "text"
+    }
+  ],
+  "url": {
+    "raw": "{{host}}/audit",
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "audit"
+    ]
+  }
+}
