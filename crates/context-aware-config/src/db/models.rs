@@ -1,6 +1,5 @@
-use crate::db::schema::cac_v1::*;
-use chrono::offset::Utc;
-use chrono::DateTime;
+use crate::db::schema::cac_v1::{contexts, default_configs, dimensions, event_log};
+use chrono::{offset::Utc, DateTime, NaiveDateTime};
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -51,4 +50,19 @@ pub struct DefaultConfig {
     pub schema: Value,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
+}
+
+#[derive(Queryable, Selectable, Insertable, Serialize, Clone, Debug)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+#[diesel(table_name = event_log)]
+#[diesel(primary_key(id))]
+pub struct EventLog {
+    pub id: uuid::Uuid,
+    pub table_name: String,
+    pub user_name: String,
+    pub timestamp: NaiveDateTime,
+    pub action: String,
+    pub original_data: Option<Value>,
+    pub new_data: Option<Value>,
+    pub query: String,
 }

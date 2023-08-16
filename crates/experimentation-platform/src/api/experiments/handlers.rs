@@ -48,11 +48,11 @@ async fn create(
     db_conn: DbConnection,
 ) -> app::Result<Json<ExperimentCreateResponse>> {
     use crate::db::schema::cac_v1::experiments::dsl::experiments;
+    let mut variants = req.variants.to_vec();
 
     let DbConnection(mut conn) = db_conn;
     let override_keys = &req.override_keys;
-    let mut variants = req.variants.to_vec();
-
+    
     let unique_ids_of_variants_from_req: HashSet<&str> =
         HashSet::from_iter(variants.iter().map(|v| v.id.as_str()));
 

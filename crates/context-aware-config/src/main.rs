@@ -85,6 +85,7 @@ async fn main() -> Result<()> {
             .service(scope("/dimension").service(dimension::endpoints()))
             .service(scope("/default-config").service(default_config::endpoints()))
             .service(scope("/config").service(config::endpoints()))
+            .service(scope("/audit").service(audit_log::endpoints()))
             .service(experiments::endpoints())
     })
     .bind(("0.0.0.0", 8080))?
