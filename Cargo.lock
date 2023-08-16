@@ -2971,6 +2971,7 @@ dependencies = [
  "actix-web",
  "base64 0.21.2",
  "bytes 1.4.0",
+ "derive_more",
  "diesel",
  "dotenv",
  "jsonschema",
@@ -2979,6 +2980,8 @@ dependencies = [
  "rusoto_core",
  "rusoto_kms",
  "rusoto_signature",
+ "serde",
+ "serde_json",
  "urlencoding",
 ]
 

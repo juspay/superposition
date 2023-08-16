@@ -1,16 +1,18 @@
 use std::collections::HashSet;
 
 use actix_web::{
-    get,
-    http::StatusCode,
-    patch, post,
+    get, patch, post,
     web::{self, Data, Json, Query},
     HttpRequest, HttpResponse, Scope,
 };
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 
-use service_utils::service::types::{AppState, AuthenticationInfo, DbConnection};
+use service_utils::{
+    errors::types::{Error as err, ErrorResponse},
+    service::types::{AppState, AuthenticationInfo, DbConnection},
+    types as app,
+};
 
 use super::{
     helpers::{
@@ -20,11 +22,11 @@ use super::{
     types::{
         ConcludeExperimentRequest, ContextAction, ContextPutReq, ContextPutResp,
         ExperimentCreateRequest, ExperimentCreateResponse, ExperimentResponse,
-        ExperimentsResponse, RampRequest, Variant,
+        ExperimentsResponse, ListFilters, RampRequest, Variant,
     },
 };
+
 use crate::{
-    api::{errors::AppError, experiments::types::ListFilters},
     db::models::{Experiment, ExperimentStatusType},
     db::schema::cac_v1::{event_log::dsl as event_log, experiments::dsl as experiments},
 };
@@ -44,58 +46,53 @@ async fn create(
     req: web::Json<ExperimentCreateRequest>,
     auth_info: AuthenticationInfo,
     db_conn: DbConnection,
-) -> actix_web::Result<Json<ExperimentCreateResponse>> {
+) -> app::Result<Json<ExperimentCreateResponse>> {
     use crate::db::schema::cac_v1::experiments::dsl::experiments;
 
     let DbConnection(mut conn) = db_conn;
     let override_keys = &req.override_keys;
     let mut variants = req.variants.to_vec();
 
-    let unique_ids_of_variants_from_req: HashSet<&str> = HashSet::from_iter(
-        variants
-        .iter()
-        .map(|v| v.id.as_str())
-    );
+    let unique_ids_of_variants_from_req: HashSet<&str> =
+        HashSet::from_iter(variants.iter().map(|v| v.id.as_str()));
 
     if unique_ids_of_variants_from_req.len() != variants.len() {
-        return Err(actix_web::error::ErrorBadRequest(
-            "variant ids are expected to be unique".to_string(),
-        ));
+        return Err(err::BadRequest(ErrorResponse {
+            message: "variant ids are expected to be unique".to_string(),
+            possible_fix: "provide unqiue variant IDs".to_string(),
+        }));
     }
 
     // Checking if experiment has exactly 1 control variant, and
     // atleast 1 experimental variant
-    check_variant_types(&variants)
-        .map_err(|e| actix_web::error::ErrorBadRequest(e.to_string()))?;
+    check_variant_types(&variants)?;
 
     // Checking if all the variants are overriding the mentioned keys
     let are_valid_variants = check_variants_override_coverage(&variants, override_keys);
     if !are_valid_variants {
-        return Err(actix_web::error::ErrorBadRequest(
-            "all variants should contain the keys mentioned override_keys".to_string(),
-        ));
+        return Err(err::BadRequest(ErrorResponse {
+            message: "all variants should contain the keys mentioned in override_keys"
+                .to_string(),
+            possible_fix: format!("Check if any of the following keys [{}] are missing from keys in your variants",  override_keys.join(","))
+        }));
     }
 
     // Checking if context is a key-value pair map
     if !req.context.is_object() {
-        return Err(actix_web::error::ErrorBadRequest(
-            "context should be map of key value pairs".to_string(),
-        ));
+        return Err(err::BadRequest(ErrorResponse {
+            message: "context should be map of key value pairs".to_string(),
+            possible_fix: "Please refer documentation or contact an admin".to_string(),
+        }));
     }
 
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;
-    match validate_experiment(&req, &flags, &mut conn) {
-        Ok(valid) => {
-            if !valid {
-                return Err(actix_web::error::ErrorBadRequest(
-                    "invalid experiment config".to_string(),
-                ));
-            }
-        }
-        Err(_) => {
-            return Err(actix_web::error::ErrorInternalServerError(""));
-        }
+    let (valid, reason) = validate_experiment(&req, &flags, &mut conn)?;
+    if !valid {
+        return Err(err::BadRequest(ErrorResponse {
+            message: reason,
+            possible_fix: "Please refer documentation or contact an admin".to_string(),
+        }));
     }
 
     // generating snowflake id for experiment
@@ -111,13 +108,14 @@ async fn create(
         variant.id = variant_id.to_string();
 
         let updated_cacccontext =
-            add_variant_dimension_to_ctx(&req.context, variant_id.to_string())
-                .map_err(|_| actix_web::error::ErrorInternalServerError(""))?;
+            add_variant_dimension_to_ctx(&req.context, variant_id.to_string())?;
 
         let payload = ContextPutReq {
             context: updated_cacccontext
                 .as_object()
-                .ok_or(actix_web::error::ErrorInternalServerError(""))?
+                .ok_or(err::InternalServerErr(
+                    "Could not convert updated CAC context to serde Object".to_string(),
+                ))?
                 .clone(),
             r#override: variant.overrides.clone(),
         };
@@ -133,15 +131,9 @@ async fn create(
         .bearer_auth(&state.admin_token)
         .json(&cac_operations)
         .send()
-        .map_err(|e| {
-            log::info!("failed to create contexts in cac: {e}");
-            actix_web::error::ErrorInternalServerError("")
-        })?
+        .map_err(|e| err::InternalServerErr(e.to_string()))?
         .json::<Vec<ContextPutResp>>()
-        .map_err(|e| {
-            log::info!("failed to parse response: {e}");
-            actix_web::error::ErrorInternalServerError("")
-        })?;
+        .map_err(|e| err::InternalServerErr(e.to_string()))?;
 
     // updating variants with context and override ids
     for i in 0..created_contexts.len() {
@@ -167,24 +159,14 @@ async fn create(
         last_modified_by: email,
     };
 
-    let insert = diesel::insert_into(experiments)
+    let mut inserted_experiments = diesel::insert_into(experiments)
         .values(&new_experiment)
-        .get_results(&mut conn);
+        .get_results(&mut conn)?;
 
-    match insert {
-        Ok(mut inserted_experiments) => {
-            let inserted_experiment: Experiment = inserted_experiments.remove(0);
-            let response = ExperimentCreateResponse::from(inserted_experiment);
+    let inserted_experiment: Experiment = inserted_experiments.remove(0);
+    let response = ExperimentCreateResponse::from(inserted_experiment);
 
-            return Ok(Json(response));
-        }
-        Err(e) => {
-            log::info!("Experiment creation failed with error: {e}");
-            return Err(actix_web::error::ErrorInternalServerError(
-                "Failed to create experiment".to_string(),
-            ));
-        }
-    }
+    return Ok(Json(response));
 }
 
 #[patch("/{experiment_id}/conclude")]
@@ -194,53 +176,42 @@ async fn conclude(
     req: web::Json<ConcludeExperimentRequest>,
     db_conn: DbConnection,
     auth_info: AuthenticationInfo,
-) -> actix_web::Result<Json<ExperimentResponse>> {
+) -> app::Result<Json<ExperimentResponse>> {
     use crate::db::schema::cac_v1::experiments::dsl;
 
     let experiment_id: i64 = path.into_inner();
     let winner_variant_id: String = req.into_inner().winner_variant.to_owned();
 
     let DbConnection(mut conn) = db_conn;
-    let db_result = dsl::experiments
+    let experiment: Experiment = dsl::experiments
         .find(experiment_id)
-        .get_result::<Experiment>(&mut conn);
-
-    let experiment = match db_result {
-        Ok(response) => response,
-        Err(diesel::result::Error::NotFound) => {
-            return Err(actix_web::error::ErrorNotFound("experiment not found"));
-        }
-        Err(e) => {
-            log::info!("failed to fetch experiment from db: {e}");
-            return Err(actix_web::error::ErrorInternalServerError(
-                "something went wrong.",
-            ));
-        }
-    };
+        .get_result::<Experiment>(&mut conn)?;
 
     if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
-        return Err(actix_web::error::ErrorBadRequest(
-            "experiment is already concluded",
-        ));
+        return Err(err::BadRequest(ErrorResponse {
+            message: format!("experiment with id {} is already concluded", experiment_id),
+            possible_fix: "Try to conclude a different experiment".to_string(),
+        }));
     }
 
-    let experiment_context = experiment
-        .context
-        .as_object()
-        .ok_or(actix_web::error::ErrorInternalServerError(""))?;
+    let experiment_context =
+        experiment
+            .context
+            .as_object()
+            .ok_or(err::InternalServerErr(
+                "Could not convert the context read from DB to JSON object".to_string(),
+            ))?;
 
     let mut operations: Vec<ContextAction> = vec![];
-    let experiment_variants: Vec<Variant> = serde_json::from_value(experiment.variants)
-        .map_err(|e| {
-        log::error!("parsing to variant type failed with err: {e}");
-        actix_web::error::ErrorInternalServerError("")
-    })?;
+    let experiment_variants: Vec<Variant> =
+        serde_json::from_value(experiment.variants)
+            .map_err(|e| err::InternalServerErr(e.to_string()))?;
 
     let mut is_valid_winner_variant = false;
     for variant in experiment_variants {
-        let context_id = variant
-            .context_id
-            .ok_or(actix_web::error::ErrorInternalServerError(""))?;
+        let context_id = variant.context_id.ok_or(err::InternalServerErr(
+            "Could not read context ID from experiment".to_string(),
+        ))?;
 
         if variant.id == winner_variant_id {
             let context_put_req = ContextPutReq {
@@ -257,7 +228,12 @@ async fn conclude(
     }
 
     if !is_valid_winner_variant {
-        return Err(actix_web::error::ErrorNotFound("winner varaint not found"));
+        return Err(err::NotFound(ErrorResponse {
+            message: "winner variant not found".to_string(),
+            possible_fix:
+                "A wrong variant ID may have been sent, please check and try again"
+                    .to_string(),
+        }));
     }
 
     // calling CAC bulk api with operations as payload
@@ -268,36 +244,28 @@ async fn conclude(
         .bearer_auth(&state.admin_token)
         .json(&operations)
         .send()
-        .map_err(|e| {
-            log::info!("Failed to update contexts in CAC: {e}");
-            actix_web::error::ErrorInternalServerError("")
-        })?;
+        .map_err(|e| err::InternalServerErr(e.to_string()))?;
 
     if !response.status().is_success() {
-        return Err(actix_web::error::ErrorInternalServerError(""));
+        return Err(err::InternalServerErr(format!(
+            "Request to {} failed with response: {:?}",
+            url, response
+        )));
     }
 
     let AuthenticationInfo(email) = auth_info;
 
     // updating experiment status in db
-    let experiment_update_result = diesel::update(dsl::experiments)
+    let updated_experiment = diesel::update(dsl::experiments)
         .filter(dsl::id.eq(experiment_id))
         .set((
             dsl::status.eq(ExperimentStatusType::CONCLUDED),
             dsl::last_modified.eq(Utc::now()),
             dsl::last_modified_by.eq(email),
         ))
-        .get_result::<Experiment>(&mut conn);
+        .get_result::<Experiment>(&mut conn)?;
 
-    match experiment_update_result {
-        Ok(updated_experiment) => {
-            return Ok(Json(ExperimentResponse::from(updated_experiment)));
-        }
-        Err(e) => {
-            log::info!("Failed to updated experiment status: {e}");
-            return Err(actix_web::error::ErrorInternalServerError(""));
-        }
-    }
+    return Ok(Json(ExperimentResponse::from(updated_experiment)));
 }
 
 #[get("")]
@@ -305,21 +273,13 @@ async fn list_experiments(
     req: HttpRequest,
     filters: Query<ListFilters>,
     db_conn: DbConnection,
-) -> actix_web::Result<HttpResponse, AppError> {
+) -> app::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
     let max_event_timestamp: Option<NaiveDateTime> = event_log::event_log
         .filter(event_log::table_name.eq("experiments"))
         .select(diesel::dsl::max(event_log::timestamp))
-        .first(&mut conn)
-        .map_err(|e| {
-            println!("error fetching max_event_timestamp: {e}");
-            AppError {
-                message: String::from("Something went wrong"),
-                possible_fix: String::from("Please try again later"),
-                status_code: StatusCode::INTERNAL_SERVER_ERROR,
-            }
-        })?;
+        .first(&mut conn)?;
 
     let last_modified = req
         .headers()
@@ -343,8 +303,7 @@ async fn list_experiments(
         let now = Utc::now();
         builder
             .filter(
-                experiments::last_modified
-                    .ge(filters.from_date.unwrap_or(now - Duration::hours(24))),
+                experiments::last_modified.ge(filters.from_date.unwrap_or(now - Duration::hours(24))),
             )
             .filter(experiments::last_modified.le(filters.to_date.unwrap_or(now)))
     };
@@ -359,81 +318,37 @@ async fn list_experiments(
         .limit(limit)
         .offset(offset);
 
-    let number_of_experiments = match count_query.count().get_result(&mut conn) {
-        Ok(count) => count,
-        Err(diesel::result::Error::NotFound) => 0,
-        Err(e) => {
-            println!(
-                "Error occurred while counting items in list experiments API {:?}",
-                e
-            );
-            return Err(AppError {
-                message: String::from("Something went wrong"),
-                possible_fix: String::from("Please try again later"),
-                status_code: StatusCode::INTERNAL_SERVER_ERROR,
-            });
-        }
-    };
+    let number_of_experiments = count_query.count().get_result(&mut conn)?;
 
-    let db_result = query.load::<Experiment>(&mut conn);
+    let experiment_list = query.load::<Experiment>(&mut conn)?;
 
     let total_pages = (number_of_experiments as f64 / limit as f64).ceil() as i64;
 
-    match db_result {
-        Ok(response) => {
-            return Ok(HttpResponse::Ok().json(ExperimentsResponse {
-                total_items: number_of_experiments,
-                total_pages: total_pages,
-                data: response
-                    .into_iter()
-                    .map(|entry| ExperimentResponse::from(entry))
-                    .collect(),
-            }))
-        }
-        Err(diesel::result::Error::NotFound) => Err(AppError {
-            message: String::from("No results found for your query"),
-            possible_fix: String::from("Update your filter parameters"),
-            status_code: StatusCode::NOT_FOUND,
-        }),
-        Err(e) => {
-            println!("Error occurred in list experiments API {:?}", e);
-            Err(AppError {
-                message: String::from("Something went wrong"),
-                possible_fix: String::from("Please try again later"),
-                status_code: StatusCode::INTERNAL_SERVER_ERROR,
-            })
-        }
-    }
+    Ok(HttpResponse::Ok().json(ExperimentsResponse {
+        total_items: number_of_experiments,
+        total_pages: total_pages,
+        data: experiment_list
+            .into_iter()
+            .map(|entry| ExperimentResponse::from(entry))
+            .collect(),
+    }))
 }
 
 #[get("/{id}")]
 async fn get_experiment(
     params: web::Path<i64>,
     db_conn: DbConnection,
-) -> actix_web::Result<Json<ExperimentResponse>> {
+) -> app::Result<Json<ExperimentResponse>> {
     use crate::db::schema::cac_v1::experiments::dsl::*;
 
     let experiment_id = params.into_inner();
     let DbConnection(mut conn) = db_conn;
 
-    let db_result = experiments
+    let result: Experiment = experiments
         .find(experiment_id)
-        .get_result::<Experiment>(&mut conn);
+        .get_result::<Experiment>(&mut conn)?;
 
-    let response = match db_result {
-        Ok(result) => ExperimentResponse::from(result),
-        Err(diesel::result::Error::NotFound) => {
-            return Err(actix_web::error::ErrorNotFound(
-                "Experiment not found".to_string(),
-            ));
-        }
-        Err(e) => {
-            log::error!("{}", format!("get experiments failed due to : {e:?}"));
-            return Err(actix_web::error::ErrorInternalServerError(""));
-        }
-    };
-
-    return Ok(Json(response));
+    return Ok(Json(ExperimentResponse::from(result)));
 }
 
 #[patch("/{id}/ramp")]
@@ -442,55 +357,42 @@ async fn ramp(
     req: web::Json<RampRequest>,
     db_conn: DbConnection,
     auth_info: AuthenticationInfo,
-) -> actix_web::Result<Json<String>> {
+) -> app::Result<Json<String>> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
 
     use crate::db::schema::cac_v1::experiments::dsl::*;
-    let db_result: Result<Experiment, _> =
-        experiments.find(exp_id).get_result::<Experiment>(&mut conn);
-
-    let experiment = match db_result {
-        Ok(result) => result,
-        Err(diesel::result::Error::NotFound) => {
-            return Err(actix_web::error::ErrorNotFound("No results found"))
-        }
-        Err(e) => {
-            log::info!("{e}");
-            return Err(actix_web::error::ErrorInternalServerError(
-                "Something went wrong",
-            ));
-        }
-    };
+    let experiment: Experiment = experiments
+        .find(exp_id)
+        .get_result::<Experiment>(&mut conn)?;
 
     let old_traffic_percentage = experiment.traffic_percentage as u8;
     let new_traffic_percentage = req.traffic_percentage as u8;
-    let experiment_variants: Vec<Variant> = serde_json::from_value(experiment.variants)
-        .map_err(|e| {
-        log::error!("parsing to variant type failed with err: {e}");
-        actix_web::error::ErrorInternalServerError("")
-    })?;
+    let experiment_variants: Vec<Variant> =
+        serde_json::from_value(experiment.variants)
+            .map_err(|e| err::InternalServerErr(e.to_string()))?;
     let variants_count = experiment_variants.len() as u8;
     let max = 100 / variants_count;
 
     if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
-        return Err(actix_web::error::ErrorBadRequest(
-            "Experiment is already concluded",
-        ));
+        return Err(err::BadRequest(ErrorResponse {
+            message: "Experiment is already concluded".to_string(),
+            possible_fix: "".to_string(),
+        }));
     } else if new_traffic_percentage > max {
-        log::info!("The Traffic percentage provided exceeds the range");
-        return Err(actix_web::error::ErrorBadRequest(format!(
-            "The traffic_percentage cannot exceed {}",
-            max
-        )));
+        return Err(err::BadRequest(ErrorResponse {
+            message: format!("The traffic_percentage cannot exceed {}", max),
+            possible_fix: format!("Provide a traffic percentage less than {}", max),
+        }));
     } else if new_traffic_percentage == old_traffic_percentage {
-        return Err(actix_web::error::ErrorBadRequest(
-            "The traffic_percentage is same as provided",
-        ));
+        return Err(err::BadRequest(ErrorResponse {
+            message: "The traffic_percentage is same as provided".to_string(),
+            possible_fix: "".to_string(),
+        }));
     }
     let AuthenticationInfo(email) = auth_info;
 
-    let update = diesel::update(experiments)
+    let new_traffic_percentage = diesel::update(experiments)
         .filter(id.eq(exp_id))
         .set((
             traffic_percentage.eq(req.traffic_percentage as i32),
@@ -498,25 +400,15 @@ async fn ramp(
             last_modified_by.eq(email),
             status.eq(ExperimentStatusType::INPROGRESS),
         ))
-        .execute(&mut conn);
+        .execute(&mut conn)?;
 
-    match update {
-        Ok(0) => {
-            return Err(actix_web::error::ErrorInternalServerError(
-                "Failed to update the traffic_percentage",
-            ))
-        }
-        Ok(_) => {
-            return Ok(Json(format!(
-                "Traffic percentage has been updated for the experiment id : {}",
-                exp_id
-            )))
-        }
-        Err(e) => {
-            log::info!("Failed to update the traffic_percentage: {e}");
-            return Err(actix_web::error::ErrorInternalServerError(
-                "Failed to update the traffic_percentage",
-            ));
-        }
+    if new_traffic_percentage == 0 {
+        return Err(err::InternalServerErr(
+            "Failed to update the traffic_percentage".to_string(),
+        ));
     }
+    return Ok(Json(format!(
+        "Traffic percentage has been updated for the experiment id : {}",
+        exp_id
+    )));
 }

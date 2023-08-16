@@ -46,5 +46,4 @@ where
     }
 }
 
-
 // pub fn db_connection_from_state(state: T) ->
