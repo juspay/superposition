@@ -1,11 +1,7 @@
-use std::fmt;
-
 use chrono::{DateTime, Utc};
-use serde::{
-    de::{self, IntoDeserializer},
-    Deserialize, Serialize,
-};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use service_utils::helpers::deserialize_stringified_list;
 
 use crate::db::models::{self, ExperimentStatusType};
 
@@ -128,9 +124,8 @@ pub struct ContextPutResp {
 #[derive(Deserialize, Debug, Clone)]
 pub struct StatusTypes(
     #[serde(deserialize_with = "deserialize_stringified_list")]
-    pub Vec<ExperimentStatusType>
+    pub  Vec<ExperimentStatusType>,
 );
-
 
 #[derive(Deserialize, Debug)]
 pub struct ListFilters {
@@ -139,42 +134,6 @@ pub struct ListFilters {
     pub to_date: Option<DateTime<Utc>>,
     pub page: Option<i64>,
     pub count: Option<i64>,
-}
-
-
-pub fn deserialize_stringified_list<'de, D, I>(
-    deserializer: D,
-) -> std::result::Result<Vec<I>, D::Error>
-where
-    D: de::Deserializer<'de>,
-    I: de::DeserializeOwned,
-{
-    struct StringVecVisitor<I>(std::marker::PhantomData<I>);
-
-    impl<'de, I> de::Visitor<'de> for StringVecVisitor<I>
-    where
-        I: de::DeserializeOwned,
-    {
-        type Value = Vec<I>;
-
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("a string containing comma separated values eg: CREATED,INPROGRESS")
-        }
-
-        fn visit_str<E>(self, v: &str) -> std::result::Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            let mut query_vector = Vec::new();
-            for param in v.split(",") {
-                let p: I = I::deserialize(param.into_deserializer())?;
-                query_vector.push(p);
-            }
-            Ok(query_vector)
-        }
-    }
-
-    deserializer.deserialize_any(StringVecVisitor(std::marker::PhantomData::<I>))
 }
 
 #[derive(Deserialize, Debug)]

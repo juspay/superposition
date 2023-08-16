@@ -3,6 +3,7 @@
     "config",
     "Default Config",
     "Dimension",
-    "Context"
+    "Context",
+    "audit_log"
   ]
 }

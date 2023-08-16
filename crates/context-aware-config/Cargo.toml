@@ -16,7 +16,7 @@ actix-web = "4.0.0"
 # To help generate snowflake ids
 rs-snowflake = "0.6.0"
 # To help with generating uuids
-uuid = {version = "^0.8", features = ["v4","serde"]}
+uuid = {version = "1.3.4", features = ["v4", "serde"]}
 # To serialize and deserialize objects from json
 serde = {version = "^1", features = ["derive"]}
 serde_json = {version = "1.0"}
