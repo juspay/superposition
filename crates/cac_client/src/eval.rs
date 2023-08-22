@@ -114,16 +114,27 @@ fn get_overrides(
     Ok(required_overrides)
 }
 
+pub fn eval_cac(
+    default_config: Value,
+    contexts: Vec<Context>,
+    overrides: Map<String, Value>,
+    query_data: &Value,
+) -> serde_json::Result<Value> {
+    // get_overrides runs json logic and gives patch_entries from overrides.json
+    let overrides = get_overrides(query_data, contexts, overrides, true)?;
+
+    // patch_entries received from overides after json logic are then merged over default_config
+    deep_merge(&default_config, &overrides)
+}
+
 pub fn get_mjos_override(
     query_data: Value,
     contexts: Vec<Context>,
     overrides: Map<String, Value>,
     default_config: Value,
 ) -> serde_json::Result<Patch> {
-    // get_overrides runs json logic and gives patch_entries from overrides.json
-    let overrides = get_overrides(&query_data, contexts, overrides, true)?;
-    // patch_entries received from overides after json logic are then merged over default_config
-    let overrides_config = deep_merge(&default_config, &overrides)?;
+
+    let overrides_config = eval_cac(default_config, contexts, overrides, &query_data)?;
 
     if Some(&json!([])) == overrides_config.get("patch_entries") {
         return Err(de::Error::custom("No patches found"));
