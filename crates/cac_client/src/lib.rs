@@ -18,8 +18,8 @@ use serde_json::{Map, Value, json};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Context {
-    condition: Value,
-    override_with_keys: [String; 1],
+    pub condition: Value,
+    pub override_with_keys: [String; 1],
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -120,3 +120,5 @@ impl Client {
         get_mjos_override(query_data, cac.contexts.clone(), cac.overrides.clone(), json!(cac.default_configs)).map_err_to_string()
     }
 }
+
+pub use eval::eval_cac;
