@@ -5,23 +5,44 @@ def getRegistryHost(aws_acc_id, region) {
 pipeline {
   agent { label 'hypersdk' }
   environment {
-    SKIP_CI = false;
     REGION = "ap-south-1";
     REGISTRY_HOST_SBX = getRegistryHost("701342709052", REGION);
     REGISTRY_HOST_PROD = getRegistryHost("980691203742", REGION);
     AUTOPILOT_HOST_INTEG = "autopilot-eks2.internal.svc.k8s.integ.mum.juspay.net";
     DOCKER_DIND_DNS = "jenkins-newton-dind.jp-internal.svc.cluster.local"
+    GIT_REPO_NAME = "context-aware-config"
+    SSH_AUTH_SOCK = """${sh(
+        returnStdout: true,
+        script: '''
+          eval $(ssh-agent) > /dev/null
+          ssh-add /home/jenkins/.ssh/id_rsa
+          echo $SSH_AUTH_SOCK
+        '''
+      )}"""
   }
   stages {
     stage('Checkout') {
       steps {
         script {
-	  isSkipCI = sh(script: "git log -1 --pretty=%B | grep -F -ie '[skip ci]' -e '[ci skip]'",
-	                returnStatus: true)
+	      isSkipCI = sh(script: "git log -1 --pretty=%B | grep -F -ie '[skip ci]' -e '[ci skip]'", returnStatus: true)
           if (isSkipCI == 0) {
-	    env.SKIP_CI = true;
+	        env.SKIP_CI = true;
+          } else {
+            env.SKIP_CI = false;
           }
           env.COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse --short HEAD").trim()
+        }
+      }
+    }
+
+    stage('Get Git Creds') {
+      steps {
+        script {
+          sh 'rm ~/.ssh/known_hosts && ssh-keyscan ssh.bitbucket.juspay.net >>  ~/.ssh/known_hosts'
+          sh 'git remote set-url origin ssh://git@ssh.bitbucket.juspay.net/picaf/${GIT_REPO_NAME}.git'
+          sh 'git fetch'
+          sh 'git config user.name ""Jenkins User""'
+          sh 'git config user.email bitbucket.jenkins.read@juspay.in'
         }
       }
     }
@@ -31,10 +52,85 @@ pipeline {
       steps { sh 'make ci-test -e DOCKER_DNS=${DOCKER_DIND_DNS}' }
     }
 
+    stage('Cargo Install') {
+      when {
+        expression { SKIP_CI == 'false' }
+        branch 'main'
+      }
+      steps {
+        sh 'cargo install cocogitto@5.5.0 cargo-edit'
+      }
+    }
+
+    stage('Get old Version') {
+      when {
+        expression { SKIP_CI == 'false' }
+        branch 'main'
+      }
+      steps {
+        script {
+          env.BUILD_PIPELINE_RUNNING=true
+          env.COMMIT_MSG="""${sh(returnStdout: true, script: "git log --format=format:%s -1")}"""
+          env.OLD_SEMANTIC_VERSION="""${sh(
+                  returnStdout: true,
+                  script: '''
+                  set +x;
+                  cog -v get-version --fallback 0.1.0
+                  '''
+              )}"""
+        }
+      }
+    }
+
+    stage('Versioning Management') {
+      when {
+        expression { SKIP_CI == 'false' }
+        branch 'main'
+      }
+      steps {
+        sh 'cog bump --auto --skip-ci "[skip ci]"'
+      }
+    }
+
+    stage('Pushing release commit and tags') {
+        when {
+          expression { SKIP_CI == 'false' }
+          branch 'main'
+        }
+        steps {
+            script {
+                sh "git push origin HEAD:${BRANCH_NAME}"
+                sh "git push origin --tags"
+
+            }
+        }
+    }
+
+    stage('Get New Version') {
+      when {
+        expression { SKIP_CI == 'false' }
+        branch 'main'
+      }
+      steps {
+        script {
+          env.COMMIT_HASH = """${sh(returnStdout: true, script: "git rev-parse --short HEAD")}""".trim()
+          env.NEW_SEMANTIC_VERSION="""${sh(
+                  returnStdout: true,
+                  script: '''
+                  set +x;
+                  cog -v get-version
+                  '''
+              )}"""
+          echo "New version - ${NEW_SEMANTIC_VERSION}, Old version - ${OLD_SEMANTIC_VERSION}"
+        }
+      }
+    }
+
     stage('Build Image') {
       when {
         expression { SKIP_CI == 'false' }
-	branch 'main'
+        expression { NEW_SEMANTIC_VERSION != OLD_SEMANTIC_VERSION }
+        branch 'main'
       }
       steps { sh 'make ci-build -e VERSION=${COMMIT_HASH}' }
     }
@@ -42,10 +138,11 @@ pipeline {
     stage('Push Image To Sandbox Registry') {
       when {
         expression { SKIP_CI == 'false' }
-	branch 'main'
+        expression { NEW_SEMANTIC_VERSION != OLD_SEMANTIC_VERSION }
+	    branch 'main'
       }
       steps {
-	sh '''make ci-push -e \
+	    sh '''make ci-push -e \
                 VERSION=${COMMIT_HASH} \
                 REGION=${REGION} \
                 REGISTRY_HOST=${REGISTRY_HOST_SBX}
@@ -56,6 +153,7 @@ pipeline {
     stage('Push Image To Production Registry') {
       when {
         expression { SKIP_CI == 'false' }
+        expression { NEW_SEMANTIC_VERSION != OLD_SEMANTIC_VERSION }
         branch 'main'
       }
       steps {
@@ -70,7 +168,8 @@ pipeline {
     stage('Create Integ Release Tracker') {
       when {
         expression { SKIP_CI == 'false' }
-	branch 'main'
+        expression { NEW_SEMANTIC_VERSION != OLD_SEMANTIC_VERSION }
+	    branch 'main'
       }
       environment {
         CREDS = credentials('AP_INTEG_ID')
