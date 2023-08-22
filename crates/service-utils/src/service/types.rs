@@ -53,7 +53,7 @@ impl FromRequest for AuthenticationInfo {
                     .get(1)
                     .map(|token| token.to_string())
             });
-        dbg!(format!("Token is \"{:?}\"", opt_token));
+
         let opt_admin_token = req
             .app_data()
             .map(|d: &Data<AppState>| d.admin_token.as_str());

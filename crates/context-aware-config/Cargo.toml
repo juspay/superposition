@@ -6,6 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+cac_client = { path = "../cac_client" }
+
 # env
 dotenv = "0.15.0"
 # Https server framework

@@ -561,7 +561,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "cac"
+name = "cac_client"
 version = "0.1.0"
 dependencies = [
  "actix-web",
@@ -692,6 +692,7 @@ dependencies = [
  "base64 0.21.2",
  "blake3",
  "bytes 1.4.0",
+ "cac_client",
  "chrono",
  "derive_more",
  "diesel",
