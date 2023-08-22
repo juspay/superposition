@@ -1,0 +1,33 @@
+from_latest_tag = true
+ignore_merge_commits = false
+branch_whitelist = []
+
+tag_prefix = "v"
+monorepo_version_separator = "-"
+
+pre_bump_hooks = []
+
+pre_package_bump_hooks = [
+  "echo 'upgrading {{package}}' to {{version}}",
+  "cargo set-version --package {{package}} {{version}}"
+]
+
+post_package_bump_hooks = []
+
+post_bump_hooks = []
+
+[commit_types]
+
+[changelog]
+path = "CHANGELOG.md"
+authors = []
+
+[bump_profiles]
+
+[packages]
+context-aware-config = { path = "crates/context-aware-config" }
+experimentation-platform = { path = "crates/experimentation-platform" }
+service-utils = { path = "crates/service-utils" }
+
+cac_client = { path = "crates/cac_client" }
+superposition_client = { path = "crates/superposition_client" }
