@@ -2,6 +2,7 @@ mod api;
 mod db;
 mod helpers;
 mod logger;
+mod middlewares;
 
 use dotenv;
 use logger::{init_log_subscriber, CustomRootSpanBuilder};
@@ -18,6 +19,8 @@ use service_utils::{
     helpers::{get_from_env_unsafe, get_pod_info},
     service::types::{AppState, ExperimentationFlags},
 };
+
+use crate::middlewares::audit_response_header::{AuditHeader, TableName};
 
 use api::*;
 use helpers::{get_default_config_validation_schema, get_meta_schema};
@@ -102,7 +105,11 @@ async fn main() -> Result<()> {
             .service(scope("/context").service(context::endpoints()))
             .service(scope("/dimension").service(dimension::endpoints()))
             .service(scope("/default-config").service(default_config::endpoints()))
-            .service(scope("/config").service(config::endpoints()))
+            .service(
+                scope("/config")
+                    .wrap(AuditHeader::new(TableName::Contexts))
+                    .service(config::endpoints()),
+            )
             .service(scope("/audit").service(audit_log::endpoints()))
             .service(experiments::endpoints())
     })
