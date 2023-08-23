@@ -1,11 +1,13 @@
 use crate::{
-    api::context::types::{PaginationParams, PutReq, PutResp, ContextAction, ContextBulkResponse},
+    api::context::types::{
+        ContextAction, ContextBulkResponse, MoveReq, PaginationParams, PutReq, PutResp,
+    },
     db::{
         models::{Context, Dimension},
         schema::cac_v1::{
             contexts::{self, id},
-            dimensions::dsl::dimensions, 
-            default_configs::dsl,      
+            default_configs::dsl,
+            dimensions::dsl::dimensions,
         },
     },
 };
@@ -25,9 +27,9 @@ use diesel::{
     result::{DatabaseErrorKind::*, Error::DatabaseError},
     Connection, ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
 };
-use serde_json::{json, Value, Value::Null, Map};
-use service_utils::{helpers::ToActixErr, service::types::AppState};
 use jsonschema::{Draft, JSONSchema, ValidationError};
+use serde_json::{json, Map, Value, Value::Null};
+use service_utils::{helpers::ToActixErr, service::types::AppState};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -73,21 +75,24 @@ fn val_dimensions_cal_priority(
 }
 
 fn validate_override_with_default_configs(
-    conn : &mut DBConnection,
-    override_ : &Map<String, Value>
+    conn: &mut DBConnection,
+    override_: &Map<String, Value>,
 ) -> anyhow::Result<()> {
     let keys_array: Vec<&String> = override_.keys().collect();
     let res: Vec<(String, Value)> = dsl::default_configs
         .filter(dsl::key.eq_any(keys_array))
         .select((dsl::key, dsl::schema))
-        .get_results:: <(String, Value)>(conn)?;
+        .get_results::<(String, Value)>(conn)?;
 
     let map = Map::from_iter(res);
 
     for (key, value) in override_.iter() {
-        let schema = map.get(key)
+        let schema = map
+            .get(key)
             // .map(|resp| resp)
-            .ok_or(anyhow!(format!("failed to compile json schema for key {key}")))?;
+            .ok_or(anyhow!(format!(
+                "failed to compile json schema for key {key}"
+            )))?;
         let instance = value;
         let schema_compile_result = JSONSchema::options()
             .with_draft(Draft::Draft7)
@@ -102,10 +107,13 @@ fn validate_override_with_default_configs(
         if let Err(e) = jschema.validate(instance) {
             let verrors = e.collect::<Vec<ValidationError>>();
             log::error!("{:?}", verrors);
-            return Err(anyhow!(json!(format!("Schema validation failed for {key}"))))
+            return Err(anyhow!(json!(format!(
+                "Schema validation failed for {key} with error {:?}",
+                verrors
+            ))));
         };
     }
-    
+
     Ok(())
 }
 
@@ -128,7 +136,7 @@ fn create_ctx_from_put_req(
         }
         Ok(p) => p,
     };
-    let context_id = blake3::hash(ctx_condition.to_string().as_bytes()).to_string();
+    let context_id = generate_context_id(&ctx_condition);
     let override_id = blake3::hash(ctx_override.to_string().as_bytes()).to_string();
     Ok(Context {
         id: context_id.clone(),
@@ -139,6 +147,10 @@ fn create_ctx_from_put_req(
         created_at: Utc::now(),
         created_by: user.email.clone(),
     })
+}
+
+fn generate_context_id(ctx_condition: &Value) -> String {
+    blake3::hash(ctx_condition.to_string().as_bytes()).to_string()
 }
 
 fn update_override_of_existing_ctx(
@@ -235,16 +247,24 @@ async fn put_handler(
 
 fn r#move(
     old_ctx_id: String,
-    req: web::Json<PutReq>,
+    req: web::Json<MoveReq>,
     user: &User,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
 ) -> Result<PutResp, Error> {
     use contexts::dsl;
-    let new_ctx = create_ctx_from_put_req(req, conn, user).map_err(|e| {
-        log::error!("update query failed with error: {e:?}");
-        Error::STRTYPE(e.to_string())
-    })?;
+    let req = req.into_inner();
+    let ctx_condition = Value::Object(req.context);
+    let new_ctx_id = generate_context_id(&ctx_condition);
+    let priority = match val_dimensions_cal_priority(conn, &ctx_condition) {
+        Ok(0) => {
+            return Err(Error::STRTYPE("No dimension found in context".to_string()));
+        }
+        Err(e) => {
+            return Err(Error::STRTYPE(e));
+        }
+        Ok(p) => p,
+    };
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT update_ctx_savepoint")
@@ -252,41 +272,50 @@ fn r#move(
             .map_err(|e| Error::DIESEL(e))?;
     }
 
-    let update = diesel::update(dsl::contexts)
+    let context = diesel::update(dsl::contexts)
         .filter(dsl::id.eq(&old_ctx_id))
-        .set((&new_ctx, dsl::id.eq(&new_ctx.id)))
-        .execute(conn);
+        .set((dsl::id.eq(&new_ctx_id), dsl::value.eq(&ctx_condition)))
+        .get_result(conn);
+
+    let contruct_new_ctx_with_old_overrides = |ctx: Context| Context {
+        id: new_ctx_id,
+        value: ctx_condition,
+        priority,
+        created_at: Utc::now(),
+        created_by: user.email.clone(),
+        override_id: ctx.override_id,
+        override_: ctx.override_,
+    };
 
     let handle_unique_violation =
-        |db_conn: &mut DBConnection, new_ctx: Context, already_under_txn: bool| {
+        |db_conn: &mut DBConnection, already_under_txn: bool| {
             if already_under_txn {
-                diesel::delete(dsl::contexts)
+                let deleted_ctxt = diesel::delete(dsl::contexts)
                     .filter(dsl::id.eq(&old_ctx_id))
-                    .execute(db_conn)?;
-                update_override_of_existing_ctx(db_conn, new_ctx)
+                    .get_result(db_conn)?;
+
+                let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
+                update_override_of_existing_ctx(db_conn, ctx)
             } else {
                 db_conn.build_transaction().read_write().run(|conn| {
-                    diesel::delete(dsl::contexts)
+                    let deleted_ctxt = diesel::delete(dsl::contexts)
                         .filter(dsl::id.eq(&old_ctx_id))
-                        .execute(conn)?;
-                    update_override_of_existing_ctx(conn, new_ctx)
+                        .get_result(conn)?;
+                    let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
+                    update_override_of_existing_ctx(conn, ctx)
                 })
             }
         };
 
-    match update {
-        Ok(0) => Err(Error::STRTYPE(format!(
-            "context with id: {old_ctx_id} not found"
-        ))),
-        Ok(_) => Ok(get_put_resp(new_ctx)),
+    match context {
+        Ok(ctx) => Ok(get_put_resp(ctx)),
         Err(DatabaseError(UniqueViolation, _)) => {
             if already_under_txn {
                 diesel::sql_query("ROLLBACK TO update_ctx_savepoint")
                     .execute(conn)
                     .map_err(|e| Error::DIESEL(e))?;
             }
-            handle_unique_violation(conn, new_ctx, already_under_txn)
-                .map_err(|e| Error::DIESEL(e))
+            handle_unique_violation(conn, already_under_txn).map_err(|e| Error::DIESEL(e))
         }
         Err(e) => {
             log::error!("update query failed with error: {e:?}");
@@ -299,7 +328,7 @@ fn r#move(
 async fn move_handler(
     state: Data<AppState>,
     path: Path<String>,
-    req: web::Json<PutReq>,
+    req: web::Json<MoveReq>,
     user: User,
 ) -> actix_web::Result<web::Json<PutResp>> {
     let conn = &mut state
@@ -449,7 +478,9 @@ async fn bulk_operations(
                         Ok(0) => return Err(diesel::result::Error::RollbackTransaction),
                         Ok(_) => {
                             log::info!("{ctx_id} context deleted by {email}");
-                            resp.push(ContextBulkResponse::DELETE(format!("{ctx_id} deleted succesfully")))
+                            resp.push(ContextBulkResponse::DELETE(format!(
+                                "{ctx_id} deleted succesfully"
+                            )))
                         }
                         Err(e) => {
                             log::error!("Delete context failed due to {:?}", e);
@@ -457,10 +488,10 @@ async fn bulk_operations(
                         }
                     };
                 }
-                ContextAction::MOVE((old_ctx_id, put_req)) => {
+                ContextAction::MOVE((old_ctx_id, move_req)) => {
                     let move_context_resp = r#move(
                         old_ctx_id,
-                        actix_web::web::Json(put_req),
+                        actix_web::web::Json(move_req),
                         &user,
                         transaction_conn,
                         true,

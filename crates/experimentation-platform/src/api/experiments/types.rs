@@ -1,8 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, Map};
+use serde_json::{Map, Value};
 use service_utils::helpers::deserialize_stringified_list;
-
 
 use crate::db::models::{self, ExperimentStatusType};
 
@@ -112,7 +111,7 @@ pub struct ContextPutReq {
 pub enum ContextAction {
     PUT(ContextPutReq),
     DELETE(String),
-    MOVE((String, ContextPutReq)),
+    MOVE((String, ContextMoveReq)),
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -164,4 +163,8 @@ pub struct VariantUpdateRequest {
 pub struct OverrideKeysUpdateRequest {
     pub override_keys: Vec<String>,
     pub variants: Vec<VariantUpdateRequest>,
+}
+#[derive(Deserialize, Serialize, Clone)]
+pub struct ContextMoveReq {
+    pub context: serde_json::Map<String, Value>,
 }
