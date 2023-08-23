@@ -15,7 +15,6 @@ use diesel::{
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 
-
 use service_utils::{
     errors::types::{Error as err, ErrorResponse},
     service::types::{AppState, DbConnection},
@@ -25,12 +24,11 @@ use service_utils::{
 use super::{
     helpers::{
         add_variant_dimension_to_ctx, check_variant_types,
-        check_variants_override_coverage, validate_experiment,
-        validate_override_keys
+        check_variants_override_coverage, validate_experiment, validate_override_keys,
     },
     types::{
-        ConcludeExperimentRequest, ContextAction, ContextBulkResponse, ContextPutReq,
-        ContextPutResp, ExperimentCreateRequest, ExperimentCreateResponse,
+        ConcludeExperimentRequest, ContextAction, ContextBulkResponse, ContextMoveReq,
+        ContextPutReq, ContextPutResp, ExperimentCreateRequest, ExperimentCreateResponse,
         ExperimentResponse, ExperimentsResponse, ListFilters, OverrideKeysUpdateRequest,
         RampRequest, Variant,
     },
@@ -41,9 +39,9 @@ use crate::{
     db::schema::cac_v1::{event_log::dsl as event_log, experiments::dsl as experiments},
 };
 
-use serde_json::{Value, Map, json};
+use serde_json::{json, Map, Value};
 
-pub fn endpoints(scope : Scope) -> Scope {
+pub fn endpoints(scope: Scope) -> Scope {
     scope
         .guard(acl([("mjos_manager".into(), "RW".into())]))
         .service(create)
@@ -84,8 +82,12 @@ async fn create(
     check_variant_types(&variants)?;
 
     // Checking if all the variants are overriding the mentioned keys
-    let variant_overrides = variants.iter().map(|variant| &variant.overrides).collect::<Vec<&Map<String, Value>>>();
-    let are_valid_variants = check_variants_override_coverage(&variant_overrides, override_keys);
+    let variant_overrides = variants
+        .iter()
+        .map(|variant| &variant.overrides)
+        .collect::<Vec<&Map<String, Value>>>();
+    let are_valid_variants =
+        check_variants_override_coverage(&variant_overrides, override_keys);
     if !are_valid_variants {
         return Err(err::BadRequest(ErrorResponse {
             message: "all variants should contain the keys mentioned in override_keys"
@@ -119,7 +121,7 @@ async fn create(
 
     //create overrides in CAC, if successfull then create experiment in DB
     let mut cac_operations: Vec<ContextAction> = vec![];
-    for mut variant in &mut variants {
+    for variant in &mut variants {
         let variant_id = experiment_id.to_string() + "-" + &variant.id;
 
         // updating variant.id to => experiment_id + variant.id
@@ -156,14 +158,20 @@ async fn create(
         .await
         .map_err(|e| err::InternalServerErr(e.to_string()))?
         .into_iter()
-        .fold(Vec::<ContextPutResp>::new(), |mut put_responses, response| {
-            if let ContextBulkResponse::PUT(created_context) = response {
-                put_responses.push(created_context);
-            } else {
-                log::error!("unexpected response from cac for create only request: {:?}", response);
-            }
-            put_responses
-        });
+        .fold(
+            Vec::<ContextPutResp>::new(),
+            |mut put_responses, response| {
+                if let ContextBulkResponse::PUT(created_context) = response {
+                    put_responses.push(created_context);
+                } else {
+                    log::error!(
+                        "unexpected response from cac for create only request: {:?}",
+                        response
+                    );
+                }
+                put_responses
+            },
+        );
 
     // updating variants with context and override ids
     for i in 0..created_contexts.len() {
@@ -264,14 +272,13 @@ pub async fn conclude(
         ))?;
 
         if variant.id == winner_variant_id {
-            let context_put_req = ContextPutReq {
+            let context_move_req = ContextMoveReq {
                 context: experiment_context.clone(),
-                r#override: serde_json::Value::Object(variant.overrides),
             };
 
             is_valid_winner_variant = true;
 
-            operations.push(ContextAction::MOVE((context_id, context_put_req)));
+            operations.push(ContextAction::MOVE((context_id, context_move_req)));
         } else {
             // delete this context
             operations.push(ContextAction::DELETE(context_id));
@@ -475,7 +482,7 @@ async fn update_overrides(
     db_conn: DbConnection,
     user: User,
     req: web::Json<OverrideKeysUpdateRequest>,
-    tenant: Tenant
+    tenant: Tenant,
 ) -> app::Result<Json<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
     let experiment_id = params.into_inner();
@@ -550,7 +557,10 @@ async fn update_overrides(
         })
         .collect();
 
-    let variant_overrides = new_variants.iter().map(|variant| &variant.overrides).collect::<Vec<&Map<String, Value>>>();
+    let variant_overrides = new_variants
+        .iter()
+        .map(|variant| &variant.overrides)
+        .collect::<Vec<&Map<String, Value>>>();
     let are_valid_variants =
         check_variants_override_coverage(&variant_overrides, &override_keys);
     if !are_valid_variants {
@@ -630,12 +640,15 @@ async fn update_overrides(
         .await
         .map_err(|e| err::InternalServerErr(e.to_string()))?
         .into_iter()
-        .fold(Vec::<ContextPutResp>::new(), |mut put_responses, response| {
-            if let ContextBulkResponse::PUT(created_context) = response {
-                put_responses.push(created_context);
-            }
-            put_responses
-        });
+        .fold(
+            Vec::<ContextPutResp>::new(),
+            |mut put_responses, response| {
+                if let ContextBulkResponse::PUT(created_context) = response {
+                    put_responses.push(created_context);
+                }
+                put_responses
+            },
+        );
 
     /*************************** Updating experiment in DB **************************/
 
@@ -647,9 +660,7 @@ async fn update_overrides(
     }
 
     let new_variants_json = serde_json::to_value(new_variants).map_err(|e| {
-        err::InternalServerErr(
-            format!("failed to convert new variants to json: {e}")
-            )
+        err::InternalServerErr(format!("failed to convert new variants to json: {e}"))
     })?;
     let updated_experiment = diesel::update(experiments::experiments.find(experiment_id))
         .set((
