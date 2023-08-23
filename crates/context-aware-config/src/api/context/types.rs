@@ -7,6 +7,11 @@ pub struct PutReq {
     pub r#override: Map<String, Value>,
 }
 
+#[derive(Deserialize, Clone)]
+pub struct MoveReq {
+    pub context: Map<String, Value>,
+}
+
 #[derive(Serialize, Debug)]
 pub struct PutResp {
     pub context_id: String,
@@ -24,7 +29,7 @@ pub struct PaginationParams {
 pub enum ContextAction {
     PUT(PutReq),
     DELETE(String),
-    MOVE((String, PutReq)),
+    MOVE((String, MoveReq)),
 }
 
 #[derive(serde::Serialize)]
