@@ -108,9 +108,7 @@ impl Client {
         toss: i8,
         status: ExperimentStatusType,
     ) -> Option<Variant> {
-        if toss < 0 && status != ExperimentStatusType::CREATED {
-            return None;
-        } else if toss < 0 {
+        if toss < 0 {
             for variant in applicable_variants.iter() {
                 if variant.variant_type == VariantType::EXPERIMENTAL {
                     return Some(variant.clone());
