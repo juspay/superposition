@@ -703,6 +703,7 @@ dependencies = [
  "env_logger",
  "experimentation-platform",
  "futures 0.3.28",
+ "futures-util",
  "json-patch",
  "jsonschema",
  "log",
