@@ -9,8 +9,7 @@ use tokio::{
 };
 pub use types::{Config, Variants};
 use types::{
-    ExperimentStatusType, ExperimentStore, Experiments, ListExperimentsResponse, Variant,
-    VariantType,
+    ExperimentStore, Experiments, ListExperimentsResponse, Variant, VariantType,
 };
 
 #[derive(Clone, Debug)]
@@ -82,12 +81,9 @@ impl Client {
         let mut variants: Vec<String> = Vec::new();
 
         for exp in experiments {
-            if let Some(v) = self.decide_variant(
-                exp.traffic_percentage,
-                exp.variants,
-                toss,
-                exp.status,
-            ) {
+            if let Some(v) =
+                self.decide_variant(exp.traffic_percentage, exp.variants, toss)
+            {
                 variants.push(v.id)
             }
         }
@@ -106,7 +102,6 @@ impl Client {
         traffic: u8,
         applicable_variants: Variants,
         toss: i8,
-        status: ExperimentStatusType,
     ) -> Option<Variant> {
         if toss < 0 {
             for variant in applicable_variants.iter() {
