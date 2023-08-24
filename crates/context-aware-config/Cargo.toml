@@ -42,7 +42,7 @@ urlencoding = "~2.1.2"
 jsonschema = "~0.17"
 reqwest = { version = "*", features = [ "rustls-tls" ] }
 json-patch = "1.0.0"
-
+rand = "0.8.5"
 service-utils = { path = "../service-utils" }
 experimentation-platform = { path = "../experimentation-platform"}
 tracing-actix-web = "0.7.6"

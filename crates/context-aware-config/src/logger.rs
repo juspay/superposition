@@ -8,6 +8,7 @@ use actix_web::{
 use futures::future::{ready, LocalBoxFuture, Ready};
 use futures::{FutureExt, StreamExt};
 use serde_json::{json, Value};
+use service_utils::helpers::get_pod_info;
 use std::{cell::RefCell, rc::Rc};
 use tracing::{span, Level, Span};
 use tracing_actix_web::{DefaultRootSpanBuilder, RootSpanBuilder};
@@ -92,7 +93,7 @@ where
                 reponse_body = format!("{:?}", res_body),
                 response_headers = format!("{}", json!(res_headers)),
                 http.status_code = res.status().as_u16(),
-                "GoldenSignal"
+                "GoldenSignal",
             );
             Ok(res)
         }
@@ -106,7 +107,13 @@ pub struct CustomRootSpanBuilder;
 
 impl RootSpanBuilder for CustomRootSpanBuilder {
     fn on_request_start(request: &ServiceRequest) -> Span {
-        tracing_actix_web::root_span!(request, service = "context-aware-config")
+        let (pod_identifier, deployment_id) = get_pod_info();
+        tracing_actix_web::root_span!(
+            request,
+            service = "context-aware-config",
+            pod_id = pod_identifier,
+            deployment_id = deployment_id
+        )
     }
 
     fn on_request_end<B: MessageBody>(
@@ -114,7 +121,14 @@ impl RootSpanBuilder for CustomRootSpanBuilder {
         outcome: &Result<ServiceResponse<B>, Error>,
     ) {
         DefaultRootSpanBuilder::on_request_end(span, outcome);
-        let cac_span = span!(Level::INFO, "app", service = "context-aware-config");
+        let (pod_identifier, deployment_id) = get_pod_info();
+        let cac_span = span!(
+            Level::INFO,
+            "app",
+            service = "context-aware-config",
+            pod_id = pod_identifier,
+            deployment_id = deployment_id
+        );
         let _span_entered = cac_span.enter();
     }
 }
