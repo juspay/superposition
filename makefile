@@ -58,7 +58,11 @@ ci-test:
 	npm run test
 
 ci-build:
-	docker build -t $(IMAGE_NAME):$(VERSION) .
+	docker build \
+	    -t $(IMAGE_NAME):$(VERSION) \
+			--build-arg "CONTEXT_AWARE_CONFIG_VERSION=${VERSION}" \
+			--build-arg "SOURCE_COMMIT=${SOURCE_COMMIT}" \
+			.
 
 ci-push: registry-login
 	docker tag $(IMAGE_NAME):$(VERSION) $(REGISTRY_HOST)/$(IMAGE_NAME):$(VERSION)
