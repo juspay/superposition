@@ -35,31 +35,9 @@ pipeline {
       }
     }
 
-    stage('Get Git Creds') {
-      steps {
-        script {
-          sh 'rm ~/.ssh/known_hosts && ssh-keyscan ssh.bitbucket.juspay.net >>  ~/.ssh/known_hosts'
-          sh 'git remote set-url origin ssh://git@ssh.bitbucket.juspay.net/picaf/${GIT_REPO_NAME}.git'
-          sh 'git fetch'
-          sh 'git config user.name ""Jenkins User""'
-          sh 'git config user.email bitbucket.jenkins.read@juspay.in'
-        }
-      }
-    }
-
     stage('Test') {
       when { expression { SKIP_CI == 'false' } }
       steps { sh 'make ci-test -e DOCKER_DNS=${DOCKER_DIND_DNS}' }
-    }
-
-    stage('Cargo Install') {
-      when {
-        expression { SKIP_CI == 'false' }
-        branch 'main'
-      }
-      steps {
-        sh 'cargo install cocogitto@5.5.0 cargo-edit'
-      }
     }
 
     stage('Get old Version') {
@@ -69,7 +47,6 @@ pipeline {
       }
       steps {
         script {
-          env.BUILD_PIPELINE_RUNNING=true
           env.COMMIT_MSG="""${sh(returnStdout: true, script: "git log --format=format:%s -1")}"""
           env.OLD_SEMANTIC_VERSION="""${sh(
                   returnStdout: true,
@@ -99,9 +76,14 @@ pipeline {
         }
         steps {
             script {
+                sh 'rm ~/.ssh/known_hosts && ssh-keyscan ssh.bitbucket.juspay.net >>  ~/.ssh/known_hosts'
+                sh 'git remote set-url origin ssh://git@ssh.bitbucket.juspay.net/picaf/${GIT_REPO_NAME}.git'
+                sh 'git fetch'
+                sh 'git config user.name ""Jenkins User""'
+                sh 'git config user.email bitbucket.jenkins.read@juspay.in'
+
                 sh "git push origin HEAD:${BRANCH_NAME}"
                 sh "git push origin --tags"
-
             }
         }
     }
@@ -129,21 +111,26 @@ pipeline {
     stage('Build Image') {
       when {
         expression { SKIP_CI == 'false' }
-        expression { NEW_SEMANTIC_VERSION != OLD_SEMANTIC_VERSION }
+        expression { env.NEW_SEMANTIC_VERSION != env.OLD_SEMANTIC_VERSION }
         branch 'main'
       }
-      steps { sh 'make ci-build -e VERSION=${COMMIT_HASH}' }
+      steps {
+        sh '''make ci-build -e \
+                VERSION=${NEW_SEMANTIC_VERSION} \
+                SOURCE_COMMIT=${COMMIT_HASH}
+           '''
+      }
     }
 
     stage('Push Image To Sandbox Registry') {
       when {
         expression { SKIP_CI == 'false' }
-        expression { NEW_SEMANTIC_VERSION != OLD_SEMANTIC_VERSION }
+        expression { env.NEW_SEMANTIC_VERSION != env.OLD_SEMANTIC_VERSION }
 	    branch 'main'
       }
       steps {
 	    sh '''make ci-push -e \
-                VERSION=${COMMIT_HASH} \
+                VERSION=${NEW_SEMANTIC_VERSION} \
                 REGION=${REGION} \
                 REGISTRY_HOST=${REGISTRY_HOST_SBX}
            '''
@@ -153,12 +140,12 @@ pipeline {
     stage('Push Image To Production Registry') {
       when {
         expression { SKIP_CI == 'false' }
-        expression { NEW_SEMANTIC_VERSION != OLD_SEMANTIC_VERSION }
+        expression { env.NEW_SEMANTIC_VERSION != env.OLD_SEMANTIC_VERSION }
         branch 'main'
       }
       steps {
         sh '''make ci-push -e \
-                VERSION=${COMMIT_HASH} \
+                VERSION=${NEW_SEMANTIC_VERSION} \
                 REGION=${REGION} \
                 REGISTRY_HOST=${REGISTRY_HOST_PROD}
            '''
@@ -168,7 +155,7 @@ pipeline {
     stage('Create Integ Release Tracker') {
       when {
         expression { SKIP_CI == 'false' }
-        expression { NEW_SEMANTIC_VERSION != OLD_SEMANTIC_VERSION }
+        expression { env.NEW_SEMANTIC_VERSION != env.OLD_SEMANTIC_VERSION }
 	    branch 'main'
       }
       environment {

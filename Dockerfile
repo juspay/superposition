@@ -21,6 +21,8 @@ FROM debian:bullseye
 RUN apt-get update
 RUN apt-get install --yes libpq5 ca-certificates
 COPY --from=builder /app/target/release/context-aware-config /app/context-aware-config
+ENV CONTEXT_AWARE_CONFIG_VERSION=$CONTEXT_AWARE_CONFIG_VERSION
+ENV SOURCE_COMMIT=$SOURCE_COMMIT
 WORKDIR /app
 
 CMD ["/app/context-aware-config"]
