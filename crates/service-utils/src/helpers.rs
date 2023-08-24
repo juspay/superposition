@@ -83,3 +83,18 @@ where
 
     deserializer.deserialize_any(StringVecVisitor(std::marker::PhantomData::<I>))
 }
+
+pub fn get_pod_info() -> (String, String) {
+    let hostname: String = get_from_env_unsafe("HOSTNAME").expect("HOSTNAME is not set");
+    let tokens = hostname
+        .split("-")
+        .map(str::to_string)
+        .collect::<Vec<String>>();
+    let mut tokens = tokens.iter().rev();
+    let (pod_id, _replica_set, deployment_id) = (
+        tokens.next().unwrap().to_owned(),
+        tokens.next().unwrap().to_owned(),
+        tokens.next().unwrap().to_owned(),
+    );
+    (pod_id, deployment_id)
+}

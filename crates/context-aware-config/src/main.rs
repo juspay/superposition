@@ -15,7 +15,7 @@ use tracing_actix_web::TracingLogger;
 
 use service_utils::{
     db::utils::get_pool,
-    helpers::get_from_env_unsafe,
+    helpers::{get_from_env_unsafe, get_pod_info},
     service::types::{AppState, ExperimentationFlags},
 };
 
@@ -28,7 +28,14 @@ use experimentation_platform::api::*;
 async fn main() -> Result<()> {
     dotenv::dotenv().ok();
     init_log_subscriber();
-    let cac_span = span!(Level::INFO, "app", service = "context-aware-config");
+    let (pod_identifier, deployment_id) = get_pod_info();
+    let cac_span = span!(
+        Level::INFO,
+        "app",
+        service = "context-aware-config",
+        pod_id = pod_identifier,
+        deployment_id = deployment_id
+    );
     let _span_entered = cac_span.enter();
     let pool = get_pool().await;
     let admin_token = env::var("ADMIN_TOKEN").expect("Admin token is not set!");
@@ -36,6 +43,11 @@ async fn main() -> Result<()> {
     let cac_version: String = get_from_env_unsafe("CONTEXT_AWARE_CONFIG_VERSION")
         .expect("CONTEXT_AWARE_CONFIG_VERSION is not set");
 
+    let string_to_int = |s: &String| -> i32 {
+        s.chars()
+            .map(|i| (i as i32) & rand::random::<i32>())
+            .fold(0, i32::wrapping_add)
+    };
     /****** EXPERIMENTATION PLATFORM ENVs *********/
 
     let allow_same_keys_overlapping_ctx: bool =
@@ -70,11 +82,16 @@ async fn main() -> Result<()> {
                         allow_same_keys_non_overlapping_ctx.to_owned(),
                 },
 
-                snowflake_generator: Mutex::new(SnowflakeIdGenerator::new(1, 1)),
+                snowflake_generator: Mutex::new(SnowflakeIdGenerator::new(
+                    string_to_int(&deployment_id),
+                    string_to_int(&pod_identifier),
+                )),
             }))
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()
-                    .add(("X-SERVER-VERSION", cac_version.to_string())),
+                    .add(("X-SERVER-VERSION", cac_version.to_string()))
+                    .add(("X-DEPLOYMENT-ID", deployment_id.clone()))
+                    .add(("X-POD-ID", pod_identifier.clone())),
             )
             .route(
                 "/health",
