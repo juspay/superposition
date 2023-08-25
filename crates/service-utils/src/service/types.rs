@@ -1,5 +1,5 @@
 use diesel::{
-    r2d2::{PooledConnection, ConnectionManager, Pool},
+    r2d2::{ConnectionManager, Pool, PooledConnection},
     PgConnection,
 };
 use jsonschema::JSONSchema;
@@ -12,16 +12,17 @@ use snowflake::SnowflakeIdGenerator;
 use std::sync::Mutex;
 
 pub struct ExperimentationFlags {
-    pub allow_same_keys_overlapping_ctx : bool,
-    pub allow_diff_keys_overlapping_ctx : bool,
+    pub allow_same_keys_overlapping_ctx: bool,
+    pub allow_diff_keys_overlapping_ctx: bool,
     pub allow_same_keys_non_overlapping_ctx: bool,
 }
 
 pub struct AppState {
     pub cac_host: String,
+    pub cac_version: String,
+    pub admin_token: String,
     pub db_pool: Pool<ConnectionManager<PgConnection>>,
     pub default_config_validation_schema: JSONSchema,
-    pub admin_token: String,
     pub experimentation_flags: ExperimentationFlags,
     pub snowflake_generator: Mutex<SnowflakeIdGenerator>,
 }
