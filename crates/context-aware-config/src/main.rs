@@ -16,7 +16,7 @@ use std::sync::Mutex;
 use service_utils::{
     db::utils::get_pool,
     helpers::get_from_env_unsafe,
-    service::types::{AppState, ExperimentationFlags}
+    service::types::{AppState, ExperimentationFlags},
 };
 
 use api::*;
@@ -31,6 +31,8 @@ async fn main() -> Result<()> {
     let pool = get_pool().await;
     let admin_token = env::var("ADMIN_TOKEN").expect("Admin token is not set!");
     let cac_host: String = get_from_env_unsafe("CAC_HOST").expect("CAC host is not set");
+    let cac_version: String = get_from_env_unsafe("CONTEXT_AWARE_CONFIG_VERSION")
+        .expect("CONTEXT_AWARE_CONFIG_VERSION is not set");
 
     /****** EXPERIMENTATION PLATFORM ENVs *********/
 
@@ -54,6 +56,7 @@ async fn main() -> Result<()> {
                 default_config_validation_schema: get_default_config_validation_schema(),
                 admin_token: admin_token.to_owned(),
                 cac_host: cac_host.to_owned(),
+                cac_version: cac_version.to_owned(),
 
                 experimentation_flags: ExperimentationFlags {
                     allow_same_keys_overlapping_ctx: allow_same_keys_overlapping_ctx
@@ -67,6 +70,10 @@ async fn main() -> Result<()> {
                 snowflake_generator: Mutex::new(SnowflakeIdGenerator::new(1, 1)),
             }))
             .wrap(logger)
+            .wrap(
+                actix_web::middleware::DefaultHeaders::new()
+                    .add(("X-SERVER-VERSION", cac_version.to_string())),
+            )
             .route(
                 "/health",
                 get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
