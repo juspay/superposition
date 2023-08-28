@@ -2,8 +2,7 @@ use std::collections::HashMap;
 
 use super::types::Config;
 use crate::db::schema::cac_v1::{
-    contexts::dsl as ctxt, default_configs::dsl as def_conf,
-    event_log::dsl as event_log,
+    contexts::dsl as ctxt, default_configs::dsl as def_conf, event_log::dsl as event_log,
 };
 use actix_web::{error::ErrorBadRequest, get, web::Query, HttpRequest, HttpResponse, Scope};
 use chrono::{DateTime, NaiveDateTime, Utc};
