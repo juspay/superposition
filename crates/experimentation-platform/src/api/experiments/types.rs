@@ -62,6 +62,7 @@ pub struct ExperimentResponse {
 
     pub context: Value,
     pub variants: Value,
+    pub chosen_variant: Option<String>,
 }
 
 impl From<models::Experiment> for ExperimentResponse {
@@ -79,6 +80,7 @@ impl From<models::Experiment> for ExperimentResponse {
 
             context: experiment.context,
             variants: experiment.variants,
+            chosen_variant: experiment.chosen_variant,
         }
     }
 }
@@ -94,7 +96,7 @@ pub struct ExperimentsResponse {
 
 #[derive(Deserialize, Debug)]
 pub struct ConcludeExperimentRequest {
-    pub winner_variant: String,
+    pub chosen_variant: String,
 }
 
 /********** Context Bulk API Type *************/
