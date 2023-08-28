@@ -1,5 +1,5 @@
 use crate::{
-    api::context::types::{PaginationParams, PutReq, PutResp},
+    api::context::types::{PaginationParams, PutReq, PutResp, ContextAction, ContextBulkResponse},
     db::{
         models::{Context, Dimension},
         schema::cac_v1::{
@@ -367,26 +367,19 @@ async fn delete_context(
     }
 }
 
-#[derive(serde::Deserialize)]
-enum ContextAction {
-    PUT(PutReq),
-    DELETE(String),
-    MOVE((String, PutReq)),
-}
-
 #[put("/bulk-operations")]
 async fn bulk_operations(
     reqs: web::Json<Vec<ContextAction>>,
     state: Data<AppState>,
     user: User,
-) -> actix_web::Result<HttpResponse> {
+) -> actix_web::Result<web::Json<Vec<ContextBulkResponse>>> {
     use contexts::dsl::contexts;
     let mut conn = state
         .db_pool
         .get()
         .map_err_to_internal_server("Unable to get db connection from pool", "")?;
 
-    let mut resp = Vec::<Value>::new();
+    let mut resp = Vec::<ContextBulkResponse>::new();
     let result = conn.transaction::<_, diesel::result::Error, _>(|transaction_conn| {
         for action in reqs.into_inner().into_iter() {
             match action {
@@ -396,7 +389,7 @@ async fn bulk_operations(
 
                     match resp_result {
                         Ok(put_resp) => {
-                            resp.push(json!(put_resp));
+                            resp.push(ContextBulkResponse::PUT(put_resp));
                         }
                         Err(e) => {
                             log::error!("Failed at insert into contexts due to {:?}", e);
@@ -412,7 +405,7 @@ async fn bulk_operations(
                         Ok(0) => return Err(diesel::result::Error::RollbackTransaction),
                         Ok(_) => {
                             log::info!("{ctx_id} context deleted by {email}");
-                            resp.push(json!(format!("{ctx_id} deleted succesfully")))
+                            resp.push(ContextBulkResponse::DELETE(format!("{ctx_id} deleted succesfully")))
                         }
                         Err(e) => {
                             log::error!("Delete context failed due to {:?}", e);
@@ -430,7 +423,7 @@ async fn bulk_operations(
                     );
 
                     match move_context_resp {
-                        Ok(move_resp) => resp.push(json!(move_resp)),
+                        Ok(move_resp) => resp.push(ContextBulkResponse::MOVE(move_resp)),
                         Err(e) => {
                             log::error!(
                                 "Failed at moving context reponse due to {:?}",
@@ -446,7 +439,7 @@ async fn bulk_operations(
     });
 
     match result {
-        Ok(_) => Ok(HttpResponse::Ok().json(resp)), // If the transaction was successful, return the responses
+        Ok(_) => Ok(web::Json(resp)),
         Err(_) => Err(ErrorInternalServerError("")), // If the transaction failed, return an error
     }
 }

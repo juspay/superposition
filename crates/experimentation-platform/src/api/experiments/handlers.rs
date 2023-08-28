@@ -1,7 +1,7 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use actix_web::{
-    get, patch, post,
+    get, patch, post, put,
     web::{self, Data, Json, Query},
     HttpRequest, HttpResponse, Scope,
 };
@@ -28,9 +28,10 @@ use super::{
         check_variants_override_coverage, validate_experiment,
     },
     types::{
-        ConcludeExperimentRequest, ContextAction, ContextPutReq, ContextPutResp,
-        ExperimentCreateRequest, ExperimentCreateResponse, ExperimentResponse,
-        ExperimentsResponse, ListFilters, RampRequest, Variant,
+        ConcludeExperimentRequest, ContextAction, ContextBulkResponse, ContextPutReq,
+        ContextPutResp, ExperimentCreateRequest, ExperimentCreateResponse,
+        ExperimentResponse, ExperimentsResponse, ListFilters, OverrideKeysUpdateRequest,
+        RampRequest, Variant,
     },
 };
 
@@ -39,7 +40,9 @@ use crate::{
     db::schema::cac_v1::{event_log::dsl as event_log, experiments::dsl as experiments},
 };
 
-pub fn endpoints(scope: Scope) -> Scope {
+use serde_json::{Value, Map, json};
+
+pub fn endpoints(scope : Scope) -> Scope {
     scope
         .guard(acl([("mjos_manager".into(), "RW".into())]))
         .service(create)
@@ -47,6 +50,7 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(list_experiments)
         .service(get_experiment_handler)
         .service(ramp)
+        .service(update_override_keys)
 }
 
 #[post("")]
@@ -78,7 +82,8 @@ async fn create(
     check_variant_types(&variants)?;
 
     // Checking if all the variants are overriding the mentioned keys
-    let are_valid_variants = check_variants_override_coverage(&variants, override_keys);
+    let variant_overrides = variants.iter().map(|variant| variant.overrides.clone()).collect::<Vec<Map<String, Value>>>();
+    let are_valid_variants = check_variants_override_coverage(&variant_overrides, override_keys);
     if !are_valid_variants {
         return Err(err::BadRequest(ErrorResponse {
             message: "all variants should contain the keys mentioned in override_keys"
@@ -97,7 +102,8 @@ async fn create(
 
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;
-    let (valid, reason) = validate_experiment(&req, &flags, &mut conn)?;
+    let (valid, reason) =
+        validate_experiment(&req.context, &req.override_keys, None, &flags, &mut conn)?;
     if !valid {
         return Err(err::BadRequest(ErrorResponse {
             message: reason,
@@ -127,7 +133,7 @@ async fn create(
                     "Could not convert updated CAC context to serde Object".to_string(),
                 ))?
                 .clone(),
-            r#override: variant.overrides.clone(),
+            r#override: json!(variant.overrides),
         };
         cac_operations.push(ContextAction::PUT(payload));
     }
@@ -144,9 +150,17 @@ async fn create(
         .send()
         .await
         .map_err(|e| err::InternalServerErr(e.to_string()))?
-        .json::<Vec<ContextPutResp>>()
+        .json::<Vec<ContextBulkResponse>>()
         .await
-        .map_err(|e| err::InternalServerErr(e.to_string()))?;
+        .map_err(|e| err::InternalServerErr(e.to_string()))?
+        .into_iter()
+        .map(|response| match response {
+            ContextBulkResponse::PUT(created_context) => Some(created_context),
+            _ => None,
+        })
+        .filter(|response| matches!(response, Some(_)))
+        .collect::<Option<Vec<ContextPutResp>>>()
+        .unwrap(); // should not panic cause already filtering out the None values
 
     // updating variants with context and override ids
     for i in 0..created_contexts.len() {
@@ -249,7 +263,7 @@ pub async fn conclude(
         if variant.id == winner_variant_id {
             let context_put_req = ContextPutReq {
                 context: experiment_context.clone(),
-                r#override: variant.overrides,
+                r#override: json!(variant.overrides),
             };
 
             is_valid_winner_variant = true;
@@ -402,8 +416,7 @@ async fn ramp(
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
 
-    use crate::db::schema::cac_v1::experiments::dsl::*;
-    let experiment: Experiment = experiments
+    let experiment: Experiment = experiments::experiments
         .find(exp_id)
         .get_result::<Experiment>(&mut conn)?;
 
@@ -431,13 +444,13 @@ async fn ramp(
             possible_fix: "".to_string(),
         }));
     }
-    let new_traffic_percentage = diesel::update(experiments)
-        .filter(id.eq(exp_id))
+    let new_traffic_percentage = diesel::update(experiments::experiments)
+        .filter(experiments::id.eq(exp_id))
         .set((
-            traffic_percentage.eq(req.traffic_percentage as i32),
-            last_modified.eq(Utc::now()),
-            last_modified_by.eq(user.email),
-            status.eq(ExperimentStatusType::INPROGRESS),
+            experiments::traffic_percentage.eq(req.traffic_percentage as i32),
+            experiments::last_modified.eq(Utc::now()),
+            experiments::last_modified_by.eq(user.email),
+            experiments::status.eq(ExperimentStatusType::INPROGRESS),
         ))
         .execute(&mut conn)?;
 
@@ -450,4 +463,191 @@ async fn ramp(
         "Traffic percentage has been updated for the experiment id : {}",
         exp_id
     )));
+}
+
+#[put("/{id}/override_keys")]
+async fn update_override_keys(
+    params: web::Path<i64>,
+    state: Data<AppState>,
+    db_conn: DbConnection,
+    user: User,
+    req: web::Json<OverrideKeysUpdateRequest>,
+) -> app::Result<Json<ExperimentResponse>> {
+    let DbConnection(mut conn) = db_conn;
+    let experiment_id = params.into_inner();
+
+    let payload = req.into_inner();
+    let override_keys = payload.override_keys;
+    let variants = payload.variants;
+
+    // fetch the current variants of the experiment
+    let experiment = experiments::experiments
+        .find(experiment_id)
+        .first::<Experiment>(&mut conn)?;
+
+    if experiment.status != ExperimentStatusType::CREATED {
+        return Err(err::BadRequest(ErrorResponse {
+            message: "Only experiments in CREATED state can be updated".to_string(),
+            possible_fix: "Please refer the documentation or contact an admin"
+                .to_string(),
+        }));
+    }
+
+    let experiment_variants: Vec<Variant> = serde_json::from_value(experiment.variants)
+        .map_err(|e| {
+        err::InternalServerErr(
+            format!("Failed to parse exisitng variants: {e}").to_string(),
+        )
+    })?;
+
+    let id_to_existing_variant: HashMap<String, &Variant> = HashMap::from_iter(
+        experiment_variants
+            .iter()
+            .map(|variant| ((*variant).id.to_string(), variant))
+            .collect::<Vec<(String, &Variant)>>(),
+    );
+
+    /****************** Validating override_keys and variant overrides *********************/
+
+    // checking if variants passed with correct existing variant ids
+    let variant_ids: HashSet<String> = HashSet::from_iter(
+        variants
+            .iter()
+            .map(|variant| (*variant).id.to_string())
+            .collect::<Vec<String>>(),
+    );
+    for existing_id in id_to_existing_variant.keys() {
+        if !variant_ids.contains(existing_id) {
+            return Err(err::BadRequest(ErrorResponse {
+                message:
+                    "some variant ids do not match with exisiting experiment variants"
+                        .to_string(),
+                possible_fix: "provide all existing variants of the experiment"
+                    .to_string(),
+            }));
+        }
+    }
+
+    // Checking if all the variants are overriding the mentioned keys
+    let mut new_variants: Vec<Variant> = variants
+        .into_iter()
+        .map(|variant| {
+            let existing_variant: &Variant =
+                id_to_existing_variant.get(&variant.id).unwrap();
+            Variant {
+                id: variant.id,
+                variant_type: existing_variant.variant_type.clone(),
+                overrides: variant.overrides,
+                override_id: None,
+                context_id: None,
+            }
+        })
+        .collect();
+
+    let variant_overrides = new_variants.iter().map(|variant| variant.overrides.clone()).collect::<Vec<Map<String, Value>>>();
+    let are_valid_variants =
+        check_variants_override_coverage(&variant_overrides, &override_keys);
+    if !are_valid_variants {
+        return Err(err::BadRequest(ErrorResponse {
+            message: "all variants should contain the keys mentioned in override_keys"
+                .to_string(),
+            possible_fix: format!("Check if any of the following keys [{}] are missing from keys in your variants",  override_keys.join(","))
+        }));
+    }
+
+    // validating experiment against other active experiments based on permission flags
+    let flags = &state.experimentation_flags;
+    let (valid, reason) = validate_experiment(
+        &experiment.context,
+        &override_keys,
+        Some(experiment_id),
+        &flags,
+        &mut conn,
+    )?;
+    if !valid {
+        return Err(err::BadRequest(ErrorResponse {
+            message: reason,
+            possible_fix: "Please refer documentation or contact an admin".to_string(),
+        }));
+    }
+
+    /******************************* Updating contexts ************************************/
+    let mut cac_operations: Vec<ContextAction> = vec![];
+
+    // adding operations to remove exisiting variant contexts
+    for existing_variant in experiment_variants {
+        let context_id = existing_variant
+            .context_id
+            .ok_or(format!(
+                "Context Id not available for variant {:?}",
+                existing_variant.id
+            ))
+            .map_err(|e| err::InternalServerErr(e))?;
+        cac_operations.push(ContextAction::DELETE(context_id.to_string()));
+    }
+
+    // adding operations to create new updated variant contexts
+    for variant in &mut new_variants {
+        let updated_cacccontext =
+            add_variant_dimension_to_ctx(&experiment.context, variant.id.to_string())
+                .map_err(|e| {
+                    err::InternalServerErr(
+                        format!("failed to add variant dimension to context: {e}")
+                            .to_string(),
+                    )
+                })?;
+
+        let payload = ContextPutReq {
+            context: updated_cacccontext
+                .as_object()
+                .ok_or(err::InternalServerErr(
+                    "failed to parse updated context with variant dimension".to_string(),
+                ))?
+                .clone(),
+            r#override: json!(variant.overrides),
+        };
+        cac_operations.push(ContextAction::PUT(payload));
+    }
+
+    let http_client = reqwest::Client::new();
+    let url = state.cac_host.clone() + "/context/bulk-operations";
+
+    let created_contexts: Vec<ContextPutResp> = http_client
+        .put(&url)
+        .bearer_auth(&state.admin_token)
+        .json(&cac_operations)
+        .send()
+        .await
+        .map_err(|e| err::InternalServerErr(e.to_string()))?
+        .json::<Vec<ContextBulkResponse>>()
+        .await
+        .map_err(|e| err::InternalServerErr(e.to_string()))?
+        .into_iter()
+        .map(|response| match response {
+            ContextBulkResponse::PUT(created_context) => Some(created_context),
+            _ => None,
+        })
+        .filter(|response| matches!(response, Some(_)))
+        .collect::<Option<Vec<ContextPutResp>>>()
+        .unwrap(); // should not panic cause already filtering out the None values
+
+    /*************************** Updating experiment in DB **************************/
+
+    for i in 0..created_contexts.len() {
+        let created_context = &created_contexts[i];
+
+        new_variants[i].context_id = Some(created_context.context_id.clone());
+        new_variants[i].override_id = Some(created_context.override_id.clone());
+    }
+
+    let updated_experiment = diesel::update(experiments::experiments.find(experiment_id))
+        .set((
+            experiments::variants.eq(serde_json::to_value(new_variants).unwrap()),
+            experiments::override_keys.eq(override_keys),
+            experiments::last_modified.eq(Utc::now()),
+            experiments::last_modified_by.eq(user.email),
+        ))
+        .get_result::<Experiment>(&mut conn)?;
+
+    return Ok(Json(ExperimentResponse::from(updated_experiment)));
 }
