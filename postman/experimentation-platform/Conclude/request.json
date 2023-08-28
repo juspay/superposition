@@ -20,7 +20,7 @@
       }
     },
     "raw_json_formatted": {
-      "winner_variant": "{{experiment_id}}-control"
+      "chosen_variant": "{{experiment_id}}-control"
     }
   },
   "url": {

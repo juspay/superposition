@@ -233,6 +233,7 @@ pub mod cac_v1 {
             context -> Json,
             variants -> Json,
             last_modified_by -> Text,
+            chosen_variant -> Nullable<Text>,
         }
     }
 
