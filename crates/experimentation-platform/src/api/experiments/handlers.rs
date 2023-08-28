@@ -157,6 +157,7 @@ async fn create(
         context: req.context.clone(),
         variants: serde_json::to_value(variants).unwrap(),
         last_modified_by: email,
+        chosen_variant: None,
     };
 
     let mut inserted_experiments = diesel::insert_into(experiments)
@@ -180,7 +181,7 @@ async fn conclude(
     use crate::db::schema::cac_v1::experiments::dsl;
 
     let experiment_id: i64 = path.into_inner();
-    let winner_variant_id: String = req.into_inner().winner_variant.to_owned();
+    let winner_variant_id: String = req.into_inner().chosen_variant.to_owned();
 
     let DbConnection(mut conn) = db_conn;
     let experiment: Experiment = dsl::experiments
@@ -220,6 +221,7 @@ async fn conclude(
             };
 
             is_valid_winner_variant = true;
+
             operations.push(ContextAction::MOVE((context_id, context_put_req)));
         } else {
             // delete this context
@@ -262,6 +264,7 @@ async fn conclude(
             dsl::status.eq(ExperimentStatusType::CONCLUDED),
             dsl::last_modified.eq(Utc::now()),
             dsl::last_modified_by.eq(email),
+            dsl::chosen_variant.eq(Some(winner_variant_id))
         ))
         .get_result::<Experiment>(&mut conn)?;
 
