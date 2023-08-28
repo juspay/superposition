@@ -22,7 +22,7 @@ serde = {version = "^1", features = ["derive"]}
 serde_json = {version = "1.0"}
 # For logging and debugging
 env_logger = "0.8"
-log = "^0.4"
+log = { version="0.4.20", features = ["kv_unstable_serde"] }
 # to work with enums
 strum_macros = "^0.24"
 strum = {version = "^0.24"}
@@ -45,3 +45,10 @@ json-patch = "1.0.0"
 
 service-utils = { path = "../service-utils" }
 experimentation-platform = { path = "../experimentation-platform"}
+tracing-actix-web = "0.7.6"
+tracing-log = "0.1.3"
+tracing = { version = "0.1.37", features = ["valuable"]}
+tracing-subscriber = { version = "0.3.17", features = ["env-filter", "json"]}
+valuable = { version = "0.1.0", features = ["std", "alloc", "derive"]}
+futures = "0.3.28"
+actix-http = "3.3.1"

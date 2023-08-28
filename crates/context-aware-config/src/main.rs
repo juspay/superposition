@@ -4,14 +4,14 @@ mod helpers;
 mod logger;
 
 use dotenv;
-use logger::init_logger;
+use logger::{init_log_subscriber, CustomRootSpanBuilder};
 use std::{env, io::Result};
+use tracing::{span, Level};
 
-use actix_web::{
-    middleware::Logger, web::get, web::scope, web::Data, App, HttpResponse, HttpServer,
-};
+use actix_web::{web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
 use snowflake::SnowflakeIdGenerator;
 use std::sync::Mutex;
+use tracing_actix_web::TracingLogger;
 
 use service_utils::{
     db::utils::get_pool,
@@ -27,7 +27,9 @@ use experimentation_platform::api::*;
 #[actix_web::main]
 async fn main() -> Result<()> {
     dotenv::dotenv().ok();
-    init_logger();
+    init_log_subscriber();
+    let cac_span = span!(Level::INFO, "app", service = "context-aware-config");
+    let _span_entered = cac_span.enter();
     let pool = get_pool().await;
     let admin_token = env::var("ADMIN_TOKEN").expect("Admin token is not set!");
     let cac_host: String = get_from_env_unsafe("CAC_HOST").expect("CAC host is not set");
@@ -49,8 +51,9 @@ async fn main() -> Result<()> {
     /****** EXPERIMENTATION PLATFORM ENVs *********/
 
     HttpServer::new(move || {
-        let logger: Logger = Logger::default();
         App::new()
+            .wrap(logger::GoldenSignalFactory)
+            .wrap(TracingLogger::<CustomRootSpanBuilder>::new())
             .app_data(Data::new(AppState {
                 db_pool: pool.clone(),
                 default_config_validation_schema: get_default_config_validation_schema(),
@@ -69,7 +72,6 @@ async fn main() -> Result<()> {
 
                 snowflake_generator: Mutex::new(SnowflakeIdGenerator::new(1, 1)),
             }))
-            .wrap(logger)
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()
                     .add(("X-SERVER-VERSION", cac_version.to_string())),
