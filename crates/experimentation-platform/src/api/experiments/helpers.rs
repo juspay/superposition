@@ -1,4 +1,4 @@
-use super::types::{ExperimentCreateRequest, Variant, VariantType};
+use super::types::{Variant, VariantType};
 use crate::db::models::{Experiment, ExperimentStatusType};
 use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
@@ -153,23 +153,31 @@ pub fn are_overlapping_contexts(
     Ok(is_overlapping)
 }
 
+
+pub fn check_variant_override_coverage(
+    variant_override: &Map<String, Value>,
+    override_keys: &Vec<String>
+) -> bool {
+    if variant_override.keys().len() != override_keys.len() {
+        return false;
+    }
+
+    for override_key in override_keys {
+        if variant_override.get(override_key).is_none() {
+            return false;
+        }
+    }
+    return true;
+}
+
 pub fn check_variants_override_coverage(
-    variants: &Vec<Variant>,
+    variant_overrides: &Vec<Map<String, Value>>,
     override_keys: &Vec<String>,
 ) -> bool {
     let mut has_complete_coverage = true;
 
-    for variant in variants {
-        let overrides = &variant.overrides;
-        let mut is_valid_variant = true;
-
-        for override_key in override_keys {
-            let has_override_key = match overrides[override_key] {
-                Value::Null => false,
-                _ => true,
-            };
-            is_valid_variant = is_valid_variant && has_override_key;
-        }
+    for variant_override in variant_overrides {
+        let is_valid_variant = check_variant_override_coverage(&variant_override, override_keys);
 
         has_complete_coverage = has_complete_coverage && is_valid_variant;
         if !has_complete_coverage {
@@ -180,55 +188,52 @@ pub fn check_variants_override_coverage(
     has_complete_coverage
 }
 
-pub fn validate_experiment(
-    experiment: &ExperimentCreateRequest,
+pub fn is_valid_experiment(
+    context: &Value,
+    override_keys: &Vec<String>,
     flags: &ExperimentationFlags,
-    conn: &mut PgConnection,
+    active_experiments: &Vec<Experiment>
 ) -> app::Result<(bool, String)> {
-    use crate::db::schema::cac_v1::experiments::dsl::*;
-
-    let created_perdicate = status.eq(ExperimentStatusType::CREATED);
-    let inprogress_predicate = status.eq(ExperimentStatusType::INPROGRESS);
-    let active_experiments_filter =
-        experiments.filter(created_perdicate.or(inprogress_predicate));
-
-    let active_experiments: Vec<Experiment> = active_experiments_filter.load(conn)?;
-
     let mut valid_experiment = true;
     let mut invalid_reason = String::new();
     if !flags.allow_same_keys_overlapping_ctx
         || !flags.allow_diff_keys_overlapping_ctx
         || !flags.allow_same_keys_non_overlapping_ctx
     {
-        let override_keys_set: HashSet<_> = experiment.override_keys.iter().collect();
+        let override_keys_set: HashSet<_> = override_keys.iter().collect();
         for active_experiment in active_experiments.iter() {
             let are_overlapping =
-            are_overlapping_contexts(&experiment.context, &active_experiment.context)
-                .map_err(|e| {
-                    log::info!("validate_experiment: {e}");
-                    err::BadArgument(ErrorResponse {
-                        message: "Failed to validate for overlapping context. One of the current running experiments already has this context or overlaps with it".into(),
-                        possible_fix: "Overlapping contexts are not allowed currently as per your configuration of CAC".into(),
-                    })
-                })?;
+                are_overlapping_contexts(context, &active_experiment.context)
+                    .map_err(|e| {
+                        log::info!("validate_experiment: {e}");
+                        err::BadArgument(ErrorResponse {
+                            message: "Failed to validate for overlapping context. One of the current running experiments already has this context or overlaps with it".into(),
+                            possible_fix: "Overlapping contexts are not allowed currently as per your configuration of CAC".into(),
+                        })
+                    })?;
 
-        let have_intersecting_key_set = active_experiment
-            .override_keys
-            .iter()
-            .any(|key| override_keys_set.contains(key));
+            let have_intersecting_key_set = active_experiment
+                .override_keys
+                .iter()
+                .any(|key| override_keys_set.contains(key));
 
-        if !flags.allow_diff_keys_overlapping_ctx {
-            valid_experiment =
-                valid_experiment && !(are_overlapping && !have_intersecting_key_set);
-        }
-        if !flags.allow_same_keys_overlapping_ctx {
-            valid_experiment =
-                valid_experiment && !(are_overlapping && have_intersecting_key_set);
-        }
-        if !flags.allow_same_keys_non_overlapping_ctx {
-            valid_experiment =
-                valid_experiment && !(!are_overlapping && have_intersecting_key_set);
-        }
+            let same_key_set = active_experiment
+                .override_keys
+                .iter()
+                .all(|key| override_keys_set.contains(key));
+
+            if !flags.allow_diff_keys_overlapping_ctx {
+                valid_experiment =
+                    valid_experiment && !(are_overlapping && !same_key_set);
+            }
+            if !flags.allow_same_keys_overlapping_ctx {
+                valid_experiment =
+                    valid_experiment && !(are_overlapping && have_intersecting_key_set);
+            }
+            if !flags.allow_same_keys_non_overlapping_ctx {
+                valid_experiment =
+                    valid_experiment && !(!are_overlapping && have_intersecting_key_set);
+            }
 
             if !valid_experiment {
                 invalid_reason.push_str("This current context overlaps with an existing experiment or the keys in the context are overlapping");
@@ -238,6 +243,29 @@ pub fn validate_experiment(
     }
 
     Ok((valid_experiment, invalid_reason))
+}
+
+pub fn validate_experiment(
+    context: &Value,
+    override_keys: &Vec<String>,
+    experiment_id: Option<i64>,
+    flags: &ExperimentationFlags,
+    conn: &mut PgConnection,
+) -> app::Result<(bool, String)> {
+    use crate::db::schema::cac_v1::experiments::dsl as experiments_dsl;
+
+    let active_experiments: Vec<Experiment> = experiments_dsl::experiments
+        .filter(
+            diesel::dsl::not(experiments_dsl::id.eq(experiment_id.unwrap_or_default()))
+                .and(
+                    experiments_dsl::status
+                        .eq(ExperimentStatusType::CREATED)
+                        .or(experiments_dsl::status.eq(ExperimentStatusType::INPROGRESS)),
+                ),
+        )
+        .load(conn)?;
+
+    is_valid_experiment(context, override_keys, flags, &active_experiments)
 }
 
 pub fn add_variant_dimension_to_ctx(
