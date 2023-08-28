@@ -1,7 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Value, Map};
 use service_utils::helpers::deserialize_stringified_list;
+
 
 use crate::db::models::{self, ExperimentStatusType};
 
@@ -17,7 +18,7 @@ pub struct Variant {
     pub variant_type: VariantType,
     pub context_id: Option<String>,
     pub override_id: Option<String>,
-    pub overrides: Value,
+    pub overrides: Map<String, Value>,
 }
 
 /********** Experiment Create Req Types ************/
@@ -121,6 +122,13 @@ pub struct ContextPutResp {
     pub priority: i32,
 }
 
+#[derive(Serialize, Deserialize)]
+pub enum ContextBulkResponse {
+    PUT(ContextPutResp),
+    DELETE(String),
+    MOVE(ContextPutResp),
+}
+
 /********** List API Filter Type *************/
 
 #[derive(Deserialize, Debug, Clone)]
@@ -138,7 +146,22 @@ pub struct ListFilters {
     pub count: Option<i64>,
 }
 
+/********** Ramp API type **********/
 #[derive(Deserialize, Debug)]
 pub struct RampRequest {
     pub traffic_percentage: u64,
+}
+
+/********** Update API type ********/
+
+#[derive(Deserialize, Debug)]
+pub struct VariantUpdateRequest {
+    pub id: String,
+    pub overrides: Map<String, Value>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct OverrideKeysUpdateRequest {
+    pub override_keys: Vec<String>,
+    pub variants: Vec<VariantUpdateRequest>,
 }

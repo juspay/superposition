@@ -19,3 +19,17 @@ pub struct PaginationParams {
     pub page: Option<u32>,
     pub size: Option<u32>,
 }
+
+#[derive(serde::Deserialize)]
+pub enum ContextAction {
+    PUT(PutReq),
+    DELETE(String),
+    MOVE((String, PutReq)),
+}
+
+#[derive(serde::Serialize)]
+pub enum ContextBulkResponse {
+    PUT(PutResp),
+    DELETE(String),
+    MOVE(PutResp),
+}
