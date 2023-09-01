@@ -1,28 +1,12 @@
-FROM rust as planner
-WORKDIR /app
-RUN cargo install cargo-chef
+FROM rust:1.67 as builder
+WORKDIR /build
 COPY . .
-RUN cargo chef prepare --recipe-path recipe.json
-
-FROM rust as cacher
-WORKDIR /app
-RUN cargo install cargo-chef
-COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json
-
-FROM rust as builder
-COPY . /app
-WORKDIR /app
-COPY --from=cacher /app/target target
-COPY --from=cacher /usr/local/cargo /usr/local/cargo
 RUN cargo build --release
 
-FROM debian:bullseye
-RUN apt-get update
-RUN apt-get install --yes libpq5 ca-certificates
-COPY --from=builder /app/target/release/context-aware-config /app/context-aware-config
+FROM debian:bullseye-slim
+WORKDIR /app
+RUN apt-get update && apt-get install -y libpq5 ca-certificates
+COPY --from=builder /build/target/release/context-aware-config /app/context-aware-config
 ENV CONTEXT_AWARE_CONFIG_VERSION=$CONTEXT_AWARE_CONFIG_VERSION
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
-WORKDIR /app
-
 CMD ["/app/context-aware-config"]
