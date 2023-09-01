@@ -6,7 +6,9 @@ use rusoto_signature::region::Region;
 //TODO refactor below code
 #[allow(deprecated)]
 pub async fn decrypt(client: KmsClient, secret_name: &str) -> String {
-    let cypher = get_from_env_unsafe(secret_name)
+    let cypher = get_from_env_unsafe(secret_name);
+    log::info!("{secret_name} = {cypher:?}");
+    let cypher = cypher
         .map(|x: String| base64::decode(x).unwrap())
         .expect(format!("{secret_name} not found in env").as_str());
     let req = DecryptRequest {
