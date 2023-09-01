@@ -35,6 +35,18 @@ pipeline {
       }
     }
 
+    stage('Git init') {
+      steps {
+        script {
+          sh 'rm ~/.ssh/known_hosts && ssh-keyscan ssh.bitbucket.juspay.net >>  ~/.ssh/known_hosts'
+          sh 'git remote set-url origin ssh://git@ssh.bitbucket.juspay.net/picaf/${GIT_REPO_NAME}.git'
+          sh 'git fetch'
+          sh 'git config user.name ""Jenkins User""'
+          sh 'git config user.email bitbucket.jenkins.read@juspay.in'
+        }
+      }
+    }
+
     stage('Test') {
       when { expression { SKIP_CI == 'false' } }
       steps { sh 'make ci-test -e DOCKER_DNS=${DOCKER_DIND_DNS}' }
@@ -76,12 +88,6 @@ pipeline {
         }
         steps {
             script {
-                sh 'rm ~/.ssh/known_hosts && ssh-keyscan ssh.bitbucket.juspay.net >>  ~/.ssh/known_hosts'
-                sh 'git remote set-url origin ssh://git@ssh.bitbucket.juspay.net/picaf/${GIT_REPO_NAME}.git'
-                sh 'git fetch'
-                sh 'git config user.name ""Jenkins User""'
-                sh 'git config user.email bitbucket.jenkins.read@juspay.in'
-
                 sh "git push origin HEAD:${BRANCH_NAME}"
                 sh "git push origin --tags"
             }
