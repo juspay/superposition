@@ -111,7 +111,7 @@ async fn main() -> Result<()> {
                     .service(config::endpoints()),
             )
             .service(scope("/audit").service(audit_log::endpoints()))
-            .service(experiments::endpoints())
+            .service(external::endpoints(experiments::endpoints(scope("/experiments"))))
     })
     .bind(("0.0.0.0", 8080))?
     .workers(5)

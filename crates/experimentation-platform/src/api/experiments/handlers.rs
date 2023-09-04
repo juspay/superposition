@@ -6,7 +6,7 @@ use actix_web::{
     HttpRequest, HttpResponse, Scope,
 };
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, r2d2::{PooledConnection, ConnectionManager}, PgConnection};
 
 use service_utils::{
     errors::types::{Error as err, ErrorResponse},
@@ -31,12 +31,12 @@ use crate::{
     db::schema::cac_v1::{event_log::dsl as event_log, experiments::dsl as experiments},
 };
 
-pub fn endpoints() -> Scope {
-    Scope::new("/experiments")
+pub fn endpoints(scope : Scope) -> Scope {
+    scope
         .service(create)
-        .service(conclude)
+        .service(conclude_handler)
         .service(list_experiments)
-        .service(get_experiment)
+        .service(get_experiment_handler)
         .service(ramp)
 }
 
@@ -173,19 +173,29 @@ async fn create(
 }
 
 #[patch("/{experiment_id}/conclude")]
-async fn conclude(
+async fn conclude_handler(
     state: Data<AppState>,
     path: web::Path<i64>,
     req: web::Json<ConcludeExperimentRequest>,
     db_conn: DbConnection,
     auth_info: AuthenticationInfo,
 ) -> app::Result<Json<ExperimentResponse>> {
+    let DbConnection(conn) = db_conn;
+    let response = conclude(state, path.into_inner(), req.into_inner(), conn, auth_info).await?;
+    return Ok(Json(ExperimentResponse::from(response)));
+}
+
+pub async fn conclude(
+    state: Data<AppState>,
+    experiment_id: i64,
+    req: ConcludeExperimentRequest,
+    mut conn: PooledConnection<ConnectionManager<PgConnection>>,
+    auth_info: AuthenticationInfo,
+) -> app::Result<Experiment> {
     use crate::db::schema::cac_v1::experiments::dsl;
 
-    let experiment_id: i64 = path.into_inner();
-    let winner_variant_id: String = req.into_inner().chosen_variant.to_owned();
+    let winner_variant_id: String = req.chosen_variant.to_owned();
 
-    let DbConnection(mut conn) = db_conn;
     let experiment: Experiment = dsl::experiments
         .find(experiment_id)
         .get_result::<Experiment>(&mut conn)?;
@@ -271,7 +281,7 @@ async fn conclude(
         ))
         .get_result::<Experiment>(&mut conn)?;
 
-    return Ok(Json(ExperimentResponse::from(updated_experiment)));
+    return Ok(updated_experiment);
 }
 
 #[get("")]
@@ -341,20 +351,25 @@ async fn list_experiments(
 }
 
 #[get("/{id}")]
-async fn get_experiment(
+async fn get_experiment_handler(
     params: web::Path<i64>,
     db_conn: DbConnection,
 ) -> app::Result<Json<ExperimentResponse>> {
-    use crate::db::schema::cac_v1::experiments::dsl::*;
-
-    let experiment_id = params.into_inner();
     let DbConnection(mut conn) = db_conn;
+    let response = get_experiment(params.into_inner(), &mut conn)?;
+    return Ok(Json(ExperimentResponse::from(response)));
+}
 
+pub fn get_experiment(
+    experiment_id: i64,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> app::Result<Experiment> {
+    use crate::db::schema::cac_v1::experiments::dsl::*;
     let result: Experiment = experiments
         .find(experiment_id)
-        .get_result::<Experiment>(&mut conn)?;
+        .get_result::<Experiment>(conn)?;
 
-    return Ok(Json(ExperimentResponse::from(result)));
+    return Ok(result);
 }
 
 #[patch("/{id}/ramp")]

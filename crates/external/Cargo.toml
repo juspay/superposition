@@ -1,0 +1,24 @@
+[package]
+name = "external"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# env
+dotenv = "0.15.0"
+# Https server framework
+actix = "0.13.0"
+actix-web = "4.0.0"
+# To serialize and deserialize objects from json
+serde = {version = "^1", features = ["derive"]}
+serde_json = {version = "1.0"}
+# For logging and debugging
+log = "^0.4"
+# date and time
+chrono = { version = "0.4", features = ["serde"] }
+# ORM
+service-utils = { path = "../service-utils" }
+reqwest = {version = "0.9.11"}
+experimentation-platform = { path = "../experimentation-platform"}
