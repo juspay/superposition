@@ -5,7 +5,7 @@ use service_utils::helpers::deserialize_stringified_list;
 
 use crate::db::models::{self, ExperimentStatusType};
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, PartialEq, Debug)]
 pub enum VariantType {
     CONTROL,
     EXPERIMENTAL,
@@ -48,7 +48,7 @@ impl From<models::Experiment> for ExperimentCreateResponse {
 // Same as models::Experiments but `id` field is String
 // JS have limitation of 53-bit integers, so on
 // deserializing from JSON to JS Object will lead incorrect `id` values
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct ExperimentResponse {
     pub id: String,
     pub created_at: DateTime<Utc>,
