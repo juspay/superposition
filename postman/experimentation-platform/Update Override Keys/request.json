@@ -1,0 +1,51 @@
+{
+  "method": "PUT",
+  "header": [
+    {
+      "key": "Authorization",
+      "value": "Bearer {{token}}",
+      "type": "default"
+    }
+  ],
+  "body": {
+    "mode": "raw",
+    "options": {
+      "raw": {
+        "language": "json"
+      }
+    },
+    "raw_json_formatted": {
+      "override_keys": [
+        "pmTestKey1972",
+        "pmTestKey1999"
+      ],
+      "variants": [
+        {
+          "id": "{{experiment_id}}-control",
+          "overrides": {
+            "pmTestKey1972": "value-7910-an-control",
+            "pmTestKey1999": "value-6910-an-control"
+          }
+        },
+        {
+          "id": "{{experiment_id}}-test1",
+          "overrides": {
+            "pmTestKey1972": "value-7920-an-test",
+            "pmTestKey1999": "value-6930-an-test"
+          }
+        }
+      ]
+    }
+  },
+  "url": {
+    "raw": "{{host}}/experiments/{{experiment_id}}/override_keys",
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "experiments",
+      "{{experiment_id}}",
+      "override_keys"
+    ]
+  }
+}
