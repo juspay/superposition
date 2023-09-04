@@ -1,0 +1,73 @@
+{
+  "method": "POST",
+  "header": [
+    {
+      "key": "Authorization",
+      "value": "Bearer {{token}}",
+      "type": "default"
+    }
+  ],
+  "body": {
+    "mode": "raw",
+    "options": {
+      "raw": {
+        "language": "json"
+      }
+    },
+    "raw_json_formatted": {
+      "name": "experiment-1",
+      "override_keys": [
+        "pmTestKey3",
+        "pmTestKey4"
+      ],
+      "traffic_percentage": 10,
+      "context": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "os"
+              },
+              "ios"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "client"
+              },
+              "testClientCac02"
+            ]
+          }
+        ]
+      },
+      "variants": [
+        {
+          "id": "control",
+          "variant_type": "CONTROL",
+          "overrides": {
+            "pmTestKey3": "value3-control",
+            "pmTestKey4": "value3-control"
+          }
+        },
+        {
+          "id": "test1",
+          "variant_type": "EXPERIMENTAL",
+          "overrides": {
+            "pmTestKey3": "value4-test",
+            "pmTestKey4": "value4-test"
+          }
+        }
+      ]
+    }
+  },
+  "url": {
+    "raw": "{{host}}/experiments",
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "experiments"
+    ]
+  }
+}

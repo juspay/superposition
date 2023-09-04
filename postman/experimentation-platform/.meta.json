@@ -4,6 +4,8 @@
     "Get Experiment",
     "Ramp",
     "Conclude",
+    "Create Experiment 2",
+    "Update Override Keys",
     "List experiments [No If-Modified-Since]",
     "List experiments [If-Modified-Since = Thu, 01 Jan 1970 00:00:00 +0000]",
     "List experiments [If-Modified-Since = Wed, 01 Dec 2070 00:00:00 +0000]"
