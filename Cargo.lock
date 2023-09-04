@@ -702,6 +702,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "experimentation-platform",
+ "external",
  "futures 0.3.28",
  "futures-util",
  "json-patch",
@@ -1152,6 +1153,22 @@ dependencies = [
  "strum",
  "strum_macros",
  "uuid 0.8.2",
+]
+
+[[package]]
+name = "external"
+version = "0.1.0"
+dependencies = [
+ "actix",
+ "actix-web",
+ "chrono",
+ "dotenv",
+ "experimentation-platform",
+ "log",
+ "reqwest 0.9.24",
+ "serde",
+ "serde_json",
+ "service-utils",
 ]
 
 [[package]]
