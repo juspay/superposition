@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.2.0 - 2023-09-05
+#### Features
+- [PICAF-24073] add audit log search endpoint - (19f75c7) - Kartik Gajendra
+
+- - -
+
 ## experimentation-platform-v0.1.0 - 2023-09-01
 #### Bug Fixes
 - using audit log tstamp for checking last-modified - (2ccaa7e) - Shubhranshu Sanjeev
