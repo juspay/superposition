@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service-utils-v0.2.0 - 2023-09-05
+#### Features
+- [PICAF-24073] add audit log search endpoint - (19f75c7) - Kartik Gajendra
+#### Revert
+- Revert "fix: PICAF-24114 logged env variable's value before kms decrypting" - (2a935c9) - Ritick Madaan
+
+- - -
+
 ## service-utils-v0.1.0 - 2023-09-01
 #### Bug Fixes
 - PICAF-24114 logged env variable's value before kms decrypting - (5bda6fb) - Ritick Madaan
