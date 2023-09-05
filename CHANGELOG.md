@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.3.0 - 2023-09-05
+### Package updates
+- experimentation-platform bumped to experimentation-platform-v0.2.0
+- context-aware-config bumped to context-aware-config-v0.3.0
+- service-utils bumped to service-utils-v0.2.0
+### Global changes
+#### Features
+- [PICAF-24073] add audit log search endpoint - (19f75c7) - Kartik Gajendra
+#### Revert
+- Revert "fix: PICAF-24114 logged env variable's value before kms decrypting" - (2a935c9) - Ritick Madaan
+
+- - -
+
 ## v0.2.0 - 2023-09-05
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.2.0
