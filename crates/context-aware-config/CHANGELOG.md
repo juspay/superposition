@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.2.0 - 2023-09-05
+#### Features
+- PICAF-23598 implemented tracing-actix-web for logging - (63dee8c) - Ritick Madaan
+
+- - -
+
 ## context-aware-config-v0.1.0 - 2023-09-01
 #### Bug Fixes
 - added middleware to insert version in response headers - (449eea4) - Shubhranshu Sanjeev

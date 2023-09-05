@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.2.0 - 2023-09-05
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.2.0
+### Global changes
+#### Bug Fixes
+- PICAF-24273 cleaned up Dockerfile - (cb5c4fb) - Ritick Madaan
+- moved git init to separate stage - (9477de6) - Shubhranshu Sanjeev
+#### Features
+- PICAF-23598 implemented tracing-actix-web for logging - (63dee8c) - Ritick Madaan
+
+- - -
+
 ## v0.1.0 - 2023-09-01
 ### Package updates
 - experimentation-platform bumped to experimentation-platform-v0.1.0
