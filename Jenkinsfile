@@ -143,61 +143,61 @@ pipeline {
       }
     }
 
-//    stage('Push Image To Production Registry') {
-//      when {
-//        expression { SKIP_CI == 'false' }
-//        expression { env.NEW_SEMANTIC_VERSION != env.OLD_SEMANTIC_VERSION }
-//        branch 'main'
-//      }
-//      steps {
-//        sh '''make ci-push -e \
-//                VERSION=${NEW_SEMANTIC_VERSION} \
-//                REGION=${REGION} \
-//                REGISTRY_HOST=${REGISTRY_HOST_PROD}
-//           '''
-//      }
-//    }
-//
-//    stage('Create Integ Release Tracker') {
-//      when {
-//        expression { SKIP_CI == 'false' }
-//        expression { env.NEW_SEMANTIC_VERSION != env.OLD_SEMANTIC_VERSION }
-//	    branch 'main'
-//      }
-//      environment {
-//        CREDS = credentials('AP_INTEG_ID')
-//        COMMIT_MSG = sh(returnStdout: true, script: "git log --format=format:%s -1")
-//        CHANGE_LOG = "Commit message: ${COMMIT_MSG}";
-//        AUTHOR_NAME = sh(returnStdout: true, script: "git log -1 --pretty=format:'%ae'")
-//      }
-//      steps {
-//        sh """curl -v --location --request POST 'https://${AUTOPILOT_HOST_INTEG}/release' \
-//                --header 'Content-Type: application/json' \
-//                --header 'Authorization: Basic ${CREDS_PSW}' \
-//                --data-raw '{
-//                      "service": ["CONTEXT_AWARE_CONFIG"],
-//                      "release_manager": "${AUTHOR_NAME}",
-//                      "release_tag": "",
-//                      "new_version": "${COMMIT_HASH}",
-//                      "docker_image" : "${COMMIT_HASH}",
-//                      "priority" : 0,
-//                      "cluster" : "INTEG_CLUSTER",
-//                      "change_log": "${CHANGE_LOG}",
-//                      "rollout_strategy": [
-//                          {
-//                              "rollout": 100,
-//                              "cooloff": 0,
-//                              "pods": 1
-//                          }
-//                      ],
-//                      "description": "${CHANGE_LOG}",
-//                      "product": "HYPER_SDK",
-//                      "mode" : "AUTO",
-//                      "env" : "INTEG"
-//                }';
-//           """
-//      }
-//    }
+    stage('Push Image To Production Registry') {
+      when {
+        expression { SKIP_CI == 'false' }
+        expression { env.NEW_SEMANTIC_VERSION != env.OLD_SEMANTIC_VERSION }
+        branch 'main'
+      }
+      steps {
+        sh '''make ci-push -e \
+                VERSION=${NEW_SEMANTIC_VERSION} \
+                REGION=${REGION} \
+                REGISTRY_HOST=${REGISTRY_HOST_PROD}
+           '''
+      }
+    }
+
+    stage('Create Integ Release Tracker') {
+      when {
+        expression { SKIP_CI == 'false' }
+        expression { env.NEW_SEMANTIC_VERSION != env.OLD_SEMANTIC_VERSION }
+	    branch 'main'
+      }
+      environment {
+        CREDS = credentials('AP_INTEG_ID')
+        COMMIT_MSG = sh(returnStdout: true, script: "git log --format=format:%s -1")
+        CHANGE_LOG = "Commit message: ${COMMIT_MSG}";
+        AUTHOR_NAME = sh(returnStdout: true, script: "git log -1 --pretty=format:'%ae'")
+      }
+      steps {
+        sh """curl -v --location --request POST 'https://${AUTOPILOT_HOST_INTEG}/release' \
+                --header 'Content-Type: application/json' \
+                --header 'Authorization: Basic ${CREDS_PSW}' \
+                --data-raw '{
+                      "service": ["CONTEXT_AWARE_CONFIG"],
+                      "release_manager": "${AUTHOR_NAME}",
+                      "release_tag": "",
+                      "new_version": "${COMMIT_HASH}",
+                      "docker_image" : "${COMMIT_HASH}",
+                      "priority" : 0,
+                      "cluster" : "INTEG_CLUSTER",
+                      "change_log": "${CHANGE_LOG}",
+                      "rollout_strategy": [
+                          {
+                              "rollout": 100,
+                              "cooloff": 0,
+                              "pods": 1
+                          }
+                      ],
+                      "description": "${CHANGE_LOG}",
+                      "product": "HYPER_SDK",
+                      "mode" : "AUTO",
+                      "env" : "INTEG"
+                }';
+           """
+      }
+    }
 
     stage('Summary') {
       steps {
