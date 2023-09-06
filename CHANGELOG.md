@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.4.1 - 2023-09-06
+### Package updates
+- superposition_client bumped to superposition_client-v0.1.1
+### Global changes
+#### Bug Fixes
+- fixed setting env in docker image - (272454b) - Shubhranshu Sanjeev
+#### Continuous Integration
+- PICAF-24114 updated integ AP tracker curl with new version - (1e0fa5b) - Ritick Madaan
+
+- - -
+
 ## v0.4.0 - 2023-09-06
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.4.0
