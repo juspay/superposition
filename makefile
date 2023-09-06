@@ -50,6 +50,7 @@ run:
 
 ci-test:
 	-docker rm -f $$(docker container ls --filter name=^context-aware-config -a -q)
+	-docker rmi -f $$(docker images | grep context-aware-config-postgres | cut -f 10 -d " ")
 	npm ci --loglevel=error
 	make run -e DOCKER_DNS=$(DOCKER_DNS) 2>&1 | tee test_logs &
 	while ! grep -q "starting in Actix" test_logs; \
