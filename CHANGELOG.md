@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.5.1 - 2023-09-06
+### Package updates
+- superposition_client bumped to superposition_client-v0.1.2
+### Global changes
+#### Bug Fixes
+- trimming newline character from version string - (2c61077) - Shubhranshu Sanjeev
+#### Continuous Integration
+- deleting postgres's docker image on every test - (8a198d6) - Ritick Madaan
+
+- - -
+
 ## v0.5.0 - 2023-09-06
 ### Package updates
 - experimentation-platform bumped to experimentation-platform-v0.3.0
