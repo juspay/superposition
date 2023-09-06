@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_client-v0.1.1 - 2023-09-06
+#### Bug Fixes
+- fixed setting env in docker image - (272454b) - Shubhranshu Sanjeev
+#### Continuous Integration
+- PICAF-24114 updated integ AP tracker curl with new version - (1e0fa5b) - Ritick Madaan
+
+- - -
+
 ## superposition_client-v0.1.0 - 2023-09-01
 #### Bug Fixes
 - PICAF-24114 removed unwanted parameter to prevent warning - (3de7fe7) - Ritick Madaan
