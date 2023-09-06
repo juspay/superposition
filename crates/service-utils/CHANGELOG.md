@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service-utils-v0.3.0 - 2023-09-06
+#### Features
+- [PICAF-24065] added pod information in response headers and logs - (5ee8a9c) - Kartik Gajendra
+
+- - -
+
 ## service-utils-v0.2.0 - 2023-09-05
 #### Features
 - [PICAF-24073] add audit log search endpoint - (19f75c7) - Kartik Gajendra
