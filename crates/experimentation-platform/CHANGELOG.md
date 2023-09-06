@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.3.0 - 2023-09-06
+#### Features
+- [PICAF-24160] record the chosen variant after conclude - (1c3c6e6) - Kartik Gajendra
+
+- - -
+
 ## experimentation-platform-v0.2.0 - 2023-09-05
 #### Features
 - [PICAF-24073] add audit log search endpoint - (19f75c7) - Kartik Gajendra

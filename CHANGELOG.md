@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.5.0 - 2023-09-06
+### Package updates
+- experimentation-platform bumped to experimentation-platform-v0.3.0
+### Global changes
+#### Features
+- [PICAF-24160] record the chosen variant after conclude - (1c3c6e6) - Kartik Gajendra
+
+- - -
+
 ## v0.4.1 - 2023-09-06
 ### Package updates
 - superposition_client bumped to superposition_client-v0.1.1
