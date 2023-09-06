@@ -64,7 +64,7 @@ pipeline {
                   returnStdout: true,
                   script: '''
                   set +x;
-                  cog -v get-version --fallback 0.1.0
+                  cog -v get-version | tr -d "\n"
                   '''
               )}"""
         }
@@ -106,7 +106,7 @@ pipeline {
                   returnStdout: true,
                   script: '''
                   set +x;
-                  cog -v get-version
+                  cog -v get-version | tr -d "\n"
                   '''
               )}"""
           echo "New version - ${NEW_SEMANTIC_VERSION}, Old version - ${OLD_SEMANTIC_VERSION}"
