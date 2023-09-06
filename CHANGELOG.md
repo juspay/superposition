@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.4.0 - 2023-09-06
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.4.0
+- service-utils bumped to service-utils-v0.3.0
+### Global changes
+#### Features
+- [PICAF-24065] added pod information in response headers and logs - (5ee8a9c) - Kartik Gajendra
+
+- - -
+
 ## v0.3.0 - 2023-09-05
 ### Package updates
 - experimentation-platform bumped to experimentation-platform-v0.2.0
