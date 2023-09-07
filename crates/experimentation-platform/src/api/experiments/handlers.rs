@@ -52,7 +52,7 @@ async fn create(
 
     let DbConnection(mut conn) = db_conn;
     let override_keys = &req.override_keys;
-    
+
     let unique_ids_of_variants_from_req: HashSet<&str> =
         HashSet::from_iter(variants.iter().map(|v| v.id.as_str()));
 
@@ -131,8 +131,10 @@ async fn create(
         .bearer_auth(&state.admin_token)
         .json(&cac_operations)
         .send()
+        .await
         .map_err(|e| err::InternalServerErr(e.to_string()))?
         .json::<Vec<ContextPutResp>>()
+        .await
         .map_err(|e| err::InternalServerErr(e.to_string()))?;
 
     // updating variants with context and override ids
@@ -246,6 +248,7 @@ async fn conclude(
         .bearer_auth(&state.admin_token)
         .json(&operations)
         .send()
+        .await
         .map_err(|e| err::InternalServerErr(e.to_string()))?;
 
     if !response.status().is_success() {
