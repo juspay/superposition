@@ -8,7 +8,6 @@ use actix_web::{
     },
     web::Data,
 };
-use eval::{get_mjos_override, Patch};
 use std::{convert::identity, sync::RwLock, time::Duration};
 use utils::core::MapError;
 use chrono::{DateTime, Utc};
@@ -115,9 +114,9 @@ impl Client {
             .map_err_to_string()
     }
 
-    pub fn eval(&self, query_data: Value) -> Result<Patch, String> {
+    pub fn eval(&self, query_data: Value) -> Result<Value, String> {
         let cac = self.config.read().map_err_to_string()?;
-        get_mjos_override(query_data, cac.contexts.clone(), cac.overrides.clone(), json!(cac.default_configs)).map_err_to_string()
+        eval::eval_cac( json!(cac.default_configs), &cac.contexts, &cac.overrides, &query_data).map_err_to_string()
     }
 }
 
