@@ -138,8 +138,8 @@ async fn get_resolved_config(req: HttpRequest, db_conn: DbConnection) -> actix_w
         .json(
             eval_cac(
                 json!(res.default_configs),
-                cac_client_contexts,
-                res.overrides,
+                &cac_client_contexts,
+                &res.overrides,
                 &json!(query_params_map),
             ).map_err_to_internal_server("cac eval failed", Null)?
         )
