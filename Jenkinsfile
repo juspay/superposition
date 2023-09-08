@@ -4,6 +4,9 @@ def getRegistryHost(aws_acc_id, region) {
 
 pipeline {
   agent { label 'hypersdk' }
+  options {
+    timeout(time: 20, unit: 'MINUTES')
+  }
   environment {
     REGION = "ap-south-1";
     REGISTRY_HOST_SBX = getRegistryHost("701342709052", REGION);
