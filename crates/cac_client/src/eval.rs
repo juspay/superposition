@@ -32,8 +32,8 @@ pub fn eval_cac(
     contexts: &Vec<Context>,
     overrides: &Map<String, Value>,
     query_data: &Value,
-) -> serde_json::Result<Value> {
+) -> serde_json::Result<Map<String, Value>> {
     let overrides = get_overrides(&query_data, &contexts, &overrides)?;
     json_patch::merge(&mut default_config, &overrides);
-    Ok(default_config)
+    serde_json::from_value(default_config)
 }
