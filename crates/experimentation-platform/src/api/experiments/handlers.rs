@@ -26,6 +26,7 @@ use super::{
     helpers::{
         add_variant_dimension_to_ctx, check_variant_types,
         check_variants_override_coverage, validate_experiment,
+        validate_override_keys
     },
     types::{
         ConcludeExperimentRequest, ContextAction, ContextBulkResponse, ContextPutReq,
@@ -79,6 +80,7 @@ async fn create(
 
     // Checking if experiment has exactly 1 control variant, and
     // atleast 1 experimental variant
+    validate_override_keys(&override_keys)?;
     check_variant_types(&variants)?;
 
     // Checking if all the variants are overriding the mentioned keys
@@ -508,6 +510,8 @@ async fn update_override_keys(
     );
 
     /****************** Validating override_keys and variant overrides *********************/
+
+    validate_override_keys(&override_keys)?;
 
     // checking if variants passed with correct existing variant ids
     let variant_ids: HashSet<String> = HashSet::from_iter(
