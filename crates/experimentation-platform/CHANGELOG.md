@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.3.1 - 2023-09-12
+#### Bug Fixes
+- failed build due to untracked schema.rs file changes - (5bc4eae) - Shubhranshu Sanjeev
+- fixed random timeouts in internal http calls to CAC - (a4e95a3) - Shubhranshu Sanjeev
+
+- - -
+
 ## experimentation-platform-v0.3.0 - 2023-09-06
 #### Features
 - [PICAF-24160] record the chosen variant after conclude - (1c3c6e6) - Kartik Gajendra

@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.5.0 - 2023-09-12
+#### Bug Fixes
+- PICAF-24223 eval param fix - (9d4d678) - Pratik Mishra
+#### Features
+- PICAF-24223 Adding generic eval - (b94ce46) - Pratik Mishra
+- Schema addition for Dimension values - (7960a67) - Prasanna P
+
+- - -
+
 ## context-aware-config-v0.4.0 - 2023-09-06
 #### Features
 - [PICAF-24065] added pod information in response headers and logs - (5ee8a9c) - Kartik Gajendra
