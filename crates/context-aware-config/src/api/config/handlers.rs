@@ -107,7 +107,7 @@ async fn get_resolved_config(req: HttpRequest, db_conn: DbConnection) -> actix_w
         Query::<HashMap<String, String>>::from_query(req.query_string())
         .map_err(|_| ErrorBadRequest("error getting query params"))?;
 
-    let mut query_params_map = Map::new();
+    let mut query_params_map: serde_json::Map<String, Value> = Map::new();
 
     for item in params.0.into_iter() {
         query_params_map.insert(
@@ -140,7 +140,7 @@ async fn get_resolved_config(req: HttpRequest, db_conn: DbConnection) -> actix_w
                 json!(res.default_configs),
                 &cac_client_contexts,
                 &res.overrides,
-                &json!(query_params_map),
+                &query_params_map,
             ).map_err_to_internal_server("cac eval failed", Null)?
         )
     )
