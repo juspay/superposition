@@ -114,7 +114,7 @@ impl Client {
             .map_err_to_string()
     }
 
-    pub fn eval(&self, query_data: Value) -> Result<Map<String, Value>, String> {
+    pub fn eval(&self, query_data: Map<String, Value>) -> Result<Map<String, Value>, String> {
         let cac = self.config.read().map_err_to_string()?;
         eval::eval_cac( json!(cac.default_configs), &cac.contexts, &cac.overrides, &query_data).map_err_to_string()
     }
