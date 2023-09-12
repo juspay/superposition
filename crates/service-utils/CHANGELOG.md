@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service-utils-v0.4.0 - 2023-09-12
+#### Features
+- Schema addition for Dimension values - (7960a67) - Prasanna P
+
+- - -
+
 ## service-utils-v0.3.0 - 2023-09-06
 #### Features
 - [PICAF-24065] added pod information in response headers and logs - (5ee8a9c) - Kartik Gajendra
