@@ -38,6 +38,20 @@ pub fn check_variant_types(variants: &Vec<Variant>) -> app::Result<()> {
     Ok(())
 }
 
+pub fn validate_override_keys(override_keys: &Vec<String>) -> app::Result<()> {
+    let mut key_set: HashSet<&str> = HashSet::new();
+    for key in override_keys {
+        if !key_set.insert(key) {
+            return Err(err::BadArgument(ErrorResponse {
+                message: "override_keys are not unique".to_string(),
+                possible_fix: "remove duplicate entries in override_keys".to_string()
+            }));
+        }
+    }
+
+    Ok(())
+}
+
 pub fn extract_dimensions(context_json: &Value) -> app::Result<Map<String, Value>> {
     // Assuming max 2-level nesting in context json logic
     let context = context_json
@@ -174,18 +188,13 @@ pub fn check_variants_override_coverage(
     variant_overrides: &Vec<Map<String, Value>>,
     override_keys: &Vec<String>,
 ) -> bool {
-    let mut has_complete_coverage = true;
-
     for variant_override in variant_overrides {
-        let is_valid_variant = check_variant_override_coverage(&variant_override, override_keys);
-
-        has_complete_coverage = has_complete_coverage && is_valid_variant;
-        if !has_complete_coverage {
-            break;
+        if !check_variant_override_coverage(&variant_override, override_keys) {
+            return false;
         }
     }
 
-    has_complete_coverage
+    return true;
 }
 
 pub fn is_valid_experiment(
