@@ -2,6 +2,23 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.6.0 - 2023-09-12
+### Package updates
+- cac_client bumped to cac_client-v0.2.0
+- service-utils bumped to service-utils-v0.4.0
+- context-aware-config bumped to context-aware-config-v0.5.0
+- experimentation-platform bumped to experimentation-platform-v0.3.1
+### Global changes
+#### Bug Fixes
+- fixed random timeouts in internal http calls to CAC - (a4e95a3) - Shubhranshu Sanjeev
+#### Continuous Integration
+- added 20 minutes timeout on pipeline - (2f6bf9e) - Shubhranshu Sanjeev
+#### Features
+- PICAF-24223 Adding generic eval - (b94ce46) - Pratik Mishra
+- Schema addition for Dimension values - (7960a67) - Prasanna P
+
+- - -
+
 ## v0.5.1 - 2023-09-06
 ### Package updates
 - superposition_client bumped to superposition_client-v0.1.2

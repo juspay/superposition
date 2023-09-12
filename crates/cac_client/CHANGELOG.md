@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.2.0 - 2023-09-12
+#### Bug Fixes
+- PICAF-24223 eval param fix - (9d4d678) - Pratik Mishra
+#### Features
+- PICAF-24223 cac eval return update - (d558ddc) - Pratik Mishra
+- PICAF-24223 Adding generic eval - (b94ce46) - Pratik Mishra
+
+- - -
+
 ## cac_client-v0.1.0 - 2023-09-01
 #### Features
 - [PICAF-23632] added experimentation client with few fixes - (9a31815) - Kartik Gajendra
