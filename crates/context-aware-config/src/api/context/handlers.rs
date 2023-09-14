@@ -23,7 +23,7 @@ use diesel::{
     result::{DatabaseErrorKind::*, Error::DatabaseError},
     Connection, ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
 };
-use serde_json::{json, Value, Value::Null};
+use serde_json::{Value, Value::Null};
 use service_utils::{helpers::ToActixErr, service::types::AppState};
 
 pub fn endpoints() -> Scope {

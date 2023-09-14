@@ -185,11 +185,11 @@ pub fn check_variant_override_coverage(
 }
 
 pub fn check_variants_override_coverage(
-    variant_overrides: &Vec<Map<String, Value>>,
+    variant_overrides: &Vec<&Map<String, Value>>,
     override_keys: &Vec<String>,
 ) -> bool {
     for variant_override in variant_overrides {
-        if !check_variant_override_coverage(&variant_override, override_keys) {
+        if !check_variant_override_coverage(variant_override, override_keys) {
             return false;
         }
     }
