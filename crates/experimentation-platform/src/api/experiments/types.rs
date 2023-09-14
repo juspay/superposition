@@ -115,14 +115,14 @@ pub enum ContextAction {
     MOVE((String, ContextPutReq)),
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct ContextPutResp {
     pub context_id: String,
     pub override_id: String,
     pub priority: i32,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum ContextBulkResponse {
     PUT(ContextPutResp),
     DELETE(String),
