@@ -38,14 +38,14 @@
     }
   },
   "url": {
-    "raw": "{{host}}/experiments/{{experiment_id}}/override_keys",
+    "raw": "{{host}}/experiments/{{experiment_id}}/overrides",
     "host": [
       "{{host}}"
     ],
     "path": [
       "experiments",
       "{{experiment_id}}",
-      "override_keys"
+      "overrides"
     ]
   }
 }
