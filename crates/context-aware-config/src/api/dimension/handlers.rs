@@ -1,6 +1,6 @@
 use crate::{
     api::dimension::types::CreateReq,
-    db::{models::Dimension, schema::cac_v1::dimensions::dsl::*},
+    db::{models::Dimension, schema::dimensions::dsl::*},
     helpers::validate_jsonschema,
 };
 use actix_web::{

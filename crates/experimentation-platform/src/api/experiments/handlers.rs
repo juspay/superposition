@@ -36,7 +36,7 @@ use super::{
 
 use crate::{
     db::models::{Experiment, ExperimentStatusType},
-    db::schema::cac_v1::{event_log::dsl as event_log, experiments::dsl as experiments},
+    db::schema::{event_log::dsl as event_log, experiments::dsl as experiments},
 };
 
 use serde_json::{json, Map, Value};
@@ -60,7 +60,7 @@ async fn create(
     db_conn: DbConnection,
     tenant: Tenant,
 ) -> app::Result<Json<ExperimentCreateResponse>> {
-    use crate::db::schema::cac_v1::experiments::dsl::experiments;
+    use crate::db::schema::experiments::dsl::experiments;
     let mut variants = req.variants.to_vec();
 
     let DbConnection(mut conn) = db_conn;
@@ -237,7 +237,7 @@ pub async fn conclude(
     user: User,
     tenant: Tenant,
 ) -> app::Result<Experiment> {
-    use crate::db::schema::cac_v1::experiments::dsl;
+    use crate::db::schema::experiments::dsl;
 
     let winner_variant_id: String = req.chosen_variant.to_owned();
 
@@ -408,7 +408,7 @@ pub fn get_experiment(
     experiment_id: i64,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> app::Result<Experiment> {
-    use crate::db::schema::cac_v1::experiments::dsl::*;
+    use crate::db::schema::experiments::dsl::*;
     let result: Experiment = experiments
         .find(experiment_id)
         .get_result::<Experiment>(conn)?;

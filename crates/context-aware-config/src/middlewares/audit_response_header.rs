@@ -10,7 +10,7 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use futures_util::future::LocalBoxFuture;
 use service_utils::service::types::AppState;
 
-use crate::db::schema::cac_v1::event_log::dsl as event_log;
+use crate::db::schema::event_log::dsl as event_log;
 use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, strum_macros::Display)]

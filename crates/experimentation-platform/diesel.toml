@@ -1,6 +1,5 @@
 [print_schema]
 file = "src/db/schema.rs"
-schema = "cac_v1"
 patch_file = "src/schema.patch"
 
 [migrations_directory]

@@ -6,7 +6,7 @@ use service_utils::{service::types::DbConnection, types as app};
 
 use crate::{api::audit_log::types::AuditQueryFilters, db::models::EventLog};
 
-use crate::db::schema::cac_v1::event_log::dsl as event_log;
+use crate::db::schema::event_log::dsl as event_log;
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(get_audit_logs)
