@@ -1,7 +1,7 @@
 use super::types::CreateReq;
 use crate::{
-    db::{models::DefaultConfig, schema::cac_v1::default_configs::dsl::default_configs},
-    helpers::validate_jsonschema,
+    db::{models::DefaultConfig, schema::default_configs::dsl::default_configs},
+    helpers::validate_jsonschema
 };
 use actix_web::{
     put,
