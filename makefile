@@ -16,8 +16,38 @@ SHELL := /usr/bin/env bash
 	cac
 
 db-init:
+	diesel migration run --locked-schema --config-file=crates/context-aware-config/diesel.toml
+	-diesel migration run --locked-schema --config-file=crates/experimentation-platform/diesel.toml
+
+cac-migration:
+	-docker rm -f $$(docker container ls --filter name=^context-aware-config -a -q)
+	-docker rmi -f $$(docker images | grep context-aware-config-postgres | cut -f 10 -d " ")
+	docker-compose up -d postgres
+	cp .env.example .env
+	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
+	while ! make validate-psql-connection; \
+		do echo "waiting for postgres bootup"; \
+		sleep 0.5; \
+		done
 	diesel migration run --config-file=crates/context-aware-config/diesel.toml
+	docker-compose down
+
+exp-migration:
+	-docker rm -f $$(docker container ls --filter name=^context-aware-config -a -q)
+	-docker rmi -f $$(docker images | grep context-aware-config-postgres | cut -f 10 -d " ")
+	docker-compose up -d postgres
+	cp .env.example .env
+	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
+	while ! make validate-psql-connection; \
+		do echo "waiting for postgres bootup"; \
+		sleep 0.5; \
+		done
 	diesel migration run --config-file=crates/experimentation-platform/diesel.toml
+	docker-compose down
+
+migration:
+	make cac-migration
+	make exp-migration
 
 validate-aws-connection:
 	aws --endpoint-url=http://$(DOCKER_DNS):4566 --region=ap-south-1 sts get-caller-identity
@@ -26,6 +56,10 @@ validate-psql-connection:
 	pg_isready -h $(DOCKER_DNS) -p 5432
 
 setup:
+	# NOTE: `make migration` is being used to run the migrations for cac and experimentation in isolation,
+	# otherwise the tables and types of cac and experimentation spill into each others schema.rs
+	# NOTE: The container spinned up are stopped and removed after the work is done.
+	make migration
 	docker-compose up -d postgres localstack
 	cp .env.example .env
 	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
@@ -33,6 +67,9 @@ setup:
 		do echo "waiting for postgres, localstack bootup"; \
 		sleep 0.5; \
 		done
+	# NOTE: `make db-init` finally starts a postgres container and runs all the migrations with locked-schema option
+	# to prevent update of schema.rs for both cac and experimentation.
+	# NOTE: The container spinned-up here is the actual container being used in development
 	make db-init
 
 kill:

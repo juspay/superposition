@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::db::{models::Dimension, schema::cac_v1::dimensions::dsl::*};
+use crate::db::{models::Dimension, schema::dimensions::dsl::*};
 use diesel::RunQueryDsl;
 use jsonschema::{Draft, JSONSchema};
 use service_utils::{service::types::DBConnection};

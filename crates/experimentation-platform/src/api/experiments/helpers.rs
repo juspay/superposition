@@ -261,7 +261,7 @@ pub fn validate_experiment(
     flags: &ExperimentationFlags,
     conn: &mut PgConnection,
 ) -> app::Result<(bool, String)> {
-    use crate::db::schema::cac_v1::experiments::dsl as experiments_dsl;
+    use crate::db::schema::experiments::dsl as experiments_dsl;
 
     let active_experiments: Vec<Experiment> = experiments_dsl::experiments
         .filter(

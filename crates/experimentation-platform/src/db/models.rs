@@ -1,4 +1,4 @@
-use crate::db::schema::cac_v1::*;
+use crate::db::schema::*;
 use chrono::{DateTime, Utc};
 
 use diesel::{Insertable, Queryable, QueryableByName, Selectable};
@@ -9,7 +9,7 @@ use serde_json::Value;
     Debug, Clone, Copy, PartialEq, Deserialize, Serialize, diesel_derive_enum::DbEnum,
 )]
 #[DbValueStyle = "UPPERCASE"]
-#[ExistingTypePath = "crate::db::schema::cac_v1::sql_types::ExperimentStatusType"]
+#[ExistingTypePath = "crate::db::schema::sql_types::ExperimentStatusType"]
 pub enum ExperimentStatusType {
     CREATED,
     CONCLUDED,

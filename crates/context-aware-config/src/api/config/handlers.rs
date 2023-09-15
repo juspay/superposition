@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use super::types::Config;
-use crate::db::schema::cac_v1::{
+use crate::db::schema::{
     contexts::dsl as ctxt, default_configs::dsl as def_conf, event_log::dsl as event_log,
 };
 use actix_web::{

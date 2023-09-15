@@ -1,4 +1,4 @@
-use crate::db::schema::cac_v1::{contexts, default_configs, dimensions, event_log};
+use crate::db::schema::{contexts, default_configs, dimensions, event_log};
 use chrono::{offset::Utc, DateTime, NaiveDateTime};
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
 use serde::Serialize;
