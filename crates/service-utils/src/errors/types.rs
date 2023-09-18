@@ -64,6 +64,7 @@ impl err::Error for Error {}
 
 impl From<diesel::result::Error> for Error {
     fn from(value: diesel::result::Error) -> Self {
+        log::error!("{}", value);
         match value {
             diesel::result::Error::InvalidCString(e) => {
                 Self::ConnectionFailed("DATABASE".into(), e.to_string())

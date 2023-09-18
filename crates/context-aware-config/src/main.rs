@@ -12,16 +12,19 @@ use dotenv;
 use experimentation_platform::api::*;
 use helpers::{get_default_config_validation_schema, get_meta_schema};
 use logger::{init_log_subscriber, CustomRootSpanBuilder};
+use std::{env, io::Result, collections::HashSet};
+use tracing::{span, Level};
+
+use snowflake::SnowflakeIdGenerator;
+use std::{sync::Mutex, time::Duration};
+use tracing_actix_web::TracingLogger;
+
 use service_utils::{
     db::utils::get_pool,
     helpers::{get_from_env_unsafe, get_pod_info},
-    service::types::{AppState, ExperimentationFlags},
+    middlewares::app_scope::AppExecutionScope,
+    service::types::{AppScope, AppState, ExperimentationFlags},
 };
-use snowflake::SnowflakeIdGenerator;
-use std::{env, io::Result};
-use std::{sync::Mutex, time::Duration};
-use tracing::{span, Level};
-use tracing_actix_web::TracingLogger;
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -41,6 +44,15 @@ async fn main() -> Result<()> {
     let cac_host: String = get_from_env_unsafe("CAC_HOST").expect("CAC host is not set");
     let cac_version: String = get_from_env_unsafe("CONTEXT_AWARE_CONFIG_VERSION")
         .expect("CONTEXT_AWARE_CONFIG_VERSION is not set");
+
+    let prod: bool = get_from_env_unsafe("PROD").expect("PROD is not set");
+    let enable_tenant_and_scope: bool = get_from_env_unsafe("ENABLE_TENANT_AND_SCOPE")
+        .expect("ENABLE_TENANT_AND_SCOPE is not set");
+    let tenants: HashSet<String> = get_from_env_unsafe::<String>("TENANTS")
+        .expect("TENANTS is not set")
+        .split(",")
+        .map(|tenant| tenant.to_string())
+        .collect::<HashSet<String>>();
 
     let string_to_int = |s: &String| -> i32 {
         s.chars()
@@ -88,6 +100,9 @@ async fn main() -> Result<()> {
                     string_to_int(&pod_identifier),
                 )),
                 meta_schema: get_meta_schema(),
+                prod: prod.to_owned(),
+                enable_tenant_and_scope: enable_tenant_and_scope.to_owned(),
+                tenants: tenants.to_owned(),
             }))
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()
@@ -100,18 +115,40 @@ async fn main() -> Result<()> {
                 get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
             )
             /***************************** V1 Routes *****************************/
-            .service(scope("/context").service(context::endpoints()))
-            .service(scope("/dimension").service(dimension::endpoints()))
-            .service(scope("/default-config").service(default_config::endpoints()))
+            .service(
+                scope("/context")
+                    .wrap(AppExecutionScope::new(AppScope::CAC))
+                    .service(context::endpoints()),
+            )
+            .service(
+                scope("/dimension")
+                    .wrap(AppExecutionScope::new(AppScope::CAC))
+                    .service(dimension::endpoints()),
+            )
+            .service(
+                scope("/default-config")
+                    .wrap(AppExecutionScope::new(AppScope::CAC))
+                    .service(default_config::endpoints()),
+            )
             .service(
                 scope("/config")
                     .wrap(AuditHeader::new(TableName::Contexts))
+                    .wrap(AppExecutionScope::new(AppScope::CAC))
                     .service(config::endpoints()),
             )
-            .service(scope("/audit").service(audit_log::endpoints()))
-            .service(external::endpoints(experiments::endpoints(scope(
-                "/experiments",
-            ))))
+            .service(
+                scope("/audit")
+                .wrap(AppExecutionScope::new(AppScope::CAC))
+                .service(audit_log::endpoints())
+            )
+            .service(
+                external::endpoints(
+                    experiments::endpoints(
+                        scope("/experiments")
+                    )
+                )
+                .wrap(AppExecutionScope::new(AppScope::EXPERIMENTATION))
+            )
     })
     .bind(("0.0.0.0", 8080))?
     .workers(5)
