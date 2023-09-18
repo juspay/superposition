@@ -4,21 +4,27 @@ use super::types::Config;
 use crate::db::schema::cac_v1::{
     contexts::dsl as ctxt, default_configs::dsl as def_conf, event_log::dsl as event_log,
 };
-use actix_web::{error::ErrorBadRequest, get, web::Query, HttpRequest, HttpResponse, Scope};
+use actix_web::{
+    error::ErrorBadRequest, get, web::Query, HttpRequest, HttpResponse, Scope,
+};
+use cac_client::eval_cac;
 use chrono::{DateTime, NaiveDateTime, Utc};
-use diesel::{dsl::max, ExpressionMethods, QueryDsl, RunQueryDsl, r2d2::{PooledConnection, ConnectionManager}, PgConnection};
+use diesel::{
+    dsl::max,
+    r2d2::{ConnectionManager, PooledConnection},
+    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
+};
 use serde_json::{json, Map, Value, Value::Null};
 use service_utils::{helpers::ToActixErr, service::types::DbConnection};
-use cac_client::eval_cac;
 
 pub fn endpoints() -> Scope {
-    Scope::new("")
-        .service(get)
-        .service(get_resolved_config)
+    Scope::new("").service(get).service(get_resolved_config)
 }
 
-
-fn is_not_modified (req: &HttpRequest, conn: &mut PooledConnection<ConnectionManager<PgConnection>>) -> actix_web::Result<bool> {
+fn is_not_modified(
+    req: &HttpRequest,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> actix_web::Result<bool> {
     let max_created_at: Option<NaiveDateTime> = event_log::event_log
         .select(max(event_log::timestamp))
         .filter(event_log::table_name.eq("contexts"))
@@ -38,8 +44,9 @@ fn is_not_modified (req: &HttpRequest, conn: &mut PooledConnection<ConnectionMan
     Ok(max_created_at.is_some() && max_created_at < last_modified)
 }
 
-async fn generate_cac(conn: &mut PooledConnection<ConnectionManager<PgConnection>>) -> actix_web::Result<Config> {
-
+async fn generate_cac(
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> actix_web::Result<Config> {
     let contexts_vec = ctxt::contexts
         .select((ctxt::id, ctxt::value, ctxt::override_id, ctxt::override_))
         .order_by((ctxt::priority.asc(), ctxt::created_at.asc()))
@@ -78,33 +85,26 @@ async fn generate_cac(conn: &mut PooledConnection<ConnectionManager<PgConnection
         overrides,
         default_configs,
     })
-
 }
 
 #[get("")]
 async fn get(req: HttpRequest, db_conn: DbConnection) -> actix_web::Result<HttpResponse> {
-
     let DbConnection(mut conn) = db_conn;
 
     if is_not_modified(&req, &mut conn)? {
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    Ok(
-        HttpResponse::Ok()
-        .json(
-            generate_cac(&mut conn)
-            .await?
-        )
-    )
+    Ok(HttpResponse::Ok().json(generate_cac(&mut conn).await?))
 }
 
 #[get("/resolve")]
-async fn get_resolved_config(req: HttpRequest, db_conn: DbConnection) -> actix_web::Result<HttpResponse> {
-
+async fn get_resolved_config(
+    req: HttpRequest,
+    db_conn: DbConnection,
+) -> actix_web::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let params =
-        Query::<HashMap<String, String>>::from_query(req.query_string())
+    let params = Query::<HashMap<String, String>>::from_query(req.query_string())
         .map_err(|_| ErrorBadRequest("error getting query params"))?;
 
     let mut query_params_map: serde_json::Map<String, Value> = Map::new();
@@ -113,11 +113,8 @@ async fn get_resolved_config(req: HttpRequest, db_conn: DbConnection) -> actix_w
         query_params_map.insert(
             item.0,
             item.1
-            .parse::<i32>()
-            .map_or_else(
-                |_| json!(item.1),
-                |int_val| json!(int_val)
-            )
+                .parse::<i32>()
+                .map_or_else(|_| json!(item.1), |int_val| json!(int_val)),
         );
     }
 
@@ -127,21 +124,22 @@ async fn get_resolved_config(req: HttpRequest, db_conn: DbConnection) -> actix_w
 
     let res = generate_cac(&mut conn).await?;
 
-    let cac_client_contexts =
-        res.contexts.into_iter().map(|val| cac_client::Context {
+    let cac_client_contexts = res
+        .contexts
+        .into_iter()
+        .map(|val| cac_client::Context {
             condition: val.condition,
-            override_with_keys: val.override_with_keys
-        }).collect();
+            override_with_keys: val.override_with_keys,
+        })
+        .collect();
 
-
-    Ok(HttpResponse::Ok()
-        .json(
-            eval_cac(
-                json!(res.default_configs),
-                &cac_client_contexts,
-                &res.overrides,
-                &query_params_map,
-            ).map_err_to_internal_server("cac eval failed", Null)?
+    Ok(HttpResponse::Ok().json(
+        eval_cac(
+            res.default_configs,
+            &cac_client_contexts,
+            &res.overrides,
+            &query_params_map,
         )
-    )
+        .map_err_to_internal_server("cac eval failed", Null)?,
+    ))
 }
