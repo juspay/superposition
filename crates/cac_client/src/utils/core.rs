@@ -12,4 +12,3 @@ where
         self.map_err(|e| e.to_string())
     }
 }
-

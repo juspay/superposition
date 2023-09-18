@@ -1,19 +1,16 @@
-mod utils;
 mod eval;
+mod utils;
 
 use actix_web::{
-    rt::{
-        self,
-        time::interval,
-    },
+    rt::{self, time::interval},
     web::Data,
 };
-use std::{convert::identity, sync::RwLock, time::Duration};
-use utils::core::MapError;
 use chrono::{DateTime, Utc};
 use reqwest::{RequestBuilder, StatusCode};
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value, json};
+use serde_json::{Map, Value};
+use std::{convert::identity, sync::RwLock, time::Duration};
+use utils::core::MapError;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Context {
@@ -94,10 +91,7 @@ impl Client {
             let mut interval = interval(self.polling_interval);
             loop {
                 interval.tick().await;
-                let result = self
-                    .update_cac()
-                    .await
-                    .unwrap_or_else(identity);
+                let result = self.update_cac().await.unwrap_or_else(identity);
                 log::info!("{result}",);
             }
         });
@@ -108,15 +102,20 @@ impl Client {
     }
 
     pub fn get_last_modified<E>(&'static self) -> Result<DateTime<Utc>, String> {
-        self.last_modified
-            .read()
-            .map(|t| *t)
-            .map_err_to_string()
+        self.last_modified.read().map(|t| *t).map_err_to_string()
     }
 
-    pub fn eval(&self, query_data: Map<String, Value>) -> Result<Map<String, Value>, String> {
+    pub fn eval(
+        &self,
+        query_data: Map<String, Value>,
+    ) -> Result<Map<String, Value>, String> {
         let cac = self.config.read().map_err_to_string()?;
-        eval::eval_cac( json!(cac.default_configs), &cac.contexts, &cac.overrides, &query_data).map_err_to_string()
+        eval::eval_cac(
+            cac.default_configs.to_owned(),
+            &cac.contexts,
+            &cac.overrides,
+            &query_data,
+        )
     }
 }
 
