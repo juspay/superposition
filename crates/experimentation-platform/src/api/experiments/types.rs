@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use service_utils::helpers::deserialize_stringified_list;
@@ -164,7 +164,26 @@ pub struct OverrideKeysUpdateRequest {
     pub override_keys: Vec<String>,
     pub variants: Vec<VariantUpdateRequest>,
 }
+
 #[derive(Deserialize, Serialize, Clone)]
 pub struct ContextMoveReq {
     pub context: serde_json::Map<String, Value>,
+}
+
+/*********** List Audit API Filter Type **************/
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct StringArgs(
+    #[serde(deserialize_with = "deserialize_stringified_list")] pub Vec<String>,
+);
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct AuditQueryFilters {
+    pub from_date: Option<NaiveDateTime>,
+    pub to_date: Option<NaiveDateTime>,
+    pub table: Option<StringArgs>,
+    pub action: Option<StringArgs>,
+    pub username: Option<String>,
+    pub count: Option<i64>,
+    pub page: Option<i64>,
 }

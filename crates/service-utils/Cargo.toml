@@ -11,6 +11,7 @@ dotenv = "0.15.0"
 # Https server framework
 actix = "0.13.0"
 actix-web = "4.0.0"
+futures-util = "0.3.28"
 # To help generate snowflake ids
 rs-snowflake = "0.6.0"
 #ORM
@@ -26,3 +27,4 @@ log = "^0.4"
 serde = {version = "^1", features = ["derive"]}
 serde_json = {version = "1.0"}
 derive_more = "^0.99"
+dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.4.1"}

@@ -1,5 +1,6 @@
 IMAGE_NAME ?= context-aware-config
 DOCKER_DNS ?= localhost
+TENANT ?= dev
 SHELL := /usr/bin/env bash
 
 .PHONY:
@@ -49,6 +50,9 @@ migration:
 	make cac-migration
 	make exp-migration
 
+tenant:
+	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/create-tenant.sh $(TENANT)
+
 validate-aws-connection:
 	aws --endpoint-url=http://$(DOCKER_DNS):4566 --region=ap-south-1 sts get-caller-identity
 
@@ -82,14 +86,18 @@ cac:
 run:
 	-make kill
 	cargo build --color always
-	make setup
+	while ! make validate-psql-connection validate-aws-connection; \
+		do echo "waiting for postgres, localstack bootup"; \
+		sleep 0.5; \
+		done
+	# make setup
 	make cac -e DOCKER_DNS=$(DOCKER_DNS)
 
 ci-test:
 	-docker rm -f $$(docker container ls --filter name=^context-aware-config -a -q)
 	-docker rmi -f $$(docker images | grep context-aware-config-postgres | cut -f 10 -d " ")
 	npm ci --loglevel=error
-	cargo test
+	make setup
 	make run -e DOCKER_DNS=$(DOCKER_DNS) 2>&1 | tee test_logs &
 	while ! grep -q "starting in Actix" test_logs; \
 		do echo "ci-test: waiting for bootup..." && sleep 4; \

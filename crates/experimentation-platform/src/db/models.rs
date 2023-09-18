@@ -1,5 +1,5 @@
 use crate::db::schema::*;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 
 use diesel::{Insertable, Queryable, QueryableByName, Selectable};
 use serde::{Deserialize, Serialize};
@@ -37,3 +37,18 @@ pub struct Experiment {
 }
 
 pub type Experiments = Vec<Experiment>;
+
+#[derive(Queryable, Selectable, Insertable, Serialize, Clone, Debug)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+#[diesel(table_name = event_log)]
+#[diesel(primary_key(id))]
+pub struct EventLog {
+    pub id: uuid::Uuid,
+    pub table_name: String,
+    pub user_name: String,
+    pub timestamp: NaiveDateTime,
+    pub action: String,
+    pub original_data: Option<Value>,
+    pub new_data: Option<Value>,
+    pub query: String,
+}
