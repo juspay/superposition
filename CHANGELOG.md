@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.6.1 - 2023-09-20
+### Package updates
+- cac_client bumped to cac_client-v0.2.1
+- context-aware-config bumped to context-aware-config-v0.5.1
+### Global changes
+
+- - -
+
 ## v0.6.0 - 2023-09-12
 ### Package updates
 - cac_client bumped to cac_client-v0.2.0
