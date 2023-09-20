@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.2.1 - 2023-09-20
+#### Bug Fixes
+- PICAF-24507 patching overrides on default-config instead of merge - (2c09e32) - Ritick Madaan
+
+- - -
+
 ## cac_client-v0.2.0 - 2023-09-12
 #### Bug Fixes
 - PICAF-24223 eval param fix - (9d4d678) - Pratik Mishra
