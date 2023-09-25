@@ -22,3 +22,4 @@ chrono = { version = "0.4", features = ["serde"] }
 service-utils = { path = "../service-utils" }
 reqwest = {version = "0.9.11"}
 experimentation-platform = { path = "../experimentation-platform"}
+dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.4.1"}

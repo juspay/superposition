@@ -584,7 +584,7 @@ dependencies = [
  "json-patch",
  "jsonlogic",
  "log",
- "reqwest 0.11.18",
+ "reqwest 0.11.20",
  "serde",
  "serde_json",
 ]
@@ -712,11 +712,12 @@ dependencies = [
  "bytes 1.4.0",
  "cac_client",
  "chrono",
+ "dashboard-auth",
  "derive_more",
  "diesel",
  "diesel-derive-enum",
  "dotenv",
- "env_logger",
+ "env_logger 0.8.4",
  "experimentation-platform",
  "external",
  "futures 0.3.28",
@@ -725,7 +726,7 @@ dependencies = [
  "jsonschema",
  "log",
  "rand 0.8.5",
- "reqwest 0.11.18",
+ "reqwest 0.11.20",
  "rs-snowflake",
  "rusoto_core",
  "rusoto_kms",
@@ -955,6 +956,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "dashboard-auth"
+version = "0.3.3"
+source = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git?tag=v1.4.1#2162c2e2a2913d8c218990ba904acb28322543c9"
+dependencies = [
+ "actix",
+ "actix-web",
+ "derive_more",
+ "dotenv",
+ "env_logger 0.10.0",
+ "futures-util",
+ "log",
+ "reqwest 0.11.20",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "derive_more"
 version = "0.99.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1099,6 +1117,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "env_logger"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85cdab6a89accf66733ad5a1693a4dcced6aeff64602b634530dd73c1f3ee9f0"
+dependencies = [
+ "humantime",
+ "is-terminal",
+ "log",
+ "regex",
+ "termcolor",
+]
+
+[[package]]
 name = "erased-serde"
 version = "0.3.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1146,13 +1177,14 @@ dependencies = [
  "actix",
  "actix-web",
  "chrono",
+ "dashboard-auth",
  "derive_more",
  "diesel",
  "diesel-derive-enum",
  "dotenv",
- "env_logger",
+ "env_logger 0.8.4",
  "log",
- "reqwest 0.11.18",
+ "reqwest 0.11.20",
  "rs-snowflake",
  "serde",
  "serde_json",
@@ -1169,6 +1201,7 @@ dependencies = [
  "actix",
  "actix-web",
  "chrono",
+ "dashboard-auth",
  "dotenv",
  "experimentation-platform",
  "log",
@@ -1866,7 +1899,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "percent-encoding 2.2.0",
  "regex",
- "reqwest 0.11.18",
+ "reqwest 0.11.20",
  "serde",
  "serde_json",
  "time 0.3.21",
@@ -2713,9 +2746,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.11.18"
+version = "0.11.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cde824a14b7c14f85caff81225f411faacc04a2013f41670f41443742b1c1c55"
+checksum = "3e9ad3fe7488d7e34558a2033d45a0c90b72d97b4f80705666fea71472e2e6a1"
 dependencies = [
  "base64 0.21.2",
  "bytes 1.4.0",
@@ -2750,7 +2783,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "webpki-roots",
- "winreg 0.10.1",
+ "winreg 0.50.0",
 ]
 
 [[package]]
@@ -3243,7 +3276,7 @@ dependencies = [
  "chrono",
  "dotenv",
  "jsonlogic",
- "reqwest 0.11.18",
+ "reqwest 0.11.20",
  "serde",
  "serde_json",
  "tokio 1.29.1",
@@ -4068,23 +4101,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "webpki"
-version = "0.22.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07ecc0cd7cac091bf682ec5efa18b1cff79d617b84181f38b3951dbe135f607f"
-dependencies = [
- "ring",
- "untrusted",
-]
-
-[[package]]
 name = "webpki-roots"
-version = "0.22.6"
+version = "0.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6c71e40d7d2c34a5106301fb632274ca37242cd0c9d3e64dbece371a40a2d87"
-dependencies = [
- "webpki",
-]
+checksum = "14247bb57be4f377dfb94c72830b8ce8fc6beac03cf4bf7b9732eadd414123fc"
 
 [[package]]
 name = "winapi"
@@ -4296,11 +4316,12 @@ dependencies = [
 
 [[package]]
 name = "winreg"
-version = "0.10.1"
+version = "0.50.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80d0f4e272c85def139476380b12f9ac60926689dd2e01d4923222f40580869d"
+checksum = "524e57b2c537c0f9b1e69f1965311ec12182b4122e45035b1508cd24d2adadb1"
 dependencies = [
- "winapi 0.3.9",
+ "cfg-if 1.0.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
