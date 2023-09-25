@@ -50,6 +50,7 @@
                   pkgconfig
                   awscli
                   jq
+                  nodejs_18
                 ];
               darwinPkgs = with pkgs; [
                   darwin.apple_sdk.frameworks.Security
