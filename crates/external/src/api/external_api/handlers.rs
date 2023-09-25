@@ -1,25 +1,25 @@
 use actix_web::{
-    patch,
+    get, patch,
     web::{self, Data, Json},
-    Scope, get,
+    Scope,
 };
-
-use experimentation_platform::{
-    api::experiments::{
-        handlers::{get_experiment, conclude}, 
-        types::{ExperimentResponse, ConcludeExperimentRequest, VariantType},
-        helpers::extract_dimensions
-    }, 
-    db::models::Experiment
-};
-use serde_json::Value;
+use dashboard_auth::types::{Tenant, User};
 
 use crate::api::external_api::{
     helpers::{fetch_variant_id, get_resolved_config},
-    types::DiffResponse
+    types::DiffResponse,
 };
+use experimentation_platform::{
+    api::experiments::{
+        handlers::{conclude, get_experiment},
+        helpers::extract_dimensions,
+        types::{ConcludeExperimentRequest, ExperimentResponse, VariantType},
+    },
+    db::models::Experiment,
+};
+use serde_json::Value;
 use service_utils::{
-    service::types::{AppState, AuthenticationInfo, DbConnection},
+    service::types::{AppState, DbConnection},
     types as app,
 };
 
@@ -35,9 +35,18 @@ async fn stabilize(
     params: web::Path<i64>,
     state: Data<AppState>,
     db_conn: DbConnection,
-    auth_info: AuthenticationInfo,
+    user: User,
+    tenant: Tenant,
 ) -> app::Result<Json<ExperimentResponse>> {
-    let response = conclude_experiment(params.into_inner(), state, db_conn, auth_info, VariantType::EXPERIMENTAL).await?;
+    let response = conclude_experiment(
+        params.into_inner(),
+        state,
+        db_conn,
+        user,
+        tenant,
+        VariantType::EXPERIMENTAL,
+    )
+    .await?;
     return Ok(Json(ExperimentResponse::from(response)));
 }
 
@@ -46,9 +55,18 @@ async fn revert(
     params: web::Path<i64>,
     state: Data<AppState>,
     db_conn: DbConnection,
-    auth_info: AuthenticationInfo,
-) -> app::Result<Json<ExperimentResponse>> {    
-    let response = conclude_experiment(params.into_inner(), state, db_conn, auth_info, VariantType::CONTROL).await?;
+    user: User,
+    tenant: Tenant,
+) -> app::Result<Json<ExperimentResponse>> {
+    let response = conclude_experiment(
+        params.into_inner(),
+        state,
+        db_conn,
+        user,
+        tenant,
+        VariantType::CONTROL,
+    )
+    .await?;
     return Ok(Json(ExperimentResponse::from(response)));
 }
 
@@ -56,17 +74,18 @@ pub async fn conclude_experiment(
     exp_id: i64,
     state: Data<AppState>,
     db_conn: DbConnection,
-    auth_info: AuthenticationInfo,
+    user: User,
+    tenant: Tenant,
     variant: VariantType,
 ) -> app::Result<Experiment> {
     let DbConnection(mut conn) = db_conn;
-    
+
     let experiment = get_experiment(exp_id, &mut conn)?;
     let id = fetch_variant_id(&experiment, variant)?;
     let req_body = ConcludeExperimentRequest {
-        chosen_variant : id.to_string()
+        chosen_variant: id.to_string(),
     };
-    let response = conclude (state, exp_id, req_body, conn, auth_info).await?;
+    let response = conclude(state, exp_id, req_body, conn, user, tenant).await?;
     return Ok(response);
 }
 
@@ -83,14 +102,17 @@ pub async fn diff_handler(
     let control_id = fetch_variant_id(&experiment, VariantType::CONTROL)?;
     let experimental_id = fetch_variant_id(&experiment, VariantType::EXPERIMENTAL)?;
 
-    req.insert("variantIds".to_string(), Value::String(format!("[{}]",control_id)));
+    req.insert(
+        "variantIds".to_string(),
+        Value::String(format!("[{}]", control_id)),
+    );
     let before = get_resolved_config(&state, &req)?;
-    req.insert("variantIds".to_string(), Value::String(format!("[{}]",experimental_id)));
+    req.insert(
+        "variantIds".to_string(),
+        Value::String(format!("[{}]", experimental_id)),
+    );
     let after = get_resolved_config(&state, &req)?;
 
-    let res = DiffResponse {
-        before,
-        after
-    };
+    let res = DiffResponse { before, after };
     return Ok(Json(res));
 }

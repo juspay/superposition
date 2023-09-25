@@ -14,6 +14,7 @@ pipeline {
     AUTOPILOT_HOST_INTEG = "autopilot-eks2.internal.svc.k8s.integ.mum.juspay.net";
     DOCKER_DIND_DNS = "jenkins-newton-dind.jp-internal.svc.cluster.local"
     GIT_REPO_NAME = "context-aware-config"
+    CARGO_NET_GIT_FETCH_WITH_CLI=true
     SSH_AUTH_SOCK = """${sh(
         returnStdout: true,
         script: '''

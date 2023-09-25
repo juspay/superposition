@@ -1,12 +1,6 @@
 {
   "method": "GET",
-  "header": [
-    {
-      "key": "Authorization",
-      "value": "Bearer {{token}}",
-      "type": "text"
-    }
-  ],
+  "header": [],
   "url": {
     "raw": "{{host}}/audit",
     "host": [
