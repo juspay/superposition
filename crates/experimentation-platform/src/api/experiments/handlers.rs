@@ -6,11 +6,19 @@ use actix_web::{
     HttpRequest, HttpResponse, Scope,
 };
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, r2d2::{PooledConnection, ConnectionManager}, PgConnection};
+use dashboard_auth::{
+    middleware::acl,
+    types::{Tenant, User},
+};
+use diesel::{
+    r2d2::{ConnectionManager, PooledConnection},
+    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
+};
+
 
 use service_utils::{
     errors::types::{Error as err, ErrorResponse},
-    service::types::{AppState, AuthenticationInfo, DbConnection},
+    service::types::{AppState, DbConnection},
     types as app,
 };
 
@@ -31,8 +39,9 @@ use crate::{
     db::schema::cac_v1::{event_log::dsl as event_log, experiments::dsl as experiments},
 };
 
-pub fn endpoints(scope : Scope) -> Scope {
+pub fn endpoints(scope: Scope) -> Scope {
     scope
+        .guard(acl([("mjos_manager".into(), "RW".into())]))
         .service(create)
         .service(conclude_handler)
         .service(list_experiments)
@@ -44,8 +53,9 @@ pub fn endpoints(scope : Scope) -> Scope {
 async fn create(
     state: Data<AppState>,
     req: web::Json<ExperimentCreateRequest>,
-    auth_info: AuthenticationInfo,
+    user: User,
     db_conn: DbConnection,
+    tenant: Tenant,
 ) -> app::Result<Json<ExperimentCreateResponse>> {
     use crate::db::schema::cac_v1::experiments::dsl::experiments;
     let mut variants = req.variants.to_vec();
@@ -128,7 +138,8 @@ async fn create(
 
     let created_contexts: Vec<ContextPutResp> = http_client
         .put(&url)
-        .bearer_auth(&state.admin_token)
+        .header("Authorization", format!("Bearer {}", user.token))
+        .header("x-tenant", tenant.as_str())
         .json(&cac_operations)
         .send()
         .await
@@ -146,10 +157,9 @@ async fn create(
     }
 
     // inserting experiment in db
-    let AuthenticationInfo(email) = auth_info;
     let new_experiment = Experiment {
         id: experiment_id,
-        created_by: email.to_string(),
+        created_by: user.email.to_string(),
         created_at: Utc::now(),
         last_modified: Utc::now(),
         name: req.name.to_string(),
@@ -158,7 +168,7 @@ async fn create(
         status: ExperimentStatusType::CREATED,
         context: req.context.clone(),
         variants: serde_json::to_value(variants).unwrap(),
-        last_modified_by: email,
+        last_modified_by: user.email,
         chosen_variant: None,
     };
 
@@ -178,10 +188,19 @@ async fn conclude_handler(
     path: web::Path<i64>,
     req: web::Json<ConcludeExperimentRequest>,
     db_conn: DbConnection,
-    auth_info: AuthenticationInfo,
+    user: User,
+    tenant: Tenant,
 ) -> app::Result<Json<ExperimentResponse>> {
     let DbConnection(conn) = db_conn;
-    let response = conclude(state, path.into_inner(), req.into_inner(), conn, auth_info).await?;
+    let response = conclude(
+        state,
+        path.into_inner(),
+        req.into_inner(),
+        conn,
+        user,
+        tenant,
+    )
+    .await?;
     return Ok(Json(ExperimentResponse::from(response)));
 }
 
@@ -190,7 +209,8 @@ pub async fn conclude(
     experiment_id: i64,
     req: ConcludeExperimentRequest,
     mut conn: PooledConnection<ConnectionManager<PgConnection>>,
-    auth_info: AuthenticationInfo,
+    user: User,
+    tenant: Tenant,
 ) -> app::Result<Experiment> {
     use crate::db::schema::cac_v1::experiments::dsl;
 
@@ -255,7 +275,8 @@ pub async fn conclude(
     let url = state.cac_host.clone() + "/context/bulk-operations";
     let response = http_client
         .put(&url)
-        .bearer_auth(&state.admin_token)
+        .header("Authorization", format!("Bearer {}", user.token))
+        .header("x-tenant", tenant.as_str())
         .json(&operations)
         .send()
         .await
@@ -268,16 +289,14 @@ pub async fn conclude(
         )));
     }
 
-    let AuthenticationInfo(email) = auth_info;
-
     // updating experiment status in db
     let updated_experiment = diesel::update(dsl::experiments)
         .filter(dsl::id.eq(experiment_id))
         .set((
             dsl::status.eq(ExperimentStatusType::CONCLUDED),
             dsl::last_modified.eq(Utc::now()),
-            dsl::last_modified_by.eq(email),
-            dsl::chosen_variant.eq(Some(winner_variant_id))
+            dsl::last_modified_by.eq(user.email),
+            dsl::chosen_variant.eq(Some(winner_variant_id)),
         ))
         .get_result::<Experiment>(&mut conn)?;
 
@@ -319,7 +338,8 @@ async fn list_experiments(
         let now = Utc::now();
         builder
             .filter(
-                experiments::last_modified.ge(filters.from_date.unwrap_or(now - Duration::hours(24))),
+                experiments::last_modified
+                    .ge(filters.from_date.unwrap_or(now - Duration::hours(24))),
             )
             .filter(experiments::last_modified.le(filters.to_date.unwrap_or(now)))
     };
@@ -377,7 +397,7 @@ async fn ramp(
     params: web::Path<i64>,
     req: web::Json<RampRequest>,
     db_conn: DbConnection,
-    auth_info: AuthenticationInfo,
+    user: User,
 ) -> app::Result<Json<String>> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
@@ -411,14 +431,12 @@ async fn ramp(
             possible_fix: "".to_string(),
         }));
     }
-    let AuthenticationInfo(email) = auth_info;
-
     let new_traffic_percentage = diesel::update(experiments)
         .filter(id.eq(exp_id))
         .set((
             traffic_percentage.eq(req.traffic_percentage as i32),
             last_modified.eq(Utc::now()),
-            last_modified_by.eq(email),
+            last_modified_by.eq(user.email),
             status.eq(ExperimentStatusType::INPROGRESS),
         ))
         .execute(&mut conn)?;

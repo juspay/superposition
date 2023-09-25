@@ -4,6 +4,7 @@ mod helpers;
 mod logger;
 mod middlewares;
 
+use dashboard_auth::middleware::DashboardAuth;
 use dotenv;
 use logger::{init_log_subscriber, CustomRootSpanBuilder};
 use std::{env, io::Result};
@@ -67,6 +68,7 @@ async fn main() -> Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            .wrap(DashboardAuth::default())
             .wrap(middlewares::cors())
             .wrap(logger::GoldenSignalFactory)
             .wrap(TracingLogger::<CustomRootSpanBuilder>::new())

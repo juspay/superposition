@@ -16,6 +16,7 @@ use actix_web::{
     HttpResponse, Responder, Result, Scope,
 };
 use chrono::Utc;
+use dashboard_auth::{middleware::acl, types::User};
 use diesel::{
     delete,
     r2d2::{ConnectionManager, PooledConnection},
@@ -30,12 +31,13 @@ use service_utils::{
 
 pub fn endpoints() -> Scope {
     Scope::new("")
+        .guard(acl([("mjos_manager".into(), "RW".into())]))
         .service(put_handler)
-        .service(list_contexts)
         .service(move_handler)
-        .service(get_context)
         .service(delete_context)
         .service(bulk_operations)
+        .service(list_contexts)
+        .service(get_context)
 }
 
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
@@ -73,7 +75,7 @@ fn val_dimensions_cal_priority(
 fn create_ctx_from_put_req(
     req: web::Json<PutReq>,
     conn: &mut DBConnection,
-    auth_info: &AuthenticationInfo,
+    user: &User,
 ) -> actix_web::Result<Context> {
     let ctx_condition = Value::Object(req.context.to_owned());
     let priority = match val_dimensions_cal_priority(conn, &ctx_condition) {
@@ -87,7 +89,6 @@ fn create_ctx_from_put_req(
     };
     let context_id = blake3::hash((ctx_condition).to_string().as_bytes()).to_string();
     let override_id = blake3::hash((req.r#override).to_string().as_bytes()).to_string();
-    let AuthenticationInfo(email) = auth_info;
     Ok(Context {
         id: context_id.clone(),
         value: ctx_condition,
@@ -95,7 +96,7 @@ fn create_ctx_from_put_req(
         override_id: override_id.to_owned(),
         override_: req.r#override.to_owned(),
         created_at: Utc::now(),
-        created_by: email.to_owned(),
+        created_by: user.email.clone(),
     })
 }
 
@@ -138,13 +139,13 @@ enum Error {
 
 fn put(
     req: web::Json<PutReq>,
-    auth_info: &AuthenticationInfo,
+    user: &User,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
 ) -> Result<PutResp, Error> {
     use contexts::dsl::contexts;
 
-    let new_ctx = create_ctx_from_put_req(req, conn, auth_info).map_err(|e| {
+    let new_ctx = create_ctx_from_put_req(req, conn, user).map_err(|e| {
         log::error!("context struct creation failed with err: {e:?}");
         Error::STRTYPE(e.to_string())
     })?;
@@ -177,13 +178,13 @@ fn put(
 async fn put_handler(
     req: web::Json<PutReq>,
     state: Data<AppState>,
-    auth_info: AuthenticationInfo,
+    user: User,
 ) -> actix_web::Result<web::Json<PutResp>> {
     let conn = &mut state
         .db_pool
         .get()
         .map_err_to_internal_server("unable to get db connection from pool", "")?;
-    put(req, &auth_info, conn, false)
+    put(req, &user, conn, false)
         .map(|resp| web::Json(resp))
         .map_err(|e| {
             log::info!("context put failed with error: {:?}", e);
@@ -194,12 +195,12 @@ async fn put_handler(
 fn r#move(
     old_ctx_id: String,
     req: web::Json<PutReq>,
-    auth_info: &AuthenticationInfo,
+    user: &User,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
 ) -> Result<PutResp, Error> {
     use contexts::dsl;
-    let new_ctx = create_ctx_from_put_req(req, conn, auth_info).map_err(|e| {
+    let new_ctx = create_ctx_from_put_req(req, conn, user).map_err(|e| {
         log::error!("update query failed with error: {e:?}");
         Error::STRTYPE(e.to_string())
     })?;
@@ -258,14 +259,14 @@ async fn move_handler(
     state: Data<AppState>,
     path: Path<String>,
     req: web::Json<PutReq>,
-    auth_info: AuthenticationInfo,
+    user: User,
 ) -> actix_web::Result<web::Json<PutResp>> {
     let conn = &mut state
         .db_pool
         .get()
         .map_err_to_internal_server("unable to get db connection from pool", "")?;
 
-    r#move(path.into_inner(), req, &auth_info, conn, false)
+    r#move(path.into_inner(), req, &user, conn, false)
         .map(|resp| web::Json(resp))
         .map_err(|e| {
             log::info!("move api failed with error: {:?}", e);
@@ -381,7 +382,7 @@ enum ContextAction {
 async fn bulk_operations(
     reqs: web::Json<Vec<ContextAction>>,
     state: Data<AppState>,
-    auth_info: AuthenticationInfo,
+    user: User,
 ) -> actix_web::Result<HttpResponse> {
     use contexts::dsl::contexts;
     let mut conn = state
@@ -394,12 +395,8 @@ async fn bulk_operations(
         for action in reqs.into_inner().into_iter() {
             match action {
                 ContextAction::PUT(put_req) => {
-                    let resp_result = put(
-                        actix_web::web::Json(put_req),
-                        &auth_info,
-                        transaction_conn,
-                        true,
-                    );
+                    let resp_result =
+                        put(actix_web::web::Json(put_req), &user, transaction_conn, true);
 
                     match resp_result {
                         Ok(put_resp) => {
@@ -414,7 +411,7 @@ async fn bulk_operations(
                 ContextAction::DELETE(ctx_id) => {
                     let deleted_row =
                         delete(contexts.filter(id.eq(&ctx_id))).execute(transaction_conn);
-                    let AuthenticationInfo(email) = auth_info.clone();
+                    let email = user.clone().email;
                     match deleted_row {
                         Ok(0) => return Err(diesel::result::Error::RollbackTransaction),
                         Ok(_) => {
@@ -431,7 +428,7 @@ async fn bulk_operations(
                     let move_context_resp = r#move(
                         old_ctx_id,
                         actix_web::web::Json(put_req),
-                        &auth_info,
+                        &user,
                         transaction_conn,
                         true,
                     );

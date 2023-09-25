@@ -1,7 +1,7 @@
 use super::types::CreateReq;
 use crate::{
     db::{models::DefaultConfig, schema::cac_v1::default_configs::dsl::default_configs},
-    helpers::validate_jsonschema
+    helpers::validate_jsonschema,
 };
 use actix_web::{
     put,
@@ -9,13 +9,19 @@ use actix_web::{
     HttpResponse, Scope,
 };
 use chrono::Utc;
+use dashboard_auth::{
+    middleware::acl,
+    types::User,
+};
 use diesel::RunQueryDsl;
 use jsonschema::{Draft, JSONSchema};
 use serde_json::Value;
-use service_utils::service::types::{AppState, AuthenticationInfo};
+use service_utils::service::types::AppState;
 
 pub fn endpoints() -> Scope {
-    Scope::new("").service(create)
+    Scope::new("")
+        .guard(acl([("mjos_manager".into(), "RW".into())]))
+        .service(create)
 }
 
 #[put("/{key}")]
@@ -23,12 +29,11 @@ async fn create(
     state: Data<AppState>,
     key: web::Path<String>,
     request: web::Json<CreateReq>,
-    auth_info: AuthenticationInfo,
+    user: User,
 ) -> HttpResponse {
     let req = request.into_inner();
     let schema = Value::Object(req.schema);
-    if let Err(e) =
-        validate_jsonschema(&state.default_config_validation_schema, &schema)
+    if let Err(e) = validate_jsonschema(&state.default_config_validation_schema, &schema)
     {
         return HttpResponse::BadRequest().body(e);
     };
@@ -52,13 +57,11 @@ async fn create(
         }
     };
 
-    let AuthenticationInfo(email) = auth_info;
-
     let new_default_config = DefaultConfig {
         key: key.into_inner(),
         value: req.value,
         schema: schema,
-        created_by: email,
+        created_by: user.email,
         created_at: Utc::now(),
     };
 

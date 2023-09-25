@@ -1,0 +1,20 @@
+{
+  "method": "GET",
+  "header": [],
+  "url": {
+    "raw": "{{host}}/config/resolve?clientId=zee5",
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "config",
+      "resolve"
+    ],
+    "query": [
+      {
+        "key": "clientId",
+        "value": "zee5"
+      }
+    ]
+  }
+}
