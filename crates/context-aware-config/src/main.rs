@@ -26,7 +26,6 @@ use api::*;
 use helpers::{get_default_config_validation_schema, get_meta_schema};
 
 use experimentation_platform::api::*;
-use external::api::*;
 
 #[actix_web::main]
 async fn main() -> Result<()> {
