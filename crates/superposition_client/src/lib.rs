@@ -7,10 +7,8 @@ use tokio::{
     sync::RwLock,
     time::{self, Duration},
 };
-pub use types::{Config, Variants};
-use types::{
-    ExperimentStore, Experiments, ListExperimentsResponse, Variant, VariantType,
-};
+pub use types::{Config, Experiment, Experiments, Variants};
+use types::{ExperimentStore, ListExperimentsResponse, Variant, VariantType};
 
 #[derive(Clone, Debug)]
 pub struct Client {
@@ -69,17 +67,8 @@ impl Client {
     }
 
     pub async fn get_applicable_variant(&self, context: &Value, toss: i8) -> Vec<String> {
-        let running_experiments = self.experiments.read().await;
-        // try and if json logic works
-        let mut experiments: Experiments = Vec::new();
-        for (_, exp) in running_experiments.iter() {
-            if let Ok(Value::Bool(true)) = jsonlogic::apply(&exp.context, context) {
-                experiments.push(exp.clone());
-            }
-        }
-
+        let experiments: Experiments = self.get_satisfied_experiments(context).await;
         let mut variants: Vec<String> = Vec::new();
-
         for exp in experiments {
             if let Some(v) =
                 self.decide_variant(exp.traffic_percentage, exp.variants, toss)
@@ -88,6 +77,17 @@ impl Client {
             }
         }
         variants
+    }
+
+    pub async fn get_satisfied_experiments(&self, context: &Value) -> Experiments {
+        let running_experiments = self.experiments.read().await;
+        running_experiments
+            .iter()
+            .filter(|(_, exp)| {
+                (jsonlogic::apply(&exp.context, context) == Ok(Value::Bool(true)))
+            })
+            .map(|(_, exp)| exp.clone())
+            .collect::<Experiments>()
     }
 
     pub async fn get_running_experiments(&self) -> Experiments {
