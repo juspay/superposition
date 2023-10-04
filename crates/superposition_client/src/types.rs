@@ -33,7 +33,7 @@ pub type Variants = Vec<Variant>;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Experiment {
-    pub(crate) variants: Variants,
+    pub variants: Variants,
     pub(crate) name: String,
     pub(crate) id: String,
     pub(crate) traffic_percentage: u8,
