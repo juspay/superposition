@@ -86,10 +86,11 @@ kill:
 
 cac:
 	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
-	cargo run --color always --bin context-aware-config
+	cargo run --color always --bin context-aware-config --no-default-features --features=ssr
 
 run:
 	-make kill
+	cd crates/frontend && wasm-pack build --target=web --debug --no-default-features --features=hydrate
 	cargo build --color always
 	while ! make validate-psql-connection validate-aws-connection; \
 		do echo "waiting for postgres, localstack bootup"; \
@@ -128,6 +129,5 @@ registry-login:
 	docker login \
 	    --username AWS \
 	    --password-stdin $(REGISTRY_HOST)
-
 
 default: dev-build

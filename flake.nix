@@ -2,14 +2,16 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     naersk.url = "github:nix-community/naersk";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    rust-overlay = { url = "github:oxalica/rust-overlay"; };
   };
 
-  outputs = { self, flake-utils, naersk, nixpkgs }:
+  outputs = { self,rust-overlay, flake-utils, naersk, nixpkgs }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = (import nixpkgs) {
           inherit system;
+          overlays = [ rust-overlay.overlay ];
         };
 
         naersk' = pkgs.callPackage naersk {};
@@ -33,7 +35,6 @@
             let
               univPkgs = with pkgs; [
                   # Build requirements
-                  rustc
                   cargo
                   libiconv
                   openssl
@@ -47,13 +48,19 @@
                   diesel-cli
                   docker-compose
                   stdenv.cc
-                  pkgconfig
+                  pkg-config
                   awscli
                   jq
                   nodejs_18
+                  wasm-pack
+                 ( rust-bin.stable.latest.default.override {
+                   extensions = [ "rust-src" ];
+                   targets = [ "wasm32-unknown-unknown" ];
+                   })
                 ];
               darwinPkgs = with pkgs; [
                   darwin.apple_sdk.frameworks.Security
+                  darwin.apple_sdk.frameworks.SystemConfiguration
                 ];
             in
               univPkgs ++  (if pkgs.stdenv.isDarwin then darwinPkgs else []);
