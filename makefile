@@ -59,7 +59,7 @@ ci-test:
 	npm run test
 
 ci-build:
-	docker build \
+	docker buildx build --ssh default=$(SSH_AUTH_SOCK) \
 	    -t $(IMAGE_NAME):$(VERSION) \
 			--build-arg "CONTEXT_AWARE_CONFIG_VERSION=${VERSION}" \
 			--build-arg "SOURCE_COMMIT=${SOURCE_COMMIT}" \
