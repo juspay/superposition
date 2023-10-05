@@ -26,7 +26,7 @@ use diesel::{
 use serde_json::{json, Value, Value::Null};
 use service_utils::{
     helpers::ToActixErr,
-    service::types::{AppState, AuthenticationInfo},
+    service::types::AppState,
 };
 
 pub fn endpoints() -> Scope {
@@ -347,7 +347,7 @@ async fn list_contexts(
 async fn delete_context(
     state: Data<AppState>,
     path: Path<String>,
-    auth_info: AuthenticationInfo,
+    user: User,
 ) -> actix_web::Result<HttpResponse> {
     use contexts::dsl;
     let mut conn = state
@@ -357,11 +357,10 @@ async fn delete_context(
     let ctx_id = path.into_inner();
     let deleted_row =
         delete(dsl::contexts.filter(dsl::id.eq(&ctx_id))).execute(&mut conn);
-    let AuthenticationInfo(email) = auth_info;
     match deleted_row {
         Ok(0) => Err(ErrorNotFound("")),
         Ok(_) => {
-            log::info!("{ctx_id} context deleted by {email}");
+            log::info!("{ctx_id} context deleted by {}", user.email);
             Ok(HttpResponse::NoContent().finish())
         }
         Err(e) => {

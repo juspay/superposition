@@ -783,7 +783,7 @@
 			"name": "audit log",
 			"item": [
 				{
-					"name": "get logs",
+					"name": "get_logs",
 					"event": [
 						{
 							"listen": "test",
