@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.6.1 - 2023-10-05
+#### Bug Fixes
+- [PICAF-24563] add user struct in delete context API - (9a0360d) - Kartik Gajendra
+
+- - -
+
 ## context-aware-config-v0.6.0 - 2023-10-05
 #### Features
 - [PICAF-24563] added dashboard auth middleware - (955d9e9) - Kartik Gajendra
