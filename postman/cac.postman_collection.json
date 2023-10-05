@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "0a62ff3e-69d8-455c-8040-f58fe412e0cf",
+		"_postman_id": "12a7fe9f-2a54-4afa-aa48-4625bfc8e858",
 		"name": "cac",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "17386399"
+		"_exporter_id": "15880623"
 	},
 	"item": [
 		{
@@ -784,6 +784,20 @@
 			"item": [
 				{
 					"name": "get logs",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('expect response be 200', function () {",
+									"    pm.response.to.be.ok;",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
