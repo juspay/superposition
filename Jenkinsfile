@@ -127,7 +127,8 @@ pipeline {
       steps {
         sh '''make ci-build -e \
                 VERSION=${NEW_SEMANTIC_VERSION} \
-                SOURCE_COMMIT=${COMMIT_HASH}
+                SOURCE_COMMIT=${COMMIT_HASH} \
+                SSH_AUTH_SOCK=${SSH_AUTH_SOCK}
            '''
       }
     }

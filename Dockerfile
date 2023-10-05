@@ -1,6 +1,8 @@
 FROM rust:1.67 as builder
 WORKDIR /build
 COPY . .
+RUN mkdir -p ~/.ssh && ssh-keyscan ssh.bitbucket.juspay.net >> ~/.ssh/known_hosts
+RUN --mount=type=ssh cargo build --release
 RUN cargo build --release
 
 FROM debian:bullseye-slim
