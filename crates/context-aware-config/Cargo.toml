@@ -5,14 +5,16 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+
 [dependencies]
 cac_client = { path = "../cac_client" }
+frontend = {path ="../frontend" }
 
 # env
 dotenv = "0.15.0"
 # Https server framework
 actix = "0.13.0"
-actix-web = "4.0.0"
+actix-web = { version = "4.0.0", features = ["macros"] }
 # To help generate snowflake ids
 rs-snowflake = "0.6.0"
 # To help with generating uuids
@@ -57,3 +59,9 @@ external = { path = "../external"}
 actix-cors = "0.6.4"
 anyhow = { version = "1.0", default-features = false }
 dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.5.0"}
+leptos_actix = { version = "0.4.10" }
+leptos = { version = "0.4" }
+leptos_meta = { version = "0.4" }
+leptos_router = { version = "0.4" }
+actix-files = { version = "0.6" }
+

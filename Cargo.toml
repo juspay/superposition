@@ -1,9 +1,20 @@
 [workspace]
+resolver = "2"
 
 members = [
   "crates/service-utils",
   "crates/context-aware-config",
   "crates/superposition_client",
   "crates/cac_client",
-  "crates/superposition_client_integration_example"
+  "crates/superposition_client_integration_example",
+  "crates/frontend"
 ]
+
+
+[[workspace.metadata.leptos]]
+output-name = "frontend"
+bin-package = "context-aware-config"
+lib-package = "frontend"
+assets-dir = "crates/frontend/assets"
+style-file = "frontend/style/tailwind.css"
+site-root = "crates/frontend"

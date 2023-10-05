@@ -23,15 +23,30 @@ use snowflake::SnowflakeIdGenerator;
 use std::{sync::Mutex, time::Duration};
 use tracing_actix_web::TracingLogger;
 
+use actix_files::Files;
+use frontend::app::*;
+use leptos::*;
+use leptos_actix::{generate_route_list, LeptosRoutes};
 use service_utils::{
     db::pgschema_manager::PgSchemaManager,
     db::utils::init_pool_manager,
-    helpers::{get_from_env_unsafe, get_pod_info, get_from_env_or_default},
+    helpers::{get_from_env_or_default, get_from_env_unsafe, get_pod_info},
     middlewares::{
         app_scope::AppExecutionScopeMiddlewareFactory, tenant::TenantMiddlewareFactory,
     },
     service::types::{AppEnv, AppScope, AppState, ExperimentationFlags},
 };
+
+#[actix_web::get("favicon.ico")]
+async fn favicon(
+    leptos_options: actix_web::web::Data<leptos::LeptosOptions>,
+) -> actix_web::Result<actix_files::NamedFile> {
+    let leptos_options = leptos_options.into_inner();
+    let site_root = &leptos_options.site_root;
+    Ok(actix_files::NamedFile::open(format!(
+        "{site_root}/favicon.ico"
+    ))?)
+}
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -95,7 +110,14 @@ async fn main() -> Result<()> {
 
     /****** EXPERIMENTATION PLATFORM ENVs *********/
 
+    /* Frontend configurations */
+    let conf = get_configuration(Some("Cargo.toml")).await.unwrap();
+    // Generate the list of routes in your Leptos App
+    let routes = generate_route_list(|cx| view! { cx, <App/> });
+
     HttpServer::new(move || {
+        let leptos_options = &conf.leptos_options;
+        let site_root = &leptos_options.site_root;
         App::new()
             .wrap(DashboardAuth::default(authenticated_routes()))
             .wrap(TenantMiddlewareFactory)
@@ -171,6 +193,19 @@ async fn main() -> Result<()> {
                     AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION),
                 ),
             )
+            .route("/api/{tail:.*}", leptos_actix::handle_server_fns())
+            // serve JS/WASM/CSS from `pkg`
+            .service(Files::new("/pkg", format!("{site_root}/pkg")))
+            // serve other assets from the `assets` directory
+            .service(Files::new("/assets", site_root))
+            // serve the favicon from /favicon.ico
+            .service(favicon)
+            .leptos_routes(
+                leptos_options.to_owned(),
+                routes.to_owned(),
+                |cx| view! { cx, <App/> },
+            )
+            .app_data(Data::new(leptos_options.to_owned()))
     })
     .bind(("0.0.0.0", 8080))?
     .workers(5)

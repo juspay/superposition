@@ -1,0 +1,41 @@
+[package]
+name = "frontend"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+actix-files = { version = "0.6", optional = true }
+actix-web = { version = "4", optional = true, features = ["macros"] }
+console_error_panic_hook = "0.1"
+cfg-if = "1"
+http = { version = "0.2", optional = true }
+leptos = { version = "0.4" }
+leptos_meta = { version = "0.4" }
+leptos_actix = { version = "0.4", optional = true }
+leptos_router = { version = "0.4" }
+wasm-bindgen = "=0.2.87"
+reqwest = { version = "0.11", features = ["json"] }
+serde = {version = "^1", features = ["derive"]}
+serde_json = {version = "1.0"}
+web-sys = "0.3.64"
+futures = "0.3"
+
+
+[features]
+csr = ["leptos/csr", "leptos_meta/csr", "leptos_router/csr"]
+hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
+ssr = [
+  "dep:actix-files",
+  "dep:actix-web",
+  "dep:leptos_actix",
+  "leptos/ssr",
+  "leptos_meta/ssr",
+  "leptos_router/ssr",
+]
+
+
+
+
