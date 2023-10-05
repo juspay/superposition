@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.7.0 - 2023-10-05
+### Package updates
+- experimentation-platform bumped to experimentation-platform-v0.4.0
+- context-aware-config bumped to context-aware-config-v0.6.0
+### Global changes
+#### Continuous Integration
+- **(flake.nix)** pin nodejs version to 18 in flake - (614261e) - Natarajan Kannan
+#### Features
+- [PICAF-24563] added dashboard auth middleware - (955d9e9) - Kartik Gajendra
+- PICAF-24664 cors middleware attached - (8cb4805) - Ritick Madaan
+
+- - -
+
 ## v0.6.1 - 2023-09-20
 ### Package updates
 - cac_client bumped to cac_client-v0.2.1

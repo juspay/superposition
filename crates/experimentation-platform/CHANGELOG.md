@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.4.0 - 2023-10-05
+#### Features
+- [PICAF-24563] added dashboard auth middleware - (955d9e9) - Kartik Gajendra
+
+- - -
+
 ## experimentation-platform-v0.3.1 - 2023-09-12
 #### Bug Fixes
 - failed build due to untracked schema.rs file changes - (5bc4eae) - Shubhranshu Sanjeev
