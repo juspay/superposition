@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.7.1 - 2023-10-05
+### Package updates
+- service-utils bumped to service-utils-v0.4.1
+- context-aware-config bumped to context-aware-config-v0.6.1
+### Global changes
+#### Bug Fixes
+- [PICAF-24563] add user struct in delete context API - (9a0360d) - Kartik Gajendra
+- ssh.bitbucket.juspay.net added to known hosts in docker bulid - (9207701) - Ritick Madaan
+
+- - -
+
 ## v0.7.0 - 2023-10-05
 ### Package updates
 - experimentation-platform bumped to experimentation-platform-v0.4.0
