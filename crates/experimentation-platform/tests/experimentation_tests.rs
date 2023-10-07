@@ -20,8 +20,8 @@ fn single_dimension_ctx_gen(value: Dimensions) -> serde_json::Value {
         }),
         Dimensions::CLIENT(client_id) => serde_json::json!({
             "==": [
-                {"var": "clientId"},
-                client_id
+                client_id,
+                {"var": "clientId"}
             ]
         }),
     }

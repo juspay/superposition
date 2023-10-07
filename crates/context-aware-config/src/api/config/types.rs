@@ -8,7 +8,7 @@ pub struct Config {
     pub default_configs: Map<String, Value>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct Context {
     pub id: String,
     pub condition: Value,

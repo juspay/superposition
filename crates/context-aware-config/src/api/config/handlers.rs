@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::types::Config;
+use super::types::{Config, Context};
 use crate::db::schema::{
     contexts::dsl as ctxt, default_configs::dsl as def_conf, event_log::dsl as event_log,
 };
@@ -15,11 +15,18 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
+use experimentation_platform::api::experiments::helpers::extract_dimensions;
 use serde_json::{json, Map, Value, Value::Null};
-use service_utils::{helpers::ToActixErr, service::types::DbConnection};
+use service_utils::{
+    errors::types::Error as err, helpers::ToActixErr, service::types::DbConnection,
+    types as app,
+};
 
 pub fn endpoints() -> Scope {
-    Scope::new("").service(get).service(get_resolved_config)
+    Scope::new("")
+        .service(get)
+        .service(get_resolved_config)
+        .service(get_filtered_config)
 }
 
 fn add_last_modified_header(
@@ -178,6 +185,74 @@ async fn get_resolved_config(
         )
         .map_err_to_internal_server("cac eval failed", Null)?,
     );
-
     add_last_modified_header(max_created_at, response)
+}
+
+#[get("/filter")]
+async fn get_filtered_config(
+    req: HttpRequest,
+    db_conn: DbConnection,
+) -> actix_web::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let params = Query::<HashMap<String, String>>::from_query(req.query_string())
+        .map_err(|_| ErrorBadRequest("error getting query params"))?;
+    let mut query_params_map: serde_json::Map<String, Value> = Map::new();
+
+    for (key, value) in params.0.into_iter() {
+        query_params_map.insert(
+            key,
+            value
+                .parse::<i32>()
+                .map_or_else(|_| json!(value), |int_val| json!(int_val)),
+        );
+    }
+    let config = generate_cac(&mut conn).await?;
+    let contexts = config.contexts;
+
+    let filtered_context = filter_context(contexts, query_params_map)?;
+    let mut filtered_overrides: Map<String, Value> = Map::new();
+    for ele in filtered_context.iter() {
+        let override_with_key = &ele.override_with_keys[0];
+        filtered_overrides.insert(
+            override_with_key.to_string(),
+            config
+                .overrides
+                .get(override_with_key)
+                .ok_or(err::InternalServerErr(
+                    "Could not fetch override_key".to_string(),
+                ))?
+                .to_owned(),
+        );
+    }
+
+    let filtered_config = Config {
+        contexts: filtered_context,
+        overrides: filtered_overrides,
+        default_configs: config.default_configs,
+    };
+
+    Ok(HttpResponse::Ok().json(filtered_config))
+}
+
+fn filter_context(
+    contexts: Vec<Context>,
+    query_params_map: Map<String, Value>,
+) -> app::Result<Vec<Context>> {
+    let mut filtered_context: Vec<Context> = Vec::new();
+    for context in contexts.into_iter() {
+        if should_add_ctx(&context, &query_params_map)? {
+            filtered_context.push(context);
+        }
+    }
+    return Ok(filtered_context);
+}
+
+fn should_add_ctx(
+    context: &Context,
+    query_params_map: &Map<String, Value>,
+) -> app::Result<bool> {
+    let dimension = extract_dimensions(&context.condition)?;
+    Ok(dimension
+        .iter()
+        .all(|(key, value)| query_params_map.get(key).map_or(true, |val| val == value)))
 }

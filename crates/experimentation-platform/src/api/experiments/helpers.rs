@@ -44,12 +44,48 @@ pub fn validate_override_keys(override_keys: &Vec<String>) -> app::Result<()> {
         if !key_set.insert(key) {
             return Err(err::BadArgument(ErrorResponse {
                 message: "override_keys are not unique".to_string(),
-                possible_fix: "remove duplicate entries in override_keys".to_string()
+                possible_fix: "remove duplicate entries in override_keys".to_string(),
             }));
         }
     }
 
     Ok(())
+}
+
+pub fn get_variable_name_and_value(operands: &Vec<Value>) -> app::Result<(&str, &Value)> {
+    let (obj_pos, variable_obj) = operands
+        .iter()
+        .enumerate()
+        .find(|(_, operand)| {
+            operand.is_object() && operand.as_object().unwrap().get("var").is_some()
+        })
+        .ok_or(err::BadArgument(ErrorResponse {
+            message: " failed to get variable name from operands list".to_string(),
+            possible_fix: "ensure the context provided obeys the rules of JSON logic"
+                .to_string(),
+        }))?;
+
+    let variable_name = variable_obj
+        .as_object()
+        .map_or(None, |obj| obj.get("var"))
+        .map_or(None, |value| value.as_str())
+        .ok_or(err::BadArgument(ErrorResponse {
+            message: " failed to get variable name from operands list".to_string(),
+            possible_fix: "ensure the context provided obeys the rules of JSON logic"
+                .to_string(),
+        }))?;
+
+    let value_pos = (obj_pos + 1) % 2;
+    let variable_value =
+        operands
+            .get(value_pos)
+            .ok_or(err::BadArgument(ErrorResponse {
+                message: " failed to get variable value from operands list".to_string(),
+                possible_fix: "ensure the context provided obeys the rules of JSON logic"
+                    .to_string(),
+            }))?;
+
+    Ok((variable_name, variable_value))
 }
 
 pub fn extract_dimensions(context_json: &Value) -> app::Result<Map<String, Value>> {
@@ -89,46 +125,7 @@ pub fn extract_dimensions(context_json: &Value) -> app::Result<Map<String, Value
                 },
             ))?;
 
-            let variable_name = operands
-                .get(0) // getting first element which should contain an object with property `var` with string value
-                .ok_or(err::BadArgument(ErrorResponse {
-                    message: " failed to get variable name from operands list"
-                        .to_string(),
-                    possible_fix:
-                        "ensure the context provided obeys the rules of JSON logic"
-                            .to_string(),
-                }))?
-                .as_object() // parsing json value as an object/map
-                .ok_or(err::BadArgument(ErrorResponse {
-                    message: " failed to parse variable as an object".to_string(),
-                    possible_fix:
-                        "ensure the context provided obeys the rules of JSON logic"
-                            .to_string(),
-                }))?
-                .get("var") // accessing `var` from object/map which contains variable name
-                .ok_or(err::BadArgument(ErrorResponse {
-                    message: " var property not present in variable object".to_string(),
-                    possible_fix:
-                        "ensure the context provided obeys the rules of JSON logic"
-                            .to_string(),
-                }))?
-                .as_str() // parsing json value as raw string
-                .ok_or(err::BadArgument(ErrorResponse {
-                    message: " var propery value is not a string".to_string(),
-                    possible_fix:
-                        "ensure the context provided obeys the rules of JSON logic"
-                            .to_string(),
-                }))?;
-
-            let variable_value = operands
-                .get(1) // getting second element which should be the value of the variable
-                .ok_or(err::BadArgument(ErrorResponse {
-                    message: " failed to get variable value from operands list"
-                        .to_string(),
-                    possible_fix:
-                        "ensure the context provided obeys the rules of JSON logic"
-                            .to_string(),
-                }))?;
+            let (variable_name, variable_value) = get_variable_name_and_value(operands)?;
 
             dimension_tuples.push((String::from(variable_name), variable_value.clone()));
         }
@@ -167,10 +164,9 @@ pub fn are_overlapping_contexts(
     Ok(is_overlapping)
 }
 
-
 pub fn check_variant_override_coverage(
     variant_override: &Map<String, Value>,
-    override_keys: &Vec<String>
+    override_keys: &Vec<String>,
 ) -> bool {
     if variant_override.keys().len() != override_keys.len() {
         return false;
@@ -201,7 +197,7 @@ pub fn is_valid_experiment(
     context: &Value,
     override_keys: &Vec<String>,
     flags: &ExperimentationFlags,
-    active_experiments: &Vec<Experiment>
+    active_experiments: &Vec<Experiment>,
 ) -> app::Result<(bool, String)> {
     let mut valid_experiment = true;
     let mut invalid_reason = String::new();
