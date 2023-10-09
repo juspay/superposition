@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.8.0 - 2023-10-09
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.7.0
+- service-utils bumped to service-utils-v0.5.0
+### Global changes
+#### Features
+- server's keep-alive time and db connection pool max size made configurable - (110ee00) - Ritick Madaan
+
+- - -
+
 ## v0.7.1 - 2023-10-05
 ### Package updates
 - service-utils bumped to service-utils-v0.4.1
