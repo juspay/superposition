@@ -9,10 +9,7 @@ use actix_web::{
     HttpResponse, Scope,
 };
 use chrono::Utc;
-use dashboard_auth::{
-    middleware::acl,
-    types::User,
-};
+use dashboard_auth::{middleware::acl, types::User};
 use diesel::RunQueryDsl;
 use jsonschema::{Draft, JSONSchema};
 use serde_json::Value;
