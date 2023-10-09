@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.7.0 - 2023-10-09
+#### Features
+- server's keep-alive time and db connection pool max size made configurable - (110ee00) - Ritick Madaan
+#### Miscellaneous Chores
+- database migration for dimensions table - (3a36c56) - Ritick Madaan
+
+- - -
+
 ## context-aware-config-v0.6.1 - 2023-10-05
 #### Bug Fixes
 - [PICAF-24563] add user struct in delete context API - (9a0360d) - Kartik Gajendra
