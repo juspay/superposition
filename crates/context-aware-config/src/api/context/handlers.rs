@@ -24,10 +24,7 @@ use diesel::{
     Connection, ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
 };
 use serde_json::{json, Value, Value::Null};
-use service_utils::{
-    helpers::ToActixErr,
-    service::types::AppState,
-};
+use service_utils::{helpers::ToActixErr, service::types::AppState};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
