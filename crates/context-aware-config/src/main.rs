@@ -4,29 +4,24 @@ mod helpers;
 mod logger;
 mod middlewares;
 
+use crate::middlewares::audit_response_header::{AuditHeader, TableName};
+use actix_web::{web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
+use api::*;
 use dashboard_auth::middleware::DashboardAuth;
 use dotenv;
+use experimentation_platform::api::*;
+use helpers::{get_default_config_validation_schema, get_meta_schema};
 use logger::{init_log_subscriber, CustomRootSpanBuilder};
-use std::{env, io::Result};
-use tracing::{span, Level};
-
-use actix_web::{web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
-use snowflake::SnowflakeIdGenerator;
-use std::sync::Mutex;
-use tracing_actix_web::TracingLogger;
-
 use service_utils::{
     db::utils::get_pool,
     helpers::{get_from_env_unsafe, get_pod_info},
     service::types::{AppState, ExperimentationFlags},
 };
-
-use crate::middlewares::audit_response_header::{AuditHeader, TableName};
-
-use api::*;
-use helpers::{get_default_config_validation_schema, get_meta_schema};
-
-use experimentation_platform::api::*;
+use snowflake::SnowflakeIdGenerator;
+use std::{env, io::Result};
+use std::{sync::Mutex, time::Duration};
+use tracing::{span, Level};
+use tracing_actix_web::TracingLogger;
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -114,10 +109,15 @@ async fn main() -> Result<()> {
                     .service(config::endpoints()),
             )
             .service(scope("/audit").service(audit_log::endpoints()))
-            .service(external::endpoints(experiments::endpoints(scope("/experiments"))))
+            .service(external::endpoints(experiments::endpoints(scope(
+                "/experiments",
+            ))))
     })
     .bind(("0.0.0.0", 8080))?
     .workers(5)
+    .keep_alive(Duration::from_secs(
+        get_from_env_unsafe("ACTIX_KEEP_ALIVE").unwrap_or(120),
+    ))
     .run()
     .await
 }
