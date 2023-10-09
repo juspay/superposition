@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service-utils-v0.5.0 - 2023-10-09
+#### Features
+- server's keep-alive time and db connection pool max size made configurable - (110ee00) - Ritick Madaan
+
+- - -
+
 ## service-utils-v0.4.1 - 2023-10-05
 #### Bug Fixes
 - [PICAF-24563] add user struct in delete context API - (9a0360d) - Kartik Gajendra
