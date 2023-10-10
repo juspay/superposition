@@ -106,12 +106,12 @@ pub async fn diff_handler(
         "variantIds".to_string(),
         Value::String(format!("[{}]", control_id)),
     );
-    let before = get_resolved_config(&state, &req)?;
+    let before = get_resolved_config(&state, &req).await?;
     req.insert(
         "variantIds".to_string(),
         Value::String(format!("[{}]", experimental_id)),
     );
-    let after = get_resolved_config(&state, &req)?;
+    let after = get_resolved_config(&state, &req).await?;
 
     let res = DiffResponse { before, after };
     return Ok(Json(res));
