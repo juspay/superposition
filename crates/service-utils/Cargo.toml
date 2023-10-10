@@ -7,28 +7,28 @@ edition = "2021"
 
 [dependencies]
 # env
-dotenv = "0.15.0"
+dotenv = { workspace = true }
 # Https server framework
-actix = "0.13.0"
-actix-web = "4.0.0"
+actix = { workspace = true }
+actix-web = { workspace = true }
 futures-util = "0.3.28"
 # To help generate snowflake ids
-rs-snowflake = "0.6.0"
+rs-snowflake = { workspace = true }
 #ORM
-diesel = { version = "2.1.0", features = ["postgres", "r2d2", "serde_json", "chrono", "uuid", "postgres_backend"] }
-env_logger = "0.8"
-anyhow = "1.0.75"
-rusoto_kms = "0.48.0"
-rusoto_signature = "0.48.0"
-bytes = "1.4.0"
-rusoto_core = "0.48.0"
-base64 = "0.21.2"
-urlencoding = "~2.1.2"
-jsonschema = "~0.17"
-log = "^0.4"
-serde = {version = "^1", features = ["derive"]}
-serde_json = {version = "1.0"}
+env_logger = { workspace = true }
+anyhow = { workspace = true }
 strum_macros = "^0.24"
 strum = {version = "^0.24"}
-derive_more = "^0.99"
-dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.5.0"}
+diesel = { workspace = true }
+rusoto_kms = { workspace = true }
+rusoto_signature = { workspace = true }
+bytes = { workspace = true }
+rusoto_core = { workspace = true }
+base64 = { workspace = true }
+urlencoding = { workspace = true }
+jsonschema = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+derive_more = { workspace = true }
+dashboard-auth = { workspace = true }
