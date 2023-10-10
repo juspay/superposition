@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.7.1 - 2023-10-10
+#### Bug Fixes
+- PICAF-24742 add migration for changing default_configs_keys - (55f8895) - Pratik Mishra
+
+- - -
+
 ## context-aware-config-v0.7.0 - 2023-10-09
 #### Features
 - server's keep-alive time and db connection pool max size made configurable - (110ee00) - Ritick Madaan
