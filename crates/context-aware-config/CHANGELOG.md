@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.8.0 - 2023-10-10
+#### Features
+- support to update experiment override_keys and variants - (9432bf7) - Shubhranshu Sanjeev
+#### Refactoring
+- resolved comments - (aefb03e) - Shubhranshu Sanjeev
+
+- - -
+
 ## context-aware-config-v0.7.1 - 2023-10-10
 #### Bug Fixes
 - PICAF-24742 add migration for changing default_configs_keys - (55f8895) - Pratik Mishra
