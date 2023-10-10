@@ -7,19 +7,19 @@ edition = "2021"
 
 [dependencies]
 # env
-dotenv = "0.15.0"
+dotenv = { workspace = true }
 # Https server framework
-actix = "0.13.0"
-actix-web = "4.0.0"
+actix = { workspace = true }
+actix-web = { workspace = true }
 # To serialize and deserialize objects from json
-serde = {version = "^1", features = ["derive"]}
-serde_json = {version = "1.0"}
+serde = { workspace = true }
+serde_json = { workspace = true }
 # For logging and debugging
-log = "^0.4"
+log = { workspace = true }
 # date and time
-chrono = { version = "0.4", features = ["serde"] }
+chrono = { workspace = true }
 # ORM
 service-utils = { path = "../service-utils" }
-reqwest = {version = "0.9.11"}
+reqwest = { workspace = true }
 experimentation-platform = { path = "../experimentation-platform"}
-dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.5.0"}
+dashboard-auth = { workspace = true }

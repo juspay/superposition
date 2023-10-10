@@ -33,7 +33,7 @@ pub fn fetch_variant_id(
     return Err(err::InternalServerErr("".to_string()));
 }
 
-pub fn get_resolved_config(
+pub async fn get_resolved_config(
     state: &Data<AppState>,
     dimension_ctx: &Map<String, Value>,
 ) -> app::Result<Value> {
@@ -45,7 +45,10 @@ pub fn get_resolved_config(
         .header("x-tenant", "mjos")
         .query(dimension_ctx)
         .send()
-        .and_then(|mut resp| resp.json())
+        .await
+        .map_err(|e| err::InternalServerErr(e.to_string()))?
+        .json()
+        .await
         .map_err(|e| err::InternalServerErr(e.to_string()))?;
     Ok(resp)
 }
