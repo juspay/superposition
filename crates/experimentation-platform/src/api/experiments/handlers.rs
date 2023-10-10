@@ -6,10 +6,7 @@ use actix_web::{
     HttpRequest, HttpResponse, Scope,
 };
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
-use dashboard_auth::{
-    middleware::acl,
-    types::{Tenant, User},
-};
+use dashboard_auth::types::User;
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
@@ -17,7 +14,7 @@ use diesel::{
 
 use service_utils::{
     errors::types::{Error as err, ErrorResponse},
-    service::types::{AppState, DbConnection},
+    service::types::{AppState, DbConnection, Tenant},
     types as app,
 };
 
@@ -27,15 +24,15 @@ use super::{
         check_variants_override_coverage, validate_experiment, validate_override_keys,
     },
     types::{
-        ConcludeExperimentRequest, ContextAction, ContextBulkResponse, ContextMoveReq,
-        ContextPutReq, ContextPutResp, ExperimentCreateRequest, ExperimentCreateResponse,
-        ExperimentResponse, ExperimentsResponse, ListFilters, OverrideKeysUpdateRequest,
-        RampRequest, Variant, AuditQueryFilters
+        AuditQueryFilters, ConcludeExperimentRequest, ContextAction, ContextBulkResponse,
+        ContextMoveReq, ContextPutReq, ContextPutResp, ExperimentCreateRequest,
+        ExperimentCreateResponse, ExperimentResponse, ExperimentsResponse, ListFilters,
+        OverrideKeysUpdateRequest, RampRequest, Variant,
     },
 };
 
 use crate::{
-    db::models::{Experiment, ExperimentStatusType, EventLog},
+    db::models::{EventLog, Experiment, ExperimentStatusType},
     db::schema::{event_log::dsl as event_log, experiments::dsl as experiments},
 };
 
@@ -43,7 +40,6 @@ use serde_json::{json, Map, Value};
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
-        .guard(acl([("mjos_manager".into(), "RW".into())]))
         .service(get_audit_logs)
         .service(create)
         .service(conclude_handler)

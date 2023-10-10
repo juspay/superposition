@@ -7,6 +7,11 @@
       "type": "default"
     },
     {
+        "key": "x-tenant",
+        "value": "mjos",
+        "type": "default"
+    },
+    {
       "key": "Content-Type",
       "value": "application/json",
       "type": "default"
