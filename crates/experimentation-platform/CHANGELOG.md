@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.5.0 - 2023-10-10
+#### Bug Fixes
+- validating override_keys for unique entries - (36cf523) - Shubhranshu Sanjeev
+#### Features
+- support to update experiment override_keys and variants - (9432bf7) - Shubhranshu Sanjeev
+#### Refactoring
+- resolved comments - (aefb03e) - Shubhranshu Sanjeev
+#### Tests
+- added tests for experiment helper fnxs - (ea4db17) - Shubhranshu Sanjeev
+
+- - -
+
 ## experimentation-platform-v0.4.0 - 2023-10-05
 #### Features
 - [PICAF-24563] added dashboard auth middleware - (955d9e9) - Kartik Gajendra

@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.9.0 - 2023-10-10
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.8.0
+- experimentation-platform bumped to experimentation-platform-v0.5.0
+### Global changes
+#### Refactoring
+- resolved comments - (aefb03e) - Shubhranshu Sanjeev
+#### Tests
+- added postman test for update override_keys api - (cc96ca1) - Shubhranshu Sanjeev
+- added tests for experiment helper fnxs - (ea4db17) - Shubhranshu Sanjeev
+
+- - -
+
 ## v0.8.1 - 2023-10-10
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.7.1
