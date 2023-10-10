@@ -32,4 +32,4 @@ diesel = { version = "2.0.2", features = ["postgres", "r2d2", "serde_json", "chr
 diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
 service-utils = { path = "../service-utils" }
 reqwest = {version = "0.11.18"}
-dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.4.1"}
+dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.5.0"}

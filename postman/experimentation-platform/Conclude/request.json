@@ -10,6 +10,11 @@
       "key": "Authorization",
       "value": "Bearer {{token}}",
       "type": "text"
+    },
+    {
+        "key": "x-tenant",
+        "value": "mjos",
+        "type": "default"
     }
   ],
   "body": {

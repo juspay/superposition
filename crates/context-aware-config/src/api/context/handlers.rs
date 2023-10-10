@@ -25,7 +25,7 @@ use actix_web::{
 };
 use anyhow::anyhow;
 use chrono::Utc;
-use dashboard_auth::{middleware::acl, types::User};
+use dashboard_auth::types::User;
 use diesel::{
     delete,
     r2d2::{ConnectionManager, PooledConnection},
@@ -38,7 +38,6 @@ use service_utils::{helpers::ToActixErr, service::types::DbConnection};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
-        .guard(acl([("mjos_manager".into(), "RW".into())]))
         .service(put_handler)
         .service(move_handler)
         .service(delete_context)

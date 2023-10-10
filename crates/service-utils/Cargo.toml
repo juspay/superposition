@@ -31,4 +31,4 @@ serde_json = {version = "1.0"}
 strum_macros = "^0.24"
 strum = {version = "^0.24"}
 derive_more = "^0.99"
-dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.4.1"}
+dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.5.0"}

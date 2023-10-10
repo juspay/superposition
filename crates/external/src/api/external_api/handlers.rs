@@ -3,7 +3,7 @@ use actix_web::{
     web::{self, Data, Json},
     Scope,
 };
-use dashboard_auth::types::{Tenant, User};
+use dashboard_auth::types::User;
 
 use crate::api::external_api::{
     helpers::{fetch_variant_id, get_resolved_config},
@@ -19,7 +19,7 @@ use experimentation_platform::{
 };
 use serde_json::Value;
 use service_utils::{
-    service::types::{AppState, DbConnection},
+    service::types::{AppState, DbConnection, Tenant},
     types as app,
 };
 
