@@ -1,4 +1,5 @@
 mod api;
+mod auth;
 mod db;
 mod helpers;
 mod logger;
@@ -7,7 +8,10 @@ mod middlewares;
 use crate::middlewares::audit_response_header::{AuditHeader, TableName};
 use actix_web::{web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
 use api::*;
-use dashboard_auth::middleware::DashboardAuth;
+use dashboard_auth::{
+    middleware::DashboardAuth,
+    types::{AuthenticatedRoute, AuthenticatedRouteList},
+};
 use dotenv;
 use experimentation_platform::api::*;
 use helpers::{get_default_config_validation_schema, get_meta_schema};
@@ -24,8 +28,7 @@ use service_utils::{
     db::utils::init_pool_manager,
     helpers::{get_from_env_unsafe, get_pod_info, get_from_env_or_default},
     middlewares::{
-        app_scope::AppExecutionScopeMiddlewareFactory,
-        tenant::TenantMiddlewareFactory,
+        app_scope::AppExecutionScopeMiddlewareFactory, tenant::TenantMiddlewareFactory,
     },
     service::types::{AppEnv, AppScope, AppState, ExperimentationFlags},
 };
@@ -57,11 +60,12 @@ async fn main() -> Result<()> {
         .split(",")
         .map(|tenant| tenant.to_string())
         .collect::<HashSet<String>>();
-    let tenant_middleware_exclusion_list = get_from_env_unsafe::<String>("TENANT_MIDDLEWARE_EXCLUSION_LIST")
-        .expect("TENANT_MIDDLEWARE_EXCLUSION_LIST is not set")
-        .split(",")
-        .map(String::from)
-        .collect::<HashSet<String>>();
+    let tenant_middleware_exclusion_list =
+        get_from_env_unsafe::<String>("TENANT_MIDDLEWARE_EXCLUSION_LIST")
+            .expect("TENANT_MIDDLEWARE_EXCLUSION_LIST is not set")
+            .split(",")
+            .map(String::from)
+            .collect::<HashSet<String>>();
 
     let string_to_int = |s: &String| -> i32 {
         s.chars()
@@ -93,7 +97,7 @@ async fn main() -> Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .wrap(DashboardAuth::default())
+            .wrap(DashboardAuth::default(authenticated_routes()))
             .wrap(TenantMiddlewareFactory)
             .wrap(middlewares::cors())
             .wrap(logger::GoldenSignalFactory)
@@ -122,7 +126,8 @@ async fn main() -> Result<()> {
                 app_env: app_env.to_owned(),
                 enable_tenant_and_scope: enable_tenant_and_scope.to_owned(),
                 tenants: tenants.to_owned(),
-                tenant_middleware_exclusion_list: tenant_middleware_exclusion_list.to_owned(),
+                tenant_middleware_exclusion_list: tenant_middleware_exclusion_list
+                    .to_owned(),
             }))
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()
@@ -162,8 +167,9 @@ async fn main() -> Result<()> {
                     .service(audit_log::endpoints()),
             )
             .service(
-                external::endpoints(experiments::endpoints(scope("/experiments")))
-                    .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION)),
+                external::endpoints(experiments::endpoints(scope("/experiments"))).wrap(
+                    AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION),
+                ),
             )
     })
     .bind(("0.0.0.0", 8080))?
@@ -173,4 +179,13 @@ async fn main() -> Result<()> {
     ))
     .run()
     .await
+}
+
+fn authenticated_routes() -> AuthenticatedRouteList {
+    let mut route_vector: Vec<(&str, AuthenticatedRoute)> = Vec::new();
+    route_vector.append(&mut auth::contexts::authenticated_routes());
+    route_vector.append(&mut auth::default_config::authenticated_routes());
+    route_vector.append(&mut auth::dimension::authenticated_routes());
+    route_vector.append(&mut auth::experiments::authenticated_routes());
+    AuthenticatedRouteList::from(route_vector)
 }

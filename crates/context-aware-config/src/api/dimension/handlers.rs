@@ -9,15 +9,13 @@ use actix_web::{
     HttpResponse, Scope,
 };
 use chrono::Utc;
-use dashboard_auth::{middleware::acl, types::User};
+use dashboard_auth::types::User;
 use diesel::RunQueryDsl;
 use jsonschema::{Draft, JSONSchema};
 use service_utils::service::types::{AppState, DbConnection};
 
 pub fn endpoints() -> Scope {
-    Scope::new("")
-        .guard(acl([("mjos_manager".into(), "RW".into())]))
-        .service(create)
+    Scope::new("").service(create)
 }
 
 #[put("")]

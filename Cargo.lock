@@ -969,8 +969,8 @@ dependencies = [
 
 [[package]]
 name = "dashboard-auth"
-version = "0.3.3"
-source = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git?tag=v1.4.1#2162c2e2a2913d8c218990ba904acb28322543c9"
+version = "0.4.0"
+source = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git?tag=v1.5.0#22a9cadea33e89aea1f9b576a6d7b3a7226b424a"
 dependencies = [
  "actix",
  "actix-web",

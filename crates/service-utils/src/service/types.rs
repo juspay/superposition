@@ -1,6 +1,7 @@
 use crate::db::pgschema_manager::{PgSchemaConnection, PgSchemaManager};
 use derive_more::{Deref, DerefMut};
 use jsonschema::JSONSchema;
+use serde_json::json;
 
 use std::{
     collections::HashSet,
@@ -65,7 +66,7 @@ impl FromRequest for AppScope {
 
     fn from_request(
         req: &actix_web::HttpRequest,
-        _: &mut actix_web::dev::Payload
+        _: &mut actix_web::dev::Payload,
     ) -> Self::Future {
         let scope = req.extensions().get::<AppScope>().cloned();
         let result = match scope {
@@ -97,9 +98,7 @@ impl AppExecutionNamespace {
             tenant,
             scope,
         ) {
-            (false, _, _, _) => {
-                Ok(AppExecutionNamespace("cac_v1".to_string()))
-            },
+            (false, _, _, _) => Ok(AppExecutionNamespace("cac_v1".to_string())),
             (true, _, Some(t), Some(s)) => Ok(AppExecutionNamespace(format!(
                 "{}_{}",
                 t.as_str(),
@@ -133,7 +132,6 @@ impl FromRequest for AppExecutionNamespace {
     }
 }
 
-
 #[derive(Deref, DerefMut, Clone, Debug)]
 pub struct Tenant(pub String);
 impl FromRequest for Tenant {
@@ -147,7 +145,24 @@ impl FromRequest for Tenant {
         let tenant = req.extensions().get::<Tenant>().cloned();
         let result = match tenant {
             Some(v) => Ok(v),
-            None => Err(error::ErrorInternalServerError("tenant not set")),
+            None => {
+                let app_state = match req.app_data::<Data<AppState>>() {
+                    Some(val) => val,
+                    None => {
+                        log::error!("app state not set");
+                        return ready(Err(error::ErrorInternalServerError(json!({
+                            "message": "an unknown error occurred with the app. Please contact an admin"
+                        }))));
+                    }
+                };
+                if app_state.enable_tenant_and_scope {
+                    Err(error::ErrorInternalServerError(json!({
+                        "message": "tenant was not set. Please ensure you are passing in the x-tenant header"
+                    })))
+                } else {
+                    Ok(Tenant("mjos".into()))
+                }
+            }
         };
         ready(result)
     }
@@ -165,13 +180,17 @@ impl FromRequest for DbConnection {
     ) -> Self::Future {
         let namespace = match AppExecutionNamespace::from_request_sync(req) {
             Ok(val) => val.as_str().to_string(),
-            Err(e) => { return ready(Err(e)); }
+            Err(e) => {
+                return ready(Err(e));
+            }
         };
 
         let app_state = match req.app_data::<Data<AppState>>() {
             Some(state) => state,
             None => {
-                log::info!("DbConnection-FromRequest: Unable to get app_data from request");
+                log::info!(
+                    "DbConnection-FromRequest: Unable to get app_data from request"
+                );
                 return ready(Err(error::ErrorInternalServerError("")));
             }
         };

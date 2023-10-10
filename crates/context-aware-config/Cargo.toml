@@ -55,5 +55,5 @@ actix-http = "3.3.1"
 futures-util = "0.3.28"
 external = { path = "../external"}
 actix-cors = "0.6.4"
-dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.4.1"}
 anyhow = { version = "1.0", default-features = false }
+dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.5.0"}
