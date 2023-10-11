@@ -3,10 +3,10 @@ use std::collections::HashMap;
 use crate::db::{models::Dimension, schema::dimensions::dsl::*};
 use diesel::RunQueryDsl;
 use jsonschema::{Draft, JSONSchema};
-use service_utils::{service::types::DBConnection};
+use diesel::{ r2d2::{ConnectionManager, PooledConnection}, PgConnection };
 
 pub fn get_all_dimension_schema_map(
-    conn: &mut DBConnection,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> anyhow::Result<HashMap<String, (JSONSchema, i32)>> {
     let dimensions_vec = dimensions.load::<Dimension>(conn)?;
 

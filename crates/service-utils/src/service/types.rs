@@ -1,19 +1,17 @@
-use diesel::{
-    r2d2::{ConnectionManager, Pool, PooledConnection},
-    PgConnection,
-};
+use crate::db::pgschema_manager::{PgSchemaConnection, PgSchemaManager};
+use derive_more::{Deref, DerefMut};
 use jsonschema::JSONSchema;
 
-use std::{collections::HashSet, future::{ready, Ready}};
-
-use actix_web::{
-    error, web::Data, Error, FromRequest, HttpMessage,
+use std::{
+    collections::HashSet,
+    future::{ready, Ready},
+    str::FromStr,
 };
+
+use actix_web::{error, web::Data, Error, FromRequest, HttpMessage};
 
 use snowflake::SnowflakeIdGenerator;
 use std::sync::Mutex;
-
-use dashboard_auth::types::Tenant;
 
 pub struct ExperimentationFlags {
     pub allow_same_keys_overlapping_ctx: bool,
@@ -21,13 +19,20 @@ pub struct ExperimentationFlags {
     pub allow_same_keys_non_overlapping_ctx: bool,
 }
 
+#[derive(Copy, Clone, Debug)]
+pub enum AppEnv {
+    PROD,
+    SANDBOX,
+    DEV,
+}
+
 pub struct AppState {
     pub cac_host: String,
-    pub prod: bool,
+    pub app_env: AppEnv,
     pub tenants: HashSet<String>,
     pub cac_version: String,
     pub admin_token: String,
-    pub db_pool: Pool<ConnectionManager<PgConnection>>,
+    pub db_pool: PgSchemaManager,
     pub default_config_validation_schema: JSONSchema,
     pub meta_schema: JSONSchema,
     pub experimentation_flags: ExperimentationFlags,
@@ -35,25 +40,87 @@ pub struct AppState {
     pub enable_tenant_and_scope: bool,
 }
 
-#[derive(Copy, Clone, Debug)]
-pub enum AppScope {
-    CAC,
-    EXPERIMENTATION,
-}
-
-impl ToString for AppScope {
-    fn to_string(&self) -> String {
-        match self {
-            AppScope::CAC => String::from("cac"),
-            AppScope::EXPERIMENTATION => String::from("experimentation"),
+impl FromStr for AppEnv {
+    type Err = String;
+    fn from_str(val: &str) -> Result<AppEnv, Self::Err> {
+        match val {
+            "PROD" => Ok(AppEnv::PROD),
+            "SANDBOX" => Ok(AppEnv::SANDBOX),
+            "DEV" => Ok(AppEnv::DEV),
+            _ => Err("invalid app env!!".to_string()),
         }
     }
 }
 
-pub type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
+#[derive(Copy, Clone, Debug, strum_macros::Display)]
+#[strum(serialize_all = "lowercase")]
+pub enum AppScope {
+    CAC,
+    EXPERIMENTATION,
+}
+impl FromRequest for AppScope {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
 
-pub struct DbConnection(pub PooledConnection<ConnectionManager<PgConnection>>);
-impl FromRequest for DbConnection {
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload
+    ) -> Self::Future {
+        let scope = req.extensions().get::<AppScope>().cloned();
+        let result = match scope {
+            Some(v) => Ok(v),
+            None => Err(error::ErrorInternalServerError("app scope not set")),
+        };
+        ready(result)
+    }
+}
+
+#[derive(Deref, DerefMut, Clone, Debug)]
+pub struct AppExecutionNamespace(pub String);
+impl AppExecutionNamespace {
+    pub fn from_request_sync(req: &actix_web::HttpRequest) -> Result<Self, Error> {
+        let app_state = match req.app_data::<Data<AppState>>() {
+            Some(val) => val,
+            None => {
+                log::error!("get_app_execution_namespace: AppState not set");
+                return Err(error::ErrorInternalServerError(""));
+            }
+        };
+
+        let tenant = req.extensions().get::<Tenant>().cloned();
+        let scope = req.extensions().get::<AppScope>().cloned();
+
+        match (
+            app_state.enable_tenant_and_scope,
+            app_state.app_env,
+            tenant,
+            scope,
+        ) {
+            (false, _, _, _) => {
+                Ok(AppExecutionNamespace("cac_v1".to_string()))
+            },
+            (true, _, Some(t), Some(s)) => Ok(AppExecutionNamespace(format!(
+                "{}_{}",
+                t.as_str(),
+                s.to_string()
+            ))),
+            (true, _, None, _) => {
+                log::error!(
+                    "get_app_execution_namespace: Tenant not set in request extensions"
+                );
+                Err(error::ErrorInternalServerError(""))
+            }
+            (true, _, _, None) => {
+                log::error!(
+                    "get_app_execution_namespace: AppScope not set in request extensions"
+                );
+                Err(error::ErrorInternalServerError(""))
+            }
+        }
+    }
+}
+
+impl FromRequest for AppExecutionNamespace {
     type Error = Error;
     type Future = Ready<Result<Self, Self::Error>>;
 
@@ -61,14 +128,54 @@ impl FromRequest for DbConnection {
         req: &actix_web::HttpRequest,
         _: &mut actix_web::dev::Payload,
     ) -> Self::Future {
+        ready(AppExecutionNamespace::from_request_sync(req))
+    }
+}
+
+
+#[derive(Deref, DerefMut, Clone, Debug)]
+pub struct Tenant(pub String);
+impl FromRequest for Tenant {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        let tenant = req.extensions().get::<Tenant>().cloned();
+        let result = match tenant {
+            Some(v) => Ok(v),
+            None => Err(error::ErrorInternalServerError("tenant not set")),
+        };
+        ready(result)
+    }
+}
+
+#[derive(Deref, DerefMut)]
+pub struct DbConnection(pub PgSchemaConnection);
+impl FromRequest for DbConnection {
+    type Error = Error;
+    type Future = Ready<Result<DbConnection, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        let namespace = match AppExecutionNamespace::from_request_sync(req) {
+            Ok(val) => val.as_str().to_string(),
+            Err(e) => { return ready(Err(e)); }
+        };
+
         let app_state = match req.app_data::<Data<AppState>>() {
             Some(state) => state,
             None => {
-                log::info!("Unable to get app_data from request");
+                log::info!("DbConnection-FromRequest: Unable to get app_data from request");
                 return ready(Err(error::ErrorInternalServerError("")));
             }
         };
-        let result = match app_state.db_pool.get() {
+
+        let result = match app_state.db_pool.get_conn(namespace) {
             Ok(conn) => Ok(DbConnection(conn)),
             Err(e) => {
                 log::info!("Unable to get db connection from pool, error: {e}");
@@ -77,55 +184,5 @@ impl FromRequest for DbConnection {
         };
 
         ready(result)
-    }
-}
-
-pub struct TenantNScope(pub String);
-impl FromRequest for TenantNScope {
-    type Error = Error;
-    type Future = Ready<Result<Self, Self::Error>>;
-
-    fn from_request(
-        req: &actix_web::HttpRequest,
-        payload: &mut actix_web::dev::Payload,
-    ) -> Self::Future {
-        let app_state = match req.app_data::<Data<AppState>>() {
-            Some(state) => state,
-            None => {
-                log::info!("Unable to get app_date from request");
-                return ready(Err(error::ErrorInternalServerError("")));
-            }
-        };
-
-        if !app_state.enable_tenant_and_scope {
-            let default_tenant = match app_state.prod {
-                true => "cac_v1".to_string(),
-                false => "public".to_string()
-            };
-
-            return ready(Ok(TenantNScope(default_tenant)));
-        }
-
-        // extract headers for tenant id
-        let tenant = Tenant::from_request(req, payload)
-            .into_inner()
-            .map_or(None, |value: Tenant| Some(value.as_str().to_string()));
-
-        let scope = req
-            .extensions()
-            .get::<AppScope>()
-            .and_then(|app_scope| Some(app_scope.to_string()));
-
-        let tenant_n_scope:Result<Self, Self::Error> = match (tenant, scope) {
-            (Some(t), Some(s)) if app_state.tenants.contains(&t) => Ok(TenantNScope(format!("{t}_{s}"))),
-            (Some(_), Some(_)) => Err(error::ErrorBadRequest("invalid x-tenant value")),
-            (None, _) => Err(error::ErrorBadRequest("x-tenant not set")),
-            (_, None) => {
-                log::error!("AppScope not set for the request!");
-                Err(error::ErrorInternalServerError("something went wrong"))
-            }
-        };
-
-        ready(tenant_n_scope)
     }
 }

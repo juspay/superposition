@@ -7,19 +7,21 @@ use actix_web::{
 };
 use futures_util::future::LocalBoxFuture;
 
-pub struct AppExecutionScope {
+use std::rc::Rc;
+
+pub struct AppExecutionScopeMiddlewareFactory {
     scope: AppScope,
 }
 
-impl AppExecutionScope {
+impl AppExecutionScopeMiddlewareFactory {
     pub fn new(scope: AppScope) -> Self {
-        AppExecutionScope { scope }
+        AppExecutionScopeMiddlewareFactory { scope: scope }
     }
 }
 
-impl<S, B> Transform<S, ServiceRequest> for AppExecutionScope
+impl<S, B> Transform<S, ServiceRequest> for AppExecutionScopeMiddlewareFactory
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
     B: 'static,
 {
@@ -31,20 +33,20 @@ where
 
     fn new_transform(&self, service: S) -> Self::Future {
         ready(Ok(AppExecutionScopeMiddleware {
-            service,
-            scope: self.scope,
+            service: Rc::new(service),
+            scope: self.scope.clone(),
         }))
     }
 }
 
 pub struct AppExecutionScopeMiddleware<S> {
-    service: S,
+    service: Rc<S>,
     scope: AppScope,
 }
 
 impl<S, B> Service<ServiceRequest> for AppExecutionScopeMiddleware<S>
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
     B: 'static,
 {
@@ -55,11 +57,13 @@ where
     forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        req.extensions_mut().insert(self.scope);
-        let future = self.service.call(req);
+        let srv = self.service.clone();
+        let scope = self.scope;
 
         Box::pin(async move {
-            let res = future.await?;
+            req.extensions_mut().insert(scope);
+            let res = srv.call(req).await?;
+
             Ok(res)
         })
     }
