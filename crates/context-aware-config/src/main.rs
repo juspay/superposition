@@ -12,7 +12,7 @@ use dotenv;
 use experimentation_platform::api::*;
 use helpers::{get_default_config_validation_schema, get_meta_schema};
 use logger::{init_log_subscriber, CustomRootSpanBuilder};
-use std::{env, io::Result, collections::HashSet};
+use std::{collections::HashSet, env, io::Result};
 use tracing::{span, Level};
 
 use snowflake::SnowflakeIdGenerator;
@@ -20,10 +20,14 @@ use std::{sync::Mutex, time::Duration};
 use tracing_actix_web::TracingLogger;
 
 use service_utils::{
-    db::utils::get_pool,
+    db::pgschema_manager::PgSchemaManager,
+    db::utils::init_pool_manager,
     helpers::{get_from_env_unsafe, get_pod_info},
-    middlewares::app_scope::AppExecutionScope,
-    service::types::{AppScope, AppState, ExperimentationFlags},
+    middlewares::{
+        app_scope::AppExecutionScopeMiddlewareFactory,
+        tenant::TenantMiddlewareFactory,
+    },
+    service::types::{AppEnv, AppScope, AppState, ExperimentationFlags},
 };
 
 #[actix_web::main]
@@ -39,13 +43,13 @@ async fn main() -> Result<()> {
         deployment_id = deployment_id
     );
     let _span_entered = cac_span.enter();
-    let pool = get_pool().await;
     let admin_token = env::var("ADMIN_TOKEN").expect("Admin token is not set!");
     let cac_host: String = get_from_env_unsafe("CAC_HOST").expect("CAC host is not set");
     let cac_version: String = get_from_env_unsafe("CONTEXT_AWARE_CONFIG_VERSION")
         .expect("CONTEXT_AWARE_CONFIG_VERSION is not set");
+    let max_pool_size = get_from_env_unsafe("MAX_DB_CONNECTION_POOL_SIZE").unwrap_or(3);
 
-    let prod: bool = get_from_env_unsafe("PROD").expect("PROD is not set");
+    let app_env: AppEnv = get_from_env_unsafe("APP_ENV").expect("APP_ENV is not set");
     let enable_tenant_and_scope: bool = get_from_env_unsafe("ENABLE_TENANT_AND_SCOPE")
         .expect("ENABLE_TENANT_AND_SCOPE is not set");
     let tenants: HashSet<String> = get_from_env_unsafe::<String>("TENANTS")
@@ -59,6 +63,15 @@ async fn main() -> Result<()> {
             .map(|i| (i as i32) & rand::random::<i32>())
             .fold(0, i32::wrapping_add)
     };
+
+    let schema_manager: PgSchemaManager = init_pool_manager(
+        tenants.clone(),
+        enable_tenant_and_scope,
+        app_env,
+        max_pool_size,
+    )
+    .await;
+
     /****** EXPERIMENTATION PLATFORM ENVs *********/
 
     let allow_same_keys_overlapping_ctx: bool =
@@ -77,10 +90,11 @@ async fn main() -> Result<()> {
         App::new()
             .wrap(DashboardAuth::default())
             .wrap(middlewares::cors())
+            .wrap(TenantMiddlewareFactory)
             .wrap(logger::GoldenSignalFactory)
             .wrap(TracingLogger::<CustomRootSpanBuilder>::new())
             .app_data(Data::new(AppState {
-                db_pool: pool.clone(),
+                db_pool: schema_manager.clone(),
                 default_config_validation_schema: get_default_config_validation_schema(),
                 admin_token: admin_token.to_owned(),
                 cac_host: cac_host.to_owned(),
@@ -100,7 +114,7 @@ async fn main() -> Result<()> {
                     string_to_int(&pod_identifier),
                 )),
                 meta_schema: get_meta_schema(),
-                prod: prod.to_owned(),
+                app_env: app_env.to_owned(),
                 enable_tenant_and_scope: enable_tenant_and_scope.to_owned(),
                 tenants: tenants.to_owned(),
             }))
@@ -117,37 +131,33 @@ async fn main() -> Result<()> {
             /***************************** V1 Routes *****************************/
             .service(
                 scope("/context")
-                    .wrap(AppExecutionScope::new(AppScope::CAC))
+                    .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                     .service(context::endpoints()),
             )
             .service(
                 scope("/dimension")
-                    .wrap(AppExecutionScope::new(AppScope::CAC))
+                    .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                     .service(dimension::endpoints()),
             )
             .service(
                 scope("/default-config")
-                    .wrap(AppExecutionScope::new(AppScope::CAC))
+                    .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                     .service(default_config::endpoints()),
             )
             .service(
                 scope("/config")
                     .wrap(AuditHeader::new(TableName::Contexts))
-                    .wrap(AppExecutionScope::new(AppScope::CAC))
+                    .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                     .service(config::endpoints()),
             )
             .service(
                 scope("/audit")
-                .wrap(AppExecutionScope::new(AppScope::CAC))
-                .service(audit_log::endpoints())
+                    .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
+                    .service(audit_log::endpoints()),
             )
             .service(
-                external::endpoints(
-                    experiments::endpoints(
-                        scope("/experiments")
-                    )
-                )
-                .wrap(AppExecutionScope::new(AppScope::EXPERIMENTATION))
+                external::endpoints(experiments::endpoints(scope("/experiments")))
+                    .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION)),
             )
     })
     .bind(("0.0.0.0", 8080))?

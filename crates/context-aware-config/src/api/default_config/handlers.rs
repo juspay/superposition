@@ -1,7 +1,7 @@
 use super::types::CreateReq;
 use crate::{
     db::{models::DefaultConfig, schema::default_configs::dsl::default_configs},
-    helpers::validate_jsonschema
+    helpers::validate_jsonschema,
 };
 use actix_web::{
     put,
@@ -13,7 +13,7 @@ use dashboard_auth::{middleware::acl, types::User};
 use diesel::RunQueryDsl;
 use jsonschema::{Draft, JSONSchema};
 use serde_json::Value;
-use service_utils::service::types::AppState;
+use service_utils::service::types::{AppState, DbConnection};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -27,7 +27,9 @@ async fn create(
     key: web::Path<String>,
     request: web::Json<CreateReq>,
     user: User,
+    db_conn: DbConnection,
 ) -> HttpResponse {
+    let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
     let schema = Value::Object(req.schema);
     if let Err(e) = validate_jsonschema(&state.default_config_validation_schema, &schema)
@@ -60,14 +62,6 @@ async fn create(
         schema: schema,
         created_by: user.email,
         created_at: Utc::now(),
-    };
-
-    let mut conn = match state.db_pool.get() {
-        Ok(conn) => conn,
-        Err(e) => {
-            log::info!("unable to get db connection from pool, error: {e}");
-            return HttpResponse::InternalServerError().finish();
-        }
     };
 
     let upsert = diesel::insert_into(default_configs)

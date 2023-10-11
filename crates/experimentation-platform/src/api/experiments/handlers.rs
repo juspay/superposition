@@ -423,7 +423,7 @@ async fn ramp(
     req: web::Json<RampRequest>,
     db_conn: DbConnection,
     user: User,
-) -> app::Result<Json<String>> {
+) -> app::Result<Json<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
 
@@ -455,7 +455,7 @@ async fn ramp(
             possible_fix: "".to_string(),
         }));
     }
-    let new_traffic_percentage = diesel::update(experiments::experiments)
+    let updated_experiment: Experiment = diesel::update(experiments::experiments)
         .filter(experiments::id.eq(exp_id))
         .set((
             experiments::traffic_percentage.eq(req.traffic_percentage as i32),
@@ -463,17 +463,9 @@ async fn ramp(
             experiments::last_modified_by.eq(user.email),
             experiments::status.eq(ExperimentStatusType::INPROGRESS),
         ))
-        .execute(&mut conn)?;
+        .get_result(&mut conn)?;
 
-    if new_traffic_percentage == 0 {
-        return Err(err::InternalServerErr(
-            "Failed to update the traffic_percentage".to_string(),
-        ));
-    }
-    return Ok(Json(format!(
-        "Traffic percentage has been updated for the experiment id : {}",
-        exp_id
-    )));
+    return Ok(Json(ExperimentResponse::from(updated_experiment)));
 }
 
 #[put("/{id}/overrides")]

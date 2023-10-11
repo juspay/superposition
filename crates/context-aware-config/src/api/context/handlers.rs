@@ -20,7 +20,7 @@ use actix_web::{
     delete,
     error::{self, ErrorInternalServerError, ErrorNotFound},
     get, put,
-    web::{self, Data, Path},
+    web::{self, Path},
     HttpResponse, Responder, Result, Scope,
 };
 use anyhow::anyhow;
@@ -33,7 +33,7 @@ use diesel::{
     Connection, ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
 };
 use serde_json::{from_value, json, Map, Value, Value::Null};
-use service_utils::{helpers::ToActixErr, service::types::AppState};
+use service_utils::{helpers::ToActixErr, service::types::DbConnection};
 use jsonschema::{Draft, JSONSchema, ValidationError};
 
 pub fn endpoints() -> Scope {
@@ -269,14 +269,10 @@ fn put(
 #[put("")]
 async fn put_handler(
     req: web::Json<PutReq>,
-    state: Data<AppState>,
     user: User,
+    mut db_conn: DbConnection,
 ) -> actix_web::Result<web::Json<PutResp>> {
-    let conn = &mut state
-        .db_pool
-        .get()
-        .map_err_to_internal_server("unable to get db connection from pool", "")?;
-    put(req, &user, conn, false)
+    put(req, &user, &mut db_conn, false)
         .map(|resp| web::Json(resp))
         .map_err(|e| {
             log::info!("context put failed with error: {:?}", e);
@@ -364,17 +360,12 @@ fn r#move(
 
 #[put("/move/{ctx_id}")]
 async fn move_handler(
-    state: Data<AppState>,
     path: Path<String>,
     req: web::Json<MoveReq>,
     user: User,
+    mut db_conn: DbConnection,
 ) -> actix_web::Result<web::Json<PutResp>> {
-    let conn = &mut state
-        .db_pool
-        .get()
-        .map_err_to_internal_server("unable to get db connection from pool", "")?;
-
-    r#move(path.into_inner(), req, &user, conn, false)
+    r#move(path.into_inner(), req, &user, &mut db_conn, false)
         .map(|resp| web::Json(resp))
         .map_err(|e| {
             log::info!("move api failed with error: {:?}", e);
@@ -385,18 +376,12 @@ async fn move_handler(
 #[get("/{ctx_id}")]
 async fn get_context(
     path: web::Path<String>,
-    state: Data<AppState>,
+    db_conn: DbConnection,
 ) -> Result<impl Responder> {
     use crate::db::schema::contexts::dsl::*;
 
     let ctx_id = path.into_inner();
-    let mut conn = match state.db_pool.get() {
-        Ok(conn) => conn,
-        Err(e) => {
-            log::info!("Unable to get db connection from pool, error: {e}");
-            return Err(error::ErrorInternalServerError(""));
-        }
-    };
+    let DbConnection(mut conn) = db_conn;
 
     let result: QueryResult<Vec<Context>> =
         contexts.filter(id.eq(ctx_id)).load(&mut conn);
@@ -418,14 +403,10 @@ async fn get_context(
 #[get("/list")]
 async fn list_contexts(
     qparams: web::Query<PaginationParams>,
-    state: Data<AppState>,
+    db_conn: DbConnection,
 ) -> Result<impl Responder> {
     use crate::db::schema::contexts::dsl::*;
-
-    let mut conn = state
-        .db_pool
-        .get()
-        .map_err_to_internal_server("Unable to get db connection from pool", Null)?;
+    let DbConnection(mut conn) = db_conn;
 
     let PaginationParams {
         page: opt_page,
@@ -453,15 +434,13 @@ async fn list_contexts(
 
 #[delete("/{ctx_id}")]
 async fn delete_context(
-    state: Data<AppState>,
     path: Path<String>,
     user: User,
+    db_conn: DbConnection,
 ) -> actix_web::Result<HttpResponse> {
     use contexts::dsl;
-    let mut conn = state
-        .db_pool
-        .get()
-        .map_err_to_internal_server("Unable to get db connection from pool", "")?;
+    let DbConnection(mut conn) = db_conn;
+
     let ctx_id = path.into_inner();
     let deleted_row =
         delete(dsl::contexts.filter(dsl::id.eq(&ctx_id))).execute(&mut conn);
@@ -481,14 +460,11 @@ async fn delete_context(
 #[put("/bulk-operations")]
 async fn bulk_operations(
     reqs: web::Json<Vec<ContextAction>>,
-    state: Data<AppState>,
     user: User,
+    db_conn: DbConnection,
 ) -> actix_web::Result<web::Json<Vec<ContextBulkResponse>>> {
     use contexts::dsl::contexts;
-    let mut conn = state
-        .db_pool
-        .get()
-        .map_err_to_internal_server("Unable to get db connection from pool", "")?;
+    let DbConnection(mut conn) = db_conn;
 
     let mut resp = Vec::<ContextBulkResponse>::new();
     let result = conn.transaction::<_, diesel::result::Error, _>(|transaction_conn| {

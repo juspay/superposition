@@ -1,11 +1,4 @@
 #!/bin/bash
-
-HOST="localhost"
-PORT="5432"
-USER="postgres"
-PASSWORD="docker"
-DATABASE="config"
-
 TENANT=$1
 DB_URL=$2
 
@@ -13,17 +6,19 @@ echo "Tenant ID ==> $TENANT"
 echo "DB URL ==> $DB_URL"
 
 # Creating schemas
-SCHEMA1="${TENANT}_cac"
-SCHEMA2="${TENANT}_experimentation"
+CAC_SCHEMA="${TENANT}_cac"
+EXP_SCHEMA="${TENANT}_experimentation"
 
-echo "Creating Schemas ==> $SCHEMA1, $SCHEMA2"
+echo "Creating Schemas ==> $CAC_SCHEMA, $EXP_SCHEMA"
 
-psql "$DB_URL" -c "CREATE SCHEMA ${SCHEMA1}"
-psql "$DB_URL" -c "CREATE SCHEMA ${SCHEMA2}"
+cp -r "crates/context-aware-config/migrations/." "crates/context-aware-config/${TENANT}_migrations"
+find "crates/context-aware-config/${TENANT}_migrations" -name "up.sql" | xargs sed -i'' "s/public/${CAC_SCHEMA}/g"
 
-# Running migrations in created schemas
-sed "s/{{schema}}/${SCHEMA1}/g" "$PWD/scripts/cac-init.sql" > $PWD/scripts/cac-init-with-schema.sql
-sed "s/{{schema}}/${SCHEMA2}/g" "$PWD/scripts/experimentation-init.sql" > $PWD/scripts/experimentation-init-with-schema.sql
+cp -r "crates/experimentation-platform/migrations/." "crates/experimentation-platform/${TENANT}_migrations"
+find "crates/experimentation-platform/${TENANT}_migrations" -name "up.sql" | xargs sed -i'' "s/public/${EXP_SCHEMA}/g"
 
-psql "$DB_URL" -f "$PWD/scripts/cac-init-with-schema.sql"
-psql "$DB_URL" -f "$PWD/scripts/experimentation-init-with-schema.sql"
+find "crates/context-aware-config/${TENANT}_migrations" -name "up.sql" | xargs psql "$DB_URL" -f
+find "crates/experimentation-platform/${TENANT}_migrations" -name "up.sql" | xargs psql "$DB_URL" -f
+
+rm -rf "crates/context-aware-config/${TENANT}_migrations"
+rm -rf "crates/experimentation-platform/${TENANT}_migrations"
