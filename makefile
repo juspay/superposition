@@ -50,6 +50,9 @@ migration:
 	make cac-migration
 	make exp-migration
 
+legacy_db_setup:
+	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/legacy-db-setup.sh
+
 tenant:
 	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/create-tenant.sh $(TENANT)
 
@@ -75,6 +78,7 @@ setup:
 	# to prevent update of schema.rs for both cac and experimentation.
 	# NOTE: The container spinned-up here is the actual container being used in development
 	make db-init
+	make legacy_db_setup
 
 kill:
 	-pkill -f target/debug/context-aware-config &
@@ -91,12 +95,15 @@ run:
 		sleep 0.5; \
 		done
 	# make setup
+	cp .env.example .env
+	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
 	make cac -e DOCKER_DNS=$(DOCKER_DNS)
 
 ci-test:
 	-docker rm -f $$(docker container ls --filter name=^context-aware-config -a -q)
 	-docker rmi -f $$(docker images | grep context-aware-config-postgres | cut -f 10 -d " ")
 	npm ci --loglevel=error
+	cargo test
 	make setup
 	make run -e DOCKER_DNS=$(DOCKER_DNS) 2>&1 | tee test_logs &
 	while ! grep -q "starting in Actix" test_logs; \

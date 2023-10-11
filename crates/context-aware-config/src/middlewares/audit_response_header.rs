@@ -3,15 +3,15 @@ use std::future::{ready, Ready};
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     http::header::{HeaderName, HeaderValue},
-    web::Data,
-    Error,
+    Error
 };
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use futures_util::future::LocalBoxFuture;
-use service_utils::service::types::AppState;
+use service_utils::service::types::DbConnection;
 
 use crate::db::schema::event_log::dsl as event_log;
 use uuid::Uuid;
+use std::rc::Rc;
 
 #[derive(Clone, Copy, Debug, strum_macros::Display)]
 #[strum(serialize_all = "snake_case")]
@@ -35,7 +35,7 @@ impl AuditHeader {
 
 impl<S, B> Transform<S, ServiceRequest> for AuditHeader
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
     B: 'static,
 {
@@ -47,20 +47,20 @@ where
 
     fn new_transform(&self, service: S) -> Self::Future {
         ready(Ok(AuditHeaderMiddleware {
-            service,
+            service: Rc::new(service),
             table_name: self.table_name,
         }))
     }
 }
 
 pub struct AuditHeaderMiddleware<S> {
-    service: S,
+    service: Rc<S>,
     table_name: TableName,
 }
 
 impl<S, B> Service<ServiceRequest> for AuditHeaderMiddleware<S>
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
     B: 'static,
 {
@@ -70,41 +70,30 @@ where
 
     forward_ready!(service);
 
-    fn call(&self, req: ServiceRequest) -> Self::Future {
-        let app_state = req.app_data::<Data<AppState>>();
-        let mut db_conn_option = None;
-
-        if let Some(app_data) = app_state {
-            match app_data.db_pool.get() {
-                Ok(conn) => db_conn_option = Some(conn),
-                Err(_) => log::error!("Failed to get connection"),
-            }
-        } else {
-            log::error!("App State not available");
-        }
-
-        let fut = self.service.call(req);
+    fn call(&self, mut req: ServiceRequest) -> Self::Future {
+        let srv = self.service.clone();
         let table_name = self.table_name;
 
         Box::pin(async move {
-            let mut res = fut.await?;
+            let db_conn = req.extract::<DbConnection>().await?;
+            let DbConnection(mut conn) = db_conn;
 
-            if let Some(mut conn) = db_conn_option {
-                let uuid = event_log::event_log
-                    .select(event_log::id)
-                    .filter(event_log::table_name.eq(table_name.to_string()))
-                    .order_by(event_log::timestamp.desc())
-                    .first::<Uuid>(&mut conn);
+            let mut res = srv.call(req).await?;
 
-                if let Ok(uuid) = uuid {
-                    res.headers_mut().insert(
-                        HeaderName::from_static("x-audit-id"),
-                        HeaderValue::from_str(&uuid.to_string())
-                            .unwrap_or_else(|_| HeaderValue::from_static("invalid")),
-                    );
-                } else {
-                    log::error!("Unable to fetch uuid");
-                }
+            let uuid = event_log::event_log
+                .select(event_log::id)
+                .filter(event_log::table_name.eq(table_name.to_string()))
+                .order_by(event_log::timestamp.desc())
+                .first::<Uuid>(&mut conn);
+
+            if let Ok(uuid) = uuid {
+                res.headers_mut().insert(
+                    HeaderName::from_static("x-audit-id"),
+                    HeaderValue::from_str(&uuid.to_string())
+                        .unwrap_or_else(|_| HeaderValue::from_static("invalid")),
+                );
+            } else {
+                log::error!("Unable to fetch uuid");
             }
             Ok(res)
         })
