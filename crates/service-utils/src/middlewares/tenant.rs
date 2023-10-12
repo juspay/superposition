@@ -2,9 +2,10 @@ use std::future::{ready, Ready};
 
 use crate::service::types::{AppState, Tenant};
 use actix_web::{
-    web::Data, error,
-    http::header::HeaderValue,
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
+    error,
+    http::header::HeaderValue,
+    web::Data,
     Error, HttpMessage,
 };
 use futures_util::future::LocalBoxFuture;
@@ -24,7 +25,9 @@ where
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ready(Ok(TenantMiddleware { service: Rc::new(service) }))
+        ready(Ok(TenantMiddleware {
+            service: Rc::new(service),
+        }))
     }
 }
 
@@ -52,25 +55,29 @@ where
                 Some(val) => val,
                 None => {
                     log::error!("app state not set");
-                    return Err(error::ErrorInternalServerError(""))
+                    return Err(error::ErrorInternalServerError(""));
                 }
             };
 
             let request_path = req.uri().path();
-            let is_excluded: bool = app_state.tenant_middleware_exclusion_list.contains(request_path);
+            let is_excluded: bool = app_state
+                .tenant_middleware_exclusion_list
+                .contains(request_path);
 
             if !is_excluded && app_state.enable_tenant_and_scope {
                 let tenant = req
                     .headers()
                     .get("x-tenant")
-                    .map_or(None, |header_value: &HeaderValue| header_value.to_str().ok())
+                    .map_or(None, |header_value: &HeaderValue| {
+                        header_value.to_str().ok()
+                    })
                     .map(|header_str| header_str.to_string());
 
                 let validated_tenant: Tenant = match tenant {
                     Some(val) if app_state.tenants.contains(&val) => Tenant(val),
                     Some(_) => {
                         return Err(error::ErrorBadRequest("invalid x-tenant value"));
-                    },
+                    }
                     None => {
                         return Err(error::ErrorBadRequest("x-tenant not set"));
                     }

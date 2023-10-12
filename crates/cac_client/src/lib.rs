@@ -45,20 +45,16 @@ fn clone_reqw(reqw: &RequestBuilder) -> Result<RequestBuilder, String> {
         .ok_or_else(|| "Unable to clone reqw".to_string())
 }
 
-fn get_last_modified(
-    resp: &Response
-) -> Option<DateTime<Utc>> {
-    resp.headers()
-        .get("last-modified")
-        .and_then(|header_val| {
-            let header_str = header_val.to_str().ok()?;
-            DateTime::parse_from_rfc2822(header_str)
-                .map(|datetime| datetime.with_timezone(&Utc))
-                .map_err(|e| {
-                    log::error!("Failed to parse date: {e}");
-                })
-                .ok()
-        })
+fn get_last_modified(resp: &Response) -> Option<DateTime<Utc>> {
+    resp.headers().get("last-modified").and_then(|header_val| {
+        let header_str = header_val.to_str().ok()?;
+        DateTime::parse_from_rfc2822(header_str)
+            .map(|datetime| datetime.with_timezone(&Utc))
+            .map_err(|e| {
+                log::error!("Failed to parse date: {e}");
+            })
+            .ok()
+    })
 }
 
 impl Client {
@@ -78,7 +74,7 @@ impl Client {
         let resp = reqwc.send().await.map_err_to_string()?;
         let last_modified_at = get_last_modified(&resp);
         let config = resp.json::<Config>().await.map_err_to_string()?;
-        
+
         let client = Client {
             tenant,
             reqw: Data::new(reqw),
@@ -100,9 +96,15 @@ impl Client {
         let resp = reqw.send().await.map_err_to_string()?;
         match resp.status() {
             StatusCode::NOT_MODIFIED => {
-                return Err(String::from(format!("{} CAC: skipping update, remote not modified", self.tenant)));
+                return Err(String::from(format!(
+                    "{} CAC: skipping update, remote not modified",
+                    self.tenant
+                )));
             }
-            StatusCode::OK => log::info!("{}", format!("{} CAC: new config received, updating", self.tenant)),
+            StatusCode::OK => log::info!(
+                "{}",
+                format!("{} CAC: new config received, updating", self.tenant)
+            ),
             x => return Err(format!("{} CAC: fetch failed, status: {}", self.tenant, x)),
         };
         Ok(resp)
@@ -154,7 +156,7 @@ impl Client {
 }
 
 #[derive(Deref, DerefMut)]
-pub struct ClientFactory ( RwLock<HashMap<String, Arc<Client>>> );
+pub struct ClientFactory(RwLock<HashMap<String, Arc<Client>>>);
 impl ClientFactory {
     pub async fn create_client(
         &self,
@@ -180,8 +182,9 @@ impl ClientFactory {
                 tenant.to_string(),
                 update_config_periodically,
                 polling_interval,
-                hostname
-            ).await?
+                hostname,
+            )
+            .await?,
         );
         factory.insert(tenant.to_string(), client.clone());
         return Ok(client.clone());
@@ -198,14 +201,13 @@ impl ClientFactory {
 
         match factory.get(&tenant) {
             Some(client) => Ok(client.clone()),
-            None => Err("No such tenant found".to_string())
+            None => Err("No such tenant found".to_string()),
         }
     }
 }
 
 use once_cell::sync::Lazy;
-pub static CLIENT_FACTORY: Lazy<ClientFactory> = Lazy::new(|| {
-    ClientFactory(RwLock::new(HashMap::new()))
-});
+pub static CLIENT_FACTORY: Lazy<ClientFactory> =
+    Lazy::new(|| ClientFactory(RwLock::new(HashMap::new())));
 
 pub use eval::eval_cac;

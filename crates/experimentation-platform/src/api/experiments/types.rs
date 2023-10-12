@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc, NaiveDateTime};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use service_utils::helpers::deserialize_stringified_list;

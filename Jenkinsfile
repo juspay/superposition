@@ -53,7 +53,21 @@ pipeline {
 
     stage('Test') {
       when { expression { SKIP_CI == 'false' } }
-      steps { sh 'make ci-test -e DOCKER_DNS=${DOCKER_DIND_DNS}' }
+      steps {
+            script {
+                def fmtResultCode = sh(script: 'cargo fmt --check', returnStatus:true)
+                if (fmtResultCode != 0){
+                    error("Code is not formatted properly. Please run 'cargo fmt' and commit the changes.")
+                }
+
+                def commitResultCode = sh(script: 'cog check --from-latest-tag', returnStatus:true)
+                if (commitResultCode != 0) {
+                    error("Commit message does not follow Conventional Commits guidelines.")
+                }
+            }
+
+            sh 'make ci-test -e DOCKER_DNS=${DOCKER_DIND_DNS}'
+      }
     }
 
     stage('Get old Version') {
@@ -213,3 +227,4 @@ pipeline {
     }
   }
 }
+

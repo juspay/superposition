@@ -2,11 +2,11 @@ extern crate derive_more;
 use derive_more::{Deref, DerefMut, Display};
 use std::collections::HashMap;
 
+use anyhow::anyhow;
 use diesel::{
     r2d2::{ConnectionManager, Pool, PooledConnection},
     PgConnection,
 };
-use anyhow::anyhow;
 
 pub type PgSchemaConnectionPool = Pool<ConnectionManager<PgConnection>>;
 pub type PgSchemaConnection = PooledConnection<ConnectionManager<PgConnection>>;
