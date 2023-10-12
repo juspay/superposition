@@ -1,7 +1,11 @@
 use actix_web::{error::ErrorInternalServerError, Error};
 use log::info;
 use serde::de::{self, IntoDeserializer};
-use std::{env::VarError, fmt::{self, Display}, str::FromStr};
+use std::{
+    env::VarError,
+    fmt::{self, Display},
+    str::FromStr,
+};
 
 //WARN Do NOT use this fxn inside api requests, instead add the required
 //env to AppState and get value from there. As this panics, it should
@@ -27,7 +31,9 @@ where
     match std::env::var(name) {
         Ok(env) => env.parse().unwrap(),
         Err(err) => {
-            info!("{name} ENV failed to load due to {err}, using default value {default}");
+            info!(
+                "{name} ENV failed to load due to {err}, using default value {default}"
+            );
             default
         }
     }

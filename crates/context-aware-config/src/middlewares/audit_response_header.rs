@@ -3,15 +3,15 @@ use std::future::{ready, Ready};
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     http::header::{HeaderName, HeaderValue},
-    Error
+    Error,
 };
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use futures_util::future::LocalBoxFuture;
 use service_utils::service::types::DbConnection;
 
 use crate::db::schema::event_log::dsl as event_log;
-use uuid::Uuid;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, strum_macros::Display)]
 #[strum(serialize_all = "snake_case")]

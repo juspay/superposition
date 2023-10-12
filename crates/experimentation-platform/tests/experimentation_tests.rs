@@ -62,13 +62,19 @@ fn experiment_gen(
 #[test]
 fn test_duplicate_override_key_entries() {
     let override_keys = vec!["key1".to_string(), "key2".to_string(), "key1".to_string()];
-    assert!(matches!(helpers::validate_override_keys(&override_keys), Err(AppError::BadArgument(_))));
+    assert!(matches!(
+        helpers::validate_override_keys(&override_keys),
+        Err(AppError::BadArgument(_))
+    ));
 }
 
 #[test]
 fn test_unique_override_key_entries() {
     let override_keys = vec!["key1".to_string(), "key2".to_string()];
-    assert!(matches!(helpers::validate_override_keys(&override_keys), Ok(())));
+    assert!(matches!(
+        helpers::validate_override_keys(&override_keys),
+        Ok(())
+    ));
 }
 
 #[test]

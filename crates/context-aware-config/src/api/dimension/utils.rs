@@ -2,8 +2,11 @@ use std::collections::HashMap;
 
 use crate::db::{models::Dimension, schema::dimensions::dsl::*};
 use diesel::RunQueryDsl;
+use diesel::{
+    r2d2::{ConnectionManager, PooledConnection},
+    PgConnection,
+};
 use jsonschema::{Draft, JSONSchema};
-use diesel::{ r2d2::{ConnectionManager, PooledConnection}, PgConnection };
 
 pub fn get_all_dimension_schema_map(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
