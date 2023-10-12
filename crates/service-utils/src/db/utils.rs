@@ -1,6 +1,6 @@
 use crate::aws::kms;
 use crate::db::pgschema_manager::{ConnectionConfig, PgSchemaManager};
-use crate::helpers::{get_from_env_unsafe, get_from_env_or_default};
+use crate::helpers::{get_from_env_or_default, get_from_env_unsafe};
 use crate::service::types::AppEnv;
 use diesel::{
     r2d2::{ConnectionManager, Pool},

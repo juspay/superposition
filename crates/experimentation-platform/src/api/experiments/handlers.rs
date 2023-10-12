@@ -62,12 +62,13 @@ async fn create(
     let mut variants = req.variants.to_vec();
 
     let DbConnection(mut conn) = db_conn;
-    
+
     // Checking if experiment has exactly 1 control variant, and
     // atleast 1 experimental variant
     check_variant_types(&variants)?;
-    let unique_override_keys: Vec<String> =
-        extract_override_keys(&variants[0].overrides).into_iter().collect();
+    let unique_override_keys: Vec<String> = extract_override_keys(&variants[0].overrides)
+        .into_iter()
+        .collect();
 
     let unique_ids_of_variants_from_req: HashSet<&str> =
         HashSet::from_iter(variants.iter().map(|v| v.id.as_str()));
@@ -489,10 +490,11 @@ async fn update_overrides(
 
     let first_variant = variants.get(0).ok_or(err::BadRequest(ErrorResponse {
         message: "Variant not found in request".to_string(),
-        possible_fix: "Provide at least one entry in variant's list"
-            .to_string(),
+        possible_fix: "Provide at least one entry in variant's list".to_string(),
     }))?;
-    let override_keys = extract_override_keys(&first_variant.overrides).into_iter().collect();
+    let override_keys = extract_override_keys(&first_variant.overrides)
+        .into_iter()
+        .collect();
 
     // fetch the current variants of the experiment
     let experiment = experiments::experiments

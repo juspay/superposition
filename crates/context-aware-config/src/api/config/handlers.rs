@@ -67,8 +67,9 @@ fn is_not_modified(
             DateTime::parse_from_rfc2822(header_str)
                 .map(|datetime| datetime.with_timezone(&Utc).naive_utc())
                 .ok()
-        }).and_then(|t| t.with_nanosecond(0));
-        Ok(max_created_at.is_some() && max_created_at <= last_modified)
+        })
+        .and_then(|t| t.with_nanosecond(0));
+    Ok(max_created_at.is_some() && max_created_at <= last_modified)
 }
 
 async fn generate_cac(

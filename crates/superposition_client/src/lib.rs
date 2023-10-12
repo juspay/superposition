@@ -2,6 +2,7 @@ mod types;
 use std::{collections::HashMap, sync::Arc};
 
 use chrono::{DateTime, TimeZone, Utc};
+use derive_more::{Deref, DerefMut};
 use serde_json::Value;
 use tokio::{
     sync::RwLock,
@@ -9,7 +10,6 @@ use tokio::{
 };
 pub use types::{Config, Experiment, Experiments, Variants};
 use types::{ExperimentStore, ListExperimentsResponse, Variant, VariantType};
-use derive_more::{Deref, DerefMut};
 
 #[derive(Clone, Debug)]
 pub struct Client {
@@ -166,7 +166,7 @@ async fn get_experiments(
 }
 
 #[derive(Deref, DerefMut)]
-pub struct ClientFactory ( RwLock<HashMap<String, Arc<Client>>> );
+pub struct ClientFactory(RwLock<HashMap<String, Arc<Client>>>);
 impl ClientFactory {
     pub async fn create_client(
         &self,
@@ -180,13 +180,11 @@ impl ClientFactory {
             return Ok(client.clone());
         }
 
-        let client = Arc::new(
-            Client::new(Config {
-                tenant: tenant.to_string(),
-                hostname: hostname,
-                poll_frequency: poll_frequency
-            })
-        );
+        let client = Arc::new(Client::new(Config {
+            tenant: tenant.to_string(),
+            hostname: hostname,
+            poll_frequency: poll_frequency,
+        }));
 
         factory.insert(tenant.to_string(), client.clone());
         return Ok(client.clone());
@@ -196,12 +194,11 @@ impl ClientFactory {
         let factory = self.read().await;
         match factory.get(&tenant) {
             Some(client) => Ok(client.clone()),
-            None => Err("No such tenant found".to_string())
+            None => Err("No such tenant found".to_string()),
         }
     }
 }
 
 use once_cell::sync::Lazy;
-pub static CLIENT_FACTORY: Lazy<ClientFactory> = Lazy::new(|| {
-    ClientFactory(RwLock::new(HashMap::new()))
-});
+pub static CLIENT_FACTORY: Lazy<ClientFactory> =
+    Lazy::new(|| ClientFactory(RwLock::new(HashMap::new())));
