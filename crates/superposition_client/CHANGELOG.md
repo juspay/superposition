@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_client-v0.1.3 - 2023-10-13
+#### Bug Fixes
+- PICAF-24612 add all variants in manifest - (0f15ac9) - Pratik Mishra
+
+- - -
+
 ## superposition_client-v0.1.2 - 2023-09-06
 #### Bug Fixes
 - trimming newline character from version string - (2c61077) - Shubhranshu Sanjeev
