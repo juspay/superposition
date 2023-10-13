@@ -4,7 +4,7 @@ use serde_json::{Map, Value};
 #[derive(Deserialize, Clone)]
 pub struct PutReq {
     pub context: Map<String, Value>,
-    pub r#override: Value,
+    pub r#override: Map<String, Value>,
 }
 
 #[derive(Serialize, Debug)]

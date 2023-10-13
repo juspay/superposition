@@ -4,7 +4,8 @@ use crate::{
         models::{Context, Dimension},
         schema::cac_v1::{
             contexts::{self, id},
-            dimensions::dsl::dimensions,
+            dimensions::dsl::dimensions, 
+            default_configs::dsl,      
         },
     },
 };
@@ -15,6 +16,7 @@ use actix_web::{
     web::{self, Data, Path},
     HttpResponse, Responder, Result, Scope,
 };
+use anyhow::anyhow;
 use chrono::Utc;
 use dashboard_auth::{middleware::acl, types::User};
 use diesel::{
@@ -23,8 +25,9 @@ use diesel::{
     result::{DatabaseErrorKind::*, Error::DatabaseError},
     Connection, ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
 };
-use serde_json::{Value, Value::Null};
+use serde_json::{json, Value, Value::Null, Map};
 use service_utils::{helpers::ToActixErr, service::types::AppState};
+use jsonschema::{Draft, JSONSchema, ValidationError};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -69,12 +72,53 @@ fn val_dimensions_cal_priority(
     }
 }
 
+fn validate_override_with_default_configs(
+    conn : &mut DBConnection,
+    override_ : &Map<String, Value>
+) -> anyhow::Result<()> {
+    let keys_array: Vec<&String> = override_.keys().collect();
+    let res: Vec<(String, Value)> = dsl::default_configs
+        .filter(dsl::key.eq_any(keys_array))
+        .select((dsl::key, dsl::schema))
+        .get_results:: <(String, Value)>(conn)?;
+
+    let map = Map::from_iter(res);
+
+    for (key, value) in override_.iter() {
+        let schema = map.get(key)
+            // .map(|resp| resp)
+            .ok_or(anyhow!(format!("failed to compile json schema for key {key}")))?;
+        let instance = value;
+        let schema_compile_result = JSONSchema::options()
+            .with_draft(Draft::Draft7)
+            .compile(schema);
+        let jschema = match schema_compile_result {
+            Ok(jschema) => jschema,
+            Err(e) => {
+                log::info!("Failed to compile as a Draft-7 JSON schema: {e}");
+                return Err(anyhow!("message: bad json schema"));
+            }
+        };
+        if let Err(e) = jschema.validate(instance) {
+            let verrors = e.collect::<Vec<ValidationError>>();
+            log::error!("{:?}", verrors);
+            return Err(anyhow!(json!(format!("Schema validation failed for {key}"))))
+        };
+    }
+    
+    Ok(())
+}
+
 fn create_ctx_from_put_req(
     req: web::Json<PutReq>,
     conn: &mut DBConnection,
     user: &User,
 ) -> actix_web::Result<Context> {
     let ctx_condition = Value::Object(req.context.to_owned());
+    let ctx_override: Value = req.r#override.to_owned().into();
+    validate_override_with_default_configs(conn, &req.r#override)
+        .map_err(|e| ErrorBadRequest(json!({"message" : e.to_string()})))?;
+
     let priority = match val_dimensions_cal_priority(conn, &ctx_condition) {
         Ok(0) => {
             return Err(ErrorBadRequest("No dimension found in context"));
@@ -84,14 +128,14 @@ fn create_ctx_from_put_req(
         }
         Ok(p) => p,
     };
-    let context_id = blake3::hash((ctx_condition).to_string().as_bytes()).to_string();
-    let override_id = blake3::hash((req.r#override).to_string().as_bytes()).to_string();
+    let context_id = blake3::hash(ctx_condition.to_string().as_bytes()).to_string();
+    let override_id = blake3::hash(ctx_override.to_string().as_bytes()).to_string();
     Ok(Context {
         id: context_id.clone(),
         value: ctx_condition,
         priority,
         override_id: override_id.to_owned(),
-        override_: req.r#override.to_owned(),
+        override_: ctx_override.to_owned(),
         created_at: Utc::now(),
         created_by: user.email.clone(),
     })

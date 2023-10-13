@@ -1,8 +1,9 @@
 {
 	"info": {
-		"_postman_id": "d7e3355b-8480-43d9-87a2-9bbfc158f267",
+		"_postman_id": "c7f42ca5-e0a2-4c26-a349-8de8c54c2cf1",
 		"name": "experimentation-platform",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20159828"
 	},
 	"item": [
 		{
@@ -598,7 +599,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"winner_variant\": \"{{experiment_id}}-control\"\n}",
+					"raw": "{\n    \"chosen_variant\": \"{{experiment_id}}-control\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -977,8 +978,8 @@
 							"",
 							"function create_default_config_keys() {",
 							"    let keys = [",
-							"        `pmTestKey790`,",
-							"        `pmTestKey690`",
+							"        `pmTestKey1972`,",
+							"        `pmTestKey1999`",
 							"    ];",
 							"",
 							"    for (const key of keys) {",

@@ -707,6 +707,7 @@ dependencies = [
  "actix-cors",
  "actix-http",
  "actix-web",
+ "anyhow",
  "base64 0.21.2",
  "blake3",
  "bytes 1.4.0",
