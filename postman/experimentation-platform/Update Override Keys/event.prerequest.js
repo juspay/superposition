@@ -3,8 +3,8 @@ const token = pm.environment.get("token");
 
 function create_default_config_keys() {
     let keys = [
-        `pmTestKey790`,
-        `pmTestKey690`
+        `pmTestKey1972`,
+        `pmTestKey1999`
     ];
 
     for (const key of keys) {
