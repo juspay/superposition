@@ -10,10 +10,11 @@ use superposition_client as exp;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let client_configuration = exp::Config {
+        tenant: "tenant".to_string(),
         hostname: "http://localhost:8080".to_string(),
         poll_frequency: 10,
     };
-    let client = exp::Client::new(client_configuration);
+    let client = std::sync::Arc::new(exp::Client::new(client_configuration));
     rt::spawn(client.clone().run_polling_updates());
     HttpServer::new(move || {
         App::new()

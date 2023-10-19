@@ -9,6 +9,7 @@ use tokio::{
 };
 pub use types::{Config, Experiment, Experiments, Variants};
 use types::{ExperimentStore, ListExperimentsResponse, Variant, VariantType};
+use derive_more::{Deref, DerefMut};
 
 #[derive(Clone, Debug)]
 pub struct Client {
@@ -33,7 +34,7 @@ impl Client {
         }
     }
 
-    pub async fn run_polling_updates(self) {
+    pub async fn run_polling_updates(self: Arc<Self>) {
         let poll_interval = self.client_config.poll_frequency;
         let hostname = &self.client_config.hostname;
         let mut interval = time::interval(Duration::from_secs(poll_interval));
@@ -47,6 +48,7 @@ impl Client {
                     hostname.clone(),
                     self.http_client.clone(),
                     start_date.to_string(),
+                    self.client_config.tenant.to_string(),
                 )
                 .await
                 .unwrap();
@@ -127,6 +129,7 @@ async fn get_experiments(
     hostname: String,
     http_client: reqwest::Client,
     start_date: String,
+    tenant: String,
 ) -> Result<ExperimentStore, String> {
     let mut curr_exp_store: ExperimentStore = HashMap::new();
     let requesting_count = 10;
@@ -138,6 +141,7 @@ async fn get_experiments(
         );
         let list_experiments_response = http_client
             .get(format!("{endpoint}&status=CREATED,INPROGRESS,CONCLUDED"))
+            .header("x-tenant", tenant.to_string())
             .send()
             .await
             .unwrap()
@@ -160,3 +164,44 @@ async fn get_experiments(
 
     Ok(curr_exp_store)
 }
+
+#[derive(Deref, DerefMut)]
+pub struct ClientFactory ( RwLock<HashMap<String, Arc<Client>>> );
+impl ClientFactory {
+    pub async fn create_client(
+        &self,
+        tenant: String,
+        poll_frequency: u64,
+        hostname: String,
+    ) -> Result<Arc<Client>, String> {
+        let mut factory = self.write().await;
+
+        if let Some(client) = factory.get(&tenant) {
+            return Ok(client.clone());
+        }
+
+        let client = Arc::new(
+            Client::new(Config {
+                tenant: tenant.to_string(),
+                hostname: hostname,
+                poll_frequency: poll_frequency
+            })
+        );
+
+        factory.insert(tenant.to_string(), client.clone());
+        return Ok(client.clone());
+    }
+
+    pub async fn get_client(&self, tenant: String) -> Result<Arc<Client>, String> {
+        let factory = self.read().await;
+        match factory.get(&tenant) {
+            Some(client) => Ok(client.clone()),
+            None => Err("No such tenant found".to_string())
+        }
+    }
+}
+
+use once_cell::sync::Lazy;
+pub static CLIENT_FACTORY: Lazy<ClientFactory> = Lazy::new(|| {
+    ClientFactory(RwLock::new(HashMap::new()))
+});

@@ -5,6 +5,7 @@ use serde_json::Value;
 
 #[derive(Clone, Debug)]
 pub struct Config {
+    pub tenant: String,
     pub hostname: String,
     pub poll_frequency: u64,
 }
