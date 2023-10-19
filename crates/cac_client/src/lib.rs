@@ -9,8 +9,9 @@ use chrono::{DateTime, Utc};
 use reqwest::{RequestBuilder, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::{convert::identity, sync::RwLock, time::Duration};
+use std::{convert::identity, sync::{RwLock, Arc}, time::Duration, collections::HashMap};
 use utils::core::MapError;
+use derive_more::{Deref, DerefMut};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Context {
@@ -27,6 +28,7 @@ pub struct Config {
 
 #[derive(Clone)]
 pub struct Client {
+    tenant: String,
     reqw: Data<reqwest::RequestBuilder>,
     polling_interval: Duration,
     last_modified: Data<RwLock<DateTime<Utc>>>,
@@ -40,18 +42,23 @@ fn clone_reqw(reqw: &RequestBuilder) -> Result<RequestBuilder, String> {
 
 impl Client {
     pub async fn new(
+        tenant: String,
         update_config_periodically: bool,
         polling_interval: Duration,
         hostname: String,
     ) -> Result<Self, String> {
         let reqw_client = reqwest::Client::builder().build().map_err_to_string()?;
         let cac_endpoint = format!("{hostname}/config");
-        let reqw = reqw_client.get(cac_endpoint);
+        let reqw = reqw_client
+            .get(cac_endpoint)
+            .header("x-tenant", tenant.to_string());
+
         let reqwc = clone_reqw(&reqw)?;
         let resp = reqwc.send().await.map_err_to_string()?;
         let config = resp.json::<Config>().await.map_err_to_string()?;
         let timestamp = Utc::now();
         let client = Client {
+            tenant,
             reqw: Data::new(reqw),
             polling_interval,
             last_modified: Data::new(RwLock::new(timestamp)),
@@ -69,10 +76,10 @@ impl Client {
         let resp = reqw.send().await.map_err_to_string()?;
         match resp.status() {
             StatusCode::NOT_MODIFIED => {
-                return Err(String::from("CAC: skipping update, remote not modified"));
+                return Err(String::from(format!("{} CAC: skipping update, remote not modified", self.tenant)));
             }
-            StatusCode::OK => log::info!("CAC: new config received, updating"),
-            x => return Err(format!("CAC: fetch failed, status: {}", x,)),
+            StatusCode::OK => log::info!("{}", format!("{} CAC: new config received, updating", self.tenant)),
+            x => return Err(format!("{} CAC: fetch failed, status: {}", self.tenant, x)),
         };
         resp.json::<Config>().await.map_err_to_string()
     }
@@ -83,7 +90,7 @@ impl Client {
         let mut last_modified = self.last_modified.write().map_err_to_string()?;
         *config = fetched_config;
         *last_modified = Utc::now();
-        Ok("CAC updated successfully".to_string())
+        Ok(format!("{}: CAC updated successfully", self.tenant))
     }
 
     pub async fn start_polling_update(self) {
@@ -118,5 +125,60 @@ impl Client {
         )
     }
 }
+
+#[derive(Deref, DerefMut)]
+pub struct ClientFactory ( RwLock<HashMap<String, Arc<Client>>> );
+impl ClientFactory {
+    pub async fn create_client(
+        &self,
+        tenant: String,
+        update_config_periodically: bool,
+        polling_interval: Duration,
+        hostname: String,
+    ) -> Result<Arc<Client>, String> {
+        let mut factory = match self.write() {
+            Ok(factory) => factory,
+            Err(e) => {
+                log::error!("CAC_CLIENT_FACTORY: failed to acquire write lock {}", e);
+                return Err("CAC_CLIENT_FACTORY: Failed to create client".to_string());
+            }
+        };
+
+        if let Some(client) = factory.get(&tenant) {
+            return Ok(client.clone());
+        }
+
+        let client = Arc::new(
+            Client::new(
+                tenant.to_string(),
+                update_config_periodically,
+                polling_interval,
+                hostname
+            ).await?
+        );
+        factory.insert(tenant.to_string(), client.clone());
+        return Ok(client.clone());
+    }
+
+    pub fn get_client(&self, tenant: String) -> Result<Arc<Client>, String> {
+        let factory = match self.read() {
+            Ok(factory) => factory,
+            Err(e) => {
+                log::error!("CAC_CLIENT_FACTORY: failed to acquire read lock {}", e);
+                return Err("CAC_CLIENT_FACTORY: Failed to acquire client.".to_string());
+            }
+        };
+
+        match factory.get(&tenant) {
+            Some(client) => Ok(client.clone()),
+            None => Err("No such tenant found".to_string())
+        }
+    }
+}
+
+use once_cell::sync::Lazy;
+pub static CLIENT_FACTORY: Lazy<ClientFactory> = Lazy::new(|| {
+    ClientFactory(RwLock::new(HashMap::new()))
+});
 
 pub use eval::eval_cac;
