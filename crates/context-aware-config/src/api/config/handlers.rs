@@ -4,11 +4,12 @@ use super::types::Config;
 use crate::db::schema::{
     contexts::dsl as ctxt, default_configs::dsl as def_conf, event_log::dsl as event_log,
 };
+use actix_http::header::{HeaderName, HeaderValue};
 use actix_web::{
     error::ErrorBadRequest, get, web::Query, HttpRequest, HttpResponse, Scope,
 };
 use cac_client::eval_cac;
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Timelike, Utc};
 use diesel::{
     dsl::max,
     r2d2::{ConnectionManager, PooledConnection},
@@ -21,16 +22,36 @@ pub fn endpoints() -> Scope {
     Scope::new("").service(get).service(get_resolved_config)
 }
 
-fn is_not_modified(
-    req: &HttpRequest,
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-) -> actix_web::Result<bool> {
-    let max_created_at: Option<NaiveDateTime> = event_log::event_log
-        .select(max(event_log::timestamp))
-        .filter(event_log::table_name.eq("contexts"))
-        .first(conn)
-        .map_err_to_internal_server("error getting created at", Null)?;
+fn add_last_modified_header(
+    max_created_at: Option<NaiveDateTime>,
+    mut res: HttpResponse,
+) -> actix_web::Result<HttpResponse> {
+    let header_name = HeaderName::from_static("last-modified");
 
+    if let Some(ele) = max_created_at {
+        let datetime_utc: DateTime<Utc> = DateTime::from_utc(ele, Utc);
+        let value = HeaderValue::from_str(&DateTime::to_rfc2822(&datetime_utc));
+        if let Ok(header_value) = value {
+            res.headers_mut().insert(header_name, header_value);
+        }
+    }
+    Ok(res)
+}
+
+fn get_max_created_at(
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> Result<NaiveDateTime, diesel::result::Error> {
+    event_log::event_log
+        .select(max(event_log::timestamp))
+        .filter(event_log::table_name.eq_any(vec!["contexts", "default_configs"]))
+        .first::<Option<NaiveDateTime>>(conn)
+        .and_then(|res| res.ok_or(diesel::result::Error::NotFound))
+}
+
+fn is_not_modified(
+    max_created_at: Option<NaiveDateTime>,
+    req: &HttpRequest,
+) -> anyhow::Result<bool> {
     let last_modified = req
         .headers()
         .get("If-Modified-Since")
@@ -39,9 +60,8 @@ fn is_not_modified(
             DateTime::parse_from_rfc2822(header_str)
                 .map(|datetime| datetime.with_timezone(&Utc).naive_utc())
                 .ok()
-        });
-
-    Ok(max_created_at.is_some() && max_created_at < last_modified)
+        }).and_then(|t| t.with_nanosecond(0));
+        Ok(max_created_at.is_some() && max_created_at <= last_modified)
 }
 
 async fn generate_cac(
@@ -91,11 +111,20 @@ async fn generate_cac(
 async fn get(req: HttpRequest, db_conn: DbConnection) -> actix_web::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
-    if is_not_modified(&req, &mut conn)? {
+    let max_created_at = get_max_created_at(&mut conn)
+        .map_err(|e| log::error!("failed to fetch max timestamp from event_log: {e}"))
+        .ok();
+
+    let is_not_modified = is_not_modified(max_created_at, &req)
+        .map_err(|e| log::error!("config not modified: {e}"));
+
+    if let Ok(true) = is_not_modified {
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    Ok(HttpResponse::Ok().json(generate_cac(&mut conn).await?))
+    let res = HttpResponse::Ok().json(generate_cac(&mut conn).await?);
+
+    add_last_modified_header(max_created_at, res)
 }
 
 #[get("/resolve")]
@@ -118,7 +147,14 @@ async fn get_resolved_config(
         );
     }
 
-    if is_not_modified(&req, &mut conn)? {
+    let max_created_at = get_max_created_at(&mut conn)
+        .map_err(|e| log::error!("failed to fetch max timestamp from event_log : {e}"))
+        .ok();
+
+    let is_not_modified = is_not_modified(max_created_at, &req)
+        .map_err(|e| log::error!("config not modified: {e}"));
+
+    if let Ok(true) = is_not_modified {
         return Ok(HttpResponse::NotModified().finish());
     }
 
@@ -133,7 +169,7 @@ async fn get_resolved_config(
         })
         .collect();
 
-    Ok(HttpResponse::Ok().json(
+    let response = HttpResponse::Ok().json(
         eval_cac(
             res.default_configs,
             &cac_client_contexts,
@@ -141,5 +177,7 @@ async fn get_resolved_config(
             &query_params_map,
         )
         .map_err_to_internal_server("cac eval failed", Null)?,
-    ))
+    );
+
+    add_last_modified_header(max_created_at, response)
 }

@@ -6,12 +6,17 @@ use actix_web::{
     web::Data,
 };
 use chrono::{DateTime, Utc};
-use reqwest::{RequestBuilder, StatusCode};
+use derive_more::{Deref, DerefMut};
+use reqwest::{RequestBuilder, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::{convert::identity, sync::{RwLock, Arc}, time::Duration, collections::HashMap};
+use std::{
+    collections::HashMap,
+    convert::identity,
+    sync::{Arc, RwLock},
+    time::{Duration, UNIX_EPOCH},
+};
 use utils::core::MapError;
-use derive_more::{Deref, DerefMut};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Context {
@@ -40,6 +45,22 @@ fn clone_reqw(reqw: &RequestBuilder) -> Result<RequestBuilder, String> {
         .ok_or_else(|| "Unable to clone reqw".to_string())
 }
 
+fn get_last_modified(
+    resp: &Response
+) -> Option<DateTime<Utc>> {
+    resp.headers()
+        .get("last-modified")
+        .and_then(|header_val| {
+            let header_str = header_val.to_str().ok()?;
+            DateTime::parse_from_rfc2822(header_str)
+                .map(|datetime| datetime.with_timezone(&Utc))
+                .map_err(|e| {
+                    log::error!("Failed to parse date: {e}");
+                })
+                .ok()
+        })
+}
+
 impl Client {
     pub async fn new(
         tenant: String,
@@ -55,13 +76,16 @@ impl Client {
 
         let reqwc = clone_reqw(&reqw)?;
         let resp = reqwc.send().await.map_err_to_string()?;
+        let last_modified_at = get_last_modified(&resp);
         let config = resp.json::<Config>().await.map_err_to_string()?;
-        let timestamp = Utc::now();
+        
         let client = Client {
             tenant,
             reqw: Data::new(reqw),
             polling_interval,
-            last_modified: Data::new(RwLock::new(timestamp)),
+            last_modified: Data::new(RwLock::new(
+                last_modified_at.unwrap_or(DateTime::<Utc>::from(UNIX_EPOCH)),
+            )),
             config: Data::new(RwLock::new(config)),
         };
         if update_config_periodically {
@@ -70,7 +94,7 @@ impl Client {
         Ok(client)
     }
 
-    async fn fetch(&self) -> Result<Config, String> {
+    async fn fetch(&self) -> Result<reqwest::Response, String> {
         let last_modified = self.last_modified.read().map_err_to_string()?.to_rfc2822();
         let reqw = clone_reqw(&self.reqw)?.header("If-Modified-Since", last_modified);
         let resp = reqw.send().await.map_err_to_string()?;
@@ -81,15 +105,18 @@ impl Client {
             StatusCode::OK => log::info!("{}", format!("{} CAC: new config received, updating", self.tenant)),
             x => return Err(format!("{} CAC: fetch failed, status: {}", self.tenant, x)),
         };
-        resp.json::<Config>().await.map_err_to_string()
+        Ok(resp)
     }
 
     async fn update_cac(&self) -> Result<String, String> {
         let fetched_config = self.fetch().await?;
         let mut config = self.config.write().map_err_to_string()?;
         let mut last_modified = self.last_modified.write().map_err_to_string()?;
-        *config = fetched_config;
-        *last_modified = Utc::now();
+        let last_modified_at = get_last_modified(&fetched_config);
+        *config = fetched_config.json::<Config>().await.map_err_to_string()?;
+        if let Some(val) = last_modified_at {
+            *last_modified = val;
+        }
         Ok(format!("{}: CAC updated successfully", self.tenant))
     }
 
