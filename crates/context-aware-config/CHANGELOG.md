@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.9.0 - 2023-10-20
+#### Features
+- PICAF-23643 - Dimension value schema validation on context-addition - (b2fad9e) - Prasanna P
+
+- - -
+
 ## context-aware-config-v0.8.0 - 2023-10-10
 #### Features
 - support to update experiment override_keys and variants - (9432bf7) - Shubhranshu Sanjeev

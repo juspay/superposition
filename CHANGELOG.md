@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.10.0 - 2023-10-20
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.9.0
+- service-utils bumped to service-utils-v0.6.0
+- superposition_client bumped to superposition_client-v0.2.0
+### Global changes
+
+- - -
+
 ## v0.9.1 - 2023-10-13
 ### Package updates
 - superposition_client bumped to superposition_client-v0.1.3
