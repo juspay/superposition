@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service-utils-v0.6.0 - 2023-10-20
+#### Features
+- PICAF-23643 - Dimension value schema validation on context-addition - (b2fad9e) - Prasanna P
+
+- - -
+
 ## service-utils-v0.5.0 - 2023-10-09
 #### Features
 - server's keep-alive time and db connection pool max size made configurable - (110ee00) - Ritick Madaan
