@@ -1,6 +1,6 @@
 use crate::aws::kms;
 use crate::db::pgschema_manager::{ConnectionConfig, PgSchemaManager};
-use crate::helpers::get_from_env_unsafe;
+use crate::helpers::{get_from_env_unsafe, get_from_env_or_default};
 use crate::service::types::AppEnv;
 use diesel::{
     r2d2::{ConnectionManager, Pool},
@@ -24,7 +24,7 @@ pub async fn get_pool() -> Pool<ConnectionManager<PgConnection>> {
     let manager: ConnectionManager<PgConnection> =
         ConnectionManager::<PgConnection>::new(db_url);
     Pool::builder()
-        .max_size(get_from_env_unsafe("MAX_DB_CONNECTION_POOL_SIZE").unwrap_or(3))
+        .max_size(get_from_env_or_default("MAX_DB_CONNECTION_POOL_SIZE", 3))
         .build(manager)
         .expect("Error building a connection pool")
 }

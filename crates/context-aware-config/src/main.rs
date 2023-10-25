@@ -22,7 +22,7 @@ use tracing_actix_web::TracingLogger;
 use service_utils::{
     db::pgschema_manager::PgSchemaManager,
     db::utils::init_pool_manager,
-    helpers::{get_from_env_unsafe, get_pod_info},
+    helpers::{get_from_env_unsafe, get_pod_info, get_from_env_or_default},
     middlewares::{
         app_scope::AppExecutionScopeMiddlewareFactory,
         tenant::TenantMiddlewareFactory,
@@ -47,7 +47,7 @@ async fn main() -> Result<()> {
     let cac_host: String = get_from_env_unsafe("CAC_HOST").expect("CAC host is not set");
     let cac_version: String = get_from_env_unsafe("CONTEXT_AWARE_CONFIG_VERSION")
         .expect("CONTEXT_AWARE_CONFIG_VERSION is not set");
-    let max_pool_size = get_from_env_unsafe("MAX_DB_CONNECTION_POOL_SIZE").unwrap_or(3);
+    let max_pool_size = get_from_env_or_default("MAX_DB_CONNECTION_POOL_SIZE", 3);
 
     let app_env: AppEnv = get_from_env_unsafe("APP_ENV").expect("APP_ENV is not set");
     let enable_tenant_and_scope: bool = get_from_env_unsafe("ENABLE_TENANT_AND_SCOPE")
