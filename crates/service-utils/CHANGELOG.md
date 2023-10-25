@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service-utils-v0.7.0 - 2023-10-25
+#### Features
+- added multi-tenant support - (5d34e78) - Shubhranshu Sanjeev
+- added middleware and FromRequest for tenant and app scope info - (07a64ad) - Shubhranshu Sanjeev
+
+- - -
+
 ## service-utils-v0.6.0 - 2023-10-20
 #### Features
 - PICAF-23643 - Dimension value schema validation on context-addition - (b2fad9e) - Prasanna P
