@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.11.0 - 2023-10-25
+### Package updates
+- experimentation-platform bumped to experimentation-platform-v0.6.0
+- service-utils bumped to service-utils-v0.7.0
+- context-aware-config bumped to context-aware-config-v0.10.0
+### Global changes
+#### Features
+- added multi-tenant support - (5d34e78) - Shubhranshu Sanjeev
+- added middleware and FromRequest for tenant and app scope info - (07a64ad) - Shubhranshu Sanjeev
+#### Refactoring
+- moved tables and types out of cac_v1 schema - (f70a0c5) - Shubhranshu Sanjeev
+
+- - -
+
 ## v0.10.0 - 2023-10-20
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.9.0
