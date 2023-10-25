@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.6.0 - 2023-10-25
+#### Features
+- added multi-tenant support - (5d34e78) - Shubhranshu Sanjeev
+- added middleware and FromRequest for tenant and app scope info - (07a64ad) - Shubhranshu Sanjeev
+#### Refactoring
+- moved tables and types out of cac_v1 schema - (f70a0c5) - Shubhranshu Sanjeev
+
+- - -
+
 ## experimentation-platform-v0.5.0 - 2023-10-10
 #### Bug Fixes
 - validating override_keys for unique entries - (36cf523) - Shubhranshu Sanjeev
