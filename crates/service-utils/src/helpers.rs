@@ -1,6 +1,7 @@
 use actix_web::{error::ErrorInternalServerError, Error};
+use log::info;
 use serde::de::{self, IntoDeserializer};
-use std::{env::VarError, fmt, str::FromStr};
+use std::{env::VarError, fmt::{self, Display}, str::FromStr};
 
 //WARN Do NOT use this fxn inside api requests, instead add the required
 //env to AppState and get value from there. As this panics, it should
@@ -16,6 +17,20 @@ where
             log::info!("{name} env not found with error: {e}");
             return e;
         })
+}
+
+pub fn get_from_env_or_default<F>(name: &str, default: F) -> F
+where
+    F: FromStr + Display,
+    <F as FromStr>::Err: std::fmt::Debug,
+{
+    match std::env::var(name) {
+        Ok(env) => env.parse().unwrap(),
+        Err(err) => {
+            info!("{name} ENV failed to load due to {err}, using default value {default}");
+            default
+        }
+    }
 }
 
 pub trait ToActixErr<T> {
