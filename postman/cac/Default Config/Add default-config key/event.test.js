@@ -24,7 +24,7 @@ function getConfigAndTest(key, value) {
 }
 
 pm.test("201 check", function () {
-    pm.response.to.have.status(201);
+    pm.response.to.have.status(200);
 })
 
 pm.test("Check if key added to default config", function () {
