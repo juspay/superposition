@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use crate::{
     api::{
         context::types::{
-            ContextAction, ContextBulkResponse, DimensionCondition, PaginationParams,
-            PutReq, PutResp, MoveReq
+            ContextAction, ContextBulkResponse, DimensionCondition, MoveReq,
+            PaginationParams, PutReq, PutResp,
         },
         dimension::get_all_dimension_schema_map,
     },
@@ -32,9 +32,9 @@ use diesel::{
     result::{DatabaseErrorKind::*, Error::DatabaseError},
     Connection, ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
 };
+use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{from_value, json, Map, Value, Value::Null};
 use service_utils::{helpers::ToActixErr, service::types::DbConnection};
-use jsonschema::{Draft, JSONSchema, ValidationError};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -66,10 +66,7 @@ fn validate_dimensions_and_calculate_priority(
                 ))
                 .copied()
         } else {
-            validate_dimensions_and_calculate_priority(
-                val,
-                dimension_schema_map,
-            )
+            validate_dimensions_and_calculate_priority(val, dimension_schema_map)
         }
     };
 
@@ -89,7 +86,9 @@ fn validate_dimensions_and_calculate_priority(
                     val = Some(i.clone());
                 }
 
-                if let (Some(_dimension_value), Some(_dimension_condition)) = (&val, &condition) {
+                if let (Some(_dimension_value), Some(_dimension_condition)) =
+                    (&val, &condition)
+                {
                     break;
                 }
             }
@@ -109,11 +108,8 @@ fn validate_dimensions_and_calculate_priority(
             };
 
             arr.iter().try_fold(0, |acc, item| {
-                validate_dimensions_and_calculate_priority(
-                    item,
-                    dimension_schema_map,
-                )
-                .map(|res| res + acc)
+                validate_dimensions_and_calculate_priority(item, dimension_schema_map)
+                    .map(|res| res + acc)
             })
         }
         _ => Ok(0),
@@ -245,8 +241,7 @@ fn put(
     let new_ctx = create_ctx_from_put_req(req, conn, user)?;
 
     if already_under_txn {
-        diesel::sql_query("SAVEPOINT put_ctx_savepoint")
-            .execute(conn)?;
+        diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
     }
     let insert = diesel::insert_into(contexts).values(&new_ctx).execute(conn);
 
@@ -254,8 +249,7 @@ fn put(
         Ok(_) => Ok(get_put_resp(new_ctx)),
         Err(DatabaseError(UniqueViolation, _)) => {
             if already_under_txn {
-                diesel::sql_query("ROLLBACK TO put_ctx_savepoint")
-                    .execute(conn)?;
+                diesel::sql_query("ROLLBACK TO put_ctx_savepoint").execute(conn)?;
             }
             update_override_of_existing_ctx(conn, new_ctx)
         }
@@ -292,7 +286,10 @@ fn r#move(
     let ctx_condition = Value::Object(req.context);
     let new_ctx_id = generate_context_id(&ctx_condition);
     let dimension_schema_map = get_all_dimension_schema_map(conn)?;
-    let priority = match validate_dimensions_and_calculate_priority(&ctx_condition, &dimension_schema_map) {
+    let priority = match validate_dimensions_and_calculate_priority(
+        &ctx_condition,
+        &dimension_schema_map,
+    ) {
         Ok(0) => {
             return Err(anyhow!(String::from("No dimension found in context")));
         }
@@ -303,13 +300,16 @@ fn r#move(
     };
 
     if already_under_txn {
-        diesel::sql_query("SAVEPOINT update_ctx_savepoint")
-            .execute(conn)?;
+        diesel::sql_query("SAVEPOINT update_ctx_savepoint").execute(conn)?;
     }
 
     let context = diesel::update(dsl::contexts)
         .filter(dsl::id.eq(&old_ctx_id))
-        .set((dsl::id.eq(&new_ctx_id), dsl::value.eq(&ctx_condition)))
+        .set((
+            dsl::id.eq(&new_ctx_id),
+            dsl::value.eq(&ctx_condition),
+            dsl::priority.eq(priority),
+        ))
         .get_result(conn);
 
     let contruct_new_ctx_with_old_overrides = |ctx: Context| Context {
@@ -346,8 +346,7 @@ fn r#move(
         Ok(ctx) => Ok(get_put_resp(ctx)),
         Err(DatabaseError(UniqueViolation, _)) => {
             if already_under_txn {
-                diesel::sql_query("ROLLBACK TO update_ctx_savepoint")
-                    .execute(conn)?;
+                diesel::sql_query("ROLLBACK TO update_ctx_savepoint").execute(conn)?;
             }
             handle_unique_violation(conn, already_under_txn)
         }
