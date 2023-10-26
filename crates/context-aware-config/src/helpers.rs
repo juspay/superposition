@@ -4,36 +4,59 @@ use serde_json::{json, Value};
 use std::collections::HashMap;
 
 pub fn get_default_config_validation_schema() -> JSONSchema {
-    let my_schema = json!({
+    let my_schema = json!(
+    {
         "type": "object",
         "properties": {
-            "type": {
-            "enum": ["string", "object", "enum", "number", "boolean", "array"]
-            }
+          "type": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array"
+              }
+            ]
+          }
         },
-        "required": ["type"],
+        "required": [
+          "type"
+        ],
         "allOf": [
-    //        {
-    //        "if": {
-    //            "properties": { "type": { "const": "object" } }
-    //        },
-    //        "then": {
-    //            "properties": { "properties": { "type": "object" } },
-    //            "required": ["properties"]
-    //        }
-    //        },
-            {
+          {
             "if": {
-                "properties": { "type": { "const": "string" } }
+              "properties": {
+                "type": {
+                  "const": "string"
+                }
+              }
             },
             "then": {
-                "properties": { "pattern": { "type": "string" } },
-                "required": ["pattern"]
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
             }
-            },
-            // TODO: Add validations for Array types.
+          }
+          // TODO: Add validations for Array types.
         ]
-        });
+      });
 
     JSONSchema::options()
         .with_draft(Draft::Draft7)
