@@ -57,6 +57,11 @@ async fn main() -> Result<()> {
         .split(",")
         .map(|tenant| tenant.to_string())
         .collect::<HashSet<String>>();
+    let tenant_middleware_exclusion_list = get_from_env_unsafe::<String>("TENANT_MIDDLEWARE_EXCLUSION_LIST")
+        .expect("TENANT_MIDDLEWARE_EXCLUSION_LIST is not set")
+        .split(",")
+        .map(String::from)
+        .collect::<HashSet<String>>();
 
     let string_to_int = |s: &String| -> i32 {
         s.chars()
@@ -117,6 +122,7 @@ async fn main() -> Result<()> {
                 app_env: app_env.to_owned(),
                 enable_tenant_and_scope: enable_tenant_and_scope.to_owned(),
                 tenants: tenants.to_owned(),
+                tenant_middleware_exclusion_list: tenant_middleware_exclusion_list.to_owned(),
             }))
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()

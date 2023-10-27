@@ -56,7 +56,10 @@ where
                 }
             };
 
-            if app_state.enable_tenant_and_scope {
+            let request_path = req.uri().path();
+            let is_excluded: bool = app_state.tenant_middleware_exclusion_list.contains(request_path);
+
+            if !is_excluded && app_state.enable_tenant_and_scope {
                 let tenant = req
                     .headers()
                     .get("x-tenant")
