@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.12.0 - 2023-10-27
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.10.1
+- cac_client bumped to cac_client-v0.3.0
+- service-utils bumped to service-utils-v0.7.1
+- superposition_client bumped to superposition_client-v0.3.0
+### Global changes
+#### Bug Fixes
+- fixed failing health check (x-tenant header not set) - (23af679) - Shubhranshu Sanjeev
+#### Features
+- multi-tenant support for client libraries - (c603be0) - Shubhranshu Sanjeev
+
+- - -
+
 ## v0.11.0 - 2023-10-25
 ### Package updates
 - experimentation-platform bumped to experimentation-platform-v0.6.0

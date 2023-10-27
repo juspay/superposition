@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_client-v0.3.0 - 2023-10-27
+#### Features
+- multi-tenant support for client libraries - (c603be0) - Shubhranshu Sanjeev
+
+- - -
+
 ## superposition_client-v0.2.0 - 2023-10-20
 #### Features
 - PICAF-23643 - Dimension value schema validation on context-addition - (b2fad9e) - Prasanna P
