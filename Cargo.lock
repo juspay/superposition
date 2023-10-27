@@ -577,7 +577,7 @@ dependencies = [
 
 [[package]]
 name = "cac_client"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "actix-web",
  "chrono",
@@ -703,7 +703,7 @@ checksum = "13418e745008f7349ec7e449155f419a61b92b58a99cc3616942b926825ec76b"
 
 [[package]]
 name = "context-aware-config"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "actix",
  "actix-cors",
@@ -3117,7 +3117,7 @@ dependencies = [
 
 [[package]]
 name = "service-utils"
-version = "0.7.0"
+version = "0.7.1"
 dependencies = [
  "actix",
  "actix-web",
@@ -3273,7 +3273,7 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "superposition_client"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "chrono",
  "derive_more",

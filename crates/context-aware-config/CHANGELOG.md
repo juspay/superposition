@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.10.1 - 2023-10-27
+#### Bug Fixes
+- fixed failing health check (x-tenant header not set) - (23af679) - Shubhranshu Sanjeev
+
+- - -
+
 ## context-aware-config-v0.10.0 - 2023-10-25
 #### Features
 - added multi-tenant support - (5d34e78) - Shubhranshu Sanjeev
