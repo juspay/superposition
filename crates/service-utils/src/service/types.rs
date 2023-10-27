@@ -38,6 +38,7 @@ pub struct AppState {
     pub experimentation_flags: ExperimentationFlags,
     pub snowflake_generator: Mutex<SnowflakeIdGenerator>,
     pub enable_tenant_and_scope: bool,
+    pub tenant_middleware_exclusion_list: HashSet<String>,
 }
 
 impl FromStr for AppEnv {
