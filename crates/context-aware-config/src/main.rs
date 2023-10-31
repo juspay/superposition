@@ -94,8 +94,8 @@ async fn main() -> Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(DashboardAuth::default())
-            .wrap(middlewares::cors())
             .wrap(TenantMiddlewareFactory)
+            .wrap(middlewares::cors())
             .wrap(logger::GoldenSignalFactory)
             .wrap(TracingLogger::<CustomRootSpanBuilder>::new())
             .app_data(Data::new(AppState {
