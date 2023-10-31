@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.10.2 - 2023-10-31
+#### Bug Fixes
+- PICAF-25020 x-tenant header mandate removed for OPTIONS calls - (9ee39b5) - Ritick Madaan
+
+- - -
+
 ## context-aware-config-v0.10.1 - 2023-10-27
 #### Bug Fixes
 - fixed failing health check (x-tenant header not set) - (23af679) - Shubhranshu Sanjeev
