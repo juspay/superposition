@@ -79,6 +79,7 @@ setup:
 	# NOTE: The container spinned-up here is the actual container being used in development
 	make db-init
 	make legacy_db_setup
+	echo setup completed successfully!!!
 
 kill:
 	-pkill -f target/debug/context-aware-config &
