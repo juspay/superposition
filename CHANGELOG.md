@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.13.0 - 2023-11-06
+### Package updates
+- external bumped to external-v0.1.0
+### Global changes
+#### Bug Fixes
+- PICAF-25068 added external crate to cocogitto config - (f6f60ef) - Ritick Madaan
+- PICAF-25068 x-tenant header added for /config/resolve call in diff - (0e34c31) - Ritick Madaan
+
+- - -
+
 ## v0.12.1 - 2023-10-31
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.10.2
