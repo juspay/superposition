@@ -28,6 +28,7 @@ authors = []
 context-aware-config = { path = "crates/context-aware-config" }
 experimentation-platform = { path = "crates/experimentation-platform" }
 service-utils = { path = "crates/service-utils" }
+external = { path = "crates/external" }
 
 cac_client = { path = "crates/cac_client" }
 superposition_client = { path = "crates/superposition_client" }
