@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service-utils-v0.8.0 - 2023-11-08
+#### Bug Fixes
+- make sure envs with defaults prevent failure - (aac0303) - Kartik Gajendra
+#### Features
+- [PICAF-24779] integrate authorize middleware - (4a582f3) - Kartik Gajendra
+
+- - -
+
 ## service-utils-v0.7.1 - 2023-10-27
 #### Bug Fixes
 - fixed failing health check (x-tenant header not set) - (23af679) - Shubhranshu Sanjeev

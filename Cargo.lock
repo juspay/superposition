@@ -703,7 +703,7 @@ checksum = "13418e745008f7349ec7e449155f419a61b92b58a99cc3616942b926825ec76b"
 
 [[package]]
 name = "context-aware-config"
-version = "0.10.2"
+version = "0.11.0"
 dependencies = [
  "actix",
  "actix-cors",
@@ -1184,7 +1184,7 @@ dependencies = [
 
 [[package]]
 name = "experimentation-platform"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "actix",
  "actix-web",
@@ -1208,7 +1208,7 @@ dependencies = [
 
 [[package]]
 name = "external"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "actix",
  "actix-web",
@@ -3117,7 +3117,7 @@ dependencies = [
 
 [[package]]
 name = "service-utils"
-version = "0.7.1"
+version = "0.8.0"
 dependencies = [
  "actix",
  "actix-web",

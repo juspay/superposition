@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.14.0 - 2023-11-08
+### Package updates
+- external bumped to external-v0.2.0
+- experimentation-platform bumped to experimentation-platform-v0.7.0
+- service-utils bumped to service-utils-v0.8.0
+- context-aware-config bumped to context-aware-config-v0.11.0
+### Global changes
+#### Features
+- [PICAF-24779] integrate authorize middleware - (4a582f3) - Kartik Gajendra
+
+- - -
+
 ## v0.13.0 - 2023-11-06
 ### Package updates
 - external bumped to external-v0.1.0

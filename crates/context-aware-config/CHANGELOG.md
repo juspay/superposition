@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.11.0 - 2023-11-08
+#### Bug Fixes
+- make sure envs with defaults prevent failure - (aac0303) - Kartik Gajendra
+#### Features
+- [PICAF-24779] integrate authorize middleware - (4a582f3) - Kartik Gajendra
+
+- - -
+
 ## context-aware-config-v0.10.2 - 2023-10-31
 #### Bug Fixes
 - PICAF-25020 x-tenant header mandate removed for OPTIONS calls - (9ee39b5) - Ritick Madaan
