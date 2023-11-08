@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.7.0 - 2023-11-08
+#### Features
+- [PICAF-24779] integrate authorize middleware - (4a582f3) - Kartik Gajendra
+
+- - -
+
 ## experimentation-platform-v0.6.0 - 2023-10-25
 #### Features
 - added multi-tenant support - (5d34e78) - Shubhranshu Sanjeev
