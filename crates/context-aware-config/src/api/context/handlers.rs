@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-
+use crate::helpers::json_to_sorted_string;
 use crate::{
     api::{
         context::types::{
@@ -33,8 +32,9 @@ use diesel::{
     Connection, ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl,
 };
 use jsonschema::{Draft, JSONSchema, ValidationError};
-use serde_json::{from_value, json, Map, Value, Value::Null};
+use serde_json::{from_value, json, Map, Value};
 use service_utils::{helpers::ToActixErr, service::types::DbConnection};
+use std::collections::HashMap;
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -181,8 +181,8 @@ fn create_ctx_from_put_req(
         }
         Ok(p) => p,
     };
-    let context_id = generate_context_id(&ctx_condition);
-    let override_id = blake3::hash(ctx_override.to_string().as_bytes()).to_string();
+    let context_id = hash(&ctx_condition);
+    let override_id = hash(&ctx_override);
     Ok(Context {
         id: context_id.clone(),
         value: ctx_condition,
@@ -194,8 +194,9 @@ fn create_ctx_from_put_req(
     })
 }
 
-fn generate_context_id(ctx_condition: &Value) -> String {
-    blake3::hash(ctx_condition.to_string().as_bytes()).to_string()
+fn hash(val: &Value) -> String {
+    let sorted_str: String = json_to_sorted_string(val);
+    blake3::hash(sorted_str.as_bytes()).to_string()
 }
 
 fn update_override_of_existing_ctx(
@@ -208,7 +209,7 @@ fn update_override_of_existing_ctx(
         .select(dsl::override_)
         .first(conn)?;
     json_patch::merge(&mut new_override, &ctx.override_);
-    let new_override_id = blake3::hash((new_override).to_string().as_bytes()).to_string();
+    let new_override_id = hash(&new_override);
     let new_ctx = Context {
         override_: new_override,
         override_id: new_override_id,
@@ -283,7 +284,7 @@ fn r#move(
     use contexts::dsl;
     let req = req.into_inner();
     let ctx_condition = Value::Object(req.context);
-    let new_ctx_id = generate_context_id(&ctx_condition);
+    let new_ctx_id = hash(&ctx_condition);
     let dimension_schema_map = get_all_dimension_schema_map(conn)?;
     let priority = match validate_dimensions_and_calculate_priority(
         &ctx_condition,
@@ -426,7 +427,7 @@ async fn list_contexts(
         .limit(i64::from(size))
         .offset(i64::from(size * (page - 1)))
         .load(&mut conn)
-        .map_err_to_internal_server("Failed to execute query, error", Null)?;
+        .map_err_to_internal_server("Failed to execute query, error", Value::Null)?;
     Ok(web::Json(result))
 }
 

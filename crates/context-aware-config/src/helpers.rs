@@ -1,4 +1,5 @@
 use actix_web::http::header::{HeaderMap, HeaderName, HeaderValue};
+use itertools::{self, Itertools};
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -147,6 +148,34 @@ pub fn validate_jsonschema(
     res
 }
 
+pub fn json_to_sorted_string(v: &Value) -> String {
+    match v {
+        Value::Object(m) => {
+            let mut new_str: String = String::from("");
+            for (i, val) in m.iter().sorted_by_key(|item| item.0) {
+                let p: String = json_to_sorted_string(val);
+                new_str.push_str(i);
+                new_str.push_str(&String::from(":"));
+                new_str.push_str(&p);
+                new_str.push_str(&String::from("$"));
+            }
+            new_str
+        }
+        Value::String(m) => m.to_string(),
+        Value::Number(m) => m.to_string(),
+        Value::Bool(m) => m.to_string(),
+        Value::Null => String::from("null"),
+        Value::Array(m) => {
+            let mut new_vec: Vec<String> = m
+                .iter()
+                .map(|item| json_to_sorted_string(item))
+                .collect::<Vec<String>>();
+            new_vec.sort();
+            new_vec.join(",")
+        }
+    }
+}
+
 // ************ Tests *************
 
 #[cfg(test)]
@@ -197,5 +226,57 @@ mod tests {
         assert_eq!(error_object_validation, true);
         assert_eq!(ok_string_validation, Ok(()));
         assert_eq!(error_string_validation, true);
+    }
+
+    #[test]
+    fn test_json_to_sorted_string() {
+        let first_condition: Value = json!({
+            "and": [
+                {
+                    "==": [
+                        {
+                            "var": "os"
+                        },
+                        "android"
+                    ]
+                },
+                {
+                    "==": [
+                        {
+                            "var": "clientId"
+                        },
+                        "geddit"
+                    ]
+                }
+            ]
+        });
+
+        let second_condition: Value = json!({
+            "and": [
+                {
+                    "==": [
+                        {
+                            "var": "clientId"
+                        },
+                        "geddit"
+                    ]
+                },
+                {
+                    "==": [
+                        {
+                            "var": "os"
+                        },
+                        "android"
+                    ]
+                }
+            ]
+        });
+        let expected_string: String =
+            "and:==:android,var:os$$,==:geddit,var:clientId$$$".to_owned();
+        assert_eq!(json_to_sorted_string(&first_condition), expected_string);
+        assert_eq!(
+            json_to_sorted_string(&first_condition),
+            json_to_sorted_string(&second_condition)
+        );
     }
 }
