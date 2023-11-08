@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## external-v0.2.0 - 2023-11-08
+#### Features
+- [PICAF-24779] integrate authorize middleware - (4a582f3) - Kartik Gajendra
+
+- - -
+
 ## external-v0.1.0 - 2023-11-06
 #### Bug Fixes
 - PICAF-25068 x-tenant header added for /config/resolve call in diff - (0e34c31) - Ritick Madaan
