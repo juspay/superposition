@@ -316,3 +316,9 @@ pub fn add_variant_dimension_to_ctx(
         })),
     }
 }
+
+pub fn extract_override_keys(
+    overrides: &Map<String, Value>,
+) -> HashSet<String> {
+    overrides.keys().map(String::from).collect()
+}

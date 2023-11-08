@@ -21,7 +21,8 @@ use service_utils::{
 use super::{
     helpers::{
         add_variant_dimension_to_ctx, check_variant_types,
-        check_variants_override_coverage, validate_experiment, validate_override_keys,
+        check_variants_override_coverage, extract_override_keys, validate_experiment,
+        validate_override_keys,
     },
     types::{
         AuditQueryFilters, ConcludeExperimentRequest, ContextAction, ContextBulkResponse,
@@ -61,7 +62,12 @@ async fn create(
     let mut variants = req.variants.to_vec();
 
     let DbConnection(mut conn) = db_conn;
-    let override_keys = &req.override_keys;
+    
+    // Checking if experiment has exactly 1 control variant, and
+    // atleast 1 experimental variant
+    check_variant_types(&variants)?;
+    let unique_override_keys: Vec<String> =
+        extract_override_keys(&variants[0].overrides).into_iter().collect();
 
     let unique_ids_of_variants_from_req: HashSet<&str> =
         HashSet::from_iter(variants.iter().map(|v| v.id.as_str()));
@@ -73,10 +79,7 @@ async fn create(
         }));
     }
 
-    // Checking if experiment has exactly 1 control variant, and
-    // atleast 1 experimental variant
-    validate_override_keys(&override_keys)?;
-    check_variant_types(&variants)?;
+    validate_override_keys(&unique_override_keys)?;
 
     // Checking if all the variants are overriding the mentioned keys
     let variant_overrides = variants
@@ -84,12 +87,12 @@ async fn create(
         .map(|variant| &variant.overrides)
         .collect::<Vec<&Map<String, Value>>>();
     let are_valid_variants =
-        check_variants_override_coverage(&variant_overrides, override_keys);
+        check_variants_override_coverage(&variant_overrides, &unique_override_keys);
     if !are_valid_variants {
         return Err(err::BadRequest(ErrorResponse {
             message: "all variants should contain the keys mentioned in override_keys"
                 .to_string(),
-            possible_fix: format!("Check if any of the following keys [{}] are missing from keys in your variants",  override_keys.join(","))
+            possible_fix: format!("Check if any of the following keys [{}] are missing from keys in your variants",  unique_override_keys.join(","))
         }));
     }
 
@@ -103,8 +106,13 @@ async fn create(
 
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;
-    let (valid, reason) =
-        validate_experiment(&req.context, &req.override_keys, None, &flags, &mut conn)?;
+    let (valid, reason) = validate_experiment(
+        &req.context,
+        &unique_override_keys,
+        None,
+        &flags,
+        &mut conn,
+    )?;
     if !valid {
         return Err(err::BadRequest(ErrorResponse {
             message: reason,
@@ -185,7 +193,7 @@ async fn create(
         created_at: Utc::now(),
         last_modified: Utc::now(),
         name: req.name.to_string(),
-        override_keys: req.override_keys.to_vec(),
+        override_keys: unique_override_keys.to_vec(),
         traffic_percentage: 0,
         status: ExperimentStatusType::CREATED,
         context: req.context.clone(),
@@ -477,8 +485,14 @@ async fn update_overrides(
     let experiment_id = params.into_inner();
 
     let payload = req.into_inner();
-    let override_keys = payload.override_keys;
     let variants = payload.variants;
+
+    let first_variant = variants.get(0).ok_or(err::BadRequest(ErrorResponse {
+        message: "Variant not found in request".to_string(),
+        possible_fix: "Provide at least one entry in variant's list"
+            .to_string(),
+    }))?;
+    let override_keys = extract_override_keys(&first_variant.overrides).into_iter().collect();
 
     // fetch the current variants of the experiment
     let experiment = experiments::experiments
