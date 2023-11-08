@@ -25,7 +25,6 @@ pub struct Variant {
 #[derive(Deserialize)]
 pub struct ExperimentCreateRequest {
     pub name: String,
-    pub override_keys: Vec<String>,
 
     pub context: Value,
     pub variants: Vec<Variant>,
@@ -161,7 +160,6 @@ pub struct VariantUpdateRequest {
 
 #[derive(Deserialize, Debug)]
 pub struct OverrideKeysUpdateRequest {
-    pub override_keys: Vec<String>,
     pub variants: Vec<VariantUpdateRequest>,
 }
 
