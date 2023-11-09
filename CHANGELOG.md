@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.14.1 - 2023-11-09
+### Package updates
+- experimentation-platform bumped to experimentation-platform-v0.7.1
+### Global changes
+
+- - -
+
 ## v0.14.0 - 2023-11-08
 ### Package updates
 - external bumped to external-v0.2.0

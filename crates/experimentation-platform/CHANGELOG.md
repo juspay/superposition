@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.7.1 - 2023-11-09
+#### Bug Fixes
+- Removing acceptance of override_keys in experiment create/update - (033597e) - ankit.mahato
+
+- - -
+
 ## experimentation-platform-v0.7.0 - 2023-11-08
 #### Features
 - [PICAF-24779] integrate authorize middleware - (4a582f3) - Kartik Gajendra
