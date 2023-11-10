@@ -62,11 +62,7 @@ validate-aws-connection:
 validate-psql-connection:
 	pg_isready -h $(DOCKER_DNS) -p 5432
 
-setup:
-	# NOTE: `make migration` is being used to run the migrations for cac and experimentation in isolation,
-	# otherwise the tables and types of cac and experimentation spill into each others schema.rs
-	# NOTE: The container spinned up are stopped and removed after the work is done.
-	make migration
+ci-setup:
 	docker-compose up -d postgres localstack
 	cp .env.example .env
 	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
@@ -80,6 +76,13 @@ setup:
 	make db-init
 	make legacy_db_setup
 	echo setup completed successfully!!!
+
+setup:
+	# NOTE: `make migration` is being used to run the migrations for cac and experimentation in isolation,
+	# otherwise the tables and types of cac and experimentation spill into each others schema.rs
+	# NOTE: The container spinned up are stopped and removed after the work is done.
+	make migration
+	make ci-setup
 
 kill:
 	-pkill -f target/debug/context-aware-config &
@@ -106,7 +109,7 @@ ci-test:
 	-docker rmi -f $$(docker images | grep context-aware-config-postgres | cut -f 10 -d " ")
 	npm ci --loglevel=error
 	cargo test
-	make setup
+	make ci-setup
 	make run -e DOCKER_DNS=$(DOCKER_DNS) 2>&1 | tee test_logs &
 	while ! grep -q "starting in Actix" test_logs; \
 		do echo "ci-test: waiting for bootup..." && sleep 4; \
