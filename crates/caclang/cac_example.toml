@@ -1,0 +1,31 @@
+[dimensions]
+
+# priority grows exponentially in powers of 2, highest priority items win
+height = { type = "number" } # priority 1
+fur-pattern = { type = "string", enum = [
+    "fluffy",
+    "straight",
+    "nofur",
+] } # priority 2
+color = { type = "string", pattern = "a-zA-Z+" } # priority 4
+breed = { type = "string", pattern = "a-zA-Z+" } # priority 8
+
+[default-configs]
+
+name = "dog"
+owner = "someone"
+
+[overrides]
+
+override_one = { name = "rocky", owner = "Ritick" }
+override_two = { name = "bobo", owner = "Shubranshu" }
+override_three = { name = "blondie" }
+override_four = { owner = "Natarajan" }
+override_five = { owner = "Saurav" }
+
+[contexts]
+
+"breed = golden_retriever" = ["override_three", "override_five"]
+"breed = labrador and height > 3" = ["override_one"]
+"breed = pug and fur_pattern = straight" = ["override_two"]
+"color = black" = ["override_three", "override_four"]
