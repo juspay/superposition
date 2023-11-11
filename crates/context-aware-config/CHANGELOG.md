@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.12.0 - 2023-11-11
+#### Features
+- added format check in the JenkinsFile(PICAF-24813) - (4fdf864) - Saurav Suman
+- added frontend crate,combined frontend and backend binaries (PICAF-24540) - (ee084ba) - Saurav Suman
+#### Miscellaneous Chores
+- [PICAF-24778] move dependencies to workspaces - (38a524f) - Kartik Gajendra
+
+- - -
+
 ## context-aware-config-v0.11.0 - 2023-11-08
 #### Bug Fixes
 - make sure envs with defaults prevent failure - (aac0303) - Kartik Gajendra

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service-utils-v0.9.0 - 2023-11-11
+#### Features
+- added format check in the JenkinsFile(PICAF-24813) - (4fdf864) - Saurav Suman
+#### Miscellaneous Chores
+- [PICAF-24778] move dependencies to workspaces - (38a524f) - Kartik Gajendra
+
+- - -
+
 ## service-utils-v0.8.0 - 2023-11-08
 #### Bug Fixes
 - make sure envs with defaults prevent failure - (aac0303) - Kartik Gajendra
