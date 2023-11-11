@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.4.0 - 2023-11-11
+#### Features
+- added format check in the JenkinsFile(PICAF-24813) - (4fdf864) - Saurav Suman
+#### Miscellaneous Chores
+- [PICAF-24778] move dependencies to workspaces - (38a524f) - Kartik Gajendra
+
+- - -
+
 ## cac_client-v0.3.0 - 2023-10-27
 #### Features
 - multi-tenant support for client libraries - (c603be0) - Shubhranshu Sanjeev

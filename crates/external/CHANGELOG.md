@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## external-v0.3.0 - 2023-11-11
+#### Features
+- added format check in the JenkinsFile(PICAF-24813) - (4fdf864) - Saurav Suman
+#### Miscellaneous Chores
+- [PICAF-24778] move dependencies to workspaces - (38a524f) - Kartik Gajendra
+
+- - -
+
 ## external-v0.2.0 - 2023-11-08
 #### Features
 - [PICAF-24779] integrate authorize middleware - (4a582f3) - Kartik Gajendra

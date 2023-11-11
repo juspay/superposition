@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.8.0 - 2023-11-11
+#### Features
+- added format check in the JenkinsFile(PICAF-24813) - (4fdf864) - Saurav Suman
+#### Miscellaneous Chores
+- [PICAF-24778] move dependencies to workspaces - (38a524f) - Kartik Gajendra
+
+- - -
+
 ## experimentation-platform-v0.7.1 - 2023-11-09
 #### Bug Fixes
 - Removing acceptance of override_keys in experiment create/update - (033597e) - ankit.mahato

@@ -2,6 +2,25 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.15.0 - 2023-11-11
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.12.0
+- external bumped to external-v0.3.0
+- cac_client bumped to cac_client-v0.4.0
+- service-utils bumped to service-utils-v0.9.0
+- superposition_client bumped to superposition_client-v0.4.0
+- experimentation-platform bumped to experimentation-platform-v0.8.0
+### Global changes
+#### Bug Fixes
+- failing build due to update of schema.rs file - (131463b) - Shubhranshu Sanjeev
+#### Features
+- added format check in the JenkinsFile(PICAF-24813) - (4fdf864) - Saurav Suman
+- added frontend crate,combined frontend and backend binaries (PICAF-24540) - (ee084ba) - Saurav Suman
+#### Miscellaneous Chores
+- [PICAF-24778] move dependencies to workspaces - (38a524f) - Kartik Gajendra
+
+- - -
+
 ## v0.14.1 - 2023-11-09
 ### Package updates
 - experimentation-platform bumped to experimentation-platform-v0.7.1
