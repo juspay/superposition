@@ -46,4 +46,4 @@ rand = "0.8.5"
 once_cell = { version = "1.18.0" }
 anyhow = { version = "1.0", default-features = false }
 # juspay dependencies
-dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.5.0"}
+dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.5.1"}
