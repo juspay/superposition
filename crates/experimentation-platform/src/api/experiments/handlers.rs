@@ -154,7 +154,10 @@ async fn create(
 
     let created_contexts: Vec<ContextPutResp> = http_client
         .put(&url)
-        .header("Authorization", format!("Bearer {}", user.token))
+        .header(
+            "Authorization",
+            format!("{} {}", user.auth_type, user.token),
+        )
         .header("x-tenant", tenant.as_str())
         .json(&cac_operations)
         .send()
@@ -305,7 +308,10 @@ pub async fn conclude(
     let url = state.cac_host.clone() + "/context/bulk-operations";
     let response = http_client
         .put(&url)
-        .header("Authorization", format!("Bearer {}", user.token))
+        .header(
+            "Authorization",
+            format!("{} {}", user.auth_type, user.token),
+        )
         .header("x-tenant", tenant.as_str())
         .json(&operations)
         .send()
@@ -635,7 +641,10 @@ async fn update_overrides(
 
     let created_contexts: Vec<ContextPutResp> = http_client
         .put(&url)
-        .header("Authorization", format!("Bearer {}", user.token))
+        .header(
+            "Authorization",
+            format!("{} {}", user.auth_type, user.token),
+        )
         .header("x-tenant", tenant.as_str())
         .json(&cac_operations)
         .send()
