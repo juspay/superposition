@@ -857,7 +857,7 @@ checksum = "13418e745008f7349ec7e449155f419a61b92b58a99cc3616942b926825ec76b"
 
 [[package]]
 name = "context-aware-config"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "actix",
  "actix-cors",
