@@ -30,6 +30,6 @@ experimentation-platform = { path = "crates/experimentation-platform" }
 service-utils = { path = "crates/service-utils" }
 external = { path = "crates/external" }
 frontend = { path = "crates/frontend" }
-
+caclang = { path = "crates/caclang" }
 cac_client = { path = "crates/cac_client" }
 superposition_client = { path = "crates/superposition_client" }

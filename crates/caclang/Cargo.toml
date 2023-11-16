@@ -19,8 +19,11 @@ clap = { version = "4.3.0", features = ["derive"] }
 inquire = "0.6.2"
 regex = "1.9.1"
 serde = "1.0.163"
+blake3 = { workspace = true }
 anyhow = { workspace = true }
 derive_more = { workspace = true }
 evalexpr = "11.1.0"
+log = { workspace = true }
+env_logger = { workspace = true }
 strum_macros = { workspace = true }
-strum = {workspace = true }
+strum = { workspace = true }

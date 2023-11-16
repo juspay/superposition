@@ -33,7 +33,7 @@ derive_more = { workspace = true }
 chrono = { workspace = true }
 # ORM
 diesel = { workspace = true }
-blake3 = "1.3.3"
+blake3 = { workspace = true}
 rusoto_kms = { workspace = true }
 rusoto_signature = { workspace = true }
 bytes = { workspace = true }

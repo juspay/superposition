@@ -1,13 +1,18 @@
-use std::{collections::HashMap, str::FromStr};
-mod parse;
+use std::{
+    collections::{BTreeMap, HashMap},
+    str::FromStr,
+};
+mod helpers;
 
 use anyhow::anyhow;
 use derive_more::Deref;
 use evalexpr::Node;
-use parse::{extract_section, parse_and_validate_ctx};
+use helpers::{compute_cac_hash, extract_section, parse_and_validate_ctx};
 use regex::Regex;
 use strum_macros::EnumString;
 use toml::Table;
+
+pub type HashMapContext = evalexpr::HashMapContext;
 
 #[derive(Debug, Clone, EnumString, PartialEq)]
 pub enum DataType {
@@ -50,7 +55,7 @@ impl Context {
 }
 
 #[derive(Debug, Clone, Deref)]
-pub struct Contexts(pub Vec<Context>);
+pub struct Contexts(pub HashMap<String, Context>);
 
 impl Contexts {
     pub fn from(
@@ -58,18 +63,26 @@ impl Contexts {
         default_config: &Table,
         value: Table,
     ) -> anyhow::Result<Self> {
-        let mut items = Vec::new();
+        let mut items = HashMap::new();
         for (ctx, overrides) in value.into_iter() {
+            let ctx_hash = compute_cac_hash(&ctx)?;
+            if items.contains_key(&ctx_hash) {
+                let collided_ctx: &Context = items.get(&ctx_hash).ok_or(anyhow!(""))?;
+                return Err(anyhow!(
+                    "{ctx} is a logical duplicate of {}",
+                    (*collided_ctx).context
+                ));
+            }
             let overrides = overrides
                 .as_table()
                 .ok_or(anyhow!("invalid overrides provided for {ctx}"))?;
-            items.push(Context::from(dimensions, default_config, ctx, overrides)?);
+            items.insert(
+                ctx_hash,
+                Context::from(dimensions, default_config, ctx, overrides)?,
+            );
         }
-
         Ok(Contexts(items))
     }
-
-
 }
 
 #[derive(Debug, Clone)]
@@ -140,5 +153,37 @@ impl ContextAwareConfig {
             default_config,
             contexts,
         })
+    }
+
+    pub fn get_config(
+        &self,
+        key: &'static str,
+        context: &HashMapContext,
+    ) -> anyhow::Result<String> {
+        let mut sorted_map: BTreeMap<u64, &HashMap<String, String>> = BTreeMap::new();
+        for (_, ctx) in self.contexts.iter() {
+            let eval = ctx.expr.eval_with_context(context);
+            if eval.is_ok() && eval?.as_boolean()? {
+                log::debug!("============================================");
+                log::debug!("context {}", ctx.context);
+                log::debug!("Expression {:?}", ctx.expr.to_string());
+                log::debug!("overrides {:?}", ctx.overrides);
+                log::debug!("priority {:?}", ctx.calculated_priority);
+                log::debug!("============================================");
+                sorted_map.insert(ctx.calculated_priority, &ctx.overrides);
+            }
+        }
+        let mut fin_override: HashMap<String, String> = HashMap::new();
+        for (_, ov) in sorted_map.into_iter() {
+            fin_override.extend(ov.to_owned());
+        }
+
+        Ok(fin_override
+            .get(key)
+            .ok_or(anyhow!(
+                "{key} not found in resolved contexts {:?}",
+                fin_override
+            ))?
+            .to_owned())
     }
 }
