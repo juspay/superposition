@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.15.1 - 2023-11-16
+### Package updates
+- experimentation-platform bumped to experimentation-platform-v0.8.1
+### Global changes
+#### Bug Fixes
+- add different auth types for exp requests to CAC - (bd8ae88) - Kartik Gajendra
+
+- - -
+
 ## v0.15.0 - 2023-11-11
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.12.0
