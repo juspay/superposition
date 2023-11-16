@@ -662,10 +662,13 @@ name = "caclang"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "blake3",
  "clap",
  "derive_more",
+ "env_logger 0.8.4",
  "evalexpr",
  "inquire",
+ "log",
  "regex",
  "serde",
  "strum",
