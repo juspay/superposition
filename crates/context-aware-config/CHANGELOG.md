@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.13.0 - 2023-11-16
+#### Features
+- update default keys - (d6b9992) - ankit.mahato
+
+- - -
+
 ## context-aware-config-v0.12.0 - 2023-11-11
 #### Features
 - added format check in the JenkinsFile(PICAF-24813) - (4fdf864) - Saurav Suman
