@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.16.0 - 2023-11-16
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.13.0
+### Global changes
+#### Bug Fixes
+- fixed deployment ConfigNotFound failure - (be381f1) - Shubhranshu Sanjeev
+#### Features
+- update default keys - (d6b9992) - ankit.mahato
+
+- - -
+
 ## v0.15.1 - 2023-11-16
 ### Package updates
 - experimentation-platform bumped to experimentation-platform-v0.8.1
