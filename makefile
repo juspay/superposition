@@ -133,4 +133,7 @@ registry-login:
 	    --username AWS \
 	    --password-stdin $(REGISTRY_HOST)
 
+tailwind:
+	cd crates/frontend && npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css --watch
+
 default: dev-build

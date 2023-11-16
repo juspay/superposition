@@ -194,10 +194,10 @@ async fn main() -> Result<()> {
                 ),
             )
             .route("/api/{tail:.*}", leptos_actix::handle_server_fns())
+            // serve other assets from the `assets` directory
+            .service(Files::new("/assets", format!("{site_root}/assets")))
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
-            // serve other assets from the `assets` directory
-            .service(Files::new("/assets", site_root))
             // serve the favicon from /favicon.ico
             .service(favicon)
             .leptos_routes(
@@ -214,6 +214,11 @@ async fn main() -> Result<()> {
     ))
     .run()
     .await
+}
+
+#[actix_web::get("/style.css")]
+async fn css() -> impl actix_web::Responder {
+    actix_files::NamedFile::open_async("./style/output.css").await
 }
 
 fn authenticated_routes() -> AuthenticatedRouteList {
