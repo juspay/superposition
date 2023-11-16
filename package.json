@@ -9,6 +9,8 @@
     "load_cac_tests": "npx newman dir-import postman/cac -o postman/cac.postman_collection.json"
   },
   "devDependencies": {
-    "newman": "git+ssh://git@github.com:knutties/newman.git#feature/newman-dir"
+    "daisyui": "^4.3.1",
+    "newman": "git+ssh://git@github.com:knutties/newman.git#feature/newman-dir",
+    "tailwindcss": "^3.3.5"
   }
 }

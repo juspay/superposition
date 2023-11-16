@@ -22,7 +22,10 @@ serde = {version = "^1", features = ["derive"]}
 serde_json = {version = "1.0"}
 web-sys = "0.3.64"
 futures = "0.3"
-
+derive_more = {workspace = true}
+strum_macros = "^0.24"
+strum = {version = "^0.24"}
+chrono = { version = "0.4.26", features = ["serde"] }
 
 [features]
 csr = ["leptos/csr", "leptos_meta/csr", "leptos_router/csr"]
@@ -35,7 +38,3 @@ ssr = [
   "leptos_meta/ssr",
   "leptos_router/ssr",
 ]
-
-
-
-
