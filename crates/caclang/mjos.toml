@@ -39,25 +39,26 @@ web_hyperupi_strings = "hyperupi strings web url"
 web_hyperupi_icons = "hyperupi icons web url"
 
 
-["os = android"]
+["os is android"]
 android_godel_config = "1.3"
+android_hyperpay_configuration = "you should not this"
 
-["os = android and clientId IN [meesho,zee5]"]
+["os is android and clientId in [meesho,zee5]"]
 android_hyperupi_version = "1_android"
 android_hyperupi_configuration = "PICAF-22147"
 android_hyperpay_version = "1.2.1_android"
 android_hyperpay_configuration = "PICAF-22145"
 
-["os = ios and clientId IN [a23games,galactustest]"]
+["os is ios and clientId in [a23games,galactustest]"]
 ios_hyperupi_version = "10.2.2_upi_ios"
 
-["os IN [web,ios] and toss = -1"]
+["os in [web,ios] and toss is -1"]
 ios_hyperupi_icons = "PICAF-22146"
 
-["clientId = cac"]
+["clientId is cac"]
 android_hyperpay_version = "1.2.1_android"
 android_hyperpay_configuration = "PICAF-22145"
 
-["tier IN [1,2]"]
+["tier in [1,2]"]
 android_hyperpay_version = "1.0.1_android"
 # godel_config = "1.0"
