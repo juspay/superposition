@@ -103,28 +103,28 @@ fn format_condition(condition: &Value) -> String {
 }
 
 #[component]
-pub fn Home(cx: Scope) -> impl IntoView {
-    let query = use_query_map(cx);
+pub fn Home() -> impl IntoView {
+    let query = use_query_map();
 
     let tenant =
         query.with(|params_map| params_map.get("tenant").cloned().unwrap_or_default());
     let config_data =
-        create_blocking_resource(cx, || {}, move |_| fetch_config(tenant.clone()));
+        create_blocking_resource(|| {}, move |_| fetch_config(tenant.clone()));
 
-    view! { cx,
+    view! {
         <div class="container mt-5" >
         <div class="text-center mb-4">
         <h3  class="fw-bold">"Welcome to Context Aware Config!"</h3>
          </div>
-         <Suspense fallback=move || view! {cx, <p>"Loading (Suspense Fallback)..."</p> }>
+         <Suspense fallback=move || view! {<p>"Loading (Suspense Fallback)..."</p> }>
          {
-             config_data.with(cx, move |result| {
+             config_data.with(move |result| {
                  match result {
-                     Ok(config) => {
+                     Some(Ok(config)) => {
                          let rows = |k:&String, v:&Value| {
                              let key = k.replace("\"", "").trim().to_string();
                               let value = format!("{}", v).replace("\"", "").trim().to_string();
-                              view! { cx,
+                              view! {
                                   <tr>
                                       <td class="fw-normal col w-50 shadow-sm"> <div class ="col"> {key}</div></td>
                                       <td class="fw-normal col w-50 shadow-sm"><div class ="col">{value}</div></td>
@@ -141,7 +141,7 @@ pub fn Home(cx: Scope) -> impl IntoView {
                                  rows(&k,&v)
                              }).collect();
 
-                             view! { cx,
+                             view! {
                                  <h6 class="fw-normal font-monospace">"Condition: " <span class="badge rounded-pill bg-secondary small">  {&condition} </span> </h6>
                                  <table class="table table-responsive table-bordered table-hover border-secondary">
                                  <thead class="table-primary border-secondary">
@@ -163,7 +163,7 @@ pub fn Home(cx: Scope) -> impl IntoView {
                          }).collect();
 
                          vec![
-                             view! { cx,
+                             view! {
                                  <div class="mb-4 ">
                                  { new_context_views }
                                      <h6 class="mb-3 f-6 fw-normal font-monospace">"Default Configuration"</h6>
@@ -182,12 +182,21 @@ pub fn Home(cx: Scope) -> impl IntoView {
                              }
                          ]
                      },
-                     Err(error) => {
+                     Some(Err(error)) => {
                          vec![
-                             view! { cx,
+                             view! {
                                  <div class="error">
                                      {"Failed to fetch config data: "}
                                      {error}
+                                 </div>
+                             }
+                         ]
+                     },
+                     None => {
+                        vec![
+                             view! {
+                                 <div class="error">
+                                     {"No config data fetched"}
                                  </div>
                              }
                          ]

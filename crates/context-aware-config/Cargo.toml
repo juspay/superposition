@@ -8,7 +8,7 @@ edition = "2021"
 
 [dependencies]
 cac_client = { path = "../cac_client" }
-frontend = {path ="../frontend" }
+frontend = { path = "../frontend" }
 
 # env
 dotenv = { workspace = true }
@@ -26,8 +26,8 @@ serde_json = { workspace = true }
 env_logger = { workspace = true }
 log = { workspace = true }
 # to work with enums
-strum_macros = "^0.24"
-strum = {version = "^0.24"}
+strum_macros = { workspace = true }
+strum = { workspace = true }
 derive_more = { workspace = true }
 # date and time
 chrono = { workspace = true }
@@ -42,11 +42,11 @@ base64 = { workspace = true }
 diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
 urlencoding = { workspace = true }
 jsonschema = { workspace = true }
-reqwest = { workspace = true , features = [ "rustls-tls" ] }
+reqwest = { workspace = true, features = ["rustls-tls"] }
 json-patch = { workspace = true }
 rand = { workspace = true }
 service-utils = { path = "../service-utils" }
-experimentation-platform = { path = "../experimentation-platform"}
+experimentation-platform = { path = "../experimentation-platform" }
 tracing-actix-web = "0.7.6"
 tracing-log = "0.1.3"
 tracing = { version = "0.1.37", features = ["valuable"]}
@@ -56,12 +56,12 @@ itertools = "0.10.5"
 futures = "0.3.28"
 actix-http = "3.3.1"
 futures-util = "0.3.28"
-external = { path = "../external"}
+external = { path = "../external" }
 actix-cors = "0.6.4"
-leptos_actix = { version = "0.4.10" }
-leptos = { version = "0.4" }
-leptos_meta = { version = "0.4" }
-leptos_router = { version = "0.4" }
+leptos_actix = { version = "0.5.2" }
+leptos = { version = "0.5.2" }
+leptos_meta = { version = "0.5.2" }
+leptos_router = { version = "0.5.2" }
 actix-files = { version = "0.6" }
 
 anyhow = { workspace = true }

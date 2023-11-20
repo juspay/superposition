@@ -17,8 +17,8 @@ rs-snowflake = { workspace = true }
 #ORM
 env_logger = { workspace = true }
 anyhow = { workspace = true }
-strum_macros = "^0.24"
-strum = {version = "^0.24"}
+strum_macros = { workspace = true }
+strum = { workspace = true }
 diesel = { workspace = true }
 rusoto_kms = { workspace = true }
 rusoto_signature = { workspace = true }
