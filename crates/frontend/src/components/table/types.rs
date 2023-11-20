@@ -3,6 +3,11 @@ use serde_json::{Map, Value};
 
 pub type CellFormatter = fn(&str, &Map<String, Value>) -> View;
 
+#[derive(Clone, Debug)]
+pub struct TableSettings {
+    pub redirect_prefix: Option<String>,
+}
+
 #[derive(Clone, PartialEq)]
 pub struct Column {
     pub name: String,
@@ -10,11 +15,8 @@ pub struct Column {
     pub formatter: CellFormatter,
 }
 
-fn default_formatter(value: &str, row: &Map<String, Value>) -> View {
-    view! {
-        <span>{value.to_string()}</span>
-    }
-    .into_view()
+fn default_formatter(value: &str, _row: &Map<String, Value>) -> View {
+    view! { <span>{value.to_string()}</span> }.into_view()
 }
 
 impl Column {

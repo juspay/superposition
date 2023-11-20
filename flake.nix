@@ -53,6 +53,7 @@
                   jq
                   nodejs_18
                   wasm-pack
+                  leptosfmt
                  ( rust-bin.stable.latest.default.override {
                    extensions = [ "rust-src" ];
                    targets = [ "wasm32-unknown-unknown" ];

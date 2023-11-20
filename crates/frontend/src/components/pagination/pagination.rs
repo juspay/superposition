@@ -13,19 +13,13 @@ where
 {
     view! {
         <div class="join">
-            <button
-                class="join-item btn"
-                on:click=move |_| previous()
-            >
+            <button class="join-item btn" on:click=move |_| previous()>
                 "«"
             </button>
             <button class="join-item btn">
-                {format!("Page {} / {}",  current_page, total_pages)}
+                {format!("Page {} / {}", current_page, total_pages)}
             </button>
-            <button
-                class="join-item btn"
-                on:click=move |_| next()
-            >
+            <button class="join-item btn" on:click=move |_| next()>
                 "»"
             </button>
         </div>
