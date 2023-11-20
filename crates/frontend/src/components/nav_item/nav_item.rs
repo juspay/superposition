@@ -23,9 +23,9 @@ pub fn NavItem(
     };
 
     view! {
-        <A href=href class=anchor_class>
-            <div class=icon_wrapper_class>
-                <i class=icon_class></i>
+        <A href={href} class={anchor_class}>
+            <div class={icon_wrapper_class}>
+                <i class={icon_class} />
             </div>
             <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">{text}</span>
         </A>
