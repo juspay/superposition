@@ -52,5 +52,7 @@ rusoto_core = "0.48.0"
 rand = "0.8.5"
 once_cell = { version = "1.18.0" }
 anyhow = { version = "1.0", default-features = false }
+strum_macros = "^0.24"
+strum = {version = "^0.24"}
 # juspay dependencies
 dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.5.1"}

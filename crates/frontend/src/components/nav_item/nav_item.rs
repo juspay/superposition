@@ -3,7 +3,6 @@ use leptos_router::A;
 
 #[component]
 pub fn NavItem(
-    cx: Scope,
     is_active: bool,
     href: String,
     text: String,
@@ -23,7 +22,6 @@ pub fn NavItem(
 
     let icon_class = format!("{} text-lg text-primary", icon);
     view! {
-        cx,
         <A href={href} class={anchor_class}>
             <div class={icon_wrapper_class}>
                 <i class={icon_class} />

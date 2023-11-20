@@ -19,14 +19,12 @@ fn generate_table_row_str(row: &Value) -> String {
 
 #[component]
 pub fn Table(
-    cx: Scope,
     key_column: String,
     table_style: String,
     columns: Vec<Column>,
     rows: Vec<Map<String, Value>>,
 ) -> impl IntoView {
     view! {
-        cx,
         <div class="overflow-x-auto">
             <table class="table table-zebra">
                 <thead>
@@ -37,10 +35,9 @@ pub fn Table(
                                 .iter()
                                 .filter(|column| !column.hidden)
                                 .map(|column| view! {
-                                    cx,
                                     <th class="uppercase">{&column.name}</th>
                                 })
-                                .collect_view(cx)
+                                .collect_view()
                         }
                     </tr>
                 </thead>
@@ -50,7 +47,6 @@ pub fn Table(
                             .iter()
                             .enumerate()
                             .map(|(index, row)| view! {
-                                cx,
                                 <tr>
                                     <th>{index + 1}</th>
                                     {
@@ -65,15 +61,14 @@ pub fn Table(
                                                         .unwrap_or(&Value::String("".to_string()))
                                                 );
                                                 view! {
-                                                    cx,
-                                                    <td>{(column.formatter)(cx, &value, row)}</td>
+                                                    <td>{(column.formatter)(&value, row)}</td>
                                                 }
                                             })
-                                            .collect_view(cx)
+                                            .collect_view()
                                     }
                                 </tr>
                             })
-                            .collect_view(cx)
+                            .collect_view()
                     }
                 </tbody>
             </table>

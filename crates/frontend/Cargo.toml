@@ -12,20 +12,22 @@ actix-web = { version = "4", optional = true, features = ["macros"] }
 console_error_panic_hook = "0.1"
 cfg-if = "1"
 http = { version = "0.2", optional = true }
-leptos = { version = "0.4" }
-leptos_meta = { version = "0.4" }
-leptos_actix = { version = "0.4", optional = true }
-leptos_router = { version = "0.4" }
+leptos = { version = "0.5.2" }
+leptos_meta = { version = "0.5.2" }
+leptos_actix = { version = "0.5.2", optional = true }
+leptos_router = { version = "0.5.2" }
 wasm-bindgen = "=0.2.87"
-reqwest = { version = "0.11", features = ["json"] }
-serde = {version = "^1", features = ["derive"]}
-serde_json = {version = "1.0"}
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 web-sys = "0.3.64"
 futures = "0.3"
-derive_more = {workspace = true}
-strum_macros = "^0.24"
-strum = {version = "^0.24"}
-chrono = { version = "0.4.26", features = ["serde"] }
+derive_more = { workspace = true }
+anyhow = { workspace = true }
+chrono = {workspace = true }
+strum_macros = { workspace = true }
+strum = { workspace = true }
+
 
 [features]
 csr = ["leptos/csr", "leptos_meta/csr", "leptos_router/csr"]
