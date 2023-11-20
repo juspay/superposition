@@ -19,13 +19,11 @@ use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{json, Value};
 use service_utils::{
     service::types::{AppState, DbConnection},
-    types as app
+    types as app,
 };
 
 pub fn endpoints() -> Scope {
-    Scope::new("")
-        .service(create)
-        .service(get)
+    Scope::new("").service(create).service(get)
 }
 
 #[put("/{key}")]
@@ -129,9 +127,7 @@ fn fetch_default_key(
 }
 
 #[get("")]
-async fn get(
-    db_conn: DbConnection
-) -> app::Result<Json<Vec<DefaultConfig>>> {
+async fn get(db_conn: DbConnection) -> app::Result<Json<Vec<DefaultConfig>>> {
     let DbConnection(mut conn) = db_conn;
 
     let result: Vec<DefaultConfig> = default_configs.get_results(&mut conn)?;

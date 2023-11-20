@@ -13,13 +13,17 @@ use crate::pages::{
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
+    let (tenant_rs, tenant_ws) = create_signal(String::from("mjos"));
+    provide_context(tenant_rs);
+    provide_context(tenant_ws);
     view! {
-        // injects a stylesheet into the document <head>
-        // id=leptos means cargo-leptos will hot-reload this stylesheet
         <Stylesheet id="leptos" href="/pkg/style.css"/>
         // <Link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous"/>
         <Link rel="shortcut icon" type_="image/ico" href="/assets/favicon.ico"/>
-        <Link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
+        <Link
+            href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+            rel="stylesheet"
+        />
         // sets the document title
         <Title text="Welcome to Context Aware Config"/>
         // content for this welcome page
@@ -27,10 +31,22 @@ pub fn App() -> impl IntoView {
             <body class="m-0 min-h-screen bg-gray-50">
                 <Layout>
                     <Routes>
-                        <Route ssr=SsrMode::PartiallyBlocked path="/admin/experiments" view=ExperimentList />
+                        <Route
+                            ssr=SsrMode::PartiallyBlocked
+                            path="/admin/dimensions"
+                            view=Dimensions
+                        />
+                        <Route
+                            ssr=SsrMode::PartiallyBlocked
+                            path="admin/:tenant/experiments"
+                            view=ExperimentList
+                        />
+                        <Route
+                            ssr=SsrMode::PartiallyBlocked
+                            path="admin/:tenant/experiments/:id"
+                            view=ExperimentPage
+                        />
                         <Route ssr=SsrMode::PartiallyBlocked path="" view=Home/>
-                        <Route ssr=SsrMode::PartiallyBlocked path="/ui/experiments/:id" view=ExperimentPage/>
-                        <Route ssr=SsrMode::PartiallyBlocked path="/admin/dimensions" view=Dimensions/>
                         <Route path="/*any" view=NotFound/>
                     </Routes>
                 </Layout>
