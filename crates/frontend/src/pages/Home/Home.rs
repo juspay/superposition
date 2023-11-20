@@ -112,111 +112,101 @@ pub fn Home() -> impl IntoView {
         create_blocking_resource(|| {}, move |_| fetch_config(tenant.clone()));
 
     view! {
-        <div class="container mt-5">
-            <div class="text-center mb-4">
-                <h3 class="fw-bold">"Welcome to Context Aware Config!"</h3>
-            </div>
-            <Suspense fallback=move || {
-                view! { <p>"Loading (Suspense Fallback)..."</p> }
-            }>
+        <div class="container mt-5" >
+        <div class="text-center mb-4">
+        <h3  class="fw-bold">"Welcome to Context Aware Config!"</h3>
+         </div>
+         <Suspense fallback=move || view! {<p>"Loading (Suspense Fallback)..."</p> }>
+         {
+             config_data.with(move |result| {
+                 match result {
+                     Some(Ok(config)) => {
+                         let rows = |k:&String, v:&Value| {
+                             let key = k.replace("\"", "").trim().to_string();
+                              let value = format!("{}", v).replace("\"", "").trim().to_string();
+                              view! {
+                                  <tr>
+                                      <td class="fw-normal col w-50 shadow-sm"> <div class ="col"> {key}</div></td>
+                                      <td class="fw-normal col w-50 shadow-sm"><div class ="col">{value}</div></td>
+                                  </tr>
+                              }
+                         };
 
-                {config_data
-                    .with(move |result| {
-                        match result {
-                            Some(Ok(config)) => {
-                                let rows = |k: &String, v: &Value| {
-                                    let key = k.replace("\"", "").trim().to_string();
-                                    let value = format!("{}", v)
-                                        .replace("\"", "")
-                                        .trim()
-                                        .to_string();
-                                    view! {
-                                        <tr>
-                                            <td class="fw-normal col w-50 shadow-sm">
-                                                <div class="col">{key}</div>
-                                            </td>
-                                            <td class="fw-normal col w-50 shadow-sm">
-                                                <div class="col">{value}</div>
-                                            </td>
-                                        </tr>
-                                    }
-                                };
-                                let contexts_views: Vec<_> = config
-                                    .contexts
-                                    .iter()
-                                    .map(|context| {
-                                        let condition = extract_and_format(&context.condition);
-                                        let rows: Vec<_> = context
-                                            .override_with_keys
-                                            .iter()
-                                            .filter_map(|key| config.overrides.get(key))
-                                            .flat_map(|ovr| ovr.as_object().unwrap().iter())
-                                            .map(|(k, v)| { rows(&k, &v) })
-                                            .collect();
-                                        view! {
-                                            <h6 class="fw-normal font-monospace">
-                                                "Condition: "
-                                                <span class="badge rounded-pill bg-secondary small">
-                                                    {&condition}
-                                                </span>
-                                            </h6>
-                                            <table class="table table-responsive table-bordered table-hover border-secondary">
-                                                <thead class="table-primary border-secondary">
-                                                    <tr>
-                                                        <th>Key</th>
-                                                        <th>Value</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="bg-light">{rows}</tbody>
-                                            </table>
-                                        }
-                                    })
-                                    .collect::<Vec<_>>();
-                                let new_context_views = contexts_views
-                                    .into_iter()
-                                    .rev()
-                                    .collect::<Vec<_>>();
-                                let default_config: Vec<_> = config
-                                    .default_configs
-                                    .iter()
-                                    .map(|(k, v)| { rows(&k, &v) })
-                                    .collect();
-                                vec![
-                                    view! {
-                                        <div class="mb-4 ">
-                                            {new_context_views}
-                                            <h6 class="mb-3 f-6 fw-normal font-monospace">
-                                                "Default Configuration"
-                                            </h6>
-                                            <table class="table table-responsive table-striped table-bordered table-hover border-secondary ">
-                                                <thead class="table-primary border-secondary">
-                                                    <tr>
-                                                        <th>Key</th>
-                                                        <th>Value</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>{default_config}</tbody>
-                                            </table>
-                                        </div>
-                                    },
-                                ]
-                            }
-                            Some(Err(error)) => {
-                                vec![
-                                    view! {
-                                        <div class="error">
-                                            {"Failed to fetch config data: "} {error}
-                                        </div>
-                                    },
-                                ]
-                            }
-                            None => {
-                                vec![view! { <div class="error">{"No config data fetched"}</div> }]
-                            }
-                        }
-                    })}
+                         let contexts_views: Vec<_> = config.contexts.iter().map(|context| {
+                             let condition = extract_and_format(&context.condition);
+                             let rows: Vec<_> = context.override_with_keys.iter()
+                             .filter_map(|key| config.overrides.get(key))
+                             .flat_map(|ovr| ovr.as_object().unwrap().iter())
+                             .map(|(k, v)| {
+                                 rows(&k,&v)
+                             }).collect();
 
-            </Suspense>
-        </div>
+                             view! {
+                                 <h6 class="fw-normal font-monospace">"Condition: " <span class="badge rounded-pill bg-secondary small">  {&condition} </span> </h6>
+                                 <table class="table table-responsive table-bordered table-hover border-secondary">
+                                 <thead class="table-primary border-secondary">
+                                 <tr>
+                                   <th>Key</th>
+                                   <th>Value</th>
+                                 </tr>
+                             </thead>
+                                 <tbody class="bg-light">
+                                 { rows }
+                                 </tbody>
+                                 </table>
+                             }
+                        }).collect::<Vec<_>>();
+
+                         let new_context_views = contexts_views.into_iter().rev().collect::<Vec<_>>();
+                         let default_config: Vec<_> = config.default_configs.iter().map(|(k,v)|{
+                             rows(&k,&v)
+                         }).collect();
+
+                         vec![
+                             view! {
+                                 <div class="mb-4 ">
+                                 { new_context_views }
+                                     <h6 class="mb-3 f-6 fw-normal font-monospace">"Default Configuration"</h6>
+                                     <table class="table table-responsive table-striped table-bordered table-hover border-secondary ">
+                                     <thead class="table-primary border-secondary">
+                                     <tr>
+                                       <th>Key</th>
+                                       <th>Value</th>
+                                     </tr>
+                                 </thead>
+                                         <tbody>
+                                             {default_config}
+                                         </tbody>
+                                     </table>
+                                 </div>
+                             }
+                         ]
+                     },
+                     Some(Err(error)) => {
+                         vec![
+                             view! {
+                                 <div class="error">
+                                     {"Failed to fetch config data: "}
+                                     {error}
+                                 </div>
+                             }
+                         ]
+                     },
+                     None => {
+                        vec![
+                             view! {
+                                 <div class="error">
+                                     {"No config data fetched"}
+                                 </div>
+                             }
+                         ]
+                     }
+                 }
+             })
+         }
+         </Suspense>
+         </div>
+
+
     }
 }
