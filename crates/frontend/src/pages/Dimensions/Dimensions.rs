@@ -2,6 +2,7 @@ use leptos::logging::*;
 use leptos::*;
 use serde_json::{json, Map, Value};
 
+use crate::components::table::types::TableSettings;
 use crate::components::table::{table::Table, types::Column};
 use crate::pages::Dimensions::helper::fetch_dimensions;
 
@@ -29,28 +30,24 @@ pub fn Dimensions() -> impl IntoView {
 
     view! {
         <div class="p-8">
-            <Suspense fallback=move || view! {<p>"Loading (Suspense Fallback)..."</p> }>
+            <Suspense fallback=move || view! { <p>"Loading (Suspense Fallback)..."</p> }>
                 <div class="pb-4">
                     <div class="stats shadow">
                         <div class="stat">
                             <div class="stat-figure text-primary">
-                                <i class="ri-ruler-2-fill text-5xl" />
+                                <i class="ri-ruler-2-fill text-5xl"></i>
                             </div>
                             <div class="stat-title">Dimensions</div>
-                                {
-                                    move || {
-                                        let value = dimensions.get();
-                                        let total_items = match value {
-                                            Some(v) => v.len(),
-                                            _ => 0,
-                                        };
-                                        view! {
-                                            <div class="stat-value">
-                                                {total_items}
-                                            </div>
-                                        }
-                                    }
-                                }
+
+                            {move || {
+                                let value = dimensions.get();
+                                let total_items = match value {
+                                    Some(v) => v.len(),
+                                    _ => 0,
+                                };
+                                view! { <div class="stat-value">{total_items}</div> }
+                            }}
+
                         </div>
                     </div>
                 </div>
@@ -59,37 +56,31 @@ pub fn Dimensions() -> impl IntoView {
                     <div class="card-body">
                         <h2 class="card-title">Dimensions</h2>
                         <div>
-                            {
-                                move || {
-                                    let value = dimensions.get();
-                                    match value {
-                                        Some(v) => {
-                                            let data = v
-                                                .iter()
-                                                .map(|ele| {
-                                                    json!(ele)
-                                                        .as_object()
-                                                        .unwrap()
-                                                        .clone()
-                                                })
-                                                .collect::<Vec<Map<String, Value>>>()
-                                                .to_owned();
-                                            println!("hello1: {:?}", data);
-                                            view! {
-                                                <Table
-                                                    table_style="abc".to_string()
-                                                    rows={data}
-                                                    key_column="id".to_string()
-                                                    columns={table_columns.get()}
-                                                />
-                                            }
-                                        },
-                                        None => {
-                                            view! {<div>Loading....</div> }.into_view()
+
+                            {move || {
+                                let value = dimensions.get();
+                                match value {
+                                    Some(v) => {
+                                        let data = v
+                                            .iter()
+                                            .map(|ele| { json!(ele).as_object().unwrap().clone() })
+                                            .collect::<Vec<Map<String, Value>>>()
+                                            .to_owned();
+                                        println!("hello1: {:?}", data);
+                                        view! {
+                                            <Table
+                                                _table_style="abc".to_string()
+                                                rows=data
+                                                _key_column="id".to_string()
+                                                columns=table_columns.get()
+                                                settings={TableSettings {redirect_prefix: None}}
+                                            />
                                         }
                                     }
+                                    None => view! { <div>Loading....</div> }.into_view(),
                                 }
-                            }
+                            }}
+
                         </div>
                     </div>
                 </div>

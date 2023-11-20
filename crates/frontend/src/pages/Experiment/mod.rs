@@ -1,9 +1,20 @@
 use chrono::{DateTime, Utc};
-use leptos::*;
+use leptos::{html::Input, logging::log, *};
 use leptos_router::use_params_map;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{json, Map, Value};
 use tracing::debug;
+use web_sys::SubmitEvent;
+
+use crate::components::{
+    experiment_form::experiment_form::ExperimentForm,
+    table::{
+        table::Table,
+        types::{Column, TableSettings},
+    },
+};
+
+use super::ExperimentList::utils::{fetch_default_config, fetch_dimensions};
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display,
@@ -41,17 +52,64 @@ pub struct Experiment {
     pub(crate) traffic_percentage: u8,
     pub(crate) context: Value,
     pub(crate) status: ExperimentStatusType,
+    pub(crate) override_keys: Value,
     pub(crate) created_by: String,
     pub(crate) created_at: DateTime<Utc>,
     pub(crate) last_modified: DateTime<Utc>,
-    pub(crate) chosen_variant: Option<Variant>,
+    pub(crate) chosen_variant: Option<String>,
 }
 
-async fn get_experiment(exp_id: &String) -> Result<Experiment, String> {
+async fn get_experiment(exp_id: &String, tenant: &String) -> Result<Experiment, String> {
     let client = reqwest::Client::new();
     match client
         .get(format!("http://localhost:8080/experiments/{}", exp_id))
+        .header("x-tenant", tenant)
+        .send()
+        .await
+    {
+        Ok(experiment) => {
+            debug!("experiment response {:?}", experiment);
+            Ok(experiment
+                .json::<Experiment>()
+                .await
+                .map_err(|err| err.to_string())?)
+        }
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+async fn ramp_experiment(exp_id: &String, percent: u8) -> Result<Experiment, String> {
+    let client = reqwest::Client::new();
+    match client
+        .patch(format!("http://localhost:8080/experiments/{}/ramp", exp_id))
         .header("x-tenant", "mjos")
+        .json(&json!({ "traffic_percentage": percent }))
+        .send()
+        .await
+    {
+        Ok(experiment) => {
+            debug!("experiment response {:?}", experiment);
+            Ok(experiment
+                .json::<Experiment>()
+                .await
+                .map_err(|err| err.to_string())?)
+        }
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+async fn conclude_experiment(
+    exp_id: String,
+    variant_id: String,
+) -> Result<Experiment, String> {
+    let client = reqwest::Client::new();
+    match client
+        .patch(format!(
+            "http://localhost:8080/experiments/{}/conclude",
+            exp_id
+        ))
+        .header("x-tenant", "mjos")
+        .json(&json!({ "chosen_variant": variant_id }))
         .send()
         .await
     {
@@ -69,136 +127,407 @@ async fn get_experiment(exp_id: &String) -> Result<Experiment, String> {
 #[component]
 pub fn experiment_page() -> impl IntoView {
     let exp_params = use_params_map();
-    let experiment_id =
-        move || exp_params.with(|params| params.get("id").cloned().unwrap_or("1".into()));
-    let experiment_info = create_resource(experiment_id, |exp_id: String| async move {
-        get_experiment(&exp_id).await
+    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let source = move || {
+        let t = tenant_rs.get();
+        let exp_id =
+            exp_params.with(|params| params.get("id").cloned().unwrap_or("1".into()));
+        (exp_id, t)
+    };
+
+    let experiment_info = create_resource(source, |(exp_id, tenant)| async move {
+        get_experiment(&exp_id, &tenant).await
     });
     view! {
-        <Transition
-        fallback= move || view! {<h1> Loading.... </h1>} >
-        {move ||
-            match experiment_info.get() {
-                Some(Ok(experiment)) => experiment_detail_view(&experiment).into_view(),
-                Some(Err(err)) => view! {<h1>{err.to_string()}</h1>}.into_view(),
-                None => view! {<h1>No elements </h1>}.into_view(),
-            }
-        }
+        <Transition fallback=move || {
+            view! { <h1>Loading....</h1> }
+        }>
+            {move || match experiment_info.get() {
+                Some(Ok(experiment)) => {
+                    experiment_detail_view(experiment, experiment_info).into_view()
+                }
+                Some(Err(err)) => view! { <h1>{err.to_string()}</h1> }.into_view(),
+                None => view! { <h1>No elements</h1> }.into_view(),
+            }}
+
         </Transition>
     }
 }
 
-fn experiment_detail_view(exp: &Experiment) -> impl IntoView {
+fn experiment_detail_view(
+    initial_data: Experiment,
+    exp_resource: Resource<(String, String), Result<Experiment, String>>,
+) -> impl IntoView {
+    let contexts = initial_data.context["and"]
+        .as_array()
+        .unwrap_or(&Vec::new())
+        .to_owned();
+    let (experiment, _) = create_signal(initial_data);
+    let (ctxs, _) = create_signal(contexts);
+
     view! {
         <div class="flex flex-col overflow-x-auto p-2">
-        <h1 class="text-4xl pt-4 font-extrabold">
-            {&exp.name}
-            <span class="badge ml-3 mb-1 badge-primary badge-lg">{exp.status.to_string()}</span>
-        </h1>
+            {move || {
+                experiment
+                    .with(|exp| {
+                        let class_name = match exp.status {
+                            ExperimentStatusType::CREATED => {
+                                "badge ml-3 mb-1 badge-lg badge-primary"
+                            }
+                            ExperimentStatusType::INPROGRESS => {
+                                "badge ml-3 mb-1 badge-lg badge-warning"
+                            }
+                            ExperimentStatusType::CONCLUDED => {
+                                "badge ml-3 mb-1 badge-lg badge-success"
+                            }
+                        };
+                        view! {
+                            <h1 class="text-4xl pt-4 font-extrabold">
+                                {&exp.name} <span class=class_name>{exp.status.to_string()}</span>
+                            </h1>
+                        }
+                    })
+            }}
+            <div class="divider"></div>
+            <div class="flex flex-row justify-end join m-5">
+                {move || {
+                    experiment
+                        .with(|exp| {
+                            match exp.status {
+                                ExperimentStatusType::CREATED => {
+                                    view! {
+                                        <button
+                                            class="btn join-item"
+                                            onclick="edit_exp_modal.showModal()"
+                                        >
+                                            <i class="ri-edit-line"></i>
+                                            Edit
+                                        </button>
+                                        <button
+                                            class="btn join-item"
+                                            value=&exp.id
+                                            on:click=move |button_event| spawn_local(async move {
+                                                let value = event_target_value(&button_event);
+                                                let _ = ramp_experiment(&value, 1).await;
+                                                exp_resource.refetch();
+                                            })
+                                        >
 
-        <div class="divider"></div>
+                                            <i class="ri-guide-line"></i>
+                                            Start
+                                        </button>
+                                    }
+                                }
+                                ExperimentStatusType::INPROGRESS => {
+                                    view! {
+                                        // <button class="btn join-item" onclick="conclude_exp_modal.showModal()"><i class="ri-stop-circle-line"></i>Conclude</button>
+                                        <button
+                                            class="btn join-item"
+                                            onclick="conclude_exp_modal.showModal()"
+                                        >
+                                            <i class="ri-stop-circle-line"></i>
+                                            Conclude
+                                        </button>
+                                        <button
+                                            class="btn join-item"
+                                            onclick="ramp_exp_modal.showModal()"
+                                        >
+                                            <i class="ri-flight-takeoff-line"></i>
+                                            Ramp
+                                        </button>
+                                    }
+                                }
+                                ExperimentStatusType::CONCLUDED => {
+                                    view! {
+                                        // <button class="btn join-item" onclick="conclude_exp_modal.showModal()"><i class="ri-stop-circle-line"></i>Conclude</button>
 
-        <div class="join m-5">
-            <button class="btn join-item"><i class="ri-edit-line"></i>Edit</button>
-            <button class="btn join-item"><i class="ri-stop-circle-line"></i>Conclude</button>
-            <button class="btn join-item"><i class="ri-guide-line"></i>Release</button>
-            <button class="btn join-item"><i class="ri-flight-takeoff-line"></i>Ramp</button>
-        </div>
+                                        // <button class="btn join-item" onclick="conclude_exp_modal.showModal()"><i class="ri-stop-circle-line"></i>Conclude</button>
 
-        <div class="stats shadow-xl mt-5">
-            <div class="stat">
-                <div class="stat-title">Experiment ID</div>
-                <div class="stat-value">{&exp.id}</div>
-            </div>
-            <div class="stat">
-                <div class="stat-title">Current Traffic Percentage</div>
-                <div class="stat-value">{exp.traffic_percentage}</div>
-            </div>
-            <div class="stat">
-                <div class="stat-title">Created by</div>
-                <div class="stat-value">{&exp.created_by}</div>
-            </div>
-            <div class="stat">
-                <div class="stat-title">Created at</div>
-                <div class="stat-value">{format!("{}", &exp.created_at.format("%d-%m-%Y %H:%M:%S"))}</div>
-            </div>
-            <div class="stat">
-                <div class="stat-title">Last Modified</div>
-                <div class="stat-value">{format!("{}", &exp.last_modified.format("%d-%m-%Y %H:%M:%S"))}</div>
-            </div>
-        </div>
+                                        // <button class="btn join-item" onclick="conclude_exp_modal.showModal()"><i class="ri-stop-circle-line"></i>Conclude</button>
+                                        <div></div>
+                                        <div class="stat">
+                                            <div class="stat-title">Chosen Variant</div>
+                                            <div class="stat-value">
+                                                {match exp.chosen_variant {
+                                                    Some(ref v) => format!("{}", v),
+                                                    None => String::new(),
+                                                }}
 
-        <div class="card bg-base max-w-screen shadow-xl mt-5">
-            <div class="card-body">
-                <h2 class="card-title">Context</h2>
-                <div class="flex flex-row">
-                    <div class="stat">
-                        <div class="stat-title">Client ID</div>
-                        <div class="stat-value">cac</div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            }
+                        })
+                }}
+
+            </div> <div class="stats shadow-xl mt-5">
+                <div class="stat">
+                    <div class="stat-title">Experiment ID</div>
+                    <div class="stat-value">{experiment.get().id}</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Current Traffic Percentage</div>
+                    <div class="stat-value">{move || experiment.get().traffic_percentage}</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Created by</div>
+                    <div class="stat-value">{experiment.get().created_by}</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Created at</div>
+                    <div class="stat-value">
+                        {format!("{}", experiment.get().created_at.format("%v"))}
                     </div>
-                    <div class="divider divider-horizontal">&&</div>
-                    <div class="stat">
-                        <div class="stat-title">OS</div>
-                        <div class="stat-value">android</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Last Modified</div>
+                    <div class="stat-value">
+                        {move || {
+                            experiment.with(|exp| format!("{}", &exp.last_modified.format("%v")))
+                        }}
+
+                    </div>
+                </div>
+            </div> <div class="card bg-base max-w-screen shadow-xl mt-5">
+                <div class="card-body">
+                    <h2 class="card-title">Context</h2>
+                    <div class="flex flex-row">
+                        {move || {
+                            let contexts = move || ctxs.get().into_iter();
+                            let mut view: Vec<_> = Vec::new();
+                            for item in contexts() {
+                                for (_, value) in item.as_object().unwrap().into_iter() {
+                                    let rule_vector = value.as_array().unwrap();
+                                    let mut rule_iter = rule_vector.to_owned().into_iter();
+                                    let (var, value) = (
+                                        rule_iter.next().unwrap(),
+                                        rule_iter.next().unwrap(),
+                                    );
+                                    let dimension = var.as_object().unwrap().get("var").unwrap();
+                                    view.push(
+                                        view! {
+                                            <div class="stat">
+                                                <div class="stat-title">
+                                                    {format!("{}", dimension.as_str().unwrap())}
+                                                </div>
+                                                <div class="stat-value">
+                                                    {format!("{}", value.as_str().unwrap())}
+                                                </div>
+                                            </div>
+                                        },
+                                    )
+                                }
+                            }
+                            view
+                        }}
+
+                    </div>
+                </div>
+            </div> <div class="card bg-base max-w-screen shadow-xl mt-5">
+                <div class="card-body">
+                    <h2 class="card-title">Variants</h2>
+                    <div class="overflow-x-auto overflow-y-auto">
+                        {move || {
+                            let exp = move || experiment.get();
+                            let rows = gen_variant_rows(&exp().variants).unwrap();
+                            let mut columns: Vec<Column> = Vec::new();
+                            let settings = TableSettings {
+                                redirect_prefix: None,
+                            };
+                            columns.push(Column::default("Variant".into()));
+                            for okey in exp().override_keys.as_array().unwrap().into_iter() {
+                                columns.push(Column::default(okey.as_str().unwrap().into()));
+                            }
+                            view! {
+                                <Table
+                                    _table_style="abc".to_string()
+                                    rows=rows
+                                    _key_column="overrides".to_string()
+                                    columns=columns
+                                    settings=settings
+                                />
+                            }
+                        }}
+
                     </div>
                 </div>
             </div>
-            </div>
+        </div>
+        {add_dialogs(experiment, exp_resource)}
+    }
+}
 
+fn gen_variant_rows(variants: &Vec<Variant>) -> Result<Vec<Map<String, Value>>, String> {
+    let mut rows: Vec<Map<String, Value>> = Vec::new();
+    for (i, variant) in variants.into_iter().enumerate() {
+        let variant_name = match variant.variant_type {
+            VariantType::CONTROL => "Control".into(),
+            VariantType::EXPERIMENTAL => format!("Variant-{i}"),
+        };
+        let mut m = Map::new();
+        m.insert("Variant".into(), variant_name.into());
+        m.insert("variant_id".into(), variant.id.clone().into());
+        for (o, value) in variant.overrides.as_object().unwrap().into_iter() {
+            m.insert(o.clone(), value.clone());
+        }
+        rows.push(m);
+    }
+    Ok(rows)
+}
 
-            <div class="card bg-base max-w-screen shadow-xl mt-5">
-            <div class="card-body">
-                <h2 class="card-title">Variants</h2>
-                <div class="overflow-x-auto">
-                <table class="table">
-                    <thead>
-                    <tr class="bg-base-200">
-                        <th></th>
-                        <th>Key</th>
-                        <th>Variant-1</th>
-                        <th>Variant-2</th>
-                        <th>Variant-3</th>
-                        <th>Variant-4</th>
-                        <th>Variant-5</th>
-                        <th>Control</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <th>1</th>
-                        <td>pmTestKey1</td>
-                        <td>Quality Control Specialist</td>
-                        <td>Quality Control Specialist</td>
-                        <td>Quality Control Specialist</td>
-                        <td>Quality Control Specialist</td>
-                        <td>Blue</td>
-                        <td>Blue</td>
-                    </tr>
-                    <tr>
-                        <th>2</th>
-                        <td>pmTestKey2</td>
-                        <td>Desktop Support Technician</td>
-                        <td>Desktop Support Technician</td>
-                        <td>Desktop Support Technician</td>
-                        <td>Desktop Support Technician</td>
-                        <td>Desktop Support Technician</td>
-                        <td>Purple</td>
-                    </tr>
-                    <tr>
-                        <th>3</th>
-                        <td>pmTestKey3</td>
-                        <td>Tax Accountant</td>
-                        <td>Tax Accountant</td>
-                        <td>Tax Accountant</td>
-                        <td>Tax Accountant</td>
-                        <td>Tax Accountant</td>
-                        <td>Red</td>
-                    </tr>
-                    </tbody>
-                </table>
+fn add_dialogs(
+    experiment_rs: ReadSignal<Experiment>,
+    experiment_ws: Resource<(String, String), Result<Experiment, String>>,
+) -> impl IntoView {
+    let input_element: NodeRef<Input> = create_node_ref();
+    let experiment = move || experiment_rs.get();
+    let (traffic, set_traffic) = create_signal(experiment().traffic_percentage);
+
+    let on_submit = move |ev: SubmitEvent| {
+        ev.prevent_default();
+        let value = input_element
+            .get()
+            .expect("<input> to exist")
+            .value_as_number() as u8;
+        spawn_local(async move {
+            let _ = ramp_experiment(&experiment().id, value).await;
+            experiment_ws.refetch();
+        });
+    };
+
+    let dimensions = create_resource(
+        || (),
+        |_| async move {
+            match fetch_dimensions().await {
+                Ok(data) => data,
+                Err(_) => vec![],
+            }
+        },
+    );
+
+    let default_config = create_resource(
+        || (),
+        |_| async move {
+            match fetch_default_config().await {
+                Ok(data) => data,
+                Err(_) => vec![],
+            }
+        },
+    );
+
+    match experiment_rs.get().status {
+        ExperimentStatusType::CREATED => view! {
+            <dialog id="edit_exp_modal" class="modal">
+                <div class="modal-box">
+                    <h3 class="font-bold text-lg">Edit Experiment</h3>
+                    <div class="modal-action">
+                        <ExperimentForm
+                            name=experiment_rs.get().name
+                            context=vec![]
+                            variants=vec![]
+                            dimensions=dimensions.get().unwrap_or(vec![])
+                            default_config=default_config.get().unwrap_or(vec![])
+                        />
+                    </div>
                 </div>
-            </div>
-        </div>
-        </div>
+            </dialog>
+        }
+        .into_view(),
+        ExperimentStatusType::INPROGRESS => view! {
+            <dialog id="conclude_exp_modal" class="modal">
+                <div class="modal-box">
+                    <h3 class="font-bold text-lg">Conclude This Experiment</h3>
+                    <p class="py-4">
+                        Choose a variant to conclude with, this variant becomes
+                        the new default that is served to requests that match this context
+                    </p>
+                    <form method="dialog">
+                        {move || {
+                            let mut view_arr = vec![];
+                            for (i, v) in experiment_rs.get().variants.into_iter().enumerate() {
+                                let (variant, _) = create_signal(v);
+                                let view = match variant.get().variant_type {
+                                    VariantType::CONTROL => {
+                                        view! {
+                                            <button
+                                                class="btn btn-block btn-outline btn-success m-2"
+                                                on:click=move |_| spawn_local(async move {
+                                                    let e = experiment_rs.get();
+                                                    let variant = variant.get();
+                                                    conclude_experiment(e.id, variant.id.clone())
+                                                        .await
+                                                        .unwrap();
+                                                    experiment_ws.refetch();
+                                                })
+                                            >
+
+                                                Control
+                                            </button>
+                                        }
+                                    }
+                                    VariantType::EXPERIMENTAL => {
+                                        view! {
+                                            <button
+                                                class="btn btn-block btn-outline btn-info m-2"
+                                                on:click=move |_| spawn_local(async move {
+                                                    let e = experiment_rs.get();
+                                                    let variant = variant.get();
+                                                    conclude_experiment(e.id, variant.id.clone())
+                                                        .await
+                                                        .unwrap();
+                                                    experiment_ws.refetch();
+                                                })
+                                            >
+
+                                                {format!("Variant-{i}")}
+                                            </button>
+                                        }
+                                    }
+                                };
+                                view_arr.push(view);
+                            }
+                            view_arr
+                        }}
+
+                    </form>
+                    <div class="modal-action">
+                        <form method="dialog">
+                            <button class="btn">Close</button>
+                        </form>
+                    </div>
+                </div>
+            </dialog>
+            <dialog id="ramp_exp_modal" class="modal">
+                <div class="modal-box">
+                    <h3 class="font-bold text-lg">Ramp up with release</h3>
+                    <p class="py-4">Increase the traffic being redirected to the variants</p>
+                    <form method="dialog" on:submit=on_submit>
+                        <p>{move || traffic.get()}</p>
+                        <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            node_ref=input_element
+                            value=move || experiment_rs.get().traffic_percentage
+                            class="range"
+                            on:input=move |et| {
+                                let t = event_target_value(&et).parse::<u8>().unwrap();
+                                log!("traffic value:{t}");
+                                set_traffic.set(t);
+                            }
+                        />
+
+                        <button class="btn btn-block btn-outline btn-success m-2">Set</button>
+                    </form>
+                    <div class="modal-action">
+                        <form method="dialog">
+                            <button class="btn">Close</button>
+                        </form>
+                    </div>
+                </div>
+            </dialog>
+        }.into_view(),
+        ExperimentStatusType::CONCLUDED => view! { <h1>conclude</h1> }.into_view(),
     }
 }

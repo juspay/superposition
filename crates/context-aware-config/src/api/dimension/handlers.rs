@@ -4,7 +4,7 @@ use crate::{
     helpers::validate_jsonschema,
 };
 use actix_web::{
-    put, get,
+    get, put,
     web::{self, Data, Json},
     HttpResponse, Scope,
 };
@@ -14,13 +14,11 @@ use diesel::RunQueryDsl;
 use jsonschema::{Draft, JSONSchema};
 use service_utils::{
     service::types::{AppState, DbConnection},
-    types as app
+    types as app,
 };
 
 pub fn endpoints() -> Scope {
-    Scope::new("")
-        .service(create)
-        .service(get)
+    Scope::new("").service(create).service(get)
 }
 
 #[put("")]
@@ -82,9 +80,7 @@ async fn create(
 }
 
 #[get("")]
-async fn get(
-    db_conn: DbConnection
-) -> app::Result<Json<Vec<Dimension>>> {
+async fn get(db_conn: DbConnection) -> app::Result<Json<Vec<Dimension>>> {
     let DbConnection(mut conn) = db_conn;
 
     let result: Vec<Dimension> = dimensions.get_results(&mut conn)?;

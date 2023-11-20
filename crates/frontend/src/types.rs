@@ -1,4 +1,4 @@
-use derive_more::{Deref, DerefMut};
+use leptos::{ReadSignal, WriteSignal};
 use std::vec::Vec;
 
 #[derive(Clone, Debug)]
@@ -8,3 +8,5 @@ pub struct AppRoute {
     pub icon: String,
     pub label: String,
 }
+
+pub type InputVector = Vec<(ReadSignal<String>, WriteSignal<String>)>;
