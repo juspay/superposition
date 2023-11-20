@@ -35,15 +35,15 @@ pub fn Table(
                 <thead>
                     <tr>
                         <th></th>
-
-                        {columns
-                            .iter()
-                            .filter(|column| !column.hidden)
-                            .map(|column| {
-                                view! { <th class="uppercase font-mono">{&column.name}</th> }
-                            })
-                            .collect_view()}
-
+                        {
+                            columns
+                                .iter()
+                                .filter(|column| !column.hidden)
+                                .map(|column| view! {
+                                    <th class="uppercase">{&column.name}</th>
+                                })
+                                .collect_view()
+                        }
                     </tr>
                 </thead>
                 <tbody>
@@ -82,27 +82,27 @@ pub fn Table(
                                 >
 
                                     <th>{index + 1}</th>
-
-                                    {columns
-                                        .iter()
-                                        .filter(|column| !column.hidden)
-                                        .map(|column| {
-                                            let cname = &column.name;
-                                            let value: String = generate_table_row_str(
-                                                row.get(cname).unwrap_or(&Value::String("".to_string())),
-                                            );
-                                            view! {
-                                                <td class=table_style
-                                                    .to_string()>{(column.formatter)(&value, row)}</td>
-                                            }
-                                        })
-                                        .collect_view()}
-
+                                    {
+                                        columns
+                                            .iter()
+                                            .filter(|column| !column.hidden)
+                                            .map(|column| {
+                                                let cname = &column.name;
+                                                let value: String = generate_table_row_str(
+                                                    row
+                                                        .get(cname)
+                                                        .unwrap_or(&Value::String("".to_string()))
+                                                );
+                                                view! {
+                                                    <td>{(column.formatter)(&value, row)}</td>
+                                                }
+                                            })
+                                            .collect_view()
+                                    }
                                 </tr>
-                            }
-                        })
-                        .collect_view()}
-
+                            })
+                            .collect_view()
+                    }
                 </tbody>
             </table>
         </div>

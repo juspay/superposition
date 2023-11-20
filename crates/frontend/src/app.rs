@@ -18,6 +18,8 @@ pub fn App() -> impl IntoView {
     provide_context(tenant_rs);
     provide_context(tenant_ws);
     view! {
+        // injects a stylesheet into the document <head>
+        // id=leptos means cargo-leptos will hot-reload this stylesheet
         <Stylesheet id="leptos" href="/pkg/style.css"/>
         // <Link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous"/>
         <Link rel="shortcut icon" type_="image/ico" href="/assets/favicon.ico"/>

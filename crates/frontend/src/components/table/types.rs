@@ -17,7 +17,10 @@ pub struct Column {
 }
 
 fn default_formatter(value: &str, row: &Map<String, Value>) -> View {
-    view! { <span>{value.to_string()}</span> }.into_view()
+    view! {
+        <span>{value.to_string()}</span>
+    }
+    .into_view()
 }
 
 impl Column {

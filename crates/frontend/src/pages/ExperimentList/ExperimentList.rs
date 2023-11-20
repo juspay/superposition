@@ -6,7 +6,10 @@ use chrono::{prelude::Utc, TimeZone};
 use crate::components::{
     experiment_form::experiment_form::ExperimentForm,
     pagination::pagination::Pagination,
-    table::{table::Table, types::Column},
+    table::{
+        table::Table,
+        types::{Column, TableSettings},
+    },
 };
 
 use crate::pages::ExperimentList::types::{ExperimentsResponse, ListFilters};
@@ -111,6 +114,9 @@ pub fn ExperimentList() -> impl IntoView {
                             }}
 
                         </div>
+                        <div class="stat cursor-pointer" onclick="create_exp_modal.showModal()">
+                            <div class="stat-figure text-primary">new</div>
+                        </div>
                     </div>
                 </div>
                 <div class="card rounded-xl w-full bg-base-100 shadow">
@@ -119,6 +125,12 @@ pub fn ExperimentList() -> impl IntoView {
                         <div>
 
                             {move || {
+                                let current_tenant = tenant_rs.get();
+                                let settings = TableSettings {
+                                    redirect_prefix: Some(
+                                        format!("admin/{current_tenant}/experiments"),
+                                    ),
+                                };
                                 let value = experiments.get();
                                 match value {
                                     Some(v) => {
@@ -130,10 +142,11 @@ pub fn ExperimentList() -> impl IntoView {
                                             .to_owned();
                                         view! {
                                             <Table
-                                                table_style="abc".to_string()
+                                                _table_style="abc".to_string()
                                                 rows=data
-                                                key_column="id".to_string()
+                                                _key_column="id".to_string()
                                                 columns=table_columns.get()
+                                                settings=settings
                                             />
                                         }
                                     }
@@ -189,13 +202,20 @@ pub fn ExperimentList() -> impl IntoView {
                     let dim = dimensions.get().unwrap_or(vec![]);
                     let def_conf = default_config.get().unwrap_or(vec![]);
                     view! {
-                        <ExperimentForm
-                            name="".to_string()
-                            context=vec![]
-                            variants=vec![]
-                            dimensions=dim
-                            default_config=def_conf
-                        />
+                        <dialog id="create_exp_modal" class="modal">
+                            <div class="modal-box">
+                                <h3 class="font-bold text-lg">Create an Experiment</h3>
+                                <div class="modal-action flex flex-col">
+                                    <ExperimentForm
+                                        name="".to_string()
+                                        context=vec![]
+                                        variants=vec![]
+                                        dimensions=dim
+                                        default_config=def_conf
+                                    />
+                                </div>
+                            </div>
+                        </dialog>
                     }
                 }}
 
