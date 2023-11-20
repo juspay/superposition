@@ -1,7 +1,7 @@
 use serde_json::{Map, Value};
-use leptos::{View, Scope, view, IntoView};
+use leptos::{View, view, IntoView};
 
-pub type CellFormatter = fn(Scope, &str, &Map<String, Value>) -> View;
+pub type CellFormatter = fn(&str, &Map<String, Value>) -> View;
 
 #[derive(Clone, PartialEq)]
 pub struct Column {
@@ -10,11 +10,10 @@ pub struct Column {
     pub formatter: CellFormatter
 }
 
-fn default_formatter(cx:Scope, value: &str, row: &Map<String, Value>) -> View {
+fn default_formatter(value: &str, row: &Map<String, Value>) -> View {
     view! {
-        cx,
         <span>{value.to_string()}</span>
-    }.into_view(cx)
+    }.into_view()
 }
 
 impl Column {

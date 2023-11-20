@@ -4,14 +4,15 @@ use leptos_router::*;
 
 use crate::hoc::layout::layout::Layout;
 use crate::pages::ExperimentList::ExperimentList::ExperimentList;
-use crate::pages::{Home::Home::Home, NotFound::NotFound::NotFound};
-use crate::types::AppRoute;
+use crate::pages::{
+    Experiment::ExperimentPage, Home::Home::Home, NotFound::NotFound::NotFound,
+};
 
 #[component]
-pub fn App(cx: Scope) -> impl IntoView {
+pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
-    provide_meta_context(cx);
-    view! { cx,
+    provide_meta_context();
+    view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
         <Stylesheet id="leptos" href="/pkg/style.css"/>
@@ -27,6 +28,7 @@ pub fn App(cx: Scope) -> impl IntoView {
                     <Routes>
                         <Route ssr=SsrMode::PartiallyBlocked path="/admin/experiments" view=ExperimentList />
                         <Route ssr=SsrMode::PartiallyBlocked path="" view=Home/>
+                        <Route ssr=SsrMode::PartiallyBlocked path="/ui/experiments/:id" view=ExperimentPage/>
                         <Route path="/*any" view=NotFound/>
                     </Routes>
                 </Layout>

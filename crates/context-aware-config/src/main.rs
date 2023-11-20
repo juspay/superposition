@@ -113,7 +113,7 @@ async fn main() -> Result<()> {
     /* Frontend configurations */
     let conf = get_configuration(Some("Cargo.toml")).await.unwrap();
     // Generate the list of routes in your Leptos App
-    let routes = generate_route_list(|cx| view! { cx, <App/> });
+    let routes = generate_route_list(|| view! { <App/> });
 
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
@@ -203,7 +203,7 @@ async fn main() -> Result<()> {
             .leptos_routes(
                 leptos_options.to_owned(),
                 routes.to_owned(),
-                |cx| view! { cx, <App/> },
+                || view! { <App/> },
             )
             .app_data(Data::new(leptos_options.to_owned()))
     })

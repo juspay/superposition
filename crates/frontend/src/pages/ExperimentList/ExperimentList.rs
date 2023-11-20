@@ -1,14 +1,15 @@
 use leptos::*;
 use leptos_router::*;
+use leptos::logging::*;
 
-use crate::components::table::{types::Column, table::Table};
+use crate::components::table::{table::Table, types::Column};
 
 use crate::pages::ExperimentList::types::{
     ExperimentResponse, ExperimentsResponse, ListFilters,
 };
 
 use super::utils::fetch_experiments;
-use serde_json::{Map, Value, json};
+use serde_json::{json, Map, Value};
 
 // pub struct ListFilters {
 //     pub status: Option<StatusTypes>,
@@ -19,59 +20,54 @@ use serde_json::{Map, Value, json};
 // }
 
 #[component]
-pub fn ExperimentList(cx: Scope) -> impl IntoView {
+pub fn ExperimentList() -> impl IntoView {
     // acquire tenant
     let tenant = "test".to_string();
-    let (filters, set_filters) = create_signal(
-        cx,
-        ListFilters {
-            status: None,
-            from_date: None,
-            to_date: None,
-            page: None,
-            count: None,
-        },
-    );
+    let (filters, set_filters) = create_signal(ListFilters {
+        status: None,
+        from_date: None,
+        to_date: None,
+        page: None,
+        count: None,
+    });
 
-    let table_columns = create_memo(
-        cx,
-        move |_| {
-            vec![
-                Column::default("id".to_string()),
-                Column::default("name".to_string()),
-                Column::new(
-                    "status".to_string(),
-                    None,
-                    Some(|cx:Scope, value: &str, _| {
-                        let badge_color = match value {
-                            "CREATED" => "badge-info",
-                            "INPROGRESS" => "badge-warning",
-                            "CONCLUDED" => "badge-success",
-                            &_ => "info"
-                        };
-                        let class = format!("badge {}", badge_color);
-                        view!{
-                            cx,
-                            <div class={class}>
-                                <span class="text-white font-semibold text-xs">
-                                    {value.to_string()}
-                                </span>
-                            </div>
-                        }.into_view(cx)
-                    })
-                ),
-                Column::default("context".to_string())
-            ]
-        }
-    );
+    let table_columns = create_memo(move |_| {
+        vec![
+            Column::default("id".to_string()),
+            Column::default("name".to_string()),
+            Column::new(
+                "status".to_string(),
+                None,
+                Some(|value: &str, _| {
+                    let badge_color = match value {
+                        "CREATED" => "badge-info",
+                        "INPROGRESS" => "badge-warning",
+                        "CONCLUDED" => "badge-success",
+                        &_ => "info",
+                    };
+                    let class = format!("badge {}", badge_color);
+                    view! {
+                        <div class={class}>
+                            <span class="text-white font-semibold text-xs">
+                                {value.to_string()}
+                            </span>
+                        </div>
+                    }
+                    .into_view()
+                }),
+            ),
+            Column::default("context".to_string()),
+        ]
+    });
 
-    let experiments =
-        create_blocking_resource(cx, move || filters, move |_| fetch_experiments(filters.get()));
+    let experiments = create_blocking_resource(
+        move || filters,
+        move |_| fetch_experiments(filters.get()),
+    );
     // TODO: Add filters
     view! {
-        cx,
         <div class="p-8">
-            <Suspense fallback=move || view! {cx, <p>"Loading (Suspense Fallback)..."</p> }>
+            <Suspense fallback=move || view! {<p>"Loading (Suspense Fallback)..."</p> }>
                 <div class="py-4">
                     <div class="stats shadow">
                         <div class="stat">
@@ -82,21 +78,18 @@ pub fn ExperimentList(cx: Scope) -> impl IntoView {
                                 {
                                     move || {
                                         experiments.with(
-                                            cx,
                                             move |value| {
                                                 match value {
-                                                    Ok(val) => view! {
-                                                        cx,
+                                                    Some(Ok(val)) => view! {
                                                         <div class="stat-value">
                                                             {val.total_items}
                                                         </div>
-                                                    }.into_view(cx),
-                                                    Err(_) => view! {
-                                                        cx,
+                                                    }.into_view(),
+                                                    _ => view! {
                                                         <div class="stat-value">
                                                             0
                                                         </div>
-                                                    }.into_view(cx)
+                                                    }.into_view()
                                                 }
                                             }
                                         )
@@ -110,10 +103,10 @@ pub fn ExperimentList(cx: Scope) -> impl IntoView {
                         <h2 class="card-title">Experiments</h2>
                             <div>
                                 {
-                                    move || experiments.with(cx, move |value| {
-                                        leptos::log!("{:?}", value);
+                                    move || experiments.with(move |value| {
+                                        log!("{:?}", value);
                                         match value {
-                                            Ok(value) => {
+                                            Some(Ok(value)) => {
                                                 // TODO: Why data.clone() works?
                                                 let data = value
                                                     .data
@@ -127,7 +120,6 @@ pub fn ExperimentList(cx: Scope) -> impl IntoView {
                                                     .collect::<Vec<Map<String, Value>>>()
                                                     .to_owned();
                                                 view! {
-                                                    cx,
                                                     <Table
                                                         table_style="abc".to_string()
                                                         rows={data}
@@ -136,7 +128,8 @@ pub fn ExperimentList(cx: Scope) -> impl IntoView {
                                                     />
                                                 }
                                             },
-                                            Err(e) => view! {cx, <div>{e}</div> }.into_view(cx),
+                                            Some(Err(e)) => view! {<div>{e}</div> }.into_view(),
+                                            None => view! {<div>Loading....</div> }.into_view(),
                                         }
                                     })
                                 }
