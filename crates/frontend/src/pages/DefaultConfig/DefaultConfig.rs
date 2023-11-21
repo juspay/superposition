@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use crate::components::table::{
     table::Table,
-    types::{Column, RowData},
+    types::{Column, TableSettings},
 };
 use crate::pages::DefaultConfig::types::Config;
 use js_sys;
@@ -12,6 +12,12 @@ use leptos::spawn_local;
 use leptos::*;
 use leptos_router::use_query_map;
 use serde_json::{Map, Value};
+
+#[derive(Clone, Debug, Default)]
+pub struct RowData {
+    pub key: String,
+    pub value: String,
+}
 
 pub async fn fetch_config(tenant: String) -> Result<Config, String> {
     let client = reqwest::Client::new();
@@ -223,8 +229,7 @@ fn custom_formatter(value: &str, row: &Map<String, Value>) -> View {
 
     let edit_icon: HtmlElement<html::I> = view! { <i class="ri-pencil-line ri-xl text-blue-500" on:click=edit_click_handler></i> };
 
-    view! { <span>{edit_icon}</span> }
-    .into_view()
+    view! { <span>{edit_icon}</span> }.into_view()
 }
 
 #[component]
@@ -277,6 +282,9 @@ pub fn DefaultConfig() -> impl IntoView {
                             match result {
                                 Some(Ok(config)) => {
                                     let mut default_config: Vec<Map<String, Value>> = Vec::new();
+                                    let settings = TableSettings {
+                                        redirect_prefix: None
+                                    };
                                     for (key, value) in config.default_configs.iter() {
                                         let mut map = Map::new();
                                         let trimmed_key = Value::String(
@@ -301,6 +309,7 @@ pub fn DefaultConfig() -> impl IntoView {
                                                         rows=default_config
                                                         key_column="id".to_string()
                                                         columns=table_columns.get()
+                                                        settings = settings
                                                     />
                                                 </div>
 

@@ -142,9 +142,9 @@ pub fn ExperimentList() -> impl IntoView {
                                             .to_owned();
                                         view! {
                                             <Table
-                                                _table_style="abc".to_string()
+                                                table_style="abc".to_string()
                                                 rows=data
-                                                _key_column="id".to_string()
+                                                key_column="id".to_string()
                                                 columns=table_columns.get()
                                                 settings=settings
                                             />
