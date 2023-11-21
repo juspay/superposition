@@ -70,7 +70,7 @@ pub fn SideNav() -> impl IntoView {
                     <For
                         each=move || app_routes.get()
                         key=|route: &AppRoute| route.key.to_string()
-                        view=move | route: AppRoute| {
+                        children=move |route: AppRoute| {
                             let path = route.path.to_string();
                             let is_active = location.pathname.get().contains(&path);
                             view! {

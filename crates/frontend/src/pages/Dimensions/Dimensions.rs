@@ -59,6 +59,9 @@ pub fn Dimensions() -> impl IntoView {
 
                             {move || {
                                 let value = dimensions.get();
+                                let settings = TableSettings {
+                                    redirect_prefix: None
+                                };
                                 match value {
                                     Some(v) => {
                                         let data = v
@@ -70,9 +73,10 @@ pub fn Dimensions() -> impl IntoView {
                                         view! {
                                             <Table
                                                 table_style="abc".to_string()
-                                                rows=data
+                                                rows= data
                                                 key_column="id".to_string()
                                                 columns=table_columns.get()
+                                                settings=settings
                                             />
                                         }
                                     }
