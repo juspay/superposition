@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use crate::components::context_form::context_form::ContextForm;
 use crate::components::override_form::override_form::OverrideForm;
+use crate::components::table::types::TableSettings;
 use crate::components::table::{table::Table, types::Column};
 use crate::pages::DefaultConfig::types::Config;
 use crate::pages::ExperimentList::types::{DefaultConfig, Dimension};
@@ -268,7 +269,7 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                 Create Context Overrides
                 <i class="ri-edit-2-line ml-2"></i>
             </button>
-            // 
+            //
             <dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
                 <div class="modal-box relative bg-white space-y-6 w-11/12 max-w-3xl">
                     <form method="dialog" class="flex justify-end">
@@ -372,6 +373,9 @@ pub fn ContextOverride() -> impl IntoView {
                                 match result {
                                     Some(Ok(config)) => {
                                         let mut contexts: Vec<Map<String, Value>> = Vec::new();
+                                        let settings = TableSettings {
+                                            redirect_prefix: None
+                                        };
                                         let mut context_views = Vec::new();
                                         let mut new_ctx: Vec<(String, String, String)> = vec![];
                                         let mut override_signal = Map::new();
@@ -421,6 +425,7 @@ pub fn ContextOverride() -> impl IntoView {
                                                                         rows=contexts.clone()
                                                                         key_column="id".to_string()
                                                                         columns=table_columns.get()
+                                                                        settings= settings.clone()
                                                                     />
                                                                 </div>
                                                             </div>
