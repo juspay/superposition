@@ -1,14 +1,6 @@
 use super::types::{ExperimentsResponse, ListFilters};
 use std::vec::Vec;
 
-// pub struct ListFilters {
-//     pub status: Option<StatusTypes>,
-//     pub from_date: Option<DateTime<Utc>>,
-//     pub to_date: Option<DateTime<Utc>>,
-//     pub page: Option<i64>,
-//     pub count: Option<i64>,
-// }
-
 pub async fn fetch_experiments(
     filters: ListFilters,
 ) -> Result<ExperimentsResponse, String> {
@@ -39,7 +31,7 @@ pub async fn fetch_experiments(
         query_params.push(format!("count={}", count));
     }
 
-    let url = format!("{}/experiments?{}", host, query_params.join(","));
+    let url = format!("{}/experiments?{}", host, query_params.join("&"));
     let response: ExperimentsResponse = client
         .get(url)
         .header("x-tenant", "mjos")

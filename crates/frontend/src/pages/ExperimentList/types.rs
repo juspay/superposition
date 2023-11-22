@@ -30,17 +30,17 @@ pub struct ExperimentResponse {
     pub chosen_variant: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ExperimentsResponse {
     pub total_items: i64,
     pub total_pages: i64,
     pub data: Vec<ExperimentResponse>,
 }
 
-#[derive(Deserialize, Debug, Clone, Deref, DerefMut)]
+#[derive(Deserialize, Debug, Clone, Deref, DerefMut, PartialEq)]
 pub struct StatusTypes(pub Vec<ExperimentStatusType>);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ListFilters {
     pub status: Option<StatusTypes>,
     pub from_date: Option<DateTime<Utc>>,

@@ -1,8 +1,16 @@
+use leptos::logging::*;
 use leptos::*;
 use leptos_router::*;
-use leptos::logging::*;
 
-use crate::components::table::{table::Table, types::Column};
+use chrono::{
+    prelude::{DateTime, Utc},
+    TimeZone,
+};
+
+use crate::components::{
+    pagination::pagination::Pagination,
+    table::{table::Table, types::Column},
+};
 
 use crate::pages::ExperimentList::types::{
     ExperimentResponse, ExperimentsResponse, ListFilters,
@@ -11,24 +19,16 @@ use crate::pages::ExperimentList::types::{
 use super::utils::fetch_experiments;
 use serde_json::{json, Map, Value};
 
-// pub struct ListFilters {
-//     pub status: Option<StatusTypes>,
-//     pub from_date: Option<DateTime<Utc>>,
-//     pub to_date: Option<DateTime<Utc>>,
-//     pub page: Option<i64>,
-//     pub count: Option<i64>,
-// }
-
 #[component]
 pub fn ExperimentList() -> impl IntoView {
     // acquire tenant
     let tenant = "test".to_string();
     let (filters, set_filters) = create_signal(ListFilters {
         status: None,
-        from_date: None,
-        to_date: None,
-        page: None,
-        count: None,
+        from_date: Utc.timestamp_opt(0, 0).single(),
+        to_date: Utc.timestamp_opt(4130561031, 0).single(),
+        page: Some(1),
+        count: Some(1),
     });
 
     let table_columns = create_memo(move |_| {
@@ -61,14 +61,24 @@ pub fn ExperimentList() -> impl IntoView {
     });
 
     let experiments = create_blocking_resource(
-        move || filters,
-        move |_| fetch_experiments(filters.get()),
+        move || filters.get(),
+        |value| async move {
+            match fetch_experiments(value).await {
+                Ok(data) => data,
+                Err(e) => ExperimentsResponse {
+                    total_items: 0,
+                    total_pages: 0,
+                    data: vec![],
+                },
+            }
+        },
     );
+
     // TODO: Add filters
     view! {
         <div class="p-8">
             <Suspense fallback=move || view! {<p>"Loading (Suspense Fallback)..."</p> }>
-                <div class="py-4">
+                <div class="pb-4">
                     <div class="stats shadow">
                         <div class="stat">
                             <div class="stat-figure text-primary">
@@ -77,63 +87,98 @@ pub fn ExperimentList() -> impl IntoView {
                             <div class="stat-title">Experiments</div>
                                 {
                                     move || {
-                                        experiments.with(
-                                            move |value| {
-                                                match value {
-                                                    Some(Ok(val)) => view! {
-                                                        <div class="stat-value">
-                                                            {val.total_items}
-                                                        </div>
-                                                    }.into_view(),
-                                                    _ => view! {
-                                                        <div class="stat-value">
-                                                            0
-                                                        </div>
-                                                    }.into_view()
-                                                }
-                                            }
-                                        )
+                                        let value = experiments.get();
+                                        let total_items = match value {
+                                            Some(v) => v.total_items,
+                                            _ => 0,
+                                        };
+                                        view! {
+                                            <div class="stat-value">
+                                                {total_items}
+                                            </div>
+                                        }
                                     }
                                 }
                         </div>
                     </div>
                 </div>
-                <div class="card rounded-lg w-full bg-base-100 shadow">
+                <div class="card rounded-xl w-full bg-base-100 shadow">
                     <div class="card-body">
                         <h2 class="card-title">Experiments</h2>
-                            <div>
-                                {
-                                    move || experiments.with(move |value| {
-                                        log!("{:?}", value);
-                                        match value {
-                                            Some(Ok(value)) => {
-                                                // TODO: Why data.clone() works?
-                                                let data = value
-                                                    .data
-                                                    .iter()
-                                                    .map(|ele| {
-                                                        json!(ele)
-                                                            .as_object()
-                                                            .unwrap()
-                                                            .clone()
-                                                    })
-                                                    .collect::<Vec<Map<String, Value>>>()
-                                                    .to_owned();
-                                                view! {
-                                                    <Table
-                                                        table_style="abc".to_string()
-                                                        rows={data}
-                                                        key_column="id".to_string()
-                                                        columns={table_columns.get()}
-                                                    />
-                                                }
-                                            },
-                                            Some(Err(e)) => view! {<div>{e}</div> }.into_view(),
-                                            None => view! {<div>Loading....</div> }.into_view(),
+                        <div>
+                            {
+                                move || {
+                                    let value = experiments.get();
+                                    match value {
+                                        Some(v) => {
+                                            let data = v
+                                                .data
+                                                .iter()
+                                                .map(|ele| {
+                                                    json!(ele)
+                                                        .as_object()
+                                                        .unwrap()
+                                                        .clone()
+                                                })
+                                                .collect::<Vec<Map<String, Value>>>()
+                                                .to_owned();
+                                            view! {
+                                                <Table
+                                                    table_style="abc".to_string()
+                                                    rows={data}
+                                                    key_column="id".to_string()
+                                                    columns={table_columns.get()}
+                                                />
+                                            }
+                                        },
+                                        None => {
+                                            view! {<div>Loading....</div> }.into_view()
                                         }
-                                    })
+                                    }
                                 }
-                            </div>
+
+                            }
+                        </div>
+                        <div class="mt-2 flex justify-end">
+                            {
+                                move || {
+                                    let current_page = filters.get().page.unwrap_or(0);
+                                    let total_pages = match experiments.get() {
+                                        Some(val) => val.total_pages,
+                                        None => 0,
+                                    };
+
+                                    view! {
+                                        <Pagination
+                                            current_page={current_page}
+                                            total_pages={total_pages}
+                                            next={
+                                                move || {
+                                                    set_filters.update(|f| {
+                                                        f.page = match f.page {
+                                                            Some(p) if p < total_pages => Some(p + 1),
+                                                            Some(p) => Some(p),
+                                                            None => None,
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                            previous={
+                                                move || {
+                                                    set_filters.update(|f| {
+                                                        f.page = match f.page {
+                                                            Some(p) if p > 1 => Some(p - 1),
+                                                            Some(p) => Some(p),
+                                                            None => None,
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        />
+                                    }
+                                }
+                            }
+                        </div>
                     </div>
                 </div>
             </Suspense>

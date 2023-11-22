@@ -7,7 +7,8 @@
 }
 
 .menu li > :not(ul):not(.menu-title):not(details).active {
-    @apply bg-primary;
-    @apply text-white;
+    @apply bg-white;
+    @apply text-black;
+    @apply shadow-lg;
     @apply font-bold;
 }

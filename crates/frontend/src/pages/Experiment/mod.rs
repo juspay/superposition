@@ -1,11 +1,13 @@
+use chrono::{DateTime, Utc};
 use leptos::*;
 use leptos_router::use_params_map;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tracing::debug;
-use chrono::{DateTime, Utc};
 
-#[derive(Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display,
+)]
 #[strum(serialize_all = "UPPERCASE")]
 pub(crate) enum ExperimentStatusType {
     CREATED,
@@ -56,10 +58,10 @@ async fn get_experiment(exp_id: &String) -> Result<Experiment, String> {
         Ok(experiment) => {
             debug!("experiment response {:?}", experiment);
             Ok(experiment
-            .json::<Experiment>()
-            .await
-            .map_err(|err| err.to_string())?)
-        },
+                .json::<Experiment>()
+                .await
+                .map_err(|err| err.to_string())?)
+        }
         Err(e) => Err(e.to_string()),
     }
 }
@@ -67,13 +69,11 @@ async fn get_experiment(exp_id: &String) -> Result<Experiment, String> {
 #[component]
 pub fn experiment_page() -> impl IntoView {
     let exp_params = use_params_map();
-    let experiment_id = move || exp_params.with(|params| params.get("id").cloned().unwrap_or("1".into()));
-    let experiment_info = create_resource(
-        experiment_id,
-        |exp_id: String| async move  {
-            get_experiment(&exp_id).await
-        },
-    );
+    let experiment_id =
+        move || exp_params.with(|params| params.get("id").cloned().unwrap_or("1".into()));
+    let experiment_info = create_resource(experiment_id, |exp_id: String| async move {
+        get_experiment(&exp_id).await
+    });
     view! {
         <Transition
         fallback= move || view! {<h1> Loading.... </h1>} >

@@ -1,5 +1,5 @@
-use leptos::*;
 use super::types::Column;
+use leptos::*;
 use serde_json::{json, Map, Value};
 
 fn generate_table_row_str(row: &Value) -> String {

@@ -5,8 +5,8 @@ use crate::{
 };
 use actix_web::{
     error::{ErrorBadRequest, ErrorInternalServerError},
-    put,
-    web::{self, Data},
+    put, get,
+    web::{self, Data, Json},
     HttpResponse, Scope,
 };
 use chrono::Utc;
@@ -17,10 +17,15 @@ use diesel::{
 };
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{json, Value};
-use service_utils::service::types::{AppState, DbConnection};
+use service_utils::{
+    service::types::{AppState, DbConnection},
+    types as app
+};
 
 pub fn endpoints() -> Scope {
-    Scope::new("").service(create)
+    Scope::new("")
+        .service(create)
+        .service(get)
 }
 
 #[put("/{key}")]
@@ -121,4 +126,14 @@ fn fetch_default_key(
         ))
         .get_result::<(Value, Value)>(conn)?;
     Ok(res)
+}
+
+#[get("")]
+async fn get(
+    db_conn: DbConnection
+) -> app::Result<Json<Vec<DefaultConfig>>> {
+    let DbConnection(mut conn) = db_conn;
+
+    let result: Vec<DefaultConfig> = default_configs.get_results(&mut conn)?;
+    Ok(Json(result))
 }
