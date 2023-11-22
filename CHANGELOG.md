@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.16.1 - 2023-11-22
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.13.1
+### Global changes
+#### Bug Fixes
+- PICAF-25066 sort json while context creation - (3bd7a97) - Pratik Mishra
+
+- - -
+
 ## v0.16.0 - 2023-11-16
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.13.0

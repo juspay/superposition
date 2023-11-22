@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.13.1 - 2023-11-22
+#### Bug Fixes
+- PICAF-25066 sort json while context creation - (3bd7a97) - Pratik Mishra
+
+- - -
+
 ## context-aware-config-v0.13.0 - 2023-11-16
 #### Features
 - update default keys - (d6b9992) - ankit.mahato
