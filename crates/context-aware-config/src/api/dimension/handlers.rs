@@ -4,18 +4,23 @@ use crate::{
     helpers::validate_jsonschema,
 };
 use actix_web::{
-    put,
-    web::{self, Data},
+    put, get,
+    web::{self, Data, Json},
     HttpResponse, Scope,
 };
 use chrono::Utc;
 use dashboard_auth::types::User;
 use diesel::RunQueryDsl;
 use jsonschema::{Draft, JSONSchema};
-use service_utils::service::types::{AppState, DbConnection};
+use service_utils::{
+    service::types::{AppState, DbConnection},
+    types as app
+};
 
 pub fn endpoints() -> Scope {
-    Scope::new("").service(create)
+    Scope::new("")
+        .service(create)
+        .service(get)
 }
 
 #[put("")]
@@ -74,4 +79,14 @@ async fn create(
                 .body("Failed to create/update dimension\n");
         }
     }
+}
+
+#[get("")]
+async fn get(
+    db_conn: DbConnection
+) -> app::Result<Json<Vec<Dimension>>> {
+    let DbConnection(mut conn) = db_conn;
+
+    let result: Vec<Dimension> = dimensions.get_results(&mut conn)?;
+    Ok(Json(result))
 }
