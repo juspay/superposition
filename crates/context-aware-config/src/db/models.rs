@@ -18,7 +18,7 @@ pub struct Context {
     pub override_: Value,
 }
 
-#[derive(Queryable, Selectable, Insertable, AsChangeset)]
+#[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(dimension))]
 pub struct Dimension {
@@ -29,7 +29,7 @@ pub struct Dimension {
     pub schema: Value,
 }
 
-#[derive(Queryable, Selectable, Insertable, AsChangeset)]
+#[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(key))]
 pub struct DefaultConfig {
