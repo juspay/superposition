@@ -1,3 +1,4 @@
+pub mod DefaultConfig;
 pub mod Dimensions;
 pub mod Experiment;
 pub mod ExperimentList;

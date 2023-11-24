@@ -6,7 +6,8 @@ use crate::hoc::layout::layout::Layout;
 use crate::pages::Dimensions::Dimensions::Dimensions;
 use crate::pages::ExperimentList::ExperimentList::ExperimentList;
 use crate::pages::{
-    Experiment::ExperimentPage, Home::Home::Home, NotFound::NotFound::NotFound,
+    DefaultConfig::DefaultConfig::DefaultConfig, Experiment::ExperimentPage,
+    Home::Home::Home, NotFound::NotFound::NotFound,
 };
 
 #[component]
@@ -33,7 +34,7 @@ pub fn App() -> impl IntoView {
                     <Routes>
                         <Route
                             ssr=SsrMode::PartiallyBlocked
-                            path="/admin/dimensions"
+                            path="/admin/:tenant/dimensions"
                             view=Dimensions
                         />
                         <Route
@@ -47,6 +48,7 @@ pub fn App() -> impl IntoView {
                             view=ExperimentPage
                         />
                         <Route ssr=SsrMode::PartiallyBlocked path="" view=Home/>
+                        <Route ssr=SsrMode::PartiallyBlocked path="/admin/default-config" view=DefaultConfig/>
                         <Route path="/*any" view=NotFound/>
                     </Routes>
                 </Layout>
