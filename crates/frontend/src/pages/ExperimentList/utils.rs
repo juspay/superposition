@@ -1,4 +1,4 @@
-use super::types::{ExperimentsResponse, ListFilters};
+use super::types::{ExperimentsResponse, ListFilters, Dimension, DefaultConfig};
 use std::vec::Vec;
 
 pub async fn fetch_experiments(
@@ -33,6 +33,56 @@ pub async fn fetch_experiments(
 
     let url = format!("{}/experiments?{}", host, query_params.join("&"));
     let response: ExperimentsResponse = client
+        .get(url)
+        .header("x-tenant", "mjos")
+        .send()
+        .await
+        .map_err(|e| e.to_string())?
+        .json()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(response)
+}
+
+
+pub async fn fetch_dimensions() -> Result<Vec<Dimension>, String> {
+    let client = reqwest::Client::new();
+    let host = match std::env::var("APP_ENV").as_deref() {
+        Ok("PROD") => {
+            "https://context-aware-config.sso.internal.svc.k8s.apoc.mum.juspay.net"
+        }
+        Ok("SANDBOX") => "https://context-aware.internal.staging.mum.juspay.net",
+        _ => "http://localhost:8080",
+    };
+
+    let url = format!("{}/dimension", host);
+    let response: Vec<Dimension> = client
+        .get(url)
+        .header("x-tenant", "mjos")
+        .send()
+        .await
+        .map_err(|e| e.to_string())?
+        .json()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(response)
+}
+
+
+pub async fn fetch_default_config() -> Result<Vec<DefaultConfig>, String> {
+    let client = reqwest::Client::new();
+    let host = match std::env::var("APP_ENV").as_deref() {
+        Ok("PROD") => {
+            "https://context-aware-config.sso.internal.svc.k8s.apoc.mum.juspay.net"
+        }
+        Ok("SANDBOX") => "https://context-aware.internal.staging.mum.juspay.net",
+        _ => "http://localhost:8080",
+    };
+
+    let url = format!("{}/default-config", host);
+    let response: Vec<DefaultConfig> = client
         .get(url)
         .header("x-tenant", "mjos")
         .send()

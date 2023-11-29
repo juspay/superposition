@@ -10,13 +10,14 @@ use chrono::{
 use crate::components::{
     pagination::pagination::Pagination,
     table::{table::Table, types::Column},
+    experiment_form::experiment_form::ExperimentForm
 };
 
 use crate::pages::ExperimentList::types::{
     ExperimentResponse, ExperimentsResponse, ListFilters,
 };
 
-use super::utils::fetch_experiments;
+use super::utils::{fetch_default_config, fetch_dimensions, fetch_experiments};
 use serde_json::{json, Map, Value};
 
 #[component]
@@ -70,6 +71,26 @@ pub fn ExperimentList() -> impl IntoView {
                     total_pages: 0,
                     data: vec![],
                 },
+            }
+        },
+    );
+
+    let dimensions = create_blocking_resource(
+        || (),
+        |_| async move {
+            match fetch_dimensions().await {
+                Ok(data) => data,
+                Err(e) => vec![],
+            }
+        },
+    );
+
+    let default_config = create_blocking_resource(
+        || (),
+        |_| async move {
+            match fetch_default_config().await {
+                Ok(data) => data,
+                Err(e) => vec![],
             }
         },
     );
@@ -181,6 +202,21 @@ pub fn ExperimentList() -> impl IntoView {
                         </div>
                     </div>
                 </div>
+                {
+                    move || {
+                        let dim = dimensions.get().unwrap_or(vec![]);
+                        let def_conf = default_config.get().unwrap_or(vec![]);
+                        view! {
+                            <ExperimentForm
+                                name="".to_string()
+                                context=vec![]
+                                variants=vec![]
+                                dimensions={dim}
+                                default_config={def_conf}
+                            />
+                        }
+                    }
+                }
             </Suspense>
         </div>
     }
