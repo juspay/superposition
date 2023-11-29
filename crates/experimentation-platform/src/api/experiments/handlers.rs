@@ -460,7 +460,9 @@ async fn ramp(
             message: format!("The traffic_percentage cannot exceed {}", max),
             possible_fix: format!("Provide a traffic percentage less than {}", max),
         }));
-    } else if new_traffic_percentage == old_traffic_percentage {
+    } else if new_traffic_percentage != 0
+        && new_traffic_percentage == old_traffic_percentage
+    {
         return Err(err::BadRequest(ErrorResponse {
             message: "The traffic_percentage is same as provided".to_string(),
             possible_fix: "".to_string(),
