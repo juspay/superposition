@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.16.2 - 2023-11-30
+### Package updates
+- experimentation-platform bumped to experimentation-platform-v0.8.2
+### Global changes
+#### Bug Fixes
+- allow ramp 0 - (b8d49aa) - Kartik Gajendra
+
+- - -
+
 ## v0.16.1 - 2023-11-22
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.13.1
