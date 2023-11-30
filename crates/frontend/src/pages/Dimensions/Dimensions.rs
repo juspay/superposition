@@ -69,11 +69,10 @@ pub fn Dimensions() -> impl IntoView {
                                         println!("hello1: {:?}", data);
                                         view! {
                                             <Table
-                                                _table_style="abc".to_string()
+                                                table_style="abc".to_string()
                                                 rows=data
-                                                _key_column="id".to_string()
+                                                key_column="id".to_string()
                                                 columns=table_columns.get()
-                                                settings={TableSettings {redirect_prefix: None}}
                                             />
                                         }
                                     }

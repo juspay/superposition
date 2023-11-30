@@ -116,8 +116,6 @@ pub fn ExperimentForm(
                             </div>
                             <div>
                                 <OverrideForm
-                                    iv_rs=iv_rs
-                                    iv_ws=iv_ws
                                     overrides=variant_rs.get().overrides
                                     default_config=config
                                 />

@@ -16,7 +16,7 @@ leptos = { version = "0.5.2" }
 leptos_meta = { version = "0.5.2" }
 leptos_actix = { version = "0.5.2", optional = true }
 leptos_router = { version = "0.5.2" }
-wasm-bindgen = "=0.2.87"
+wasm-bindgen = "=0.2.89"
 reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -27,6 +27,7 @@ anyhow = { workspace = true }
 chrono = {workspace = true }
 strum_macros = { workspace = true }
 strum = { workspace = true }
+js-sys = "0.3.65"
 
 
 [features]
