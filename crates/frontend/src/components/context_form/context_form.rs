@@ -22,9 +22,9 @@ pub fn ContextForm(
     });
 
     view! {
-        <div class="form-control w-full">
+        <div class="form-control w-full ">
             <label class="label">
-                <span class="label-text">Context</span>
+                <span class="label-text font-semibold text-lg">Context</span>
             </label>
             <div class="p-4">
                 <For
@@ -35,7 +35,6 @@ pub fn ContextForm(
                             .enumerate()
                             .collect::<Vec<(usize, (String, String, String))>>()
                     }
-
                     key=|(idx, (dimension, _, _))| format!("{}-{}", dimension, idx)
                     children=move |(idx, (dimension, operator, value))| {
                         let dimension_label = dimension.to_string();
@@ -46,12 +45,13 @@ pub fn ContextForm(
                                     <label class="label font-medium font-mono text-sm">
                                         <span class="label-text">Operator</span>
                                     </label>
-                                    <select class="select select-bordered">
+                                    <select class="select select-bordered w-full bg-black text-white text-sm rounded-lg h-10 px-4 appearance-none leading-tight focus:outline-none focus:shadow-outline">
                                         <option disabled selected>
                                             Pick one
                                         </option>
-                                        <option value="==">"=="</option>
-                                        <option value="!=">"!="</option>
+                                        <option value="==">==</option>
+                                        <option value="!=">!=</option>
+                                        <option value="!=">IN</option>
                                     </select>
 
                                 </div>
@@ -63,10 +63,10 @@ pub fn ContextForm(
                                         <input
                                             type="text"
                                             placeholder="Type here"
-                                            class="input input-bordered w-full max-w-xs"
+                                            class="input input-bordered w-full bg-white text-gray-700 shadow-md"
                                         />
                                         <button
-                                            class="text-error text-xl font-light font-thin"
+                                            class="btn btn-error btn-circle"
                                             on:click=move |_| {
                                                 set_context
                                                     .update(|value| {

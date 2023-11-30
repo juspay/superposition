@@ -52,6 +52,7 @@
                   awscli
                   jq
                   nodejs_18
+                  leptosfmt
                   wasm-pack
                   leptosfmt
                  ( rust-bin.stable.latest.default.override {

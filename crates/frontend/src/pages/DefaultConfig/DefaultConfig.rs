@@ -1,8 +1,12 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::components::table::{table::Table, types::Column};
+use crate::components::table::{
+    table::Table,
+    types::{Column, RowData},
+};
 use crate::pages::DefaultConfig::types::Config;
+use js_sys;
 use leptos::ev::SubmitEvent;
 use leptos::spawn_local;
 use leptos::*;
@@ -11,13 +15,7 @@ use serde_json::{Map, Value};
 
 pub async fn fetch_config(tenant: String) -> Result<Config, String> {
     let client = reqwest::Client::new();
-    let host = match std::env::var("APP_ENV").as_deref() {
-        Ok("PROD") => {
-            "https://context-aware-config.sso.internal.svc.k8s.apoc.mum.juspay.net"
-        }
-        Ok("SANDBOX") => "https://context-aware.internal.staging.mum.juspay.net",
-        _ => "http://localhost:8080",
-    };
+    let host = "http://localhost:8080";
     let url = format!("{host}/config");
     match client.get(url).header("x-tenant", tenant).send().await {
         Ok(response) => {
@@ -36,13 +34,7 @@ pub async fn create_default_config(
     pattern: String,
 ) -> Result<String, String> {
     let client = reqwest::Client::new();
-    let host = match std::env::var("APP_ENV").as_deref() {
-        Ok("PROD") => {
-            "https://context-aware-config.sso.internal.svc.k8s.apoc.mum.juspay.net"
-        }
-        Ok("SANDBOX") => "https://context-aware.internal.staging.mum.juspay.net",
-        _ => "http://localhost:8080",
-    };
+    let host = "http://localhost:8080";
     let url = format!("{host}/default-config/{key}");
     let mut req_body: HashMap<&str, Value> = HashMap::new();
     let mut schema: Map<String, Value> = Map::new();
@@ -71,7 +63,12 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
             </button>
             <dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
                 <div class="modal-box relative bg-white">
-                    <FormComponent handle_submit = handle_submit/>
+                    <form method="dialog" class="flex justify-end">
+                        <button>
+                            <i class="ri-close-fill"></i>
+                        </button>
+                    </form>
+                    <FormComponent handle_submit=handle_submit/>
                 </div>
             </dialog>
         </div>
@@ -82,11 +79,20 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
 fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     use leptos::html::Input;
     let handle_submit = handle_submit.clone();
+    let global_state = use_context::<RwSignal<RowData>>();
+    let row_data = global_state.unwrap().get();
 
-    let (key, set_key) = create_signal("key1".to_string());
-    let (value, set_value) = create_signal("value1".to_string());
+    let (key, set_key) = create_signal(row_data.key);
+    let (value, set_value) = create_signal(row_data.value);
     let (keytype, set_keytype) = create_signal("string".to_string());
     let (pattern, set_pattern) = create_signal(".*".to_string());
+
+    create_effect(move |_| {
+        if let Some(row_data) = global_state {
+            set_key.set(row_data.get().key.clone().to_string());
+            set_value.set(row_data.get().value.clone().to_string());
+        }
+    });
 
     let input_element: NodeRef<Input> = create_node_ref();
     let input_element_two: NodeRef<Input> = create_node_ref();
@@ -136,12 +142,18 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     };
 
     view! {
-        <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono" on:submit=on_submit>
+        <form
+            class="form-control w-full space-y-4 bg-white text-gray-700 font-mono"
+            on:submit=on_submit
+        >
             <div class="form-control">
                 <label class="label font-mono">
                     <span class="label-text text-gray-700 font-mono">Key</span>
                 </label>
-                <input type="text" placeholder="Key" class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                <input
+                    type="text"
+                    placeholder="Key"
+                    class="input input-bordered w-full bg-white text-gray-700 shadow-md"
                     value=key
                     node_ref=input_element
                 />
@@ -150,7 +162,10 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                 <label class="label font-mono">
                     <span class="label-text text-gray-700 font-mono">Value</span>
                 </label>
-                <input type="text" placeholder="Value" class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                <input
+                    type="text"
+                    placeholder="Value"
+                    class="input input-bordered w-full bg-white text-gray-700 shadow-md"
                     value=value
                     node_ref=input_element_two
                 />
@@ -159,7 +174,10 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                 <label class="label font-mono">
                     <span class="label-text text-gray-700 font-mono">Type</span>
                 </label>
-                <input type="text" placeholder="Type" class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                <input
+                    type="text"
+                    placeholder="Type"
+                    class="input input-bordered w-full bg-white text-gray-700 shadow-md"
                     value=keytype
                     node_ref=input_element_three
                 />
@@ -168,20 +186,64 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                 <label class="label font-mono">
                     <span class="label-text text-gray-700 font-mono">Pattern (regex)</span>
                 </label>
-                <input type="text" placeholder="Pattern" class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                <input
+                    type="text"
+                    placeholder="Pattern"
+                    class="input input-bordered w-full bg-white text-gray-700 shadow-md"
                     value=pattern
                     node_ref=input_element_four
                 />
             </div>
             <div class="form-control mt-6">
-                <button type="submit" class="btn btn-primary shadow-md font-mono" onclick="my_modal_5.close()">Submit</button>
+                <button
+                    type="submit"
+                    class="btn btn-primary shadow-md font-mono"
+                    onclick="my_modal_5.close()"
+                >
+                    Submit
+                </button>
             </div>
         </form>
     }
 }
 
+fn custom_formatter(value: &str, row: &Map<String, Value>) -> View {
+    let intermediate_signal = use_context::<RwSignal<Option<RowData>>>().unwrap();
+    let row_key = row["KEY"].clone().to_string().replace("\"", "");
+    let row_value = row["VALUE"].clone().to_string().replace("\"", "");
+
+    let edit_click_handler = move |_| {
+        let row_data = RowData {
+            key: row_key.clone(),
+            value: row_value.clone(),
+        };
+        intermediate_signal.set(Some(row_data));
+        js_sys::eval("document.getElementById('my_modal_5').showModal();").unwrap();
+    };
+
+    let edit_icon: HtmlElement<html::I> = view! { <i class="ri-pencil-line ri-xl text-blue-500" on:click=edit_click_handler></i> };
+
+    view! { <span>{edit_icon}</span> }
+    .into_view()
+}
+
 #[component]
 pub fn DefaultConfig() -> impl IntoView {
+    // let (edit_row_data, set_edit_row_data) = create_signal(None);
+    let global_state = create_rw_signal(RowData::default());
+    provide_context(global_state);
+
+    let intermediate_signal = create_rw_signal(None::<RowData>);
+
+    // Listener for intermediate signal
+    create_effect(move |_| {
+        if let Some(row_data) = intermediate_signal.get() {
+            global_state.set(row_data.clone());
+        }
+    });
+
+    provide_context(intermediate_signal.clone());
+
     let query = use_query_map();
 
     let tenant = query.with(|params_map| {
@@ -198,64 +260,69 @@ pub fn DefaultConfig() -> impl IntoView {
         vec![
             Column::default("KEY".to_string()),
             Column::default("VALUE".to_string()),
+            Column::new("EDIT".to_string(), None, Some(custom_formatter)),
         ]
     });
 
     view! {
         <div class="p-8">
-        <ModalComponent handle_submit = Rc::new(move || config_data.refetch()) />
-         <Suspense fallback=move || view! { <p>"Loading (Suspense Fallback)..."</p> }>
-         {
-           move || config_data.with( move |result| {
-                 match result {
-                     Some(Ok(config)) => {
-                        let mut default_config: Vec<Map<String, Value>> = Vec::new();
+            <ModalComponent handle_submit=Rc::new(move || config_data.refetch())/>
+            <Suspense fallback=move || {
+                view! { <p>"Loading (Suspense Fallback)..."</p> }
+            }>
 
-                        for (key, value) in config.default_configs.iter() {
-                            let mut map = Map::new();
+                {move || {
+                    config_data
+                        .with(move |result| {
+                            match result {
+                                Some(Ok(config)) => {
+                                    let mut default_config: Vec<Map<String, Value>> = Vec::new();
+                                    for (key, value) in config.default_configs.iter() {
+                                        let mut map = Map::new();
+                                        let trimmed_key = Value::String(
+                                            key.trim_matches('"').to_string(),
+                                        );
+                                        let formatted_value = Value::String(
+                                            format!("{}", value).trim_matches('"').to_string(),
+                                        );
+                                        map.insert("KEY".to_string(), trimmed_key);
+                                        map.insert("VALUE".to_string(), formatted_value);
+                                        default_config.push(map);
+                                    }
+                                    vec![
+                                        view! {
+                                            <div class="card rounded-lg w-full bg-base-100 shadow">
+                                                <div class="card-body">
+                                                    <h2 class="card-title chat-bubble text-gray-800 dark:text-white font-mono">
+                                                        "Default Config"
+                                                    </h2>
+                                                    <Table
+                                                        table_style="font-mono".to_string()
+                                                        rows=default_config
+                                                        key_column="id".to_string()
+                                                        columns=table_columns.get()
+                                                    />
+                                                </div>
 
-                            let trimmed_key = Value::String(key.trim_matches('"').to_string());
-                            let formatted_value = Value::String(format!("{}", value).trim_matches('"').to_string());
-
-                            map.insert("KEY".to_string(), trimmed_key);
-                            map.insert("VALUE".to_string(), formatted_value);
-                            default_config.push(map);
-                        }
-
-                         vec![
-                            view! {
-                                <div class="card rounded-lg w-full bg-base-100 shadow">
-                                <div class="card-body">
-                                    <h2 class="card-title">Default Config</h2>
-                                    <Table
-                                    table_style="hover".to_string()
-                                    rows={default_config}
-                                    key_column="id".to_string()
-                                    columns={table_columns.get()}
-                                    />
-                                </div>
-
-                                </div>
+                                            </div>
+                                        },
+                                    ]
+                                }
+                                Some(Err(error)) => {
+                                    vec![
+                                        view! {
+                                            <div class="text-red-500">
+                                                {"Failed to fetch config data: "} {error}
+                                            </div>
+                                        },
+                                    ]
+                                }
+                                None => vec![view! { <div>Loading....</div> }],
                             }
-                        ]
-                     },
-                     Some(Err(error)) => {
-                         vec![
-                             view! {
-                                <div class="text-red-500">
-                                     {"Failed to fetch config data: "}
-                                     {error}
-                                 </div>
-                             }
-                         ]
-                     },
-                     None => { vec![view! {<div>Loading....</div> }]},
-                 }
-             })
-         }
-         </Suspense>
-         </div>
+                        })
+                }}
 
-
+            </Suspense>
+        </div>
     }
 }

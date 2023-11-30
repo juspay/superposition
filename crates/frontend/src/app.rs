@@ -6,10 +6,10 @@ use crate::hoc::layout::layout::Layout;
 use crate::pages::Dimensions::Dimensions::Dimensions;
 use crate::pages::ExperimentList::ExperimentList::ExperimentList;
 use crate::pages::{
+    ContextOverride::ContextOverride::ContextOverride,
     DefaultConfig::DefaultConfig::DefaultConfig, Experiment::ExperimentPage,
     Home::Home::Home, NotFound::NotFound::NotFound,
 };
-
 #[component]
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
@@ -48,8 +48,14 @@ pub fn App() -> impl IntoView {
                             view=ExperimentPage
                         />
                         <Route ssr=SsrMode::PartiallyBlocked path="" view=Home/>
-                        <Route ssr=SsrMode::PartiallyBlocked path="/admin/default-config" view=DefaultConfig/>
+                        <Route ssr=SsrMode::PartiallyBlocked path="/admin/:tenant/default-config" view=DefaultConfig/>
+                        <Route
+                        ssr=SsrMode::PartiallyBlocked
+                        path="/admin/:tenant/overrides"
+                        view=ContextOverride
+                    />
                         <Route path="/*any" view=NotFound/>
+
                     </Routes>
                 </Layout>
             </body>

@@ -39,7 +39,9 @@ pub fn Table(
                         {columns
                             .iter()
                             .filter(|column| !column.hidden)
-                            .map(|column| view! { <th class="uppercase">{&column.name}</th> })
+                            .map(|column| {
+                                view! { <th class="uppercase font-mono">{&column.name}</th> }
+                            })
                             .collect_view()}
 
                     </tr>
@@ -89,7 +91,10 @@ pub fn Table(
                                             let value: String = generate_table_row_str(
                                                 row.get(cname).unwrap_or(&Value::String("".to_string())),
                                             );
-                                            view! { <td>{(column.formatter)(&value, &row)}</td> }
+                                            view! {
+                                                <td class=table_style
+                                                    .to_string()>{(column.formatter)(&value, row)}</td>
+                                            }
                                         })
                                         .collect_view()}
 
