@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.8.2 - 2023-11-30
+#### Bug Fixes
+- allow ramp 0 - (b8d49aa) - Kartik Gajendra
+
+- - -
+
 ## experimentation-platform-v0.8.1 - 2023-11-16
 #### Bug Fixes
 - add different auth types for exp requests to CAC - (bd8ae88) - Kartik Gajendra
