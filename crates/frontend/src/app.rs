@@ -3,6 +3,7 @@ use leptos_meta::*;
 use leptos_router::*;
 
 use crate::hoc::layout::layout::Layout;
+use crate::pages::Dimensions::Dimensions::Dimensions;
 use crate::pages::ExperimentList::ExperimentList::ExperimentList;
 use crate::pages::{
     Experiment::ExperimentPage, Home::Home::Home, NotFound::NotFound::NotFound,
@@ -29,6 +30,7 @@ pub fn App() -> impl IntoView {
                         <Route ssr=SsrMode::PartiallyBlocked path="/admin/experiments" view=ExperimentList />
                         <Route ssr=SsrMode::PartiallyBlocked path="" view=Home/>
                         <Route ssr=SsrMode::PartiallyBlocked path="/ui/experiments/:id" view=ExperimentPage/>
+                        <Route ssr=SsrMode::PartiallyBlocked path="/admin/dimensions" view=Dimensions/>
                         <Route path="/*any" view=NotFound/>
                     </Routes>
                 </Layout>
