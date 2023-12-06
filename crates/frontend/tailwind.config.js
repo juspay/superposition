@@ -8,9 +8,12 @@ module.exports = {
         "./src/hoc/**/*.rs"
     ],
     theme: {
-      extend: {},
+        extend: {},
     },
     plugins: [
         require("daisyui")
     ],
+    daisyui: {
+        themes: ["light", "dark", "cupcake", "dim"],
+    },
 }

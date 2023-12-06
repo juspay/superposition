@@ -1,7 +1,6 @@
 use crate::pages::ExperimentList::types::DefaultConfig;
 use leptos::*;
 use serde_json::{Map, Value};
-use std::collections::HashSet;
 
 #[component]
 pub fn OverrideForm(
@@ -49,13 +48,15 @@ pub fn OverrideForm(
                                     <div class="flex gap-x-6 items-center">
                                         <input
                                             type="text"
-                                            placeholder="Type here"
+                                            placeholder="Enter override here"
+                                            name="override"
                                             value=config_value.to_string()
                                             class="input input-bordered w-full bg-white text-gray-700 shadow-md"
                                         />
                                         <button
                                             class="btn btn-error btn-circle"
-                                            on:click=move |_| {
+                                            on:click=move |ev| {
+                                                ev.prevent_default();
                                                 set_overrides
                                                     .update(|value| {
                                                         value.remove(&config_key);

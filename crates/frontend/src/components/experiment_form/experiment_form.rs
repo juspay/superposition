@@ -4,11 +4,10 @@ use crate::components::{
 use crate::pages::ExperimentList::types::{
     DefaultConfig, Dimension, Variant, VariantType,
 };
-use crate::types::InputVector;
-use leptos::html::Form;
 use leptos::*;
 use serde_json::Map;
-use web_sys::SubmitEvent;
+use wasm_bindgen::JsCast;
+use web_sys::{SubmitEvent, HtmlInputElement};
 
 #[component]
 pub fn ExperimentForm(
@@ -21,8 +20,7 @@ pub fn ExperimentForm(
     // let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let (experiment_name, set_experiment_name) = create_signal(name);
     let (variants, set_variants) = create_signal(variants);
-    let input_vector: InputVector = vec![(experiment_name, set_experiment_name)];
-    let (iv_rs, iv_ws) = create_signal(input_vector);
+    // let input_vector: InputVector = vec![(experiment_name, set_experiment_name)];
     let on_submit = move |ev: SubmitEvent| {
         ev.prevent_default();
         let document = document();
@@ -30,14 +28,13 @@ pub fn ExperimentForm(
             .get_element_by_id("expName")
             .expect("expName input not found");
         logging::log!("{:#?}", exp_name.get_attribute_names());
-        let variant_ids = document.get_elements_by_tag_name("variantId");
-        for i in 0..variant_ids.length() {
-            logging::log!("{:#?}", variant_ids.item(i));
-        }
-        let override_vec = document.get_elements_by_tag_name("override");
-        for i in 0..override_vec.length() {
-            logging::log!("{:#?}", override_vec.item(i));
-        }
+        logging::log!("{:#?}", exp_name.get_attribute("value").unwrap());
+        let variant_ids = document.get_elements_by_name("variantId");
+        logging::log!("{:#?}", variant_ids.length());
+        logging::log!("{:#?}", variant_ids.item(0).expect("missing input").dyn_ref::<HtmlInputElement>().unwrap().value());
+        let override_vec = document.get_elements_by_name("override");
+        logging::log!("{:#?}", override_vec.length());
+        logging::log!("{:#?}", override_vec.item(0).expect("missing override input").dyn_ref::<HtmlInputElement>().unwrap().value());
     };
 
     view! {
@@ -77,7 +74,7 @@ pub fn ExperimentForm(
                                     <span class="label-text">Id</span>
                                 </label>
                                 <input
-                                    name="variantId[]"
+                                    name="variantId"
                                     value=move || variant_rs.get().id
                                     type="text"
                                     placeholder="Type a unique name here"
