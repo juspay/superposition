@@ -1,110 +1,54 @@
 use crate::pages::ExperimentList::types::Dimension;
 use leptos::*;
+use std::cmp;
 use std::collections::HashSet;
+use wasm_bindgen::JsCast;
+use web_sys::{HtmlInputElement, HtmlSelectElement};
+use serde_json::json;
 
 #[component]
 pub fn ContextForm(
     dimensions: Vec<Dimension>,
     context: Vec<(String, String, String)>,
-) -> impl IntoView {
+) -> impl IntoView
+{
     let (context, set_context) = create_signal(context);
     let (used_dimensions, set_used_dimensions) = create_signal(HashSet::new());
     let total_dimensions = dimensions.len();
+    let condition_context =
+        use_context::<RwSignal<Vec<(String, String, String, String)>>>();
 
-    // please suggest a better way to write this
     let last_idx = create_memo(move |_| {
         let len = context.get().len();
-        if len == 0 {
-            0
-        } else {
-            len - 1
+        cmp::max(0, len - 1)
+    });
+
+    create_effect(move |_| {
+        let values = context
+            .get()
+            .clone()
+            .into_iter()
+            .enumerate()
+            .map(|(idx, (dimension, operator, value))| {
+                (idx.to_string(), dimension.to_string(), operator.to_string(), value.to_string())
+            })
+            .collect::<Vec<(String, String, String, String)>>();
+        if let Some(c_context) = condition_context {
+            c_context.set(values.clone());
         }
     });
 
     view! {
         <div class="form-control w-full ">
-            <label class="label">
-                <span class="label-text font-semibold text-lg">Context</span>
-            </label>
-            <div class="p-4">
-                <For
-                    each=move || {
-                        context
-                            .get()
-                            .into_iter()
-                            .enumerate()
-                            .collect::<Vec<(usize, (String, String, String))>>()
-                    }
-                    key=|(idx, (dimension, _, _))| format!("{}-{}", dimension, idx)
-                    children=move |(idx, (dimension, operator, value))| {
-                        let dimension_label = dimension.to_string();
-                        let dimension_name = dimension.to_string();
-                        view! {
-                            <div class="flex gap-x-6">
-                                <div class="form-control w-20">
-                                    <label class="label font-medium font-mono text-sm">
-                                        <span class="label-text">Operator</span>
-                                    </label>
-                                    <select class="select select-bordered w-full bg-black text-white text-sm rounded-lg h-10 px-4 appearance-none leading-tight focus:outline-none focus:shadow-outline">
-                                        <option disabled selected>
-                                            Pick one
-                                        </option>
-                                        <option value="==">==</option>
-                                        <option value="!=">!=</option>
-                                        <option value="!=">IN</option>
-                                    </select>
-
-                                </div>
-                                <div class="form-control">
-                                    <label class="label capitalize font-mono text-sm">
-                                        <span class="label-text">{dimension_label}</span>
-                                    </label>
-                                    <div class="flex gap-x-6 items-center">
-                                        <input
-                                            type="text"
-                                            placeholder="Type here"
-                                            class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                                        />
-                                        <button
-                                            class="btn btn-error btn-circle"
-                                            on:click=move |_| {
-                                                set_context
-                                                    .update(|value| {
-                                                        value.remove(idx);
-                                                    });
-                                                set_used_dimensions
-                                                    .update(|value| {
-                                                        value.remove(&dimension_name);
-                                                    });
-                                            }
-                                        >
-
-                                            <i class="ri-delete-bin-2-line"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {move || {
-                                if last_idx.get() != idx {
-                                    view! {
-                                        <div class="my-3 ml-5 ml-6 ml-7">
-                                            <span class="font-mono text-xs">"&&"</span>
-                                        </div>
-                                    }
-                                        .into_view()
-                                } else {
-                                    view! {}.into_view()
-                                }
-                            }}
-                        }
-                    }
-                />
-
-                <div class="mt-2">
-                    <div class="dropdown">
-                        <label tabindex="0" class="btn btn-circle btn-info text-white btn-sm m-1">
-                            <i class="ri-add-line font-bold text-2xl"></i>
+            <div class="flex gap-4 justify-between">
+                <label class="label">
+                    <span class="label-text font-semibold text-base">Context</span>
+                </label>
+                <div>
+                    <div class="dropdown dropdown-left">
+                        <label tabindex="0" class="btn btn-outline btn-sm text-xs m-1">
+                            <i class="ri-add-line"></i>
+                            Add Dimension
                         </label>
                         <ul
                             tabindex="0"
@@ -129,6 +73,7 @@ pub fn ContextForm(
                                         <li on:click=move |_| {
                                             set_context
                                                 .update(|value| {
+                                                    leptos::logging::log!("{:?}", value);
                                                     value
                                                         .push((
                                                             dimension_name.to_string(),
@@ -151,6 +96,97 @@ pub fn ContextForm(
                         </ul>
                     </div>
                 </div>
+            </div>
+            <div class="p-4">
+                <For
+                    each=move || {
+                        context
+                            .get()
+                            .into_iter()
+                            .enumerate()
+                            .collect::<Vec<(usize, (String, String, String))>>()
+                    }
+                    key=|(idx, (dimension, _, _))| format!("{}-{}", dimension, idx)
+                    children=move |(idx, (dimension, operator, value))| {
+                        let dimension_label = dimension.to_string();
+                        let dimension_name = dimension.to_string();
+                        view! {
+                            <div class="flex gap-x-6">
+                                <div class="form-control w-20">
+                                    <label class="label font-medium font-mono text-sm">
+                                        <span class="label-text">Operator</span>
+                                    </label>
+                                    <select
+                                        bind:value=operator
+                                        on:input=move |event| {
+                                            let input_value = event_target_value(&event);
+                                            set_context.update(|curr_context| {
+                                                // setting operator
+                                                curr_context[idx].1 = input_value;
+                                            });
+                                        }
+                                        class="select select-bordered w-full text-sm rounded-lg h-10 px-4 appearance-none leading-tight focus:outline-none focus:shadow-outline"
+                                    >
+                                        <option disabled selected>
+                                            Pick one
+                                        </option>
+                                        <option value="==">==</option>
+                                        <option value="!=">!=</option>
+                                        <option value="IN">IN</option>
+                                    </select>
+
+                                </div>
+                                <div class="form-control">
+                                    <label class="label capitalize font-mono text-sm">
+                                        <span class="label-text">{dimension_label}</span>
+                                    </label>
+                                    <div class="flex gap-x-6 items-center">
+                                        <input
+                                            bind:value=value
+                                            on:input=move |event| {
+                                                let input_value = event_target_value(&event);
+                                                set_context.update(|curr_context| {
+                                                    curr_context[idx].2 = input_value;
+                                                });
+                                            }
+                                            type="text"
+                                            placeholder="Type here"
+                                            class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                                        />
+                                        <button
+                                            class="btn btn-ghost btn-circle btn-sm"
+                                            on:click=move |_| {
+                                                set_context
+                                                    .update(|value| {
+                                                        value.remove(idx);
+                                                    });
+                                                set_used_dimensions
+                                                    .update(|value| {
+                                                        value.remove(&dimension_name);
+                                                    });
+                                            }
+                                        >
+                                            <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {move || {
+                                if last_idx.get() != idx {
+                                    view! {
+                                        <div class="my-3 ml-5 ml-6 ml-7">
+                                            <span class="font-mono text-xs">"&&"</span>
+                                        </div>
+                                    }
+                                        .into_view()
+                                } else {
+                                    view! {}.into_view()
+                                }
+                            }}
+                        }
+                    }
+                />
             </div>
         </div>
     }
