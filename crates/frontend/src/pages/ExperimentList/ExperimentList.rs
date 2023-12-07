@@ -203,8 +203,8 @@ pub fn ExperimentList() -> impl IntoView {
                     let def_conf = default_config.get().unwrap_or(vec![]);
                     view! {
                         <dialog id="create_exp_modal" class="modal">
-                            <div class="modal-box">
-                                <h3 class="font-bold text-lg">Create an Experiment</h3>
+                            <div class="modal-box w-12/12 max-w-5xl">
+                                <h3 class="font-bold text-lg">Create Experiment</h3>
                                 <div class="modal-action flex flex-col">
                                     <ExperimentForm
                                         name="".to_string()

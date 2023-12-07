@@ -12,7 +12,7 @@ use leptos::ev::SubmitEvent;
 use leptos::svg::view;
 use leptos::*;
 use leptos_router::use_query_map;
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 
 pub async fn fetch_config(tenant: String) -> Result<Config, String> {
     let client = reqwest::Client::new();
@@ -27,32 +27,7 @@ pub async fn fetch_config(tenant: String) -> Result<Config, String> {
     }
 }
 
-// pub async fn create_context(
-//     tenant: String,
-//     key: String,
-//     value: String,
-//     key_type: String,
-//     pattern: String,
-// ) -> Result<String, String> {
-//     let client = reqwest::Client::new();
-//     let host = "http://localhost:8080";
-//     let url = format!("{host}/context");
-//     let mut req_body: HashMap<&str, Value> = HashMap::new();
-//     let mut schema: Map<String, Value> = Map::new();
-//     schema.insert("type".to_string(), Value::String(key_type));
-//     schema.insert("pattern".to_string(), Value::String(pattern));
-//     req_body.insert("value", Value::String(value));
-//     req_body.insert("schema", Value::Object(schema));
-//     let response = client
-//         .put(url)
-//         .header("x-tenant", tenant)
-//         .header("Authorization", "Bearer 12345678")
-//         .json(&req_body)
-//         .send()
-//         .await
-//         .map_err(|e| e.to_string())?;
-//     response.text().await.map_err(|e| e.to_string())
-// }
+
 
 pub async fn fetch_dimensions(tenant: String) -> Result<Vec<Dimension>, String> {
     let client = reqwest::Client::new();
@@ -82,8 +57,6 @@ fn ContextModalForm() -> impl IntoView {
     let dimensions =
         create_blocking_resource(|| {}, move |_| fetch_dimensions(tenant.clone()));
 
-    let context = use_context::<RwSignal<Vec<(String, String, String)>>>();
-
     view! {
         <div>
             <Suspense fallback=move || {
@@ -99,7 +72,7 @@ fn ContextModalForm() -> impl IntoView {
                                         <div>
                                             <ContextForm
                                                 dimensions=dimension.clone()
-                                                context=context.unwrap().get().clone()
+                                                context=vec![]
                                             />
                                         </div>
                                     }
@@ -136,6 +109,69 @@ pub async fn fetch_default_config(tenant: String) -> Result<Vec<DefaultConfig>, 
     }
 }
 
+pub fn construct_request_payload(
+    overrides: Map<String, Value>,
+    conditions: Vec<(String, String, String)>,
+) -> Value {
+    // Construct the override section
+    let override_section: Map<String, Value> = overrides;
+
+    // Construct the context section
+    let context_section = if conditions.len() == 1 {
+        // Single condition
+        let (variable, operator, value) = &conditions[0];
+        json!({
+            operator: [
+                { "var": variable },
+                value
+            ]
+        })
+    } else {
+        // Multiple conditions inside an "and"
+        let and_conditions: Vec<Value> = conditions
+            .into_iter()
+            .map(|(variable, operator, value)| {
+                json!({
+                    operator: [
+                        { "var": variable },
+                        value
+                    ]
+                })
+            })
+            .collect();
+
+        json!({ "and": and_conditions })
+    };
+
+    // Construct the entire request payload
+    let request_payload = json!({
+        "override": override_section,
+        "context": context_section
+    });
+
+    request_payload
+}
+
+pub async fn create_context(
+    tenant: String,
+    overrides: Map<String, Value>,
+    conditions: Vec<(String, String, String)>,
+) -> Result<String, String> {
+    let client = reqwest::Client::new();
+    let host = "http://localhost:8080";
+    let url = format!("{host}/context");
+    let request_payload = construct_request_payload(overrides, conditions);
+    let response = client
+        .put(url)
+        .header("x-tenant", tenant)
+        .header("Authorization", "Bearer 12345678")
+        .json(&request_payload)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    response.text().await.map_err(|e| e.to_string())
+}
+
 #[component]
 fn OverrideModalForm() -> impl IntoView {
     let query = use_query_map();
@@ -151,8 +187,6 @@ fn OverrideModalForm() -> impl IntoView {
     let default_config =
         create_blocking_resource(|| {}, move |_| fetch_default_config(tenant.clone()));
 
-    let override_data = use_context::<RwSignal<Map<String, Value>>>();
-
     view! {
         <div>
             <Suspense fallback=move || {
@@ -167,7 +201,7 @@ fn OverrideModalForm() -> impl IntoView {
                                     view! {
                                         <div>
                                             <OverrideForm
-                                                overrides=override_data.unwrap().get().clone()
+                                                overrides=Map::new()
                                                 default_config=config.clone()
                                             />
                                         </div>
@@ -258,43 +292,118 @@ fn format_condition(condition: &Value) -> String {
     "Invalid Condition".to_string()
 }
 
-// Vec[Condition] ->  Update it.
-// Vec[Override] -> Update it.
-
 #[component]
 fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
+    let context_data: Vec<(String, String, String, String)> = vec![];
+    let condition_ctx: RwSignal<Vec<(String, String, String, String)>> =
+        create_rw_signal(context_data);
+
+    provide_context(condition_ctx);
+
+    let ovrride_signal: RwSignal<(String, Map<String, Value>)> =
+        create_rw_signal(("str".to_string(), Map::new()));
+
+    provide_context(ovrride_signal);
+
+    let (ctx_form, set_ctx_form) = create_signal(vec![(
+        "dimension1".to_string(),
+        "operator1".to_string(),
+        "value1".to_string(),
+        "string".to_string(),
+    )]);
+
+    let (ovrride_form, set_ovrride_form) =
+        create_signal(("dummy".to_string(), Map::new()));
+
+    let on_submit = {
+        move |ev: SubmitEvent| {
+            let handle_submit_clone = handle_submit.clone();
+            ev.prevent_default();
+            set_ctx_form.set(condition_ctx.get());
+            let ovrd_values = ovrride_signal.get().1;
+            // set_ovrride_form.set(ovrride_signal.get())
+            set_ovrride_form.set((
+                "Override Name".to_string(),
+                ovrd_values
+                    .into_iter()
+                    .filter_map(|(key, value)| {
+                        let value_clone = value.clone();
+                        if let Value::String(val) = value {
+                            if !val.is_empty() {
+                                Some((key, value_clone))
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<Map<String, Value>>(),
+            ));
+
+            let context_tuples: Vec<(String, String, String)> = ctx_form
+                .get()
+                .iter()
+                .map(|(_dim, dim, op, val)| (dim.clone(), op.clone(), val.clone()))
+                .collect();
+
+            spawn_local({
+                let handle_submit = handle_submit_clone;
+                async move {
+                    let result = create_context(
+                        "mjos".to_string(),
+                        ovrride_form.get().1,
+                        context_tuples,
+                    )
+                    .await;
+
+                    match result {
+                        Ok(_) => {
+                            handle_submit();
+                        }
+                        Err(_) => {
+                            // Handle error
+                            // We can consider logging or displaying the error
+                        }
+                    }
+                }
+            });
+        }
+    };
+
     view! {
-        <div class="p-6 text-gray-600 space-y-6">
-            <button class="btn btn-outline btn-primary" onclick="my_modal_5.showModal()">
-                Create Context Overrides
-                <i class="ri-edit-2-line ml-2"></i>
-            </button>
-            //
-            <dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
-                <div class="modal-box relative bg-white space-y-6 w-11/12 max-w-3xl">
-                    <form method="dialog" class="flex justify-end">
-                        <button>
-                            <i class="ri-close-fill"></i>
-                        </button>
-                    </form>
-                    // on:submit=on_submit
-                    <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
-                        <ContextModalForm/>
-                        <OverrideModalForm/>
-                        <div class="form-control mt-6">
-                            <button
-                                type="submit"
-                                class="btn btn-primary shadow-md font-mono"
-                                onclick="my_modal_5.close()"
-                            >
-                                Submit
+            <div class="p-6 text-gray-600 space-y-6">
+                <button class="btn btn-outline btn-primary" onclick="my_modal_5.showModal()">
+                    Create Context Overrides
+                    <i class="ri-edit-2-line ml-2"></i>
+                </button>
+                //
+                <dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
+                    <div class="modal-box relative bg-white space-y-6 w-11/12 max-w-3xl">
+                        <form method="dialog" class="flex justify-end">
+                            <button>
+                                <i class="ri-close-fill"></i>
                             </button>
-                        </div>
-                    </form>
-                </div>
-            </dialog>
-        </div>
-    }
+                        </form>
+                        // on:submit=on_submit
+                        <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono" on:submit=on_submit>
+                            <ContextModalForm/>
+                            <OverrideModalForm/>
+                            <div class="form-control mt-6">
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary shadow-md font-mono"
+                                    onclick="my_modal_5.close()"
+                                >
+                                    Submit
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </dialog>
+            </div>
+        }
 }
 
 fn parse_conditions(input: String) -> Vec<(String, String, String)> {
