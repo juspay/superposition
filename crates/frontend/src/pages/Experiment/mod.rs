@@ -69,7 +69,7 @@ async fn get_experiment(exp_id: &String, tenant: &String) -> Result<Experiment, 
         .await
     {
         Ok(experiment) => {
-            // debug!("experiment response {:?}", experiment);
+            debug!("experiment response {:?}", experiment);
             Ok(experiment
                 .json::<Experiment>()
                 .await
@@ -89,7 +89,7 @@ async fn ramp_experiment(exp_id: &String, percent: u8) -> Result<Experiment, Str
         .await
     {
         Ok(experiment) => {
-            // debug!("experiment response {:?}", experiment);
+            debug!("experiment response {:?}", experiment);
             Ok(experiment
                 .json::<Experiment>()
                 .await
@@ -417,14 +417,13 @@ fn add_dialogs(
             <dialog id="edit_exp_modal" class="modal">
                 <div class="modal-box">
                     <h3 class="font-bold text-lg">Edit Experiment</h3>
-                    <div class="modal-action">
-                        // <ExperimentForm
-                        //     name=experiment_rs.get().name
-                        //     context=vec![]
-                        //     variants=vec![]
-                        //     dimensions=dimensions.get().unwrap_or(vec![])
-                        //     default_config=default_config.get().unwrap_or(vec![])
-                        // />
+                    // <ExperimentForm
+                    // name=experiment_rs.get().name
+                    <div class="modal-action">// context=vec![]
+                    // variants=vec![]
+                    // dimensions=dimensions.get().unwrap_or(vec![])
+                    // default_config=default_config.get().unwrap_or(vec![])
+                    // />
                     </div>
                 </div>
             </dialog>

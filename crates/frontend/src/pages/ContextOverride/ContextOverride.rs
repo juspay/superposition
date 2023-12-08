@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::api::{fetch_default_config, fetch_dimensions};
+use crate::api::{fetch_dimensions, fetch_default_config};
 use crate::components::context_form::context_form::ContextForm;
 use crate::components::override_form::override_form::OverrideForm;
 use crate::components::table::types::TableSettings;
@@ -85,7 +85,8 @@ where
                                     }
                                 }
                             })
-                }}
+                    }
+                }
 
             </Suspense>
         </div>
@@ -468,12 +469,10 @@ pub fn ContextOverride() -> impl IntoView {
                                             redirect_prefix: None,
                                         };
                                         let mut context_views = Vec::new();
-                                        // let mut new_ctx: Vec<(String, String, String)> = vec![];
                                         let mut override_signal = Map::new();
                                         for context in config.contexts.iter() {
                                             let condition = extract_and_format(&context.condition);
                                             let ctx_values = parse_conditions(condition.clone());
-                                            // new_ctx.extend(ctx_values.clone());
                                             for key in context.override_with_keys.iter() {
                                                 let mut map = Map::new();
                                                 let ovr = config.overrides.get(key).unwrap();
@@ -495,58 +494,110 @@ pub fn ContextOverride() -> impl IntoView {
                                             context_views
                                                 .push(
                                                     view! {
+                                                        // let mut new_ctx: Vec<(String, String, String)> = vec![];
+                                                        // new_ctx.extend(ctx_values.clone());
+
                                                         <div class="rounded-lg shadow-md bg-white dark:bg-gray-800 p-6 shadow-md">
 
-                                                                <div class="flex justify-between">
-                                                                    <div class="flex items-center space-x-4">
+                                                            <div class="flex justify-between">
+                                                                <div class="flex items-center space-x-4">
 
-                                                                        <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white shadow-md font-mono">
-                                                                            "Condition"
-                                                                        </h2>
-                                                                        <i class="ri-arrow-right-fill ri-xl text-blue-500"></i>
-                                                                        {ctx_values.into_iter().map(|(dim,op,val)| view!{
-                                                                            <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs ring-1 ring-inset ring-purple-700/10 shadow-md gap-x-2">
-                                                                            <span class="font-mono font-medium context_condition text-gray-500">{dim}</span>
-                                                                            <span class="font-mono font-medium text-gray-650 context_condition ">{op}</span>
-                                                                            <span class="font-mono font-semibold context_condition">{val}</span>
-                                                                        </span>
-
-                                                                        }).collect::<Vec<_>>()}
-                                                                    </div>
-                                                                    <button class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                                                                    <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white shadow-md font-mono">
+                                                                        "Condition"
+                                                                    </h2>
+                                                                    <i class="ri-arrow-right-fill ri-xl text-blue-500"></i>
+                                                                    {ctx_values
+                                                                        .into_iter()
+                                                                        .map(|(dim, op, val)| {
+                                                                            view! {
+                                                                                <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs ring-1 ring-inset ring-purple-700/10 shadow-md gap-x-2">
+                                                                                    <span class="font-mono font-medium context_condition text-gray-500">
+                                                                                        {dim}
+                                                                                    </span>
+                                                                                    <span class="font-mono font-medium text-gray-650 context_condition ">
+                                                                                        {op}
+                                                                                    </span>
+                                                                                    <span class="font-mono font-semibold context_condition">
+                                                                                        {val}
+                                                                                    </span>
+                                                                                </span>
+                                                                            }
+                                                                        })
+                                                                        .collect::<Vec<_>>()}
+                                                                </div>
+                                                                <button class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                                                                     <i class="ri-edit-line text-blue-500"></i>
                                                                 </button>
-                                                                </div>
-                                                                <div class="space-x-4">
-                                                                    <Table
-                                                                        table_style="font-mono".to_string()
-                                                                        rows=contexts.clone()
-                                                                        key_column="id".to_string()
-                                                                        columns=table_columns.get()
-                                                                        settings=settings.clone()
-                                                                    />
-                                                                </div>
-
+                                                            </div>
+                                                            <div class="space-x-4">
+                                                                <Table
+                                                                    table_style="font-mono".to_string()
+                                                                    rows=contexts.clone()
+                                                                    key_column="id".to_string()
+                                                                    columns=table_columns.get()
+                                                                    settings=settings.clone()
+                                                                />
+                                                            </div>
 
                                                         </div>
                                                     },
                                                 );
                                             contexts.clear();
                                         }
-                                        // ctx.set(new_ctx);
                                         ovr_data.set(override_signal);
                                         context_views
                                     }
                                     Some(Err(error)) => {
                                         vec![
                                             view! {
+                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
+                                                // new_ctx.extend(ctx_values.clone());
+
+                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
+                                                // new_ctx.extend(ctx_values.clone());
+
+                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
+                                                // new_ctx.extend(ctx_values.clone());
+
+                                                // ctx.set(new_ctx);
+
                                                 <div class="text-red-500">
                                                     {"Failed to fetch config data: "} {error}
                                                 </div>
                                             },
                                         ]
                                     }
-                                    None => vec![view! { <div>Loading....</div> }],
+                                    None => {
+                                        vec![
+                                            view! {
+                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
+                                                // new_ctx.extend(ctx_values.clone());
+
+                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
+                                                // new_ctx.extend(ctx_values.clone());
+
+                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
+                                                // new_ctx.extend(ctx_values.clone());
+
+                                                // ctx.set(new_ctx);
+
+                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
+                                                // new_ctx.extend(ctx_values.clone());
+
+                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
+                                                // new_ctx.extend(ctx_values.clone());
+
+                                                // ctx.set(new_ctx);
+
+                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
+                                                // new_ctx.extend(ctx_values.clone());
+
+                                                // ctx.set(new_ctx);
+
+                                                <div>Loading....</div>
+                                            },
+                                        ]
+                                    }
                                 }
                             })
                     }}
