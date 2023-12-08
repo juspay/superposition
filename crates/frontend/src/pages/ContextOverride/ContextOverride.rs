@@ -1,18 +1,17 @@
 // use std::collections::HashMap;
 use std::rc::Rc;
 
+use crate::api::{fetch_dimensions, fetch_default_config};
 use crate::components::context_form::context_form::ContextForm;
 use crate::components::override_form::override_form::OverrideForm;
 use crate::components::table::types::TableSettings;
 use crate::components::table::{table::Table, types::Column};
 use crate::pages::DefaultConfig::types::Config;
-use crate::pages::ExperimentList::types::{DefaultConfig, Dimension};
-use leptos::ev::SubmitEvent;
 // use leptos::spawn_local;
-use leptos::svg::view;
 use leptos::*;
 use leptos_router::use_query_map;
 use serde_json::{json, Map, Value};
+use web_sys::SubmitEvent;
 
 pub async fn fetch_config(tenant: String) -> Result<Config, String> {
     let client = reqwest::Client::new();
@@ -29,18 +28,7 @@ pub async fn fetch_config(tenant: String) -> Result<Config, String> {
 
 
 
-pub async fn fetch_dimensions(tenant: String) -> Result<Vec<Dimension>, String> {
-    let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
-    let url = format!("{host}/dimension");
-    match client.get(url).header("x-tenant", tenant).send().await {
-        Ok(response) => {
-            let dimensions = response.json().await.map_err(|e| e.to_string())?;
-            Ok(dimensions)
-        }
-        Err(e) => Err(e.to_string()),
-    }
-}
+
 
 #[component]
 fn ContextModalForm() -> impl IntoView {
@@ -70,10 +58,7 @@ fn ContextModalForm() -> impl IntoView {
                                 Some(Ok(dimension)) => {
                                     view! {
                                         <div>
-                                            <ContextForm
-                                                dimensions=dimension.clone()
-                                                context=vec![]
-                                            />
+                                            <ContextForm dimensions=dimension.clone() context=vec![]/>
                                         </div>
                                     }
                                 }
@@ -96,18 +81,7 @@ fn ContextModalForm() -> impl IntoView {
     }
 }
 
-pub async fn fetch_default_config(tenant: String) -> Result<Vec<DefaultConfig>, String> {
-    let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
-    let url = format!("{host}/default-config");
-    match client.get(url).header("x-tenant", tenant).send().await {
-        Ok(response) => {
-            let default_config = response.json().await.map_err(|e| e.to_string())?;
-            Ok(default_config)
-        }
-        Err(e) => Err(e.to_string()),
-    }
-}
+
 
 pub fn construct_request_payload(
     overrides: Map<String, Value>,
@@ -372,38 +346,41 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     };
 
     view! {
-            <div class="p-6 text-gray-600 space-y-6">
-                <button class="btn btn-outline btn-primary" onclick="my_modal_5.showModal()">
-                    Create Context Overrides
-                    <i class="ri-edit-2-line ml-2"></i>
-                </button>
-                //
-                <dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
-                    <div class="modal-box relative bg-white space-y-6 w-11/12 max-w-3xl">
-                        <form method="dialog" class="flex justify-end">
-                            <button>
-                                <i class="ri-close-fill"></i>
+        <div class="p-6 text-gray-600 space-y-6">
+            <button class="btn btn-outline btn-primary" onclick="my_modal_5.showModal()">
+                Create Context Overrides
+                <i class="ri-edit-2-line ml-2"></i>
+            </button>
+            // 
+            <dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
+                <div class="modal-box relative bg-white space-y-6 w-11/12 max-w-3xl">
+                    <form method="dialog" class="flex justify-end">
+                        <button>
+                            <i class="ri-close-fill"></i>
+                        </button>
+                    </form>
+                    // on:submit=on_submit
+                    <form
+                        class="form-control w-full space-y-4 bg-white text-gray-700 font-mono"
+                        on:submit=on_submit
+                    >
+                        <ContextModalForm/>
+                        <OverrideModalForm/>
+                        <div class="form-control mt-6">
+                            <button
+                                type="submit"
+                                class="btn btn-primary shadow-md font-mono"
+                                onclick="my_modal_5.close()"
+                            >
+                                Submit
                             </button>
-                        </form>
-                        // on:submit=on_submit
-                        <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono" on:submit=on_submit>
-                            <ContextModalForm/>
-                            <OverrideModalForm/>
-                            <div class="form-control mt-6">
-                                <button
-                                    type="submit"
-                                    class="btn btn-primary shadow-md font-mono"
-                                    onclick="my_modal_5.close()"
-                                >
-                                    Submit
-                                </button>
-                            </div>
+                        </div>
 
-                        </form>
-                    </div>
-                </dialog>
-            </div>
-        }
+                    </form>
+                </div>
+            </dialog>
+        </div>
+    }
 }
 
 fn parse_conditions(input: String) -> Vec<(String, String, String)> {
@@ -483,7 +460,7 @@ pub fn ContextOverride() -> impl IntoView {
                                     Some(Ok(config)) => {
                                         let mut contexts: Vec<Map<String, Value>> = Vec::new();
                                         let settings = TableSettings {
-                                            redirect_prefix: None
+                                            redirect_prefix: None,
                                         };
                                         let mut context_views = Vec::new();
                                         let mut new_ctx: Vec<(String, String, String)> = vec![];
@@ -534,7 +511,7 @@ pub fn ContextOverride() -> impl IntoView {
                                                                         rows=contexts.clone()
                                                                         key_column="id".to_string()
                                                                         columns=table_columns.get()
-                                                                        settings= settings.clone()
+                                                                        settings=settings.clone()
                                                                     />
                                                                 </div>
                                                             </div>

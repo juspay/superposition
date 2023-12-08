@@ -18,8 +18,6 @@ pub fn App() -> impl IntoView {
     provide_context(tenant_rs);
     provide_context(tenant_ws);
     view! {
-        // injects a stylesheet into the document <head>
-        // id=leptos means cargo-leptos will hot-reload this stylesheet
         <Stylesheet id="leptos" href="/pkg/style.css"/>
         // <Link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous"/>
         <Link rel="shortcut icon" type_="image/ico" href="/assets/favicon.ico"/>
@@ -50,12 +48,21 @@ pub fn App() -> impl IntoView {
                             view=ExperimentPage
                         />
                         <Route ssr=SsrMode::PartiallyBlocked path="" view=Home/>
-                        <Route ssr=SsrMode::PartiallyBlocked path="/admin/:tenant/default-config" view=DefaultConfig/>
                         <Route
-                        ssr=SsrMode::PartiallyBlocked
-                        path="/admin/:tenant/overrides"
-                        view=ContextOverride
-                    />
+                            ssr=SsrMode::PartiallyBlocked
+                            path="/admin/:tenant/default-config"
+                            view=DefaultConfig
+                        />
+                        <Route
+                            ssr=SsrMode::PartiallyBlocked
+                            path="/admin/:tenant/overrides"
+                            view=ContextOverride
+                        />
+                        <Route
+                            ssr=SsrMode::PartiallyBlocked
+                            path="admin/:tenant/resolve"
+                            view=Home
+                        />
                         <Route path="/*any" view=NotFound/>
 
                     </Routes>

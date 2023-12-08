@@ -283,7 +283,7 @@ pub fn DefaultConfig() -> impl IntoView {
                                 Some(Ok(config)) => {
                                     let mut default_config: Vec<Map<String, Value>> = Vec::new();
                                     let settings = TableSettings {
-                                        redirect_prefix: None
+                                        redirect_prefix: None,
                                     };
                                     for (key, value) in config.default_configs.iter() {
                                         let mut map = Map::new();
@@ -309,7 +309,7 @@ pub fn DefaultConfig() -> impl IntoView {
                                                         rows=default_config
                                                         key_column="id".to_string()
                                                         columns=table_columns.get()
-                                                        settings = settings
+                                                        settings=settings
                                                     />
                                                 </div>
 

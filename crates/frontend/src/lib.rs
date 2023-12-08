@@ -3,6 +3,7 @@ pub mod components;
 pub mod hoc;
 pub mod pages;
 pub mod types;
+mod api;
 use cfg_if::cfg_if;
 
 cfg_if! {
