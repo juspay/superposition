@@ -160,77 +160,77 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>, tenant: ReadSignal<String>) -> imp
     };
 
     view! {
-      <dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
-                <div class="modal-box relative bg-white">
-                    <form method="dialog" class="flex justify-end">
-                        <button>
-                            <i class="ri-close-fill" onclick="my_modal_5.close()"></i>
-                        </button>
-                    </form>
-        <form
-            class="form-control w-full space-y-4 bg-white text-gray-700 font-mono"
-            on:submit=on_submit
-        >
-            <div class="form-control">
-                <label class="label font-mono">
-                    <span class="label-text text-gray-700 font-mono">Dimension</span>
-                </label>
-                <input
-                    type="text"
-                    placeholder="Dimension"
-                    class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                    value=dimension
-                    node_ref=input_element
-                />
-            </div>
-            <div class="form-control">
-                <label class="label font-mono">
-                    <span class="label-text text-gray-700 font-mono">Priority</span>
-                </label>
-                <input
-                    type="Number"
-                    placeholder="Priority"
-                    class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                    value=priority
-                    node_ref=input_element_two
-                />
-            </div>
-            <div class="form-control">
-                <label class="label font-mono">
-                    <span class="label-text text-gray-700 font-mono">Type</span>
-                </label>
-                <input
-                    type="text"
-                    placeholder="Type"
-                    class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                    value=keytype
-                    node_ref=input_element_three
-                />
-            </div>
-            <div class="form-control">
-                <label class="label font-mono">
-                    <span class="label-text text-gray-700 font-mono">Pattern (regex)</span>
-                </label>
-                <input
-                    type="text"
-                    placeholder="Pattern"
-                    class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                    value=pattern
-                    node_ref=input_element_four
-                />
-            </div>
-            <div class="form-control mt-6">
-                <button
-                    type="submit"
-                    class="btn btn-primary shadow-md font-mono"
-                    onclick="my_modal_5.close()"
+        <dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
+            <div class="modal-box relative bg-white">
+                <form method="dialog" class="flex justify-end">
+                    <button>
+                        <i class="ri-close-fill" onclick="my_modal_5.close()"></i>
+                    </button>
+                </form>
+                <form
+                    class="form-control w-full space-y-4 bg-white text-gray-700 font-mono"
+                    on:submit=on_submit
                 >
-                    Submit
-                </button>
+                    <div class="form-control">
+                        <label class="label font-mono">
+                            <span class="label-text text-gray-700 font-mono">Dimension</span>
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="Dimension"
+                            class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                            value=dimension
+                            node_ref=input_element
+                        />
+                    </div>
+                    <div class="form-control">
+                        <label class="label font-mono">
+                            <span class="label-text text-gray-700 font-mono">Priority</span>
+                        </label>
+                        <input
+                            type="Number"
+                            placeholder="Priority"
+                            class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                            value=priority
+                            node_ref=input_element_two
+                        />
+                    </div>
+                    <div class="form-control">
+                        <label class="label font-mono">
+                            <span class="label-text text-gray-700 font-mono">Type</span>
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="Type"
+                            class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                            value=keytype
+                            node_ref=input_element_three
+                        />
+                    </div>
+                    <div class="form-control">
+                        <label class="label font-mono">
+                            <span class="label-text text-gray-700 font-mono">Pattern (regex)</span>
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="Pattern"
+                            class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                            value=pattern
+                            node_ref=input_element_four
+                        />
+                    </div>
+                    <div class="form-control mt-6">
+                        <button
+                            type="submit"
+                            class="btn btn-primary shadow-md font-mono"
+                            onclick="my_modal_5.close()"
+                        >
+                            Submit
+                        </button>
+                    </div>
+                </form>
             </div>
-        </form>
-        </div>
-      </dialog>
+        </dialog>
     }
 }
 
@@ -294,7 +294,10 @@ pub fn Dimensions() -> impl IntoView {
 
                         </div>
                     </div>
-                    <ModalComponent handle_submit=Rc::new(move || dimensions.refetch()) tenant=tenant_rs/>
+                    <ModalComponent
+                        handle_submit=Rc::new(move || dimensions.refetch())
+                        tenant=tenant_rs
+                    />
                 </div>
 
                 <div class="card rounded-xl w-full bg-base-100 shadow">
@@ -305,7 +308,7 @@ pub fn Dimensions() -> impl IntoView {
                             {move || {
                                 let value = dimensions.get();
                                 let settings = TableSettings {
-                                    redirect_prefix: None
+                                    redirect_prefix: None,
                                 };
                                 match value {
                                     Some(v) => {
@@ -317,7 +320,7 @@ pub fn Dimensions() -> impl IntoView {
                                         view! {
                                             <Table
                                                 table_style="abc".to_string()
-                                                rows= data
+                                                rows=data
                                                 key_column="id".to_string()
                                                 columns=table_columns.get()
                                                 settings=settings

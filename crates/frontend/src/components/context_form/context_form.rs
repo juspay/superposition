@@ -106,6 +106,7 @@ pub fn ContextForm(
                             .enumerate()
                             .collect::<Vec<(usize, (String, String, String))>>()
                     }
+
                     key=|(idx, (dimension, _, _))| format!("{}-{}", dimension, idx)
                     children=move |(idx, (dimension, operator, value))| {
                         let dimension_label = dimension.to_string();
@@ -120,11 +121,13 @@ pub fn ContextForm(
                                         bind:value=operator
                                         on:input=move |event| {
                                             let input_value = event_target_value(&event);
-                                            set_context.update(|curr_context| {
-                                                // setting operator
-                                                curr_context[idx].1 = input_value;
-                                            });
+                                            set_context
+                                                .update(|curr_context| {
+                                                    curr_context[idx].1 = input_value;
+                                                });
                                         }
+
+                                        name="context-dimension-operator"
                                         class="select select-bordered w-full text-sm rounded-lg h-10 px-4 appearance-none leading-tight focus:outline-none focus:shadow-outline"
                                     >
                                         <option disabled selected>
@@ -138,17 +141,22 @@ pub fn ContextForm(
                                 </div>
                                 <div class="form-control">
                                     <label class="label capitalize font-mono text-sm">
-                                        <span class="label-text">{dimension_label}</span>
+                                        <span name="context-dimension-name" class="label-text">
+                                            {dimension_label}
+                                        </span>
                                     </label>
                                     <div class="flex gap-x-6 items-center">
                                         <input
                                             bind:value=value
                                             on:input=move |event| {
                                                 let input_value = event_target_value(&event);
-                                                set_context.update(|curr_context| {
-                                                    curr_context[idx].2 = input_value;
-                                                });
+                                                set_context
+                                                    .update(|curr_context| {
+                                                        curr_context[idx].2 = input_value;
+                                                    });
                                             }
+
+                                            name="context-dimension-value"
                                             type="text"
                                             placeholder="Type here"
                                             class="input input-bordered w-full bg-white text-gray-700 shadow-md"
@@ -166,6 +174,7 @@ pub fn ContextForm(
                                                     });
                                             }
                                         >
+
                                             <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
                                         </button>
                                     </div>
@@ -187,6 +196,7 @@ pub fn ContextForm(
                         }
                     }
                 />
+
             </div>
         </div>
     }
