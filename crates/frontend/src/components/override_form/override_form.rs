@@ -57,11 +57,7 @@ where
                                 tabindex="0"
                                 class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
                             >
-                                <Show
-                                    when = move || !has_default_config
-                                >
-                                    No default config
-                                </Show>
+                                <Show when=move || !has_default_config>No default config</Show>
                                 <For
                                     each=move || {
                                         default_config
@@ -81,11 +77,7 @@ where
                                             <li on:click=move |_| {
                                                 set_overrides
                                                     .update(|value| {
-                                                        value
-                                                            .insert(
-                                                                config_key.to_string(),
-                                                                json!("")
-                                                            );
+                                                        value.insert(config_key.to_string(), json!(""));
                                                     });
                                                 set_used_config_keys
                                                     .update(|value: &mut HashSet<String>| {
@@ -126,24 +118,26 @@ where
                                 <div class="flex items-center gap-4">
                                     <div class="form-control">
                                         <label class="label font-medium font-mono text-sm">
-                                            <span class="label-text">{config_key_label}":"</span>
+                                            <span class="label-text">{config_key_label} ":"</span>
                                         </label>
                                     </div>
                                     <div class="form-control w-2/5">
-                                            <input
-                                                type="text"
-                                                placeholder="Enter override here"
-                                                name="override"
-                                                class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                                                bind:value=config_value.to_string()
-                                                on:input=move |event| {
-                                                    let input_value = event_target_value(&event);
-                                                    // TODO: validations
-                                                    set_overrides.update(|curr_overrides| {
-                                                        curr_overrides.insert(config_key_value.to_string(), json!(input_value));
+                                        <input
+                                            type="text"
+                                            placeholder="Enter override here"
+                                            name="override"
+                                            class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                                            bind:value=config_value.to_string()
+                                            on:input=move |event| {
+                                                let input_value = event_target_value(&event);
+                                                set_overrides
+                                                    .update(|curr_overrides| {
+                                                        curr_overrides
+                                                            .insert(config_key_value.to_string(), json!(input_value));
                                                     });
-                                                }
-                                            />
+                                            }
+                                        />
+
                                     </div>
                                     <div class="w-1/5">
                                         <button
@@ -154,11 +148,13 @@ where
                                                     .update(|value| {
                                                         value.remove(&config_key);
                                                     });
-                                                set_used_config_keys.update(|value| {
-                                                    value.remove(&config_key);
-                                                });
+                                                set_used_config_keys
+                                                    .update(|value| {
+                                                        value.remove(&config_key);
+                                                    });
                                             }
                                         >
+
                                             <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
                                         </button>
                                     </div>
@@ -167,6 +163,7 @@ where
                         }
                     }
                 />
+
             </div>
             <Show
                 when=move || is_standalone

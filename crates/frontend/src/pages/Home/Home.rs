@@ -34,7 +34,8 @@ pub async fn fetch_config(tenant: String) -> Result<Config, String> {
 
 async fn resolve_config(tenant: String, context: String) -> Result<Value, String> {
     let client = reqwest::Client::new();
-    let url = format!("http://localhost:8080/config/resolve?{context}");
+    let url =
+        format!("http://localhost:8080/config/resolve?{context}&show_reasoning=true");
     match client.get(url).header("x-tenant", tenant).send().await {
         Ok(response) => {
             let config = response.json().await.map_err(|e| e.to_string())?;
@@ -110,6 +111,10 @@ fn format_condition(condition: &Value) -> String {
     "Invalid Condition".to_string()
 }
 
+fn gen_name_id(s0: &String, s1: &String, s2: &String) -> String {
+    format!("{s0}::{s1}::{s2}")
+}
+
 #[component]
 pub fn home() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
@@ -127,7 +132,55 @@ pub fn home() -> impl IntoView {
         },
     );
 
-    let gen_name_id = |s1: &String, s2: &String| format!("{s1}::{s2}");
+    let unstrike = |search_field_prefix: &String, config: &Map<String, Value>| {
+        for (dimension, value) in config.into_iter() {
+            let search_field_prefix = if search_field_prefix.is_empty() {
+                dimension
+            } else {
+                &search_field_prefix
+            };
+            let search_field_prefix = gen_name_id(
+                search_field_prefix,
+                dimension,
+                &value.as_str().unwrap().to_string(),
+            );
+            logging::log!("search field prefix {:#?}", search_field_prefix);
+            let config_name_elements = document()
+                .get_elements_by_name(format!("{search_field_prefix}-1").as_str());
+            let config_value_elements = document()
+                .get_elements_by_name(format!("{search_field_prefix}-2").as_str());
+            logging::log!("config_name_elements {:#?}", config_name_elements.length());
+            logging::log!(
+                "config_value_elements {:#?}",
+                config_value_elements.length()
+            );
+            for i in 0..config_name_elements.length() {
+                let item_one = config_name_elements.item(i).expect("missing span");
+                let item_two = config_value_elements.item(i).expect("missing span");
+
+                let (config_name_element, config_value_element) = (
+                    item_one.dyn_ref::<HtmlSpanElement>().unwrap(),
+                    item_two.dyn_ref::<HtmlSpanElement>().unwrap(),
+                );
+                let (name, value) = (
+                    config_name_element
+                        .inner_html()
+                        .replace("<span class=\"text-green-600\">", "")
+                        .replace("<span class=\"text-orange-600\">", "")
+                        .replace("</span>", ""),
+                    config_value_element
+                        .inner_html()
+                        .replace("<span class=\"text-green-600\">", "")
+                        .replace("<span class=\"text-orange-600\">", "")
+                        .replace("</span>", ""),
+                );
+
+                logging::log!("config name after replace {} and value {}", name, value);
+                config_name_element.set_inner_html(format!("<span class=\"text-green-600\">{}</span>", name).as_str());
+                config_value_element.set_inner_html(format!("<span class=\"text-green-600\">{}</span>", value).as_str());
+            }
+        }
+    };
 
     let gen_query_context = |query: Vec<(String, String, String)>| -> String {
         let mut context: Vec<String> = vec![];
@@ -136,7 +189,11 @@ pub fn home() -> impl IntoView {
                 "==" => "=",
                 _ => break, // query params do not support the other operators :  != and IN, do something differently later
             };
-            context.push(format!("{}{op}{}", dimension.to_lowercase(), value.to_lowercase()));
+            context.push(format!(
+                "{}{op}{}",
+                dimension.to_lowercase(),
+                value.to_lowercase()
+            ));
         }
         context.join("&").to_string()
     };
@@ -179,21 +236,23 @@ pub fn home() -> impl IntoView {
             );
             config_name_element.set_inner_html(
                 format!(
-                    "<s>{}</s>",
+                    "<span class=\"text-orange-600\">{}</span>",
                     config_name_element
                         .inner_html()
-                        .replace("<s>", "")
-                        .replace("</s>", "")
+                        .replace("<span class=\"text-green-600\">", "")
+                        .replace("<span class=\"text-orange-600\">", "")
+                        .replace("</span>", "")
                 )
                 .as_str(),
             );
             config_value_element.set_inner_html(
                 format!(
-                    "<s>{}</s>",
+                    "<span class=\"text-orange-600\">{}</span>",
                     config_value_element
                         .inner_html()
-                        .replace("<s>", "")
-                        .replace("</s>", "")
+                        .replace("<span class=\"text-green-600\">", "")
+                        .replace("<span class=\"text-orange-600\">", "")
+                        .replace("</span>", ""),
                 )
                 .as_str(),
             );
@@ -202,42 +261,28 @@ pub fn home() -> impl IntoView {
         // resolve the context and get the config that would apply
         spawn_local(async move {
             let context = gen_query_context(query_vector);
-            let config = match resolve_config(tenant_rs.get(), context).await.unwrap() {
+            let mut config = match resolve_config(tenant_rs.get(), context).await.unwrap()
+            {
                 Value::Object(m) => m,
                 _ => Map::new(),
             };
+            logging::log!("resolved config {:#?}", config);
             // unstrike those that we want to show the user
-            for (dimension, value) in config.into_iter() {
-                let search_field: String =
-                    gen_name_id(&dimension, &value.as_str().unwrap().to_string());
-                logging::log!("gen ID search param {}", search_field);
-                let config_name_elements = document()
-                    .get_elements_by_name(format!("{}-1", &search_field).as_str());
-                let config_value_elements = document()
-                    .get_elements_by_name(format!("{}-2", &search_field).as_str());
-                for i in 0..config_name_elements.length() {
-                    let item_one = config_name_elements.item(i).expect("missing span");
-                    let item_two = config_value_elements.item(i).expect("missing span");
-
-                    let (config_name_element, config_value_element) = (
-                        item_one.dyn_ref::<HtmlSpanElement>().unwrap(),
-                        item_two.dyn_ref::<HtmlSpanElement>().unwrap(),
-                    );
-                    let (name, value) = (
-                        config_name_element
-                            .inner_html()
-                            .replace("<s>", "")
-                            .replace("</s>", ""),
-                        config_value_element
-                            .inner_html()
-                            .replace("<s>", "")
-                            .replace("</s>", ""),
-                    );
-
-                    logging::log!("config name after replace {} and value {}", name, value);
-                    config_name_element.set_inner_html(format!("{}", name).as_str());
-                    config_value_element.set_inner_html(format!("{}", value).as_str());
+            // if metadata field is found, unstrike only that override
+            if let Some(metadata) = config.remove("metadata") {
+                for applied in metadata.as_array().unwrap_or(&vec![]).iter() {
+                    logging::log!("applied config {:#?}", applied);
+                    applied["override"]
+                        .as_array()
+                        .unwrap_or(&vec![])
+                        .iter()
+                        .for_each(|override_id| {
+                            logging::log!("unstrike {:#?}", override_id);
+                            unstrike(&override_id.as_str().unwrap().to_string(), &config)
+                        });
                 }
+            } else {
+                unstrike(&String::from(""), &config);
             }
         });
     };
@@ -257,6 +302,8 @@ pub fn home() -> impl IntoView {
                                         <ContextForm
                                             dimensions=dimension.to_owned().unwrap_or(vec![])
                                             context=vec![]
+                                            is_standalone=true
+                                            handle_change=|_| ()
                                         />
                                         <div class="card-actions justify-end">
                                             <button class="btn btn-primary" on:click=resolve_click>
@@ -279,26 +326,40 @@ pub fn home() -> impl IntoView {
                         match result {
                             Some(Ok(config)) => {
                                 let rows = |k: &String, v: &Value| {
-                                    let key = k.replace("\"", "").trim().to_string();
-                                    let value = format!("{}", v)
-                                        .replace("\"", "")
-                                        .trim()
-                                        .to_string();
-                                    let name_identifier = gen_name_id(&key, &value);
-                                    view! {
-                                        <tr>
-                                            <td>
-                                                <span name={format!("{}-1", &name_identifier)} class="config-name">
-                                                    {key}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span name={format!("{}-2", &name_identifier)} class="config-value">
-                                                    {value}
-                                                </span>
-                                            </td>
-                                        </tr>
+                                    let mut view_vector = vec![];
+                                    println!("{:?}", v);
+                                    let default_iter = vec![(k.clone(), v.clone())];
+                                    for (key, value) in v
+                                        .as_object()
+                                        .unwrap_or(&Map::from_iter(default_iter))
+                                        .iter()
+                                    {
+                                        let key = key.replace("\"", "").trim().to_string();
+                                        let value = format!("{}", value)
+                                            .replace("\"", "")
+                                            .trim()
+                                            .to_string();
+                                        let unique_name = gen_name_id(k, &key, &value);
+                                        view_vector
+                                            .push(
+                                                view! {
+                                                    <tr>
+                                                        <td>
+                                                            <span name=format!("{unique_name}-1") class="config-name">
+                                                                {key}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span name=format!("{unique_name}-2") class="config-value">
+                                                                {value}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                                    .into_view(),
+                                            )
                                     }
+                                    view_vector
                                 };
                                 let contexts_views: Vec<_> = config
                                     .contexts
@@ -308,8 +369,10 @@ pub fn home() -> impl IntoView {
                                         let rows: Vec<_> = context
                                             .override_with_keys
                                             .iter()
-                                            .filter_map(|key| config.overrides.get(key))
-                                            .flat_map(|ovr| ovr.as_object().unwrap().iter())
+                                            .filter_map(|key| {
+                                                let o = config.overrides.get(key);
+                                                if o.is_some() { Some((key, o.unwrap())) } else { None }
+                                            })
                                             .map(|(k, v)| { rows(&k, &v) })
                                             .collect();
                                         view! {

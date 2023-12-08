@@ -8,7 +8,7 @@ use actix_http::header::{HeaderName, HeaderValue};
 use actix_web::{
     error::ErrorBadRequest, get, web::Query, HttpRequest, HttpResponse, Scope,
 };
-use cac_client::eval_cac;
+use cac_client::{eval_cac, eval_cac_with_reasoning};
 use chrono::{DateTime, NaiveDateTime, Timelike, Utc};
 use diesel::{
     dsl::max,
@@ -177,15 +177,28 @@ async fn get_resolved_config(
         })
         .collect();
 
-    let response = HttpResponse::Ok().json(
-        eval_cac(
-            res.default_configs,
-            &cac_client_contexts,
-            &res.overrides,
-            &query_params_map,
+    let response = if let Some(Value::String(_)) = query_params_map.get("show_reasoning")
+    {
+        HttpResponse::Ok().json(
+            eval_cac_with_reasoning(
+                res.default_configs,
+                &cac_client_contexts,
+                &res.overrides,
+                &query_params_map,
+            )
+            .map_err_to_internal_server("cac eval failed", Null)?,
         )
-        .map_err_to_internal_server("cac eval failed", Null)?,
-    );
+    } else {
+        HttpResponse::Ok().json(
+            eval_cac(
+                res.default_configs,
+                &cac_client_contexts,
+                &res.overrides,
+                &query_params_map,
+            )
+            .map_err_to_internal_server("cac eval failed", Null)?,
+        )
+    };
     add_last_modified_header(max_created_at, response)
 }
 
