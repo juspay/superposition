@@ -58,7 +58,6 @@ pub fn ExperimentForm(
                 <ContextForm dimensions=dimensions context=context/>
             </div>
 
-
             <div class="form-control w-full">
                 <div class="flex items-center justify-between gap-4">
                     <label class="label">
@@ -84,80 +83,80 @@ pub fn ExperimentForm(
                                 });
                         }
                     >
+
                         <i class="ri-add-line"></i>
                         Add Variant
                     </button>
                 </div>
-                    <For
-                        each=move || {
-                            variants
-                                .get()
-                                .into_iter()
-                                .enumerate()
-                                .collect::<Vec<(usize, Variant)>>()
-                        }
-                        key=|(idx, variant)| format!("{}-{}", variant.id.to_string(), idx)
-                        children=move |(idx, variant)| {
-                            let config = default_config.clone();
-                            let variant_clone = variant.clone();
-                            view! {
-                                <div class="my-2 p-4 rounded bg-gray-50">
-                                    <div class="flex items-center gap-4">
-                                        <div class="form-control w-1/3">
-                                            <label class="label">
-                                                <span class="label-text">ID</span>
-                                            </label>
-                                            <input
-                                                name="variantId"
-                                                value=move || variant.id.to_string()
-                                                type="text"
-                                                placeholder="Type a unique name here"
-                                                class="input input-bordered w-full max-w-xs"
-                                            />
-                                        </div>
-                                        <div class="form-control w-1/3">
-                                            <label class="label font-medium text-sm">
-                                                <span class="label-text">Type</span>
-                                            </label>
-                                            <select
-                                                name="expType[]"
-                                                value=move || variant.variant_type.to_string()
-                                                on:change=move |ev| {
-                                                    let mut new_variant = variant_clone.clone();
-                                                    new_variant
-                                                        .variant_type = match event_target_value(&ev).as_str() {
-                                                        "CONTROL" => VariantType::CONTROL,
-                                                        _ => VariantType::EXPERIMENTAL,
-                                                    };
-                                                    set_variants.update(|value| {
-                                                        value[idx] = new_variant;
-                                                    })
-                                                }
+                <For
+                    each=move || {
+                        variants.get().into_iter().enumerate().collect::<Vec<(usize, Variant)>>()
+                    }
 
-                                                class="select select-bordered"
-                                            >
-                                                <option disabled selected>
-                                                    Pick one
-                                                </option>
-                                                <option value=VariantType::CONTROL
-                                                    .to_string()>{VariantType::CONTROL.to_string()}</option>
-                                                <option value=VariantType::EXPERIMENTAL
-                                                    .to_string()>
-                                                    {VariantType::EXPERIMENTAL.to_string()}
-                                                </option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="mt-2">
-                                        <OverrideForm
-                                            overrides=variant.overrides
-                                            default_config=config
+                    key=|(idx, variant)| format!("{}-{}", variant.id.to_string(), idx)
+                    children=move |(idx, variant)| {
+                        let config = default_config.clone();
+                        let variant_clone = variant.clone();
+                        view! {
+                            <div class="my-2 p-4 rounded bg-gray-50">
+                                <div class="flex items-center gap-4">
+                                    <div class="form-control w-1/3">
+                                        <label class="label">
+                                            <span class="label-text">ID</span>
+                                        </label>
+                                        <input
+                                            name="variantId"
+                                            value=move || variant.id.to_string()
+                                            type="text"
+                                            placeholder="Type a unique name here"
+                                            class="input input-bordered w-full max-w-xs"
                                         />
                                     </div>
+                                    <div class="form-control w-1/3">
+                                        <label class="label font-medium text-sm">
+                                            <span class="label-text">Type</span>
+                                        </label>
+                                        <select
+                                            name="expType[]"
+                                            value=move || variant.variant_type.to_string()
+                                            on:change=move |ev| {
+                                                let mut new_variant = variant_clone.clone();
+                                                new_variant
+                                                    .variant_type = match event_target_value(&ev).as_str() {
+                                                    "CONTROL" => VariantType::CONTROL,
+                                                    _ => VariantType::EXPERIMENTAL,
+                                                };
+                                                set_variants
+                                                    .update(|value| {
+                                                        value[idx] = new_variant;
+                                                    })
+                                            }
+
+                                            class="select select-bordered"
+                                        >
+                                            <option disabled selected>
+                                                Pick one
+                                            </option>
+                                            <option value=VariantType::CONTROL
+                                                .to_string()>{VariantType::CONTROL.to_string()}</option>
+                                            <option value=VariantType::EXPERIMENTAL
+                                                .to_string()>
+                                                {VariantType::EXPERIMENTAL.to_string()}
+                                            </option>
+                                        </select>
+                                    </div>
                                 </div>
-                            }
+                                <div class="mt-2">
+                                    <OverrideForm
+                                        overrides=variant.overrides
+                                        default_config=config
+                                    />
+                                </div>
+                            </div>
                         }
-                    />
+                    }
+                />
+
             </div>
             <div class="modal-action">
                 <form method="dialog">

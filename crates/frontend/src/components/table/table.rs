@@ -89,7 +89,10 @@ pub fn Table(
                                             let value: String = generate_table_row_str(
                                                 row.get(cname).unwrap_or(&Value::String("".to_string())),
                                             );
-                                            view! { <td class=table_style.to_string()>{(column.formatter)(&value, &row)}</td> }
+                                            view! {
+                                                <td class=table_style
+                                                    .to_string()>{(column.formatter)(&value, &row)}</td>
+                                            }
                                         })
                                         .collect_view()}
 
