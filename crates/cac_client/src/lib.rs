@@ -211,3 +211,4 @@ pub static CLIENT_FACTORY: Lazy<ClientFactory> =
     Lazy::new(|| ClientFactory(RwLock::new(HashMap::new())));
 
 pub use eval::eval_cac;
+pub use eval::eval_cac_with_reasoning;

@@ -54,3 +54,43 @@ pub fn eval_cac(
     let overriden_config = default_config;
     Ok(overriden_config)
 }
+
+pub fn eval_cac_with_reasoning(
+    mut default_config: Map<String, Value>,
+    contexts: &Vec<Context>,
+    overrides: &Map<String, Value>,
+    query_data: &Map<String, Value>,
+) -> Result<Map<String, Value>, String> {
+    let mut required_overrides: Value = json!({});
+    let mut reasoning: Vec<Value> = vec![];
+
+    for context in contexts.iter() {
+        if let Ok(Value::Bool(true)) =
+            jsonlogic::apply(&context.condition, &json!(query_data))
+        {
+            for override_key in &context.override_with_keys {
+                if let Some(overriden_value) = overrides.get(override_key) {
+                    json_patch::merge(&mut required_overrides, overriden_value);
+                    reasoning.push(json!({
+                        "context": context.condition,
+                        "override": context.override_with_keys
+                    }));
+                }
+            }
+        }
+    }
+
+    let applied_overrides: Map<String, Value> =
+        serde_json::from_value(required_overrides).map_err_to_string()?;
+
+    applied_overrides.into_iter().for_each(|(key, val)| {
+        if let Some(og_val) = default_config.get_mut(&key) {
+            json_patch::merge(og_val, &val)
+        } else {
+            log::error!("CAC: found non-default_config key: {key} in overrides");
+        }
+    });
+    let mut overriden_config = default_config;
+    overriden_config.insert("metadata".into(), json!(reasoning));
+    Ok(overriden_config)
+}
