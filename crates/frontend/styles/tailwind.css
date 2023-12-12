@@ -12,3 +12,7 @@
     @apply shadow-lg;
     @apply font-bold;
 }
+
+.context_condition{
+    font-size: 0.9rem;
+}

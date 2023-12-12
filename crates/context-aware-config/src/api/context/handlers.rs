@@ -17,7 +17,7 @@ use crate::{
 };
 use actix_web::{
     delete,
-    error::{self, ErrorInternalServerError, ErrorNotFound},
+    error::{self, ErrorBadRequest, ErrorInternalServerError, ErrorNotFound},
     get, put,
     web::{self, Path},
     HttpResponse, Responder, Result, Scope,
@@ -272,9 +272,27 @@ async fn put_handler(
 ) -> actix_web::Result<web::Json<PutResp>> {
     put(req, &user, &mut db_conn, false)
         .map(|resp| web::Json(resp))
-        .map_err(|e| {
+        .map_err(|e: anyhow::Error| {
             log::info!("context put failed with error: {:?}", e);
-            ErrorInternalServerError("")
+            if let Some(io_error) = e.downcast_ref::<std::io::Error>() {
+                log::info!("{}", { io_error });
+                ErrorInternalServerError("")
+            } else if e.to_string().contains("Bad schema") {
+                ErrorBadRequest("")
+            } else {
+                ErrorInternalServerError("")
+            }
+            //TODO: Check why this is not working
+            // match e.downcast_ref::<std::io::Error>() {
+            //     Some(err) => {
+            //         if err.to_string().contains("Bad schema") {
+            //             ErrorBadRequest("Schema Validation Failed")
+            //         } else {
+            //             ErrorInternalServerError("")
+            //         }
+            //     }
+            //     None => ErrorInternalServerError(""),
+            // }
         })
 }
 

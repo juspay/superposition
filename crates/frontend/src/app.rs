@@ -29,7 +29,7 @@ pub fn App() -> impl IntoView {
         <Title text="Welcome to Context Aware Config"/>
         // content for this welcome page
         <Router>
-            <body class="m-0 min-h-screen bg-gray-50">
+            <body class="m-0 min-h-screen bg-gray-50 font-mono">
                 <Layout>
                     <Routes>
                         <Route

@@ -5,6 +5,7 @@ use crate::components::table::{
     table::Table,
     types::{Column, TableSettings},
 };
+use crate::components::Button::EditButton::EditButton;
 use crate::pages::DefaultConfig::types::Config;
 use js_sys;
 use leptos::ev::SubmitEvent;
@@ -63,10 +64,7 @@ pub async fn create_default_config(
 fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     view! {
         <div class="p-6 bg-white text-gray-600">
-            <button class="btn btn-outline btn-primary" onclick="my_modal_5.showModal()">
-                Create DefaultConfig
-                <i class="ri-edit-2-line ml-2"></i>
-            </button>
+           <EditButton text="Create DefaultConfig".to_string() modal= "my_modal_5".to_string() modalAction = "showModal()".to_string() />
             <dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
                 <div class="modal-box relative bg-white">
                     <form method="dialog" class="flex justify-end">
@@ -301,7 +299,7 @@ pub fn DefaultConfig() -> impl IntoView {
                                         view! {
                                             <div class="card rounded-lg w-full bg-base-100 shadow">
                                                 <div class="card-body">
-                                                    <h2 class="card-title chat-bubble text-gray-800 dark:text-white font-mono">
+                                                    <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
                                                         "Default Config"
                                                     </h2>
                                                     <Table
