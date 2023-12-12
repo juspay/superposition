@@ -59,7 +59,7 @@ pub fn SideNav() -> impl IntoView {
                     );
                 }
 
-                class="select w-full max-w-xs"
+                class="select w-full max-w-xs shadow-md"
             >
                 <option selected>mjos</option>
                 <option>sdk_config</option>

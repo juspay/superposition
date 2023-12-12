@@ -69,7 +69,7 @@ async fn get_experiment(exp_id: &String, tenant: &String) -> Result<Experiment, 
         .await
     {
         Ok(experiment) => {
-            debug!("experiment response {:?}", experiment);
+            // debug!("experiment response {:?}", experiment);
             Ok(experiment
                 .json::<Experiment>()
                 .await

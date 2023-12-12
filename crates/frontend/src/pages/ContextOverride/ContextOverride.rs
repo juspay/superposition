@@ -1,15 +1,17 @@
 // use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::api::{fetch_dimensions, fetch_default_config};
+use crate::api::{fetch_default_config, fetch_dimensions};
 use crate::components::context_form::context_form::ContextForm;
 use crate::components::override_form::override_form::OverrideForm;
 use crate::components::table::types::TableSettings;
 use crate::components::table::{table::Table, types::Column};
+use crate::components::Button::EditButton::EditButton;
 use crate::pages::DefaultConfig::types::Config;
 // use leptos::spawn_local;
 use leptos::*;
 use leptos_router::use_query_map;
+use reqwest::{Error, StatusCode};
 use serde_json::{json, Map, Value};
 use web_sys::SubmitEvent;
 
@@ -25,10 +27,6 @@ pub async fn fetch_config(tenant: String) -> Result<Config, String> {
         Err(e) => Err(e.to_string()),
     }
 }
-
-
-
-
 
 #[component]
 fn ContextModalForm() -> impl IntoView {
@@ -80,8 +78,6 @@ fn ContextModalForm() -> impl IntoView {
         </div>
     }
 }
-
-
 
 pub fn construct_request_payload(
     overrides: Map<String, Value>,
@@ -143,7 +139,11 @@ pub async fn create_context(
         .send()
         .await
         .map_err(|e| e.to_string())?;
-    response.text().await.map_err(|e| e.to_string())
+    match response.status() {
+        StatusCode::OK => response.text().await.map_err(|e| e.to_string()),
+        StatusCode::BAD_REQUEST => Err("Schema Validation Failed".to_string()),
+        _ => Err("Internal Server Error".to_string()),
+    }
 }
 
 #[component]
@@ -289,6 +289,8 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     let (ovrride_form, set_ovrride_form) =
         create_signal(("dummy".to_string(), Map::new()));
 
+    let (error_message, set_error_message) = create_signal("".to_string());
+
     let on_submit = {
         move |ev: SubmitEvent| {
             let handle_submit_clone = handle_submit.clone();
@@ -332,12 +334,22 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                     .await;
 
                     match result {
-                        Ok(_) => {
+                        Ok(str) => {
                             handle_submit();
+                            // log!("Hi babe{str}");
+
+                            js_sys::eval(
+                                "document.getElementById('my_modal_5').close();",
+                            )
+                            .unwrap();
                         }
-                        Err(_) => {
-                            // Handle error
-                            // We can consider logging or displaying the error
+                        Err(e) => {
+                            if e.is_empty() {
+                                set_error_message
+                                    .set("Internal_Server_error".to_string());
+                            } else {
+                                set_error_message.set(e);
+                            }
                         }
                     }
                 }
@@ -347,11 +359,8 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
 
     view! {
         <div class="p-6 text-gray-600 space-y-6">
-            <button class="btn btn-outline btn-primary" onclick="my_modal_5.showModal()">
-                Create Context Overrides
-                <i class="ri-edit-2-line ml-2"></i>
-            </button>
-            // 
+            <EditButton text="Create Context Overrides".to_string() modal= "my_modal_5".to_string() modalAction = "showModal()".to_string() />
+            //
             <dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
                 <div class="modal-box relative bg-white space-y-6 w-11/12 max-w-3xl">
                     <form method="dialog" class="flex justify-end">
@@ -370,11 +379,19 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                             <button
                                 type="submit"
                                 class="btn btn-primary shadow-md font-mono"
-                                onclick="my_modal_5.close()"
+                                // onclick="my_modal_5.close()"
                             >
                                 Submit
                             </button>
                         </div>
+                        {
+
+                             view! {
+                                <div>
+                                    <p class="text-red-500">{move || error_message.get()}</p>
+                                </div>
+                            }
+                        }
 
                     </form>
                 </div>
@@ -385,7 +402,7 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
 
 fn parse_conditions(input: String) -> Vec<(String, String, String)> {
     let mut conditions = Vec::new();
-    let operators = vec!["==", "in", "!="]; // Define your operators here
+    let operators = vec!["==", "in"];
 
     // Split the string by "and" and iterate over each condition
     for condition in input.split("and") {
@@ -396,17 +413,33 @@ fn parse_conditions(input: String) -> Vec<(String, String, String)> {
         for operator in &operators {
             if condition.contains(operator) {
                 operator_found = operator;
-                parts = condition.split(operator).collect();
+                parts = condition.split(operator).map(|s| s.trim()).collect();
+
+                // TODO: add this when context update is enabled
+                if parts.len() == 2 && operator == &"in" {
+                    parts.swap(0, 1);
+                }
+
                 break;
             }
         }
 
         if parts.len() == 2 {
-            conditions.push((
-                parts[0].trim().to_string(),
-                operator_found.to_string(),
-                parts[1].trim().to_string(),
-            ));
+            let mut key = parts[0].to_string();
+            let mut op = operator_found.to_string();
+            let mut val = parts[1].to_string();
+            // Add a space after key
+            key.push(' ');
+            if op == "==".to_string() {
+                val = val.trim_matches('"').to_string();
+                op = "is".to_string();
+            } else {
+                val = val.trim_matches('"').to_string();
+                op = "has".to_string();
+            }
+            op.push(' ');
+
+            conditions.push((key, op, val));
         }
     }
 
@@ -463,12 +496,12 @@ pub fn ContextOverride() -> impl IntoView {
                                             redirect_prefix: None,
                                         };
                                         let mut context_views = Vec::new();
-                                        let mut new_ctx: Vec<(String, String, String)> = vec![];
+                                        // let mut new_ctx: Vec<(String, String, String)> = vec![];
                                         let mut override_signal = Map::new();
                                         for context in config.contexts.iter() {
                                             let condition = extract_and_format(&context.condition);
                                             let ctx_values = parse_conditions(condition.clone());
-                                            new_ctx.extend(ctx_values);
+                                            // new_ctx.extend(ctx_values.clone());
                                             for key in context.override_with_keys.iter() {
                                                 let mut map = Map::new();
                                                 let ovr = config.overrides.get(key).unwrap();
@@ -490,20 +523,27 @@ pub fn ContextOverride() -> impl IntoView {
                                             context_views
                                                 .push(
                                                     view! {
-                                                        <div class="rounded-lg shadow-md bg-white dark:bg-gray-800 p-6">
-                                                            <div class="card-body bg-white dark:bg-gray-800 bg-white shadow-md">
+                                                        <div class="rounded-lg shadow-md bg-white dark:bg-gray-800 p-6 shadow-md">
+
                                                                 <div class="flex justify-between">
                                                                     <div class="flex items-center space-x-4">
-                                                                        <i class="ri-settings-5-line ri-xl text-blue-500"></i>
-                                                                        <h2 class="card-title chat-bubble text-gray-800 dark:text-white font-mono">
+
+                                                                        <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white shadow-md font-mono">
                                                                             "Condition"
                                                                         </h2>
                                                                         <i class="ri-arrow-right-fill ri-xl text-blue-500"></i>
-                                                                        <div class="badge badge-primary font-mono">{condition}</div>
+                                                                        {ctx_values.into_iter().map(|(dim,op,val)| view!{
+                                                                            <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs ring-1 ring-inset ring-purple-700/10 shadow-md gap-x-2">
+                                                                            <span class="font-mono font-medium context_condition text-gray-500">{dim}</span>
+                                                                            <span class="font-mono font-medium text-gray-650 context_condition ">{op}</span>
+                                                                            <span class="font-mono font-semibold context_condition">{val}</span>
+                                                                        </span>
+
+                                                                        }).collect::<Vec<_>>()}
                                                                     </div>
-                                                                    <div class="card-title chat-bubble text-gray-800 dark:text-white font-mono">
-                                                                        <i class="ri-edit-line text-blue-500"></i>
-                                                                    </div>
+                                                                    <button class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                                                                    <i class="ri-edit-line text-blue-500"></i>
+                                                                </button>
                                                                 </div>
                                                                 <div class="space-x-4">
                                                                     <Table
@@ -514,14 +554,14 @@ pub fn ContextOverride() -> impl IntoView {
                                                                         settings=settings.clone()
                                                                     />
                                                                 </div>
-                                                            </div>
+
 
                                                         </div>
                                                     },
                                                 );
                                             contexts.clear();
                                         }
-                                        ctx.set(new_ctx);
+                                        // ctx.set(new_ctx);
                                         ovr_data.set(override_signal);
                                         context_views
                                     }
