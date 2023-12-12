@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use crate::components::Button::EditButton::EditButton;
 use leptos::logging::*;
 use leptos::*;
 use serde_json::{json, Map, Value};
@@ -15,84 +16,96 @@ pub struct RowData {
     pub dimension: String,
     pub priority: String,
     pub type_: String,
-    pub pattern: String
+    pub pattern: String,
 }
 
 pub fn custom_formatter(_value: &str, row: &Map<String, Value>) -> View {
-  let intermediate_signal = use_context::<RwSignal<Option<RowData>>>().unwrap();
-  let row_dimension = row["dimension"].clone().to_string().replace("\"", "");
-  let row_priority = row["priority"].clone().to_string().replace("\"", "");
+    let intermediate_signal = use_context::<RwSignal<Option<RowData>>>().unwrap();
+    let row_dimension = row["dimension"].clone().to_string().replace("\"", "");
+    let row_priority = row["priority"].clone().to_string().replace("\"", "");
 
-  let schema = row["schema"].clone().to_string();
-  let schema_object = serde_json::from_str::<serde_json::Value>(&schema).unwrap();
-  
-  let row_type = schema_object.get("type").unwrap().to_string();
-  let row_pattern = schema_object.get("pattern").unwrap().to_string();
+    let schema = row["schema"].clone().to_string();
+    let schema_object = serde_json::from_str::<serde_json::Value>(&schema).unwrap();
 
-  let edit_click_handler = move |_| {
-      let row_data = RowData {
-          dimension: row_dimension.clone(),
-          priority: row_priority.clone(),
-          type_: row_type.clone(),
-          pattern: row_pattern.clone(),
-      };
-      intermediate_signal.set(Some(row_data));
-      js_sys::eval("document.getElementById('my_modal_5').showModal();").unwrap();
-  };
+    let row_type = schema_object.get("type").unwrap().to_string();
+    let row_pattern = schema_object
+        .get("pattern")
+        .unwrap_or(&Value::String("".to_string()))
+        .to_string();
 
-  let edit_icon: HtmlElement<html::I> = view! { <i class="ri-pencil-line ri-xl text-blue-500" on:click=edit_click_handler></i> };
+    let edit_click_handler = move |_| {
+        let row_data = RowData {
+            dimension: row_dimension.clone(),
+            priority: row_priority.clone(),
+            type_: row_type.clone(),
+            pattern: row_pattern.clone(),
+        };
+        intermediate_signal.set(Some(row_data));
+        js_sys::eval("document.getElementById('my_modal_5').showModal();").unwrap();
+    };
 
-  view! { <span class="cursor-pointer">{edit_icon}</span> }.into_view()
+    let edit_icon: HtmlElement<html::I> = view! { <i class="ri-pencil-line ri-xl text-blue-500" on:click=edit_click_handler></i> };
+
+    view! { <span class="cursor-pointer">{edit_icon}</span> }.into_view()
 }
 
 pub async fn create_dimension(
-  tenant: String,
-  key: String,
-  priority: String,
-  key_type: String,
-  pattern: String,
+    tenant: String,
+    key: String,
+    priority: String,
+    key_type: String,
+    pattern: String,
 ) -> Result<String, String> {
-  let priority: i64 = priority.parse().unwrap();
-  let client = reqwest::Client::new();
-  let host = "http://localhost:8080";
-  let url = format!("{host}/dimension");
+    let priority: i64 = priority.parse().unwrap();
+    let client = reqwest::Client::new();
+    let host = "http://localhost:8080";
+    let url = format!("{host}/dimension");
 
-  let mut req_body: HashMap<&str, Value> = HashMap::new();
-  let mut schema: Map<String, Value> = Map::new();
-  
-  schema.insert("type".to_string(), Value::String(key_type.replace("\"", "")));
-  schema.insert("pattern".to_string(), Value::String(pattern.replace("\"", "")));
+    let mut req_body: HashMap<&str, Value> = HashMap::new();
+    let mut schema: Map<String, Value> = Map::new();
 
-  req_body.insert("dimension", Value::String(key));
-  req_body.insert("priority", Value::Number(priority.into()));
-  req_body.insert("schema", Value::Object(schema));
+    schema.insert(
+        "type".to_string(),
+        Value::String(key_type.replace("\"", "")),
+    );
+    schema.insert(
+        "pattern".to_string(),
+        Value::String(pattern.replace("\"", "")),
+    );
 
-  let response = client
-      .put(url)
-      .header("x-tenant", tenant)
-      .header("Authorization", "Bearer 12345678")
-      .json(&req_body)
-      .send()
-      .await
-      .map_err(|e| e.to_string())?;
-  response.text().await.map_err(|e| e.to_string())
+    req_body.insert("dimension", Value::String(key));
+    req_body.insert("priority", Value::Number(priority.into()));
+    req_body.insert("schema", Value::Object(schema));
+
+    let response = client
+        .put(url)
+        .header("x-tenant", tenant)
+        .header("Authorization", "Bearer 12345678")
+        .json(&req_body)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    response.text().await.map_err(|e| e.to_string())
 }
 
 #[component]
-fn ModalComponent(handle_submit: Rc<dyn Fn()>, tenant: ReadSignal<String>) -> impl IntoView {
+fn ModalComponent(
+    handle_submit: Rc<dyn Fn()>,
+    tenant: ReadSignal<String>,
+) -> impl IntoView {
     view! {
         <div class="pt-4">
-            <button class="btn btn-outline btn-primary" onclick="my_modal_5.showModal()">
-                Create Dimension
-                <i class="ri-edit-2-line ml-2"></i>
-            </button>
+            <EditButton text="Create Dimension".to_string() modal= "my_modal_5".to_string() modalAction = "showModal()".to_string() />
             <FormComponent handle_submit=handle_submit tenant=tenant/>
         </div>
     }
 }
 
 #[component]
-fn FormComponent(handle_submit: Rc<dyn Fn()>, tenant: ReadSignal<String>) -> impl IntoView {
+fn FormComponent(
+    handle_submit: Rc<dyn Fn()>,
+    tenant: ReadSignal<String>,
+) -> impl IntoView {
     use leptos::html::Input;
     let handle_submit = handle_submit.clone();
     let global_state = use_context::<RwSignal<RowData>>();
@@ -234,11 +247,10 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>, tenant: ReadSignal<String>) -> imp
     }
 }
 
-
 #[component]
 pub fn Dimensions() -> impl IntoView {
-  let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-  let global_state = create_rw_signal(RowData::default());
+    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let global_state = create_rw_signal(RowData::default());
     provide_context(global_state);
 
     let intermediate_signal = create_rw_signal(None::<RowData>);
