@@ -11,7 +11,7 @@ pub fn NavItem(
     let (anchor_class, icon_wrapper_class, icon_class) = if is_active {
         (
             "py-2.5 px-4 flex items-center whitespace-nowrap active".to_string(),
-            "text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none
+            "rounded-lg text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none
              focus:ring-purple-300 dark:focus:ring-purple-800 shadow-lg shadow-purple-500/50 dark:shadow-lg dark:shadow-purple-800/80 w-8 h-8 flex content-center justify-center pt-0.5 px-1 ".to_string(),
             format!("{} text-lg text-white font-normal", icon)
         )

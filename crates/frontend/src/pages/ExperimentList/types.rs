@@ -74,7 +74,7 @@ pub enum VariantType {
     EXPERIMENTAL,
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Variant {
     pub id: String,
     pub variant_type: VariantType,
