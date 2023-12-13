@@ -1,4 +1,4 @@
-// use std::collections::HashMap;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::api::{fetch_default_config, fetch_dimensions};
@@ -13,7 +13,7 @@ use leptos::*;
 use leptos_router::use_query_map;
 use reqwest::{Error, StatusCode};
 use serde_json::{json, Map, Value};
-use web_sys::SubmitEvent;
+use web_sys::MouseEvent;
 
 pub async fn fetch_config(tenant: String) -> Result<Config, String> {
     let client = reqwest::Client::new();
@@ -29,7 +29,12 @@ pub async fn fetch_config(tenant: String) -> Result<Config, String> {
 }
 
 #[component]
-fn ContextModalForm() -> impl IntoView {
+fn ContextModalForm<NF>(
+    handle_change: NF
+) -> impl IntoView
+where
+    NF: Fn(Vec<(String, String, String)>) + 'static + Clone
+{
     let query = use_query_map();
 
     let tenant = query.with(|params_map| {
@@ -49,29 +54,37 @@ fn ContextModalForm() -> impl IntoView {
                 view! { <p>"Loading (Suspense Fallback)..."</p> }
             }>
 
-                {move || {
-                    dimensions
-                        .with(move |result| {
-                            match result {
-                                Some(Ok(dimension)) => {
-                                    view! {
-                                        <div>
-                                            <ContextForm dimensions=dimension.clone() context=vec![]/>
-                                        </div>
+                {
+                    let handle_change_clone = handle_change.clone();
+                    move || {
+                        let handle_change_clone_clone = handle_change_clone.clone();
+                        dimensions
+                            .with(move |result| {
+                                match result {
+                                    Some(Ok(dimension)) => {
+                                        view! {
+                                            <div>
+                                                <ContextForm
+                                                    dimensions=dimension.clone()
+                                                    context=vec![]
+                                                    is_standalone=false
+                                                    handle_change=handle_change_clone_clone.clone()
+                                                />
+                                            </div>
+                                        }
+                                    }
+                                    Some(Err(error)) => {
+                                        view! {
+                                            <div class="text-red-500">
+                                                {"Failed to fetch config data: "} {error}
+                                            </div>
+                                        }
+                                    }
+                                    None => {
+                                        view! { <div>Loading....</div> }
                                     }
                                 }
-                                Some(Err(error)) => {
-                                    view! {
-                                        <div class="text-red-500">
-                                            {"Failed to fetch config data: "} {error}
-                                        </div>
-                                    }
-                                }
-                                None => {
-                                    view! { <div>Loading....</div> }
-                                }
-                            }
-                        })
+                            })
                 }}
 
             </Suspense>
@@ -147,7 +160,12 @@ pub async fn create_context(
 }
 
 #[component]
-fn OverrideModalForm() -> impl IntoView {
+fn OverrideModalForm<NF>(
+    handle_change: NF
+) -> impl IntoView
+where
+    NF: Fn(Map<String, Value>) + 'static + Clone
+{
     let query = use_query_map();
 
     let tenant = query.with(|params_map| {
@@ -167,33 +185,39 @@ fn OverrideModalForm() -> impl IntoView {
                 view! { <p>"Loading (Suspense Fallback)..."</p> }
             }>
 
-                {move || {
-                    default_config
-                        .with(move |result| {
-                            match result {
-                                Some(Ok(config)) => {
-                                    view! {
-                                        <div>
-                                            <OverrideForm
-                                                overrides=Map::new()
-                                                default_config=config.clone()
-                                            />
-                                        </div>
+                {
+                    let handle_change_clone = handle_change.clone();
+                    move || {
+                        let handle_change_clone_clone = handle_change_clone.clone();
+                        default_config
+                            .with(move |result| {
+                                match result {
+                                    Some(Ok(config)) => {
+                                        view! {
+                                            <div>
+                                                <OverrideForm
+                                                    overrides=Map::new()
+                                                    default_config=config.clone()
+                                                    is_standalone=false
+                                                    handle_change=handle_change_clone_clone.clone()
+                                                />
+                                            </div>
+                                        }
+                                    }
+                                    Some(Err(error)) => {
+                                        view! {
+                                            <div class="text-red-500">
+                                                {"Failed to fetch config data: "} {error}
+                                            </div>
+                                        }
+                                    }
+                                    None => {
+                                        view! { <div>Loading....</div> }
                                     }
                                 }
-                                Some(Err(error)) => {
-                                    view! {
-                                        <div class="text-red-500">
-                                            {"Failed to fetch config data: "} {error}
-                                        </div>
-                                    }
-                                }
-                                None => {
-                                    view! { <div>Loading....</div> }
-                                }
-                            }
-                        })
-                }}
+                            })
+                    }
+                }
 
             </Suspense>
         </div>
@@ -268,68 +292,32 @@ fn format_condition(condition: &Value) -> String {
 
 #[component]
 fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
-    let context_data: Vec<(String, String, String, String)> = vec![];
-    let condition_ctx: RwSignal<Vec<(String, String, String, String)>> =
-        create_rw_signal(context_data);
+    let (context_condition, set_context_condition) = create_signal::<Vec<(String, String, String)>>(vec![]);
+    let (overrides, set_overrides) = create_signal::<Map<String, Value>>(Map::new());
 
-    provide_context(condition_ctx);
-
-    let ovrride_signal: RwSignal<(String, Map<String, Value>)> =
-        create_rw_signal(("str".to_string(), Map::new()));
-
-    provide_context(ovrride_signal);
-
-    let (ctx_form, set_ctx_form) = create_signal(vec![(
-        "dimension1".to_string(),
-        "operator1".to_string(),
-        "value1".to_string(),
-        "string".to_string(),
-    )]);
-
-    let (ovrride_form, set_ovrride_form) =
-        create_signal(("dummy".to_string(), Map::new()));
+    let handle_context_change = move |updated_ctx: Vec<(String, String, String)>| {
+        set_context_condition.set(updated_ctx);
+    };
+    let handle_overrides_change = move |updated_overrides: Map<String, Value>| {
+        set_overrides.set(updated_overrides);
+    };
 
     let (error_message, set_error_message) = create_signal("".to_string());
 
     let on_submit = {
-        move |ev: SubmitEvent| {
+        move |ev: MouseEvent| {
             let handle_submit_clone = handle_submit.clone();
             ev.prevent_default();
-            set_ctx_form.set(condition_ctx.get());
-            let ovrd_values = ovrride_signal.get().1;
-            // set_ovrride_form.set(ovrride_signal.get())
-            set_ovrride_form.set((
-                "Override Name".to_string(),
-                ovrd_values
-                    .into_iter()
-                    .filter_map(|(key, value)| {
-                        let value_clone = value.clone();
-                        if let Value::String(val) = value {
-                            if !val.is_empty() {
-                                Some((key, value_clone))
-                            } else {
-                                None
-                            }
-                        } else {
-                            None
-                        }
-                    })
-                    .collect::<Map<String, Value>>(),
-            ));
 
-            let context_tuples: Vec<(String, String, String)> = ctx_form
-                .get()
-                .iter()
-                .map(|(_dim, dim, op, val)| (dim.clone(), op.clone(), val.clone()))
-                .collect();
+            logging::log!("tirggering submit");
 
             spawn_local({
                 let handle_submit = handle_submit_clone;
                 async move {
                     let result = create_context(
                         "mjos".to_string(),
-                        ovrride_form.get().1,
-                        context_tuples,
+                        overrides.get(),
+                        context_condition.get(),
                     )
                     .await;
 
@@ -358,45 +346,37 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     };
 
     view! {
-        <div class="p-6 text-gray-600 space-y-6">
-            <EditButton text="Create Context Overrides".to_string() modal= "my_modal_5".to_string() modalAction = "showModal()".to_string() />
-            //
-            <dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
-                <div class="modal-box relative bg-white space-y-6 w-11/12 max-w-3xl">
-                    <form method="dialog" class="flex justify-end">
-                        <button>
-                            <i class="ri-close-fill"></i>
+        <dialog id="my_modal_5" class="modal">
+            <div class="modal-box relative bg-white w-12/12 max-w-4xl">
+                <form method="dialog" class="flex justify-end">
+                    <button>
+                        <i class="ri-close-fill"></i>
+                    </button>
+                </form>
+                <form
+                    class="form-control w-full mt-8 bg-white text-gray-700 font-mono"
+                >
+                    <div>
+                        <ContextModalForm handle_change=handle_context_change/>
+                    </div>
+                    <div class="mt-7">
+                        <OverrideModalForm handle_change=handle_overrides_change/>
+                    </div>
+                    <div class="form-control mt-7">
+                        <button
+                            class="btn btn-primary shadow-md font-mono"
+                            on:click=on_submit
+                            // onclick="my_modal_5.close()"
+                        >
+                            Submit
                         </button>
-                    </form>
-                    // on:submit=on_submit
-                    <form
-                        class="form-control w-full space-y-4 bg-white text-gray-700 font-mono"
-                        on:submit=on_submit
-                    >
-                        <ContextModalForm/>
-                        <OverrideModalForm/>
-                        <div class="form-control mt-6">
-                            <button
-                                type="submit"
-                                class="btn btn-primary shadow-md font-mono"
-                                // onclick="my_modal_5.close()"
-                            >
-                                Submit
-                            </button>
-                        </div>
-                        {
-
-                             view! {
-                                <div>
-                                    <p class="text-red-500">{move || error_message.get()}</p>
-                                </div>
-                            }
-                        }
-
-                    </form>
-                </div>
-            </dialog>
-        </div>
+                    </div>
+                    <div class="mt-7">
+                        <p class="text-red-500">{move || error_message.get()}</p>
+                    </div>
+                </form>
+            </div>
+        </dialog>
     }
 }
 
@@ -479,8 +459,16 @@ pub fn ContextOverride() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8 space-y-6 bg-gray-120">
-            <div class="container mx-auto space-y-6 p-8">
+        <div class="p-8">
+            <div class="flex justify-between">
+                <h2 class="card-title">Overrides</h2>
+                <EditButton
+                    text="Create Overrides".to_string()
+                    modal= "my_modal_5".to_string()
+                    modalAction = "showModal()".to_string()
+                />
+            </div>
+            <div class="space-y-6">
                 <ModalComponent handle_submit=Rc::new(move || config_data.refetch())/>
                 <Suspense fallback=move || {
                     view! { <p>"Loading (Suspense Fallback)..."</p> }

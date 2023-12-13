@@ -89,7 +89,7 @@ async fn ramp_experiment(exp_id: &String, percent: u8) -> Result<Experiment, Str
         .await
     {
         Ok(experiment) => {
-            debug!("experiment response {:?}", experiment);
+            // debug!("experiment response {:?}", experiment);
             Ok(experiment
                 .json::<Experiment>()
                 .await

@@ -4,41 +4,76 @@ use crate::components::{
 use crate::pages::ExperimentList::types::{
     DefaultConfig, Dimension, Variant, VariantType,
 };
+use super::utils::create_experiment;
 use leptos::*;
-use serde_json::Map;
+use serde_json::{Value, Map};
 use wasm_bindgen::JsCast;
-use web_sys::{SubmitEvent, HtmlInputElement};
+use web_sys::{SubmitEvent, HtmlInputElement, MouseEvent};
+use std::sync::RwLock;
 
 #[component]
-pub fn ExperimentForm(
+pub fn ExperimentForm<NF>(
     name: String,
     context: Vec<(String, String, String)>,
     variants: Vec<Variant>,
     dimensions: Vec<Dimension>,
     default_config: Vec<DefaultConfig>,
-) -> impl IntoView {
-    // let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    handle_submit: NF
+) -> impl IntoView
+where
+    NF: Fn() + 'static + Clone
+{
+    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let (experiment_name, set_experiment_name) = create_signal(name);
-    let (variants, set_variants) = create_signal(variants);
-    // let input_vector: InputVector = vec![(experiment_name, set_experiment_name)];
-    let on_submit = move |ev: SubmitEvent| {
-        ev.prevent_default();
-        let document = document();
-        let exp_name = document
-            .get_element_by_id("expName")
-            .expect("expName input not found");
-        logging::log!("{:#?}", exp_name.get_attribute_names());
-        logging::log!("{:#?}", exp_name.get_attribute("value").unwrap());
-        let variant_ids = document.get_elements_by_name("variantId");
-        logging::log!("{:#?}", variant_ids.length());
-        logging::log!("{:#?}", variant_ids.item(0).expect("missing input").dyn_ref::<HtmlInputElement>().unwrap().value());
-        let override_vec = document.get_elements_by_name("override");
-        logging::log!("{:#?}", override_vec.length());
-        logging::log!("{:#?}", override_vec.item(0).expect("missing override input").dyn_ref::<HtmlInputElement>().unwrap().value());
+    let (f_context, set_context) = create_signal(context.clone());
+    let (f_variants, set_variants) = create_signal(variants);
+
+    let handle_context_form_change = move |updated_ctx: Vec<(String, String, String)>| {
+        set_context.set(updated_ctx);
+    };
+
+    let handle_override_form_change = move |variant_idx: usize| {
+        let handle_change = move |updated_overrides: Map<String, Value>| {
+            set_variants.update(|curr_variants| {
+                curr_variants[variant_idx].overrides = updated_overrides.clone();
+            });
+        };
+        handle_change
+    };
+
+    let on_submit = move |event: MouseEvent| {
+        event.prevent_default();
+        logging::log!("Submitting experiment form");
+
+        let f_experiment_name = experiment_name.get();
+        let f_context = f_context.get();
+        let f_variants = f_variants.get();
+        let tenant = tenant_rs.get();
+        let handle_submit_clone = handle_submit.clone();
+
+        logging::log!("{:?}", f_experiment_name);
+        logging::log!("{:?}", f_variants);
+        logging::log!("{:?}", f_context);
+
+        spawn_local({
+            async move {
+                let result = create_experiment(f_context, f_variants, f_experiment_name, tenant).await;
+
+                match result {
+                    Ok(value) => {
+                        handle_submit_clone();
+                    }
+                    Err(_) => {
+                        // Handle error
+                        // We can consider logging or displaying the error
+                    }
+                }
+            }
+        });
     };
 
     view! {
-        <form on:submit=on_submit>
+        <div>
             <div class="form-control w-full">
                 <label class="label">
                     <span class="label-text">Name</span>
@@ -55,7 +90,12 @@ pub fn ExperimentForm(
             </div>
 
             <div class="my-4">
-                <ContextForm dimensions=dimensions context=context/>
+                <ContextForm
+                    dimensions=dimensions
+                    context=context
+                    handle_change=handle_context_form_change
+                    is_standalone=false
+                />
             </div>
 
             <div class="form-control w-full">
@@ -67,12 +107,12 @@ pub fn ExperimentForm(
                     // make some more random default id for this can lead to undefined behaviour if we use index based ids
                     <button
                         class="btn btn-outline btn-sm text-xs m-1"
-                        on:click=move |_| {
+                        on:click:undelegated=move |_| {
                             leptos::logging::log!("add new variant");
                             set_variants
-                                .update(|value| {
-                                    let total_variants = value.len();
-                                    value
+                                .update(|curr_variants| {
+                                    let total_variants = curr_variants.len();
+                                    curr_variants
                                         .push(Variant {
                                             id: format!("variant-{}", total_variants),
                                             variant_type: VariantType::EXPERIMENTAL,
@@ -83,87 +123,88 @@ pub fn ExperimentForm(
                                 });
                         }
                     >
-
                         <i class="ri-add-line"></i>
                         Add Variant
                     </button>
                 </div>
-                <For
-                    each=move || {
-                        variants.get().into_iter().enumerate().collect::<Vec<(usize, Variant)>>()
-                    }
+                    <For
+                        each=move || {
+                            f_variants
+                                .get()
+                                .into_iter()
+                                .enumerate()
+                                .collect::<Vec<(usize, Variant)>>()
+                        }
+                        key=|(idx, variant)| format!("{}-{}", variant.id.to_string(), idx)
+                        children=move |(idx, variant)| {
+                            let config = default_config.clone();
+                            let variant_clone = variant.clone();
+                            let handle_change = handle_override_form_change(idx);
 
-                    key=|(idx, variant)| format!("{}-{}", variant.id.to_string(), idx)
-                    children=move |(idx, variant)| {
-                        let config = default_config.clone();
-                        let variant_clone = variant.clone();
-                        view! {
-                            <div class="my-2 p-4 rounded bg-gray-50">
-                                <div class="flex items-center gap-4">
-                                    <div class="form-control w-1/3">
-                                        <label class="label">
-                                            <span class="label-text">ID</span>
-                                        </label>
-                                        <input
-                                            name="variantId"
-                                            value=move || variant.id.to_string()
-                                            type="text"
-                                            placeholder="Type a unique name here"
-                                            class="input input-bordered w-full max-w-xs"
-                                        />
-                                    </div>
-                                    <div class="form-control w-1/3">
-                                        <label class="label font-medium text-sm">
-                                            <span class="label-text">Type</span>
-                                        </label>
-                                        <select
-                                            name="expType[]"
-                                            value=move || variant.variant_type.to_string()
-                                            on:change=move |ev| {
-                                                let mut new_variant = variant_clone.clone();
-                                                new_variant
-                                                    .variant_type = match event_target_value(&ev).as_str() {
-                                                    "CONTROL" => VariantType::CONTROL,
-                                                    _ => VariantType::EXPERIMENTAL,
-                                                };
-                                                set_variants
-                                                    .update(|value| {
+                            view! {
+                                <div class="my-2 p-4 rounded bg-gray-50">
+                                    <div class="flex items-center gap-4">
+                                        <div class="form-control w-1/3">
+                                            <label class="label">
+                                                <span class="label-text">ID</span>
+                                            </label>
+                                            <input
+                                                name="variantId"
+                                                value=move || variant.id.to_string()
+                                                type="text"
+                                                placeholder="Type a unique name here"
+                                                class="input input-bordered w-full max-w-xs"
+                                            />
+                                        </div>
+                                        <div class="form-control w-1/3">
+                                            <label class="label font-medium text-sm">
+                                                <span class="label-text">Type</span>
+                                            </label>
+                                            <select
+                                                name="expType[]"
+                                                value=move || variant.variant_type.to_string()
+                                                on:change=move |ev| {
+                                                    let mut new_variant = variant_clone.clone();
+                                                    new_variant
+                                                        .variant_type = match event_target_value(&ev).as_str() {
+                                                        "CONTROL" => VariantType::CONTROL,
+                                                        _ => VariantType::EXPERIMENTAL,
+                                                    };
+                                                    set_variants.update(|value| {
                                                         value[idx] = new_variant;
                                                     })
-                                            }
+                                                }
 
-                                            class="select select-bordered"
-                                        >
-                                            <option disabled selected>
-                                                Pick one
-                                            </option>
-                                            <option value=VariantType::CONTROL
-                                                .to_string()>{VariantType::CONTROL.to_string()}</option>
-                                            <option value=VariantType::EXPERIMENTAL
-                                                .to_string()>
-                                                {VariantType::EXPERIMENTAL.to_string()}
-                                            </option>
-                                        </select>
+                                                class="select select-bordered"
+                                            >
+                                                <option disabled selected>
+                                                    Pick one
+                                                </option>
+                                                <option value=VariantType::CONTROL
+                                                    .to_string()>{VariantType::CONTROL.to_string()}</option>
+                                                <option value=VariantType::EXPERIMENTAL
+                                                    .to_string()>
+                                                    {VariantType::EXPERIMENTAL.to_string()}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <OverrideForm
+                                            overrides=variant.overrides
+                                            default_config=config
+                                            handle_change=handle_change
+                                            is_standalone=false
+                                        />
                                     </div>
                                 </div>
-                                <div class="mt-2">
-                                    <OverrideForm
-                                        overrides=variant.overrides
-                                        default_config=config
-                                    />
-                                </div>
-                            </div>
+                            }
                         }
-                    }
-                />
-
+                    />
             </div>
-            <div class="modal-action">
-                <form method="dialog">
-                    <button class="btn">Save</button>
-                </form>
+            <div class="flex justify-end">
+                <button class="btn" on:click:undelegated=on_submit>Save</button>
             </div>
-
-        </form>
+        </div>
     }
 }
