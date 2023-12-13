@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 TENANT=$1
 DB_URL=$2
 

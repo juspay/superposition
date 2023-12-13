@@ -1,14 +1,18 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use crate::components::{
+    stat::stat::Stat,
+    table::{table::Table, types::{TableSettings, Column}},
+};
+
+
 use crate::components::Button::EditButton::EditButton;
 use leptos::logging::*;
 use leptos::*;
 use serde_json::{json, Map, Value};
 use web_sys::SubmitEvent;
 
-use crate::components::table::types::TableSettings;
-use crate::components::table::{table::Table, types::Column};
 use crate::pages::Dimensions::helper::fetch_dimensions;
 
 #[derive(Clone, Debug, Default)]
@@ -95,7 +99,6 @@ fn ModalComponent(
 ) -> impl IntoView {
     view! {
         <div class="pt-4">
-            <EditButton text="Create Dimension".to_string() modal= "my_modal_5".to_string() modalAction = "showModal()".to_string() />
             <FormComponent handle_submit=handle_submit tenant=tenant/>
         </div>
     }
@@ -288,24 +291,20 @@ pub fn Dimensions() -> impl IntoView {
         <div class="p-8">
             <Suspense fallback=move || view! { <p>"Loading (Suspense Fallback)..."</p> }>
                 <div class="pb-4">
-                    <div class="stats shadow">
-                        <div class="stat">
-                            <div class="stat-figure text-primary">
-                                <i class="ri-ruler-2-fill text-5xl"></i>
-                            </div>
-                            <div class="stat-title">Dimensions</div>
-
-                            {move || {
-                                let value = dimensions.get();
-                                let total_items = match value {
-                                    Some(v) => v.len(),
-                                    _ => 0,
-                                };
-                                view! { <div class="stat-value">{total_items}</div> }
-                            }}
-
-                        </div>
-                    </div>
+                    {move || {
+                        let value = dimensions.get();
+                        let total_items = match value {
+                            Some(v) => v.len().to_string(),
+                            _ => "0".to_string(),
+                        };
+                        view! {
+                            <Stat
+                                heading="Dimensions"
+                                icon="ri-ruler-2-fill"
+                                number={total_items}
+                            />
+                        }
+                    }}
                     <ModalComponent
                         handle_submit=Rc::new(move || dimensions.refetch())
                         tenant=tenant_rs
@@ -314,7 +313,14 @@ pub fn Dimensions() -> impl IntoView {
 
                 <div class="card rounded-xl w-full bg-base-100 shadow">
                     <div class="card-body">
-                        <h2 class="card-title">Dimensions</h2>
+                        <div class="flex justify-between mb-2">
+                            <h2 class="card-title">Dimensions</h2>
+                            <EditButton
+                                text="Create Dimension".to_string()
+                                modal= "my_modal_5".to_string()
+                                modalAction = "showModal()".to_string()
+                            />
+                        </div>
                         <div>
 
                             {move || {

@@ -1,11 +1,13 @@
 use leptos::logging::*;
 use leptos::*;
+use leptos_dom::*;
 
 use chrono::{prelude::Utc, TimeZone};
 
 use crate::components::{
     experiment_form::experiment_form::ExperimentForm,
     pagination::pagination::Pagination,
+    stat::stat::Stat,
     table::{
         table::Table,
         types::{Column, TableSettings},
@@ -16,6 +18,7 @@ use crate::pages::ExperimentList::types::{ExperimentsResponse, ListFilters};
 
 use super::utils::{fetch_default_config, fetch_dimensions, fetch_experiments};
 use serde_json::{json, Map, Value};
+use wasm_bindgen::JsCast;
 
 #[component]
 pub fn ExperimentList() -> impl IntoView {
@@ -28,6 +31,7 @@ pub fn ExperimentList() -> impl IntoView {
         page: Some(1),
         count: Some(10),
     });
+    let (open_form_modal, set_open_form_modal) = create_signal(false);
 
     let table_columns = create_memo(move |_| {
         vec![
@@ -92,36 +96,66 @@ pub fn ExperimentList() -> impl IntoView {
         },
     );
 
+    let handle_submit_experiment_form = move || {
+        experiments.refetch();
+        set_open_form_modal.set(false);
+        if let Some(element) = document().get_element_by_id("create_exp_modal") {
+            let dialog_ele = element.dyn_ref::<web_sys::HtmlDialogElement>();
+            match dialog_ele {
+                Some(ele) => { ele.close(); },
+                None => { log!("no modal element"); }
+            }
+        }
+    };
+
     // TODO: Add filters
     view! {
         <div class="p-8">
             <Suspense fallback=move || view! { <p>"Loading (Suspense Fallback)..."</p> }>
                 <div class="pb-4">
-                    <div class="stats shadow">
-                        <div class="stat">
-                            <div class="stat-figure text-primary">
-                                <i class="ri-test-tube-fill text-5xl"></i>
-                            </div>
-                            <div class="stat-title">Experiments</div>
+                    {
+                        move || {
+                            let value = experiments.get();
+                            let total_items = match value {
+                                Some(v) => v.total_items.to_string(),
+                                _ => "0".to_string(),
+                            };
 
-                            {move || {
-                                let value = experiments.get();
-                                let total_items = match value {
-                                    Some(v) => v.total_items,
-                                    _ => 0,
-                                };
-                                view! { <div class="stat-value">{total_items}</div> }
-                            }}
-
-                        </div>
-                        <div class="stat cursor-pointer" onclick="create_exp_modal.showModal()">
-                            <div class="stat-figure text-primary">new</div>
-                        </div>
-                    </div>
+                            view! {
+                                <Stat
+                                    heading="Experiments"
+                                    icon="ri-test-tube-fill"
+                                    number={total_items}
+                                />
+                            }
+                        }
+                    }
                 </div>
                 <div class="card rounded-xl w-full bg-base-100 shadow">
                     <div class="card-body">
-                        <h2 class="card-title">Experiments</h2>
+                        <div class="flex justify-between">
+                            <h2 class="card-title">Experiments</h2>
+                            <div>
+                                <button
+                                    class="text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 shadow-lg shadow-purple-500/50 dark:shadow-lg dark:shadow-purple-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+                                    on:click=move |event: web_sys::MouseEvent| {
+                                        event.prevent_default();
+                                        set_open_form_modal.set(true);
+                                        if let Some(element) = document().get_element_by_id("create_exp_modal") {
+                                            log!("opening the experiment modal");
+                                            let dialog_ele = element.dyn_ref::<web_sys::HtmlDialogElement>();
+                                            match dialog_ele {
+                                                Some(ele) => { ele.show_modal(); },
+                                                None => { log!("no modal element"); }
+                                            }
+                                        }
+                                    }
+                                >
+                                    Create Experiment
+                                    <i class="ri-edit-2-line ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div>
 
                             {move || {
@@ -201,21 +235,48 @@ pub fn ExperimentList() -> impl IntoView {
                 {move || {
                     let dim = dimensions.get().unwrap_or(vec![]);
                     let def_conf = default_config.get().unwrap_or(vec![]);
+                    let open_modal = open_form_modal.get();
                     view! {
-                        <dialog id="create_exp_modal" class="modal">
-                            <div class="modal-box w-12/12 max-w-5xl">
-                                <h3 class="font-bold text-lg">Create Experiment</h3>
-                                <div class="modal-action flex flex-col">
-                                    <ExperimentForm
-                                        name="".to_string()
-                                        context=vec![]
-                                        variants=vec![]
-                                        dimensions=dim
-                                        default_config=def_conf
-                                    />
+                        <Show
+                            when=move || { open_form_modal.get() }
+                        >
+                            <dialog id="create_exp_modal" class="modal">
+                                <div class="modal-box w-12/12 max-w-5xl">
+                                    <div class="flex justify-between">
+                                        <h3 class="font-bold text-lg">Create Experiment</h3>
+                                        <div>
+                                            <button
+                                                on:click=move |_| {
+                                                    set_open_form_modal.set(false);
+                                                    if let Some(element) = document().get_element_by_id("create_exp_modal") {
+                                                        log!("FOUND AND CLOSING THE FORM");
+                                                        let dialog_ele = element.dyn_ref::<web_sys::HtmlDialogElement>();
+                                                        match dialog_ele {
+                                                            Some(ele) => { ele.close(); },
+                                                            None => { log!("no modal element"); }
+                                                        }
+                                                    } else {
+                                                        log!("outer close button no modal element");
+                                                    }
+                                                }
+                                            >
+                                                <i class="ri-close-fill"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="modal-action flex flex-col">
+                                        <ExperimentForm
+                                            name="".to_string()
+                                            context=vec![]
+                                            variants=vec![]
+                                            dimensions=dim.clone()
+                                            default_config=def_conf.clone()
+                                            handle_submit=handle_submit_experiment_form
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                        </dialog>
+                            </dialog>
+                        </Show>
                     }
                 }}
 

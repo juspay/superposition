@@ -6,13 +6,15 @@ use crate::components::table::{
     types::{Column, TableSettings},
 };
 use crate::components::Button::EditButton::EditButton;
+use crate::components::stat::stat::Stat;
 use crate::pages::DefaultConfig::types::Config;
 use js_sys;
 use leptos::ev::SubmitEvent;
 use leptos::spawn_local;
 use leptos::*;
 use leptos_router::use_query_map;
-use serde_json::{Map, Value};
+use serde_json::{Map, Value, json};
+use crate::pages::ExperimentList::utils::fetch_default_config;
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -63,19 +65,16 @@ pub async fn create_default_config(
 #[component]
 fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     view! {
-        <div class="p-6 bg-white text-gray-600">
-           <EditButton text="Create DefaultConfig".to_string() modal= "my_modal_5".to_string() modalAction = "showModal()".to_string() />
-            <dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
-                <div class="modal-box relative bg-white">
-                    <form method="dialog" class="flex justify-end">
-                        <button>
-                            <i class="ri-close-fill"></i>
-                        </button>
-                    </form>
-                    <FormComponent handle_submit=handle_submit/>
-                </div>
-            </dialog>
-        </div>
+        <dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
+            <div class="modal-box relative bg-white">
+                <form method="dialog" class="flex justify-end">
+                    <button>
+                        <i class="ri-close-fill"></i>
+                    </button>
+                </form>
+                <FormComponent handle_submit=handle_submit/>
+            </div>
+        </dialog>
     }
 }
 
@@ -213,8 +212,8 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
 
 fn custom_formatter(value: &str, row: &Map<String, Value>) -> View {
     let intermediate_signal = use_context::<RwSignal<Option<RowData>>>().unwrap();
-    let row_key = row["KEY"].clone().to_string().replace("\"", "");
-    let row_value = row["VALUE"].clone().to_string().replace("\"", "");
+    let row_key = row["key"].clone().to_string().replace("\"", "");
+    let row_value = row["value"].clone().to_string().replace("\"", "");
 
     let edit_click_handler = move |_| {
         let row_data = RowData {
@@ -256,79 +255,81 @@ pub fn DefaultConfig() -> impl IntoView {
             .unwrap_or_else(|| "mjos".to_string())
     });
 
-    let config_data =
-        create_blocking_resource(|| {}, move |_| fetch_config(tenant.clone()));
+    let default_config_resource = create_blocking_resource(
+        || (),
+        |_| async move {
+            match fetch_default_config().await {
+                Ok(data) => data,
+                Err(_) => vec![],
+            }
+        },
+    );
 
     let table_columns = create_memo(move |_| {
         vec![
-            Column::default("KEY".to_string()),
-            Column::default("VALUE".to_string()),
+            Column::default("key".to_string()),
+            Column::default("schema".to_string()),
+            Column::default("value".to_string()),
+            Column::default("created_at".to_string()),
+            Column::default("created_by".to_string()),
             Column::new("EDIT".to_string(), None, Some(custom_formatter)),
         ]
     });
 
+
     view! {
         <div class="p-8">
-            <ModalComponent handle_submit=Rc::new(move || config_data.refetch())/>
-            <Suspense fallback=move || {
-                view! { <p>"Loading (Suspense Fallback)..."</p> }
-            }>
+            <ModalComponent handle_submit=Rc::new(move || default_config_resource.refetch())/>
+            <Suspense
+                fallback=move || {
+                    view! { <p>"Loading (Suspense Fallback)..."</p> }
+                }
+            >
+                {
+                    move || {
+                        let default_config = default_config_resource.get().unwrap_or(vec![]);
+                        let total_default_config_keys = default_config.len().to_string();
+                        let table_settings = TableSettings {
+                            redirect_prefix: None
+                        };
 
-                {move || {
-                    config_data
-                        .with(move |result| {
-                            match result {
-                                Some(Ok(config)) => {
-                                    let mut default_config: Vec<Map<String, Value>> = Vec::new();
-                                    let settings = TableSettings {
-                                        redirect_prefix: None,
-                                    };
-                                    for (key, value) in config.default_configs.iter() {
-                                        let mut map = Map::new();
-                                        let trimmed_key = Value::String(
-                                            key.trim_matches('"').to_string(),
-                                        );
-                                        let formatted_value = Value::String(
-                                            format!("{}", value).trim_matches('"').to_string(),
-                                        );
-                                        map.insert("KEY".to_string(), trimmed_key);
-                                        map.insert("VALUE".to_string(), formatted_value);
-                                        default_config.push(map);
-                                    }
-                                    vec![
-                                        view! {
-                                            <div class="card rounded-lg w-full bg-base-100 shadow">
-                                                <div class="card-body">
-                                                    <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
-                                                        "Default Config"
-                                                    </h2>
-                                                    <Table
-                                                        table_style="font-mono".to_string()
-                                                        rows=default_config
-                                                        key_column="id".to_string()
-                                                        columns=table_columns.get()
-                                                        settings=settings
-                                                    />
-                                                </div>
+                        let table_rows = default_config
+                            .into_iter()
+                            .map(|config| { json!(config).as_object().unwrap().to_owned() })
+                            .collect::<Vec<Map<String, Value>>>();
 
-                                            </div>
-                                        },
-                                    ]
-                                }
-                                Some(Err(error)) => {
-                                    vec![
-                                        view! {
-                                            <div class="text-red-500">
-                                                {"Failed to fetch config data: "} {error}
-                                            </div>
-                                        },
-                                    ]
-                                }
-                                None => vec![view! { <div>Loading....</div> }],
-                            }
-                        })
-                }}
-
+                        view! {
+                            <div class="pb-4">
+                                <Stat
+                                    heading="Config Keys"
+                                    icon="ri-tools-line"
+                                    number={total_default_config_keys}
+                                />
+                            </div>
+                            <div class="card rounded-lg w-full bg-base-100 shadow">
+                                <div class="card-body">
+                                    <div class="flex justify-between">
+                                        <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
+                                            "Default Config"
+                                        </h2>
+                                        <EditButton
+                                            text="Create DefaultConfig".to_string()
+                                            modal= "my_modal_5".to_string()
+                                            modalAction = "showModal()".to_string()
+                                        />
+                                    </div>
+                                    <Table
+                                        table_style="font-mono".to_string()
+                                        rows=table_rows
+                                        key_column="id".to_string()
+                                        columns=table_columns.get()
+                                        settings=table_settings
+                                    />
+                                </div>
+                            </div>
+                        }
+                    }
+                }
             </Suspense>
         </div>
     }
