@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use crate::components::Button::Button::Button;
 use crate::components::{
     stat::stat::Stat,
-    table::{table::Table, types::{TableSettings, Column}},
+    table::{
+        table::Table,
+        types::{Column, TableSettings},
+    },
 };
-
-
-use crate::components::Button::EditButton::EditButton;
+use crate::utils::modal_action;
 use leptos::logging::*;
 use leptos::*;
 use serde_json::{json, Map, Value};
@@ -236,13 +238,7 @@ fn FormComponent(
                         />
                     </div>
                     <div class="form-control mt-6">
-                        <button
-                            type="submit"
-                            class="btn btn-primary shadow-md font-mono"
-                            onclick="my_modal_5.close()"
-                        >
-                            Submit
-                        </button>
+                    <Button text="Submit".to_string() on_click= |_| modal_action("my_modal_5","close") />
                     </div>
                 </form>
             </div>
@@ -315,11 +311,7 @@ pub fn Dimensions() -> impl IntoView {
                     <div class="card-body">
                         <div class="flex justify-between mb-2">
                             <h2 class="card-title">Dimensions</h2>
-                            <EditButton
-                                text="Create Dimension".to_string()
-                                modal= "my_modal_5".to_string()
-                                modalAction = "showModal()".to_string()
-                            />
+                            <Button text="Create Dimension".to_string() on_click= |_| modal_action("my_modal_5","open") />
                         </div>
                         <div>
 
