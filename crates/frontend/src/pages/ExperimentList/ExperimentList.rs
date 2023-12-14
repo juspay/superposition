@@ -1,8 +1,10 @@
+use futures::join;
 use leptos::logging::*;
 use leptos::*;
 use leptos_dom::*;
 
 use chrono::{prelude::Utc, TimeZone};
+use serde::{Deserialize, Serialize};
 
 use crate::components::{
     experiment_form::experiment_form::ExperimentForm,
@@ -14,9 +16,19 @@ use crate::components::{
     },
 };
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct CombinedResource {
+    experiments: ExperimentsResponse,
+    dimensions: Vec<Dimension>,
+    default_config: Vec<DefaultConfig>,
+}
+
 use crate::pages::ExperimentList::types::{ExperimentsResponse, ListFilters};
 
-use super::utils::{fetch_default_config, fetch_dimensions, fetch_experiments};
+use super::{
+    types::{DefaultConfig, Dimension},
+    utils::{fetch_default_config, fetch_dimensions, fetch_experiments},
+};
 use serde_json::{json, Map, Value};
 use wasm_bindgen::JsCast;
 
@@ -62,48 +74,45 @@ pub fn ExperimentList() -> impl IntoView {
         ]
     });
 
-    let experiments = create_blocking_resource(
-        move || (tenant_rs.get(), filters.get()),
-        |(current_tenant, value)| async move {
-            match fetch_experiments(value, &current_tenant).await {
-                Ok(data) => data,
-                Err(_) => ExperimentsResponse {
-                    total_items: 0,
-                    total_pages: 0,
-                    data: vec![],
-                },
-            }
-        },
-    );
+    let combined_resource: Resource<(String, ListFilters), CombinedResource> =
+        create_blocking_resource(
+            move || (tenant_rs.get(), filters.get()),
+            |(current_tenant, filters)| async move {
+                // Perform all fetch operations concurrently
+                let experiments_future = fetch_experiments(filters, &current_tenant);
+                let dimensions_future = fetch_dimensions();
+                let config_future = fetch_default_config();
 
-    let dimensions = create_blocking_resource(
-        || (),
-        |_| async move {
-            match fetch_dimensions().await {
-                Ok(data) => data,
-                Err(_) => vec![],
-            }
-        },
-    );
+                let (experiments_result, dimensions_result, config_result) =
+                    join!(experiments_future, dimensions_future, config_future);
 
-    let default_config = create_blocking_resource(
-        || (),
-        |_| async move {
-            match fetch_default_config().await {
-                Ok(data) => data,
-                Err(_) => vec![],
-            }
-        },
-    );
+                // Construct the combined result, handling errors as needed
+                CombinedResource {
+                    experiments: experiments_result.unwrap_or_else(|_| {
+                        ExperimentsResponse {
+                            total_items: 0,
+                            total_pages: 0,
+                            data: vec![],
+                        }
+                    }),
+                    dimensions: dimensions_result.unwrap_or_else(|_| vec![]),
+                    default_config: config_result.unwrap_or_else(|_| vec![]),
+                }
+            },
+        );
 
     let handle_submit_experiment_form = move || {
-        experiments.refetch();
+        combined_resource.refetch();
         set_open_form_modal.set(false);
         if let Some(element) = document().get_element_by_id("create_exp_modal") {
             let dialog_ele = element.dyn_ref::<web_sys::HtmlDialogElement>();
             match dialog_ele {
-                Some(ele) => { ele.close(); },
-                None => { log!("no modal element"); }
+                Some(ele) => {
+                    ele.close();
+                }
+                None => {
+                    log!("no modal element");
+                }
             }
         }
     };
@@ -115,9 +124,9 @@ pub fn ExperimentList() -> impl IntoView {
                 <div class="pb-4">
                     {
                         move || {
-                            let value = experiments.get();
+                            let value = combined_resource.get();
                             let total_items = match value {
-                                Some(v) => v.total_items.to_string(),
+                                Some(v) => v.experiments.total_items.to_string(),
                                 _ => "0".to_string(),
                             };
 
@@ -165,10 +174,11 @@ pub fn ExperimentList() -> impl IntoView {
                                         format!("admin/{current_tenant}/experiments"),
                                     ),
                                 };
-                                let value = experiments.get();
+                                let value = combined_resource.get();
                                 match value {
                                     Some(v) => {
                                         let data = v
+                                            .experiments
                                             .data
                                             .iter()
                                             .map(|ele| { json!(ele).as_object().unwrap().clone() })
@@ -193,8 +203,8 @@ pub fn ExperimentList() -> impl IntoView {
 
                             {move || {
                                 let current_page = filters.get().page.unwrap_or(0);
-                                let total_pages = match experiments.get() {
-                                    Some(val) => val.total_pages,
+                                let total_pages = match combined_resource.get() {
+                                    Some(val) => val.experiments.total_pages,
                                     None => 0,
                                 };
                                 view! {
@@ -233,9 +243,28 @@ pub fn ExperimentList() -> impl IntoView {
                 </div>
 
                 {move || {
-                    let dim = dimensions.get().unwrap_or(vec![]);
-                    let def_conf = default_config.get().unwrap_or(vec![]);
-                    let open_modal = open_form_modal.get();
+                    let dim = combined_resource.get().unwrap_or(CombinedResource {
+                        experiments:
+                            ExperimentsResponse {
+                                total_items: 0,
+                                total_pages: 0,
+                                data: vec![],
+                            }
+                        ,
+                        dimensions:  vec![],
+                        default_config:  vec![],
+                    }).dimensions;
+                    let def_conf = combined_resource.get().unwrap_or(CombinedResource {
+                        experiments:
+                            ExperimentsResponse {
+                                total_items: 0,
+                                total_pages: 0,
+                                data: vec![],
+                            }
+                        ,
+                        dimensions:  vec![],
+                        default_config:  vec![],
+                    }).default_config;
                     view! {
                         <Show
                             when=move || { open_form_modal.get() }

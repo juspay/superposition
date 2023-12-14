@@ -5,16 +5,18 @@ use crate::components::table::{
     table::Table,
     types::{Column, TableSettings},
 };
-use crate::components::Button::EditButton::EditButton;
+
 use crate::components::stat::stat::Stat;
+use crate::components::Button::Button::Button;
 use crate::pages::DefaultConfig::types::Config;
+use crate::pages::ExperimentList::utils::fetch_default_config;
+use crate::utils::modal_action;
 use js_sys;
 use leptos::ev::SubmitEvent;
 use leptos::spawn_local;
 use leptos::*;
 use leptos_router::use_query_map;
-use serde_json::{Map, Value, json};
-use crate::pages::ExperimentList::utils::fetch_default_config;
+use serde_json::{json, Map, Value};
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -198,13 +200,7 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                 />
             </div>
             <div class="form-control mt-6">
-                <button
-                    type="submit"
-                    class="btn btn-primary shadow-md font-mono"
-                    onclick="my_modal_5.close()"
-                >
-                    Submit
-                </button>
+            <Button text="Submit".to_string() on_click= |_| modal_action("my_modal_5","close") />
             </div>
         </form>
     }
@@ -276,7 +272,6 @@ pub fn DefaultConfig() -> impl IntoView {
         ]
     });
 
-
     view! {
         <div class="p-8">
             <ModalComponent handle_submit=Rc::new(move || default_config_resource.refetch())/>
@@ -312,11 +307,7 @@ pub fn DefaultConfig() -> impl IntoView {
                                         <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
                                             "Default Config"
                                         </h2>
-                                        <EditButton
-                                            text="Create DefaultConfig".to_string()
-                                            modal= "my_modal_5".to_string()
-                                            modalAction = "showModal()".to_string()
-                                        />
+                                        <Button text="Create Default Config".to_string() on_click= |_| modal_action("my_modal_5","open") />
                                     </div>
                                     <Table
                                         table_style="font-mono".to_string()

@@ -1,15 +1,16 @@
+use super::utils::create_experiment;
+use crate::components::Button::Button::Button;
 use crate::components::{
     context_form::context_form::ContextForm, override_form::override_form::OverrideForm,
 };
 use crate::pages::ExperimentList::types::{
     DefaultConfig, Dimension, Variant, VariantType,
 };
-use super::utils::create_experiment;
 use leptos::*;
-use serde_json::{Value, Map};
-use wasm_bindgen::JsCast;
-use web_sys::{SubmitEvent, HtmlInputElement, MouseEvent};
+use serde_json::{Map, Value};
 use std::sync::RwLock;
+use wasm_bindgen::JsCast;
+use web_sys::{HtmlInputElement, MouseEvent, SubmitEvent};
 
 #[component]
 pub fn ExperimentForm<NF>(
@@ -18,10 +19,10 @@ pub fn ExperimentForm<NF>(
     variants: Vec<Variant>,
     dimensions: Vec<Dimension>,
     default_config: Vec<DefaultConfig>,
-    handle_submit: NF
+    handle_submit: NF,
 ) -> impl IntoView
 where
-    NF: Fn() + 'static + Clone
+    NF: Fn() + 'static + Clone,
 {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let (experiment_name, set_experiment_name) = create_signal(name);
@@ -57,7 +58,9 @@ where
 
         spawn_local({
             async move {
-                let result = create_experiment(f_context, f_variants, f_experiment_name, tenant).await;
+                let result =
+                    create_experiment(f_context, f_variants, f_experiment_name, tenant)
+                        .await;
 
                 match result {
                     Ok(value) => {
@@ -203,7 +206,7 @@ where
                     />
             </div>
             <div class="flex justify-end">
-                <button class="btn" on:click:undelegated=on_submit>Save</button>
+                <Button text="Submit".to_string() on_click = on_submit />
             </div>
         </div>
     }

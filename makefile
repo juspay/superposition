@@ -100,7 +100,7 @@ run:
 		sleep 0.5; \
 		done
 	# make setup
-	# cp .env.example .env
+	cp .env.example .env
 	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
 	make cac -e DOCKER_DNS=$(DOCKER_DNS)
 

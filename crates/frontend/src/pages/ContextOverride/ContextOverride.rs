@@ -6,14 +6,16 @@ use crate::components::context_form::context_form::ContextForm;
 use crate::components::override_form::override_form::OverrideForm;
 use crate::components::table::types::TableSettings;
 use crate::components::table::{table::Table, types::Column};
-use crate::components::Button::EditButton::EditButton;
+use crate::components::Button::Button::Button;
 use crate::pages::DefaultConfig::types::Config;
 // use leptos::spawn_local;
+use crate::utils::modal_action;
 use leptos::*;
 use leptos_router::use_query_map;
 use reqwest::{Error, StatusCode};
 use serde_json::{json, Map, Value};
-use web_sys::MouseEvent;
+use wasm_bindgen::JsCast;
+use web_sys::{HtmlDialogElement, MouseEvent};
 
 pub async fn fetch_config(tenant: String) -> Result<Config, String> {
     let client = reqwest::Client::new();
@@ -29,11 +31,9 @@ pub async fn fetch_config(tenant: String) -> Result<Config, String> {
 }
 
 #[component]
-fn ContextModalForm<NF>(
-    handle_change: NF
-) -> impl IntoView
+fn ContextModalForm<NF>(handle_change: NF) -> impl IntoView
 where
-    NF: Fn(Vec<(String, String, String)>) + 'static + Clone
+    NF: Fn(Vec<(String, String, String)>) + 'static + Clone,
 {
     let query = use_query_map();
 
@@ -160,11 +160,9 @@ pub async fn create_context(
 }
 
 #[component]
-fn OverrideModalForm<NF>(
-    handle_change: NF
-) -> impl IntoView
+fn OverrideModalForm<NF>(handle_change: NF) -> impl IntoView
 where
-    NF: Fn(Map<String, Value>) + 'static + Clone
+    NF: Fn(Map<String, Value>) + 'static + Clone,
 {
     let query = use_query_map();
 
@@ -292,7 +290,8 @@ fn format_condition(condition: &Value) -> String {
 
 #[component]
 fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
-    let (context_condition, set_context_condition) = create_signal::<Vec<(String, String, String)>>(vec![]);
+    let (context_condition, set_context_condition) =
+        create_signal::<Vec<(String, String, String)>>(vec![]);
     let (overrides, set_overrides) = create_signal::<Map<String, Value>>(Map::new());
 
     let handle_context_change = move |updated_ctx: Vec<(String, String, String)>| {
@@ -324,12 +323,7 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                     match result {
                         Ok(str) => {
                             handle_submit();
-                            // log!("Hi babe{str}");
-
-                            js_sys::eval(
-                                "document.getElementById('my_modal_5').close();",
-                            )
-                            .unwrap();
+                            modal_action("my_modal_5", "close")
                         }
                         Err(e) => {
                             if e.is_empty() {
@@ -363,13 +357,7 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                         <OverrideModalForm handle_change=handle_overrides_change/>
                     </div>
                     <div class="form-control mt-7">
-                        <button
-                            class="btn btn-primary shadow-md font-mono"
-                            on:click=on_submit
-                            // onclick="my_modal_5.close()"
-                        >
-                            Submit
-                        </button>
+                    <Button text="Submit".to_string() on_click = move |ev:MouseEvent| on_submit(ev) />
                     </div>
                     <div class="mt-7">
                         <p class="text-red-500">{move || error_message.get()}</p>
@@ -462,11 +450,7 @@ pub fn ContextOverride() -> impl IntoView {
         <div class="p-8">
             <div class="flex justify-between">
                 <h2 class="card-title">Overrides</h2>
-                <EditButton
-                    text="Create Overrides".to_string()
-                    modal= "my_modal_5".to_string()
-                    modalAction = "showModal()".to_string()
-                />
+                <Button text="Create Context Overrides".to_string() on_click= |_| modal_action("my_modal_5","open") />
             </div>
             <div class="space-y-6">
                 <ModalComponent handle_submit=Rc::new(move || config_data.refetch())/>
