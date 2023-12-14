@@ -238,7 +238,10 @@ fn FormComponent(
                         />
                     </div>
                     <div class="form-control mt-6">
-                    <Button text="Submit".to_string() on_click= |_| modal_action("my_modal_5","close") />
+                        <Button
+                            text="Submit".to_string()
+                            on_click=|_| modal_action("my_modal_5", "close")
+                        />
                     </div>
                 </form>
             </div>
@@ -294,11 +297,7 @@ pub fn Dimensions() -> impl IntoView {
                             _ => "0".to_string(),
                         };
                         view! {
-                            <Stat
-                                heading="Dimensions"
-                                icon="ri-ruler-2-fill"
-                                number={total_items}
-                            />
+                            <Stat heading="Dimensions" icon="ri-ruler-2-fill" number=total_items/>
                         }
                     }}
                     <ModalComponent
@@ -311,7 +310,10 @@ pub fn Dimensions() -> impl IntoView {
                     <div class="card-body">
                         <div class="flex justify-between mb-2">
                             <h2 class="card-title">Dimensions</h2>
-                            <Button text="Create Dimension".to_string() on_click= |_| modal_action("my_modal_5","open") />
+                            <Button
+                                text="Create Dimension".to_string()
+                                on_click=|_| modal_action("my_modal_5", "open")
+                            />
                         </div>
                         <div>
 

@@ -95,9 +95,7 @@ where
                         </div>
                     </div>
                 </div>
-                <Show
-                    when=move || overrides.get().len() == 0
-                >
+                <Show when=move || overrides.get().len() == 0>
                     <div class="p-4 text-gray-400 flex flex-col justify-center items-center">
                         <div>
                             <i class="ri-windy-line text-3xl"></i>
@@ -165,11 +163,11 @@ where
                 />
 
             </div>
-            <Show
-                when=move || is_standalone
-            >
+            <Show when=move || is_standalone>
                 <div class="flex justify-end">
-                    <button class="btn" on:click:undelegated=on_submit>Save</button>
+                    <button class="btn" on:click:undelegated=on_submit>
+                        Save
+                    </button>
                 </div>
             </Show>
         </div>

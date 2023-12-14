@@ -4,7 +4,10 @@ use serde_json::{Map, Value};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlInputElement, HtmlSelectElement, HtmlSpanElement, MouseEvent};
 
-use crate::{api::fetch_dimensions, components::context_form::context_form::ContextForm};
+use crate::{
+    api::fetch_dimensions,
+    components::{context_form::context_form::ContextForm, Button::Button::Button},
+};
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Config {
@@ -34,15 +37,66 @@ pub async fn fetch_config(tenant: String) -> Result<Config, String> {
 
 async fn resolve_config(tenant: String, context: String) -> Result<Value, String> {
     let client = reqwest::Client::new();
-    let url =
-        format!("http://localhost:8080/config/resolve?{context}&show_reasoning=true");
-    match client.get(url).header("x-tenant", tenant).send().await {
+    let url = format!("http://localhost:8080/config/resolve?{context}");
+    match client
+        .get(url)
+        .query(&[("show_reasoning", "true")])
+        .header("x-tenant", tenant)
+        .send()
+        .await
+    {
         Ok(response) => {
             let config = response.json().await.map_err(|e| e.to_string())?;
             Ok(config)
         }
         Err(e) => Err(e.to_string()),
     }
+}
+
+fn parse_conditions(input: String) -> Vec<(String, String, String)> {
+    let mut conditions = Vec::new();
+    let operators = vec!["==", "in"];
+
+    // Split the string by "&&" and iterate over each condition
+    for condition in input.split("&&") {
+        let mut parts = Vec::new();
+        let mut operator_found = "";
+
+        // Check for each operator
+        for operator in &operators {
+            if condition.contains(operator) {
+                operator_found = operator;
+                parts = condition.split(operator).map(|s| s.trim()).collect();
+
+                // TODO: add this when context update is enabled
+                if parts.len() == 2 && operator == &"in" {
+                    parts.swap(0, 1);
+                }
+
+                break;
+            }
+        }
+
+        if parts.len() == 2 {
+            let mut key = parts[0].to_string();
+            let mut op = operator_found.to_string();
+            let mut val = parts[1].to_string();
+            // Add a space after key
+            key.push(' ');
+            if op == "==".to_string() {
+                val = val.trim_matches('"').to_string();
+                op = "is".to_string();
+            } else {
+                val = val.trim_matches('"').to_string();
+                op = "has".to_string();
+            }
+            op.push(' ');
+
+            conditions.push((key, op, val));
+        }
+    }
+
+    conditions
 }
 
 pub fn extract_and_format(condition: &Value) -> String {
@@ -59,7 +113,7 @@ pub fn extract_and_format(condition: &Value) -> String {
             formatted_conditions.push(format_condition(cond));
         }
 
-        formatted_conditions.join(" and ")
+        formatted_conditions.join(" && ")
     } else {
         // Handling single conditions
         format_condition(condition)
@@ -118,6 +172,7 @@ fn gen_name_id(s0: &String, s1: &String, s2: &String) -> String {
 #[component]
 pub fn home() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    // let (config_display_rs, config_display_ws) = create_signal(Map::new());
     let config_data = create_blocking_resource(
         move || tenant_rs.get(),
         move |tenant| fetch_config(tenant),
@@ -162,22 +217,17 @@ pub fn home() -> impl IntoView {
                     item_one.dyn_ref::<HtmlSpanElement>().unwrap(),
                     item_two.dyn_ref::<HtmlSpanElement>().unwrap(),
                 );
-                let (name, value) = (
-                    config_name_element
-                        .inner_html()
-                        .replace("<span class=\"text-green-600\">", "")
-                        .replace("<span class=\"text-orange-600\">", "")
-                        .replace("</span>", ""),
-                    config_value_element
-                        .inner_html()
-                        .replace("<span class=\"text-green-600\">", "")
-                        .replace("<span class=\"text-orange-600\">", "")
-                        .replace("</span>", ""),
+                let _ = config_name_element.class_list().add_2("text-black", "font-bold");
+                let _ = config_name_element.class_list().remove_1("text-gray-600");
+                let _ = config_value_element.class_list().add_2("text-black", "font-bold");
+                let _ = config_value_element
+                    .class_list()
+                    .remove_1("text-gray-600");
+                logging::log!(
+                    "config name after replace {} and value {}",
+                    config_name_element.to_string(),
+                    config_value_element.to_string()
                 );
-
-                logging::log!("config name after replace {} and value {}", name, value);
-                config_name_element.set_inner_html(format!("<span class=\"text-green-600\">{}</span>", name).as_str());
-                config_value_element.set_inner_html(format!("<span class=\"text-green-600\">{}</span>", value).as_str());
             }
         }
     };
@@ -234,28 +284,10 @@ pub fn home() -> impl IntoView {
                 config_name_elements.item(i).unwrap(),
                 config_value_elements.item(i).unwrap(),
             );
-            config_name_element.set_inner_html(
-                format!(
-                    "<span class=\"text-orange-600\">{}</span>",
-                    config_name_element
-                        .inner_html()
-                        .replace("<span class=\"text-green-600\">", "")
-                        .replace("<span class=\"text-orange-600\">", "")
-                        .replace("</span>", "")
-                )
-                .as_str(),
-            );
-            config_value_element.set_inner_html(
-                format!(
-                    "<span class=\"text-orange-600\">{}</span>",
-                    config_value_element
-                        .inner_html()
-                        .replace("<span class=\"text-green-600\">", "")
-                        .replace("<span class=\"text-orange-600\">", "")
-                        .replace("</span>", ""),
-                )
-                .as_str(),
-            );
+            let _ = config_name_element.class_list().remove_2("text-black", "font-bold");
+            let _ = config_name_element.class_list().add_1("text-gray-600");
+            let _ = config_value_element.class_list().remove_2("text-black", "font-bold");
+            let _ = config_value_element.class_list().add_1("text-gray-600");
         }
         logging::log!("query vector {:#?}", query_vector);
         // resolve the context and get the config that would apply
@@ -269,54 +301,146 @@ pub fn home() -> impl IntoView {
             logging::log!("resolved config {:#?}", config);
             // unstrike those that we want to show the user
             // if metadata field is found, unstrike only that override
-            if let Some(metadata) = config.remove("metadata") {
-                for applied in metadata.as_array().unwrap_or(&vec![]).iter() {
-                    logging::log!("applied config {:#?}", applied);
-                    applied["override"]
-                        .as_array()
-                        .unwrap_or(&vec![])
-                        .iter()
-                        .for_each(|override_id| {
-                            logging::log!("unstrike {:#?}", override_id);
-                            unstrike(&override_id.as_str().unwrap().to_string(), &config)
-                        });
+            match config.remove("metadata") {
+                Some(Value::Array(metadata)) => {
+                    if metadata.len() == 0 {
+                        logging::log!("unstrike default config");
+                        unstrike(&String::new(), &config);
+                    }
+                    for applied in metadata.iter() {
+                        logging::log!("applied config {:#?}", applied);
+                        applied["override"]
+                            .as_array()
+                            .unwrap_or(&vec![])
+                            .iter()
+                            .for_each(|override_id| {
+                                logging::log!("unstrike {:#?}", override_id);
+                                unstrike(
+                                    &override_id.as_str().unwrap().to_string(),
+                                    &config,
+                                )
+                            });
+                    }
                 }
-            } else {
-                unstrike(&String::from(""), &config);
+                _ => {
+                    logging::log!(
+                        "no metadata recieved, default config is the config to be used"
+                    );
+                }
             }
+            logging::log!("unstrike default config if needed");
+            unstrike(&String::new(), &config);
+
+            let resolution_card = document()
+                .get_element_by_id("resolved_table_body")
+                .expect("resolve table card not found");
+
+            let mut table_rows = String::new();
+            for (key, value) in config.iter() {
+                table_rows.push_str(
+                    format!(
+                        "<tr><td>{key}</td><td>{}</td></tr>",
+                        value.as_str().unwrap()
+                    )
+                    .as_str(),
+                )
+            }
+            resolution_card.set_inner_html(&table_rows);
         });
     };
     view! {
         <div class="flex w-full flex-row mt-5 justify-evenly">
-            <Suspense fallback=move || {
-                view! { <p>"Loading..."</p> }
-            }>
-                {move || {
-                    dimension_resource
-                        .with(|dimension| {
-                            view! {
-                                <div class="card m-10 bg-base w-4/12">
-                                    <div class="card-body">
-                                        <h2 class="card-title">Resolve Configs</h2>
+            <div class="card mr-5 ml-5 mt-6 h-4/5 shadow bg-base-100 w-4/12">
+                <Suspense fallback=move || {
+                    view! { <p>"Loading..."</p> }
+                }>
+                    {move || {
+                        dimension_resource
+                            .with(|dimension| {
+                                view! {
+                                    <div class="card m-2 bg-base-100">
+                                        <div class="card-body">
+                                            <h2 class="card-title">Resolve Configs</h2>
 
-                                        <ContextForm
-                                            dimensions=dimension.to_owned().unwrap_or(vec![])
-                                            context=vec![]
-                                            is_standalone=true
-                                            handle_change=|_| ()
-                                        />
-                                        <div class="card-actions justify-end">
-                                            <button class="btn btn-primary" on:click=resolve_click>
-                                                Resolve
-                                            </button>
+                                            <ContextForm
+                                                dimensions=dimension.to_owned().unwrap_or(vec![])
+                                                context=vec![]
+                                                is_standalone=false
+                                                handle_change=|_| ()
+                                            />
+                                            <div class="card-actions justify-end">
+                                                <div class="form-control">
+                                                    <label class="cursor-pointer label">
+                                                    <span class="label-text ml-1">Display All Configs</span>
+                                                    <input type="checkbox" class="toggle bg-purple-600" checked />
+                                                    </label>
+                                                </div>
+                                                <Button text="Resolve".to_string() on_click=resolve_click/>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            }
-                        })
-                }}
+                                }
+                            })
+                    }}
 
-            </Suspense>
+                </Suspense>
+                // config suspense
+                <Suspense fallback=move || {
+                    view! { <p>"Loading..."</p> }
+                }>
+
+                    {config_data
+                        .with(move |conf| {
+                            match conf {
+                                Some(Ok(config)) => {
+                                    let default_configs = config.default_configs.clone();
+                                    view! {
+                                        <div class="card m-2 bg-base-100">
+                                            <div class="card-body">
+                                                <h2 class="card-title">Resolved Config</h2>
+                                                <table class="table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Config Key</th>
+                                                            <th>Value</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="resolved_table_body">
+                                                        <For
+                                                            each=move || { default_configs.clone().into_iter() }
+
+                                                            key=|(key, value)| format!("{key}-{value}")
+                                                            children=move |(config, value)| {
+                                                                view! {
+                                                                    <tr>
+                                                                        <td>{config}</td>
+                                                                        <td>{value.as_str().unwrap().to_string()}</td>
+                                                                    </tr>
+                                                                }
+                                                            }
+                                                        />
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                Some(Err(error)) => {
+                                    view! {
+                                        <div class="error">
+                                            {"Failed to fetch config data: "} {error}
+                                        </div>
+                                    }
+                                }
+                                None => {
+                                    view! { <div class="error">{"No config data fetched"}</div> }
+                                }
+                            }
+                        })}
+
+                </Suspense>
+            </div>
             <Suspense fallback=move || {
                 view! { <p>"Loading (Suspense Fallback)..."</p> }
             }>
@@ -325,7 +449,7 @@ pub fn home() -> impl IntoView {
                     .with(move |result| {
                         match result {
                             Some(Ok(config)) => {
-                                let rows = |k: &String, v: &Value| {
+                                let rows = |k: &String, v: &Value, striked: bool| {
                                     let mut view_vector = vec![];
                                     println!("{:?}", v);
                                     let default_iter = vec![(k.clone(), v.clone())];
@@ -343,20 +467,14 @@ pub fn home() -> impl IntoView {
                                         view_vector
                                             .push(
                                                 view! {
-                                                    <tr>
-                                                        <td>
-                                                            <span name=format!("{unique_name}-1") class="config-name">
-                                                                {key}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            <span name=format!("{unique_name}-2") class="config-value">
-                                                                {value}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                }
-                                                    .into_view(),
+                                                    < tr > < td > < span name = format!("{unique_name}-1") class
+                                                    = "config-name" class : text-black = { ! striked } class : font-bold = { !striked }
+                                                    class : text - gray - 600 = { striked } > { key } </ span
+                                                    > </ td > < td > < span name = format!("{unique_name}-2")
+                                                    class = "config-value" class : text-black = { !
+                                                    striked } class : font-bold = { !striked } class : text - gray - 600 = { striked } > {
+                                                    value } </ span > </ td > </ tr >
+                                                },
                                             )
                                     }
                                     view_vector
@@ -365,7 +483,7 @@ pub fn home() -> impl IntoView {
                                     .contexts
                                     .iter()
                                     .map(|context| {
-                                        let condition = extract_and_format(&context.condition);
+                                        let condition = parse_conditions(extract_and_format(&context.condition));
                                         let rows: Vec<_> = context
                                             .override_with_keys
                                             .iter()
@@ -373,16 +491,31 @@ pub fn home() -> impl IntoView {
                                                 let o = config.overrides.get(key);
                                                 if o.is_some() { Some((key, o.unwrap())) } else { None }
                                             })
-                                            .map(|(k, v)| { rows(&k, &v) })
+                                            .map(|(k, v)| { rows(&k, &v, true) })
                                             .collect();
                                         view! {
                                             <div class="card bg-base-100 shadow m-6">
                                                 <div class="card-body">
                                                     <h2 class="card-title">
-                                                        "Condition: "
-                                                        <div class="badge badge-lg badge-primary p-5">
-                                                            {&condition}
-                                                        </div>
+                                                        {condition
+                                                            .iter()
+                                                            .map(|(dim, op, val)| {
+                                                                view! {
+                                                                    <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs ring-1 ring-inset ring-purple-700/10 shadow-md gap-x-2">
+                                                                        <span class="font-mono font-medium context_condition text-gray-500">
+                                                                            {dim}
+                                                                        </span>
+                                                                        <span class="font-mono font-medium text-gray-650 context_condition ">
+                                                                            {op}
+                                                                        </span>
+                                                                        <span class="font-mono font-semibold context_condition">
+                                                                            {val}
+                                                                        </span>
+                                                                    </span>
+                                                                }
+                                                            })
+                                                            .collect_view()}
+
                                                     </h2>
                                                     <table class="table mt-10">
                                                         <thead>
@@ -406,7 +539,7 @@ pub fn home() -> impl IntoView {
                                 let default_config: Vec<_> = config
                                     .default_configs
                                     .iter()
-                                    .map(|(k, v)| { rows(&k, &v) })
+                                    .map(|(k, v)| { rows(&k, &v, false) })
                                     .collect();
                                 vec![
                                     view! {
