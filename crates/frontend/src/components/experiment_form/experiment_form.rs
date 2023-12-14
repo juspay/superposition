@@ -205,7 +205,7 @@ where
 
             </div>
             <div class="flex justify-end">
-                <Button text="Submit".to_string() on_click = on_submit />
+                <Button text="Submit".to_string() on_click=on_submit/>
             </div>
         </div>
     }

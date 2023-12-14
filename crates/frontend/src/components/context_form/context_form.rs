@@ -213,11 +213,11 @@ where
 
                 </div>
             </div>
-            <Show
-                when=move || is_standalone
-            >
+            <Show when=move || is_standalone>
                 <div class="flex justify-end">
-                    <button class="btn" on:click:undelegated=on_click>Save</button>
+                    <button class="btn" on:click:undelegated=on_click>
+                        Save
+                    </button>
                 </div>
             </Show>
         </div>

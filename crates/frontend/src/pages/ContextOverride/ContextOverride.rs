@@ -237,7 +237,7 @@ pub fn extract_and_format(condition: &Value) -> String {
             formatted_conditions.push(format_condition(cond));
         }
 
-        formatted_conditions.join(" and ")
+        formatted_conditions.join(" && ")
     } else {
         // Handling single conditions
         format_condition(condition)
@@ -348,9 +348,7 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                         <i class="ri-close-fill"></i>
                     </button>
                 </form>
-                <form
-                    class="form-control w-full mt-8 bg-white text-gray-700 font-mono"
-                >
+                <form class="form-control w-full mt-8 bg-white text-gray-700 font-mono">
                     <div>
                         <ContextModalForm handle_change=handle_context_change/>
                     </div>
@@ -358,7 +356,10 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                         <OverrideModalForm handle_change=handle_overrides_change/>
                     </div>
                     <div class="form-control mt-7">
-                    <Button text="Submit".to_string() on_click = move |ev:MouseEvent| on_submit(ev) />
+                        <Button
+                            text="Submit".to_string()
+                            on_click=move |ev: MouseEvent| on_submit(ev)
+                        />
                     </div>
                     <div class="mt-7">
                         <p class="text-red-500">{move || error_message.get()}</p>
@@ -374,7 +375,7 @@ fn parse_conditions(input: String) -> Vec<(String, String, String)> {
     let operators = vec!["==", "in"];
 
     // Split the string by "and" and iterate over each condition
-    for condition in input.split("and") {
+    for condition in input.split("&&") {
         let mut parts = Vec::new();
         let mut operator_found = "";
 
@@ -451,7 +452,10 @@ pub fn ContextOverride() -> impl IntoView {
         <div class="p-8">
             <div class="flex justify-between">
                 <h2 class="card-title">Overrides</h2>
-                <Button text="Create Context Overrides".to_string() on_click= |_| modal_action("my_modal_5","open") />
+                <Button
+                    text="Create Context Overrides".to_string()
+                    on_click=|_| modal_action("my_modal_5", "open")
+                />
             </div>
             <div class="space-y-6">
                 <ModalComponent handle_submit=Rc::new(move || config_data.refetch())/>
@@ -494,9 +498,6 @@ pub fn ContextOverride() -> impl IntoView {
                                             context_views
                                                 .push(
                                                     view! {
-                                                        // let mut new_ctx: Vec<(String, String, String)> = vec![];
-                                                        // new_ctx.extend(ctx_values.clone());
-
                                                         <div class="rounded-lg shadow-md bg-white dark:bg-gray-800 p-6 shadow-md">
 
                                                             <div class="flex justify-between">
@@ -523,7 +524,8 @@ pub fn ContextOverride() -> impl IntoView {
                                                                                 </span>
                                                                             }
                                                                         })
-                                                                        .collect::<Vec<_>>()}
+                                                                        .collect_view()}
+
                                                                 </div>
                                                                 <button class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                                                                     <i class="ri-edit-line text-blue-500"></i>
@@ -550,54 +552,13 @@ pub fn ContextOverride() -> impl IntoView {
                                     Some(Err(error)) => {
                                         vec![
                                             view! {
-                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
-                                                // new_ctx.extend(ctx_values.clone());
-
-                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
-                                                // new_ctx.extend(ctx_values.clone());
-
-                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
-                                                // new_ctx.extend(ctx_values.clone());
-
-                                                // ctx.set(new_ctx);
-
                                                 <div class="text-red-500">
                                                     {"Failed to fetch config data: "} {error}
                                                 </div>
                                             },
                                         ]
                                     }
-                                    None => {
-                                        vec![
-                                            view! {
-                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
-                                                // new_ctx.extend(ctx_values.clone());
-
-                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
-                                                // new_ctx.extend(ctx_values.clone());
-
-                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
-                                                // new_ctx.extend(ctx_values.clone());
-
-                                                // ctx.set(new_ctx);
-
-                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
-                                                // new_ctx.extend(ctx_values.clone());
-
-                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
-                                                // new_ctx.extend(ctx_values.clone());
-
-                                                // ctx.set(new_ctx);
-
-                                                // let mut new_ctx: Vec<(String, String, String)> = vec![];
-                                                // new_ctx.extend(ctx_values.clone());
-
-                                                // ctx.set(new_ctx);
-
-                                                <div>Loading....</div>
-                                            },
-                                        ]
-                                    }
+                                    None => vec![view! { <div>Loading....</div> }],
                                 }
                             })
                     }}

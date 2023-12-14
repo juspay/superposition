@@ -419,12 +419,12 @@ fn add_dialogs(
                     <h3 class="font-bold text-lg">Edit Experiment</h3>
                     // <ExperimentForm
                     // name=experiment_rs.get().name
-                    <div class="modal-action">// context=vec![]
+                    // context=vec![]
                     // variants=vec![]
                     // dimensions=dimensions.get().unwrap_or(vec![])
                     // default_config=default_config.get().unwrap_or(vec![])
                     // />
-                    </div>
+                    <div class="modal-action"></div>
                 </div>
             </dialog>
         }
