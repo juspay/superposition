@@ -329,7 +329,6 @@ pub fn Dimensions() -> impl IntoView {
     let edit_signal = create_rw_signal(true);
     provide_context(edit_signal);
 
-
     let dimensions = create_blocking_resource(
         move || {},
         |_value| async move {
@@ -392,9 +391,6 @@ pub fn Dimensions() -> impl IntoView {
                             {
                                 move || {
                                 let value = dimensions.get();
-                                let settings = TableSettings {
-                                    redirect_prefix: None,
-                                };
                                 match value {
                                     Some(v) => {
                                         let data = v
@@ -415,7 +411,6 @@ pub fn Dimensions() -> impl IntoView {
                                                 rows=data
                                                 key_column="id".to_string()
                                                 columns=table_columns.get()
-                                                settings=settings
                                             />
                                         }
                                     }

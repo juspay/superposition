@@ -2,9 +2,7 @@ use crate::pages::ExperimentList::types::Dimension;
 use leptos::*;
 use std::cmp;
 use std::collections::HashSet;
-use wasm_bindgen::JsCast;
-use web_sys::{HtmlInputElement, HtmlSelectElement, SubmitEvent, MouseEvent};
-use serde_json::json;
+use web_sys::MouseEvent;
 
 #[component]
 pub fn ContextForm<NF>(
@@ -14,26 +12,12 @@ pub fn ContextForm<NF>(
     context: Vec<(String, String, String)>,
 ) -> impl IntoView
 where
-    NF: Fn(Vec<(String, String, String)>) + 'static
+    NF: Fn(Vec<(String, String, String)>) + 'static,
 {
     let has_dimensions = dimensions.len() > 0;
-    let (default_condition, default_used_dimension) = if context.len() == 0 && has_dimensions {
-        let dimension = dimensions[0].dimension.to_string();
-        (
-            vec![(dimension.to_string(), "".to_string(), "".to_string())],
-            vec![dimension.to_string()]
-        )
-    } else {
-        (
-            context.clone(),
-            context.into_iter().map(|item| item.0.to_string()).collect::<Vec<String>>()
-        )
-    };
 
-    let (context, set_context) = create_signal(default_condition);
-    let (used_dimensions, set_used_dimensions) = create_signal(HashSet::from_iter(default_used_dimension));
-    let total_dimensions = dimensions.len();
-
+    let (context, set_context) = create_signal(context.clone());
+    let (used_dimensions, set_used_dimensions) = create_signal(HashSet::new());
 
     let last_idx = create_memo(move |_| {
         let len = context.get().len();
@@ -62,7 +46,7 @@ where
                         <div class="dropdown dropdown-left">
                             <label tabindex="0" class="btn btn-outline btn-sm text-xs m-1">
                                 <i class="ri-add-line"></i>
-                                Add Dimension
+                                Add Context
                             </label>
                             <ul
                                 tabindex="0"
@@ -111,6 +95,16 @@ where
                         </div>
                     </div>
                 </div>
+                <Show when=move || context.get().len() == 0>
+                    <div class="p-4 text-gray-400 flex flex-col justify-center items-center">
+                        <div>
+                            <i class="ri-add-circle-line text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="text-semibold text-sm">Add Context</span>
+                        </div>
+                    </div>
+                </Show>
                 <div class="p-4">
                     <For
                         each=move || {
@@ -147,17 +141,14 @@ where
                                             <option disabled selected>
                                                 Pick one
                                             </option>
-                                            <option value="==">==</option>
-                                            <option value="!=">!=</option>
-                                            <option value="IN">IN</option>
+                                            <option value="==">"IS"</option>
+                                            <option value="IN">"HAS"</option>
                                         </select>
 
                                     </div>
                                     <div class="form-control">
-                                        <label class="label capitalize font-mono text-sm">
-                                            <span class="label-text" name="context-dimension-name">
-                                                {dimension_label}
-                                            </span>
+                                        <label class="label font-mono text-sm">
+                                            <span class="label-text" name="context-dimension-name">{dimension_label}</span>
                                         </label>
                                         <div class="flex gap-x-6 items-center">
                                             <input

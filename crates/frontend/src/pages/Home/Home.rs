@@ -219,12 +219,14 @@ pub fn home() -> impl IntoView {
                     item_one.dyn_ref::<HtmlSpanElement>().unwrap(),
                     item_two.dyn_ref::<HtmlSpanElement>().unwrap(),
                 );
-                let _ = config_name_element.class_list().add_2("text-black", "font-bold");
+                let _ = config_name_element
+                    .class_list()
+                    .add_2("text-black", "font-bold");
                 let _ = config_name_element.class_list().remove_1("text-gray-300");
-                let _ = config_value_element.class_list().add_2("text-black", "font-bold");
                 let _ = config_value_element
                     .class_list()
-                    .remove_1("text-gray-300");
+                    .add_2("text-black", "font-bold");
+                let _ = config_value_element.class_list().remove_1("text-gray-300");
                 logging::log!(
                     "config name after replace {} and value {}",
                     config_name_element.to_string(),
@@ -286,9 +288,13 @@ pub fn home() -> impl IntoView {
                 config_name_elements.item(i).unwrap(),
                 config_value_elements.item(i).unwrap(),
             );
-            let _ = config_name_element.class_list().remove_2("text-black", "font-bold");
+            let _ = config_name_element
+                .class_list()
+                .remove_2("text-black", "font-bold");
             let _ = config_name_element.class_list().add_1("text-gray-300");
-            let _ = config_value_element.class_list().remove_2("text-black", "font-bold");
+            let _ = config_value_element
+                .class_list()
+                .remove_2("text-black", "font-bold");
             let _ = config_value_element.class_list().add_1("text-gray-300");
         }
         logging::log!("query vector {:#?}", query_vector);

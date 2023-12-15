@@ -10,11 +10,9 @@ use crate::{
     api::{fetch_default_config, fetch_dimensions},
     components::{
         experiment_form::experiment_form::ExperimentForm,
-        table::{
-            table::Table,
-            types::{Column, TableSettings},
-        },
-    }, pages::Home::Home::extract_and_format,
+        table::{table::Table, types::Column},
+    },
+    pages::Home::Home::extract_and_format,
 };
 
 #[derive(
@@ -305,7 +303,7 @@ fn experiment_detail_view(
                                                 {format!("{}", dimension.unwrap())}
                                             </div>
                                             <div class="stat-value text-base">
-                                                {format!("{}", &value.unwrap()[1..value.unwrap().chars().count()])}
+                                                {format!("{}", &value.unwrap()[1..value.unwrap().chars().count() - 1])}
                                             </div>
                                         </div>
                                     },
@@ -323,9 +321,6 @@ fn experiment_detail_view(
                             let exp = move || experiment.get();
                             let rows = gen_variant_rows(&exp().variants).unwrap();
                             let mut columns: Vec<Column> = Vec::new();
-                            let settings = TableSettings {
-                                redirect_prefix: None,
-                            };
                             columns.push(Column::default("Variant".into()));
                             for okey in exp().override_keys.as_array().unwrap().into_iter() {
                                 columns.push(Column::default(okey.as_str().unwrap().into()));
@@ -336,7 +331,6 @@ fn experiment_detail_view(
                                     rows=rows
                                     key_column="overrides".to_string()
                                     columns=columns
-                                    settings=settings
                                 />
                             }
                         }}

@@ -1,14 +1,14 @@
-use serde_json::{json, Value};
-use crate::pages::ExperimentList::types::Variant;
 use super::types::ExperimentCreateRequest;
 use crate::components::context_form::utils::construct_context;
+use crate::pages::ExperimentList::types::Variant;
 use reqwest::StatusCode;
+use serde_json::{json, Value};
 
 pub async fn create_experiment(
     conditions: Vec<(String, String, String)>,
     variants: Vec<Variant>,
     name: String,
-    tenant: String
+    tenant: String,
 ) -> Result<String, String> {
     let payload = ExperimentCreateRequest {
         name: name,
