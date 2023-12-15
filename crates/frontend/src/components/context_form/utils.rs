@@ -1,9 +1,7 @@
-use serde_json::{json, Value, Map};
 use reqwest::{Error, StatusCode};
+use serde_json::{json, Map, Value};
 
-pub fn construct_context(
-    conditions: Vec<(String, String, String)>,
-) -> Value {
+pub fn construct_context(conditions: Vec<(String, String, String)>) -> Value {
     let context = if conditions.len() == 1 {
         // Single condition
         let (variable, operator, value) = &conditions[0];

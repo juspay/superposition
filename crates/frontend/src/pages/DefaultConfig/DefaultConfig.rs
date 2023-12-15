@@ -1,10 +1,7 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::components::table::{
-    table::Table,
-    types::{Column, TableSettings},
-};
+use crate::components::table::{table::Table, types::Column};
 
 use crate::components::stat::stat::Stat;
 use crate::components::Button::Button::Button;
@@ -191,7 +188,7 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
 
     view! {
         <form
-            class="form-control w-full overflow-auto space-y-4 bg-white text-gray-700 font-mono"
+            class="form-control w-full space-y-4 bg-white text-gray-700 font-mono"
             on:submit=on_submit
         >
             <div class="form-control">
@@ -317,7 +314,8 @@ fn custom_formatter(_value: &str, row: &Map<String, Value>) -> View {
         js_sys::eval("document.getElementById('my_modal_5').showModal();").unwrap();
     };
 
-    let edit_icon: HtmlElement<html::I> = view! { <i class="ri-pencil-line ri-xl text-blue-500"></i> };
+    let edit_icon: HtmlElement<html::I> =
+        view! { <i class="ri-pencil-line ri-xl text-blue-500 cursor-pointer"></i> };
 
     view! { <span on:click = edit_click_handler>{edit_icon}</span> }.into_view()
 }
@@ -375,9 +373,6 @@ pub fn DefaultConfig() -> impl IntoView {
                     move || {
                         let default_config = default_config_resource.get().unwrap_or(vec![]);
                         let total_default_config_keys = default_config.len().to_string();
-                        let table_settings = TableSettings {
-                            redirect_prefix: None
-                        };
 
                         let edit_signal = edit_signal.clone();
 
@@ -416,7 +411,6 @@ pub fn DefaultConfig() -> impl IntoView {
                                         rows=table_rows
                                         key_column="id".to_string()
                                         columns=table_columns.get()
-                                        settings=table_settings
                                     />
                                 </div>
                             </div>

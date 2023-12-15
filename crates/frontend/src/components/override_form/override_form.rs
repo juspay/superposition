@@ -1,34 +1,22 @@
 use crate::pages::ExperimentList::types::DefaultConfig;
 use leptos::*;
-use serde_json::{Map, Value, json};
+use serde_json::{json, Map, Value};
 use std::collections::HashSet;
-use wasm_bindgen::JsCast;
-use web_sys::{HtmlInputElement, HtmlSelectElement, SubmitEvent, MouseEvent};
+use web_sys::MouseEvent;
 
 #[component]
 pub fn OverrideForm<NF>(
     overrides: Map<String, Value>,
     default_config: Vec<DefaultConfig>,
     handle_change: NF,
-    is_standalone: bool
+    is_standalone: bool,
 ) -> impl IntoView
 where
-    NF: Fn(Map<String, Value>) + 'static
+    NF: Fn(Map<String, Value>) + 'static,
 {
     let has_default_config = default_config.len() != 0;
-    let (default_overrides, default_used_config_keys): (Map<String, Value>, Vec<String>) = if overrides.len() == 0 && has_default_config {
-        (
-            Map::from_iter([(default_config[0].key.to_string(), json!(""))]),
-            vec![default_config[0].key.to_string()]
-        )
-    } else {
-        (
-            overrides.clone(),
-            overrides.keys().map(String::from).collect::<Vec<String>>()
-        )
-    };
-    let (overrides, set_overrides) = create_signal(default_overrides);
-    let (used_config_keys, set_used_config_keys) = create_signal(HashSet::from_iter(default_used_config_keys));
+    let (overrides, set_overrides) = create_signal(overrides.clone());
+    let (used_config_keys, set_used_config_keys) = create_signal(HashSet::new());
 
     let on_submit = move |event: MouseEvent| {
         event.prevent_default();
@@ -45,13 +33,13 @@ where
             <div class="space-y-4">
                 <div class="flex items-center justify-between gap-4">
                     <label class="label">
-                        <span class="label-text font-semibold text-base">Override</span>
+                        <span class="label-text font-semibold text-base">Overrides</span>
                     </label>
                     <div>
                         <div class="dropdown dropdown-left">
                             <label tabindex="0" class="btn btn-outline btn-sm text-xs m-1">
                                 <i class="ri-add-line"></i>
-                                Add Config Key
+                                Add Override
                             </label>
                             <ul
                                 tabindex="0"
@@ -98,10 +86,10 @@ where
                 <Show when=move || overrides.get().len() == 0>
                     <div class="p-4 text-gray-400 flex flex-col justify-center items-center">
                         <div>
-                            <i class="ri-windy-line text-3xl"></i>
+                            <i class="ri-add-circle-line text-xl"></i>
                         </div>
                         <div>
-                            <span class="text-semibold">Add config keys</span>
+                            <span class="text-semibold text-sm">Add Override</span>
                         </div>
                     </div>
                 </Show>

@@ -1,6 +1,6 @@
 use leptos::*;
 
-use crate::pages::ExperimentList::types::{Dimension, DefaultConfig};
+use crate::pages::ExperimentList::types::{DefaultConfig, Dimension};
 
 // #[derive(Debug, Serialize, Deserialize, Clone)]
 // pub struct Dimension {
@@ -46,7 +46,9 @@ pub async fn fetch_default_config(tenant: String) -> Result<Vec<DefaultConfig>, 
     }
 }
 
-pub fn dimension_resource(tenant: ReadSignal<String>) -> Resource<String, Vec<Dimension>> {
+pub fn dimension_resource(
+    tenant: ReadSignal<String>,
+) -> Resource<String, Vec<Dimension>> {
     create_blocking_resource(
         move || tenant.get(),
         |tenant| async {
@@ -58,7 +60,9 @@ pub fn dimension_resource(tenant: ReadSignal<String>) -> Resource<String, Vec<Di
     )
 }
 
-pub fn default_config_resource(tenant: ReadSignal<String>) -> Resource<String, Vec<DefaultConfig>> {
+pub fn default_config_resource(
+    tenant: ReadSignal<String>,
+) -> Resource<String, Vec<DefaultConfig>> {
     create_blocking_resource(
         move || tenant.get(),
         |tenant| async {

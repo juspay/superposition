@@ -1,8 +1,5 @@
-use crate::components::table::types::TableSettings;
-
 use super::types::Column;
 use leptos::*;
-use leptos_router::use_navigate;
 use serde_json::{json, Map, Value};
 
 fn generate_table_row_str(row: &Value) -> String {
@@ -26,9 +23,7 @@ pub fn Table(
     table_style: String,
     columns: Vec<Column>,
     rows: Vec<Map<String, Value>>,
-    settings: TableSettings,
 ) -> impl IntoView {
-    let (redirect_info, _) = create_signal(settings.redirect_prefix);
     view! {
         <div class="overflow-x-auto">
             <table class="table table-zebra">
@@ -39,7 +34,7 @@ pub fn Table(
                         {columns
                             .iter()
                             .filter(|column| !column.hidden)
-                            .map(|column| view! { <th class="uppercase">{&column.name}</th> })
+                            .map(|column| view! { <th class="uppercase">{&column.name.replace("_", " ")}</th> })
                             .collect_view()}
 
                     </tr>
@@ -51,34 +46,13 @@ pub fn Table(
                         .enumerate()
                         .map(|(index, row)| {
                             let row_id = row
-                                .get("id")
+                                .get(&key_column)
                                 .unwrap_or(&json!(""))
                                 .as_str()
                                 .unwrap()
                                 .to_string();
                             view! {
-                                <tr
-                                    on:click=move |_| {
-                                        let redirect_info = redirect_info.get();
-                                        if redirect_info.is_some() {
-                                            let prefix = redirect_info.unwrap();
-                                            let nav = use_navigate();
-                                            nav(
-                                                format!("{prefix}/{row_id}").as_str(),
-                                                Default::default(),
-                                            );
-                                        }
-                                    }
-
-                                    style:cursor=move || {
-                                        if redirect_info.get().is_some() {
-                                            "pointer"
-                                        } else {
-                                            "default"
-                                        }
-                                    }
-                                >
-
+                                <tr id={row_id}>
                                     <th>{index + 1}</th>
 
                                     {columns

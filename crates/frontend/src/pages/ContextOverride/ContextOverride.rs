@@ -1,21 +1,19 @@
-use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::api::{fetch_dimensions, fetch_default_config};
+use crate::api::{fetch_default_config, fetch_dimensions};
 use crate::components::context_form::context_form::ContextForm;
 use crate::components::override_form::override_form::OverrideForm;
-use crate::components::table::types::TableSettings;
 use crate::components::table::{table::Table, types::Column};
 use crate::components::Button::Button::Button;
 use crate::pages::DefaultConfig::types::Config;
 // use leptos::spawn_local;
+use crate::components::condition_pills::condition_pills::ConditionPills;
 use crate::utils::modal_action;
 use leptos::*;
 use leptos_router::use_query_map;
-use reqwest::{Error, StatusCode};
+use reqwest::StatusCode;
 use serde_json::{json, Map, Value};
-use wasm_bindgen::JsCast;
-use web_sys::{HtmlDialogElement, MouseEvent};
+use web_sys::MouseEvent;
 
 pub async fn fetch_config(tenant: String) -> Result<Config, String> {
     let client = reqwest::Client::new();
@@ -469,14 +467,9 @@ pub fn ContextOverride() -> impl IntoView {
                                 match result {
                                     Some(Ok(config)) => {
                                         let mut contexts: Vec<Map<String, Value>> = Vec::new();
-                                        let settings = TableSettings {
-                                            redirect_prefix: None,
-                                        };
                                         let mut context_views = Vec::new();
                                         let mut override_signal = Map::new();
                                         for context in config.contexts.iter() {
-                                            let condition = extract_and_format(&context.condition);
-                                            let ctx_values = parse_conditions(condition.clone());
                                             for key in context.override_with_keys.iter() {
                                                 let mut map = Map::new();
                                                 let ovr = config.overrides.get(key).unwrap();
@@ -499,33 +492,14 @@ pub fn ContextOverride() -> impl IntoView {
                                                 .push(
                                                     view! {
                                                         <div class="rounded-lg shadow-md bg-white dark:bg-gray-800 p-6 shadow-md">
-
                                                             <div class="flex justify-between">
                                                                 <div class="flex items-center space-x-4">
 
-                                                                    <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white shadow-md font-mono">
+                                                                    <h3 class="card-title text-base timeline-box text-gray-800 dark:text-white bg-white shadow-md font-mono">
                                                                         "Condition"
-                                                                    </h2>
+                                                                    </h3>
                                                                     <i class="ri-arrow-right-fill ri-xl text-blue-500"></i>
-                                                                    {ctx_values
-                                                                        .into_iter()
-                                                                        .map(|(dim, op, val)| {
-                                                                            view! {
-                                                                                <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs ring-1 ring-inset ring-purple-700/10 shadow-md gap-x-2">
-                                                                                    <span class="font-mono font-medium context_condition text-gray-500">
-                                                                                        {dim}
-                                                                                    </span>
-                                                                                    <span class="font-mono font-medium text-gray-650 context_condition ">
-                                                                                        {op}
-                                                                                    </span>
-                                                                                    <span class="font-mono font-semibold context_condition">
-                                                                                        {val}
-                                                                                    </span>
-                                                                                </span>
-                                                                            }
-                                                                        })
-                                                                        .collect_view()}
-
+                                                                    <ConditionPills context={context.condition.clone()} />
                                                                 </div>
                                                                 <button class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                                                                     <i class="ri-edit-line text-blue-500"></i>
@@ -537,7 +511,6 @@ pub fn ContextOverride() -> impl IntoView {
                                                                     rows=contexts.clone()
                                                                     key_column="id".to_string()
                                                                     columns=table_columns.get()
-                                                                    settings=settings.clone()
                                                                 />
                                                             </div>
 
@@ -558,7 +531,13 @@ pub fn ContextOverride() -> impl IntoView {
                                             },
                                         ]
                                     }
-                                    None => vec![view! { <div>Loading....</div> }],
+                                    None => {
+                                        vec![
+                                            view! {
+                                                <div>Loading....</div>
+                                            },
+                                        ]
+                                    }
                                 }
                             })
                     }}
