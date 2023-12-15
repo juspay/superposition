@@ -6,14 +6,21 @@ use chrono::{prelude::Utc, TimeZone};
 use serde::{Deserialize, Serialize};
 
 use crate::components::{
-    experiment_form::experiment_form::ExperimentForm,
-    pagination::pagination::Pagination,
-    stat::stat::Stat,
-    table::{
-        table::Table,
-        types::{Column, TableSettings},
+    experiment_form::experiment_form::ExperimentForm, pagination::pagination::Pagination,
+    stat::stat::Stat, table::table::Table, Button::Button::Button,
+};
+
+use crate::pages::ExperimentList::types::{ExperimentsResponse, ListFilters};
+
+use super::{
+    types::{DefaultConfig, Dimension},
+    utils::{
+        experiment_table_columns, fetch_default_config, fetch_dimensions,
+        fetch_experiments,
     },
 };
+use serde_json::{json, Map, Value};
+use wasm_bindgen::JsCast;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct CombinedResource {
@@ -21,15 +28,6 @@ struct CombinedResource {
     dimensions: Vec<Dimension>,
     default_config: Vec<DefaultConfig>,
 }
-
-use crate::pages::ExperimentList::types::{ExperimentsResponse, ListFilters};
-
-use super::{
-    types::{DefaultConfig, Dimension},
-    utils::{fetch_default_config, fetch_dimensions, fetch_experiments},
-};
-use serde_json::{json, Map, Value};
-use wasm_bindgen::JsCast;
 
 #[component]
 pub fn ExperimentList() -> impl IntoView {
@@ -44,34 +42,7 @@ pub fn ExperimentList() -> impl IntoView {
     });
     let (open_form_modal, set_open_form_modal) = create_signal(false);
 
-    let table_columns = create_memo(move |_| {
-        vec![
-            Column::default("id".to_string()),
-            Column::default("name".to_string()),
-            Column::new(
-                "status".to_string(),
-                None,
-                Some(|value: &str, _| {
-                    let badge_color = match value {
-                        "CREATED" => "badge-info",
-                        "INPROGRESS" => "badge-warning",
-                        "CONCLUDED" => "badge-success",
-                        &_ => "info",
-                    };
-                    let class = format!("badge {}", badge_color);
-                    view! {
-                        <div class={class}>
-                            <span class="text-white font-semibold text-xs">
-                                {value.to_string()}
-                            </span>
-                        </div>
-                    }
-                    .into_view()
-                }),
-            ),
-            Column::default("context".to_string()),
-        ]
-    });
+    let table_columns = create_memo(move |_| experiment_table_columns());
 
     let combined_resource: Resource<(String, ListFilters), CombinedResource> =
         create_blocking_resource(
@@ -143,9 +114,8 @@ pub fn ExperimentList() -> impl IntoView {
                         <div class="flex justify-between">
                             <h2 class="card-title">Experiments</h2>
                             <div>
-                                <button
-                                    class="text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 shadow-lg shadow-purple-500/50 dark:shadow-lg dark:shadow-purple-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
-                                    on:click=move |event: web_sys::MouseEvent| {
+                                <Button
+                                    on_click=move |event: web_sys::MouseEvent| {
                                         event.prevent_default();
                                         set_open_form_modal.set(true);
                                         if let Some(element) = document()
@@ -155,31 +125,18 @@ pub fn ExperimentList() -> impl IntoView {
                                             let dialog_ele = element
                                                 .dyn_ref::<web_sys::HtmlDialogElement>();
                                             match dialog_ele {
-                                                Some(ele) => {
-                                                    ele.show_modal();
-                                                }
-                                                None => {
-                                                    log!("no modal element");
-                                                }
+                                                Some(ele) => { let _ = ele.show_modal(); },
+                                                None => { log!("no modal element"); }
                                             }
                                         }
                                     }
-                                >
-
-                                    Create Experiment
-                                    <i class="ri-edit-2-line ml-2"></i>
-                                </button>
+                                    text="Create Experiment".to_string()
+                                />
                             </div>
                         </div>
                         <div>
 
                             {move || {
-                                let current_tenant = tenant_rs.get();
-                                let settings = TableSettings {
-                                    redirect_prefix: Some(
-                                        format!("admin/{current_tenant}/experiments"),
-                                    ),
-                                };
                                 let value = combined_resource.get();
                                 match value {
                                     Some(v) => {
@@ -187,7 +144,20 @@ pub fn ExperimentList() -> impl IntoView {
                                             .experiments
                                             .data
                                             .iter()
-                                            .map(|ele| { json!(ele).as_object().unwrap().clone() })
+                                            .map(|ele| {
+                                                let mut ele_map = json!(ele).as_object().unwrap().to_owned();
+                                                ele_map
+                                                    .insert(
+                                                        "created_at".to_string(),
+                                                        json!(ele.created_at.format("%v").to_string())
+                                                    );
+                                                ele_map
+                                                    .insert(
+                                                        "last_modified".to_string(),
+                                                        json!(ele.last_modified.format("%v").to_string())
+                                                    );
+                                                ele_map
+                                            })
                                             .collect::<Vec<Map<String, Value>>>()
                                             .to_owned();
                                         view! {
@@ -196,7 +166,6 @@ pub fn ExperimentList() -> impl IntoView {
                                                 rows=data
                                                 key_column="id".to_string()
                                                 columns=table_columns.get()
-                                                settings=settings
                                             />
                                         }
                                     }
@@ -313,6 +282,7 @@ pub fn ExperimentList() -> impl IntoView {
                                             dimensions=dim.clone()
                                             default_config=def_conf.clone()
                                             handle_submit=handle_submit_experiment_form
+                                            edit_mode=false
                                         />
                                     </div>
                                 </div>

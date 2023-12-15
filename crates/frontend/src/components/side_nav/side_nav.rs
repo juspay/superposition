@@ -1,4 +1,4 @@
-use std::{collections::HashSet, str::FromStr, env::VarError};
+use std::{collections::HashSet, env::VarError, str::FromStr};
 
 use crate::components::nav_item::nav_item::NavItem;
 use crate::types::AppRoute;
@@ -33,7 +33,8 @@ pub fn SideNav() -> impl IntoView {
     let mut view_vector = vec![];
     for tenant in tenants.into_iter() {
         if tenant == tenant_rs.get() {
-            view_vector.push(view! { <option selected={true}>{tenant}</option> }.into_view());
+            view_vector
+                .push(view! { <option selected={true}>{tenant}</option> }.into_view());
         } else {
             view_vector.push(view! { <option>{tenant}</option> }.into_view());
         }

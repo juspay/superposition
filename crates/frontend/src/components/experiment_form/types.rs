@@ -1,8 +1,8 @@
-use serde_json::Value;
-use serde::Serialize;
 use crate::pages::ExperimentList::types::{
     DefaultConfig, Dimension, Variant, VariantType,
 };
+use serde::Serialize;
+use serde_json::Value;
 
 #[derive(Serialize)]
 pub struct ExperimentCreateRequest {
