@@ -4,16 +4,14 @@ use std::rc::Rc;
 use crate::components::Button::Button::Button;
 use crate::components::{
     stat::stat::Stat,
-    table::{
-        table::Table,
-        types::{Column, TableSettings},
-    },
+    table::{table::Table, types::Column},
 };
 use crate::utils::modal_action;
 use leptos::logging::*;
 use leptos::*;
+use reqwest::StatusCode;
 use serde_json::{json, Map, Value};
-use web_sys::SubmitEvent;
+use web_sys::MouseEvent;
 
 use crate::pages::Dimensions::helper::fetch_dimensions;
 
@@ -27,12 +25,15 @@ pub struct RowData {
 
 fn parse_string_to_json_value_vec(input: &str) -> Vec<Value> {
     // Parse the input string into a serde_json::Value
-    let parsed = serde_json::from_str::<Value>(input).expect("Failed to parse JSON");
+    let parsed = serde_json::from_str::<Value>(input);
 
     // Ensure the Value is an Array and convert it to Vec<Value>
     match parsed {
-        Value::Array(arr) => arr,
-        _ => panic!("Input is not a JSON array"),
+        Ok(Value::Array(arr)) => arr,
+        _ => {
+            logging::log!("Not a valid json in the input");
+            vec![]
+        }
     }
 }
 
@@ -115,7 +116,12 @@ pub async fn create_dimension(
         .send()
         .await
         .map_err(|e| e.to_string())?;
-    response.text().await.map_err(|e| e.to_string())
+    match response.status() {
+        StatusCode::OK => response.text().await.map_err(|e| e.to_string()),
+        StatusCode::CREATED => response.text().await.map_err(|e| e.to_string()),
+        StatusCode::BAD_REQUEST => Err("Schema Validation Failed".to_string()),
+        _ => Err("Internal Server Error".to_string()),
+    }
 }
 
 #[component]
@@ -151,20 +157,28 @@ fn FormComponent(
     create_effect(move |_| {
         if let Some(row_data) = global_state {
             logging::log!("default config create effect");
-            set_dimension.set(row_data.get().dimension.clone().to_string());
-            set_priority.set(row_data.get().priority.clone());
-            set_keytype.set(row_data.get().type_.clone().to_string());
-            set_pattern.set(row_data.get().pattern.clone());
+            if edit_signal.unwrap().get() == true {
+                set_dimension.set(row_data.get().dimension.clone().to_string());
+                set_priority.set(row_data.get().priority.clone());
+                set_keytype.set(row_data.get().type_.clone().to_string());
+                set_pattern.set(row_data.get().pattern.clone());
+            } else {
+                set_dimension.set("".to_string());
+                set_priority.set("".to_string());
+                set_keytype.set("".to_string());
+                set_pattern.set("".to_string());
+            }
         }
     });
 
     let input_element: NodeRef<Input> = create_node_ref();
     let input_element_two: NodeRef<Input> = create_node_ref();
     let input_element_three: NodeRef<Textarea> = create_node_ref();
+    let (error_message, set_error_message) = create_signal("".to_string());
 
     let on_submit = {
         let handle_submit = handle_submit.clone();
-        move |ev: SubmitEvent| {
+        move |ev: MouseEvent| {
             ev.prevent_default();
 
             let value1 = input_element.get().expect("<input> to exist").value();
@@ -191,8 +205,10 @@ fn FormComponent(
                     match result {
                         Ok(_) => {
                             handle_submit();
+                            // modal_action("my_modal_5","close");
                         }
-                        Err(_) => {
+                        Err(e) => {
+                            set_error_message.set(e);
                             // Handle error
                             // Consider logging or displaying the error
                         }
@@ -212,7 +228,6 @@ fn FormComponent(
                 </form>
                 <form
                     class="form-control w-full space-y-4 bg-white text-gray-700 font-mono"
-                    on:submit=on_submit
                 >
                     <div class="form-control">
                         <label class="label font-mono">
@@ -227,42 +242,60 @@ fn FormComponent(
                             node_ref=input_element
                         />
                     </div>
-                    <div tabindex = "0" class="dropdown dropdown-bottom">
-                    <div tabindex="0" role="button" class="btn m-1">
-                    <i class="ri-arrow-down-s-line"></i>
-                     Add Schema
-                     </div>
+                    <select
+                    name="schemaType[]"
+                    on:change=move |ev| {
+                        set_show_labels.set(true);
+                        match event_target_value(&ev).as_str() {
+                            "number" => {
+                                set_keytype.set("number".to_string());
+                            }
+                             "Enum" => {
+                                set_keytype.set("Enum".to_string());
+                                set_pattern.set(format!("{:?}", vec!["android", "web", "ios"]));
+                             }
+                             "Pattern" => {
+                                set_keytype.set("Pattern".to_string());
+                                set_pattern.set(".*".to_string());
+                             }
+                             _ => {
+                                set_keytype.set("Other".to_string());
+                                set_pattern.set("".to_string());
+                             }
+                        };
 
-                    <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100
-                    rounded-box w-52">
-                        <li on:click = move |_| {
-                            set_show_labels.set(true);
-                            set_keytype.set("number".to_string());
-                        }>
-                        <a>"Number"</a>
-                        </li>
-                        <li on:click = move |_| {
-                            set_show_labels.set(true);
-                            set_keytype.set("Enum".to_string());
-                            set_pattern.set(format!("{:?}", vec!["android", "web", "ios"]));
-                        }>
-                        <a>"String (Enum)"</a>
-                        </li>
-                        <li on:click = move |_| {
-                            set_show_labels.set(true);
-                            set_keytype.set("Pattern".to_string());
-                            set_pattern.set(".*".to_string());
-                        }>
-                        <a>"String (Regex)"</a>
-                        </li>
-                        <li on:click = move |_| {
-                            set_show_labels.set(true);
-                            set_keytype.set("Other".to_string());
-                        }>
-                        <a>"Other"</a>
-                        </li>
-                    </ul>
-                    </div>
+                    }
+                    class="select select-bordered"
+                   >
+            <option disabled selected>
+                Set Schema
+            </option>
+
+            <option
+               value= "number"
+               selected=move || {keytype.get() == "number".to_string()}
+               >
+               "Number"
+           </option>
+               <option
+               value= "Enum"
+               selected=move || { keytype.get() == "Enum".to_string()}
+               >
+               "String (Enum)"
+           </option>
+               <option
+               value= "Pattern"
+               selected=move || { keytype.get() == "Pattern".to_string()}
+               >
+               "String (regex)"
+           </option>
+               <option
+               value= "Other"
+               selected=move || { keytype.get() == "Other".to_string()}
+               >
+               "Other"
+           </option>
+           </select>
                     {
                       move || {
                         view!{
@@ -312,8 +345,16 @@ fn FormComponent(
                       }
                     }
                     <div class="form-control mt-6">
-                    <Button text="Submit".to_string() on_click= |_| modal_action("my_modal_5","close") />
+                    <Button text="Submit".to_string() on_click= on_submit />
                     </div>
+                    {
+
+                        view! {
+                           <div>
+                               <p class="text-red-500">{move || error_message.get()}</p>
+                           </div>
+                       }
+                   }
                 </form>
             </div>
         </dialog>
@@ -328,11 +369,12 @@ pub fn Dimensions() -> impl IntoView {
 
     let edit_signal = create_rw_signal(true);
     provide_context(edit_signal);
+    let (open_form, set_open_form) = create_signal(false);
 
     let dimensions = create_blocking_resource(
-        move || {},
-        |_value| async move {
-            match fetch_dimensions().await {
+        move || tenant_rs.get(),
+        |current_tenant| async move {
+            match fetch_dimensions(&current_tenant).await {
                 Ok(data) => data,
                 Err(_) => vec![],
             }
@@ -369,10 +411,16 @@ pub fn Dimensions() -> impl IntoView {
                             />
                         }
                     }}
+                    <Show when = move || { open_form.get() }>
                     <ModalComponent
-                        handle_submit=Rc::new(move || dimensions.refetch())
+                        handle_submit=Rc::new(move || {
+                            set_open_form.set(false);
+                            dimensions.refetch()
+                        }
+                        )
                         tenant=tenant_rs
                     />
+                    </Show>
                 </div>
 
                 <div class="card rounded-xl w-full bg-base-100 shadow">
@@ -383,7 +431,8 @@ pub fn Dimensions() -> impl IntoView {
                                 let edit_clone = edit_signal.to_owned();
                                 move |_| {
                                     edit_clone.set(false);
-                                    modal_action("my_modal_5","open")
+                                    set_open_form.set(true);
+                                    modal_action("my_modal_5","open");
                                 }}/>
                         </div>
                         <div>

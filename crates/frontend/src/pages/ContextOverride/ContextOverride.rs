@@ -33,18 +33,12 @@ fn ContextModalForm<NF>(handle_change: NF) -> impl IntoView
 where
     NF: Fn(Vec<(String, String, String)>) + 'static + Clone,
 {
-    let query = use_query_map();
+    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
 
-    let tenant = query.with(|params_map| {
-        params_map
-            .get("tenant")
-            .cloned()
-            .unwrap_or_else(|| "mjos".to_string())
-    });
-    let tenant = tenant.clone();
-
-    let dimensions =
-        create_blocking_resource(|| {}, move |_| fetch_dimensions(tenant.clone()));
+    let dimensions = create_blocking_resource(
+        move || tenant_rs.get(),
+        move |current_tenant| fetch_dimensions(current_tenant.clone()),
+    );
 
     view! {
         <div>
@@ -163,18 +157,11 @@ fn OverrideModalForm<NF>(handle_change: NF) -> impl IntoView
 where
     NF: Fn(Map<String, Value>) + 'static + Clone,
 {
-    let query = use_query_map();
-
-    let tenant = query.with(|params_map| {
-        params_map
-            .get("tenant")
-            .cloned()
-            .unwrap_or_else(|| "mjos".to_string())
-    });
-    let tenant = tenant.clone();
-
-    let default_config =
-        create_blocking_resource(|| {}, move |_| fetch_default_config(tenant.clone()));
+    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let default_config = create_blocking_resource(
+        move || tenant_rs.get(),
+        move |current_tenant| fetch_default_config(current_tenant.clone()),
+    );
 
     view! {
         <div>
@@ -293,6 +280,8 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
         create_signal::<Vec<(String, String, String)>>(vec![]);
     let (overrides, set_overrides) = create_signal::<Map<String, Value>>(Map::new());
 
+    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+
     let handle_context_change = move |updated_ctx: Vec<(String, String, String)>| {
         set_context_condition.set(updated_ctx);
     };
@@ -305,6 +294,7 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     let on_submit = {
         move |ev: MouseEvent| {
             let handle_submit_clone = handle_submit.clone();
+            let current_tenant = tenant_rs.get();
             ev.prevent_default();
 
             logging::log!("tirggering submit");
@@ -313,7 +303,7 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                 let handle_submit = handle_submit_clone;
                 async move {
                     let result = create_context(
-                        "mjos".to_string(),
+                        current_tenant,
                         overrides.get(),
                         context_condition.get(),
                     )
@@ -416,14 +406,7 @@ fn parse_conditions(input: String) -> Vec<(String, String, String)> {
 
 #[component]
 pub fn ContextOverride() -> impl IntoView {
-    let query = use_query_map();
-
-    let tenant = query.with(|params_map| {
-        params_map
-            .get("tenant")
-            .cloned()
-            .unwrap_or_else(|| "mjos".to_string())
-    });
+    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
 
     let context_data: Vec<(String, String, String)> = vec![];
     let ctx: RwSignal<Vec<(String, String, String)>> = create_rw_signal(context_data);
@@ -436,8 +419,10 @@ pub fn ContextOverride() -> impl IntoView {
 
     provide_context(ovr_data);
 
-    let config_data =
-        create_blocking_resource(|| {}, move |_| fetch_config(tenant.clone()));
+    let config_data = create_blocking_resource(
+        move || tenant_rs.get(),
+        move |current_tenant| fetch_config(current_tenant.clone()),
+    );
 
     let table_columns = create_memo(move |_| {
         vec![

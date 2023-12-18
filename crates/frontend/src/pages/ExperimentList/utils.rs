@@ -54,7 +54,7 @@ pub async fn fetch_experiments(
     Ok(response)
 }
 
-pub async fn fetch_dimensions() -> Result<Vec<Dimension>, String> {
+pub async fn fetch_dimensions(tenant: &str) -> Result<Vec<Dimension>, String> {
     let client = reqwest::Client::new();
     let host = match std::env::var("APP_ENV").as_deref() {
         Ok("PROD") => {
@@ -67,7 +67,7 @@ pub async fn fetch_dimensions() -> Result<Vec<Dimension>, String> {
     let url = format!("{}/dimension", host);
     let response: Vec<Dimension> = client
         .get(url)
-        .header("x-tenant", "mjos")
+        .header("x-tenant", tenant)
         .send()
         .await
         .map_err(|e| e.to_string())?
@@ -78,7 +78,7 @@ pub async fn fetch_dimensions() -> Result<Vec<Dimension>, String> {
     Ok(response)
 }
 
-pub async fn fetch_default_config() -> Result<Vec<DefaultConfig>, String> {
+pub async fn fetch_default_config(tenant: &str) -> Result<Vec<DefaultConfig>, String> {
     let client = reqwest::Client::new();
     let host = match std::env::var("APP_ENV").as_deref() {
         Ok("PROD") => {
@@ -91,7 +91,7 @@ pub async fn fetch_default_config() -> Result<Vec<DefaultConfig>, String> {
     let url = format!("{}/default-config", host);
     let response: Vec<DefaultConfig> = client
         .get(url)
-        .header("x-tenant", "mjos")
+        .header("x-tenant", tenant)
         .send()
         .await
         .map_err(|e| e.to_string())?
