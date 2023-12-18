@@ -1435,6 +1435,7 @@ dependencies = [
  "chrono",
  "console_error_panic_hook",
  "derive_more",
+ "dotenv",
  "futures",
  "http",
  "js-sys",
