@@ -1,7 +1,21 @@
+use std::{collections::HashSet, str::FromStr, env::VarError};
+
 use crate::components::nav_item::nav_item::NavItem;
 use crate::types::AppRoute;
 use leptos::{logging::log, *};
 use leptos_router::{use_location, use_navigate, A};
+
+fn get_from_env_unsafe<F>(name: &str) -> Result<F, VarError>
+where
+    F: FromStr,
+    <F as FromStr>::Err: std::fmt::Debug,
+{
+    std::env::var(name)
+        .map(|val| val.parse().unwrap())
+        .map_err(|e| {
+            return e;
+        })
+}
 
 #[component]
 pub fn SideNav() -> impl IntoView {
@@ -9,6 +23,21 @@ pub fn SideNav() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let tenant_ws = use_context::<WriteSignal<String>>().unwrap();
     let (app_routes, set_app_routes) = create_signal(create_routes(&tenant_rs.get()));
+
+    let tenants: HashSet<String> = get_from_env_unsafe::<String>("TENANTS")
+        .unwrap_or("m,s".into())
+        .split(",")
+        .map(|tenant| tenant.to_string())
+        .collect::<HashSet<String>>();
+
+    let mut view_vector = vec![];
+    for tenant in tenants.into_iter() {
+        if tenant == tenant_rs.get() {
+            view_vector.push(view! { <option selected={true}>{tenant}</option> }.into_view());
+        } else {
+            view_vector.push(view! { <option>{tenant}</option> }.into_view());
+        }
+    }
 
     create_effect(move |_| {
         let current_path = location.pathname.get();
@@ -58,13 +87,11 @@ pub fn SideNav() -> impl IntoView {
                         Default::default(),
                     );
                 }
-
                 class="select w-full max-w-xs shadow-md"
             >
-                <option selected>mjos</option>
-                <option>sdk_config</option>
+            { view_vector }
             </select>
-            <hr class="h-px mt-0 mb-1 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent"/>
+            // <hr class="h-px mt-0 mb-1 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent"/>
             <div class="items-center block w-auto max-h-screen overflow-auto h-sidenav grow basis-full">
                 <ul class="menu">
                     <For

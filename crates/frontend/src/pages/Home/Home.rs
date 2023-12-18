@@ -410,7 +410,13 @@ pub fn home() -> impl IntoView {
                                                                 view! {
                                                                     <tr>
                                                                         <td>{config}</td>
-                                                                        <td>{value.as_str().unwrap().to_string()}</td>
+                                                                        <td>{match value {
+                                                                            Value::String(s) => s,
+                                                                            Value::Number(num) => num.to_string(),
+                                                                            Value::Bool(b) => b.to_string(),
+                                                                            _ => "".into()
+                                                                        }}</td>
+
                                                                     </tr>
                                                                 }
                                                             }

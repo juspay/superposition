@@ -14,7 +14,7 @@ use crate::{
             table::Table,
             types::{Column, TableSettings},
         },
-    },
+    }, pages::Home::Home::extract_and_format,
 };
 
 #[derive(
@@ -159,10 +159,7 @@ fn experiment_detail_view(
     initial_data: Experiment,
     exp_resource: Resource<(String, String), Result<Experiment, String>>,
 ) -> impl IntoView {
-    let contexts = initial_data.context["and"]
-        .as_array()
-        .unwrap_or(&Vec::new())
-        .to_owned();
+    let contexts = extract_and_format(&initial_data.context);
     let (experiment, _) = create_signal(initial_data);
     let (ctxs, _) = create_signal(contexts);
 
@@ -291,34 +288,31 @@ fn experiment_detail_view(
                     <h2 class="card-title">Context</h2>
                     <div class="flex flex-row flex-wrap gap-2">
                         {move || {
-                            let contexts = move || ctxs.get().into_iter();
-                            let mut view: Vec<HtmlElement<html::Div>> = Vec::new();
-                            for item in contexts() {
-                                for (_, value) in item.as_object().unwrap().into_iter() {
-                                    let rule_vector = value.as_array().unwrap();
-                                    let mut rule_iter = rule_vector.to_owned().into_iter();
-                                    let (var, value) = (
-                                        rule_iter.next().unwrap(),
-                                        rule_iter.next().unwrap(),
-                                    );
-                                    let dimension = var.as_object().unwrap().get("var").unwrap();
-                                    view.push(
-                                        view! {
-                                            <div class="stat w-3/12">
-                                                <div class="stat-title">
-                                                    {format!("{}", dimension.as_str().unwrap())}
-                                                </div>
-                                                <div class="stat-value text-base">
-                                                    {format!("{}", value.as_str().unwrap())}
-                                                </div>
+                            let context = ctxs.get();
+                            let mut view = Vec::new();
+                            let tokens = context.split("&&");
+                            for token in tokens.into_iter() {
+                                let mut t = token.trim().split(" ");
+                                let (dimension, _, value) = (
+                                    t.next(),
+                                    t.next(),
+                                    t.next()
+                                );
+                                view.push(
+                                    view! {
+                                        <div class="stat w-3/12">
+                                            <div class="stat-title">
+                                                {format!("{}", dimension.unwrap())}
                                             </div>
-                                        },
-                                    )
-                                }
+                                            <div class="stat-value text-base">
+                                                {format!("{}", &value.unwrap()[1..value.unwrap().chars().count()])}
+                                            </div>
+                                        </div>
+                                    },
+                                );
                             }
                             view
-                        }}
-
+                            }}
                     </div>
                 </div>
             </div> <div class="card bg-base-100 max-w-screen shadow m-5">
