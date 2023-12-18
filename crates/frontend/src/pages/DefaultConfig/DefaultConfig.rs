@@ -9,11 +9,11 @@ use crate::pages::DefaultConfig::types::Config;
 use crate::pages::ExperimentList::utils::fetch_default_config;
 use crate::utils::modal_action;
 use js_sys;
-use leptos::ev::SubmitEvent;
 use leptos::spawn_local;
 use leptos::*;
-use leptos_router::use_query_map;
+use reqwest::StatusCode;
 use serde_json::{json, Map, Value};
+use web_sys::MouseEvent;
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -97,7 +97,12 @@ pub async fn create_default_config(
         .send()
         .await
         .map_err(|e| e.to_string())?;
-    response.text().await.map_err(|e| e.to_string())
+    match response.status() {
+        StatusCode::OK => response.text().await.map_err(|e| e.to_string()),
+        StatusCode::CREATED => response.text().await.map_err(|e| e.to_string()),
+        StatusCode::BAD_REQUEST => Err("Schema Validation Failed".to_string()),
+        _ => Err("Internal Server Error".to_string()),
+    }
 }
 
 #[component]
@@ -130,14 +135,20 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     let (pattern, set_pattern) = create_signal("".to_string());
 
     let edit_signal = use_context::<RwSignal<bool>>();
+    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
 
     let (show_labels, set_show_labels) = create_signal(false);
 
     create_effect(move |_| {
         if let Some(row_data) = global_state {
             logging::log!("default config create effect");
-            set_key.set(row_data.get().key.clone().to_string());
-            set_value.set(row_data.get().value.clone().to_string());
+            if edit_signal.unwrap().get() == true {
+                set_key.set(row_data.get().key.clone().to_string());
+                set_value.set(row_data.get().value.clone().to_string());
+            } else {
+                set_key.set("".to_string());
+                set_value.set("".to_string());
+            }
         }
     });
 
@@ -145,11 +156,14 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     let input_element_two: NodeRef<Input> = create_node_ref();
     let input_element_three: NodeRef<Textarea> = create_node_ref();
 
+    let (error_message, set_error_message) = create_signal("".to_string());
+
     let on_submit = {
         let handle_submit = handle_submit.clone();
-        move |ev: SubmitEvent| {
+        move |ev: MouseEvent| {
             ev.prevent_default();
 
+            let current_tenant = tenant_rs.get();
             let value1 = input_element.get().expect("<input> to exist").value();
             let value2 = input_element_two.get().expect("<input> to exist").value();
             let value3 = input_element_three.get().expect("<input> to exist").value();
@@ -164,7 +178,7 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                 let handle_submit = handle_submit_clone;
                 async move {
                     let result = create_default_config(
-                        "mjos".to_string(),
+                        current_tenant,
                         key.get(),
                         value.get(),
                         keytype.get(),
@@ -175,8 +189,10 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                     match result {
                         Ok(_) => {
                             handle_submit();
+                            modal_action("my_modal_5", "close");
                         }
-                        Err(_) => {
+                        Err(e) => {
+                            set_error_message.set(e);
                             // Handle error
                             // Consider logging or displaying the error
                         }
@@ -189,7 +205,6 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     view! {
         <form
             class="form-control w-full space-y-4 bg-white text-gray-700 font-mono"
-            on:submit=on_submit
         >
             <div class="form-control">
                 <label class="label font-mono">
@@ -206,43 +221,61 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
             </div>
 
 
-            <div tabindex = "0" class="dropdown dropdown-bottom">
-            <div tabindex="0" role="button" class="btn m-1">
-            <i class="ri-arrow-down-s-line"></i>
-            Add Schema
-            </div>
+            <select
+                    name="schemaType[]"
+                    on:change=move |ev| {
+                        set_show_labels.set(true);
+                        match event_target_value(&ev).as_str() {
+                            "number" => {
+                                set_keytype.set("number".to_string());
+                            }
+                             "Enum" => {
+                                set_keytype.set("Enum".to_string());
+                                set_pattern.set(format!("{:?}", vec!["android", "web", "ios"]));
+                             }
+                             "Pattern" => {
+                                set_keytype.set("Pattern".to_string());
+                                set_pattern.set(".*".to_string());
+                             }
+                             _ => {
+                                set_keytype.set("Other".to_string());
+                                set_pattern.set("".to_string());
+                             }
+                        };
 
-            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100
-            rounded-box w-52">
-                <li on:click = move |_| {
-                    set_show_labels.set(true);
-                    set_keytype.set("number".to_string());
-                }>
-                <a>"Number"</a>
-                </li>
-                <li on:click = move |_| {
-                    set_show_labels.set(true);
-                    set_keytype.set("Enum".to_string());
-                    set_pattern.set(format!("{:?}", vec!["android", "web", "ios"]));
-                }>
-                <a>"String (Enum)"</a>
-                </li>
-                <li on:click = move |_| {
-                    set_show_labels.set(true);
-                    set_keytype.set("Pattern".to_string());
-                    set_pattern.set(".*".to_string());
-                }>
-                <a>"String (Regex)"</a>
-                </li>
-                <li on:click = move |_| {
-                    set_show_labels.set(true);
-                    set_keytype.set("Other".to_string());
-                    set_pattern.set("".to_string());
-                }>
-                <a>"Other"</a>
-                </li>
-            </ul>
-            </div>
+                    }
+                    class="select select-bordered"
+            >
+            <option disabled selected>
+                Set Schema
+            </option>
+
+            <option
+               value= "number"
+               selected=move || {keytype.get() == "number".to_string()}
+               >
+               "Number"
+           </option>
+               <option
+               value= "Enum"
+               selected=move || { keytype.get() == "Enum".to_string()}
+               >
+               "String (Enum)"
+           </option>
+               <option
+               value= "Pattern"
+               selected=move || { keytype.get() == "Pattern".to_string()}
+               >
+               "String (regex)"
+           </option>
+               <option
+               value= "Other"
+               selected=move || { keytype.get() == "Other".to_string()}
+               >
+               "Other"
+           </option>
+           </select>
+
             {
               move || {
                 view!{
@@ -292,8 +325,17 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
               }
             }
                     <div class="form-control mt-6">
-                    <Button text="Submit".to_string() on_click= |_| modal_action("my_modal_5","close") />
+                    <Button text="Submit".to_string() on_click= on_submit />
                 </div>
+
+                {
+
+                    view! {
+                       <div>
+                           <p class="text-red-500">{move || error_message.get()}</p>
+                       </div>
+                   }
+               }
             </form>
     }
 }
@@ -315,7 +357,7 @@ fn custom_formatter(_value: &str, row: &Map<String, Value>) -> View {
     };
 
     let edit_icon: HtmlElement<html::I> =
-        view! { <i class="ri-pencil-line ri-xl text-blue-500 cursor-pointer"></i> };
+        view! { <i class="ri-pencil-line ri-xl text-blue-500"></i> };
 
     view! { <span on:click = edit_click_handler>{edit_icon}</span> }.into_view()
 }
@@ -329,19 +371,11 @@ pub fn DefaultConfig() -> impl IntoView {
     let edit_signal = create_rw_signal(true);
     provide_context(edit_signal);
 
-    let query = use_query_map();
-
-    let tenant = query.with(|params_map| {
-        params_map
-            .get("tenant")
-            .cloned()
-            .unwrap_or_else(|| "mjos".to_string())
-    });
-
+    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let default_config_resource = create_blocking_resource(
-        || (),
-        |_| async move {
-            match fetch_default_config().await {
+        move || tenant_rs.get(),
+        |current_tenant| async move {
+            match fetch_default_config(&current_tenant).await {
                 Ok(data) => data,
                 Err(_) => vec![],
             }
