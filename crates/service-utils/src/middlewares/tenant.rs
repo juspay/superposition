@@ -59,6 +59,21 @@ where
                 }
             };
 
+            let path = req.path();
+            let tenant_from_params = match req.match_pattern() {
+                Some(pattern) => {
+                    let pattern_segments = pattern.split("/");
+                    let path_segments = path.split("/").collect::<Vec<&str>>();
+                    Some(
+                        pattern_segments
+                            .enumerate()
+                            .find(|(_, segment)| segment == &"{tenant}")
+                            .map_or("", |(idx, _)| path_segments[idx]),
+                    )
+                }
+                None => None,
+            };
+
             let request_path = req.uri().path();
             let is_excluded: bool = app_state
                 .tenant_middleware_exclusion_list
@@ -68,7 +83,7 @@ where
                 let tenant = req
                     .headers()
                     .get("x-tenant")
-                    .map_or(None, |header_value: &HeaderValue| {
+                    .map_or(tenant_from_params, |header_value: &HeaderValue| {
                         header_value.to_str().ok()
                     })
                     .map(|header_str| header_str.to_string());

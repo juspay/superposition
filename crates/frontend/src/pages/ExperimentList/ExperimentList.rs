@@ -50,8 +50,8 @@ pub fn ExperimentList() -> impl IntoView {
             |(current_tenant, filters)| async move {
                 // Perform all fetch operations concurrently
                 let experiments_future = fetch_experiments(filters, &current_tenant);
-                let dimensions_future = fetch_dimensions();
-                let config_future = fetch_default_config();
+                let dimensions_future = fetch_dimensions(&current_tenant);
+                let config_future = fetch_default_config(&current_tenant);
 
                 let (experiments_result, dimensions_result, config_result) =
                     join!(experiments_future, dimensions_future, config_future);
