@@ -187,6 +187,8 @@ pub fn home() -> impl IntoView {
         },
     );
 
+    let (display_configs_rs, display_configs_ws) = create_signal(true);
+
     let unstrike = |search_field_prefix: &String, config: &Map<String, Value>| {
         for (dimension, value) in config.into_iter() {
             let search_field_prefix = if search_field_prefix.is_empty() {
@@ -218,11 +220,11 @@ pub fn home() -> impl IntoView {
                     item_two.dyn_ref::<HtmlSpanElement>().unwrap(),
                 );
                 let _ = config_name_element.class_list().add_2("text-black", "font-bold");
-                let _ = config_name_element.class_list().remove_1("text-gray-600");
+                let _ = config_name_element.class_list().remove_1("text-gray-300");
                 let _ = config_value_element.class_list().add_2("text-black", "font-bold");
                 let _ = config_value_element
                     .class_list()
-                    .remove_1("text-gray-600");
+                    .remove_1("text-gray-300");
                 logging::log!(
                     "config name after replace {} and value {}",
                     config_name_element.to_string(),
@@ -285,9 +287,9 @@ pub fn home() -> impl IntoView {
                 config_value_elements.item(i).unwrap(),
             );
             let _ = config_name_element.class_list().remove_2("text-black", "font-bold");
-            let _ = config_name_element.class_list().add_1("text-gray-600");
+            let _ = config_name_element.class_list().add_1("text-gray-300");
             let _ = config_value_element.class_list().remove_2("text-black", "font-bold");
-            let _ = config_value_element.class_list().add_1("text-gray-600");
+            let _ = config_value_element.class_list().add_1("text-gray-300");
         }
         logging::log!("query vector {:#?}", query_vector);
         // resolve the context and get the config that would apply
@@ -369,12 +371,6 @@ pub fn home() -> impl IntoView {
                                                 handle_change=|_| ()
                                             />
                                             <div class="card-actions justify-end">
-                                                <div class="form-control">
-                                                    <label class="cursor-pointer label">
-                                                    <span class="label-text ml-1">Display All Configs</span>
-                                                    <input type="checkbox" class="toggle bg-purple-600" checked />
-                                                    </label>
-                                                </div>
                                                 <Button text="Resolve".to_string() on_click=resolve_click/>
                                             </div>
                                         </div>
@@ -469,10 +465,10 @@ pub fn home() -> impl IntoView {
                                                 view! {
                                                     < tr > < td > < span name = format!("{unique_name}-1") class
                                                     = "config-name" class : text-black = { ! striked } class : font-bold = { !striked }
-                                                    class : text - gray - 600 = { striked } > { key } </ span
+                                                    class : text - gray - 300 = { striked } > { key } </ span
                                                     > </ td > < td > < span name = format!("{unique_name}-2")
                                                     class = "config-value" class : text-black = { !
-                                                    striked } class : font-bold = { !striked } class : text - gray - 600 = { striked } > {
+                                                    striked } class : font-bold = { !striked } class : text - gray - 300 = { striked } > {
                                                     value } </ span > </ td > </ tr >
                                                 },
                                             )
@@ -544,6 +540,14 @@ pub fn home() -> impl IntoView {
                                 vec![
                                     view! {
                                         <div class="mb-4 w-8/12 overflow-y-auto max-h-screen">
+                                            // <div class="form-control p-10">
+                                            //     <label class="cursor-pointer label">
+                                            //     <span class="label-text ml-1">Display All Configs</span>
+                                            //     <input type="checkbox" class="toggle bg-purple-600"
+                                            //     on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
+                                            //     checked=move || display_configs_rs.get() />
+                                            //     </label>
+                                            // </div>
                                             {new_context_views}
                                             <div class="card bg-base-100 shadow m-6">
                                                 <div class="card-body">

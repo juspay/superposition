@@ -167,23 +167,23 @@ fn experiment_detail_view(
     let (ctxs, _) = create_signal(contexts);
 
     view! {
-        <div class="flex flex-col overflow-x-auto p-2">
+        <div class="flex flex-col overflow-x-auto p-2 bg-transparent">
             {move || {
                 experiment
                     .with(|exp| {
                         let class_name = match exp.status {
                             ExperimentStatusType::CREATED => {
-                                "badge ml-3 mb-1 badge-lg badge-primary"
+                                "badge text-white ml-3 mb-1 badge-xl badge-info"
                             }
                             ExperimentStatusType::INPROGRESS => {
-                                "badge ml-3 mb-1 badge-lg badge-warning"
+                                "badge text-white ml-3 mb-1 badge-xl badge-warning"
                             }
                             ExperimentStatusType::CONCLUDED => {
-                                "badge ml-3 mb-1 badge-lg badge-success"
+                                "badge text-white ml-3 mb-1 badge-xl badge-success"
                             }
                         };
                         view! {
-                            <h1 class="text-4xl pt-4 font-extrabold">
+                            <h1 class="text-2xl pt-4 font-extrabold">
                                 {&exp.name} <span class=class_name>{exp.status.to_string()}</span>
                             </h1>
                         }
@@ -198,14 +198,14 @@ fn experiment_detail_view(
                                 ExperimentStatusType::CREATED => {
                                     view! {
                                         <button
-                                            class="btn join-item"
+                                            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
                                             onclick="edit_exp_modal.showModal()"
                                         >
                                             <i class="ri-edit-line"></i>
                                             Edit
                                         </button>
                                         <button
-                                            class="btn join-item"
+                                            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
                                             value=&exp.id
                                             on:click=move |button_event| spawn_local(async move {
                                                 let value = event_target_value(&button_event);
@@ -222,14 +222,14 @@ fn experiment_detail_view(
                                 ExperimentStatusType::INPROGRESS => {
                                     view! {
                                         <button
-                                            class="btn join-item"
+                                            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
                                             onclick="conclude_exp_modal.showModal()"
                                         >
                                             <i class="ri-stop-circle-line"></i>
                                             Conclude
                                         </button>
                                         <button
-                                            class="btn join-item"
+                                            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
                                             onclick="ramp_exp_modal.showModal()"
                                         >
                                             <i class="ri-flight-takeoff-line"></i>
@@ -256,41 +256,43 @@ fn experiment_detail_view(
                         })
                 }}
 
-            </div> <div class="stats shadow-xl mt-5">
-                <div class="stat">
+            </div>
+            <div class="flex bg-base-100 flex-row gap-2 justify-between flex-wrap shadow m-5">
+                <div class="stat w-2/12">
                     <div class="stat-title">Experiment ID</div>
-                    <div class="stat-value">{experiment.get().id}</div>
+                    <div class="stat-value text-sm">{experiment.get().id}</div>
                 </div>
-                <div class="stat">
+                <div class="stat w-2/12">
                     <div class="stat-title">Current Traffic Percentage</div>
-                    <div class="stat-value">{move || experiment.get().traffic_percentage}</div>
+                    <div class="stat-value text-sm">{move || experiment.get().traffic_percentage}</div>
                 </div>
-                <div class="stat">
+                <div class="stat w-2/12">
                     <div class="stat-title">Created by</div>
-                    <div class="stat-value">{experiment.get().created_by}</div>
+                    <div class="stat-value text-sm">{experiment.get().created_by}</div>
                 </div>
-                <div class="stat">
+                <div class="stat w-2/12">
                     <div class="stat-title">Created at</div>
-                    <div class="stat-value">
+                    <div class="stat-value text-sm">
                         {format!("{}", experiment.get().created_at.format("%v"))}
                     </div>
                 </div>
-                <div class="stat">
+                <div class="stat w-2/12">
                     <div class="stat-title">Last Modified</div>
-                    <div class="stat-value">
+                    <div class="stat-value text-sm">
                         {move || {
                             experiment.with(|exp| format!("{}", &exp.last_modified.format("%v")))
                         }}
 
                     </div>
                 </div>
-            </div> <div class="card bg-base max-w-screen shadow-xl mt-5">
+            </div>
+            <div class="card bg-base-100 max-w-screen shadow m-5">
                 <div class="card-body">
                     <h2 class="card-title">Context</h2>
-                    <div class="flex flex-row">
+                    <div class="flex flex-row flex-wrap gap-2">
                         {move || {
                             let contexts = move || ctxs.get().into_iter();
-                            let mut view: Vec<_> = Vec::new();
+                            let mut view: Vec<HtmlElement<html::Div>> = Vec::new();
                             for item in contexts() {
                                 for (_, value) in item.as_object().unwrap().into_iter() {
                                     let rule_vector = value.as_array().unwrap();
@@ -302,11 +304,11 @@ fn experiment_detail_view(
                                     let dimension = var.as_object().unwrap().get("var").unwrap();
                                     view.push(
                                         view! {
-                                            <div class="stat">
+                                            <div class="stat w-3/12">
                                                 <div class="stat-title">
                                                     {format!("{}", dimension.as_str().unwrap())}
                                                 </div>
-                                                <div class="stat-value">
+                                                <div class="stat-value text-base">
                                                     {format!("{}", value.as_str().unwrap())}
                                                 </div>
                                             </div>
@@ -319,7 +321,7 @@ fn experiment_detail_view(
 
                     </div>
                 </div>
-            </div> <div class="card bg-base max-w-screen shadow-xl mt-5">
+            </div> <div class="card bg-base-100 max-w-screen shadow m-5">
                 <div class="card-body">
                     <h2 class="card-title">Variants</h2>
                     <div class="overflow-x-auto overflow-y-auto">
@@ -416,6 +418,9 @@ fn add_dialogs(
         ExperimentStatusType::CREATED => view! {
             <dialog id="edit_exp_modal" class="modal">
                 <div class="modal-box">
+                    <form method="dialog">
+                        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><i class="ri-close-line"></i></button>
+                    </form>
                     <h3 class="font-bold text-lg">Edit Experiment</h3>
                     // <ExperimentForm
                     // name=experiment_rs.get().name
@@ -432,6 +437,10 @@ fn add_dialogs(
         ExperimentStatusType::INPROGRESS => view! {
             <dialog id="conclude_exp_modal" class="modal">
                 <div class="modal-box">
+                    <form method="dialog">
+                        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><i class="ri-close-line"></i></button>
+                    </form>
+
                     <h3 class="font-bold text-lg">Conclude This Experiment</h3>
                     <p class="py-4">
                         Choose a variant to conclude with, this variant becomes
@@ -446,7 +455,7 @@ fn add_dialogs(
                                     VariantType::CONTROL => {
                                         view! {
                                             <button
-                                                class="btn btn-block btn-outline btn-success m-2"
+                                                class="btn btn-block btn-outline btn-info m-2"
                                                 on:click=move |_| spawn_local(async move {
                                                     let e = experiment_rs.get();
                                                     let variant = variant.get();
@@ -464,7 +473,7 @@ fn add_dialogs(
                                     VariantType::EXPERIMENTAL => {
                                         view! {
                                             <button
-                                                class="btn btn-block btn-outline btn-info m-2"
+                                                class="btn btn-block btn-outline btn-success m-2"
                                                 on:click=move |_| spawn_local(async move {
                                                     let e = experiment_rs.get();
                                                     let variant = variant.get();
@@ -486,15 +495,13 @@ fn add_dialogs(
                         }}
 
                     </form>
-                    <div class="modal-action">
-                        <form method="dialog">
-                            <button class="btn">Close</button>
-                        </form>
-                    </div>
                 </div>
             </dialog>
             <dialog id="ramp_exp_modal" class="modal">
                 <div class="modal-box">
+                    <form method="dialog">
+                        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><i class="ri-close-line"></i></button>
+                    </form>
                     <h3 class="font-bold text-lg">Ramp up with release</h3>
                     <p class="py-4">Increase the traffic being redirected to the variants</p>
                     <form method="dialog" on:submit=on_submit>
@@ -513,16 +520,11 @@ fn add_dialogs(
                             }
                         />
 
-                        <button class="btn btn-block btn-outline btn-success m-2">Set</button>
+                        <button class="btn btn-block text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 shadow-lg shadow-purple-500/50 dark:shadow-lg dark:shadow-purple-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Set</button>
                     </form>
-                    <div class="modal-action">
-                        <form method="dialog">
-                            <button class="btn">Close</button>
-                        </form>
-                    </div>
                 </div>
             </dialog>
         }.into_view(),
-        ExperimentStatusType::CONCLUDED => view! { <h1>conclude</h1> }.into_view(),
+        ExperimentStatusType::CONCLUDED => view! {}.into_view(),
     }
 }
