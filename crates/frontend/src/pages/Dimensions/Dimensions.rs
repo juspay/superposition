@@ -25,13 +25,25 @@ pub struct RowData {
     pub pattern: String,
 }
 
+fn parse_string_to_json_value_vec(input: &str) -> Vec<Value> {
+    // Parse the input string into a serde_json::Value
+    let parsed = serde_json::from_str::<Value>(input).expect("Failed to parse JSON");
+
+    // Ensure the Value is an Array and convert it to Vec<Value>
+    match parsed {
+        Value::Array(arr) => arr,
+        _ => panic!("Input is not a JSON array"),
+    }
+}
+
 pub fn custom_formatter(_value: &str, row: &Map<String, Value>) -> View {
-    let intermediate_signal = use_context::<RwSignal<Option<RowData>>>().unwrap();
+    let global_signal = use_context::<RwSignal<RowData>>().unwrap();
     let row_dimension = row["dimension"].clone().to_string().replace("\"", "");
     let row_priority = row["priority"].clone().to_string().replace("\"", "");
 
     let schema = row["schema"].clone().to_string();
     let schema_object = serde_json::from_str::<serde_json::Value>(&schema).unwrap();
+    let edit_signal = use_context::<RwSignal<bool>>().unwrap();
 
     let row_type = schema_object.get("type").unwrap().to_string();
     let row_pattern = schema_object
@@ -46,7 +58,8 @@ pub fn custom_formatter(_value: &str, row: &Map<String, Value>) -> View {
             type_: row_type.clone(),
             pattern: row_pattern.clone(),
         };
-        intermediate_signal.set(Some(row_data));
+        global_signal.set(row_data);
+        edit_signal.set(true);
         js_sys::eval("document.getElementById('my_modal_5').showModal();").unwrap();
     };
 
@@ -70,14 +83,25 @@ pub async fn create_dimension(
     let mut req_body: HashMap<&str, Value> = HashMap::new();
     let mut schema: Map<String, Value> = Map::new();
 
-    schema.insert(
-        "type".to_string(),
-        Value::String(key_type.replace("\"", "")),
-    );
-    schema.insert(
-        "pattern".to_string(),
-        Value::String(pattern.replace("\"", "")),
-    );
+    match key_type.as_str() {
+        "number" => {
+            schema.insert("type".to_string(), Value::String(key_type.clone()));
+        }
+        "Enum" => {
+            let array = parse_string_to_json_value_vec(pattern.clone().as_str());
+            schema.insert("type".to_string(), Value::String("string".to_string()));
+            schema.insert("enum".to_string(), Value::Array(array));
+        }
+        "Pattern" => {
+            schema.insert("type".to_string(), Value::String("string".to_string()));
+            schema.insert("pattern".to_string(), Value::String(pattern.clone()));
+        }
+        _ => {
+            let json_pattern = serde_json::from_str::<Value>(&pattern.clone())
+                .map_err(|e| e.to_string())?;
+            req_body.insert("schema", json_pattern);
+        }
+    }
 
     req_body.insert("dimension", Value::String(key));
     req_body.insert("priority", Value::Number(priority.into()));
@@ -112,6 +136,7 @@ fn FormComponent(
     tenant: ReadSignal<String>,
 ) -> impl IntoView {
     use leptos::html::Input;
+    use leptos::html::Textarea;
     let handle_submit = handle_submit.clone();
     let global_state = use_context::<RwSignal<RowData>>();
     let row_data = global_state.unwrap().get();
@@ -120,9 +145,12 @@ fn FormComponent(
     let (priority, set_priority) = create_signal(row_data.priority);
     let (keytype, set_keytype) = create_signal(row_data.type_);
     let (pattern, set_pattern) = create_signal(row_data.pattern);
+    let (show_labels, set_show_labels) = create_signal(false);
+    let edit_signal = use_context::<RwSignal<bool>>();
 
     create_effect(move |_| {
         if let Some(row_data) = global_state {
+            logging::log!("default config create effect");
             set_dimension.set(row_data.get().dimension.clone().to_string());
             set_priority.set(row_data.get().priority.clone());
             set_keytype.set(row_data.get().type_.clone().to_string());
@@ -132,8 +160,7 @@ fn FormComponent(
 
     let input_element: NodeRef<Input> = create_node_ref();
     let input_element_two: NodeRef<Input> = create_node_ref();
-    let input_element_three: NodeRef<Input> = create_node_ref();
-    let input_element_four: NodeRef<Input> = create_node_ref();
+    let input_element_three: NodeRef<Textarea> = create_node_ref();
 
     let on_submit = {
         let handle_submit = handle_submit.clone();
@@ -143,12 +170,10 @@ fn FormComponent(
             let value1 = input_element.get().expect("<input> to exist").value();
             let value2 = input_element_two.get().expect("<input> to exist").value();
             let value3 = input_element_three.get().expect("<input> to exist").value();
-            let value4 = input_element_four.get().expect("<input> to exist").value();
 
             set_dimension.set(value1.clone());
             set_priority.set(value2.clone());
-            set_keytype.set(value3.clone());
-            set_pattern.set(value4.clone());
+            set_pattern.set(value3.clone());
             let handle_submit_clone = handle_submit.clone();
 
             spawn_local({
@@ -194,6 +219,7 @@ fn FormComponent(
                             <span class="label-text text-gray-700 font-mono">Dimension</span>
                         </label>
                         <input
+                            disabled = move || {edit_signal.unwrap().get()}
                             type="text"
                             placeholder="Dimension"
                             class="input input-bordered w-full bg-white text-gray-700 shadow-md"
@@ -201,47 +227,92 @@ fn FormComponent(
                             node_ref=input_element
                         />
                     </div>
-                    <div class="form-control">
-                        <label class="label font-mono">
-                            <span class="label-text text-gray-700 font-mono">Priority</span>
-                        </label>
-                        <input
-                            type="Number"
-                            placeholder="Priority"
-                            class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                            value=priority
-                            node_ref=input_element_two
-                        />
+                    <div tabindex = "0" class="dropdown dropdown-bottom">
+                    <div tabindex="0" role="button" class="btn m-1">
+                    <i class="ri-arrow-down-s-line"></i>
+                     Add Schema
+                     </div>
+
+                    <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100
+                    rounded-box w-52">
+                        <li on:click = move |_| {
+                            set_show_labels.set(true);
+                            set_keytype.set("number".to_string());
+                        }>
+                        <a>"Number"</a>
+                        </li>
+                        <li on:click = move |_| {
+                            set_show_labels.set(true);
+                            set_keytype.set("Enum".to_string());
+                            set_pattern.set(format!("{:?}", vec!["android", "web", "ios"]));
+                        }>
+                        <a>"String (Enum)"</a>
+                        </li>
+                        <li on:click = move |_| {
+                            set_show_labels.set(true);
+                            set_keytype.set("Pattern".to_string());
+                            set_pattern.set(".*".to_string());
+                        }>
+                        <a>"String (Regex)"</a>
+                        </li>
+                        <li on:click = move |_| {
+                            set_show_labels.set(true);
+                            set_keytype.set("Other".to_string());
+                        }>
+                        <a>"Other"</a>
+                        </li>
+                    </ul>
                     </div>
-                    <div class="form-control">
-                        <label class="label font-mono">
-                            <span class="label-text text-gray-700 font-mono">Type</span>
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Type"
-                            class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                            value=keytype
-                            node_ref=input_element_three
-                        />
-                    </div>
-                    <div class="form-control">
-                        <label class="label font-mono">
-                            <span class="label-text text-gray-700 font-mono">Pattern (regex)</span>
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Pattern"
-                            class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                            value=pattern
-                            node_ref=input_element_four
-                        />
-                    </div>
+                    {
+                      move || {
+                        view!{
+                          <Show when = move || (keytype.get() == "number")>
+                          <div class="form-control">
+                          <label class="label font-mono">
+                              <span class="label-text text-gray-700 font-mono">Priority</span>
+                          </label>
+                          <input
+                              type="Number"
+                              placeholder="Priority"
+                              class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                              value=priority
+                              node_ref=input_element_two
+                          />
+                      </div>
+                      </Show>
+
+                          <Show when = move || (show_labels.get() && (keytype.get() != "number")) >
+                          <div class="form-control">
+                          <label class="label font-mono">
+                              <span class="label-text text-gray-700 font-mono">Priority</span>
+                          </label>
+                          <input
+                              type="Number"
+                              placeholder="Priority"
+                              class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                              value=priority
+                              node_ref=input_element_two
+                          />
+                      </div>
+                                <div class="form-control">
+                                <label class="label font-mono">
+                                <span class="label-text text-gray-700 font-mono">{keytype.get()}</span>
+                                </label>
+                                    <textarea
+                                      type = "text"
+                                      class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+
+                                      node_ref=input_element_three
+                                    > {pattern.get()}
+                                    </textarea>
+
+                            </div>
+                           </Show>
+                        }
+                      }
+                    }
                     <div class="form-control mt-6">
-                        <Button
-                            text="Submit".to_string()
-                            on_click=|_| modal_action("my_modal_5", "close")
-                        />
+                    <Button text="Submit".to_string() on_click= |_| modal_action("my_modal_5","close") />
                     </div>
                 </form>
             </div>
@@ -255,15 +326,9 @@ pub fn Dimensions() -> impl IntoView {
     let global_state = create_rw_signal(RowData::default());
     provide_context(global_state);
 
-    let intermediate_signal = create_rw_signal(None::<RowData>);
+    let edit_signal = create_rw_signal(true);
+    provide_context(edit_signal);
 
-    create_effect(move |_| {
-        if let Some(row_data) = intermediate_signal.get() {
-            global_state.set(row_data.clone());
-        }
-    });
-
-    provide_context(intermediate_signal.clone());
 
     let dimensions = create_blocking_resource(
         move || {},
@@ -290,14 +355,19 @@ pub fn Dimensions() -> impl IntoView {
         <div class="p-8">
             <Suspense fallback=move || view! { <p>"Loading (Suspense Fallback)..."</p> }>
                 <div class="pb-4">
-                    {move || {
+                    {
+                        move || {
                         let value = dimensions.get();
                         let total_items = match value {
                             Some(v) => v.len().to_string(),
                             _ => "0".to_string(),
                         };
                         view! {
-                            <Stat heading="Dimensions" icon="ri-ruler-2-fill" number=total_items/>
+                            <Stat
+                                heading="Dimensions"
+                                icon="ri-ruler-2-fill"
+                                number={total_items}
+                            />
                         }
                     }}
                     <ModalComponent
@@ -310,14 +380,17 @@ pub fn Dimensions() -> impl IntoView {
                     <div class="card-body">
                         <div class="flex justify-between mb-2">
                             <h2 class="card-title">Dimensions</h2>
-                            <Button
-                                text="Create Dimension".to_string()
-                                on_click=|_| modal_action("my_modal_5", "open")
-                            />
+                            <Button text="Create Dimension".to_string() on_click={
+                                let edit_clone = edit_signal.to_owned();
+                                move |_| {
+                                    edit_clone.set(false);
+                                    modal_action("my_modal_5","open")
+                                }}/>
                         </div>
                         <div>
 
-                            {move || {
+                            {
+                                move || {
                                 let value = dimensions.get();
                                 let settings = TableSettings {
                                     redirect_prefix: None,
@@ -326,7 +399,14 @@ pub fn Dimensions() -> impl IntoView {
                                     Some(v) => {
                                         let data = v
                                             .iter()
-                                            .map(|ele| { json!(ele).as_object().unwrap().clone() })
+                                            .map(|ele| {
+                                                let mut ele_map = json!(ele).as_object().unwrap().clone();
+                                                ele_map.insert(
+                                                    "created_at".to_string(),
+                                                    json!(ele.created_at.format("%v").to_string())
+                                                );
+                                                ele_map
+                                             })
                                             .collect::<Vec<Map<String, Value>>>()
                                             .to_owned();
                                         view! {
