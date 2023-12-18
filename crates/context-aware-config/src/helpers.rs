@@ -45,14 +45,22 @@ pub fn get_default_config_validation_schema() -> JSONSchema {
               }
             },
             "then": {
-              "properties": {
-                "pattern": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "pattern"
-              ]
+                "oneOf": [
+                    {
+                        "required": ["pattern"],
+                        "properties": { "pattern": { "type": "string" } }
+                    },
+                    {
+                        "required": ["enum"],
+                        "properties": {
+                            "enum": {
+                                "type": "array",
+                                "contains": { "type": "string" },
+                                "minContains": 1
+                            },
+                        }
+                    }
+                ]
             }
           }
           // TODO: Add validations for Array types.
