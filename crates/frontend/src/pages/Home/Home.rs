@@ -199,7 +199,9 @@ pub fn home() -> impl IntoView {
             let search_field_prefix = gen_name_id(
                 search_field_prefix,
                 dimension,
-                &value.as_str().unwrap().to_string(),
+                &value.as_str().unwrap_or(
+                    &value.to_string().trim_matches('"')[..]
+                ).to_string(),
             );
             logging::log!("search field prefix {:#?}", search_field_prefix);
             let config_name_elements = document()

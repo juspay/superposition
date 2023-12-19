@@ -10,7 +10,6 @@ use crate::pages::DefaultConfig::types::Config;
 use crate::components::condition_pills::condition_pills::ConditionPills;
 use crate::utils::modal_action;
 use leptos::*;
-use leptos_router::use_query_map;
 use reqwest::StatusCode;
 use serde_json::{json, Map, Value};
 use web_sys::MouseEvent;
