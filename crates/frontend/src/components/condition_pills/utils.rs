@@ -14,7 +14,7 @@ pub fn extract_and_format(condition: &Value) -> String {
             formatted_conditions.push(format_condition(cond));
         }
 
-        formatted_conditions.join(" and ")
+        formatted_conditions.join(" && ")
     } else {
         // Handling single conditions
         format_condition(condition)
@@ -71,7 +71,7 @@ pub fn parse_conditions(input: String) -> Vec<(String, String, String)> {
     let operators = vec!["==", "in"];
 
     // Split the string by "and" and iterate over each condition
-    for condition in input.split("and") {
+    for condition in input.split("&&") {
         let mut parts = Vec::new();
         let mut operator_found = "";
 
