@@ -34,7 +34,7 @@ pub fn SideNav() -> impl IntoView {
     for tenant in tenants.into_iter() {
         if tenant == tenant_rs.get() {
             view_vector
-                .push(view! { <option selected={true}>{tenant}</option> }.into_view());
+                .push(view! { <option selected=true>{tenant}</option> }.into_view());
         } else {
             view_vector.push(view! { <option>{tenant}</option> }.into_view());
         }
@@ -88,9 +88,10 @@ pub fn SideNav() -> impl IntoView {
                         Default::default(),
                     );
                 }
+
                 class="select w-full max-w-xs shadow-md"
             >
-            { view_vector }
+                {view_vector}
             </select>
             // <hr class="h-px mt-0 mb-1 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent"/>
             <div class="items-center block w-auto max-h-screen overflow-auto h-sidenav grow basis-full">

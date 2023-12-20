@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::components::{
     experiment_form::experiment_form::ExperimentForm, pagination::pagination::Pagination,
-    stat::stat::Stat, table::table::Table, Button::Button::Button,
+    stat::stat::Stat, table::table::Table, button::button::Button,
 };
 
 use crate::pages::ExperimentList::types::{ExperimentsResponse, ListFilters};
@@ -125,11 +125,16 @@ pub fn ExperimentList() -> impl IntoView {
                                             let dialog_ele = element
                                                 .dyn_ref::<web_sys::HtmlDialogElement>();
                                             match dialog_ele {
-                                                Some(ele) => { let _ = ele.show_modal(); },
-                                                None => { log!("no modal element"); }
+                                                Some(ele) => {
+                                                    let _ = ele.show_modal();
+                                                }
+                                                None => {
+                                                    log!("no modal element");
+                                                }
                                             }
                                         }
                                     }
+
                                     text="Create Experiment".to_string()
                                 />
                             </div>
@@ -145,16 +150,19 @@ pub fn ExperimentList() -> impl IntoView {
                                             .data
                                             .iter()
                                             .map(|ele| {
-                                                let mut ele_map = json!(ele).as_object().unwrap().to_owned();
+                                                let mut ele_map = json!(ele)
+                                                    .as_object()
+                                                    .unwrap()
+                                                    .to_owned();
                                                 ele_map
                                                     .insert(
                                                         "created_at".to_string(),
-                                                        json!(ele.created_at.format("%v").to_string())
+                                                        json!(ele.created_at.format("%v").to_string()),
                                                     );
                                                 ele_map
                                                     .insert(
                                                         "last_modified".to_string(),
-                                                        json!(ele.last_modified.format("%v").to_string())
+                                                        json!(ele.last_modified.format("%v").to_string()),
                                                     );
                                                 ele_map
                                             })
@@ -282,7 +290,6 @@ pub fn ExperimentList() -> impl IntoView {
                                             dimensions=dim.clone()
                                             default_config=def_conf.clone()
                                             handle_submit=handle_submit_experiment_form
-                                            edit_mode=false
                                         />
                                     </div>
                                 </div>

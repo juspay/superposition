@@ -4,7 +4,6 @@ use leptos_router::*;
 
 #[component]
 pub fn Layout(children: Children) -> impl IntoView {
-    let params = use_params_map();
     let location = use_location();
 
     let tenant = match location

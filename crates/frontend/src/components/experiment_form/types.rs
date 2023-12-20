@@ -1,6 +1,4 @@
-use crate::pages::ExperimentList::types::{
-    DefaultConfig, Dimension, Variant, VariantType,
-};
+use crate::pages::ExperimentList::types::Variant;
 use serde::Serialize;
 use serde_json::Value;
 

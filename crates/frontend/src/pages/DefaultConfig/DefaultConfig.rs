@@ -4,7 +4,7 @@ use std::rc::Rc;
 use crate::components::table::{table::Table, types::Column};
 
 use crate::components::stat::stat::Stat;
-use crate::components::Button::Button::Button;
+use crate::components::button::button::Button;
 use crate::pages::DefaultConfig::types::Config;
 use crate::pages::ExperimentList::utils::fetch_default_config;
 use crate::utils::modal_action;
@@ -127,7 +127,7 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     use leptos::html::Textarea;
     let handle_submit = handle_submit.clone();
     let global_state = use_context::<RwSignal<RowData>>();
-    let row_data = global_state.unwrap().get();
+    let _row_data = global_state.unwrap().get();
 
     let (key, set_key) = create_signal("".to_string());
     let (value, set_value) = create_signal("".to_string());
@@ -203,15 +203,13 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     };
 
     view! {
-        <form
-            class="form-control w-full space-y-4 bg-white text-gray-700 font-mono"
-        >
+        <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
             <div class="form-control">
                 <label class="label font-mono">
                     <span class="label-text text-gray-700 font-mono">Key</span>
                 </label>
                 <input
-                    disabled = move || {edit_signal.unwrap().get()}
+                    disabled=move || { edit_signal.unwrap().get() }
                     type="text"
                     placeholder="Key"
                     class="input input-bordered w-full bg-white text-gray-700 shadow-md"
@@ -220,123 +218,112 @@ fn FormComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                 />
             </div>
 
-
             <select
-                    name="schemaType[]"
-                    on:change=move |ev| {
-                        set_show_labels.set(true);
-                        match event_target_value(&ev).as_str() {
-                            "number" => {
-                                set_keytype.set("number".to_string());
-                            }
-                             "Enum" => {
-                                set_keytype.set("Enum".to_string());
-                                set_pattern.set(format!("{:?}", vec!["android", "web", "ios"]));
-                             }
-                             "Pattern" => {
-                                set_keytype.set("Pattern".to_string());
-                                set_pattern.set(".*".to_string());
-                             }
-                             _ => {
-                                set_keytype.set("Other".to_string());
-                                set_pattern.set("".to_string());
-                             }
-                        };
+                name="schemaType[]"
+                on:change=move |ev| {
+                    set_show_labels.set(true);
+                    match event_target_value(&ev).as_str() {
+                        "number" => {
+                            set_keytype.set("number".to_string());
+                        }
+                        "Enum" => {
+                            set_keytype.set("Enum".to_string());
+                            set_pattern.set(format!("{:?}", vec!["android", "web", "ios"]));
+                        }
+                        "Pattern" => {
+                            set_keytype.set("Pattern".to_string());
+                            set_pattern.set(".*".to_string());
+                        }
+                        _ => {
+                            set_keytype.set("Other".to_string());
+                            set_pattern.set("".to_string());
+                        }
+                    };
+                }
 
-                    }
-                    class="select select-bordered"
+                class="select select-bordered"
             >
-            <option disabled selected>
-                Set Schema
-            </option>
+                <option disabled selected>
+                    Set Schema
+                </option>
 
-            <option
-               value= "number"
-               selected=move || {keytype.get() == "number".to_string()}
-               >
-               "Number"
-           </option>
-               <option
-               value= "Enum"
-               selected=move || { keytype.get() == "Enum".to_string()}
-               >
-               "String (Enum)"
-           </option>
-               <option
-               value= "Pattern"
-               selected=move || { keytype.get() == "Pattern".to_string()}
-               >
-               "String (regex)"
-           </option>
-               <option
-               value= "Other"
-               selected=move || { keytype.get() == "Other".to_string()}
-               >
-               "Other"
-           </option>
-           </select>
+                <option value="number" selected=move || { keytype.get() == "number".to_string() }>
+                    "Number"
+                </option>
+                <option value="Enum" selected=move || { keytype.get() == "Enum".to_string() }>
+                    "String (Enum)"
+                </option>
+                <option value="Pattern" selected=move || { keytype.get() == "Pattern".to_string() }>
+                    "String (regex)"
+                </option>
+                <option value="Other" selected=move || { keytype.get() == "Other".to_string() }>
+                    "Other"
+                </option>
+            </select>
 
-            {
-              move || {
-                view!{
-                  <Show when = move || (keytype.get() == "number")>
-                  <div class="form-control">
-                  <label class="label font-mono">
-                      <span class="label-text text-gray-700 font-mono">Value</span>
-                  </label>
-                  <input
-                      type="number"
-                      placeholder="Value"
-                      class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                      value=value
-                      node_ref=input_element_two
-                  />
-              </div>
-              </Show>
-
-                  <Show when = move || (show_labels.get() && (keytype.get() != "number")) >
-                  <div class="form-control">
-                  <label class="label font-mono">
-                      <span class="label-text text-gray-700 font-mono">Value</span>
-                  </label>
-                  <input
-                      type="text"
-                      placeholder="Value"
-                      class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                      value=value
-                      node_ref=input_element_two
-                  />
-              </div>
+            {move || {
+                view! {
+                    <Show when=move || (keytype.get() == "number")>
                         <div class="form-control">
-                        <label class="label font-mono">
-                        <span class="label-text text-gray-700 font-mono">{keytype.get()}</span>
-                        </label>
-                            <textarea
-                              type = "text"
-                              class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                            <label class="label font-mono">
+                                <span class="label-text text-gray-700 font-mono">Value</span>
+                            </label>
+                            <input
+                                type="number"
+                                placeholder="Value"
+                                class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                                value=value
+                                node_ref=input_element_two
+                            />
+                        </div>
+                    </Show>
 
-                              node_ref=input_element_three
-                            > {pattern.get()}
+                    <Show when=move || (show_labels.get() && (keytype.get() != "number"))>
+                        <div class="form-control">
+                            <label class="label font-mono">
+                                <span class="label-text text-gray-700 font-mono">Value</span>
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Value"
+                                class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                                value=value
+                                node_ref=input_element_two
+                            />
+                        </div>
+                        <div class="form-control">
+                            <label class="label font-mono">
+                                <span class="label-text text-gray-700 font-mono">
+                                    {keytype.get()}
+                                </span>
+                            </label>
+                            <textarea
+                                type="text"
+                                class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+
+                                node_ref=input_element_three
+                            >
+                                {pattern.get()}
                             </textarea>
 
-                    </div>
-                   </Show>
+                        </div>
+                    </Show>
                 }
-              }
+            }}
+
+            <div class="form-control mt-6">
+                <Button text="Submit".to_string() on_click=on_submit/>
+            </div>
+
+            {
+                view! {
+                    <div>
+                        <p class="text-red-500">{move || error_message.get()}</p>
+                    </div>
+                }
             }
-                    <div class="form-control mt-6">
-                    <Button text="Submit".to_string() on_click= on_submit />
-                </div>
 
-                {
-
-                    view! {
-                       <div>
-                           <p class="text-red-500">{move || error_message.get()}</p>
-                       </div>
-                   }
-               }
-            </form>
+        </form>
     }
 }
 
@@ -359,7 +346,7 @@ fn custom_formatter(_value: &str, row: &Map<String, Value>) -> View {
     let edit_icon: HtmlElement<html::I> =
         view! { <i class="ri-pencil-line ri-xl text-blue-500"></i> };
 
-    view! { <span on:click = edit_click_handler>{edit_icon}</span> }.into_view()
+    view! { <span on:click=edit_click_handler>{edit_icon}</span> }.into_view()
 }
 
 #[component]
@@ -396,35 +383,34 @@ pub fn DefaultConfig() -> impl IntoView {
     view! {
         <div class="p-8">
             <ModalComponent handle_submit=Rc::new(move || default_config_resource.refetch())/>
-            <Suspense
-                fallback=move || {
-                    view! { <p>"Loading (Suspense Fallback)..."</p> }
-                }
-            >
-                {
+            <Suspense fallback=move || {
+                view! { <p>"Loading (Suspense Fallback)..."</p> }
+            }>
 
+                {
                     let edit_signal = edit_signal.clone();
                     move || {
                         let default_config = default_config_resource.get().unwrap_or(vec![]);
                         let total_default_config_keys = default_config.len().to_string();
-
                         let edit_signal = edit_signal.clone();
-
                         let table_rows = default_config
                             .into_iter()
                             .map(|config| {
                                 let mut ele_map = json!(config).as_object().unwrap().to_owned();
-                                ele_map.insert("created_at".to_string(),json!(config.created_at.format("%v").to_string()));
+                                ele_map
+                                    .insert(
+                                        "created_at".to_string(),
+                                        json!(config.created_at.format("%v").to_string()),
+                                    );
                                 ele_map
                             })
                             .collect::<Vec<Map<String, Value>>>();
-
                         view! {
                             <div class="pb-4">
                                 <Stat
                                     heading="Config Keys"
                                     icon="ri-tools-line"
-                                    number={total_default_config_keys}
+                                    number=total_default_config_keys
                                 />
                             </div>
                             <div class="card rounded-lg w-full bg-base-100 shadow">
@@ -433,12 +419,16 @@ pub fn DefaultConfig() -> impl IntoView {
                                         <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
                                             "Default Config"
                                         </h2>
-                                        <Button text="Create Key".to_string() on_click= {
-                                            let edit_signal_clone = edit_signal.to_owned();
-                                            move |_| {
-                                            edit_signal_clone.set(false);
-                                            modal_action("my_modal_5","open");
-                                        }}/>
+                                        <Button
+                                            text="Create Key".to_string()
+                                            on_click={
+                                                let edit_signal_clone = edit_signal.to_owned();
+                                                move |_| {
+                                                    edit_signal_clone.set(false);
+                                                    modal_action("my_modal_5", "open");
+                                                }
+                                            }
+                                        />
                                     </div>
                                     <Table
                                         table_style="font-mono".to_string()
@@ -451,6 +441,7 @@ pub fn DefaultConfig() -> impl IntoView {
                         }
                     }
                 }
+
             </Suspense>
         </div>
     }
