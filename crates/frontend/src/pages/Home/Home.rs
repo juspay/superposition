@@ -6,7 +6,7 @@ use web_sys::{HtmlInputElement, HtmlSelectElement, HtmlSpanElement, MouseEvent};
 
 use crate::{
     api::fetch_dimensions,
-    components::{context_form::context_form::ContextForm, Button::Button::Button},
+    components::{context_form::context_form::ContextForm, button::button::Button},
 };
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -187,7 +187,7 @@ pub fn home() -> impl IntoView {
         },
     );
 
-    let (display_configs_rs, display_configs_ws) = create_signal(true);
+    let (_display_configs_rs, _display_configs_ws) = create_signal(true);
 
     let unstrike = |search_field_prefix: &String, config: &Map<String, Value>| {
         for (dimension, value) in config.into_iter() {
@@ -418,12 +418,14 @@ pub fn home() -> impl IntoView {
                                                                 view! {
                                                                     <tr>
                                                                         <td>{config}</td>
-                                                                        <td>{match value {
-                                                                            Value::String(s) => s,
-                                                                            Value::Number(num) => num.to_string(),
-                                                                            Value::Bool(b) => b.to_string(),
-                                                                            _ => "".into()
-                                                                        }}</td>
+                                                                        <td>
+                                                                            {match value {
+                                                                                Value::String(s) => s,
+                                                                                Value::Number(num) => num.to_string(),
+                                                                                Value::Bool(b) => b.to_string(),
+                                                                                _ => "".into(),
+                                                                            }}
+                                                                        </td>
 
                                                                     </tr>
                                                                 }
@@ -478,12 +480,13 @@ pub fn home() -> impl IntoView {
                                             .push(
                                                 view! {
                                                     < tr > < td > < span name = format!("{unique_name}-1") class
-                                                    = "config-name" class : text-black = { ! striked } class : font-bold = { !striked }
-                                                    class : text - gray - 300 = { striked } > { key } </ span
-                                                    > </ td > < td > < span name = format!("{unique_name}-2")
-                                                    class = "config-value" class : text-black = { !
-                                                    striked } class : font-bold = { !striked } class : text - gray - 300 = { striked } > {
-                                                    value } </ span > </ td > </ tr >
+                                                    = "config-name" class : text - black = { ! striked } class :
+                                                    font - bold = { ! striked } class : text - gray - 300 = {
+                                                    striked } > { key } </ span > </ td > < td > < span name =
+                                                    format!("{unique_name}-2") class = "config-value" class :
+                                                    text - black = { ! striked } class : font - bold = { !
+                                                    striked } class : text - gray - 300 = { striked } > { value
+                                                    } </ span > </ td > </ tr >
                                                 },
                                             )
                                     }
@@ -493,7 +496,9 @@ pub fn home() -> impl IntoView {
                                     .contexts
                                     .iter()
                                     .map(|context| {
-                                        let condition = parse_conditions(extract_and_format(&context.condition));
+                                        let condition = parse_conditions(
+                                            extract_and_format(&context.condition),
+                                        );
                                         let rows: Vec<_> = context
                                             .override_with_keys
                                             .iter()
@@ -555,12 +560,12 @@ pub fn home() -> impl IntoView {
                                     view! {
                                         <div class="mb-4 w-8/12 overflow-y-auto max-h-screen">
                                             // <div class="form-control p-10">
-                                            //     <label class="cursor-pointer label">
-                                            //     <span class="label-text ml-1">Display All Configs</span>
-                                            //     <input type="checkbox" class="toggle bg-purple-600"
-                                            //     on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
-                                            //     checked=move || display_configs_rs.get() />
-                                            //     </label>
+                                            // <label class="cursor-pointer label">
+                                            // <span class="label-text ml-1">Display All Configs</span>
+                                            // <input type="checkbox" class="toggle bg-purple-600"
+                                            // on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
+                                            // checked=move || display_configs_rs.get() />
+                                            // </label>
                                             // </div>
                                             {new_context_views}
                                             <div class="card bg-base-100 shadow m-6">
@@ -584,6 +589,15 @@ pub fn home() -> impl IntoView {
                             Some(Err(error)) => {
                                 vec![
                                     view! {
+                                        // <div class="form-control p-10">
+                                        // <label class="cursor-pointer label">
+                                        // <span class="label-text ml-1">Display All Configs</span>
+                                        // <input type="checkbox" class="toggle bg-purple-600"
+                                        // on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
+                                        // checked=move || display_configs_rs.get() />
+                                        // </label>
+                                        // </div>
+
                                         <div class="error">
                                             {"Failed to fetch config data: "} {error}
                                         </div>
@@ -591,7 +605,20 @@ pub fn home() -> impl IntoView {
                                 ]
                             }
                             None => {
-                                vec![view! { <div class="error">{"No config data fetched"}</div> }]
+                                vec![
+                                    view! {
+                                        // <div class="form-control p-10">
+                                        // <label class="cursor-pointer label">
+                                        // <span class="label-text ml-1">Display All Configs</span>
+                                        // <input type="checkbox" class="toggle bg-purple-600"
+                                        // on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
+                                        // checked=move || display_configs_rs.get() />
+                                        // </label>
+                                        // </div>
+
+                                        <div class="error">{"No config data fetched"}</div>
+                                    },
+                                ]
                             }
                         }
                     })}

@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use leptos::*;
 use web_sys::MouseEvent;
 

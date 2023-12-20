@@ -14,8 +14,6 @@ pub fn ContextForm<NF>(
 where
     NF: Fn(Vec<(String, String, String)>) + 'static,
 {
-    let has_dimensions = dimensions.len() > 0;
-
     let (context, set_context) = create_signal(context.clone());
     let (used_dimensions, set_used_dimensions) = create_signal(HashSet::new());
 
@@ -148,7 +146,9 @@ where
                                     </div>
                                     <div class="form-control">
                                         <label class="label font-mono text-sm">
-                                            <span class="label-text" name="context-dimension-name">{dimension_label}</span>
+                                            <span class="label-text" name="context-dimension-name">
+                                                {dimension_label}
+                                            </span>
                                         </label>
                                         <div class="flex gap-x-6 items-center">
                                             <input

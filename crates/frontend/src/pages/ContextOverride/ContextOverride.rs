@@ -4,7 +4,7 @@ use crate::api::{fetch_default_config, fetch_dimensions};
 use crate::components::context_form::context_form::ContextForm;
 use crate::components::override_form::override_form::OverrideForm;
 use crate::components::table::{table::Table, types::Column};
-use crate::components::Button::Button::Button;
+use crate::components::button::button::Button;
 use crate::pages::DefaultConfig::types::Config;
 // use leptos::spawn_local;
 use crate::components::condition_pills::condition_pills::ConditionPills;
@@ -309,7 +309,7 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                     .await;
 
                     match result {
-                        Ok(str) => {
+                        Ok(_) => {
                             handle_submit();
                             modal_action("my_modal_5", "close")
                         }
@@ -483,7 +483,7 @@ pub fn ContextOverride() -> impl IntoView {
                                                                         "Condition"
                                                                     </h3>
                                                                     <i class="ri-arrow-right-fill ri-xl text-blue-500"></i>
-                                                                    <ConditionPills context={context.condition.clone()} />
+                                                                    <ConditionPills context=context.condition.clone()/>
                                                                 </div>
                                                                 <button class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                                                                     <i class="ri-edit-line text-blue-500"></i>
@@ -515,13 +515,7 @@ pub fn ContextOverride() -> impl IntoView {
                                             },
                                         ]
                                     }
-                                    None => {
-                                        vec![
-                                            view! {
-                                                <div>Loading....</div>
-                                            },
-                                        ]
-                                    }
+                                    None => vec![view! { <div>Loading....</div> }],
                                 }
                             })
                     }}

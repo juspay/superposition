@@ -19,9 +19,7 @@ pub fn ConditionPills(context: Value) -> impl IntoView {
                         <span class="font-mono font-medium text-gray-650 context_condition ">
                             {op}
                         </span>
-                        <span class="font-mono font-semibold context_condition">
-                            {val}
-                        </span>
+                        <span class="font-mono font-semibold context_condition">{val}</span>
                     </span>
                 }
             })
