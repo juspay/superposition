@@ -1,4 +1,4 @@
-use reqwest::{Error, StatusCode};
+use reqwest::StatusCode;
 use serde_json::{json, Map, Value};
 
 pub fn construct_context(conditions: Vec<(String, String, String)>) -> Value {

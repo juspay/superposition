@@ -2,7 +2,7 @@ use super::types::ExperimentCreateRequest;
 use crate::components::context_form::utils::construct_context;
 use crate::pages::ExperimentList::types::Variant;
 use reqwest::StatusCode;
-use serde_json::{json, Value};
+use serde_json::json;
 
 pub async fn create_experiment(
     conditions: Vec<(String, String, String)>,

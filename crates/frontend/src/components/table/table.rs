@@ -34,7 +34,11 @@ pub fn Table(
                         {columns
                             .iter()
                             .filter(|column| !column.hidden)
-                            .map(|column| view! { <th class="uppercase">{&column.name.replace("_", " ")}</th> })
+                            .map(|column| {
+                                view! {
+                                    <th class="uppercase">{&column.name.replace("_", " ")}</th>
+                                }
+                            })
                             .collect_view()}
 
                     </tr>
@@ -52,7 +56,7 @@ pub fn Table(
                                 .unwrap()
                                 .to_string();
                             view! {
-                                <tr id={row_id}>
+                                <tr id=row_id>
                                     <th>{index + 1}</th>
 
                                     {columns

@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::components::Button::Button::Button;
+use crate::components::button::button::Button;
 use crate::components::{
     stat::stat::Stat,
     table::{table::Table, types::Column},
 };
 use crate::utils::modal_action;
-use leptos::logging::*;
 use leptos::*;
 use reqwest::StatusCode;
 use serde_json::{json, Map, Value};
@@ -226,15 +225,13 @@ fn FormComponent(
                         <i class="ri-close-fill" onclick="my_modal_5.close()"></i>
                     </button>
                 </form>
-                <form
-                    class="form-control w-full space-y-4 bg-white text-gray-700 font-mono"
-                >
+                <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
                     <div class="form-control">
                         <label class="label font-mono">
                             <span class="label-text text-gray-700 font-mono">Dimension</span>
                         </label>
                         <input
-                            disabled = move || {edit_signal.unwrap().get()}
+                            disabled=move || { edit_signal.unwrap().get() }
                             type="text"
                             placeholder="Dimension"
                             class="input input-bordered w-full bg-white text-gray-700 shadow-md"
@@ -243,118 +240,126 @@ fn FormComponent(
                         />
                     </div>
                     <select
-                    name="schemaType[]"
-                    on:change=move |ev| {
-                        set_show_labels.set(true);
-                        match event_target_value(&ev).as_str() {
-                            "number" => {
-                                set_keytype.set("number".to_string());
-                            }
-                             "Enum" => {
-                                set_keytype.set("Enum".to_string());
-                                set_pattern.set(format!("{:?}", vec!["android", "web", "ios"]));
-                             }
-                             "Pattern" => {
-                                set_keytype.set("Pattern".to_string());
-                                set_pattern.set(".*".to_string());
-                             }
-                             _ => {
-                                set_keytype.set("Other".to_string());
-                                set_pattern.set("".to_string());
-                             }
-                        };
+                        name="schemaType[]"
+                        on:change=move |ev| {
+                            set_show_labels.set(true);
+                            match event_target_value(&ev).as_str() {
+                                "number" => {
+                                    set_keytype.set("number".to_string());
+                                }
+                                "Enum" => {
+                                    set_keytype.set("Enum".to_string());
+                                    set_pattern.set(format!("{:?}", vec!["android", "web", "ios"]));
+                                }
+                                "Pattern" => {
+                                    set_keytype.set("Pattern".to_string());
+                                    set_pattern.set(".*".to_string());
+                                }
+                                _ => {
+                                    set_keytype.set("Other".to_string());
+                                    set_pattern.set("".to_string());
+                                }
+                            };
+                        }
 
-                    }
-                    class="select select-bordered"
-                   >
-            <option disabled selected>
-                Set Schema
-            </option>
+                        class="select select-bordered"
+                    >
+                        <option disabled selected>
+                            Set Schema
+                        </option>
 
-            <option
-               value= "number"
-               selected=move || {keytype.get() == "number".to_string()}
-               >
-               "Number"
-           </option>
-               <option
-               value= "Enum"
-               selected=move || { keytype.get() == "Enum".to_string()}
-               >
-               "String (Enum)"
-           </option>
-               <option
-               value= "Pattern"
-               selected=move || { keytype.get() == "Pattern".to_string()}
-               >
-               "String (regex)"
-           </option>
-               <option
-               value= "Other"
-               selected=move || { keytype.get() == "Other".to_string()}
-               >
-               "Other"
-           </option>
-           </select>
-                    {
-                      move || {
-                        view!{
-                          <Show when = move || (keytype.get() == "number")>
-                          <div class="form-control">
-                          <label class="label font-mono">
-                              <span class="label-text text-gray-700 font-mono">Priority</span>
-                          </label>
-                          <input
-                              type="Number"
-                              placeholder="Priority"
-                              class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                              value=priority
-                              node_ref=input_element_two
-                          />
-                      </div>
-                      </Show>
+                        <option
+                            value="number"
+                            selected=move || { keytype.get() == "number".to_string() }
+                        >
+                            "Number"
+                        </option>
+                        <option
+                            value="Enum"
+                            selected=move || { keytype.get() == "Enum".to_string() }
+                        >
+                            "String (Enum)"
+                        </option>
+                        <option
+                            value="Pattern"
+                            selected=move || { keytype.get() == "Pattern".to_string() }
+                        >
+                            "String (regex)"
+                        </option>
+                        <option
+                            value="Other"
+                            selected=move || { keytype.get() == "Other".to_string() }
+                        >
+                            "Other"
+                        </option>
+                    </select>
 
-                          <Show when = move || (show_labels.get() && (keytype.get() != "number")) >
-                          <div class="form-control">
-                          <label class="label font-mono">
-                              <span class="label-text text-gray-700 font-mono">Priority</span>
-                          </label>
-                          <input
-                              type="Number"
-                              placeholder="Priority"
-                              class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                              value=priority
-                              node_ref=input_element_two
-                          />
-                      </div>
+                    {move || {
+                        view! {
+                            <Show when=move || (keytype.get() == "number")>
                                 <div class="form-control">
-                                <label class="label font-mono">
-                                <span class="label-text text-gray-700 font-mono">{keytype.get()}</span>
-                                </label>
-                                    <textarea
-                                      type = "text"
-                                      class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                                    <label class="label font-mono">
+                                        <span class="label-text text-gray-700 font-mono">
+                                            Priority
+                                        </span>
+                                    </label>
+                                    <input
+                                        type="Number"
+                                        placeholder="Priority"
+                                        class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                                        value=priority
+                                        node_ref=input_element_two
+                                    />
+                                </div>
+                            </Show>
 
-                                      node_ref=input_element_three
-                                    > {pattern.get()}
+                            <Show when=move || (show_labels.get() && (keytype.get() != "number"))>
+                                <div class="form-control">
+                                    <label class="label font-mono">
+                                        <span class="label-text text-gray-700 font-mono">
+                                            Priority
+                                        </span>
+                                    </label>
+                                    <input
+                                        type="Number"
+                                        placeholder="Priority"
+                                        class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                                        value=priority
+                                        node_ref=input_element_two
+                                    />
+                                </div>
+                                <div class="form-control">
+                                    <label class="label font-mono">
+                                        <span class="label-text text-gray-700 font-mono">
+                                            {keytype.get()}
+                                        </span>
+                                    </label>
+                                    <textarea
+                                        type="text"
+                                        class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+
+                                        node_ref=input_element_three
+                                    >
+                                        {pattern.get()}
                                     </textarea>
 
-                            </div>
-                           </Show>
+                                </div>
+                            </Show>
                         }
-                      }
-                    }
-                    <div class="form-control mt-6">
-                    <Button text="Submit".to_string() on_click= on_submit />
-                    </div>
-                    {
+                    }}
 
+                    <div class="form-control mt-6">
+                        <Button text="Submit".to_string() on_click=on_submit/>
+                    </div>
+
+                    {
                         view! {
-                           <div>
-                               <p class="text-red-500">{move || error_message.get()}</p>
-                           </div>
-                       }
-                   }
+                            <div>
+                                <p class="text-red-500">{move || error_message.get()}</p>
+                            </div>
+                        }
+                    }
+
                 </form>
             </div>
         </dialog>
@@ -396,30 +401,26 @@ pub fn Dimensions() -> impl IntoView {
         <div class="p-8">
             <Suspense fallback=move || view! { <p>"Loading (Suspense Fallback)..."</p> }>
                 <div class="pb-4">
-                    {
-                        move || {
+
+                    {move || {
                         let value = dimensions.get();
                         let total_items = match value {
                             Some(v) => v.len().to_string(),
                             _ => "0".to_string(),
                         };
                         view! {
-                            <Stat
-                                heading="Dimensions"
-                                icon="ri-ruler-2-fill"
-                                number={total_items}
-                            />
+                            <Stat heading="Dimensions" icon="ri-ruler-2-fill" number=total_items/>
                         }
                     }}
-                    <Show when = move || { open_form.get() }>
-                    <ModalComponent
-                        handle_submit=Rc::new(move || {
-                            set_open_form.set(false);
-                            dimensions.refetch()
-                        }
-                        )
-                        tenant=tenant_rs
-                    />
+                    <Show when=move || { open_form.get() }>
+                        <ModalComponent
+                            handle_submit=Rc::new(move || {
+                                set_open_form.set(false);
+                                dimensions.refetch()
+                            })
+
+                            tenant=tenant_rs
+                        />
                     </Show>
                 </div>
 
@@ -427,18 +428,21 @@ pub fn Dimensions() -> impl IntoView {
                     <div class="card-body">
                         <div class="flex justify-between mb-2">
                             <h2 class="card-title">Dimensions</h2>
-                            <Button text="Create Dimension".to_string() on_click={
-                                let edit_clone = edit_signal.to_owned();
-                                move |_| {
-                                    edit_clone.set(false);
-                                    set_open_form.set(true);
-                                    modal_action("my_modal_5","open");
-                                }}/>
+                            <Button
+                                text="Create Dimension".to_string()
+                                on_click={
+                                    let edit_clone = edit_signal.to_owned();
+                                    move |_| {
+                                        edit_clone.set(false);
+                                        set_open_form.set(true);
+                                        modal_action("my_modal_5", "open");
+                                    }
+                                }
+                            />
                         </div>
                         <div>
 
-                            {
-                                move || {
+                            {move || {
                                 let value = dimensions.get();
                                 match value {
                                     Some(v) => {
@@ -446,12 +450,13 @@ pub fn Dimensions() -> impl IntoView {
                                             .iter()
                                             .map(|ele| {
                                                 let mut ele_map = json!(ele).as_object().unwrap().clone();
-                                                ele_map.insert(
-                                                    "created_at".to_string(),
-                                                    json!(ele.created_at.format("%v").to_string())
-                                                );
                                                 ele_map
-                                             })
+                                                    .insert(
+                                                        "created_at".to_string(),
+                                                        json!(ele.created_at.format("%v").to_string()),
+                                                    );
+                                                ele_map
+                                            })
                                             .collect::<Vec<Map<String, Value>>>()
                                             .to_owned();
                                         view! {

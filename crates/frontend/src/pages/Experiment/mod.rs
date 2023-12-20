@@ -9,7 +9,6 @@ use web_sys::SubmitEvent;
 use crate::{
     api::{fetch_default_config, fetch_dimensions},
     components::{
-        experiment_form::experiment_form::ExperimentForm,
         table::{table::Table, types::Column},
     },
     pages::Home::Home::extract_and_format,
@@ -259,7 +258,9 @@ fn experiment_detail_view(
                 </div>
                 <div class="stat w-2/12">
                     <div class="stat-title">Current Traffic Percentage</div>
-                    <div class="stat-value text-sm">{move || experiment.get().traffic_percentage}</div>
+                    <div class="stat-value text-sm">
+                        {move || experiment.get().traffic_percentage}
+                    </div>
                 </div>
                 <div class="stat w-2/12">
                     <div class="stat-title">Created by</div>
@@ -280,8 +281,7 @@ fn experiment_detail_view(
 
                     </div>
                 </div>
-            </div>
-            <div class="card bg-base-100 max-w-screen shadow m-5">
+            </div> <div class="card bg-base-100 max-w-screen shadow m-5">
                 <div class="card-body">
                     <h2 class="card-title">Context</h2>
                     <div class="flex flex-row flex-wrap gap-2">
@@ -291,11 +291,7 @@ fn experiment_detail_view(
                             let tokens = context.split("&&");
                             for token in tokens.into_iter() {
                                 let mut t = token.trim().split(" ");
-                                let (dimension, _, value) = (
-                                    t.next(),
-                                    t.next(),
-                                    t.next()
-                                );
+                                let (dimension, _, value) = (t.next(), t.next(), t.next());
                                 view.push(
                                     view! {
                                         <div class="stat w-3/12">
@@ -303,14 +299,18 @@ fn experiment_detail_view(
                                                 {format!("{}", dimension.unwrap())}
                                             </div>
                                             <div class="stat-value text-base">
-                                                {format!("{}", &value.unwrap()[1..value.unwrap().chars().count() - 1])}
+                                                {format!(
+                                                    "{}",
+                                                    &value.unwrap()[1..value.unwrap().chars().count() - 1],
+                                                )}
                                             </div>
                                         </div>
                                     },
                                 );
                             }
                             view
-                            }}
+                        }}
+
                     </div>
                 </div>
             </div> <div class="card bg-base-100 max-w-screen shadow m-5">
@@ -382,7 +382,7 @@ fn add_dialogs(
         });
     };
 
-    let dimensions = create_resource(
+    let _dimensions = create_resource(
         move || tenant_rs.get(),
         |tenant| async {
             match fetch_dimensions(tenant).await {
@@ -392,7 +392,7 @@ fn add_dialogs(
         },
     );
 
-    let default_config = create_resource(
+    let _default_config = create_resource(
         move || tenant_rs.get(),
         |tenant| async {
             match fetch_default_config(tenant).await {
@@ -407,7 +407,9 @@ fn add_dialogs(
             <dialog id="edit_exp_modal" class="modal">
                 <div class="modal-box">
                     <form method="dialog">
-                        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><i class="ri-close-line"></i></button>
+                        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+                            <i class="ri-close-line"></i>
+                        </button>
                     </form>
                     <h3 class="font-bold text-lg">Edit Experiment</h3>
                     // <ExperimentForm
@@ -426,7 +428,9 @@ fn add_dialogs(
             <dialog id="conclude_exp_modal" class="modal">
                 <div class="modal-box">
                     <form method="dialog">
-                        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><i class="ri-close-line"></i></button>
+                        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+                            <i class="ri-close-line"></i>
+                        </button>
                     </form>
 
                     <h3 class="font-bold text-lg">Conclude This Experiment</h3>
@@ -488,7 +492,9 @@ fn add_dialogs(
             <dialog id="ramp_exp_modal" class="modal">
                 <div class="modal-box">
                     <form method="dialog">
-                        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><i class="ri-close-line"></i></button>
+                        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+                            <i class="ri-close-line"></i>
+                        </button>
                     </form>
                     <h3 class="font-bold text-lg">Ramp up with release</h3>
                     <p class="py-4">Increase the traffic being redirected to the variants</p>
@@ -508,7 +514,9 @@ fn add_dialogs(
                             }
                         />
 
-                        <button class="btn btn-block text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 shadow-lg shadow-purple-500/50 dark:shadow-lg dark:shadow-purple-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Set</button>
+                        <button class="btn btn-block text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 shadow-lg shadow-purple-500/50 dark:shadow-lg dark:shadow-purple-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">
+                            Set
+                        </button>
                     </form>
                 </div>
             </dialog>
