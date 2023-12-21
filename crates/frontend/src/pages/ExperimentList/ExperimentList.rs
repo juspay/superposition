@@ -6,8 +6,8 @@ use chrono::{prelude::Utc, TimeZone};
 use serde::{Deserialize, Serialize};
 
 use crate::components::{
-    experiment_form::experiment_form::ExperimentForm, pagination::pagination::Pagination,
-    stat::stat::Stat, table::table::Table, button::button::Button,
+    button::button::Button, experiment_form::experiment_form::ExperimentForm,
+    pagination::pagination::Pagination, stat::stat::Stat, table::table::Table,
 };
 
 use crate::pages::ExperimentList::types::{ExperimentsResponse, ListFilters};

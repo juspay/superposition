@@ -1,3 +1,4 @@
+#[warn(unused_must_use)]
 use leptos::*;
 use wasm_bindgen::JsCast;
 
@@ -10,7 +11,7 @@ pub fn modal_action(name: &str, action: &str) {
                     if action == "close" {
                         el.close();
                     } else {
-                        el.show_modal();
+                        let _ = el.show_modal();
                     }
                 }
             } else {

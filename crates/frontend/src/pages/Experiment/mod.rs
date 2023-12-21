@@ -8,9 +8,7 @@ use web_sys::SubmitEvent;
 
 use crate::{
     api::{fetch_default_config, fetch_dimensions},
-    components::{
-        table::{table::Table, types::Column},
-    },
+    components::table::{table::Table, types::Column},
     pages::Home::Home::extract_and_format,
 };
 
@@ -303,6 +301,7 @@ fn experiment_detail_view(
                                                     "{}",
                                                     &value.unwrap()[1..value.unwrap().chars().count() - 1],
                                                 )}
+
                                             </div>
                                         </div>
                                     },

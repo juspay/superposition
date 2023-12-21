@@ -102,6 +102,7 @@ run:
 	# make setup
 	cp .env.example .env
 	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
+	cd crates/frontend && npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css
 	make cac -e DOCKER_DNS=$(DOCKER_DNS)
 
 ci-test:
