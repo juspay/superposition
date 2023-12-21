@@ -14,6 +14,8 @@ pub fn ContextForm<NF>(
 where
     NF: Fn(Vec<(String, String, String)>) + 'static,
 {
+    let _has_dimensions = dimensions.len() > 0;
+
     let (context, set_context) = create_signal(context.clone());
     let (used_dimensions, set_used_dimensions) = create_signal(HashSet::new());
 

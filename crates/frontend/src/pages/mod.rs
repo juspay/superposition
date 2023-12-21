@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 pub mod ContextOverride;
 pub mod DefaultConfig;
 pub mod Dimensions;

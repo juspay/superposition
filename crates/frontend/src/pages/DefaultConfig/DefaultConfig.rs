@@ -3,8 +3,8 @@ use std::rc::Rc;
 
 use crate::components::table::{table::Table, types::Column};
 
-use crate::components::stat::stat::Stat;
 use crate::components::button::button::Button;
+use crate::components::stat::stat::Stat;
 use crate::pages::DefaultConfig::types::Config;
 use crate::pages::ExperimentList::utils::fetch_default_config;
 use crate::utils::modal_action;
@@ -429,6 +429,7 @@ pub fn DefaultConfig() -> impl IntoView {
                                                 }
                                             }
                                         />
+
                                     </div>
                                     <Table
                                         table_style="font-mono".to_string()

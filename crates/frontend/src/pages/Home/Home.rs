@@ -6,7 +6,7 @@ use web_sys::{HtmlInputElement, HtmlSelectElement, HtmlSpanElement, MouseEvent};
 
 use crate::{
     api::fetch_dimensions,
-    components::{context_form::context_form::ContextForm, button::button::Button},
+    components::{button::button::Button, context_form::context_form::ContextForm},
 };
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -199,9 +199,10 @@ pub fn home() -> impl IntoView {
             let search_field_prefix = gen_name_id(
                 search_field_prefix,
                 dimension,
-                &value.as_str().unwrap_or(
-                    &value.to_string().trim_matches('"')[..]
-                ).to_string(),
+                &value
+                    .as_str()
+                    .unwrap_or(&value.to_string().trim_matches('"')[..])
+                    .to_string(),
             );
             logging::log!("search field prefix {:#?}", search_field_prefix);
             let config_name_elements = document()
@@ -425,6 +426,7 @@ pub fn home() -> impl IntoView {
                                                                                 Value::Bool(b) => b.to_string(),
                                                                                 _ => "".into(),
                                                                             }}
+
                                                                         </td>
 
                                                                     </tr>
@@ -598,6 +600,15 @@ pub fn home() -> impl IntoView {
                                         // </label>
                                         // </div>
 
+                                        // <div class="form-control p-10">
+                                        // <label class="cursor-pointer label">
+                                        // <span class="label-text ml-1">Display All Configs</span>
+                                        // <input type="checkbox" class="toggle bg-purple-600"
+                                        // on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
+                                        // checked=move || display_configs_rs.get() />
+                                        // </label>
+                                        // </div>
+
                                         <div class="error">
                                             {"Failed to fetch config data: "} {error}
                                         </div>
@@ -607,6 +618,24 @@ pub fn home() -> impl IntoView {
                             None => {
                                 vec![
                                     view! {
+                                        // <div class="form-control p-10">
+                                        // <label class="cursor-pointer label">
+                                        // <span class="label-text ml-1">Display All Configs</span>
+                                        // <input type="checkbox" class="toggle bg-purple-600"
+                                        // on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
+                                        // checked=move || display_configs_rs.get() />
+                                        // </label>
+                                        // </div>
+
+                                        // <div class="form-control p-10">
+                                        // <label class="cursor-pointer label">
+                                        // <span class="label-text ml-1">Display All Configs</span>
+                                        // <input type="checkbox" class="toggle bg-purple-600"
+                                        // on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
+                                        // checked=move || display_configs_rs.get() />
+                                        // </label>
+                                        // </div>
+
                                         // <div class="form-control p-10">
                                         // <label class="cursor-pointer label">
                                         // <span class="label-text ml-1">Display All Configs</span>
