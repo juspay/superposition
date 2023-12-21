@@ -44,7 +44,7 @@ pub fn App() -> impl IntoView {
                                 path="admin/:tenant/experiments/:id"
                                 view=ExperimentPage
                             />
-                            <Route ssr=SsrMode::PartiallyBlocked path="" view=Home/>
+                            <Route ssr=SsrMode::PartiallyBlocked path="/admin" view=Home/>
                             <Route
                                 ssr=SsrMode::PartiallyBlocked
                                 path="/admin/:tenant/default-config"

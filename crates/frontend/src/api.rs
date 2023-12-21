@@ -1,5 +1,3 @@
-use leptos::*;
-
 use crate::pages::ExperimentList::types::{DefaultConfig, Dimension};
 
 // #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -46,30 +44,30 @@ pub async fn fetch_default_config(tenant: String) -> Result<Vec<DefaultConfig>, 
     }
 }
 
-pub fn dimension_resource(
-    tenant: ReadSignal<String>,
-) -> Resource<String, Vec<Dimension>> {
-    create_blocking_resource(
-        move || tenant.get(),
-        |tenant| async {
-            match fetch_dimensions(tenant).await {
-                Ok(data) => data,
-                Err(_) => vec![],
-            }
-        },
-    )
-}
+//pub fn dimension_resource(
+//  tenant: ReadSignal<String>,
+//) -> Resource<String, Vec<Dimension>> {
+//  create_blocking_resource(
+//    move || tenant.get(),
+//  |tenant| async {
+//    match fetch_dimensions(tenant).await {
+//      Ok(data) => data,
+//    Err(_) => vec![],
+// }
+// },
+// )
+//}
 
-pub fn default_config_resource(
-    tenant: ReadSignal<String>,
-) -> Resource<String, Vec<DefaultConfig>> {
-    create_blocking_resource(
-        move || tenant.get(),
-        |tenant| async {
-            match fetch_default_config(tenant).await {
-                Ok(data) => data,
-                Err(_) => vec![],
-            }
-        },
-    )
-}
+//pub fn default_config_resource(
+//  tenant: ReadSignal<String>,
+//) -> Resource<String, Vec<DefaultConfig>> {
+//  create_blocking_resource(
+//    move || tenant.get(),
+//  |tenant| async {
+//    match fetch_default_config(tenant).await {
+//      Ok(data) => data,
+//    Err(_) => vec![],
+// }
+// },
+//)
+//}

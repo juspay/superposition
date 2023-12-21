@@ -6,7 +6,7 @@ mod logger;
 mod middlewares;
 
 use crate::middlewares::audit_response_header::{AuditHeader, TableName};
-use actix_web::{web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
+use actix_web::{web, web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
 use api::*;
 use dashboard_auth::{
     middleware::DashboardAuth,
@@ -199,6 +199,7 @@ async fn main() -> Result<()> {
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
             // serve the favicon from /favicon.ico
+            .service(web::redirect("/", "/admin"))
             .service(favicon)
             .leptos_routes(
                 leptos_options.to_owned(),
