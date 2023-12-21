@@ -1,4 +1,4 @@
-use crate::helpers::json_to_sorted_string;
+use crate::helpers::{json_to_sorted_string, validate_context_jsonschema};
 use crate::{
     api::{
         context::types::{
@@ -49,6 +49,7 @@ pub fn endpoints() -> Scope {
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
 fn validate_dimensions_and_calculate_priority(
+    object_key: &str,
     cond: &Value,
     dimension_schema_map: &HashMap<String, (JSONSchema, i32)>,
 ) -> Result<i32, String> {
@@ -65,7 +66,7 @@ fn validate_dimensions_and_calculate_priority(
                 ))
                 .copied()
         } else {
-            validate_dimensions_and_calculate_priority(val, dimension_schema_map)
+            validate_dimensions_and_calculate_priority(key, val, dimension_schema_map)
         }
     };
 
@@ -98,17 +99,19 @@ fn validate_dimensions_and_calculate_priority(
                     .get(&expected_dimension_name)
                     .ok_or("No matching `dimension` for in dimension table")?;
 
-                dimension_value_schema
-                    .validate(&dimension_value)
-                    .map_err(|e| {
-                        let verrors = e.collect::<Vec<ValidationError>>();
-                        String::from(format!("Bad schema: {:?}", verrors.as_slice()))
-                    })?;
-            };
-
+                validate_context_jsonschema(
+                    object_key,
+                    &dimension_value,
+                    &dimension_value_schema,
+                )?;
+            }
             arr.iter().try_fold(0, |acc, item| {
-                validate_dimensions_and_calculate_priority(item, dimension_schema_map)
-                    .map(|res| res + acc)
+                validate_dimensions_and_calculate_priority(
+                    object_key,
+                    item,
+                    dimension_schema_map,
+                )
+                .map(|res| res + acc)
             })
         }
         _ => Ok(0),
@@ -170,6 +173,7 @@ fn create_ctx_from_put_req(
     let dimension_schema_map = get_all_dimension_schema_map(conn)?;
 
     let priority = match validate_dimensions_and_calculate_priority(
+        "context",
         &ctx_condition,
         &dimension_schema_map,
     ) {
@@ -287,6 +291,7 @@ fn r#move(
     let new_ctx_id = hash(&ctx_condition);
     let dimension_schema_map = get_all_dimension_schema_map(conn)?;
     let priority = match validate_dimensions_and_calculate_priority(
+        "context",
         &ctx_condition,
         &dimension_schema_map,
     ) {

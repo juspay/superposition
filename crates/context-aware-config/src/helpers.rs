@@ -132,12 +132,60 @@ pub fn get_meta_schema() -> JSONSchema {
         .expect("Error encountered: Failed to compile 'context_dimension_schema_value'. Ensure it adheres to the correct format and data type.")
 }
 
+pub fn validate_context_jsonschema(
+    object_key: &str,
+    dimension_value: &Value,
+    dimension_schema: &JSONSchema,
+) -> Result<(), String> {
+    match dimension_value {
+        Value::Array(val_arr) if object_key == "in" => {
+            let mut verrors = Vec::new();
+            val_arr.into_iter().for_each(|x| {
+                dimension_schema
+                    .validate(&x)
+                    .map_err(|e| {
+                        verrors.append(&mut e.collect::<Vec<ValidationError>>());
+                    })
+                    .ok();
+            });
+            if verrors.is_empty() {
+                Ok(())
+            } else {
+                // Check if the array as a whole validates, even with individual errors
+                match dimension_schema.validate(&dimension_value) {
+                    Ok(()) => {
+                        log::error!(
+                            "Validation errors for individual dimensions, but array as a whole validates: {:?}",
+                            verrors
+                        );
+                        Ok(())
+                    }
+                    Err(e) => {
+                        verrors.append(&mut e.collect::<Vec<ValidationError>>());
+                        log::error!(
+                            "Validation errors for dimensions in array: {:?}",
+                            verrors
+                        );
+                        Err(format!("Bad schema: {:?}", verrors))
+                    }
+                }
+            }
+        }
+        _ => dimension_schema.validate(dimension_value).map_err(|e| {
+            let verrors = e.collect::<Vec<ValidationError>>();
+            log::error!("Validation error: {:?}", verrors);
+            format!("Bad schema: {:?}", verrors)
+        }),
+    }
+}
+
 /*
   This step is required because an empty object
   is also a valid JSON schema. So added required
   validations for the input.
 */
 // TODO: Recursive validation.
+
 pub fn validate_jsonschema(
     validation_schema: &JSONSchema,
     schema: &Value,
@@ -286,5 +334,37 @@ mod tests {
             json_to_sorted_string(&first_condition),
             json_to_sorted_string(&second_condition)
         );
+    }
+
+    #[test]
+    fn test_validate_context_jsonschema() {
+        let test_schema = json!({
+            "type": "string",
+            "pattern": ".*"
+        });
+        let test_jsonschema = JSONSchema::options()
+        .with_draft(Draft::Draft7)
+        .compile(&test_schema)
+        .expect("Error encountered: Failed to compile 'context_dimension_schema_value'. Ensure it adheres to the correct format and data type.");
+
+        let str_dimension_val = json!("string1".to_owned());
+        let arr_dimension_val = json!(["string1".to_owned(), "string2".to_owned()]);
+        let ok_str_context =
+            validate_context_jsonschema("in", &str_dimension_val, &test_jsonschema);
+        let ok_arr_context =
+            validate_context_jsonschema("in", &arr_dimension_val, &test_jsonschema);
+        let err_arr_context =
+            match validate_context_jsonschema("==", &arr_dimension_val, &test_jsonschema)
+            {
+                Ok(_) => false,
+                Err(e) => {
+                    print!("{:?}", e);
+                    e.contains("Bad schema")
+                }
+            };
+
+        assert_eq!(ok_str_context, Ok(()));
+        assert_eq!(err_arr_context, true);
+        assert_eq!(ok_arr_context, Ok(()));
     }
 }
