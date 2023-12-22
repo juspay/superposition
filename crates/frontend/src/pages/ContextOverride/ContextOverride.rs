@@ -2,29 +2,16 @@ use std::rc::Rc;
 
 use crate::api::{fetch_default_config, fetch_dimensions};
 use crate::components::button::button::Button;
-use crate::components::condition_pills::condition_pills::ConditionPills;
+use crate::components::condition_pills::condition_pills::ContextPills;
 use crate::components::context_form::context_form::ContextForm;
 use crate::components::override_form::override_form::OverrideForm;
 use crate::components::table::{table::Table, types::Column};
-use crate::pages::DefaultConfig::types::Config;
+use crate::pages::fetch_config;
 use crate::utils::modal_action;
 use leptos::*;
 use reqwest::StatusCode;
 use serde_json::{json, Map, Value};
 use web_sys::MouseEvent;
-
-pub async fn fetch_config(tenant: String) -> Result<Config, String> {
-    let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
-    let url = format!("{host}/config");
-    match client.get(url).header("x-tenant", tenant).send().await {
-        Ok(response) => {
-            let config: Config = response.json().await.map_err(|e| e.to_string())?;
-            Ok(config)
-        }
-        Err(e) => Err(e.to_string()),
-    }
-}
 
 #[component]
 fn ContextModalForm<NF>(handle_change: NF) -> impl IntoView
@@ -206,71 +193,7 @@ where
     }
 }
 
-pub fn extract_and_format(condition: &Value) -> String {
-    if condition.is_object() && condition.get("and").is_some() {
-        // Handling complex "and" conditions
-        let empty_vec = vec![];
-        let conditions_json = condition
-            .get("and")
-            .and_then(|val| val.as_array())
-            .unwrap_or(&empty_vec); // Default to an empty vector if not an array
 
-        let mut formatted_conditions = Vec::new();
-        for cond in conditions_json {
-            formatted_conditions.push(format_condition(cond));
-        }
-
-        formatted_conditions.join(" && ")
-    } else {
-        // Handling single conditions
-        format_condition(condition)
-    }
-}
-
-fn format_condition(condition: &Value) -> String {
-    if let Some(ref operator) = condition.as_object().and_then(|obj| obj.keys().next()) {
-        let empty_vec = vec![];
-        let operands = condition[operator].as_array().unwrap_or(&empty_vec);
-
-        // Handling the "in" operator differently
-        if operator.as_str() == "in" {
-            let left_operand = &operands[0];
-            let right_operand = &operands[1];
-
-            let left_str = if left_operand.is_string() {
-                format!("\"{}\"", left_operand.as_str().unwrap())
-            } else {
-                format!("{}", left_operand)
-            };
-
-            if right_operand.is_object() && right_operand["var"].is_string() {
-                let var_str = right_operand["var"].as_str().unwrap();
-                return format!("{} {} {}", left_str, operator, var_str);
-            }
-        }
-
-        // Handling regular operators
-        if let Some(first_operand) = operands.get(0) {
-            if first_operand.is_object() && first_operand["var"].is_string() {
-                let key = first_operand["var"].as_str().unwrap_or("UnknownVar");
-                if let Some(value) = operands.get(1) {
-                    if value.is_string() {
-                        return format!(
-                            "{} {} \"{}\"",
-                            key,
-                            operator,
-                            value.as_str().unwrap()
-                        );
-                    } else {
-                        return format!("{} {} {}", key, operator, value);
-                    }
-                }
-            }
-        }
-    }
-
-    "Invalid Condition".to_string()
-}
 
 #[component]
 fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
@@ -428,17 +351,17 @@ pub fn ContextOverride() -> impl IntoView {
                                             context_views
                                                 .push(
                                                     view! {
-                                                        <div class="rounded-lg shadow-md bg-white dark:bg-gray-800 p-6 shadow-md">
+                                                        <div class="rounded-lg shadow bg-base-100 p-6 shadow">
                                                             <div class="flex justify-between">
                                                                 <div class="flex items-center space-x-4">
 
-                                                                    <h3 class="card-title text-base timeline-box text-gray-800 dark:text-white bg-white shadow-md font-mono">
+                                                                    <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono">
                                                                         "Condition"
                                                                     </h3>
                                                                     <i class="ri-arrow-right-fill ri-xl text-blue-500"></i>
-                                                                    <ConditionPills context=context.condition.clone()/>
+                                                                    <ContextPills context=context.condition.clone()/>
                                                                 </div>
-                                                                <button class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                                                                <button class="p-2 rounded hover:bg-gray-200 transition-colors">
                                                                     <i class="ri-edit-line text-blue-500"></i>
                                                                 </button>
                                                             </div>

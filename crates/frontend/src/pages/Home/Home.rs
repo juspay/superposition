@@ -1,39 +1,13 @@
 use leptos::*;
-use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlInputElement, HtmlSelectElement, HtmlSpanElement, MouseEvent};
 
 use crate::{
     api::fetch_dimensions,
-    components::{button::button::Button, context_form::context_form::ContextForm},
+    components::{button::button::Button, context_form::context_form::ContextForm, condition_pills::utils::{parse_conditions, extract_and_format}}, pages::fetch_config,
 };
 
-#[derive(Deserialize, Serialize, Clone)]
-pub struct Config {
-    pub contexts: Vec<Context>,
-    pub overrides: Map<String, Value>,
-    pub default_configs: Map<String, Value>,
-}
-
-#[derive(Deserialize, Serialize, Clone)]
-pub struct Context {
-    pub id: String,
-    pub condition: Value,
-    pub override_with_keys: [String; 1],
-}
-
-pub async fn fetch_config(tenant: String) -> Result<Config, String> {
-    let client = reqwest::Client::new();
-    let url = "http://localhost:8080/config";
-    match client.get(url).header("x-tenant", tenant).send().await {
-        Ok(response) => {
-            let config: Config = response.json().await.map_err(|e| e.to_string())?;
-            Ok(config)
-        }
-        Err(e) => Err(e.to_string()),
-    }
-}
 
 async fn resolve_config(tenant: String, context: String) -> Result<Value, String> {
     let client = reqwest::Client::new();
@@ -51,118 +25,6 @@ async fn resolve_config(tenant: String, context: String) -> Result<Value, String
         }
         Err(e) => Err(e.to_string()),
     }
-}
-
-fn parse_conditions(input: String) -> Vec<(String, String, String)> {
-    let mut conditions = Vec::new();
-    let operators = vec!["==", "in"];
-
-    // Split the string by "&&" and iterate over each condition
-    for condition in input.split("&&") {
-        let mut parts = Vec::new();
-        let mut operator_found = "";
-
-        // Check for each operator
-        for operator in &operators {
-            if condition.contains(operator) {
-                operator_found = operator;
-                parts = condition.split(operator).map(|s| s.trim()).collect();
-
-                // TODO: add this when context update is enabled
-                if parts.len() == 2 && operator == &"in" {
-                    parts.swap(0, 1);
-                }
-
-                break;
-            }
-        }
-
-        if parts.len() == 2 {
-            let mut key = parts[0].to_string();
-            let mut op = operator_found.to_string();
-            let mut val = parts[1].to_string();
-            // Add a space after key
-            key.push(' ');
-            if op == "==".to_string() {
-                val = val.trim_matches('"').to_string();
-                op = "is".to_string();
-            } else {
-                val = val.trim_matches('"').to_string();
-                op = "has".to_string();
-            }
-            op.push(' ');
-
-            conditions.push((key, op, val));
-        }
-    }
-
-    conditions
-}
-
-pub fn extract_and_format(condition: &Value) -> String {
-    if condition.is_object() && condition.get("and").is_some() {
-        // Handling complex "and" conditions
-        let empty_vec = vec![];
-        let conditions_json = condition
-            .get("and")
-            .and_then(|val| val.as_array())
-            .unwrap_or(&empty_vec); // Default to an empty vector if not an array
-
-        let mut formatted_conditions = Vec::new();
-        for cond in conditions_json {
-            formatted_conditions.push(format_condition(cond));
-        }
-
-        formatted_conditions.join(" && ")
-    } else {
-        // Handling single conditions
-        format_condition(condition)
-    }
-}
-
-fn format_condition(condition: &Value) -> String {
-    if let Some(ref operator) = condition.as_object().and_then(|obj| obj.keys().next()) {
-        let empty_vec = vec![];
-        let operands = condition[operator].as_array().unwrap_or(&empty_vec);
-
-        // Handling the "in" operator differently
-        if operator.as_str() == "in" {
-            let left_operand = &operands[0];
-            let right_operand = &operands[1];
-
-            let left_str = if left_operand.is_string() {
-                format!("\"{}\"", left_operand.as_str().unwrap())
-            } else {
-                format!("{}", left_operand)
-            };
-
-            if right_operand.is_object() && right_operand["var"].is_string() {
-                let var_str = right_operand["var"].as_str().unwrap();
-                return format!("{} {} {}", left_str, operator, var_str);
-            }
-        }
-
-        // Handling regular operators
-        if let Some(first_operand) = operands.get(0) {
-            if first_operand.is_object() && first_operand["var"].is_string() {
-                let key = first_operand["var"].as_str().unwrap_or("UnknownVar");
-                if let Some(value) = operands.get(1) {
-                    if value.is_string() {
-                        return format!(
-                            "{} {} \"{}\"",
-                            key,
-                            operator,
-                            value.as_str().unwrap()
-                        );
-                    } else {
-                        return format!("{} {} {}", key, operator, value);
-                    }
-                }
-            }
-        }
-    }
-
-    "Invalid Condition".to_string()
 }
 
 fn gen_name_id(s0: &String, s1: &String, s2: &String) -> String {
@@ -561,14 +423,6 @@ pub fn home() -> impl IntoView {
                                 vec![
                                     view! {
                                         <div class="mb-4 w-8/12 overflow-y-auto max-h-screen">
-                                            // <div class="form-control p-10">
-                                            // <label class="cursor-pointer label">
-                                            // <span class="label-text ml-1">Display All Configs</span>
-                                            // <input type="checkbox" class="toggle bg-purple-600"
-                                            // on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
-                                            // checked=move || display_configs_rs.get() />
-                                            // </label>
-                                            // </div>
                                             {new_context_views}
                                             <div class="card bg-base-100 shadow m-6">
                                                 <div class="card-body">
@@ -591,24 +445,6 @@ pub fn home() -> impl IntoView {
                             Some(Err(error)) => {
                                 vec![
                                     view! {
-                                        // <div class="form-control p-10">
-                                        // <label class="cursor-pointer label">
-                                        // <span class="label-text ml-1">Display All Configs</span>
-                                        // <input type="checkbox" class="toggle bg-purple-600"
-                                        // on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
-                                        // checked=move || display_configs_rs.get() />
-                                        // </label>
-                                        // </div>
-
-                                        // <div class="form-control p-10">
-                                        // <label class="cursor-pointer label">
-                                        // <span class="label-text ml-1">Display All Configs</span>
-                                        // <input type="checkbox" class="toggle bg-purple-600"
-                                        // on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
-                                        // checked=move || display_configs_rs.get() />
-                                        // </label>
-                                        // </div>
-
                                         <div class="error">
                                             {"Failed to fetch config data: "} {error}
                                         </div>
@@ -618,33 +454,6 @@ pub fn home() -> impl IntoView {
                             None => {
                                 vec![
                                     view! {
-                                        // <div class="form-control p-10">
-                                        // <label class="cursor-pointer label">
-                                        // <span class="label-text ml-1">Display All Configs</span>
-                                        // <input type="checkbox" class="toggle bg-purple-600"
-                                        // on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
-                                        // checked=move || display_configs_rs.get() />
-                                        // </label>
-                                        // </div>
-
-                                        // <div class="form-control p-10">
-                                        // <label class="cursor-pointer label">
-                                        // <span class="label-text ml-1">Display All Configs</span>
-                                        // <input type="checkbox" class="toggle bg-purple-600"
-                                        // on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
-                                        // checked=move || display_configs_rs.get() />
-                                        // </label>
-                                        // </div>
-
-                                        // <div class="form-control p-10">
-                                        // <label class="cursor-pointer label">
-                                        // <span class="label-text ml-1">Display All Configs</span>
-                                        // <input type="checkbox" class="toggle bg-purple-600"
-                                        // on:click=move |_| display_configs_ws.update(|toggle| *toggle = !*toggle)
-                                        // checked=move || display_configs_rs.get() />
-                                        // </label>
-                                        // </div>
-
                                         <div class="error">{"No config data fetched"}</div>
                                     },
                                 ]
