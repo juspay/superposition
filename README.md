@@ -25,7 +25,9 @@
 * run these commands
      ```bash
     $ nix develop
-    $ make run
+    $ sh setup.sh
+    $ make run OR
+    $ make run -e DOCKER_DNS=localhost
     ```
 * If you get something like this in the output, you are good to go
      ```bash
