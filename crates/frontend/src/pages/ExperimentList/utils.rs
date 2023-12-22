@@ -1,6 +1,6 @@
 use super::types::{DefaultConfig, Dimension, ExperimentsResponse, ListFilters};
 use crate::components::{
-    condition_pills::condition_pills::ConditionPills, table::types::Column,
+    condition_pills::condition_pills::ContextPills, table::types::Column,
 };
 use core::time::Duration;
 use leptos::*;
@@ -161,9 +161,9 @@ pub fn experiment_table_columns() -> Vec<Column> {
             None,
             Some(|value: &str, _| {
                 let badge_color = match value {
-                    "CREATED" => "badge-success",
+                    "CREATED" => "badge-info",
                     "INPROGRESS" => "badge-warning",
-                    "CONCLUDED" => "badge-info",
+                    "CONCLUDED" => "badge-success",
                     &_ => "info",
                 };
                 let class = format!("badge {}", badge_color);
@@ -188,7 +188,7 @@ pub fn experiment_table_columns() -> Vec<Column> {
 
                 view! {
                     <div class="inline-flex flex-col gap-y-2">
-                        <ConditionPills context=context />
+                        <ContextPills context=context />
                     </div>
                 }
                 .into_view()
@@ -199,7 +199,7 @@ pub fn experiment_table_columns() -> Vec<Column> {
             None,
             Some(|value: &str, _| {
                 let label = match value {
-                    "null" => "".to_string(),
+                    "null" => "¯\\_(ツ)_/¯".to_string(),
                     other => other.to_string(),
                 };
 
