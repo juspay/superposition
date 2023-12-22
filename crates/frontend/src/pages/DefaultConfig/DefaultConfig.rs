@@ -5,7 +5,6 @@ use crate::components::table::{table::Table, types::Column};
 
 use crate::components::button::button::Button;
 use crate::components::stat::stat::Stat;
-use crate::pages::DefaultConfig::types::Config;
 use crate::pages::ExperimentList::utils::fetch_default_config;
 use crate::utils::modal_action;
 use js_sys;
@@ -19,31 +18,6 @@ use web_sys::MouseEvent;
 pub struct RowData {
     pub key: String,
     pub value: String,
-}
-
-// fn parse_string_to_json_value_vec(input: &str) -> Vec<Value> {
-//     // Parse the input string into a serde_json::Value
-//     let parsed = serde_json::from_str::<Value>(input)
-//         .expect("Failed to parse JSON");
-
-//     // Ensure the Value is an Array and convert it to Vec<Value>
-//     match parsed {
-//         Value::Array(arr) => arr,
-//         _ => panic!("Input is not a JSON array"),
-//     }
-// }
-
-pub async fn fetch_config(tenant: String) -> Result<Config, String> {
-    let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
-    let url = format!("{host}/config");
-    match client.get(url).header("x-tenant", tenant).send().await {
-        Ok(response) => {
-            let config: Config = response.json().await.map_err(|e| e.to_string())?;
-            Ok(config)
-        }
-        Err(e) => Err(e.to_string()),
-    }
 }
 
 pub async fn create_default_config(

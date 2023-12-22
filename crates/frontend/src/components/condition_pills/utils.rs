@@ -1,5 +1,51 @@
 use serde_json::Value;
 
+pub fn parse_conditions(input: String) -> Vec<(String, String, String)> {
+    let mut conditions = Vec::new();
+    let operators = vec!["==", "in"];
+
+    // Split the string by "&&" and iterate over each condition
+    for condition in input.split("&&") {
+        let mut parts = Vec::new();
+        let mut operator_found = "";
+
+        // Check for each operator
+        for operator in &operators {
+            if condition.contains(operator) {
+                operator_found = operator;
+                parts = condition.split(operator).map(|s| s.trim()).collect();
+
+                // TODO: add this when context update is enabled
+                if parts.len() == 2 && operator == &"in" {
+                    parts.swap(0, 1);
+                }
+
+                break;
+            }
+        }
+
+        if parts.len() == 2 {
+            let mut key = parts[0].to_string();
+            let mut op = operator_found.to_string();
+            let mut val = parts[1].to_string();
+            // Add a space after key
+            key.push(' ');
+            if op == "==".to_string() {
+                val = val.trim_matches('"').to_string();
+                op = "is".to_string();
+            } else {
+                val = val.trim_matches('"').to_string();
+                op = "has".to_string();
+            }
+            op.push(' ');
+
+            conditions.push((key, op, val));
+        }
+    }
+
+    conditions
+}
+
 pub fn extract_and_format(condition: &Value) -> String {
     if condition.is_object() && condition.get("and").is_some() {
         // Handling complex "and" conditions
@@ -64,50 +110,4 @@ fn format_condition(condition: &Value) -> String {
     }
 
     "Invalid Condition".to_string()
-}
-
-pub fn parse_conditions(input: String) -> Vec<(String, String, String)> {
-    let mut conditions = Vec::new();
-    let operators = vec!["==", "in"];
-
-    // Split the string by "and" and iterate over each condition
-    for condition in input.split("&&") {
-        let mut parts = Vec::new();
-        let mut operator_found = "";
-
-        // Check for each operator
-        for operator in &operators {
-            if condition.contains(operator) {
-                operator_found = operator;
-                parts = condition.split(operator).map(|s| s.trim()).collect();
-
-                // TODO: add this when context update is enabled
-                if parts.len() == 2 && operator == &"in" {
-                    parts.swap(0, 1);
-                }
-
-                break;
-            }
-        }
-
-        if parts.len() == 2 {
-            let mut key = parts[0].to_string();
-            let mut op = operator_found.to_string();
-            let mut val = parts[1].to_string();
-            // Add a space after key
-            key.push(' ');
-            if op == "==".to_string() {
-                val = val.trim_matches('"').to_string();
-                op = "is".to_string();
-            } else {
-                val = val.trim_matches('"').to_string();
-                op = "has".to_string();
-            }
-            op.push(' ');
-
-            conditions.push((key, op, val));
-        }
-    }
-
-    conditions
 }

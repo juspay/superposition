@@ -8,8 +8,7 @@ use web_sys::SubmitEvent;
 
 use crate::{
     api::{fetch_default_config, fetch_dimensions},
-    components::table::{table::Table, types::Column},
-    pages::Home::Home::extract_and_format,
+    components::{table::{table::Table, types::Column}, condition_pills::utils::extract_and_format},
 };
 
 #[derive(
