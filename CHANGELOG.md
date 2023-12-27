@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.16.3 - 2023-12-27
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.13.2
+### Global changes
+#### Bug Fixes
+- PICAF-24552 - Cac client library changes to consume backend api response - (5998ccd) - Prasanna P
+
+- - -
+
 ## v0.16.2 - 2023-11-30
 ### Package updates
 - experimentation-platform bumped to experimentation-platform-v0.8.2
