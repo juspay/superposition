@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.13.2 - 2023-12-27
+#### Bug Fixes
+- [PICAF-25568] array validation for in condition - (a45ac4a) - Pratik Mishra
+- PICAF-24961 fix json schema validation - (ed6f814) - ankit.mahato
+
+- - -
+
 ## context-aware-config-v0.13.1 - 2023-11-22
 #### Bug Fixes
 - PICAF-25066 sort json while context creation - (3bd7a97) - Pratik Mishra
