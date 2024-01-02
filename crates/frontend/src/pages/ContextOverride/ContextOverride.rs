@@ -193,8 +193,6 @@ where
     }
 }
 
-
-
 #[component]
 fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     let (context_condition, set_context_condition) =

@@ -96,6 +96,11 @@ async fn main() -> Result<()> {
     )
     .await;
 
+    let ui_redirect_path = match tenants.iter().next() {
+        Some(tenant) => format!("/admin/{}/resolve", tenant),
+        None => String::from("/admin"),
+    };
+
     /****** EXPERIMENTATION PLATFORM ENVs *********/
 
     let allow_same_keys_overlapping_ctx: bool =
@@ -199,7 +204,7 @@ async fn main() -> Result<()> {
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
             // serve the favicon from /favicon.ico
-            .service(web::redirect("/", "/admin"))
+            .service(web::redirect("/", ui_redirect_path.to_string()))
             .service(favicon)
             .leptos_routes(
                 leptos_options.to_owned(),

@@ -10,6 +10,11 @@
       "key": "Content-Type",
       "value": "application/json",
       "type": "text"
+    },
+    {
+        "key": "x-tenant",
+        "value": "test",
+        "type": "default"
     }
   ],
   "body": {

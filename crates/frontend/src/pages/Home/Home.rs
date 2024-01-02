@@ -5,9 +5,13 @@ use web_sys::{HtmlInputElement, HtmlSelectElement, HtmlSpanElement, MouseEvent};
 
 use crate::{
     api::fetch_dimensions,
-    components::{button::button::Button, context_form::context_form::ContextForm, condition_pills::utils::{parse_conditions, extract_and_format}}, pages::fetch_config,
+    components::{
+        button::button::Button,
+        condition_pills::utils::{extract_and_format, parse_conditions},
+        context_form::context_form::ContextForm,
+    },
+    pages::fetch_config,
 };
-
 
 async fn resolve_config(tenant: String, context: String) -> Result<Value, String> {
     let client = reqwest::Client::new();
@@ -452,11 +456,7 @@ pub fn home() -> impl IntoView {
                                 ]
                             }
                             None => {
-                                vec![
-                                    view! {
-                                        <div class="error">{"No config data fetched"}</div>
-                                    },
-                                ]
+                                vec![view! { <div class="error">{"No config data fetched"}</div> }]
                             }
                         }
                     })}

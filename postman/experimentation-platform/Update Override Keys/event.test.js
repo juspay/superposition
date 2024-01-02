@@ -8,10 +8,11 @@ function fetch_context_n_test(context_id, expected_override_id, expected_overrid
         method: 'GET',
         header: {
             'Content-Type': 'application/json',
+            'x-tenant': 'test',
         }
     };
 
-    
+
     pm.sendRequest(getRequest, (error, response) => {
         if(error) {
             console.log("Failed to fetch context");
@@ -21,7 +22,7 @@ function fetch_context_n_test(context_id, expected_override_id, expected_overrid
         const context = response.json();
 
         /*********** checking contexts created in CAC **********/;
-        
+
 
         const variant_override_id = context.override_id;
         const varaint_context = context.value;
@@ -50,7 +51,8 @@ function fetch_experiment_n_test(experiment_id, expected_varaints, expected_vari
         'url': `${host}/experiments/${experiment_id}`,
         "header": {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-tenant': 'test',
         }
     };
 
@@ -59,7 +61,7 @@ function fetch_experiment_n_test(experiment_id, expected_varaints, expected_vari
             console.log("Failed to fetch experiment");
             throw error;
         }
-        
+
         const experiment = response.json();
 
         const variants = experiment.variants;
@@ -84,7 +86,7 @@ function fetch_experiment_n_test(experiment_id, expected_varaints, expected_vari
             const expected_override_id = variant.override_id;
             const expected_override = variant.overrides;
             const expected_variant_context = expected_variant_contexts.find(evc => evc.vid === variant_id)?.context;
-            
+
             fetch_context_n_test(expected_context_id, expected_override_id, expected_override, expected_variant_context);
         }
     });
@@ -94,7 +96,7 @@ function fetch_experiment_n_test(experiment_id, expected_varaints, expected_vari
 pm.test("200 OK", function () {
     const response = pm.response.json();
     const experiment_id = response.experiment_id;
-    
+
     pm.environment.set("experiment_id", experiment_id);
     pm.response.to.have.status(200);
 });

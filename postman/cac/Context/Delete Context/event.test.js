@@ -11,6 +11,7 @@ pm.test("Fetch for context should fail with 404", function () {
         method: 'GET',
         header: {
             'Content-Type': 'application/json',
+            'x-tenant': 'test',
         }
     };
 
