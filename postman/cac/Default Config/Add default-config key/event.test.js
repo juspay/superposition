@@ -6,6 +6,7 @@ function getConfigAndTest(key, value) {
         method: 'GET',
         header: {
             'Content-Type': 'application/json',
+            'x-tenant': 'test',
         }
     };
 

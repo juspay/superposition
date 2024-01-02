@@ -7,39 +7,6 @@ pub mod sql_types {
 }
 
 diesel::table! {
-    contexts (id) {
-        id -> Varchar,
-        value -> Json,
-        override_id -> Varchar,
-        created_at -> Timestamptz,
-        created_by -> Varchar,
-        priority -> Int4,
-        #[sql_name = "override"]
-        override_ -> Json,
-    }
-}
-
-diesel::table! {
-    default_configs (key) {
-        key -> Varchar,
-        value -> Json,
-        created_at -> Timestamptz,
-        created_by -> Varchar,
-        schema -> Json,
-    }
-}
-
-diesel::table! {
-    dimensions (dimension) {
-        dimension -> Varchar,
-        priority -> Int4,
-        created_at -> Timestamptz,
-        created_by -> Varchar,
-        schema -> Json,
-    }
-}
-
-diesel::table! {
     event_log (id, timestamp) {
         id -> Uuid,
         table_name -> Text,
@@ -229,9 +196,6 @@ diesel::table! {
 }
 
 diesel::allow_tables_to_appear_in_same_query!(
-    contexts,
-    default_configs,
-    dimensions,
     event_log,
     event_log_y2023m08,
     event_log_y2023m09,

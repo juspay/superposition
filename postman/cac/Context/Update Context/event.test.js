@@ -6,6 +6,7 @@ function getConfigAndTest(context_id, override_id, expected_condition, expected_
         method: 'GET',
         header: {
             'Content-Type': 'application/json',
+            'x-tenant': 'test',
         }
     };
 
@@ -35,9 +36,9 @@ function getConfigAndTest(context_id, override_id, expected_condition, expected_
         const context_override_ids = context.override_with_keys;
         pm.expect(context_override_ids).to.include(override_id);
 
-        
+
         console.log(`Checking override=${override_id} in overrides object`);
-        const override = overrides[override_id];        
+        const override = overrides[override_id];
         console.log(`Expected => ${JSON.stringify(expected_override)}`);
         console.log(`Actual => ${JSON.stringify(override)}`);
         pm.expect(JSON.stringify(expected_override)).to.be.eq(JSON.stringify(override));

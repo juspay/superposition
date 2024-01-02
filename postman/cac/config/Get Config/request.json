@@ -5,6 +5,11 @@
       "key": "Authorization",
       "value": "Bearer {{token}}",
       "type": "text"
+    },
+    {
+        "key": "x-tenant",
+        "value": "test",
+        "type": "default"
     }
   ],
   "url": {

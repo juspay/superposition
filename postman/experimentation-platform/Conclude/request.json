@@ -13,7 +13,7 @@
     },
     {
         "key": "x-tenant",
-        "value": "mjos",
+        "value": "test",
         "type": "default"
     }
   ],

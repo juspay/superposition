@@ -1,6 +1,12 @@
 {
   "method": "GET",
-  "header": [],
+  "header": [
+    {
+        "key": "x-tenant",
+        "value": "test",
+        "type": "default"
+    }
+  ],
   "url": {
     "raw": "{{host}}/audit",
     "host": [

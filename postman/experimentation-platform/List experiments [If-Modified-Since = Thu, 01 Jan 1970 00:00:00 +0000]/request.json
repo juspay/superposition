@@ -9,6 +9,11 @@
       "key": "If-Modified-Since",
       "value": "Thu, 01 Jan 1970 00:00:00 +0000",
       "type": "default"
+    },
+    {
+        "key": "x-tenant",
+        "value": "test",
+        "type": "default"
     }
   ],
   "url": {
