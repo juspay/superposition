@@ -7,7 +7,8 @@ function fetch_experiment_n_test(experiment_id, expected_traffic_percentage) {
         'url': `${host}/experiments/${experiment_id}`,
         "header": {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-tenant': 'test',
         }
     };
 
@@ -16,7 +17,7 @@ function fetch_experiment_n_test(experiment_id, expected_traffic_percentage) {
             console.log("Failed to fetch experiment");
             throw error;
         }
-        
+
         const experiment = response.json();
         console.log(`Expected: ${expected_traffic_percentage}, Actual: ${experiment.traffic_percentage}`);
         pm.expect(experiment.traffic_percentage).to.be.eq(expected_traffic_percentage);

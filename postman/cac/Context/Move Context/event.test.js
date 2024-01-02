@@ -6,6 +6,7 @@ function getConfigAndTest(context_id, override_id, expected_condition, expected_
         method: 'GET',
         header: {
             'Content-Type': 'application/json',
+            'x-tenant': 'test',
         }
     };
 

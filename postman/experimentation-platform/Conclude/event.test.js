@@ -9,7 +9,8 @@ function fetch_config_n_test(variants, winner_variant_id) {
         'url': `${host}/config`,
         'header': {
             'Authorization': `Bearer ${token}`,
-            'Contet-Type': 'application/json'
+            'Contet-Type': 'application/json',
+            'x-tenant': 'test',
         }
     };
 
@@ -25,7 +26,7 @@ function fetch_config_n_test(variants, winner_variant_id) {
 
         const winner_variant = variants.find(variant => variant.id === winner_variant_id);
         const winner_variant_override_id = winner_variant.override_id;
-        
+
         // there should be only one context with the winner variant override id
         const contexts_with_winner_variant_override = contexts.filter((context) => context.override_with_keys.includes(winner_variant_override_id));
         console.log("Context with winner variant override");
@@ -35,10 +36,10 @@ function fetch_config_n_test(variants, winner_variant_id) {
         // there should be 0 contexts with variant as a dimension
         const contexts_with_variant_dim = contexts
             .filter(
-                (context) => 
+                (context) =>
                     context.condition.and
                         ?.map(
-                            (condition) => 
+                            (condition) =>
                                 Object.keys(condition)
                                     .map((k) => condition[k][0].var === "variant")
                                     .reduce((p, c) => p || c, false))
@@ -47,7 +48,7 @@ function fetch_config_n_test(variants, winner_variant_id) {
         pm.expect(contexts_with_variant_dim.length).to.be.eq(0);
 
         // checking if winner override exists and is same as the expected override
-        const winner_variant_context = contexts_with_winner_variant_override[0]; 
+        const winner_variant_context = contexts_with_winner_variant_override[0];
         pm.expect(winner_variant_context.override_with_keys.length).to.be.eq(1);
         pm.expect(JSON.stringify(winner_variant_context.override_with_keys[0])).to.be.eq(JSON.stringify(winner_variant_override_id));
 
@@ -67,7 +68,8 @@ function fetch_experiment_n_test(experiment_id, winner_variant_id, expected_stat
         'url': `${host}/experiments/${experiment_id}`,
         "header": {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-tenant': 'test',
         }
     };
 
@@ -76,7 +78,7 @@ function fetch_experiment_n_test(experiment_id, winner_variant_id, expected_stat
             console.log("Failed to fetch experiment");
             throw error;
         }
-        
+
         const experiment = response.json();
 
         const status = experiment.status;

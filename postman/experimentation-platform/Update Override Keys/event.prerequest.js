@@ -13,7 +13,7 @@ function create_default_config_keys() {
             'url': `${host}/default-config/${key}`,
             "header": {
                 'Authorization': `Bearer ${token}`,
-                'x-tenant': 'mjos',
+                'x-tenant': 'test',
                 'Content-Type': 'application/json'
             },
             "body": {

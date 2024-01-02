@@ -1,6 +1,12 @@
 {
   "method": "GET",
-  "header": [],
+  "header": [
+    {
+        "key": "x-tenant",
+        "value": "test",
+        "type": "default"
+    }
+  ],
   "url": {
     "raw": "{{host}}/config/resolve?clientId=zee5",
     "host": [
