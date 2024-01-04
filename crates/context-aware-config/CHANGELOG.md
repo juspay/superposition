@@ -2,6 +2,23 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.14.0 - 2024-01-04
+#### Bug Fixes
+- fixed ci-test to support multi-tenant setup - (916b75d) - Shubhranshu Sanjeev
+#### Features
+- working resolve page - (803dfbd) - Kartik Gajendra
+- fixed theme + ui changes + form validation + context validation error handling - (6cf5929) - Saurav Suman
+- working experiments page - (9a1d74c) - Kartik Gajendra
+- added experiment-list page - (ee462fd) - Shubhranshu Sanjeev
+- experiment UI - (24e1b56) - Kartik Gajendra
+- ui for cac and exp - (41f884f) - Shubhranshu Sanjeev
+#### Miscellaneous Chores
+- formatted code + cleanup - (6d4874b) - Shubhranshu Sanjeev
+#### Refactoring
+- fixed warnings, added redirection for home page and script for setting up the project - (6b21fb9) - Saurav Suman
+
+- - -
+
 ## context-aware-config-v0.13.2 - 2023-12-27
 #### Bug Fixes
 - [PICAF-25568] array validation for in condition - (a45ac4a) - Pratik Mishra

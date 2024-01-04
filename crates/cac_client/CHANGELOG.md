@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.5.0 - 2024-01-04
+#### Features
+- working resolve page - (803dfbd) - Kartik Gajendra
+
+- - -
+
 ## cac_client-v0.4.0 - 2023-11-11
 #### Features
 - added format check in the JenkinsFile(PICAF-24813) - (4fdf864) - Saurav Suman

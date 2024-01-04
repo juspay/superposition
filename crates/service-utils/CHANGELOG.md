@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service-utils-v0.10.0 - 2024-01-04
+#### Bug Fixes
+- frontend multi-tenancy support + config and dimension page - (a1689a1) - Shubhranshu Sanjeev
+#### Features
+- experiment UI - (24e1b56) - Kartik Gajendra
+
+- - -
+
 ## service-utils-v0.9.0 - 2023-11-11
 #### Features
 - added format check in the JenkinsFile(PICAF-24813) - (4fdf864) - Saurav Suman

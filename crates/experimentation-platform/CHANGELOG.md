@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.9.0 - 2024-01-04
+#### Bug Fixes
+- fixed ci-test to support multi-tenant setup - (916b75d) - Shubhranshu Sanjeev
+- fixed experiment list page feedback - (f406264) - Shubhranshu Sanjeev
+#### Features
+- working resolve page - (803dfbd) - Kartik Gajendra
+
+- - -
+
 ## experimentation-platform-v0.8.2 - 2023-11-30
 #### Bug Fixes
 - allow ramp 0 - (b8d49aa) - Kartik Gajendra
