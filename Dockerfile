@@ -1,11 +1,11 @@
-FROM rust:1.67 as builder
+FROM rust:1.73 as builder
 WORKDIR /build
 COPY . .
 RUN mkdir -p ~/.ssh && ssh-keyscan ssh.bitbucket.juspay.net >> ~/.ssh/known_hosts
 RUN --mount=type=ssh cargo build --release
 RUN cargo build --release
 
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 WORKDIR /app
 
 ARG SOURCE_COMMIT
