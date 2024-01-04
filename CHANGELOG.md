@@ -2,6 +2,53 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.17.0 - 2024-01-04
+### Package updates
+- experimentation-platform bumped to experimentation-platform-v0.9.0
+- cac_client bumped to cac_client-v0.5.0
+- context-aware-config bumped to context-aware-config-v0.14.0
+- service-utils bumped to service-utils-v0.10.0
+### Global changes
+#### Bug Fixes
+- fixed tenant hydration bug - (cf0e633) - Saurav Suman
+- fixed ci-test to support multi-tenant setup - (916b75d) - Shubhranshu Sanjeev
+- cleanup code - (4820f31) - Kartik Gajendra
+- minor docs update - (04ab586) - Kartik Gajendra
+- UI fixes for demo - (4927766) - Kartik Gajendra
+- frontend multi-tenancy support + config and dimension page - (a1689a1) - Shubhranshu Sanjeev
+- fixed experiment list page feedback - (f406264) - Shubhranshu Sanjeev
+- context parsing - (d46ca42) - Kartik Gajendra
+- resolve UI bugs - (98695a8) - Kartik Gajendra
+- dimensions page updates - (5220b36) - ankit.mahato
+#### Features
+- added validation inside default config form , formatted dates , added disable feature of edit - (cacf20f) - Saurav Suman
+- resolve page with unified UI - (e84eb41) - Kartik Gajendra
+- working resolve page - (803dfbd) - Kartik Gajendra
+- fixed experiment suspense block , added generic button - (117bfc8) - Saurav Suman
+- experiment create form - (91371c0) - Shubhranshu Sanjeev
+- fixed theme + ui changes + form validation + context validation error handling - (6cf5929) - Saurav Suman
+- working resolve page - (81c83d4) - Kartik Gajendra
+- added state changes in the form - (b64a227) - Saurav Suman
+- testing create form - (d0a5aea) - Kartik Gajendra
+- working experiments page - (81b17dc) - Kartik Gajendra
+- experiment UI - (72e19e6) - Kartik Gajendra
+- added default config and override screen - (cd4267e) - Saurav Suman
+- added default config page - (95e909d) - Saurav Suman
+- working experiments page - (9a1d74c) - Kartik Gajendra
+- override and context form - (553e3ad) - Shubhranshu Sanjeev
+- dimensions - (c5e94fa) - ankit.mahato
+- added experiment-list page - (ee462fd) - Shubhranshu Sanjeev
+- experiment UI - (24e1b56) - Kartik Gajendra
+- ui for cac and exp - (41f884f) - Shubhranshu Sanjeev
+#### Miscellaneous Chores
+- formatted code + cleanup - (6d4874b) - Shubhranshu Sanjeev
+- formatted frontend code - (70f873f) - Shubhranshu Sanjeev
+#### Refactoring
+- fixed warnings, added redirection for home page and script for setting up the project - (a9ee3bd) - Saurav Suman
+- fixed warnings, added redirection for home page and script for setting up the project - (6b21fb9) - Saurav Suman
+
+- - -
+
 ## v0.16.3 - 2023-12-27
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.13.2
