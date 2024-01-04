@@ -1,5 +1,4 @@
 use crate::helpers::{json_to_sorted_string, validate_context_jsonschema};
-use std::collections::HashMap;
 use crate::{
     api::{
         context::types::{

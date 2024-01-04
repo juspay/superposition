@@ -5,7 +5,7 @@ use crate::{
 };
 use actix_web::{
     error::{ErrorBadRequest, ErrorInternalServerError},
-    put, get,
+    get, put,
     web::{self, Data, Json},
     HttpResponse, Scope,
 };

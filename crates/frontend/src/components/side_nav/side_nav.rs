@@ -64,72 +64,76 @@ pub fn SideNav() -> impl IntoView {
             <Suspense fallback=move || {
                 view! { <p>"Loading (Suspense Fallback)..."</p> }
             }>
-            <select
-                value=tenant_rs.get()
-                on:change=move |change| {
-                    let new_tenant = event_target_value(&change);
-                    let location = use_location();
-                    let mut path_tokens = location
-                        .pathname
-                        .get()
-                        .split("/")
-                        .into_iter()
-                        .map(ToString::to_string)
-                        .collect::<Vec<String>>();
-                    log!("{}{:?}", new_tenant, path_tokens);
-                    path_tokens.remove(0);
-                    path_tokens.remove(0);
-                    path_tokens.remove(0);
-                    log!("{}{:?}", new_tenant, path_tokens);
-                    let nav = use_navigate();
-                    set_app_routes.set(create_routes(&new_tenant));
-                    tenant_ws.set(new_tenant.clone());
-                    nav(
-                        format!("admin/{new_tenant}/{}", path_tokens.join("/")).as_str(),
-                        Default::default(),
-                    );
-                }
+                <select
+                    value=tenant_rs.get()
+                    on:change=move |change| {
+                        let new_tenant = event_target_value(&change);
+                        let location = use_location();
+                        let mut path_tokens = location
+                            .pathname
+                            .get()
+                            .split("/")
+                            .into_iter()
+                            .map(ToString::to_string)
+                            .collect::<Vec<String>>();
+                        log!("{}{:?}", new_tenant, path_tokens);
+                        path_tokens.remove(0);
+                        path_tokens.remove(0);
+                        path_tokens.remove(0);
+                        log!("{}{:?}", new_tenant, path_tokens);
+                        let nav = use_navigate();
+                        set_app_routes.set(create_routes(&new_tenant));
+                        tenant_ws.set(new_tenant.clone());
+                        nav(
+                            format!("admin/{new_tenant}/{}", path_tokens.join("/")).as_str(),
+                            Default::default(),
+                        );
+                    }
 
-                class="select w-full max-w-xs shadow-md"
-            >
-            {
-                match tenants.get() {
-                    Some(tenants_data) => {
-                        let tenants_clone = tenants_data.clone();
-                        tenants_clone.iter().map(|tenant| {
-                            view! {
-                                <option selected=tenant == &tenant_rs.get()>{tenant}</option>
-                            }
-                        }).collect::<Vec<_>>()
-                    },
-                    _ => vec![view! { <option disabled=true>{"Loading tenants..."}</option> }]
-                }
-            }
-            </select>
-            // <hr class="h-px mt-0 mb-1 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent"/>
-            <div class="items-center block w-auto max-h-screen overflow-auto h-sidenav grow basis-full">
-                <ul class="menu">
-                    <For
-                        each=move || app_routes.get()
-                        key=|route: &AppRoute| route.key.to_string()
-                        children=move |route: AppRoute| {
-                            let path = route.path.to_string();
-                            let is_active = location.pathname.get().contains(&path);
-                            view! {
-                                <li class="mt-1 w-full">
-                                    <NavItem
-                                        href=route.path.to_string()
-                                        icon=route.icon.to_string()
-                                        text=route.label.to_string()
-                                        is_active=is_active
-                                    />
-                                </li>
-                            }
+                    class="select w-full max-w-xs shadow-md"
+                >
+
+                    {match tenants.get() {
+                        Some(tenants_data) => {
+                            let tenants_clone = tenants_data.clone();
+                            tenants_clone
+                                .iter()
+                                .map(|tenant| {
+                                    view! {
+                                        <option selected=tenant
+                                            == &tenant_rs.get()>{tenant}</option>
+                                    }
+                                })
+                                .collect::<Vec<_>>()
                         }
-                    />
+                        _ => vec![view! { <option disabled=true>{"Loading tenants..."}</option> }],
+                    }}
 
-                </ul>
-            </div>
+                </select>
+                // <hr class="h-px mt-0 mb-1 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent"/>
+                <div class="items-center block w-auto max-h-screen overflow-auto h-sidenav grow basis-full">
+                    <ul class="menu">
+                        <For
+                            each=move || app_routes.get()
+                            key=|route: &AppRoute| route.key.to_string()
+                            children=move |route: AppRoute| {
+                                let path = route.path.to_string();
+                                let is_active = location.pathname.get().contains(&path);
+                                view! {
+                                    <li class="mt-1 w-full">
+                                        <NavItem
+                                            href=route.path.to_string()
+                                            icon=route.icon.to_string()
+                                            text=route.label.to_string()
+                                            is_active=is_active
+                                        />
+                                    </li>
+                                }
+                            }
+                        />
+
+                    </ul>
+                </div>
             </Suspense>
         </div>
     }

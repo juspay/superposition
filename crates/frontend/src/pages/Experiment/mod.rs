@@ -76,11 +76,15 @@ async fn get_experiment(exp_id: &String, tenant: &String) -> Result<Experiment, 
     }
 }
 
-async fn ramp_experiment(exp_id: &String, percent: u8) -> Result<Experiment, String> {
+async fn ramp_experiment(
+    exp_id: &String,
+    percent: u8,
+    tenant: &String,
+) -> Result<Experiment, String> {
     let client = reqwest::Client::new();
     match client
         .patch(format!("http://localhost:8080/experiments/{}/ramp", exp_id))
-        .header("x-tenant", "mjos")
+        .header("x-tenant", tenant)
         .json(&json!({ "traffic_percentage": percent }))
         .send()
         .await
@@ -142,7 +146,8 @@ pub fn experiment_page() -> impl IntoView {
         }>
             {move || match experiment_info.get() {
                 Some(Ok(experiment)) => {
-                    experiment_detail_view(experiment, experiment_info).into_view()
+                    let tenant = tenant_rs.get();
+                    experiment_detail_view(tenant, experiment, experiment_info).into_view()
                 }
                 Some(Err(err)) => view! { <h1>{err.to_string()}</h1> }.into_view(),
                 None => view! { <h1>No elements</h1> }.into_view(),
@@ -153,6 +158,7 @@ pub fn experiment_page() -> impl IntoView {
 }
 
 fn experiment_detail_view(
+    tenant: String,
     initial_data: Experiment,
     exp_resource: Resource<(String, String), Result<Experiment, String>>,
 ) -> impl IntoView {
@@ -188,6 +194,7 @@ fn experiment_detail_view(
                 {move || {
                     experiment
                         .with(|exp| {
+                            let tenant_clone = tenant.clone();
                             match exp.status {
                                 ExperimentStatusType::CREATED => {
                                     view! {
@@ -201,11 +208,15 @@ fn experiment_detail_view(
                                         <button
                                             class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
                                             value=&exp.id
-                                            on:click=move |button_event| spawn_local(async move {
-                                                let value = event_target_value(&button_event);
-                                                let _ = ramp_experiment(&value, 1).await;
-                                                exp_resource.refetch();
-                                            })
+                                            on:click=move |button_event| {
+                                                let tenant_clone = tenant_clone.clone();
+                                                spawn_local(async move {
+                                                    let tenant_clone = tenant_clone.clone();
+                                                    let value = event_target_value(&button_event);
+                                                    let _ = ramp_experiment(&value, 1, &tenant_clone).await;
+                                                    exp_resource.refetch();
+                                                })
+                                            }
                                         >
 
                                             <i class="ri-guide-line"></i>
@@ -378,7 +389,8 @@ fn add_dialogs(
             .expect("<input> to exist")
             .value_as_number() as u8;
         spawn_local(async move {
-            let _ = ramp_experiment(&experiment().id, value).await;
+            let tenant = tenant_rs.get();
+            let _ = ramp_experiment(&experiment().id, value, &tenant).await;
             experiment_ws.refetch();
         });
     };
