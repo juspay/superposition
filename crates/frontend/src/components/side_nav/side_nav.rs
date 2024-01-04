@@ -2,6 +2,7 @@ use std::{collections::HashSet, env::VarError, str::FromStr};
 
 use crate::components::nav_item::nav_item::NavItem;
 use crate::types::AppRoute;
+
 use leptos::{logging::log, *};
 use leptos_router::{use_location, use_navigate, A};
 
@@ -24,21 +25,15 @@ pub fn SideNav() -> impl IntoView {
     let tenant_ws = use_context::<WriteSignal<String>>().unwrap();
     let (app_routes, set_app_routes) = create_signal(create_routes(&tenant_rs.get()));
 
-    let tenants: HashSet<String> = get_from_env_unsafe::<String>("TENANTS")
-        .unwrap_or("m,s".into())
-        .split(",")
-        .map(|tenant| tenant.to_string())
-        .collect::<HashSet<String>>();
-
-    let mut view_vector = vec![];
-    for tenant in tenants.into_iter() {
-        if tenant == tenant_rs.get() {
-            view_vector
-                .push(view! { <option selected=true>{tenant}</option> }.into_view());
-        } else {
-            view_vector.push(view! { <option>{tenant}</option> }.into_view());
-        }
+    async fn fetch_tenants(tenants: &str) -> HashSet<String> {
+        get_from_env_unsafe::<String>(tenants)
+            .unwrap_or("m,s".into())
+            .split(",")
+            .map(|tenant| tenant.to_string())
+            .collect()
     }
+
+    let tenants = create_blocking_resource(|| (), move |_| fetch_tenants("TENANTS"));
 
     create_effect(move |_| {
         let current_path = location.pathname.get();
@@ -66,6 +61,9 @@ pub fn SideNav() -> impl IntoView {
                     </span>
                 </A>
             </div>
+            <Suspense fallback=move || {
+                view! { <p>"Loading (Suspense Fallback)..."</p> }
+            }>
             <select
                 value=tenant_rs.get()
                 on:change=move |change| {
@@ -94,7 +92,19 @@ pub fn SideNav() -> impl IntoView {
 
                 class="select w-full max-w-xs shadow-md"
             >
-                {view_vector}
+            {
+                match tenants.get() {
+                    Some(tenants_data) => {
+                        let tenants_clone = tenants_data.clone();
+                        tenants_clone.iter().map(|tenant| {
+                            view! {
+                                <option selected=tenant == &tenant_rs.get()>{tenant}</option>
+                            }
+                        }).collect::<Vec<_>>()
+                    },
+                    _ => vec![view! { <option disabled=true>{"Loading tenants..."}</option> }]
+                }
+            }
             </select>
             // <hr class="h-px mt-0 mb-1 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent"/>
             <div class="items-center block w-auto max-h-screen overflow-auto h-sidenav grow basis-full">
@@ -120,6 +130,7 @@ pub fn SideNav() -> impl IntoView {
 
                 </ul>
             </div>
+            </Suspense>
         </div>
     }
 }
