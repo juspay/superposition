@@ -622,7 +622,7 @@ dependencies = [
 
 [[package]]
 name = "cac_client"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "actix-web",
  "chrono",
@@ -854,7 +854,7 @@ checksum = "13418e745008f7349ec7e449155f419a61b92b58a99cc3616942b926825ec76b"
 
 [[package]]
 name = "context-aware-config"
-version = "0.13.2"
+version = "0.14.0"
 dependencies = [
  "actix",
  "actix-cors",
@@ -1318,7 +1318,7 @@ dependencies = [
 
 [[package]]
 name = "experimentation-platform"
-version = "0.8.2"
+version = "0.9.0"
 dependencies = [
  "actix",
  "actix-web",
@@ -3390,7 +3390,7 @@ dependencies = [
 
 [[package]]
 name = "service-utils"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "actix",
  "actix-web",
