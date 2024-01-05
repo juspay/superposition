@@ -76,28 +76,42 @@ pub fn construct_request_payload(
 ) -> Value {
     // Construct the override section
     let override_section: Map<String, Value> = overrides;
-
-    // Construct the context section
-    let context_section = if conditions.len() == 1 {
-        // Single condition
-        let (variable, operator, value) = &conditions[0];
+    let between_operators = |val: &str, variable: &str| {
+        let split_value: Vec<&str> = val.split(',').collect();
         json!({
-            operator: [
+            "<=": [
+                split_value[0].trim(),
                 { "var": variable },
-                value
+                split_value[1].trim()
             ]
         })
+    };
+
+    let other_operators = |op: &str, val: &str, variable: &str| {
+        json!({
+            op: [
+                { "var": variable },
+                val
+            ]
+        })
+    };
+
+    let context_section = if conditions.len() == 1 {
+        let (variable, operator, value) = &conditions[0];
+        if operator == "<=" {
+            between_operators(value, variable)
+        } else {
+            other_operators(operator, value, variable)
+        }
     } else {
-        // Multiple conditions inside an "and"
         let and_conditions: Vec<Value> = conditions
-            .into_iter()
+            .iter() // Use iter() instead of into_iter() to avoid consuming conditions
             .map(|(variable, operator, value)| {
-                json!({
-                    operator: [
-                        { "var": variable },
-                        value
-                    ]
-                })
+                if operator == "<=" {
+                    between_operators(value, variable)
+                } else {
+                    other_operators(operator, value, variable)
+                }
             })
             .collect();
 

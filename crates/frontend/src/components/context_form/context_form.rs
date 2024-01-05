@@ -143,6 +143,7 @@ where
                                             </option>
                                             <option value="==">"IS"</option>
                                             <option value="IN">"HAS"</option>
+                                            <option value="<=">"BETWEEN (inclusive)"</option>
                                         </select>
 
                                     </div>
