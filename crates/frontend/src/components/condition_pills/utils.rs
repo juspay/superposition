@@ -2,7 +2,7 @@ use serde_json::Value;
 
 pub fn parse_conditions(input: String) -> Vec<(String, String, String)> {
     let mut conditions = Vec::new();
-    let operators = vec!["==", "in"];
+    let operators = vec!["==", "in", "<="];
 
     // Split the string by "&&" and iterate over each condition
     for condition in input.split("&&") {
@@ -33,6 +33,9 @@ pub fn parse_conditions(input: String) -> Vec<(String, String, String)> {
             if op == "==".to_string() {
                 val = val.trim_matches('"').to_string();
                 op = "is".to_string();
+            } else if op == "<=".to_string() {
+                val = val.trim_matches('"').to_string();
+                op = "BETWEEN".to_string();
             } else {
                 val = val.trim_matches('"').to_string();
                 op = "has".to_string();
@@ -89,6 +92,25 @@ fn format_condition(condition: &Value) -> String {
             }
         }
 
+        // Handline the "<=" operator differently
+        if operator.as_str() == "<=" {
+            let left_operand = &operands[0];
+            let right_operand = &operands[2];
+            let mid_operand = &operands[1];
+
+            let left_str = format!("{}", left_operand).trim_matches('"').to_string();
+            let right_str = format!("{}", right_operand).trim_matches('"').to_string();
+
+            if mid_operand.is_object() && mid_operand["var"].is_string() {
+                let var_str = mid_operand["var"].as_str().unwrap();
+                return format!(
+                    "{} {} {}",
+                    var_str,
+                    operator,
+                    left_str + "," + &right_str
+                );
+            }
+        }
         // Handling regular operators
         if let Some(first_operand) = operands.get(0) {
             if first_operand.is_object() && first_operand["var"].is_string() {
