@@ -11,11 +11,13 @@ use crate::{
         context_form::context_form::ContextForm,
     },
     pages::fetch_config,
+    utils::get_host,
 };
 
 async fn resolve_config(tenant: String, context: String) -> Result<Value, String> {
     let client = reqwest::Client::new();
-    let url = format!("http://localhost:8080/config/resolve?{context}");
+    let host = get_host();
+    let url = format!("{host}/config/resolve?{context}");
     match client
         .get(url)
         .query(&[("show_reasoning", "true")])
@@ -112,11 +114,7 @@ pub fn home() -> impl IntoView {
                 "==" => "=",
                 _ => break, // query params do not support the other operators :  != and IN, do something differently later
             };
-            context.push(format!(
-                "{}{op}{}",
-                dimension.to_lowercase(),
-                value.to_lowercase()
-            ));
+            context.push(format!("{}{op}{}", dimension, value.to_lowercase()));
         }
         context.join("&").to_string()
     };

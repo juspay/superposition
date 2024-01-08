@@ -1,4 +1,7 @@
-use crate::pages::ExperimentList::types::{DefaultConfig, Dimension};
+use crate::{
+    pages::ExperimentList::types::{DefaultConfig, Dimension},
+    utils::get_host,
+};
 
 // #[derive(Debug, Serialize, Deserialize, Clone)]
 // pub struct Dimension {
@@ -20,7 +23,7 @@ use crate::pages::ExperimentList::types::{DefaultConfig, Dimension};
 
 pub async fn fetch_dimensions(tenant: String) -> Result<Vec<Dimension>, String> {
     let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
+    let host = get_host();
     let url = format!("{host}/dimension");
     match client.get(url).header("x-tenant", tenant).send().await {
         Ok(response) => {
@@ -33,7 +36,7 @@ pub async fn fetch_dimensions(tenant: String) -> Result<Vec<Dimension>, String> 
 
 pub async fn fetch_default_config(tenant: String) -> Result<Vec<DefaultConfig>, String> {
     let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
+    let host = get_host();
     let url = format!("{host}/default-config");
     match client.get(url).header("x-tenant", tenant).send().await {
         Ok(response) => {

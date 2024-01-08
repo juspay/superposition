@@ -1,22 +1,9 @@
-use std::{collections::HashSet, env::VarError, str::FromStr};
-
 use crate::components::nav_item::nav_item::NavItem;
 use crate::types::AppRoute;
+use crate::utils::get_tenants;
 
 use leptos::{logging::log, *};
 use leptos_router::{use_location, use_navigate, A};
-
-fn get_from_env_unsafe<F>(name: &str) -> Result<F, VarError>
-where
-    F: FromStr,
-    <F as FromStr>::Err: std::fmt::Debug,
-{
-    std::env::var(name)
-        .map(|val| val.parse().unwrap())
-        .map_err(|e| {
-            return e;
-        })
-}
 
 #[component]
 pub fn SideNav() -> impl IntoView {
@@ -24,16 +11,6 @@ pub fn SideNav() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let tenant_ws = use_context::<WriteSignal<String>>().unwrap();
     let (app_routes, set_app_routes) = create_signal(create_routes(&tenant_rs.get()));
-
-    async fn fetch_tenants(tenants: &str) -> HashSet<String> {
-        get_from_env_unsafe::<String>(tenants)
-            .unwrap_or("m,s".into())
-            .split(",")
-            .map(|tenant| tenant.to_string())
-            .collect()
-    }
-
-    let tenants = create_blocking_resource(|| (), move |_| fetch_tenants("TENANTS"));
 
     create_effect(move |_| {
         let current_path = location.pathname.get();
@@ -93,20 +70,26 @@ pub fn SideNav() -> impl IntoView {
                     class="select w-full max-w-xs shadow-md"
                 >
 
-                    {match tenants.get() {
-                        Some(tenants_data) => {
-                            let tenants_clone = tenants_data.clone();
-                            tenants_clone
-                                .iter()
-                                .map(|tenant| {
-                                    view! {
-                                        <option selected=tenant
-                                            == &tenant_rs.get()>{tenant}</option>
-                                    }
-                                })
-                                .collect::<Vec<_>>()
+                    {move || {
+                        let tenants = get_tenants();
+                        match tenants.is_empty() {
+                            false => {
+                                tenants
+                                    .iter()
+                                    .map(|tenant| {
+                                        view! {
+                                            <option selected=tenant
+                                                == &tenant_rs.get()>{tenant}</option>
+                                        }
+                                    })
+                                    .collect::<Vec<_>>()
+                            }
+                            true => {
+                                vec![
+                                    view! { <option disabled=true>{"Loading tenants..."}</option> },
+                                ]
+                            }
                         }
-                        _ => vec![view! { <option disabled=true>{"Loading tenants..."}</option> }],
                     }}
 
                 </select>

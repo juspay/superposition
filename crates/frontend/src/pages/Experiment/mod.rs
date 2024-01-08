@@ -3,7 +3,6 @@ use leptos::{html::Input, logging::log, *};
 use leptos_router::use_params_map;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
-use tracing::debug;
 use web_sys::SubmitEvent;
 
 use crate::{
@@ -12,6 +11,7 @@ use crate::{
         condition_pills::utils::extract_and_format,
         table::{table::Table, types::Column},
     },
+    utils::get_host,
 };
 
 #[derive(
@@ -59,14 +59,15 @@ pub struct Experiment {
 
 async fn get_experiment(exp_id: &String, tenant: &String) -> Result<Experiment, String> {
     let client = reqwest::Client::new();
+    let host = get_host();
     match client
-        .get(format!("http://localhost:8080/experiments/{}", exp_id))
+        .get(format!("{host}/experiments/{}", exp_id))
         .header("x-tenant", tenant)
         .send()
         .await
     {
         Ok(experiment) => {
-            debug!("experiment response {:?}", experiment);
+            log!("experiment response {:?}", experiment);
             Ok(experiment
                 .json::<Experiment>()
                 .await
@@ -82,15 +83,16 @@ async fn ramp_experiment(
     tenant: &String,
 ) -> Result<Experiment, String> {
     let client = reqwest::Client::new();
+    let host = get_host();
     match client
-        .patch(format!("http://localhost:8080/experiments/{}/ramp", exp_id))
+        .patch(format!("{host}/experiments/{}/ramp", exp_id))
         .header("x-tenant", tenant)
         .json(&json!({ "traffic_percentage": percent }))
         .send()
         .await
     {
         Ok(experiment) => {
-            debug!("experiment response {:?}", experiment);
+            log!("experiment response {:?}", experiment);
             Ok(experiment
                 .json::<Experiment>()
                 .await
@@ -103,20 +105,19 @@ async fn ramp_experiment(
 async fn conclude_experiment(
     exp_id: String,
     variant_id: String,
+    tenant: &String,
 ) -> Result<Experiment, String> {
     let client = reqwest::Client::new();
+    let host = get_host();
     match client
-        .patch(format!(
-            "http://localhost:8080/experiments/{}/conclude",
-            exp_id
-        ))
-        .header("x-tenant", "mjos")
+        .patch(format!("{host}/experiments/{}/conclude", exp_id))
+        .header("x-tenant", tenant)
         .json(&json!({ "chosen_variant": variant_id }))
         .send()
         .await
     {
         Ok(experiment) => {
-            debug!("experiment response {:?}", experiment);
+            log!("experiment response {:?}", experiment);
             Ok(experiment
                 .json::<Experiment>()
                 .await
@@ -207,7 +208,7 @@ fn experiment_detail_view(
                                         </button>
                                         <button
                                             class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                            value=&exp.id
+                                            value=exp.id.to_string()
                                             on:click=move |button_event| {
                                                 let tenant_clone = tenant_clone.clone();
                                                 spawn_local(async move {
@@ -454,21 +455,26 @@ fn add_dialogs(
                     <form method="dialog">
                         {move || {
                             let mut view_arr = vec![];
+                            let tenant = tenant_rs.get();
                             for (i, v) in experiment_rs.get().variants.into_iter().enumerate() {
                                 let (variant, _) = create_signal(v);
+                                let tenant_clone = tenant.clone();
                                 let view = match variant.get().variant_type {
                                     VariantType::CONTROL => {
                                         view! {
                                             <button
                                                 class="btn btn-block btn-outline btn-info m-2"
-                                                on:click=move |_| spawn_local(async move {
-                                                    let e = experiment_rs.get();
-                                                    let variant = variant.get();
-                                                    conclude_experiment(e.id, variant.id.clone())
-                                                        .await
-                                                        .unwrap();
-                                                    experiment_ws.refetch();
-                                                })
+                                                on:click=move |_| {
+                                                    let tenant_clone = tenant_clone.clone();
+                                                    spawn_local(async move {
+                                                        let e = experiment_rs.get();
+                                                        let variant = variant.get();
+                                                        conclude_experiment(e.id, variant.id.clone(), &tenant_clone)
+                                                            .await
+                                                            .unwrap();
+                                                        experiment_ws.refetch();
+                                                    })
+                                                }
                                             >
 
                                                 Control
@@ -479,14 +485,17 @@ fn add_dialogs(
                                         view! {
                                             <button
                                                 class="btn btn-block btn-outline btn-success m-2"
-                                                on:click=move |_| spawn_local(async move {
-                                                    let e = experiment_rs.get();
-                                                    let variant = variant.get();
-                                                    conclude_experiment(e.id, variant.id.clone())
-                                                        .await
-                                                        .unwrap();
-                                                    experiment_ws.refetch();
-                                                })
+                                                on:click=move |_| {
+                                                    let tenant_clone = tenant_clone.clone();
+                                                    spawn_local(async move {
+                                                        let e = experiment_rs.get();
+                                                        let variant = variant.get();
+                                                        conclude_experiment(e.id, variant.id.clone(), &tenant_clone)
+                                                            .await
+                                                            .unwrap();
+                                                        experiment_ws.refetch();
+                                                    })
+                                                }
                                             >
 
                                                 {format!("Variant-{i}")}

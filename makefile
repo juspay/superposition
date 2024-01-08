@@ -95,20 +95,35 @@ setup: migration env-setup test-tenant dev-tenant
 kill:
 	-pkill -f target/debug/context-aware-config &
 
+get-password:
+	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh` && echo $$DB_PASSWORD
+
 cac:
 	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
 	cargo run --color always --bin context-aware-config --no-default-features --features=ssr
 
-run: kill
-	cd crates/frontend && wasm-pack build --target=web --debug --no-default-features --features=hydrate
+frontend:
+	cd crates/frontend && \
+		wasm-pack build --target=web --debug --no-default-features --features=hydrate
+	cd crates/frontend && \
+		npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css
+	-rm -rf target/site
+	mkdir target/site && mkdir target/site/pkg
+	mv crates/frontend/pkg target/site/
+	cp -a crates/frontend/assets/. target/site/
+
+backend:
 	cargo build --color always
+
+build: frontend backend
+
+run: kill build
 	while ! make validate-psql-connection validate-aws-connection; \
 		do echo "waiting for postgres, localstack bootup"; \
 		sleep 0.5; \
 		done
 	cp .env.example .env
 	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
-	cd crates/frontend && npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css
 	make cac -e DOCKER_DNS=$(DOCKER_DNS)
 
 ci-test: cleanup ci-setup

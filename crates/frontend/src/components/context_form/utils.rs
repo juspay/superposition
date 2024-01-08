@@ -1,3 +1,4 @@
+use crate::utils::get_host;
 use reqwest::StatusCode;
 use serde_json::{json, Map, Value};
 
@@ -56,7 +57,7 @@ pub async fn create_context(
     conditions: Vec<(String, String, String)>,
 ) -> Result<String, String> {
     let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
+    let host = get_host();
     let url = format!("{host}/context");
     let request_payload = construct_request_payload(overrides, conditions);
     let response = client
