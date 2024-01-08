@@ -1,4 +1,4 @@
-#[warn(unused_must_use)]
+use crate::types::Envs;
 use leptos::*;
 use wasm_bindgen::JsCast;
 
@@ -19,4 +19,20 @@ pub fn modal_action(name: &str, action: &str) {
             }
         }
     }
+}
+
+pub fn get_host() -> String {
+    let context = use_context::<Resource<(), Envs>>();
+    context
+        .map_or(None, |resource| resource.get())
+        .map(|ctx| ctx.host)
+        .unwrap_or(String::from("http://localhost:8080"))
+}
+
+pub fn get_tenants() -> Vec<String> {
+    let context = use_context::<Resource<(), Envs>>();
+    context
+        .map_or(None, |resource| resource.get())
+        .map(|ctx| ctx.tenants)
+        .unwrap_or(vec![])
 }

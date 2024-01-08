@@ -54,7 +54,6 @@
                   nodejs_18
                   leptosfmt
                   wasm-pack
-                  leptosfmt
                   curl
                  ( rust-bin.stable.latest.default.override {
                    extensions = [ "rust-src" ];

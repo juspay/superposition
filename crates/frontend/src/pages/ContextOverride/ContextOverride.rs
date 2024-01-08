@@ -7,7 +7,7 @@ use crate::components::context_form::context_form::ContextForm;
 use crate::components::override_form::override_form::OverrideForm;
 use crate::components::table::{table::Table, types::Column};
 use crate::pages::fetch_config;
-use crate::utils::modal_action;
+use crate::utils::{get_host, modal_action};
 use leptos::*;
 use reqwest::StatusCode;
 use serde_json::{json, Map, Value};
@@ -119,7 +119,7 @@ pub async fn create_context(
     conditions: Vec<(String, String, String)>,
 ) -> Result<String, String> {
     let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
+    let host = get_host();
     let url = format!("{host}/context");
     let request_payload = construct_request_payload(overrides, conditions);
     let response = client

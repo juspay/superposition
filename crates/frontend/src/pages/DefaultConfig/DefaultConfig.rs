@@ -6,7 +6,7 @@ use crate::components::table::{table::Table, types::Column};
 use crate::components::button::button::Button;
 use crate::components::stat::stat::Stat;
 use crate::pages::ExperimentList::utils::fetch_default_config;
-use crate::utils::modal_action;
+use crate::utils::{get_host, modal_action};
 use js_sys;
 use leptos::spawn_local;
 use leptos::*;
@@ -28,7 +28,7 @@ pub async fn create_default_config(
     pattern: String,
 ) -> Result<String, String> {
     let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
+    let host = get_host();
     let url = format!("{host}/default-config/{key}");
     let mut req_body: HashMap<&str, Value> = HashMap::new();
     let mut schema: Map<String, Value> = Map::new();

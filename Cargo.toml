@@ -10,21 +10,15 @@ members = [
   "crates/frontend"
 ]
 
-
 [[workspace.metadata.leptos]]
-output-name = "frontend"
+name = "cac"
 bin-package = "context-aware-config"
+output-name = "frontend"
 lib-package = "frontend"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+style-file = "crates/frontend/styles/style.css"
 assets-dir = "crates/frontend/assets"
-style-file = "frontend/style/output.css"
-site-root = "crates/frontend"
-
-[workspace.metadata.leptos.style]
-# Main style file. If scss or sass then it will be compiled to css.
-# the parent folder will be watched for changes
-file = "style/output.css"
-# A https://browsersl.ist query
-browserquery = "defaults"
 
 [workspace.dependencies]
 dotenv = "0.15.0"
