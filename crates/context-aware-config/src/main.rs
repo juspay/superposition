@@ -198,11 +198,12 @@ async fn main() -> Result<()> {
                     AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION),
                 ),
             )
-            .route("/api/{tail:.*}", leptos_actix::handle_server_fns())
-            // serve other assets from the `assets` directory
-            .service(Files::new("/assets", format!("{site_root}/assets")))
+            /***************************** UI Routes ******************************/
+            // .route("/api/{tail:.*}", leptos_actix::handle_server_fns())
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
+            // serve other assets from the `assets` directory
+            .service(Files::new("/assets", format!("{site_root}")))
             // serve the favicon from /favicon.ico
             .service(web::redirect("/", ui_redirect_path.to_string()))
             .service(favicon)
@@ -220,11 +221,6 @@ async fn main() -> Result<()> {
     ))
     .run()
     .await
-}
-
-#[actix_web::get("/style.css")]
-async fn css() -> impl actix_web::Responder {
-    actix_files::NamedFile::open_async("./style/output.css").await
 }
 
 fn authenticated_routes() -> AuthenticatedRouteList {

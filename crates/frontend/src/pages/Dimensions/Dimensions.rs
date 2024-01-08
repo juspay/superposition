@@ -6,7 +6,7 @@ use crate::components::{
     stat::stat::Stat,
     table::{table::Table, types::Column},
 };
-use crate::utils::modal_action;
+use crate::utils::{get_host, modal_action};
 use leptos::*;
 use reqwest::StatusCode;
 use serde_json::{json, Map, Value};
@@ -77,7 +77,7 @@ pub async fn create_dimension(
 ) -> Result<String, String> {
     let priority: i64 = priority.parse().unwrap();
     let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
+    let host = get_host();
     let url = format!("{host}/dimension");
 
     let mut req_body: HashMap<&str, Value> = HashMap::new();

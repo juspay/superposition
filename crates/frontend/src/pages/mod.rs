@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 
+use crate::utils::get_host;
+
 use self::types::Config;
 
 pub mod ContextOverride;
@@ -15,7 +17,8 @@ pub mod types;
 
 pub async fn fetch_config(tenant: String) -> Result<Config, String> {
     let client = reqwest::Client::new();
-    let url = "http://localhost:8080/config";
+    let host = get_host();
+    let url = format!("{host}/config");
     match client.get(url).header("x-tenant", tenant).send().await {
         Ok(response) => {
             let config: Config = response.json().await.map_err(|e| e.to_string())?;

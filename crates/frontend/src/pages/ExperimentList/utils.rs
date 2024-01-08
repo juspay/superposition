@@ -2,6 +2,7 @@ use super::types::{DefaultConfig, Dimension, ExperimentsResponse, ListFilters};
 use crate::components::{
     condition_pills::condition_pills::ContextPills, table::types::Column,
 };
+use crate::utils::get_host;
 use core::time::Duration;
 use leptos::*;
 use leptos_router::A;
@@ -14,13 +15,7 @@ pub async fn fetch_experiments(
     tenant: &String,
 ) -> Result<ExperimentsResponse, String> {
     let client = reqwest::Client::new();
-    let host = match std::env::var("APP_ENV").as_deref() {
-        Ok("PROD") => {
-            "https://context-aware-config.sso.internal.svc.k8s.apoc.mum.juspay.net"
-        }
-        Ok("SANDBOX") => "https://context-aware.internal.staging.mum.juspay.net",
-        _ => "http://localhost:8080",
-    };
+    let host = get_host();
 
     let mut query_params = vec![];
     if let Some(status) = filters.status {
@@ -56,13 +51,7 @@ pub async fn fetch_experiments(
 
 pub async fn fetch_dimensions(tenant: &str) -> Result<Vec<Dimension>, String> {
     let client = reqwest::Client::new();
-    let host = match std::env::var("APP_ENV").as_deref() {
-        Ok("PROD") => {
-            "https://context-aware-config.sso.internal.svc.k8s.apoc.mum.juspay.net"
-        }
-        Ok("SANDBOX") => "https://context-aware.internal.staging.mum.juspay.net",
-        _ => "http://localhost:8080",
-    };
+    let host = get_host();
 
     let url = format!("{}/dimension", host);
     let response: Vec<Dimension> = client
@@ -80,13 +69,7 @@ pub async fn fetch_dimensions(tenant: &str) -> Result<Vec<Dimension>, String> {
 
 pub async fn fetch_default_config(tenant: &str) -> Result<Vec<DefaultConfig>, String> {
     let client = reqwest::Client::new();
-    let host = match std::env::var("APP_ENV").as_deref() {
-        Ok("PROD") => {
-            "https://context-aware-config.sso.internal.svc.k8s.apoc.mum.juspay.net"
-        }
-        Ok("SANDBOX") => "https://context-aware.internal.staging.mum.juspay.net",
-        _ => "http://localhost:8080",
-    };
+    let host = get_host();
 
     let url = format!("{}/default-config", host);
     let response: Vec<DefaultConfig> = client

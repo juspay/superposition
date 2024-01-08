@@ -1,6 +1,7 @@
 use super::types::ExperimentCreateRequest;
 use crate::components::context_form::utils::construct_context;
 use crate::pages::ExperimentList::types::Variant;
+use crate::utils::get_host;
 use reqwest::StatusCode;
 use serde_json::json;
 
@@ -17,7 +18,7 @@ pub async fn create_experiment(
     };
 
     let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
+    let host = get_host();
     let url = format!("{host}/experiments");
     let request_payload = json!(payload);
     let response = client

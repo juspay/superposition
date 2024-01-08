@@ -2,6 +2,7 @@ use super::types::DimensionCreateReq;
 use leptos::logging;
 use reqwest::StatusCode;
 use serde_json::Value;
+use crate::utils::get_host;
 
 pub fn parse_string_to_json_value_vec(input: &str) -> Vec<Value> {
     // Parse the input string into a serde_json::Value
@@ -22,7 +23,7 @@ pub async fn create_dimension(
     payload: DimensionCreateReq,
 ) -> Result<String, String> {
     let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
+    let host = get_host();
     let url = format!("{host}/dimension");
 
     let response = client
