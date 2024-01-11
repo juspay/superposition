@@ -5,7 +5,7 @@ use std::collections::HashSet;
 use web_sys::MouseEvent;
 
 #[component]
-pub fn OverrideForm<NF>(
+pub fn override_form<NF>(
     overrides: Map<String, Value>,
     default_config: Vec<DefaultConfig>,
     handle_change: NF,

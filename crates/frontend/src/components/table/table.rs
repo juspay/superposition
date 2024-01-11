@@ -18,7 +18,7 @@ fn generate_table_row_str(row: &Value) -> String {
 }
 
 #[component]
-pub fn Table(
+pub fn table(
     key_column: String,
     table_style: String,
     columns: Vec<Column>,
