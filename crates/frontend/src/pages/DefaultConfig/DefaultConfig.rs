@@ -350,7 +350,7 @@ pub fn DefaultConfig() -> impl IntoView {
             Column::default("value".to_string()),
             Column::default("created_at".to_string()),
             Column::default("created_by".to_string()),
-            Column::new("EDIT".to_string(), None, Some(custom_formatter)),
+            Column::new("EDIT".to_string(), None, custom_formatter),
         ]
     });
 

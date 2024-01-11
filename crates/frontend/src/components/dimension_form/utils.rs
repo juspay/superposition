@@ -1,22 +1,6 @@
 use super::types::DimensionCreateReq;
-use leptos::logging;
-use reqwest::StatusCode;
-use serde_json::Value;
 use crate::utils::get_host;
-
-pub fn parse_string_to_json_value_vec(input: &str) -> Vec<Value> {
-    // Parse the input string into a serde_json::Value
-    let parsed = serde_json::from_str::<Value>(input);
-
-    // Ensure the Value is an Array and convert it to Vec<Value>
-    match parsed {
-        Ok(Value::Array(arr)) => arr,
-        _ => {
-            logging::log!("Not a valid json in the input");
-            vec![]
-        }
-    }
-}
+use reqwest::StatusCode;
 
 pub async fn create_dimension(
     tenant: String,

@@ -90,7 +90,7 @@ pub fn experiment_table_columns() -> Vec<Column> {
         Column::new(
             "name".to_string(),
             None,
-            Some(|value: &str, row: &Map<String, Value>| {
+            |value: &str, row: &Map<String, Value>| {
                 let (copied, set_copied) = create_signal(false);
 
                 let experiment_name = value.to_string();
@@ -137,33 +137,29 @@ pub fn experiment_table_columns() -> Vec<Column> {
                         </div>
                     }
                     .into_view()
-            }),
+            },
         ),
-        Column::new(
-            "status".to_string(),
-            None,
-            Some(|value: &str, _| {
-                let badge_color = match value {
-                    "CREATED" => "badge-info",
-                    "INPROGRESS" => "badge-warning",
-                    "CONCLUDED" => "badge-success",
-                    &_ => "info",
-                };
-                let class = format!("badge {}", badge_color);
-                view! {
-                    <div class={class}>
-                        <span class="text-white font-semibold text-xs">
-                            {value.to_string()}
-                        </span>
-                    </div>
-                }
-                .into_view()
-            }),
-        ),
+        Column::new("status".to_string(), None, |value: &str, _| {
+            let badge_color = match value {
+                "CREATED" => "badge-info",
+                "INPROGRESS" => "badge-warning",
+                "CONCLUDED" => "badge-success",
+                &_ => "info",
+            };
+            let class = format!("badge {}", badge_color);
+            view! {
+                <div class={class}>
+                    <span class="text-white font-semibold text-xs">
+                        {value.to_string()}
+                    </span>
+                </div>
+            }
+            .into_view()
+        }),
         Column::new(
             "context".to_string(),
             None,
-            Some(|_, row: &Map<String, Value>| {
+            |_, row: &Map<String, Value>| {
                 let context = match row.get("context") {
                     Some(value) => value.to_owned(),
                     None => json!(""),
@@ -175,23 +171,19 @@ pub fn experiment_table_columns() -> Vec<Column> {
                     </div>
                 }
                 .into_view()
-            }),
+            },
         ),
-        Column::new(
-            "chosen_variant".to_string(),
-            None,
-            Some(|value: &str, _| {
-                let label = match value {
-                    "null" => "¯\\_(ツ)_/¯".to_string(),
-                    other => other.to_string(),
-                };
+        Column::new("chosen_variant".to_string(), None, |value: &str, _| {
+            let label = match value {
+                "null" => "¯\\_(ツ)_/¯".to_string(),
+                other => other.to_string(),
+            };
 
-                view! {
-                    <span>{label}</span>
-                }
-                .into_view()
-            }),
-        ),
+            view! {
+                <span>{label}</span>
+            }
+            .into_view()
+        }),
         Column::default("created_at".to_string()),
         Column::default("created_by".to_string()),
         Column::default("last_modified".to_string()),
