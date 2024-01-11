@@ -3,7 +3,7 @@ use leptos::*;
 use serde_json::Value;
 
 #[component]
-pub fn ContextPills(context: Value) -> impl IntoView {
+pub fn context_pills(context: Value) -> impl IntoView {
     let condition = extract_and_format(&context);
     let ctx_values = parse_conditions(condition.clone());
 

@@ -6,7 +6,7 @@ use leptos::{logging::log, *};
 use leptos_router::{use_location, use_navigate, A};
 
 #[component]
-pub fn SideNav() -> impl IntoView {
+pub fn side_nav() -> impl IntoView {
     let location = use_location();
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let tenant_ws = use_context::<WriteSignal<String>>().unwrap();

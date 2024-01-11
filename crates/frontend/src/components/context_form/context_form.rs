@@ -5,7 +5,7 @@ use std::collections::HashSet;
 use web_sys::MouseEvent;
 
 #[component]
-pub fn ContextForm<NF>(
+pub fn context_form<NF>(
     handle_change: NF,
     dimensions: Vec<Dimension>,
     is_standalone: bool,

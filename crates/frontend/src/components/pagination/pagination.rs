@@ -1,7 +1,7 @@
 use leptos::*;
 
 #[component]
-pub fn Pagination<NF, PF>(
+pub fn pagination<NF, PF>(
     current_page: i64,
     total_pages: i64,
     next: NF,

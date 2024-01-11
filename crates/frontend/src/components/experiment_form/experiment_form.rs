@@ -44,7 +44,7 @@ struct CombinedResource {
 }
 
 #[component]
-pub fn ExperimentForm<NF>(
+pub fn experiment_form<NF>(
     name: String,
     context: Vec<(String, String, String)>,
     variants: Vec<Variant>,
