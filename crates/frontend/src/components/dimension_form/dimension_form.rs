@@ -1,17 +1,18 @@
 use super::types::DimensionCreateReq;
-use super::utils::{create_dimension, parse_string_to_json_value_vec};
+use super::utils::create_dimension;
 use crate::components::button::button::Button;
+use crate::utils::parse_string_to_json_value_vec;
 use leptos::*;
 use serde_json::json;
 use web_sys::MouseEvent;
 
 #[component]
 pub fn dimension_form<NF>(
-    edit: bool,
-    priority: u16,
-    dimension_name: String,
-    dimension_type: String,
-    dimension_pattern: String,
+    #[prop(default = false)] edit: bool,
+    #[prop(default = 0)] priority: u16,
+    #[prop(default = String::new())] dimension_name: String,
+    #[prop(default = String::new())] dimension_type: String,
+    #[prop(default = String::new())] dimension_pattern: String,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -24,7 +25,7 @@ where
     let (dimension_type, set_dimension_type) = create_signal(dimension_type);
     let (dimension_pattern, set_dimension_pattern) = create_signal(dimension_pattern);
 
-    let (show_labels, set_show_labels) = create_signal(false);
+    let (show_labels, set_show_labels) = create_signal(edit);
 
     let (error_message, set_error_message) = create_signal("".to_string());
 
@@ -41,13 +42,13 @@ where
                     "type": f_type.to_string()
                 })
             }
-            "Enum" => {
+            "enum" => {
                 json!({
                     "type": "string",
                     "enum": parse_string_to_json_value_vec(f_pattern.as_str())
                 })
             }
-            "Pattern" => {
+            "pattern" => {
                 json!({
                     "type": "string",
                     "pattern": f_pattern.to_string()
@@ -73,7 +74,6 @@ where
                 match result {
                     Ok(_) => {
                         handle_submit();
-                        // modal_action("my_modal_5","close");
                     }
                     Err(e) => {
                         set_error_message.set(e);
@@ -111,17 +111,17 @@ where
                         "number" => {
                             set_dimension_type.set("number".to_string());
                         }
-                        "Enum" => {
-                            set_dimension_type.set("Enum".to_string());
+                        "enum" => {
+                            set_dimension_type.set("enum".to_string());
                             set_dimension_pattern
                                 .set(format!("{:?}", vec!["android", "web", "ios"]));
                         }
-                        "Pattern" => {
-                            set_dimension_type.set("Pattern".to_string());
+                        "pattern" => {
+                            set_dimension_type.set("pattern".to_string());
                             set_dimension_pattern.set(".*".to_string());
                         }
                         _ => {
-                            set_dimension_type.set("Other".to_string());
+                            set_dimension_type.set("other".to_string());
                             set_dimension_pattern.set("".to_string());
                         }
                     };
@@ -135,25 +135,25 @@ where
 
                 <option
                     value="number"
-                    selected=move || { dimension_type.get() == "number".to_string() }
+                    selected=move || { logging::log!("{:?}", dimension_type.get()); dimension_type.get() == "number".to_string() }
                 >
                     "Number"
                 </option>
                 <option
-                    value="Enum"
-                    selected=move || { dimension_type.get() == "Enum".to_string() }
+                    value="enum"
+                    selected=move || { dimension_type.get() == "enum".to_string() }
                 >
                     "String (Enum)"
                 </option>
                 <option
-                    value="Pattern"
-                    selected=move || { dimension_type.get() == "Pattern".to_string() }
+                    value="pattern"
+                    selected=move || { dimension_type.get() == "pattern".to_string() }
                 >
                     "String (regex)"
                 </option>
                 <option
-                    value="Other"
-                    selected=move || { dimension_type.get() == "Other".to_string() }
+                    value="other"
+                    selected=move || { dimension_type.get() == "other".to_string() }
                 >
                     "Other"
                 </option>
