@@ -1,6 +1,7 @@
 pub mod button;
 pub mod condition_pills;
 pub mod context_form;
+pub mod default_config_form;
 pub mod dimension_form;
 pub mod experiment_form;
 pub mod modal;

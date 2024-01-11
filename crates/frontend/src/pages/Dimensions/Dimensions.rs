@@ -71,12 +71,13 @@ pub fn Dimensions() -> impl IntoView {
 
             let row_pattern = match schema_object.get("type") {
                 Some(Value::String(type_))
-                    if type_ == "string" && pattern_or_enum == "string" =>
+                    if type_ == "string" && pattern_or_enum == "pattern" =>
                 {
                     schema_object
                         .get(&pattern_or_enum)
                         .and_then(|val| Some(val.clone().to_string()))
                         .unwrap_or(String::new())
+                        .replace("\"", "")
                 }
                 Some(Value::String(type_))
                     if type_ == "string" && pattern_or_enum == "enum" =>
@@ -100,7 +101,7 @@ pub fn Dimensions() -> impl IntoView {
                 }
                 Some(Value::String(type_)) if type_ == "number" => String::new(),
                 Some(Value::String(_)) => schema,
-                Some(_) | None => String::new(),
+                _ => String::new(),
             };
 
             let edit_click_handler = move |_| {
