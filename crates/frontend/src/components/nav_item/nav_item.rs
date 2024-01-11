@@ -2,7 +2,7 @@ use leptos::*;
 use leptos_router::A;
 
 #[component]
-pub fn NavItem(
+pub fn nav_item(
     is_active: bool,
     href: String,
     text: String,
