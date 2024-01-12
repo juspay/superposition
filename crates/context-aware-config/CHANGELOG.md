@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.14.1 - 2024-01-12
+#### Bug Fixes
+- frontend build process - (cbdad01) - Shubhranshu Sanjeev
+
+- - -
+
 ## context-aware-config-v0.14.0 - 2024-01-04
 #### Bug Fixes
 - fixed ci-test to support multi-tenant setup - (916b75d) - Shubhranshu Sanjeev
