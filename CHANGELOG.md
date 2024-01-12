@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.17.1 - 2024-01-12
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.14.1
+### Global changes
+#### Bug Fixes
+- frontend build process - (cbdad01) - Shubhranshu Sanjeev
+- fixed build failure due to rust-version - (f689597) - Shubhranshu Sanjeev
+
+- - -
+
 ## v0.17.0 - 2024-01-04
 ### Package updates
 - experimentation-platform bumped to experimentation-platform-v0.9.0
