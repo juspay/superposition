@@ -4,11 +4,12 @@ use crate::service::types::{AppState, Tenant};
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     error,
-    http::header::HeaderValue,
+    http::header::{HeaderMap, HeaderValue},
     web::Data,
     Error, HttpMessage,
 };
 use futures_util::future::LocalBoxFuture;
+use log::debug;
 use std::rc::Rc;
 
 pub struct TenantMiddlewareFactory;
@@ -35,6 +36,36 @@ pub struct TenantMiddleware<S> {
     service: Rc<S>,
 }
 
+fn extract_tenant_from_header(headers: &HeaderMap) -> Option<String> {
+    headers
+        .get("x-tenant")
+        .map(|header_value: &HeaderValue| header_value.to_str().ok())
+        .flatten()
+        .map(|header_str: &str| header_str.to_string())
+}
+
+fn extract_tenant_from_url(path: &str, match_pattern: Option<String>) -> Option<String> {
+    match_pattern
+        .map(move |pattern| {
+            let pattern_segments = pattern.split("/");
+            let path_segments = path.split("/").collect::<Vec<&str>>();
+            pattern_segments
+                .enumerate()
+                .find(|(_, segment)| segment == &"{tenant}")
+                .map(|(idx, _)| path_segments[idx].to_string())
+        })
+        .flatten()
+}
+
+fn extract_tenant_from_query_params(query_str: &str) -> Option<String> {
+    query_str
+        .split("&")
+        .find(|segment| segment.contains("tenant="))
+        .map(|tenant_query_param| tenant_query_param.split("=").nth(1))
+        .flatten()
+        .map(|tenant_str| tenant_str.to_string())
+}
+
 impl<S, B> Service<ServiceRequest> for TenantMiddleware<S>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
@@ -59,34 +90,28 @@ where
                 }
             };
 
-            let path = req.path();
-            let tenant_from_params = match req.match_pattern() {
-                Some(pattern) => {
-                    let pattern_segments = pattern.split("/");
-                    let path_segments = path.split("/").collect::<Vec<&str>>();
-                    Some(
-                        pattern_segments
-                            .enumerate()
-                            .find(|(_, segment)| segment == &"{tenant}")
-                            .map_or("", |(idx, _)| path_segments[idx]),
-                    )
-                }
-                None => None,
-            };
-
             let request_path = req.uri().path();
             let is_excluded: bool = app_state
                 .tenant_middleware_exclusion_list
                 .contains(request_path);
 
             if !is_excluded && app_state.enable_tenant_and_scope {
-                let tenant = req
-                    .headers()
-                    .get("x-tenant")
-                    .map_or(tenant_from_params, |header_value: &HeaderValue| {
-                        header_value.to_str().ok()
-                    })
-                    .map(|header_str| header_str.to_string());
+                debug!(
+                    "TENANT FROM HEADER ==> {:?}",
+                    extract_tenant_from_header(req.headers())
+                );
+                debug!(
+                    "TENANT FROM URL ==> {:?}",
+                    extract_tenant_from_url(req.path(), req.match_pattern())
+                );
+                debug!(
+                    "TENANT FROM QUERY ==> {:?}",
+                    extract_tenant_from_query_params(req.query_string())
+                );
+
+                let tenant = extract_tenant_from_header(req.headers())
+                    .or_else(|| extract_tenant_from_url(req.path(), req.match_pattern()))
+                    .or_else(|| extract_tenant_from_query_params(req.query_string()));
 
                 let validated_tenant: Tenant = match tenant {
                     Some(val) if app_state.tenants.contains(&val) => Tenant(val),
