@@ -29,7 +29,7 @@ pub fn Dimensions() -> impl IntoView {
     let dimensions = create_blocking_resource(
         move || tenant_rs.get(),
         |current_tenant| async move {
-            match fetch_dimensions(&current_tenant).await {
+            match fetch_dimensions(current_tenant).await {
                 Ok(data) => data,
                 Err(_) => vec![],
             }

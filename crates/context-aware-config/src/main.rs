@@ -199,7 +199,7 @@ async fn main() -> Result<()> {
                 ),
             )
             /***************************** UI Routes ******************************/
-            // .route("/api/{tail:.*}", leptos_actix::handle_server_fns())
+            .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
             // serve other assets from the `assets` directory
