@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.17.2 - 2024-01-18
+### Package updates
+- service-utils bumped to service-utils-v0.10.1
+- context-aware-config bumped to context-aware-config-v0.14.2
+### Global changes
+#### Bug Fixes
+- error resolving pages with internal call to server - (084d08b) - Shubhranshu Sanjeev
+- refactored DefaultConfig component + fixed edit flow - (f2d38cc) - Shubhranshu Sanjeev
+- fixed dimension form edit flow + fixed table component CellFormatter to accept move closures - (9c3a364) - Shubhranshu Sanjeev
+#### Refactoring
+- using snake case for component fxn names - (19e9aca) - Shubhranshu Sanjeev
+
+- - -
+
 ## v0.17.1 - 2024-01-12
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.14.1
