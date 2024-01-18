@@ -10,14 +10,12 @@ use crate::components::{
     pagination::pagination::Pagination, stat::stat::Stat, table::table::Table,
 };
 
-use crate::pages::ExperimentList::types::{ExperimentsResponse, ListFilters};
+use crate::types::{ExperimentsResponse, ListFilters};
 
-use super::{
+use super::utils::experiment_table_columns;
+use crate::{
+    api::{fetch_default_config, fetch_dimensions, fetch_experiments},
     types::{DefaultConfig, Dimension},
-    utils::{
-        experiment_table_columns, fetch_default_config, fetch_dimensions,
-        fetch_experiments,
-    },
 };
 use serde_json::{json, Map, Value};
 use wasm_bindgen::JsCast;
@@ -49,9 +47,10 @@ pub fn ExperimentList() -> impl IntoView {
             move || (tenant_rs.get(), filters.get()),
             |(current_tenant, filters)| async move {
                 // Perform all fetch operations concurrently
-                let experiments_future = fetch_experiments(filters, &current_tenant);
-                let dimensions_future = fetch_dimensions(&current_tenant);
-                let config_future = fetch_default_config(&current_tenant);
+                let experiments_future =
+                    fetch_experiments(filters, current_tenant.to_string());
+                let dimensions_future = fetch_dimensions(current_tenant.to_string());
+                let config_future = fetch_default_config(current_tenant.to_string());
 
                 let (experiments_result, dimensions_result, config_result) =
                     join!(experiments_future, dimensions_future, config_future);

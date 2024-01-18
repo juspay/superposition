@@ -4,9 +4,9 @@ use crate::components::default_config_form::default_config_form::DefaultConfigFo
 use crate::components::modal::modal::Modal;
 use crate::components::table::{table::Table, types::Column};
 
+use crate::api::fetch_default_config;
 use crate::components::button::button::Button;
 use crate::components::stat::stat::Stat;
-use crate::pages::ExperimentList::utils::fetch_default_config;
 use crate::utils::{close_modal, show_modal};
 use leptos::*;
 use serde_json::{json, Map, Value};
@@ -25,7 +25,7 @@ pub fn DefaultConfig() -> impl IntoView {
     let default_config_resource = create_blocking_resource(
         move || tenant_rs.get(),
         |current_tenant| async move {
-            match fetch_default_config(&current_tenant).await {
+            match fetch_default_config(current_tenant).await {
                 Ok(data) => data,
                 Err(_) => vec![],
             }

@@ -1,6 +1,6 @@
 use super::types::ExperimentCreateRequest;
 use crate::components::context_form::utils::construct_context;
-use crate::pages::ExperimentList::types::Variant;
+use crate::types::Variant;
 use crate::utils::get_host;
 use reqwest::StatusCode;
 use serde_json::json;

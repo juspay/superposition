@@ -3,9 +3,7 @@ use crate::components::button::button::Button;
 use crate::components::{
     context_form::context_form::ContextForm, override_form::override_form::OverrideForm,
 };
-use crate::pages::ExperimentList::types::{
-    DefaultConfig, Dimension, Variant, VariantType,
-};
+use crate::types::{DefaultConfig, Dimension, Variant, VariantType};
 use chrono::offset::Local;
 use leptos::*;
 use serde::{Deserialize, Serialize};
