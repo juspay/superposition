@@ -1,4 +1,4 @@
-use crate::pages::ExperimentList::types::DefaultConfig;
+use crate::types::DefaultConfig;
 use leptos::*;
 use serde_json::{json, Map, Value};
 use std::collections::HashSet;

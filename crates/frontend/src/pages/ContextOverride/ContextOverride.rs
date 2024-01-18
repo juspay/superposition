@@ -1,12 +1,12 @@
 use std::rc::Rc;
 
+use crate::api::fetch_config;
 use crate::api::{fetch_default_config, fetch_dimensions};
 use crate::components::button::button::Button;
 use crate::components::condition_pills::condition_pills::ContextPills;
 use crate::components::context_form::context_form::ContextForm;
 use crate::components::override_form::override_form::OverrideForm;
 use crate::components::table::{table::Table, types::Column};
-use crate::pages::fetch_config;
 use crate::utils::{get_host, modal_action};
 use leptos::*;
 use reqwest::StatusCode;
@@ -53,7 +53,7 @@ where
                                     Some(Err(error)) => {
                                         view! {
                                             <div class="text-red-500">
-                                                {"Failed to fetch config data: "} {error}
+                                                {"Failed to fetch config data: "} {error.to_string()}
                                             </div>
                                         }
                                     }
@@ -176,7 +176,7 @@ where
                                     Some(Err(error)) => {
                                         view! {
                                             <div class="text-red-500">
-                                                {"Failed to fetch config data: "} {error}
+                                                {"Failed to fetch config data: "} {error.to_string()}
                                             </div>
                                         }
                                     }
@@ -384,7 +384,7 @@ pub fn ContextOverride() -> impl IntoView {
                                         vec![
                                             view! {
                                                 <div class="text-red-500">
-                                                    {"Failed to fetch config data: "} {error}
+                                                    {"Failed to fetch config data: "} {error.to_string()}
                                                 </div>
                                             },
                                         ]

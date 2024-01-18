@@ -36,34 +36,35 @@ pub struct TenantMiddleware<S> {
     service: Rc<S>,
 }
 
-fn extract_tenant_from_header(headers: &HeaderMap) -> Option<String> {
+fn extract_tenant_from_header(headers: &HeaderMap) -> Option<&str> {
     headers
         .get("x-tenant")
         .map(|header_value: &HeaderValue| header_value.to_str().ok())
         .flatten()
-        .map(|header_str: &str| header_str.to_string())
 }
 
-fn extract_tenant_from_url(path: &str, match_pattern: Option<String>) -> Option<String> {
+fn extract_tenant_from_url<'a>(
+    path: &'a str,
+    match_pattern: Option<String>,
+) -> Option<&'a str> {
     match_pattern
         .map(move |pattern| {
             let pattern_segments = pattern.split("/");
             let path_segments = path.split("/").collect::<Vec<&str>>();
-            pattern_segments
-                .enumerate()
-                .find(|(_, segment)| segment == &"{tenant}")
-                .map(|(idx, _)| path_segments[idx].to_string())
+
+            std::iter::zip(path_segments, pattern_segments)
+                .find(|(_, pattern_seg)| pattern_seg == &"{tenant}")
+                .map(|(path_seg, _)| path_seg)
         })
         .flatten()
 }
 
-fn extract_tenant_from_query_params(query_str: &str) -> Option<String> {
+fn extract_tenant_from_query_params(query_str: &str) -> Option<&str> {
     query_str
         .split("&")
         .find(|segment| segment.contains("tenant="))
         .map(|tenant_query_param| tenant_query_param.split("=").nth(1))
         .flatten()
-        .map(|tenant_str| tenant_str.to_string())
 }
 
 impl<S, B> Service<ServiceRequest> for TenantMiddleware<S>
@@ -114,7 +115,9 @@ where
                     .or_else(|| extract_tenant_from_query_params(req.query_string()));
 
                 let validated_tenant: Tenant = match tenant {
-                    Some(val) if app_state.tenants.contains(&val) => Tenant(val),
+                    Some(val) if app_state.tenants.contains(val) => {
+                        Tenant(String::from(val))
+                    }
                     Some(_) => {
                         return Err(error::ErrorBadRequest("invalid x-tenant value"));
                     }

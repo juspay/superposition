@@ -1,76 +1,100 @@
-use crate::{
-    pages::ExperimentList::types::{DefaultConfig, Dimension},
-    utils::get_host,
-};
+use leptos::{server, ServerFnError};
 
-// #[derive(Debug, Serialize, Deserialize, Clone)]
-// pub struct Dimension {
-//     pub dimension: String,
-//     pub priority: i32,
-//     pub created_at: DateTime<Utc>,
-//     pub created_by: String,
-//     pub schema: Value,
-// }
+use crate::types::{Config, DefaultConfig, Dimension, ExperimentsResponse, ListFilters};
 
-// #[derive(Serialize, Deserialize, Clone, Debug)]
-// pub struct DefaultConfig {
-//     pub key: String,
-//     pub value: Value,
-//     pub created_at: DateTime<Utc>,
-//     pub created_by: String,
-//     pub schema: Value,
-// }
-
-pub async fn fetch_dimensions(tenant: String) -> Result<Vec<Dimension>, String> {
+#[server(GetDimensions, "/fxn", "GetJson")]
+pub async fn fetch_dimensions(tenant: String) -> Result<Vec<Dimension>, ServerFnError> {
     let client = reqwest::Client::new();
-    let host = get_host();
-    let url = format!("{host}/dimension");
-    match client.get(url).header("x-tenant", tenant).send().await {
-        Ok(response) => {
-            let dimensions = response.json().await.map_err(|e| e.to_string())?;
-            Ok(dimensions)
-        }
-        Err(e) => Err(e.to_string()),
-    }
+    let host = "http://localhost:8080";
+
+    let url = format!("{}/dimension", host);
+    let response: Vec<Dimension> = client
+        .get(url)
+        .header("x-tenant", &tenant)
+        .send()
+        .await
+        .map_err(|e| ServerFnError::ServerError(e.to_string()))?
+        .json()
+        .await
+        .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+
+    Ok(response)
 }
 
-pub async fn fetch_default_config(tenant: String) -> Result<Vec<DefaultConfig>, String> {
+#[server(GetDefaultConfig, "/fxn", "GetJson")]
+pub async fn fetch_default_config(
+    tenant: String,
+) -> Result<Vec<DefaultConfig>, ServerFnError> {
     let client = reqwest::Client::new();
-    let host = get_host();
-    let url = format!("{host}/default-config");
-    match client.get(url).header("x-tenant", tenant).send().await {
-        Ok(response) => {
-            let default_config = response.json().await.map_err(|e| e.to_string())?;
-            Ok(default_config)
-        }
-        Err(e) => Err(e.to_string()),
-    }
+    let host = "http://localhost:8080";
+
+    let url = format!("{}/default-config", host);
+    let response: Vec<DefaultConfig> = client
+        .get(url)
+        .header("x-tenant", tenant)
+        .send()
+        .await
+        .map_err(|e| ServerFnError::ServerError(e.to_string()))?
+        .json()
+        .await
+        .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+
+    Ok(response)
 }
 
-//pub fn dimension_resource(
-//  tenant: ReadSignal<String>,
-//) -> Resource<String, Vec<Dimension>> {
-//  create_blocking_resource(
-//    move || tenant.get(),
-//  |tenant| async {
-//    match fetch_dimensions(tenant).await {
-//      Ok(data) => data,
-//    Err(_) => vec![],
-// }
-// },
-// )
-//}
+#[server(GetExperiments, "/fxn", "GetJson")]
+pub async fn fetch_experiments(
+    filters: ListFilters,
+    tenant: String,
+) -> Result<ExperimentsResponse, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = "http://localhost:8080";
 
-//pub fn default_config_resource(
-//  tenant: ReadSignal<String>,
-//) -> Resource<String, Vec<DefaultConfig>> {
-//  create_blocking_resource(
-//    move || tenant.get(),
-//  |tenant| async {
-//    match fetch_default_config(tenant).await {
-//      Ok(data) => data,
-//    Err(_) => vec![],
-// }
-// },
-//)
-//}
+    let mut query_params = vec![];
+    if let Some(status) = filters.status {
+        let status: Vec<String> = status.iter().map(|val| val.to_string()).collect();
+        query_params.push(format!("status={}", status.join(",")));
+    }
+    if let Some(from_date) = filters.from_date {
+        query_params.push(format!("from_date={}", from_date));
+    }
+    if let Some(to_date) = filters.to_date {
+        query_params.push(format!("to_date={}", to_date));
+    }
+    if let Some(page) = filters.page {
+        query_params.push(format!("page={}", page));
+    }
+    if let Some(count) = filters.count {
+        query_params.push(format!("count={}", count));
+    }
+
+    let url = format!("{}/experiments?{}", host, query_params.join("&"));
+    let response: ExperimentsResponse = client
+        .get(url)
+        .header("x-tenant", tenant)
+        .send()
+        .await
+        .map_err(|e| ServerFnError::ServerError(e.to_string()))?
+        .json()
+        .await
+        .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+
+    Ok(response)
+}
+
+#[server(GetConfig, "/fxn", "GetJson")]
+pub async fn fetch_config(tenant: String) -> Result<Config, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = "http://localhost:8080";
+    let url = format!("{host}/config");
+    match client.get(url).header("x-tenant", tenant).send().await {
+        Ok(response) => {
+            let config: Config = response
+                .json()
+                .await
+                .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+            Ok(config)
+        }
+        Err(e) => Err(ServerFnError::ServerError(e.to_string())),
+    }
+}
