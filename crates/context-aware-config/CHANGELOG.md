@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.14.2 - 2024-01-18
+#### Bug Fixes
+- error resolving pages with internal call to server - (084d08b) - Shubhranshu Sanjeev
+
+- - -
+
 ## context-aware-config-v0.14.1 - 2024-01-12
 #### Bug Fixes
 - frontend build process - (cbdad01) - Shubhranshu Sanjeev
