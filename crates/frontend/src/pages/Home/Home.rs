@@ -4,13 +4,12 @@ use wasm_bindgen::JsCast;
 use web_sys::{HtmlInputElement, HtmlSelectElement, HtmlSpanElement, MouseEvent};
 
 use crate::{
-    api::fetch_dimensions,
+    api::{fetch_config, fetch_dimensions},
     components::{
         button::button::Button,
         condition_pills::utils::{extract_and_format, parse_conditions},
         context_form::context_form::ContextForm,
     },
-    pages::fetch_config,
     utils::get_host,
 };
 
@@ -307,7 +306,7 @@ pub fn home() -> impl IntoView {
                                 Some(Err(error)) => {
                                     view! {
                                         <div class="error">
-                                            {"Failed to fetch config data: "} {error}
+                                            {"Failed to fetch config data: "} {error.to_string()}
                                         </div>
                                     }
                                 }
@@ -448,7 +447,7 @@ pub fn home() -> impl IntoView {
                                 vec![
                                     view! {
                                         <div class="error">
-                                            {"Failed to fetch config data: "} {error}
+                                            {"Failed to fetch config data: "} {error.to_string()}
                                         </div>
                                     },
                                 ]

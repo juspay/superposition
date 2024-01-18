@@ -1,4 +1,4 @@
-use crate::pages::ExperimentList::types::Dimension;
+use crate::types::Dimension;
 use leptos::*;
 use std::cmp;
 use std::collections::HashSet;

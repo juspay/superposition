@@ -1,4 +1,4 @@
-use crate::pages::ExperimentList::types::Variant;
+use crate::types::Variant;
 use serde::Serialize;
 use serde_json::Value;
 
