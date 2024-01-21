@@ -10,6 +10,7 @@ pub fn context_form<NF>(
     dimensions: Vec<Dimension>,
     is_standalone: bool,
     context: Vec<(String, String, String)>,
+    #[prop(default = false)] disabled: bool,
 ) -> impl IntoView
 where
     NF: Fn(Vec<(String, String, String)>) + 'static,
@@ -35,6 +36,12 @@ where
         handle_change(f_context.clone());
     });
 
+    let add_dropdown_class = if disabled {
+        "dropdown dropdown-left disable-click"
+    } else {
+        "dropdown dropdown-left"
+    };
+
     view! {
         <div>
             <div class="form-control w-full ">
@@ -43,7 +50,7 @@ where
                         <span class="label-text font-semibold text-base">Context</span>
                     </label>
                     <div>
-                        <div class="dropdown dropdown-left">
+                        <div class=add_dropdown_class>
                             <label tabindex="0" class="btn btn-outline btn-sm text-xs m-1">
                                 <i class="ri-add-line"></i>
                                 Add Context
@@ -126,7 +133,8 @@ where
                                             <span class="label-text">Operator</span>
                                         </label>
                                         <select
-                                            bind:value=operator
+                                            disabled=disabled
+                                            value=operator.clone()
                                             on:input=move |event| {
                                                 let input_value = event_target_value(&event);
                                                 set_context
@@ -141,9 +149,15 @@ where
                                             <option disabled selected>
                                                 Pick one
                                             </option>
-                                            <option value="==">"IS"</option>
-                                            <option value="IN">"HAS"</option>
-                                            <option value="<=">"BETWEEN (inclusive)"</option>
+                                            <option value="==" selected=operator.clone() == "==">
+                                                "IS"
+                                            </option>
+                                            <option value="IN" selected=operator.clone() == "IN">
+                                                "HAS"
+                                            </option>
+                                            <option value="<=" selected=operator.clone() == "<=">
+                                                "BETWEEN (inclusive)"
+                                            </option>
                                         </select>
 
                                     </div>
@@ -155,7 +169,8 @@ where
                                         </label>
                                         <div class="flex gap-x-6 items-center">
                                             <input
-                                                bind:value=value
+                                                disabled=disabled
+                                                value=value
                                                 on:input=move |event| {
                                                     let input_value = event_target_value(&event);
                                                     set_context
@@ -171,6 +186,7 @@ where
                                             />
                                             <button
                                                 class="btn btn-ghost btn-circle btn-sm"
+                                                disabled=disabled
                                                 on:click=move |_| {
                                                     set_context
                                                         .update(|value| {
@@ -209,7 +225,7 @@ where
             </div>
             <Show when=move || is_standalone>
                 <div class="flex justify-end">
-                    <button class="btn" on:click:undelegated=on_click>
+                    <button class="btn" on:click:undelegated=on_click disabled=disabled>
                         Save
                     </button>
                 </div>

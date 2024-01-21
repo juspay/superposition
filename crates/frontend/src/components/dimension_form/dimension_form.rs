@@ -135,8 +135,9 @@ where
 
                 <option
                     value="number"
-                    selected=move || { logging::log!("{:?}", dimension_type.get()); dimension_type.get() == "number".to_string() }
+                    selected=move || { dimension_type.get() == "number".to_string() }
                 >
+
                     "Number"
                 </option>
                 <option

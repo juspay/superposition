@@ -110,6 +110,7 @@ where
                         set_config_key.set(value);
                     }
                 />
+
             </div>
 
             <select
@@ -141,13 +142,19 @@ where
                     Set Schema
                 </option>
 
-                <option value="number" selected=move || { config_type.get() == "number".to_string() }>
+                <option
+                    value="number"
+                    selected=move || { config_type.get() == "number".to_string() }
+                >
                     "Number"
                 </option>
                 <option value="enum" selected=move || { config_type.get() == "enum".to_string() }>
                     "String (Enum)"
                 </option>
-                <option value="pattern" selected=move || { config_type.get() == "pattern".to_string() }>
+                <option
+                    value="pattern"
+                    selected=move || { config_type.get() == "pattern".to_string() }
+                >
                     "String (regex)"
                 </option>
                 <option value="other" selected=move || { config_type.get() == "other".to_string() }>
@@ -168,12 +175,11 @@ where
                                 class="input input-bordered w-full bg-white text-gray-700 shadow-md"
                                 value=config_value.get()
                                 on:change=move |ev| {
-                                    logging::log!(
-                                        "{:?}", event_target_value(&ev)
-                                    );
+                                    logging::log!("{:?}", event_target_value(& ev));
                                     set_config_value.set(event_target_value(&ev));
                                 }
                             />
+
                         </div>
                     </Show>
 
@@ -188,12 +194,11 @@ where
                                 class="input input-bordered w-full bg-white text-gray-700 shadow-md"
                                 value=config_value.get()
                                 on:change=move |ev| {
-                                    logging::log!(
-                                        "{:?}", event_target_value(&ev)
-                                    );
+                                    logging::log!("{:?}", event_target_value(& ev));
                                     set_config_value.set(event_target_value(&ev));
                                 }
                             />
+
                         </div>
                         <div class="form-control">
                             <label class="label font-mono">
@@ -210,6 +215,7 @@ where
                                     set_config_pattern.set(value);
                                 }
                             >
+
                                 {config_pattern.get()}
                             </textarea>
 

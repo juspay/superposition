@@ -2,31 +2,46 @@ use crate::utils::get_host;
 use reqwest::StatusCode;
 use serde_json::{json, Map, Value};
 
-pub fn construct_context(conditions: Vec<(String, String, String)>) -> Value {
-    let context = if conditions.len() == 1 {
-        // Single condition
-        let (variable, operator, value) = &conditions[0];
-        json!({
-            operator: [
-                { "var": variable },
-                value
-            ]
-        })
-    } else {
-        // Multiple conditions inside an "and"
-        let and_conditions: Vec<Value> = conditions
-            .into_iter()
-            .map(|(variable, operator, value)| {
-                json!({
-                    operator: [
-                        { "var": variable },
-                        value
-                    ]
-                })
-            })
-            .collect();
+pub fn get_condition_schema(var: &str, op: &str, val: &str) -> Value {
+    match op {
+        "<=" => {
+            let mut split_value = val.split(',');
+            let first_operand =
+                split_value.next().unwrap().trim().parse::<i64>().unwrap();
+            let second_operand =
+                split_value.next().unwrap().trim().parse::<i64>().unwrap();
 
-        json!({ "and": and_conditions })
+            json!({
+                op: [
+                    first_operand,
+                    { "var": var },
+                    second_operand
+                ]
+            })
+        }
+        _ => {
+            json!({
+                op: [
+                    {"var": var},
+                    val
+                ]
+            })
+        }
+    }
+}
+
+pub fn construct_context(conditions: Vec<(String, String, String)>) -> Value {
+    let condition_schemas = conditions
+        .iter()
+        .map(|(variable, operator, value)| {
+            get_condition_schema(variable, operator, value)
+        })
+        .collect::<Vec<Value>>();
+
+    let context = if condition_schemas.len() == 1 {
+        condition_schemas[0].clone()
+    } else {
+        json!({ "and": condition_schemas })
     };
 
     context
