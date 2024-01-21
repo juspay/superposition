@@ -1,4 +1,4 @@
-use super::utils::create_experiment;
+use super::utils::{create_experiment, update_experiment};
 use crate::components::button::button::Button;
 use crate::components::{
     context_form::context_form::ContextForm, override_form::override_form::OverrideForm,
@@ -6,7 +6,6 @@ use crate::components::{
 use crate::types::{DefaultConfig, Dimension, Variant, VariantType};
 use chrono::offset::Local;
 use leptos::*;
-use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use web_sys::MouseEvent;
 
@@ -35,14 +34,10 @@ fn default_variants_for_form() -> Vec<(String, Variant)> {
     ]
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-struct CombinedResource {
-    dimensions: Vec<Dimension>,
-    default_config: Vec<DefaultConfig>,
-}
-
 #[component]
 pub fn experiment_form<NF>(
+    #[prop(default = false)] edit: bool,
+    #[prop(default = String::new())] id: String,
     name: String,
     context: Vec<(String, String, String)>,
     variants: Vec<Variant>,
@@ -94,6 +89,7 @@ where
             .map(|(_, variant)| variant)
             .collect::<Vec<Variant>>();
         let tenant = tenant_rs.get();
+        let experiment_id = id.clone();
         let handle_submit_clone = handle_submit.clone();
 
         logging::log!("{:?}", f_experiment_name);
@@ -101,9 +97,12 @@ where
 
         spawn_local({
             async move {
-                let result =
+                let result = if edit {
+                    update_experiment(experiment_id, f_variants, tenant).await
+                } else {
                     create_experiment(f_context, f_variants, f_experiment_name, tenant)
-                        .await;
+                        .await
+                };
 
                 match result {
                     Ok(_) => {
@@ -125,6 +124,7 @@ where
                     <span class="label-text">Name</span>
                 </label>
                 <input
+                    disabled=edit
                     value=move || experiment_name.get()
                     on:input=move |ev| set_experiment_name.set(event_target_value(&ev))
                     type="text"
@@ -141,6 +141,7 @@ where
                     context=context
                     handle_change=handle_context_form_change
                     is_standalone=false
+                    disabled=edit
                 />
             </div>
 
@@ -152,6 +153,7 @@ where
 
                     <button
                         class="btn btn-outline btn-sm text-xs m-1"
+                        disabled=edit
                         on:click:undelegated=move |_| {
                             leptos::logging::log!("add new variant");
                             set_variants
@@ -201,6 +203,7 @@ where
                                         <input
                                             name="variantId"
                                             value=move || variant.id.to_string()
+                                            disabled=edit
                                             type="text"
                                             placeholder="Type a unique name here"
                                             class="input input-bordered w-full max-w-xs"
@@ -213,6 +216,7 @@ where
                                         <select
                                             name="expType[]"
                                             value=variant.variant_type.to_string()
+                                            disabled=edit
                                             on:change=move |ev| {
                                                 let mut new_variant = variant_clone.clone();
                                                 new_variant

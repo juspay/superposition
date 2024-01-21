@@ -98,6 +98,32 @@ pub enum VariantType {
     EXPERIMENTAL,
 }
 
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub struct Variant {
+    pub id: String,
+    pub variant_type: VariantType,
+    pub context_id: Option<String>,
+    pub override_id: Option<String>,
+    pub overrides: Map<String, Value>,
+}
+
+pub type Variants = Vec<Variant>;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Experiment {
+    pub(crate) variants: Variants,
+    pub(crate) name: String,
+    pub(crate) id: String,
+    pub(crate) traffic_percentage: u8,
+    pub(crate) context: Value,
+    pub(crate) status: ExperimentStatusType,
+    pub(crate) override_keys: Value,
+    pub(crate) created_by: String,
+    pub(crate) created_at: DateTime<Utc>,
+    pub(crate) last_modified: DateTime<Utc>,
+    pub(crate) chosen_variant: Option<String>,
+}
+
 /*************************** Context-Override types ********************************/
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -116,15 +142,6 @@ pub struct DefaultConfig {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: Value,
-}
-
-#[derive(Deserialize, Serialize, Clone, Debug)]
-pub struct Variant {
-    pub id: String,
-    pub variant_type: VariantType,
-    pub context_id: Option<String>,
-    pub override_id: Option<String>,
-    pub overrides: Map<String, Value>,
 }
 
 #[derive(Deserialize, Serialize, Clone)]

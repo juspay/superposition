@@ -79,3 +79,78 @@ pub fn parse_string_to_json_value_vec(input: &str) -> Vec<Value> {
         }
     }
 }
+
+pub fn get_variable_name_and_value(
+    operands: &Vec<Value>,
+) -> Result<(&str, String), String> {
+    let (obj_pos, variable_obj) = operands
+        .iter()
+        .enumerate()
+        .find(|(_, operand)| {
+            operand.is_object()
+                && operand
+                    .as_object()
+                    .expect("unable to parse operands as object")
+                    .get("var")
+                    .is_some()
+        })
+        .ok_or(" failed to get variable name from operands list".to_string())?;
+
+    let variable_name = variable_obj
+        .as_object()
+        .map_or(None, |obj| obj.get("var"))
+        .map_or(None, |value| value.as_str())
+        .ok_or(" failed to get variable name from operands list".to_string())?;
+
+    let variable_value = operands
+        .into_iter()
+        .enumerate()
+        .filter(|(idx, _)| *idx != obj_pos)
+        .map(|(_, val)| val.to_string().replace("\"", ""))
+        .collect::<Vec<String>>()
+        .join(",");
+
+    Ok((variable_name, variable_value))
+}
+
+pub fn extract_conditions(
+    context_json: &Value,
+) -> Result<Vec<(String, String, String)>, String> {
+    // Assuming max 2-level nesting in context json logic
+    let context = context_json.as_object().ok_or(
+        "An error occurred while extracting dimensions: context not a valid JSON object"
+            .to_string(),
+    )?;
+
+    let conditions = match context.get("and") {
+        Some(conditions_json) => conditions_json
+            .as_array()
+            .ok_or("An error occurred while extracting dimensions: failed parsing conditions as an array".to_string())?
+            .clone(),
+        None => vec![context_json.clone()],
+    };
+
+    let mut condition_tuples = Vec::new();
+    for condition in &conditions {
+        let condition_obj = condition
+            .as_object()
+            .ok_or("failed to parse condition as an object".to_string())?;
+        let operators = condition_obj.keys();
+
+        for operator in operators {
+            let operands = condition_obj[operator]
+                .as_array()
+                .ok_or("failed to parse operands as an arrays".to_string())?;
+
+            let (variable_name, variable_value) = get_variable_name_and_value(operands)?;
+
+            condition_tuples.push((
+                String::from(variable_name),
+                operator.to_owned(),
+                variable_value.to_owned(),
+            ));
+        }
+    }
+
+    Ok(condition_tuples)
+}

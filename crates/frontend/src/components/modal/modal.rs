@@ -11,10 +11,10 @@ pub fn modal<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let classnames = format!("modal modal-middle {classnames}");
+    let classnames = format!("modal-box {classnames}");
     view! {
-        <dialog id=id class=classnames>
-            <div class="modal-box">
+        <dialog id=id class="modal modal-middle">
+            <div class=classnames>
                 <button
                     class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
                     on:click=move |_| { handle_close() }
