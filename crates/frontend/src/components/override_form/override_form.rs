@@ -15,8 +15,13 @@ where
     NF: Fn(Map<String, Value>) + 'static,
 {
     let has_default_config = default_config.len() != 0;
+    let (used_config_keys, set_used_config_keys) = create_signal(
+        overrides
+            .keys()
+            .map(String::from)
+            .collect::<HashSet<String>>(),
+    );
     let (overrides, set_overrides) = create_signal(overrides.clone());
-    let (used_config_keys, set_used_config_keys) = create_signal(HashSet::new());
 
     let on_submit = move |event: MouseEvent| {
         event.prevent_default();
@@ -99,6 +104,7 @@ where
                     children=move |(config_key, config_value)| {
                         let config_key_label = config_key.to_string();
                         let config_key_value = config_key.to_string();
+                        let config_value = config_value.to_string().replace("\"", "");
                         view! {
                             <div>
                                 <div class="flex items-center gap-4">
@@ -113,7 +119,7 @@ where
                                             placeholder="Enter override here"
                                             name="override"
                                             class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                                            bind:value=config_value.to_string()
+                                            value=config_value
                                             on:input=move |event| {
                                                 let input_value = event_target_value(&event);
                                                 set_overrides

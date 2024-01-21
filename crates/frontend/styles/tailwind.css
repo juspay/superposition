@@ -6,6 +6,12 @@
   height: calc(100vh - 370px);
 }
 
+.disable-click {
+    pointer-events: none;
+    cursor: not-allowed;
+    filter: opacity(50%);
+}
+
 .menu li > :not(ul):not(.menu-title):not(details).active {
     @apply bg-white;
     @apply text-black;

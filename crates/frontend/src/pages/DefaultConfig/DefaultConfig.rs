@@ -161,61 +161,59 @@ pub fn DefaultConfig() -> impl IntoView {
                         }
                     }
                 }}
+
             </Modal>
             <Suspense fallback=move || {
                 view! { <p>"Loading (Suspense Fallback)..."</p> }
             }>
-                {
-                    move || {
-                        let default_config = default_config_resource.get().unwrap_or(vec![]);
-                        let total_default_config_keys = default_config.len().to_string();
-                        let table_rows = default_config
-                            .into_iter()
-                            .map(|config| {
-                                let mut ele_map = json!(config).as_object().unwrap().to_owned();
-                                ele_map
-                                    .insert(
-                                        "created_at".to_string(),
-                                        json!(config.created_at.format("%v").to_string()),
-                                    );
-                                ele_map
-                            })
-                            .collect::<Vec<Map<String, Value>>>();
-                        view! {
-                            <div class="pb-4">
-                                <Stat
-                                    heading="Config Keys"
-                                    icon="ri-tools-line"
-                                    number=total_default_config_keys
+
+                {move || {
+                    let default_config = default_config_resource.get().unwrap_or(vec![]);
+                    let total_default_config_keys = default_config.len().to_string();
+                    let table_rows = default_config
+                        .into_iter()
+                        .map(|config| {
+                            let mut ele_map = json!(config).as_object().unwrap().to_owned();
+                            ele_map
+                                .insert(
+                                    "created_at".to_string(),
+                                    json!(config.created_at.format("%v").to_string()),
+                                );
+                            ele_map
+                        })
+                        .collect::<Vec<Map<String, Value>>>();
+                    view! {
+                        <div class="pb-4">
+                            <Stat
+                                heading="Config Keys"
+                                icon="ri-tools-line"
+                                number=total_default_config_keys
+                            />
+                        </div>
+                        <div class="card rounded-lg w-full bg-base-100 shadow">
+                            <div class="card-body">
+                                <div class="flex justify-between">
+                                    <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
+                                        "Default Config"
+                                    </h2>
+                                    <Button
+                                        text="Create Key".to_string()
+                                        on_click=move |_| {
+                                            show_modal("default_config_modal_form")
+                                        }
+                                    />
+
+                                </div>
+                                <Table
+                                    table_style="font-mono".to_string()
+                                    rows=table_rows
+                                    key_column="id".to_string()
+                                    columns=table_columns.get()
                                 />
                             </div>
-                            <div class="card rounded-lg w-full bg-base-100 shadow">
-                                <div class="card-body">
-                                    <div class="flex justify-between">
-                                        <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
-                                            "Default Config"
-                                        </h2>
-                                        <Button
-                                            text="Create Key".to_string()
-                                            on_click={
-                                                move |_| {
-                                                    show_modal("default_config_modal_form")
-                                                }
-                                            }
-                                        />
-
-                                    </div>
-                                    <Table
-                                        table_style="font-mono".to_string()
-                                        rows=table_rows
-                                        key_column="id".to_string()
-                                        columns=table_columns.get()
-                                    />
-                                </div>
-                            </div>
-                        }
+                        </div>
                     }
-                }
+                }}
 
             </Suspense>
         </div>

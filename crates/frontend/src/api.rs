@@ -1,6 +1,8 @@
 use leptos::{server, ServerFnError};
 
-use crate::types::{Config, DefaultConfig, Dimension, ExperimentsResponse, ListFilters};
+use crate::types::{
+    Config, DefaultConfig, Dimension, Experiment, ExperimentsResponse, ListFilters,
+};
 
 #[server(GetDimensions, "/fxn", "GetJson")]
 pub async fn fetch_dimensions(tenant: String) -> Result<Vec<Dimension>, ServerFnError> {
@@ -94,6 +96,27 @@ pub async fn fetch_config(tenant: String) -> Result<Config, ServerFnError> {
                 .await
                 .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
             Ok(config)
+        }
+        Err(e) => Err(ServerFnError::ServerError(e.to_string())),
+    }
+}
+
+#[server(GetExperiment, "/fxn", "GetJson")]
+pub async fn fetch_experiment(
+    exp_id: String,
+    tenant: String,
+) -> Result<Experiment, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = "http://localhost:8080";
+    let url = format!("{}/experiments/{}", host, exp_id);
+
+    match client.get(url).header("x-tenant", tenant).send().await {
+        Ok(experiment) => {
+            let experiment = experiment
+                .json()
+                .await
+                .map_err(|err| ServerFnError::ServerError(err.to_string()))?;
+            Ok(experiment)
         }
         Err(e) => Err(ServerFnError::ServerError(e.to_string())),
     }
