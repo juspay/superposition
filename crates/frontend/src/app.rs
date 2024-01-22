@@ -36,18 +36,11 @@ async fn load_envs() -> Envs {
         .map(|tenant| tenant.to_string())
         .collect::<Vec<String>>();
 
-    logging::log!("{:?}", tenants);
-
-    let host = match app_env {
-        AppEnv::PROD => {
-            "https://context-aware-config.sso.internal.svc.k8s.apoc.mum.juspay.net"
-        }
-        AppEnv::SANDBOX => "https://context-aware.internal.staging.mum.juspay.net",
-        AppEnv::DEV => "http://localhost:8080",
-    };
+    let host = get_from_env_unsafe::<String>("API_HOSTNAME")
+        .unwrap_or(String::from("http://localhost:8080"));
 
     Envs {
-        host: host.to_string(),
+        host,
         app_env,
         tenants,
     }
