@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.17.3 - 2024-01-22
+### Package updates
+- service-utils bumped to service-utils-v0.10.2
+### Global changes
+#### Bug Fixes
+- fixed host resolve issue for internal calls in SSR. - (3cc9d6e) - Shubhranshu Sanjeev
+
+- - -
+
 ## v0.17.2 - 2024-01-18
 ### Package updates
 - service-utils bumped to service-utils-v0.10.1

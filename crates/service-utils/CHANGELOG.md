@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service-utils-v0.10.2 - 2024-01-22
+#### Bug Fixes
+- fixed host resolve issue for internal calls in SSR. - (3cc9d6e) - Shubhranshu Sanjeev
+
+- - -
+
 ## service-utils-v0.10.1 - 2024-01-18
 #### Bug Fixes
 - error resolving pages with internal call to server - (084d08b) - Shubhranshu Sanjeev
