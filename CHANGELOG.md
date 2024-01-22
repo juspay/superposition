@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.18.0 - 2024-01-22
+### Packages
+- experimentation-platform locked to experimentation-platform-v0.9.1
+- cac_client locked to cac_client-v0.5.0
+- external locked to external-v0.3.0
+- service-utils locked to service-utils-v0.10.2
+- superposition_client locked to superposition_client-v0.4.0
+- context-aware-config locked to context-aware-config-v0.14.2
+### Global changes
+#### Bug Fixes
+- getting api hostname from env for frontend - (837899d) - Shubhranshu Sanjeev
+#### Features
+- added between in frontend - (0eb60e5) - Akhilesh Bhadauriya
+
+- - -
+
 ## v0.17.4 - 2024-01-22
 ### Package updates
 - experimentation-platform bumped to experimentation-platform-v0.9.1
