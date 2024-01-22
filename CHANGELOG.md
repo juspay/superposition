@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.17.4 - 2024-01-22
+### Package updates
+- experimentation-platform bumped to experimentation-platform-v0.9.1
+### Global changes
+
+- - -
+
 ## v0.17.3 - 2024-01-22
 ### Package updates
 - service-utils bumped to service-utils-v0.10.2
