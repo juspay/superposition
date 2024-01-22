@@ -2,7 +2,7 @@ use super::types::{
     ExperimentCreateRequest, ExperimentUpdateRequest, VariantUpdateRequest,
 };
 use crate::components::context_form::utils::construct_context;
-use crate::types::Variant;
+use crate::types::{Dimension, Variant};
 use crate::utils::get_host;
 use reqwest::StatusCode;
 use serde_json::json;
@@ -12,11 +12,12 @@ pub async fn create_experiment(
     variants: Vec<Variant>,
     name: String,
     tenant: String,
+    dimensions: Vec<Dimension>,
 ) -> Result<String, String> {
     let payload = ExperimentCreateRequest {
         name,
         variants,
-        context: construct_context(conditions),
+        context: construct_context(conditions, dimensions),
     };
 
     let client = reqwest::Client::new();

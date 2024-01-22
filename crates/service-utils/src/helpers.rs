@@ -1,4 +1,4 @@
-use actix_web::{error::ErrorInternalServerError, Error};
+use actix_web::{error::ErrorInternalServerError, http::StatusCode, Error};
 use log::info;
 use serde::de::{self, IntoDeserializer};
 use std::{
@@ -6,6 +6,8 @@ use std::{
     fmt::{self, Display},
     str::FromStr,
 };
+
+use super::errors::types::{Error as err, ErrorResponse};
 
 //WARN Do NOT use this fxn inside api requests, instead add the required
 //env to AppState and get value from there. As this panics, it should
@@ -118,4 +120,16 @@ pub fn get_pod_info() -> (String, String) {
         tokens.next().unwrap().to_owned(),
     );
     (pod_id, deployment_id)
+}
+
+pub fn remove_error_abstraction(e: reqwest::Error) -> err {
+    match e.status() {
+        Some(StatusCode::BAD_REQUEST) => err::BadRequest(ErrorResponse {
+            message: e.to_string(),
+            possible_fix:
+                "Please try again with correct value. Schema type / Validation is failing"
+                    .to_string(),
+        }),
+        _ => err::InternalServerErr(e.to_string()),
+    }
 }

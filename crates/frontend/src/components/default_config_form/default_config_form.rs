@@ -207,7 +207,9 @@ where
 
             {move || {
                 view! {
-                    <Show when=move || ((config_type.get() == "number") || (config_type.get() == "decimal"))>
+                    <Show when=move || {
+                        (config_type.get() == "number") || (config_type.get() == "decimal")
+                    }>
                         <div class="form-control">
                             <label class="label font-mono">
                                 <span class="label-text text-gray-700 font-mono">Value</span>
@@ -226,7 +228,10 @@ where
                         </div>
                     </Show>
 
-                    <Show when=move || (show_labels.get() && (config_type.get() != "number") && (config_type.get() != "decimal") )>
+                    <Show when=move || {
+                        show_labels.get() && (config_type.get() != "number")
+                            && (config_type.get() != "decimal")
+                    }>
                         <div class="form-control">
                             <label class="label font-mono">
                                 <span class="label-text text-gray-700 font-mono">Value</span>
@@ -241,29 +246,30 @@ where
                                     set_config_value.set(event_target_value(&ev));
                                 }
                             />
-                        </div>
-                    <Show when= move || (config_type.get() != "boolean")>
-                        <div class="form-control">
-                            <label class="label font-mono">
-                                <span class="label-text text-gray-700 font-mono">
-                                    {config_type.get()}
-                                </span>
-                            </label>
-                            <textarea
-                                type="text"
-                                class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                                on:change=move |ev| {
-                                    let value = event_target_value(&ev);
-                                    logging::log!("{:?}", value);
-                                    set_config_pattern.set(value);
-                                }
-                            >
-
-                                {config_pattern.get()}
-                            </textarea>
 
                         </div>
-                    </Show>
+                        <Show when=move || (config_type.get() != "boolean")>
+                            <div class="form-control">
+                                <label class="label font-mono">
+                                    <span class="label-text text-gray-700 font-mono">
+                                        {config_type.get()}
+                                    </span>
+                                </label>
+                                <textarea
+                                    type="text"
+                                    class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                                    on:change=move |ev| {
+                                        let value = event_target_value(&ev);
+                                        logging::log!("{:?}", value);
+                                        set_config_pattern.set(value);
+                                    }
+                                >
+
+                                    {config_pattern.get()}
+                                </textarea>
+
+                            </div>
+                        </Show>
                     </Show>
                 }
             }}

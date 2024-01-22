@@ -76,6 +76,7 @@ where
         handle_change
     };
 
+    let dimension_on_submit = dimensions.clone();
     let on_submit = move |event: MouseEvent| {
         event.prevent_default();
         logging::log!("Submitting experiment form");
@@ -91,6 +92,7 @@ where
         let tenant = tenant_rs.get();
         let experiment_id = id.clone();
         let handle_submit_clone = handle_submit.clone();
+        let dimensions = dimension_on_submit.clone();
 
         logging::log!("{:?}", f_experiment_name);
         logging::log!("{:?}", f_context);
@@ -100,8 +102,14 @@ where
                 let result = if edit {
                     update_experiment(experiment_id, f_variants, tenant).await
                 } else {
-                    create_experiment(f_context, f_variants, f_experiment_name, tenant)
-                        .await
+                    create_experiment(
+                        f_context,
+                        f_variants,
+                        f_experiment_name,
+                        tenant,
+                        dimensions.clone(),
+                    )
+                    .await
                 };
 
                 match result {
@@ -137,7 +145,7 @@ where
 
             <div class="my-4">
                 <ContextForm
-                    dimensions=dimensions
+                    dimensions={dimensions.clone()}
                     context=context
                     handle_change=handle_context_form_change
                     is_standalone=false
