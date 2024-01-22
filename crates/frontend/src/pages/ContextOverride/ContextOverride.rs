@@ -5,26 +5,23 @@ use crate::api::{fetch_default_config, fetch_dimensions};
 use crate::components::button::button::Button;
 use crate::components::condition_pills::condition_pills::ContextPills;
 use crate::components::context_form::context_form::ContextForm;
+use crate::components::context_form::utils::create_context;
 use crate::components::override_form::override_form::OverrideForm;
 use crate::components::table::{table::Table, types::Column};
-use crate::utils::{get_host, modal_action};
+use crate::types::Dimension;
+use crate::utils::modal_action;
 use leptos::*;
-use reqwest::StatusCode;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use web_sys::MouseEvent;
 
 #[component]
-fn ContextModalForm<NF>(handle_change: NF) -> impl IntoView
+fn ContextModalForm<NF>(
+    handle_change: NF,
+    dimensions: Resource<String, Result<Vec<Dimension>, ServerFnError>>,
+) -> impl IntoView
 where
     NF: Fn(Vec<(String, String, String)>) + 'static + Clone,
 {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-
-    let dimensions = create_blocking_resource(
-        move || tenant_rs.get(),
-        move |current_tenant| fetch_dimensions(current_tenant.clone()),
-    );
-
     view! {
         <div>
             <Suspense fallback=move || {
@@ -67,86 +64,6 @@ where
 
             </Suspense>
         </div>
-    }
-}
-
-pub fn construct_request_payload(
-    overrides: Map<String, Value>,
-    conditions: Vec<(String, String, String)>,
-) -> Value {
-    // Construct the override section
-    let override_section: Map<String, Value> = overrides;
-    let between_operators = |val: &str, variable: &str| {
-        let split_value: Vec<&str> = val.split(',').collect();
-        json!({
-            "<=": [
-                split_value[0].trim(),
-                { "var": variable },
-                split_value[1].trim()
-            ]
-        })
-    };
-
-    let other_operators = |op: &str, val: &str, variable: &str| {
-        json!({
-            op: [
-                { "var": variable },
-                val
-            ]
-        })
-    };
-
-    let context_section = if conditions.len() == 1 {
-        let (variable, operator, value) = &conditions[0];
-        if operator == "<=" {
-            between_operators(value, variable)
-        } else {
-            other_operators(operator, value, variable)
-        }
-    } else {
-        let and_conditions: Vec<Value> = conditions
-            .iter() // Use iter() instead of into_iter() to avoid consuming conditions
-            .map(|(variable, operator, value)| {
-                if operator == "<=" {
-                    between_operators(value, variable)
-                } else {
-                    other_operators(operator, value, variable)
-                }
-            })
-            .collect();
-
-        json!({ "and": and_conditions })
-    };
-
-    // Construct the entire request payload
-    let request_payload = json!({
-        "override": override_section,
-        "context": context_section
-    });
-
-    request_payload
-}
-
-pub async fn create_context(
-    tenant: String,
-    overrides: Map<String, Value>,
-    conditions: Vec<(String, String, String)>,
-) -> Result<String, String> {
-    let client = reqwest::Client::new();
-    let host = get_host();
-    let url = format!("{host}/context");
-    let request_payload = construct_request_payload(overrides, conditions);
-    let response = client
-        .put(url)
-        .header("x-tenant", tenant)
-        .json(&request_payload)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
-    match response.status() {
-        StatusCode::OK => response.text().await.map_err(|e| e.to_string()),
-        StatusCode::BAD_REQUEST => Err("Schema Validation Failed".to_string()),
-        _ => Err("Internal Server Error".to_string()),
     }
 }
 
@@ -221,6 +138,11 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
         set_overrides.set(updated_overrides);
     };
 
+    let dimensions = create_blocking_resource(
+        move || tenant_rs.get(),
+        move |current_tenant| fetch_dimensions(current_tenant.clone()),
+    );
+
     let (error_message, set_error_message) = create_signal("".to_string());
 
     let on_submit = {
@@ -238,6 +160,7 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                         current_tenant,
                         overrides.get(),
                         context_condition.get(),
+                        dimensions.get().unwrap().expect("resource not loaded"),
                     )
                     .await;
 
@@ -270,7 +193,10 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
                 </form>
                 <form class="form-control w-full mt-8 bg-white text-gray-700 font-mono">
                     <div>
-                        <ContextModalForm handle_change=handle_context_change/>
+                        <ContextModalForm
+                            handle_change=handle_context_change
+                            dimensions=dimensions
+                        />
                     </div>
                     <div class="mt-7">
                         <OverrideModalForm handle_change=handle_overrides_change/>
