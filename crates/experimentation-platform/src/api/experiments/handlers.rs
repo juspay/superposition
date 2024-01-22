@@ -12,8 +12,12 @@ use diesel::{
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 
+use service_utils::errors::types::{Error, ServerError};
+
+use reqwest::{Response, StatusCode};
 use service_utils::{
     errors::types::{Error as err, ErrorResponse},
+    helpers::remove_error_abstraction,
     service::types::{AppState, DbConnection, Tenant},
     types as app,
 };
@@ -48,6 +52,60 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(get_experiment_handler)
         .service(ramp)
         .service(update_overrides)
+}
+
+async fn process_http_response(
+    response: Result<Response, reqwest::Error>,
+) -> Result<Option<Vec<ContextPutResp>>, Error> {
+    match response {
+        Ok(res) if res.status().is_success() => {
+            match res.json::<Vec<ContextBulkResponse>>().await {
+                Ok(bulk_responses) => {
+                    let contexts =
+                        bulk_responses
+                            .into_iter()
+                            .fold(Vec::new(), |mut acc, item| {
+                                if let ContextBulkResponse::PUT(context) = item {
+                                    acc.push(context);
+                                } else {
+                                    log::error!("Unexpected response item: {:?}", item);
+                                }
+                                acc
+                            });
+                    Ok(Some(contexts))
+                }
+                Err(e) => {
+                    log::error!("Failed to parse JSON response: {}", e);
+                    Err(Error::InternalServerErr(e.to_string()))
+                }
+            }
+        }
+        Ok(res) => {
+            let error_response = ErrorResponse {
+                message: format!("HTTP error with status: {}", res.status().as_u16()),
+                possible_fix: String::from("Please check the request and try again."),
+            };
+            match res.status() {
+                StatusCode::BAD_REQUEST => Err(Error::BadRequest(error_response)),
+                StatusCode::NOT_FOUND => Err(Error::NotFound(error_response)),
+                StatusCode::INTERNAL_SERVER_ERROR => Err(Error::InternalServerErr(
+                    "Internal server error occurred".to_string(),
+                )),
+                _ => Err(Error::Generic(ServerError {
+                    message: "Unexpected HTTP response".into(),
+                    possible_fix: "Please contact support".into(),
+                    status_code: res.status(),
+                })),
+            }
+        }
+        Err(e) => {
+            log::error!("HTTP request failed: {}", e);
+            Err(Error::ConnectionFailed(
+                "External API".into(),
+                e.to_string(),
+            ))
+        }
+    }
 }
 
 #[post("")]
@@ -152,7 +210,8 @@ async fn create(
     let http_client = reqwest::Client::new();
     let url = state.cac_host.clone() + "/context/bulk-operations";
 
-    let created_contexts: Vec<ContextPutResp> = http_client
+    // Step 1: Perform the HTTP request and handle errors
+    let response = http_client
         .put(&url)
         .header(
             "Authorization",
@@ -161,33 +220,21 @@ async fn create(
         .header("x-tenant", tenant.as_str())
         .json(&cac_operations)
         .send()
-        .await
-        .map_err(|e| err::InternalServerErr(e.to_string()))?
-        .json::<Vec<ContextBulkResponse>>()
-        .await
-        .map_err(|e| err::InternalServerErr(e.to_string()))?
-        .into_iter()
-        .fold(
-            Vec::<ContextPutResp>::new(),
-            |mut put_responses, response| {
-                if let ContextBulkResponse::PUT(created_context) = response {
-                    put_responses.push(created_context);
-                } else {
-                    log::error!(
-                        "unexpected response from cac for create only request: {:?}",
-                        response
-                    );
-                }
-                put_responses
-            },
-        );
+        .await;
 
-    // updating variants with context and override ids
-    for i in 0..created_contexts.len() {
-        let created_context = &created_contexts[i];
+    let created_contexts = process_http_response(response).await?;
 
-        variants[i].context_id = Some(created_context.context_id.clone());
-        variants[i].override_id = Some(created_context.override_id.clone());
+    match created_contexts {
+        Some(contexts) => {
+            for i in 0..contexts.len() {
+                let created_context = &contexts[i];
+                variants[i].context_id = Some(created_context.context_id.clone());
+                variants[i].override_id = Some(created_context.override_id.clone());
+            }
+        }
+        None => {
+            log::info!("No contexts were created or returned.");
+        }
     }
 
     // inserting experiment in db
@@ -316,9 +363,9 @@ pub async fn conclude(
         .json(&operations)
         .send()
         .await
-        .map_err(|e| err::InternalServerErr(e.to_string()))?;
+        .map_err(|e| remove_error_abstraction(e))?;
 
-    if !response.status().is_success() {
+    if response.status().is_server_error() {
         return Err(err::InternalServerErr(format!(
             "Request to {} failed with response: {:?}",
             url, response
@@ -641,7 +688,7 @@ async fn update_overrides(
     let http_client = reqwest::Client::new();
     let url = state.cac_host.clone() + "/context/bulk-operations";
 
-    let created_contexts: Vec<ContextPutResp> = http_client
+    let response = http_client
         .put(&url)
         .header(
             "Authorization",
@@ -650,30 +697,28 @@ async fn update_overrides(
         .header("x-tenant", tenant.as_str())
         .json(&cac_operations)
         .send()
-        .await
-        .map_err(|e| err::InternalServerErr(e.to_string()))?
-        .json::<Vec<ContextBulkResponse>>()
-        .await
-        .map_err(|e| err::InternalServerErr(e.to_string()))?
-        .into_iter()
-        .fold(
-            Vec::<ContextPutResp>::new(),
-            |mut put_responses, response| {
-                if let ContextBulkResponse::PUT(created_context) = response {
-                    put_responses.push(created_context);
-                }
-                put_responses
-            },
-        );
+        .await;
+
+    let created_contexts = process_http_response(response).await;
+
+    match created_contexts {
+        Ok(Some(contexts)) => {
+            for i in 0..contexts.len() {
+                let created_context = &contexts[i];
+
+                new_variants[i].context_id = Some(created_context.context_id.clone());
+                new_variants[i].override_id = Some(created_context.override_id.clone());
+            }
+        }
+        Ok(None) => {
+            log::info!("No contexts were created or returned.");
+        }
+        Err(e) => {
+            log::error!("An error occurred: {}", e);
+        }
+    }
 
     /*************************** Updating experiment in DB **************************/
-
-    for i in 0..created_contexts.len() {
-        let created_context = &created_contexts[i];
-
-        new_variants[i].context_id = Some(created_context.context_id.clone());
-        new_variants[i].override_id = Some(created_context.override_id.clone());
-    }
 
     let new_variants_json = serde_json::to_value(new_variants).map_err(|e| {
         err::InternalServerErr(format!("failed to convert new variants to json: {e}"))

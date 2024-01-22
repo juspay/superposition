@@ -2,7 +2,21 @@ use crate::types::DefaultConfig;
 use leptos::*;
 use serde_json::{json, Map, Value};
 use std::collections::HashSet;
+use std::rc::Rc;
+use std::str::FromStr;
 use web_sys::MouseEvent;
+
+pub fn get_default_config_type(
+    default_configs: Vec<DefaultConfig>,
+    key_name: &str,
+) -> String {
+    let default_config = default_configs
+        .iter()
+        .find(|&default_conf| default_conf.key == key_name.to_string());
+    let schema = &default_config.unwrap().schema;
+    let schema_type = schema.get("type").unwrap();
+    schema_type.to_string()
+}
 
 #[component]
 pub fn override_form<NF>(
@@ -27,6 +41,24 @@ where
         event.prevent_default();
         logging::log!("{:?}", overrides.get());
     };
+
+    let default_config_rc = Rc::new(default_config.clone());
+
+    let default_config_value =
+        |name: &str, val: &str, default_configs: &Vec<DefaultConfig>| {
+            let dimension_type = get_default_config_type(default_configs.clone(), name);
+            match dimension_type.replace("\"", "").as_str() {
+                "boolean" => match bool::from_str(val) {
+                    Ok(boolean) => Value::Bool(boolean),
+                    _ => Value::String("Invalid Boolean".to_string()),
+                },
+                "number" => match val.parse::<i64>() {
+                    Ok(number) => Value::Number(number.into()),
+                    Err(_) => Value::String(val.to_string()),
+                },
+                _ => Value::String(val.to_string()),
+            }
+        };
 
     create_effect(move |_| {
         let f_override = overrides.get();
@@ -105,6 +137,7 @@ where
                         let config_key_label = config_key.to_string();
                         let config_key_value = config_key.to_string();
                         let config_value = config_value.to_string().replace("\"", "");
+                        let default_config_clone = default_config_rc.clone();
                         view! {
                             <div>
                                 <div class="flex items-center gap-4">
@@ -122,10 +155,19 @@ where
                                             value=config_value
                                             on:input=move |event| {
                                                 let input_value = event_target_value(&event);
+                                                let default_config_val = default_config_value(
+                                                    &config_key_value,
+                                                    &input_value,
+                                                    &default_config_clone.clone(),
+                                                );
+                                                logging::log!("Default Config: {}", default_config_val);
                                                 set_overrides
                                                     .update(|curr_overrides| {
                                                         curr_overrides
-                                                            .insert(config_key_value.to_string(), json!(input_value));
+                                                            .insert(
+                                                                config_key_value.to_string(),
+                                                                json!(default_config_val),
+                                                            );
                                                     });
                                             }
                                         />

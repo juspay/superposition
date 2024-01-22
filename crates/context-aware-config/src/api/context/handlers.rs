@@ -3,7 +3,7 @@ use crate::{
     api::{
         context::types::{
             ContextAction, ContextBulkResponse, DimensionCondition, MoveReq,
-            PaginationParams, PutReq, PutResp,
+            PaginationParams, PutReq, PutResp, TransactionError,
         },
         dimension::get_all_dimension_schema_map,
     },
@@ -489,7 +489,7 @@ async fn bulk_operations(
     let DbConnection(mut conn) = db_conn;
 
     let mut resp = Vec::<ContextBulkResponse>::new();
-    let result = conn.transaction::<_, diesel::result::Error, _>(|transaction_conn| {
+    let result = conn.transaction::<_, TransactionError, _>(|transaction_conn| {
         for action in reqs.into_inner().into_iter() {
             match action {
                 ContextAction::PUT(put_req) => {
@@ -502,7 +502,13 @@ async fn bulk_operations(
                         }
                         Err(e) => {
                             log::error!("Failed at insert into contexts due to {:?}", e);
-                            return Err(diesel::result::Error::RollbackTransaction);
+                            if e.to_string().contains("Bad schema") {
+                                return Err(TransactionError::BadRequest(e.to_string()));
+                            } else {
+                                return Err(TransactionError::DieselError(
+                                    diesel::result::Error::RollbackTransaction,
+                                ));
+                            }
                         }
                     }
                 }
@@ -511,7 +517,12 @@ async fn bulk_operations(
                         delete(contexts.filter(id.eq(&ctx_id))).execute(transaction_conn);
                     let email = user.clone().email;
                     match deleted_row {
-                        Ok(0) => return Err(diesel::result::Error::RollbackTransaction),
+                        // Any kind of error would rollback the tranction but explicitly returning rollback tranction allows you to rollback from any point in transaction.
+                        Ok(0) => {
+                            return Err(TransactionError::DieselError(
+                                diesel::result::Error::RollbackTransaction,
+                            ))
+                        }
                         Ok(_) => {
                             log::info!("{ctx_id} context deleted by {email}");
                             resp.push(ContextBulkResponse::DELETE(format!(
@@ -520,7 +531,9 @@ async fn bulk_operations(
                         }
                         Err(e) => {
                             log::error!("Delete context failed due to {:?}", e);
-                            return Err(diesel::result::Error::RollbackTransaction);
+                            return Err(TransactionError::DieselError(
+                                diesel::result::Error::RollbackTransaction,
+                            ));
                         }
                     };
                 }
@@ -540,7 +553,9 @@ async fn bulk_operations(
                                 "Failed at moving context reponse due to {:?}",
                                 e
                             );
-                            return Err(diesel::result::Error::RollbackTransaction);
+                            return Err(TransactionError::DieselError(
+                                diesel::result::Error::RollbackTransaction,
+                            ));
                         }
                     };
                 }
@@ -548,9 +563,9 @@ async fn bulk_operations(
         }
         Ok(()) // Commit the transaction
     });
-
     match result {
         Ok(_) => Ok(web::Json(resp)),
-        Err(_) => Err(ErrorInternalServerError("")), // If the transaction failed, return an error
+        Err(TransactionError::BadRequest(_)) => Err(ErrorBadRequest("")),
+        Err(TransactionError::DieselError(_)) => Err(ErrorInternalServerError("")),
     }
 }
