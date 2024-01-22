@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.9.1 - 2024-01-22
+#### Bug Fixes
+- added partitions for 2025 and 2026 for audit table - (45d37dd) - Shubhranshu Sanjeev
+
+- - -
+
 ## experimentation-platform-v0.9.0 - 2024-01-04
 #### Bug Fixes
 - fixed ci-test to support multi-tenant setup - (916b75d) - Shubhranshu Sanjeev
