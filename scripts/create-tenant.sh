@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+shopt -s extglob
+
 TENANT=$1
 DB_URL=$2
 
@@ -9,17 +11,28 @@ echo "DB URL ==> $DB_URL"
 CAC_SCHEMA="${TENANT}_cac"
 EXP_SCHEMA="${TENANT}_experimentation"
 
-cp -r "crates/context-aware-config/migrations/." "crates/context-aware-config/${TENANT}_migrations"
-find "crates/context-aware-config/${TENANT}_migrations" -name "up.sql" | xargs sed -i'' "s/public/${CAC_SCHEMA}/g"
+function generate_sql() {
+    service=$1
+    schema=$2
 
-cp -r "crates/experimentation-platform/migrations/." "crates/experimentation-platform/${TENANT}_migrations"
-find "crates/experimentation-platform/${TENANT}_migrations" -name "up.sql" | xargs sed -i'' "s/public/${EXP_SCHEMA}/g"
+    rm ${schema}.sql
 
-echo "Creating $CAC_SCHEMA"
-find "crates/context-aware-config/${TENANT}_migrations" -name "up.sql" -exec psql "$DB_URL" -f {} \;
+    for f in $(find "crates/$service/migrations" -name "up.sql" | grep -v "diesel_initial_setup" | sort)
+    do
+        OLDIFS=$IFS
+        IFS=
+        sql="$(cat $f | sed "s/public/${schema}/g")"
+        echo $sql >> "${schema}.sql"
+        IFS=$OLDIFS
+    done
 
-echo "Creating $EXP_SCHEMA"
-find "crates/experimentation-platform/${TENANT}_migrations" -name "up.sql" -exec psql "$DB_URL" -f {} \;
+    echo "Generated ${schema}.sql"
 
-rm -rf "crates/context-aware-config/${TENANT}_migrations"
-rm -rf "crates/experimentation-platform/${TENANT}_migrations"
+    echo "Running migrations for $schema"
+    psql "$DB_URL" -f ${schema}.sql
+}
+
+generate_sql "context-aware-config" $CAC_SCHEMA
+generate_sql "experimentation-platform" $EXP_SCHEMA
+
+shopt -u extglob
