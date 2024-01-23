@@ -1,4 +1,5 @@
 pub mod audit_response_header;
+pub mod cookie_to_header;
 
 use actix_web::{dev::RequestHead, http::header::HeaderValue};
 pub fn cors() -> actix_cors::Cors {

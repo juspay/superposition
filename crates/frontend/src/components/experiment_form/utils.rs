@@ -26,7 +26,6 @@ pub async fn create_experiment(
     let response = client
         .post(url)
         .header("x-tenant", tenant)
-        .header("Authorization", "Bearer 12345678")
         .json(&request_payload)
         .send()
         .await
