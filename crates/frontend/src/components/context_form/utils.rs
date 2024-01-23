@@ -78,7 +78,6 @@ pub async fn create_context(
     let response = client
         .put(url)
         .header("x-tenant", tenant)
-        .header("Authorization", "Bearer 12345678")
         .json(&request_payload)
         .send()
         .await

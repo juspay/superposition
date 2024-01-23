@@ -14,7 +14,6 @@ pub async fn create_default_config(
     let response = client
         .put(url)
         .header("x-tenant", tenant)
-        .header("Authorization", "Bearer 12345678")
         .json(&payload)
         .send()
         .await

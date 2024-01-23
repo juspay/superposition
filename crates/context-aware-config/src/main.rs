@@ -5,7 +5,10 @@ mod helpers;
 mod logger;
 mod middlewares;
 
-use crate::middlewares::audit_response_header::{AuditHeader, TableName};
+use crate::middlewares::{
+    audit_response_header::{AuditHeader, TableName},
+    cookie_to_header::CookieToHeader,
+};
 use actix_web::{web, web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
 use api::*;
 use dashboard_auth::{
@@ -162,6 +165,7 @@ async fn main() -> Result<()> {
                     .add(("X-DEPLOYMENT-ID", deployment_id.clone()))
                     .add(("X-POD-ID", pod_identifier.clone())),
             )
+            .wrap(CookieToHeader)
             .route(
                 "/health",
                 get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
