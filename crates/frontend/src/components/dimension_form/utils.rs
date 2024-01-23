@@ -13,7 +13,6 @@ pub async fn create_dimension(
     let response = client
         .put(url)
         .header("x-tenant", tenant)
-        .header("Authorization", "Bearer 12345678")
         .json(&payload)
         .send()
         .await
