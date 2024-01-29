@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.18.1 - 2024-01-29
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.14.3
+- experimentation-platform bumped to experimentation-platform-v0.9.2
+### Global changes
+#### Bug Fixes
+- added partitions for audit_log table in cac schema - (d771050) - Shubhranshu Sanjeev
+#### Continuous Integration
+- removing test tenant sqls after ci-test - (d1e42db) - Shubhranshu Sanjeev
+- added NY ECR registry push to Jenkins - (51995ae) - Shubhranshu Sanjeev
+
+- - -
+
 ## v0.18.0 - 2024-01-22
 ### Packages
 - experimentation-platform locked to experimentation-platform-v0.9.1

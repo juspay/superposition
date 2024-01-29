@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.9.2 - 2024-01-29
+#### Bug Fixes
+- added partitions for audit_log table in cac schema - (d771050) - Shubhranshu Sanjeev
+
+- - -
+
 ## experimentation-platform-v0.9.1 - 2024-01-22
 #### Bug Fixes
 - added partitions for 2025 and 2026 for audit table - (45d37dd) - Shubhranshu Sanjeev
