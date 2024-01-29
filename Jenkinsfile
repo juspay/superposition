@@ -11,6 +11,7 @@ pipeline {
     REGION = "ap-south-1";
     REGISTRY_HOST_SBX = getRegistryHost("701342709052", REGION);
     REGISTRY_HOST_PROD = getRegistryHost("980691203742", REGION);
+    REGISTRY_HOST_NY_PROD = getRegistryHost("147728078333", REGION);
     AUTOPILOT_HOST_INTEG = "autopilot-eks2.internal.svc.k8s.integ.mum.juspay.net";
     DOCKER_DIND_DNS = "jenkins-newton-dind.jp-internal.svc.cluster.local"
     GIT_REPO_NAME = "context-aware-config"
@@ -177,6 +178,21 @@ pipeline {
       }
     }
 
+    stage('Push Image To NY Production Registry') {
+      when {
+        expression { SKIP_CI == 'false' }
+        expression { env.NEW_SEMANTIC_VERSION != env.OLD_SEMANTIC_VERSION }
+        branch 'main'
+      }
+      steps {
+        sh '''make ci-push -e \
+                VERSION=${NEW_SEMANTIC_VERSION} \
+                REGION=${REGION} \
+                REGISTRY_HOST=${REGISTRY_HOST_NY_PROD}
+           '''
+      }
+    }
+
     stage('Create Integ Release Tracker') {
       when {
         expression { SKIP_CI == 'false' }
@@ -227,4 +243,3 @@ pipeline {
     }
   }
 }
-
