@@ -129,6 +129,8 @@ run: kill build
 ci-test: cleanup ci-setup
 	cargo test
 	npm run test
+	rm test_cac.sql
+	rm test_experimentation.sql
 
 ci-build:
 	docker buildx build --ssh default=$(SSH_AUTH_SOCK) \
