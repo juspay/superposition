@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.19.0 - 2024-01-31
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.15.0
+### Global changes
+#### Bug Fixes
+- refactored experiment page and fixed experiment edit flow - (b153486) - Shubhranshu Sanjeev
+#### Features
+- [PICAF-25817] added authentication header for frontend apis - (3f90592) - Saurav Suman
+
+- - -
+
 ## v0.18.1 - 2024-01-29
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.14.3
