@@ -1,5 +1,6 @@
 use leptos::*;
-use serde_json::{json, Value};
+use serde_json::{json, Number, Value};
+use std::str::FromStr;
 use web_sys::MouseEvent;
 
 use crate::{components::button::button::Button, utils::parse_string_to_json_value_vec};
@@ -37,7 +38,20 @@ where
         let f_value = config_value.get();
 
         let f_value = match f_type.as_str() {
-            "number" => Value::Number(f_value.parse::<i32>().unwrap().into()),
+            "number" => Value::Number(f_value.parse::<i64>().unwrap().into()),
+            "decimal" => match f64::from_str(&f_value) {
+                Ok(num) => match Number::from_f64(num) {
+                    Some(number) => Value::Number(number),
+                    None => Value::String(
+                        "Invalid decimal format or precision issue".to_string(),
+                    ),
+                },
+                Err(_) => Value::String("Invalid decimal format".to_string()),
+            },
+            "boolean" => match bool::from_str(&f_value) {
+                Ok(boolean) => Value::Bool(boolean),
+                _ => Value::String("Invalid Boolean".to_string()),
+            },
             _ => Value::String(f_value),
         };
 
@@ -46,6 +60,17 @@ where
                 json!({
                     "type": f_type.to_string(),
                 })
+            }
+            "decimal" => {
+                json!({
+                    "type": "number".to_string(),
+                })
+            }
+            "boolean" => {
+                json!({
+                    "type": "boolean".to_string(),
+                }
+                )
             }
             "enum" => {
                 json!({
@@ -121,6 +146,12 @@ where
                         "number" => {
                             set_config_type.set("number".to_string());
                         }
+                        "decimal" => {
+                            set_config_type.set("decimal".to_string());
+                        }
+                        "boolean" => {
+                            set_config_type.set("boolean".to_string());
+                        }
                         "enum" => {
                             set_config_type.set("enum".to_string());
                             set_config_pattern.set(format!("{:?}", vec!["android", "web", "ios"]));
@@ -148,6 +179,18 @@ where
                 >
                     "Number"
                 </option>
+                <option
+                    value="decimal"
+                    selected=move || { config_type.get() == "decimal".to_string() }
+                >
+                    "Decimal"
+                </option>
+                <option
+                    value="boolean"
+                    selected=move || { config_type.get() == "boolean".to_string() }
+                >
+                    "Boolean"
+                </option>
                 <option value="enum" selected=move || { config_type.get() == "enum".to_string() }>
                     "String (Enum)"
                 </option>
@@ -164,7 +207,7 @@ where
 
             {move || {
                 view! {
-                    <Show when=move || (config_type.get() == "number")>
+                    <Show when=move || ((config_type.get() == "number") || (config_type.get() == "decimal"))>
                         <div class="form-control">
                             <label class="label font-mono">
                                 <span class="label-text text-gray-700 font-mono">Value</span>
@@ -183,7 +226,7 @@ where
                         </div>
                     </Show>
 
-                    <Show when=move || (show_labels.get() && (config_type.get() != "number"))>
+                    <Show when=move || (show_labels.get() && (config_type.get() != "number") && (config_type.get() != "decimal") )>
                         <div class="form-control">
                             <label class="label font-mono">
                                 <span class="label-text text-gray-700 font-mono">Value</span>
@@ -198,8 +241,8 @@ where
                                     set_config_value.set(event_target_value(&ev));
                                 }
                             />
-
                         </div>
+                    <Show when= move || (config_type.get() != "boolean")>
                         <div class="form-control">
                             <label class="label font-mono">
                                 <span class="label-text text-gray-700 font-mono">
@@ -220,6 +263,7 @@ where
                             </textarea>
 
                         </div>
+                    </Show>
                     </Show>
                 }
             }}
