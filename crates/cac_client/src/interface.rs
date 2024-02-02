@@ -5,11 +5,12 @@ use std::{
     sync::Arc,
 };
 
-use crate::{utils::core::MapError, Client, CLIENT_FACTORY};
+use crate::{utils::core::MapError, Client, MergeStrategy, CLIENT_FACTORY};
 use serde_json::{Map, Value};
 use std::{
     cell::RefCell,
     ffi::{c_int, CString},
+    str::FromStr,
     time::Duration,
 };
 use tokio::{runtime::Runtime, task};
@@ -160,6 +161,7 @@ pub extern "C" fn get_client(tenant: *const c_char) -> *mut Arc<Client> {
 pub extern "C" fn cac_eval(
     client: *mut Arc<Client>,
     query: *const c_char,
+    merge_strategy: *const c_char,
 ) -> *const c_char {
     let context_string = match cstring_to_rstring(query) {
         Ok(s) => s,
@@ -176,7 +178,20 @@ pub extern "C" fn cac_eval(
                 return std::ptr::null();
             }
         };
-    let overrides = match unsafe { (*client).eval(context) } {
+    let merge_strategy = match cstring_to_rstring(merge_strategy) {
+        Ok(s) => match MergeStrategy::from_str(s.as_str()) {
+            Ok(strat) => strat,
+            Err(err) => {
+                update_last_error(err.to_string());
+                return std::ptr::null();
+            }
+        },
+        Err(err) => {
+            update_last_error(err);
+            return std::ptr::null();
+        }
+    };
+    let overrides = match unsafe { (*client).eval(context, merge_strategy) } {
         Ok(ov) => match serde_json::to_string::<Map<String, Value>>(&ov) {
             Ok(ove) => ove,
             Err(err) => {

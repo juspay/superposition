@@ -25,7 +25,7 @@ source-repository head
 
 library
   exposed-modules:
-  
+
       Client
   other-modules:
       Paths_hs_exp_client
@@ -64,6 +64,8 @@ library
       ViewPatterns
       BlockArguments
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded
+  extra-libraries:
+      superposition_client
   build-depends:
       aeson
     , base >=4.7 && <5
