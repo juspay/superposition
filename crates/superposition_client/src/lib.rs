@@ -1,5 +1,5 @@
-mod types;
 mod interface;
+mod types;
 use std::{collections::HashMap, sync::Arc};
 
 use chrono::{DateTime, TimeZone, Utc};
@@ -30,7 +30,7 @@ impl Client {
             experiments: Arc::new(RwLock::new(HashMap::new())),
             http_client: reqwest::Client::new(),
             last_polled: Arc::new(RwLock::new(
-                Utc.with_ymd_and_hms(2023, 01, 01, 0, 0, 0).unwrap(),
+                Utc.with_ymd_and_hms(2023, 01, 1, 0, 0, 0).unwrap(),
             )),
         }
     }
@@ -183,12 +183,12 @@ impl ClientFactory {
 
         let client = Arc::new(Client::new(Config {
             tenant: tenant.to_string(),
-            hostname: hostname,
-            poll_frequency: poll_frequency,
+            hostname,
+            poll_frequency,
         }));
 
         factory.insert(tenant.to_string(), client.clone());
-        return Ok(client.clone());
+        Ok(client.clone())
     }
 
     pub async fn get_client(&self, tenant: String) -> Result<Arc<Client>, String> {

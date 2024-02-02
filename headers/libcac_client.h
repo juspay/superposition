@@ -22,7 +22,7 @@ void free_client(struct Arc_Client *ptr);
 
 struct Arc_Client *get_client(const char *tenant);
 
-const char *cac_eval(struct Arc_Client *client, const char *query);
+const char *cac_eval(struct Arc_Client *client, const char *query, const char *merge_strategy);
 
 const char *get_last_modified(struct Arc_Client *client);
 

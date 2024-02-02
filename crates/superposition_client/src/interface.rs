@@ -1,4 +1,3 @@
-#[warn(unused_assignments)]
 use std::{
     ffi::{c_char, c_ulong, CStr},
     sync::Arc,
@@ -13,7 +12,7 @@ use std::{
 use tokio::{runtime::Runtime, task};
 
 thread_local! {
-    static LAST_ERROR: RefCell<Option<Box<String>>> = RefCell::new(None);
+    static LAST_ERROR: RefCell<Option<String>> = RefCell::new(None);
 }
 
 fn to_string<E>(e: E) -> String
@@ -25,7 +24,7 @@ where
 
 fn error_block<E>(err: String) -> *mut E {
     update_last_error(err);
-    return std::ptr::null_mut();
+    std::ptr::null_mut()
 }
 
 fn cstring_to_rstring(s: *const c_char) -> Result<String, String> {
@@ -41,12 +40,12 @@ pub fn update_last_error(err: String) {
     println!("Setting LAST_ERROR: {}", err);
 
     LAST_ERROR.with(|prev| {
-        *prev.borrow_mut() = Some(Box::new(err));
+        *prev.borrow_mut() = Some(err);
     });
 }
 
-pub fn take_last_error() -> Option<Box<String>> {
-    LAST_ERROR.with(|prev| prev.borrow_mut().take())
+pub fn take_last_error() -> Option<String> {
+    LAST_ERROR.with(|prev| prev.take())
 }
 
 #[no_mangle]
@@ -85,7 +84,6 @@ pub extern "C" fn new_client(
     update_frequency: c_ulong,
     hostname: *const c_char,
 ) -> c_int {
-    let duration = update_frequency as u64;
     let tenant = match cstring_to_rstring(tenant) {
         Ok(value) => value,
         Err(err) => {
@@ -105,17 +103,17 @@ pub extern "C" fn new_client(
     let local = task::LocalSet::new();
     local.block_on(&Runtime::new().unwrap(), async move {
         match CLIENT_FACTORY
-            .create_client(tenant.clone(), duration, hostname)
+            .create_client(tenant.clone(), update_frequency, hostname)
             .await
         {
-            Ok(_) => return 0,
+            Ok(_) => 0,
             Err(err) => {
                 update_last_error(err);
-                return 1;
+                1
             }
         }
     });
-    return 0;
+    0
 }
 
 #[no_mangle]
@@ -192,7 +190,7 @@ pub extern "C" fn get_applicable_variant(
     // println!("variantIds: {:?}", variants);
     match serde_json::to_string::<Vec<String>>(&variants) {
         Ok(result) => rstring_to_cstring(result).into_raw(),
-        Err(err) => return error_block(err.to_string()),
+        Err(err) => error_block(err.to_string()),
     }
 }
 
@@ -219,7 +217,7 @@ pub extern "C" fn get_satisfied_experiments(
     };
     match serde_json::to_string(&experiments) {
         Ok(result) => rstring_to_cstring(result).into_raw(),
-        Err(err) => return error_block(err.to_string()),
+        Err(err) => error_block(err.to_string()),
     }
 }
 
@@ -235,6 +233,6 @@ pub extern "C" fn get_running_experiments(client: *mut Arc<Client>) -> *mut c_ch
     };
     match serde_json::to_string(&experiments) {
         Ok(result) => rstring_to_cstring(result).into_raw(),
-        Err(err) => return error_block(err.to_string()),
+        Err(err) => error_block(err.to_string()),
     }
 }
