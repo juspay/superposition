@@ -2,6 +2,7 @@
 name = "cac_client"
 version = "0.6.0"
 edition = "2021"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -17,3 +18,11 @@ serde_json = { workspace = true }
 log = { workspace = true }
 strum_macros = { workspace = true }
 strum = { workspace = true }
+tokio = {version = "1.29.1", features = ["full"]}
+
+[lib]
+name = "cac_client"
+crate-type = ["cdylib", "lib"]
+
+[build-dependencies]
+cbindgen = "0.26.0"
