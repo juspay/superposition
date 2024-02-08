@@ -20,6 +20,8 @@ backend/logfile
 backend/*PGSQL*
 backend/.env
 .direnv
+/result
+/result-*
 
 # dev
 bacon.toml

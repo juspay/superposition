@@ -23,6 +23,7 @@ pub(crate) enum VariantType {
     EXPERIMENTAL,
 }
 
+#[repr(C)]
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Variant {
     pub id: String,
@@ -32,6 +33,7 @@ pub struct Variant {
 
 pub type Variants = Vec<Variant>;
 
+#[repr(C)]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Experiment {
     pub variants: Variants,
