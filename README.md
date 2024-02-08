@@ -9,14 +9,16 @@ The Superposition platform comes with three components:
 
 ## Detailed documentation
 1. [Context-Aware-Configuration](docs/context-aware-configuration.md)
-2. [Experimentation](docs/context-aware-configuration.md)
+2. [Experimentation](docs/experimentation.md)
 3. [Metrics](docs/metrics.md)
-4. [Clients](docs/clients.md)
+4. [Client Context-Aware-Configuration](docs/client-context-aware-configuration.md)
+4. [Client Experimentation](docs/client-experimentation.md)
 5. [Local setup](docs/setup.md)
 
-## Key features
+## Key highlights
 * **Admin UI** - Out of the box administration (and tools) UI for configurations and experiments
 * **Rich API support** - every action on the platform to manage configurations / experiments is supported with an accompanying API
+* **Safe configuration changes** - support canary testing for releasing configuration changes using experiments
 * **Type/Validation support** - Comprehensive type support using json-schema and custom validator function support for configuration values
 * **Multi-tenant support** - a single deployment allows multiple tenants to manage their configurations/experiments in a completely isolated manner
 * **Authn/Authz support** - control who can make configuration/experimentation changes
