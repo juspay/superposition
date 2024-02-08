@@ -8,7 +8,7 @@ The Superposition platform comes with three components:
 * **Metrics** - a metrics sub-system that interacts with analytics backends to provide supporting metrics that enable conclusions to be drawn from experiments (TBD)
 
 ## Detailed documentation
-1. [Context-Aware-Configuration](docs/context-aware-configuration.md)
+1. [Context-Aware-Configuration](docs/context-aware-config.md)
 2. [Experimentation](docs/experimentation.md)
 3. [Metrics](docs/metrics.md)
 4. [Client Context-Aware-Configuration](docs/client-context-aware-configuration.md)
