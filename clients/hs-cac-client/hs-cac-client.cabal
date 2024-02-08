@@ -1,0 +1,118 @@
+cabal-version: 2.2
+
+-- This file has been generated from package.yaml by hpack version 0.36.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           hs-cac-client
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/hs#readme>
+homepage:       https://github.com/githubuser/hs#readme
+bug-reports:    https://github.com/githubuser/hs/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2024 Author name here
+license:        BSD-3-Clause
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/hs
+
+library
+  exposed-modules:
+      Client
+  other-modules:
+      Paths_hs_cac_client
+  autogen-modules:
+      Paths_hs_cac_client
+  hs-source-dirs:
+      src
+  default-extensions:
+      BangPatterns
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveFunctor
+      DeriveGeneric
+      DuplicateRecordFields
+      ExplicitNamespaces
+      FlexibleContexts
+      FlexibleInstances
+      FunctionalDependencies
+      GADTs
+      LambdaCase
+      MultiParamTypeClasses
+      MultiWayIf
+      NamedFieldPuns
+      NoImplicitPrelude
+      OverloadedStrings
+      PatternSynonyms
+      PolyKinds
+      RankNTypes
+      RecordWildCards
+      ScopedTypeVariables
+      TupleSections
+      TypeApplications
+      TypeFamilies
+      TypeOperators
+      ViewPatterns
+      BlockArguments
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , basic-prelude
+  default-language: Haskell2010
+
+executable hs-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_hs_cac_client
+  autogen-modules:
+      Paths_hs_cac_client
+  hs-source-dirs:
+      src
+  default-extensions:
+      BangPatterns
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveFunctor
+      DeriveGeneric
+      DuplicateRecordFields
+      ExplicitNamespaces
+      FlexibleContexts
+      FlexibleInstances
+      FunctionalDependencies
+      GADTs
+      LambdaCase
+      MultiParamTypeClasses
+      MultiWayIf
+      NamedFieldPuns
+      NoImplicitPrelude
+      OverloadedStrings
+      PatternSynonyms
+      PolyKinds
+      RankNTypes
+      RecordWildCards
+      ScopedTypeVariables
+      TupleSections
+      TypeApplications
+      TypeFamilies
+      TypeOperators
+      ViewPatterns
+      BlockArguments
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -threaded -rtsopts -with-rtsopts=-N
+  extra-libraries:
+      cac_client
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , basic-prelude
+    , hs-cac-client
+  default-language: Haskell2010
