@@ -60,6 +60,7 @@ fn is_not_modified(
     max_created_at: Option<NaiveDateTime>,
     req: &HttpRequest,
 ) -> anyhow::Result<bool> {
+    let nanosecond_erasure = |t: NaiveDateTime| t.with_nanosecond(0);
     let last_modified = req
         .headers()
         .get("If-Modified-Since")
@@ -69,8 +70,10 @@ fn is_not_modified(
                 .map(|datetime| datetime.with_timezone(&Utc).naive_utc())
                 .ok()
         })
-        .and_then(|t| t.with_nanosecond(0));
-    Ok(max_created_at.is_some() && max_created_at <= last_modified)
+        .and_then(nanosecond_erasure);
+    log::info!("last modified {last_modified:?}");
+    let parsed_max: Option<NaiveDateTime> = max_created_at.and_then(nanosecond_erasure);
+    Ok(max_created_at.is_some() && parsed_max <= last_modified)
 }
 
 async fn generate_cac(
@@ -123,6 +126,8 @@ async fn get(req: HttpRequest, db_conn: DbConnection) -> actix_web::Result<HttpR
     let max_created_at = get_max_created_at(&mut conn)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log: {e}"))
         .ok();
+
+    log::info!("Max created at: {max_created_at:?}");
 
     let is_not_modified = is_not_modified(max_created_at, &req)
         .map_err(|e| log::error!("config not modified: {e}"));

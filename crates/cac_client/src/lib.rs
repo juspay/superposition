@@ -1,4 +1,5 @@
 mod eval;
+mod interface;
 mod utils;
 
 use actix_web::{
@@ -25,6 +26,7 @@ pub struct Context {
     pub override_with_keys: [String; 1],
 }
 
+#[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
     contexts: Vec<Context>,
@@ -45,6 +47,7 @@ impl Default for MergeStrategy {
     }
 }
 
+#[repr(C)]
 #[derive(Clone)]
 pub struct Client {
     tenant: String,
@@ -145,6 +148,18 @@ impl Client {
                 log::info!("{result}",);
             }
         });
+    }
+
+    pub async fn ffi_polling_update(self) {
+        println!("into polling updates");
+        let mut interval = interval(self.polling_interval);
+        loop {
+            println!("started polling updates");
+            interval.tick().await;
+            let result = self.update_cac().await.unwrap_or_else(identity);
+            println!("{result}");
+            log::info!("{result}",);
+        }
     }
 
     pub fn get_config(&self) -> Result<Config, String> {

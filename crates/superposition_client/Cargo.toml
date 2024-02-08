@@ -14,3 +14,10 @@ tokio = {version = "1.29.1", features = ["full"]}
 dotenv = { workspace = true }
 derive_more = { workspace = true }
 log = { workspace = true }
+
+[lib]
+name = "superposition_client"
+crate-type = ["cdylib", "lib"]
+
+[build-dependencies]
+cbindgen = "0.26.0"
