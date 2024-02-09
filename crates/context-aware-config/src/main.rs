@@ -4,6 +4,7 @@ mod db;
 mod helpers;
 mod logger;
 mod middlewares;
+mod validation_functions;
 
 use crate::middlewares::{
     audit_response_header::{AuditHeader, TableName},
