@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-      "test": "node ./test/index.js",
+      "test": "node ./tests/index.js",
       "compile": "npx tsc",
       "dev": "tsc --project tsconfig.json",
       "buildLib": "webpack --mode=production",
