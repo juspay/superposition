@@ -18,6 +18,9 @@ COPY . .
 RUN mkdir -p ~/.ssh && ssh-keyscan ssh.bitbucket.juspay.net >> ~/.ssh/known_hosts
 RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 RUN npm ci --loglevel=info
+RUN cd crates/context-aware-config/ && npm ci
+RUN mkdir -p target/node_modules
+RUN cp -a crates/context-aware-config/node_modules target/node_modules/
 
 # building frontend
 RUN --mount=type=ssh cd crates/frontend \
@@ -43,6 +46,7 @@ RUN apt-get update && apt-get install -y libpq5 ca-certificates
 COPY --from=builder /build/target/release/context-aware-config /app/context-aware-config
 COPY --from=builder /build/Cargo.toml /app/Cargo.toml
 COPY --from=builder /build/target/site /app/target/site
+COPY --from=builder /build/target/node_modules /app/target/node_modules
 ENV CONTEXT_AWARE_CONFIG_VERSION=$CONTEXT_AWARE_CONFIG_VERSION
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 CMD ["/app/context-aware-config"]
