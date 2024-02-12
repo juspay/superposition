@@ -1,3 +1,5 @@
+use std::env;
+
 use crate::types::Envs;
 use leptos::*;
 use serde_json::Value;
@@ -22,20 +24,127 @@ pub fn modal_action(name: &str, action: &str) {
     }
 }
 
+pub fn add_prefix(o_str: &str, prefix: &str) -> String {
+    match prefix {
+        "" | "/" => o_str.to_owned(),
+        prefix => o_str.to_owned() + "/" + prefix,
+    }
+}
+
+pub fn is_server() -> bool {
+    env::var("SERVER_NAME").is_ok()
+}
+
+pub fn use_url_base() -> String {
+    let service_prefix = use_service_prefix();
+    match service_prefix.as_str() {
+        "" | "/" => "".to_owned(),
+        prefix => "/".to_owned() + prefix,
+    }
+}
+
+pub fn use_host_server() -> String {
+    let service_prefix = use_service_prefix();
+    if is_server() {
+        add_prefix("http://localhost:8080", &service_prefix)
+    } else {
+        get_host()
+    }
+}
+
 pub fn get_host() -> String {
-    let context = use_context::<Resource<(), Envs>>();
-    context
-        .map_or(None, |resource| resource.get())
+    let context = use_context::<Envs>();
+    let service_prefix = use_service_prefix();
+    let host = context
         .map(|ctx| ctx.host)
-        .unwrap_or(String::from("http://localhost:8080"))
+        .or_else(|| match js_sys::eval("__APP_ENVS?.host") {
+            Ok(value) => value
+                .dyn_into::<js_sys::JsString>()
+                .expect("host is not a string")
+                .as_string(),
+            Err(e) => {
+                logging::log!("Unable to fetch host from __APP_ENVS: {:?}", e);
+                None
+            }
+        })
+        .unwrap_or(String::from("http://localhost:xxxx"));
+
+    add_prefix(&host, &service_prefix)
 }
 
 pub fn get_tenants() -> Vec<String> {
-    let context = use_context::<Resource<(), Envs>>();
+    let context = use_context::<Envs>();
     context
-        .map_or(None, |resource| resource.get())
-        .map(|ctx| ctx.tenants)
+        .map(|ctx: Envs| ctx.tenants)
+        .or_else(|| {
+            let tenant_value = match js_sys::eval("__APP_ENVS?.tenants") {
+                Ok(value) => value
+                    .dyn_into::<js_sys::Array>()
+                    .expect("tenants is not an array")
+                    .to_vec()
+                    .into_iter()
+                    .map(|tenant| {
+                        tenant.dyn_into::<js_sys::JsString>().ok().map(String::from)
+                    })
+                    .collect::<Option<Vec<String>>>(),
+                Err(e) => {
+                    logging::log!("Unable to fetch tenants from __APP_ENVS: {:?}", e);
+                    None
+                }
+            };
+            tenant_value
+        })
         .unwrap_or(vec![])
+}
+
+pub fn use_env() -> Envs {
+    let context = use_context::<Envs>();
+    context
+        .or_else(|| {
+            let envs = match js_sys::eval("__APP_ENVS") {
+                Ok(value) => {
+                    let env_obj = value
+                        .dyn_into::<js_sys::Object>()
+                        .expect("__APP_ENV is not an object");
+                    let env_str: &'static str = Box::leak(
+                        js_sys::JSON::stringify(&env_obj)
+                            .ok()
+                            .map(String::from)
+                            .unwrap_or(String::new())
+                            .into_boxed_str(),
+                    );
+                    let envs = serde_json::from_str::<Envs>(env_str)
+                        .expect("unable to parse to Envs struct");
+                    Some(envs)
+                }
+                Err(e) => {
+                    logging::log!("Unable to fetch __APP_ENVS: {:?}", e);
+                    None
+                }
+            };
+            envs
+        })
+        .expect("unable to get envs")
+}
+
+pub fn use_service_prefix() -> String {
+    let context = use_context::<Envs>();
+    context
+        .map(|ctx: Envs| String::from(ctx.service_prefix))
+        .or_else(|| {
+            let service_prefix_value = match js_sys::eval("__APP_ENV?.service_prefix") {
+                Ok(value) => value.dyn_into::<js_sys::JsString>().map(String::from).ok(),
+                Err(e) => {
+                    logging::log!(
+                        "Unable to fetch service_prefix from __APP_ENVS: {:?}",
+                        e
+                    );
+                    None
+                }
+            };
+            service_prefix_value
+        })
+        .unwrap_or(String::new())
 }
 
 pub fn get_element_by_id<T>(id: &'static str) -> Option<T>

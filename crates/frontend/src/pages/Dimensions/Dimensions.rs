@@ -11,7 +11,7 @@ use crate::utils::{close_modal, show_modal};
 use leptos::*;
 use serde_json::{json, Map, Value};
 
-use crate::pages::Dimensions::helper::fetch_dimensions;
+use crate::api::fetch_dimensions;
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {

@@ -1,9 +1,7 @@
-use std::env::VarError;
-use std::str::FromStr;
-
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
+use serde_json::json;
 
 use crate::hoc::layout::layout::Layout;
 use crate::pages::Dimensions::Dimensions::Dimensions;
@@ -11,98 +9,168 @@ use crate::pages::ExperimentList::ExperimentList::ExperimentList;
 use crate::pages::{
     ContextOverride::ContextOverride::ContextOverride,
     DefaultConfig::DefaultConfig::DefaultConfig, Experiment::ExperimentPage,
-    Home::Home::Home, NotFound::NotFound::NotFound,
+    Home::Home::Home,
 };
-use crate::types::{AppEnv, Envs};
-
-fn get_from_env_unsafe<F>(name: &str) -> Result<F, VarError>
-where
-    F: FromStr,
-    <F as FromStr>::Err: std::fmt::Debug,
-{
-    std::env::var(name)
-        .map(|val| val.parse().unwrap())
-        .map_err(|e| {
-            return e;
-        })
-}
-
-async fn load_envs() -> Envs {
-    let app_env = get_from_env_unsafe::<AppEnv>("APP_ENV").unwrap_or(AppEnv::DEV);
-
-    let tenants = get_from_env_unsafe::<String>("TENANTS")
-        .unwrap_or("".into())
-        .split(",")
-        .map(|tenant| tenant.to_string())
-        .collect::<Vec<String>>();
-
-    let host = get_from_env_unsafe::<String>("API_HOSTNAME")
-        .unwrap_or(String::from("http://localhost:8080"));
-
-    Envs {
-        host,
-        app_env,
-        tenants,
-    }
-}
+use crate::types::Envs;
 
 #[component]
-pub fn App() -> impl IntoView {
+pub fn App(app_envs: Envs) -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
 
-    let envs_resource = create_blocking_resource(|| (), |_| load_envs());
-    provide_context(envs_resource);
+    let service_prefix = app_envs.service_prefix;
+    provide_context(app_envs.clone());
     view! {
         <html data-theme="light">
-            <Stylesheet id="leptos" href="/pkg/style.css"/>
-            <Link rel="shortcut icon" type_="image/ico" href="/assets/favicon.ico"/>
-            <Link
-                href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
-                rel="stylesheet"
-            />
+            {move || {
+                let base = match service_prefix {
+                    "" | "/" => "".to_owned(),
+                    prefix => "/".to_owned() + prefix,
+                };
+                let styles_href = base.to_owned() + "/pkg/style.css";
+                let favicon_href = base.to_owned() + "/assets/favicon.ico";
+                let wasm_href = base.to_owned() + "/pkg/frontend_bg.wasm";
+                let js_href = base.to_owned() + "/pkg/frontend.js";
+                let import_callback = "() => mod.hydrate()";
+                view! {
+                    <Stylesheet id="leptos" href=styles_href/>
+                    <Link rel="shortcut icon" type_="image/ico" href=favicon_href/>
+                    <Link
+                        href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+                        rel="stylesheet"
+                    />
+                    {move || {
+                        if base == "" {
+                            view! {}.into_view()
+                        } else {
+                            view! {
+                                <link
+                                    rel="preload"
+                                    href=wasm_href.clone()
+                                    as_="fetch"
+                                    type_="application/wasm"
+                                    crossorigin=""
+                                />
+                                <link rel="modulepreload" href=js_href.clone()/>
+                                <script type_="module">
+                                    {format!(
+                                        r#"
+                                    function idle(c) {{
+                                        if ('requestIdleCallback' in window) {{
+                                            window.requestIdleCallback(c);
+                                        }} else {{
+                                            c();
+                                        }}
+                                    }}
+                                    idle(() => {{
+                                        import('{js_href}')
+                                            .then(mod => {{
+                                                mod.default('{wasm_href}').then({import_callback});
+                                            }})
+                                    }});
+                                    "#,
+                                    )}
+
+                                </script>
+                            }
+                                .into_view()
+                        }
+                    }}
+                }
+            }}
             // sets the document title
             <Title text="Welcome to Context Aware Config"/>
-            // content for this welcome page
-            <Router>
+            <script type_="text/javascript">"__APP_ENVS=" {json!(app_envs).to_string()}</script>
+            <Router base=service_prefix>
                 <body class="m-0 min-h-screen bg-gray-50 font-mono">
-                    <Layout>
-                        <Routes>
-                            <Route
-                                ssr=SsrMode::PartiallyBlocked
-                                path="/admin/:tenant/dimensions"
-                                view=Dimensions
-                            />
-                            <Route
-                                ssr=SsrMode::PartiallyBlocked
-                                path="/admin/:tenant/experiments"
-                                view=ExperimentList
-                            />
-                            <Route
-                                ssr=SsrMode::PartiallyBlocked
-                                path="/admin/:tenant/experiments/:id"
-                                view=ExperimentPage
-                            />
-                            <Route
-                                ssr=SsrMode::PartiallyBlocked
-                                path="/admin/:tenant/default-config"
-                                view=DefaultConfig
-                            />
-                            <Route
-                                ssr=SsrMode::PartiallyBlocked
-                                path="/admin/:tenant/overrides"
-                                view=ContextOverride
-                            />
-                            <Route
-                                ssr=SsrMode::PartiallyBlocked
-                                path="/admin/:tenant/resolve"
-                                view=Home
-                            />
-                            <Route path="/*any" view=NotFound/>
-                        </Routes>
-                    </Layout>
+                    <Routes base=service_prefix.to_string()>
+                        <Route
+                            ssr=SsrMode::Async
+                            path="/admin/:tenant/dimensions"
+                            view=move || {
+                                view! {
+                                    <Layout>
+                                        <Dimensions/>
+                                    </Layout>
+                                }
+                            }
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path="/admin/:tenant/experiments"
+                            view=move || {
+                                view! {
+                                    <Layout>
+                                        <ExperimentList/>
+                                    </Layout>
+                                }
+                            }
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path="/admin/:tenant/experiments/:id"
+                            view=move || {
+                                view! {
+                                    <Layout>
+                                        <ExperimentPage/>
+                                    </Layout>
+                                }
+                            }
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path="/admin/:tenant/default-config"
+                            view=move || {
+                                view! {
+                                    <Layout>
+                                        <DefaultConfig/>
+                                    </Layout>
+                                }
+                            }
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path="/admin/:tenant/overrides"
+                            view=move || {
+                                view! {
+                                    <Layout>
+                                        <ContextOverride/>
+                                    </Layout>
+                                }
+                            }
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path="/admin/:tenant/resolve"
+                            view=move || {
+                                view! {
+                                    <Layout>
+                                        <Home/>
+                                    </Layout>
+                                }
+                            }
+                        />
+
+                    // <Route
+                    // path="/*any"
+                    // view=move || {
+                    // view! {
+                    // <Layout>
+                    // <NotFound/>
+                    // </Layout>
+                    // }
+                    // }
+                    // />
+
+                    </Routes>
                 </body>
             </Router>
+
         </html>
     }
 }
