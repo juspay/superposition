@@ -1,13 +1,16 @@
-use leptos::{server, ServerFnError};
+use leptos::ServerFnError;
 
-use crate::types::{
-    Config, DefaultConfig, Dimension, Experiment, ExperimentsResponse, ListFilters,
+use crate::{
+    types::{
+        Config, DefaultConfig, Dimension, Experiment, ExperimentsResponse, ListFilters,
+    },
+    utils::use_host_server,
 };
 
-#[server(GetDimensions, "/fxn", "GetJson")]
+// #[server(GetDimensions, "/fxn", "GetJson")]
 pub async fn fetch_dimensions(tenant: String) -> Result<Vec<Dimension>, ServerFnError> {
     let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
+    let host = use_host_server();
 
     let url = format!("{}/dimension", host);
     let response: Vec<Dimension> = client
@@ -23,12 +26,12 @@ pub async fn fetch_dimensions(tenant: String) -> Result<Vec<Dimension>, ServerFn
     Ok(response)
 }
 
-#[server(GetDefaultConfig, "/fxn", "GetJson")]
+// #[server(GetDefaultConfig, "/fxn", "GetJson")]
 pub async fn fetch_default_config(
     tenant: String,
 ) -> Result<Vec<DefaultConfig>, ServerFnError> {
     let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
+    let host = use_host_server();
 
     let url = format!("{}/default-config", host);
     let response: Vec<DefaultConfig> = client
@@ -44,13 +47,13 @@ pub async fn fetch_default_config(
     Ok(response)
 }
 
-#[server(GetExperiments, "/fxn", "GetJson")]
+// #[server(GetExperiments, "/fxn", "GetJson")]
 pub async fn fetch_experiments(
     filters: ListFilters,
     tenant: String,
 ) -> Result<ExperimentsResponse, ServerFnError> {
     let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
+    let host = use_host_server();
 
     let mut query_params = vec![];
     if let Some(status) = filters.status {
@@ -84,11 +87,12 @@ pub async fn fetch_experiments(
     Ok(response)
 }
 
-#[server(GetConfig, "/fxn", "GetJson")]
+// #[server(GetConfig, "/fxn", "GetJson")]
 pub async fn fetch_config(tenant: String) -> Result<Config, ServerFnError> {
     let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
-    let url = format!("{host}/config");
+    let host = use_host_server();
+
+    let url = format!("{}/config", host);
     match client.get(url).header("x-tenant", tenant).send().await {
         Ok(response) => {
             let config: Config = response
@@ -101,13 +105,13 @@ pub async fn fetch_config(tenant: String) -> Result<Config, ServerFnError> {
     }
 }
 
-#[server(GetExperiment, "/fxn", "GetJson")]
+// #[server(GetExperiment, "/fxn", "GetJson")]
 pub async fn fetch_experiment(
     exp_id: String,
     tenant: String,
 ) -> Result<Experiment, ServerFnError> {
     let client = reqwest::Client::new();
-    let host = "http://localhost:8080";
+    let host = use_host_server();
     let url = format!("{}/experiments/{}", host, exp_id);
 
     match client.get(url).header("x-tenant", tenant).send().await {

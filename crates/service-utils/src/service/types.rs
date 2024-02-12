@@ -40,6 +40,7 @@ pub struct AppState {
     pub snowflake_generator: Mutex<SnowflakeIdGenerator>,
     pub enable_tenant_and_scope: bool,
     pub tenant_middleware_exclusion_list: HashSet<String>,
+    pub service_prefix: String,
 }
 
 impl FromStr for AppEnv {

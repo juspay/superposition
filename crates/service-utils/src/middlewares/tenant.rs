@@ -52,6 +52,9 @@ fn extract_tenant_from_url<'a>(
             let pattern_segments = pattern.split("/");
             let path_segments = path.split("/").collect::<Vec<&str>>();
 
+            debug!("PATTERN_SEGMENTS ===> {:?}", pattern_segments);
+            debug!("PATH_SEGMENTS ===> {:?}", path_segments);
+
             std::iter::zip(path_segments, pattern_segments)
                 .find(|(_, pattern_seg)| pattern_seg == &"{tenant}")
                 .map(|(path_seg, _)| path_seg)
@@ -91,10 +94,15 @@ where
                 }
             };
 
-            let request_path = req.uri().path();
+            let base = match app_state.service_prefix.as_str() {
+                "" | "/" => "".to_owned(),
+                prefix => "/".to_owned() + prefix,
+            };
+
+            let request_path = req.uri().path().replace(&base, "");
             let is_excluded: bool = app_state
                 .tenant_middleware_exclusion_list
-                .contains(request_path);
+                .contains(&request_path);
 
             if !is_excluded && app_state.enable_tenant_and_scope {
                 debug!(
