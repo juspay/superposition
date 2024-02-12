@@ -50,3 +50,4 @@ strum_macros = "^0.24"
 strum = {version = "^0.24"}
 # juspay dependencies
 dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.5.1"}
+tracing-utils = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", version = "0.1.0" }

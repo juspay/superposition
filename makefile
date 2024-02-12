@@ -62,6 +62,7 @@ validate-psql-connection:
 
 
 env-setup:
+	npm ci
 	docker-compose up -d postgres localstack
 	cp .env.example .env
 	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
@@ -101,6 +102,10 @@ get-password:
 cac:
 	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
 	cargo run --color always --bin context-aware-config --no-default-features --features=ssr
+
+dev:
+	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
+	cargo watch -x 'run --color always --bin context-aware-config --no-default-features --features=ssr'
 
 frontend:
 	cd crates/frontend && \
