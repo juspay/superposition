@@ -55,7 +55,7 @@
                   leptosfmt
                   wasm-pack
                   curl
-                 ( rust-bin.stable.latest.default.override {
+                 ( rust-bin.stable."1.73.0".default.override {
                    extensions = [ "rust-src" ];
                    targets = [ "wasm32-unknown-unknown" ];
                    })

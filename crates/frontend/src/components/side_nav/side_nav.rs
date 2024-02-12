@@ -1,16 +1,61 @@
 use crate::components::nav_item::nav_item::NavItem;
 use crate::types::AppRoute;
-use crate::utils::get_tenants;
+use crate::utils::{get_tenants, use_url_base};
 
-use leptos::{logging::log, *};
+use leptos::*;
 use leptos_router::{use_location, use_navigate, A};
+use web_sys::Event;
+
+fn create_routes(tenant: &str) -> Vec<AppRoute> {
+    let base = use_url_base();
+    vec![
+        AppRoute {
+            key: format!("{base}/admin/{tenant}/experiments"),
+            path: format!("{base}/admin/{tenant}/experiments"),
+            icon: "ri-test-tube-fill".to_string(),
+            label: "Experiments".to_string(),
+        },
+        AppRoute {
+            key: format!("{base}/admin/{tenant}/dimensions"),
+            path: format!("{base}/admin/{tenant}/dimensions"),
+            icon: "ri-ruler-2-fill".to_string(),
+            label: "Dimensions".to_string(),
+        },
+        AppRoute {
+            key: format!("{base}/admin/{tenant}/default-config"),
+            path: format!("{base}/admin/{tenant}/default-config"),
+            icon: "ri-tools-line".to_string(),
+            label: "Default Config".to_string(),
+        },
+        AppRoute {
+            key: format!("{base}/admin/{tenant}/overrides"),
+            path: format!("{base}/admin/{tenant}/overrides"),
+            icon: "ri-guide-fill".to_string(),
+            label: "Overrides".to_string(),
+        },
+        AppRoute {
+            key: format!("{base}/admin/{tenant}/resolve"),
+            path: format!("{base}/admin/{tenant}/resolve"),
+            icon: "ri-equalizer-fill".to_string(),
+            label: "Resolve".to_string(),
+        },
+    ]
+}
 
 #[component]
-pub fn side_nav() -> impl IntoView {
+pub fn side_nav(
+    resolved_path: String,
+    original_path: String,
+    //params_map: Memo<ParamsMap>,
+) -> impl IntoView {
     let location = use_location();
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let tenant_ws = use_context::<WriteSignal<String>>().unwrap();
-    let (app_routes, set_app_routes) = create_signal(create_routes(&tenant_rs.get()));
+    let (app_routes, set_app_routes) =
+        create_signal(create_routes(tenant_rs.get().as_str()));
+
+    let resolved_path = create_rw_signal(resolved_path);
+    let original_path = create_rw_signal(original_path);
 
     create_effect(move |_| {
         let current_path = location.pathname.get();
@@ -43,28 +88,26 @@ pub fn side_nav() -> impl IntoView {
             }>
                 <select
                     value=tenant_rs.get()
-                    on:change=move |change| {
-                        let new_tenant = event_target_value(&change);
-                        let location = use_location();
-                        let mut path_tokens = location
-                            .pathname
-                            .get()
-                            .split("/")
-                            .into_iter()
-                            .map(ToString::to_string)
-                            .collect::<Vec<String>>();
-                        log!("{}{:?}", new_tenant, path_tokens);
-                        path_tokens.remove(0);
-                        path_tokens.remove(0);
-                        path_tokens.remove(0);
-                        log!("{}{:?}", new_tenant, path_tokens);
-                        let nav = use_navigate();
-                        set_app_routes.set(create_routes(&new_tenant));
-                        tenant_ws.set(new_tenant.clone());
-                        nav(
-                            format!("admin/{new_tenant}/{}", path_tokens.join("/")).as_str(),
-                            Default::default(),
-                        );
+                    on:change=move |event: Event| {
+                        let selected_tenant = event_target_value(&event);
+                        let base = use_url_base();
+                        let resolved_path_c = resolved_path.get().replace(&base, "");
+                        let original_path_c = original_path.get().replace(&base, "");
+                        logging::log!("ORIGINAL_PATH: {:?}", original_path_c);
+                        let redirect_url = std::iter::zip(
+                                original_path_c.split("/"),
+                                resolved_path_c.split("/"),
+                            )
+                            .map(|(o_token, r_token)| match o_token {
+                                ":tenant" => selected_tenant.clone(),
+                                _ => r_token.to_string(),
+                            })
+                            .collect::<Vec<String>>()
+                            .join("/");
+                        tenant_ws.set(selected_tenant.clone());
+                        set_app_routes.set(create_routes(selected_tenant.as_str()));
+                        let navigate = use_navigate();
+                        navigate(redirect_url.as_str(), Default::default())
                     }
 
                     class="select w-full max-w-xs shadow-md"
@@ -120,39 +163,4 @@ pub fn side_nav() -> impl IntoView {
             </Suspense>
         </div>
     }
-}
-
-fn create_routes(tenant: &String) -> Vec<AppRoute> {
-    vec![
-        AppRoute {
-            key: format!("admin/{}/experiments", tenant),
-            path: format!("admin/{}/experiments", tenant),
-            icon: "ri-test-tube-fill".to_string(),
-            label: "Experiments".to_string(),
-        },
-        AppRoute {
-            key: format!("admin/{}/dimensions", tenant),
-            path: format!("admin/{}/dimensions", tenant),
-            icon: "ri-ruler-2-fill".to_string(),
-            label: "Dimensions".to_string(),
-        },
-        AppRoute {
-            key: format!("admin/{}/default-config", tenant),
-            path: format!("admin/{}/default-config", tenant),
-            icon: "ri-tools-line".to_string(),
-            label: "Default Config".to_string(),
-        },
-        AppRoute {
-            key: format!("admin/{}/overrides", tenant),
-            path: format!("admin/{}/overrides", tenant),
-            icon: "ri-guide-fill".to_string(),
-            label: "Overrides".to_string(),
-        },
-        AppRoute {
-            key: format!("admin/{}/resolve", tenant),
-            path: format!("admin/{}/resolve", tenant),
-            icon: "ri-equalizer-fill".to_string(),
-            label: "Resolve".to_string(),
-        },
-    ]
 }

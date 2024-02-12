@@ -56,9 +56,9 @@ futures-util = "0.3.28"
 external = { path = "../external" }
 actix-cors = "0.6.4"
 leptos_actix = { version = "0.5.2" }
-leptos = { version = "0.5.2" }
-leptos_meta = { version = "0.5.2" }
-leptos_router = { version = "0.5.2" }
+leptos = { workspace = true }
+leptos_meta = { workspace = true }
+leptos_router = { workspace = true }
 actix-files = { version = "0.6" }
 
 anyhow = { workspace = true }
