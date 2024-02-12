@@ -24,7 +24,7 @@ use tracing::{span, Level};
 
 use snowflake::SnowflakeIdGenerator;
 use std::{sync::Mutex, time::Duration};
-use tracing_actix_web::TracingLogger;
+use tracing_utils::{tracing_actix_web::TracingLogger, GoldenSignalFactory};
 
 use actix_files::Files;
 use frontend::app::*;
@@ -130,7 +130,7 @@ async fn main() -> Result<()> {
             .wrap(DashboardAuth::default(authenticated_routes()))
             .wrap(TenantMiddlewareFactory)
             .wrap(middlewares::cors())
-            .wrap(logger::GoldenSignalFactory)
+            .wrap(GoldenSignalFactory)
             .wrap(TracingLogger::<CustomRootSpanBuilder>::new())
             .app_data(Data::new(AppState {
                 db_pool: schema_manager.clone(),
