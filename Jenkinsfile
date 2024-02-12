@@ -12,7 +12,7 @@ pipeline {
     REGISTRY_HOST_SBX = getRegistryHost("701342709052", REGION);
     REGISTRY_HOST_PROD = getRegistryHost("980691203742", REGION);
     REGISTRY_HOST_NY_PROD = getRegistryHost("147728078333", REGION);
-    AUTOPILOT_HOST_INTEG = "autopilot-eks2.internal.svc.k8s.integ.mum.juspay.net";
+    AUTOPILOT_HOST_SBX = "autopilot.internal.staging.mum.juspay.net";
     DOCKER_DIND_DNS = "jenkins-newton-dind.jp-internal.svc.cluster.local"
     GIT_REPO_NAME = "context-aware-config"
     CARGO_NET_GIT_FETCH_WITH_CLI=true
@@ -206,29 +206,31 @@ pipeline {
         AUTHOR_NAME = sh(returnStdout: true, script: "git log -1 --pretty=format:'%ae'")
       }
       steps {
-        sh """curl -v --location --request POST 'https://${AUTOPILOT_HOST_INTEG}/release' \
+        sh """curl -v --location --request POST 'https://${AUTOPILOT_HOST_SBX}/release' \
                 --header 'Content-Type: application/json' \
-                --header 'Authorization: Basic ${CREDS_PSW}' \
+                --header 'Authorization: Basic ${AUTOPILOT_AUTH_HEADER}' \
                 --data-raw '{
                       "service": ["CONTEXT_AWARE_CONFIG"],
-                      "release_manager": "${AUTHOR_NAME}",
+                      "release_manager": "jenkins.jenkins",
                       "release_tag": "",
                       "new_version": "${NEW_SEMANTIC_VERSION}",
                       "docker_image" : "${NEW_SEMANTIC_VERSION}",
                       "priority" : 0,
-                      "cluster" : "INTEG_CLUSTER",
+                      "cluster" : "EKS_MUM",
+                      "is_approved": 1,
+                      "is_infra_approved": 1,
                       "change_log": "${CHANGE_LOG}",
                       "rollout_strategy": [
                           {
                               "rollout": 100,
-                              "cooloff": 0,
+                              "cooloff": 1,
                               "pods": 1
                           }
                       ],
                       "description": "${CHANGE_LOG}",
                       "product": "HYPER_SDK",
                       "mode" : "AUTO",
-                      "env" : "INTEG"
+                      "env" : "UAT"
                 }';
            """
       }
