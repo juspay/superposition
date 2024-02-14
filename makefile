@@ -120,8 +120,7 @@ frontend:
 backend:
 	-rm -rf target/node_modules
 	npm --prefix ./crates/context-aware-config/ ci
-	mkdir target/node_modules
-	mv crates/context-aware-config/node_modules target/node_modules
+	mv crates/context-aware-config/node_modules target/
 	cargo build --color always
 
 build: frontend backend

@@ -129,7 +129,6 @@ async fn get(req: HttpRequest, db_conn: DbConnection) -> actix_web::Result<HttpR
     if let Ok(true) = is_not_modified {
         return Ok(HttpResponse::NotModified().finish());
     }
-
     let res = HttpResponse::Ok().json(generate_cac(&mut conn).await?);
 
     add_last_modified_header(max_created_at, res)
