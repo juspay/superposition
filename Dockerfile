@@ -20,7 +20,7 @@ RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 RUN npm ci --loglevel=info
 RUN cd crates/context-aware-config/ && npm ci
 RUN mkdir -p target/node_modules
-RUN cp -a crates/context-aware-config/node_modules target/node_modules/
+RUN cp -a crates/context-aware-config/node_modules target/
 
 # building frontend
 RUN --mount=type=ssh cd crates/frontend \

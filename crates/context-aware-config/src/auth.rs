@@ -174,6 +174,20 @@ pub mod functions {
                     user_permissions: ("manager".into(), "RW".into()),
                 },
             ),
+            (
+                "PUT::/function/{function_name}/{stage}/test",
+                AuthenticatedRoute {
+                    api_tag: "MANAGER".into(),
+                    user_permissions: ("manager".into(), "RW".into()),
+                },
+            ),
+            (
+                "PUT::/function/{function_name}/publish",
+                AuthenticatedRoute {
+                    api_tag: "MANAGER".into(),
+                    user_permissions: ("manager".into(), "RW".into()),
+                },
+            ),
         ])
     }
 }
