@@ -25,3 +25,16 @@ pub struct FunctionResponse {
     pub published_at: String,
     pub drafted_at: String,
 }
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, strum_macros::Display)]
+#[strum(serialize_all = "lowercase")]
+pub enum Stage {
+    DRAFT,
+    PUBLISHED,
+}
+
+#[derive(Deserialize)]
+pub struct TestParam {
+    pub function_name: String,
+    pub stage: Stage,
+}

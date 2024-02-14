@@ -1,11 +1,12 @@
 use serde_json::{json, Value};
 use std::process::Command;
 use std::str;
+use tracing_utils::tracing;
 
 const IMPORT_CODE: &str = r#"
     /*eslint no-unused-vars: "off"*/
     /*eslint no-extra-semi: "off"*/
-    const axios =  require("/target/node_modules/axios");
+    const axios =  require("./target/node_modules/axios");
     "#;
 
 const EXIT_LOGIC_CODE: &str = r#"
@@ -15,29 +16,33 @@ const EXIT_LOGIC_CODE: &str = r#"
     "#;
 
 const ES_LINT_CODE: &str = r#"
-    const eslint = require("eslint");
-    const linter = new eslint.ESLint({
-            useEslintrc: false,
-            overrideConfig: {
-                extends: ["eslint:recommended"],
-                parserOptions: {
-                    sourceType: "module",
-                    ecmaVersion: "latest",
-                },
-                env: {
-                    browser: true,
-                    commonjs: true,
-                }
+    const {ESLint} = require("./target/node_modules/eslint");
+    const linter = new ESLint({
+        useEslintrc: false,
+        overrideConfig: {
+            extends: ["eslint:recommended"],
+            parserOptions: {
+                sourceType: "module",
+                ecmaVersion: "latest",
             },
-        });
+            env: {
+                browser: true,
+                commonjs: true,
+            }
+        },
+    });
 
     linter.lintText(codeToLint).then((results) => {
         var err_count = 0;
+        var err_msgs = [];
         for (var err_obj of results) {
+            console.log(err_obj.messages);
             err_count = err_count + err_obj.errorCount;
+            err_msgs.push(err_obj.messages);
         }
         
         if (err_count > 0) {
+            console.error(err_msgs);
             process.exit(1);
         } 
         }).catch((error) => {
@@ -57,7 +62,7 @@ pub fn execute_fn(code_str: &str, fun_name: &str, value: Value) -> Result<(), St
         .arg("-e")
         .arg(IMPORT_CODE.to_string() + code_str + &runtime_wrapper(fun_name, value))
         .output();
-    log::trace!("{}", format!("validation function output : {:?}", output));
+    tracing::trace!("{}", format!("validation function output : {:?}", output));
     match output {
         Ok(val) => {
             if !(val.status.success()) {
@@ -74,7 +79,7 @@ pub fn execute_fn(code_str: &str, fun_name: &str, value: Value) -> Result<(), St
             }
         }
         Err(e) => {
-            log::error!("js_eval error: {}", e);
+            tracing::error!("js_eval error: {}", e);
             Err(format!("js_eval error: {}", e))
         }
     }
@@ -91,20 +96,21 @@ pub fn compile_fn(code_str: &str) -> Result<(), String> {
         .arg("-e")
         .arg(eslint_logic(code_str))
         .output();
+    tracing::trace!("{}", format!("validation function output : {:?}", output));
     match output {
         Ok(val) => {
             if !(val.status.success()) {
                 let stderr = str::from_utf8(&val.stderr)
                     .unwrap_or("[Invalid UTF-8 in stderr]")
                     .to_owned();
-                log::error!("{}", format!("eslint check output error: {:?}", stderr));
+                tracing::error!("{}", format!("eslint check output error: {:?}", stderr));
                 Err(stderr)
             } else {
                 Ok(())
             }
         }
         Err(e) => {
-            log::error!("eslint check error: {}", e);
+            tracing::error!("eslint check error: {}", e);
             Err(format!("js_eval error: {}", e))
         }
     }
