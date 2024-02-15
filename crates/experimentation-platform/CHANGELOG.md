@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.9.3 - 2024-02-15
+#### Bug Fixes
+- fixing error message for experiment create and bulk context api - (bc0d7be) - Jenkins
+
+- - -
+
 ## experimentation-platform-v0.9.2 - 2024-01-29
 #### Bug Fixes
 - added partitions for audit_log table in cac schema - (d771050) - Shubhranshu Sanjeev

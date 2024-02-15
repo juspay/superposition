@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.15.1 - 2024-02-15
+#### Bug Fixes
+- fixing error message for experiment create and bulk context api - (bc0d7be) - Jenkins
+
+- - -
+
 ## context-aware-config-v0.15.0 - 2024-01-31
 #### Features
 - [PICAF-25817] added authentication header for frontend apis - (3f90592) - Saurav Suman
