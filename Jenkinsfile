@@ -1,3 +1,13 @@
+def jenkinsConsoleUrl = "$env.JOB_URL" + "$env.BUILD_NUMBER"
+def slackResponseArray = []
+
+def sendSlack(color, message, jenkinsConsoleUrl, slackResponseArray) {
+  def slackResponse = slackSend channel: "C04QY9BFM7Y", color: color, message: message+ "\n" + "<${jenkinsConsoleUrl} | *JOB-${env.BUILD_NUMBER}*>"
+  slackResponseArray.each { item ->
+    slackSend(channel: slackResponse.threadId, color: "#01F2D1" , message: "`${item}`" )
+  }
+}
+
 def getRegistryHost(aws_acc_id, region) {
     return aws_acc_id + ".dkr.ecr." + region + ".amazonaws.com";
 }
@@ -140,6 +150,10 @@ pipeline {
         branch 'main'
       }
       steps {
+        script {
+          slackResponseArray << "COMMIT BUILT : ${COMMIT_HASH}"
+          slackResponseArray << "NEW_SEMANTIC_VERSION/DOCKER IMAGE TAG : ${NEW_SEMANTIC_VERSION}"
+        }
         sh '''make ci-build -e \
                 VERSION=${NEW_SEMANTIC_VERSION} \
                 SOURCE_COMMIT=${COMMIT_HASH} \
@@ -242,6 +256,22 @@ pipeline {
           echo 'Build Success'
         }
       }
+    }
+  }
+  post {
+    failure {
+      script {
+        if (env.BRANCH_NAME == 'main') {
+          sendSlack("#AA1100", "@channel *BUILD_FAILED* ", jenkinsConsoleUrl, slackResponseArray)
+        }
+     }
+   }
+    success {
+      script {
+        if (env.BRANCH_NAME == 'main' && env.NEW_SEMANTIC_VERSION != env.OLD_SEMANTIC_VERSION) {
+          sendSlack("#3CF700", "*BUILD SUCCESS*", jenkinsConsoleUrl, slackResponseArray)
+        }
+     }
     }
   }
 }
