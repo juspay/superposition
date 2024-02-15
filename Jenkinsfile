@@ -22,6 +22,7 @@ pipeline {
     REGISTRY_HOST_SBX = getRegistryHost("701342709052", REGION);
     REGISTRY_HOST_PROD = getRegistryHost("980691203742", REGION);
     REGISTRY_HOST_NY_PROD = getRegistryHost("147728078333", REGION);
+    REGISTRY_HOST_NY_SBX = getRegistryHost("463356420488", REGION);
     AUTOPILOT_HOST_SBX = "autopilot.internal.staging.mum.juspay.net";
     DOCKER_DIND_DNS = "jenkins-newton-dind.jp-internal.svc.cluster.local"
     GIT_REPO_NAME = "context-aware-config"
@@ -192,6 +193,21 @@ pipeline {
       }
     }
 
+    stage('Push Image To NY Sandbox Registry') {
+      when {
+        expression { SKIP_CI == 'false' }
+        expression { env.NEW_SEMANTIC_VERSION != env.OLD_SEMANTIC_VERSION }
+        branch 'main'
+      }
+      steps {
+        sh '''make ci-push -e \
+                VERSION=${NEW_SEMANTIC_VERSION} \
+                REGION=${REGION} \
+                REGISTRY_HOST=${REGISTRY_HOST_NY_SBX}
+           '''
+      }
+    }
+
     stage('Push Image To NY Production Registry') {
       when {
         expression { SKIP_CI == 'false' }
@@ -214,7 +230,7 @@ pipeline {
 	    branch 'main'
       }
       environment {
-        CREDS = credentials('AP_INTEG_ID')
+        CREDS = credentials('AUTOPILOT_AUTH_HEADER')
         COMMIT_MSG = sh(returnStdout: true, script: "git log --format=format:%s -1")
         CHANGE_LOG = "Commit message: ${COMMIT_MSG}";
         AUTHOR_NAME = sh(returnStdout: true, script: "git log -1 --pretty=format:'%ae'")
@@ -222,7 +238,7 @@ pipeline {
       steps {
         sh """curl -v --location --request POST 'https://${AUTOPILOT_HOST_SBX}/release' \
                 --header 'Content-Type: application/json' \
-                --header 'Authorization: Basic ${AUTOPILOT_AUTH_HEADER}' \
+                --header 'Authorization: Basic ${CREDS}' \
                 --data-raw '{
                       "service": ["CONTEXT_AWARE_CONFIG"],
                       "release_manager": "jenkins.jenkins",
