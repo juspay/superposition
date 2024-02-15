@@ -2,6 +2,32 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.20.0 - 2024-02-15
+### Package updates
+- service-utils bumped to service-utils-v0.10.3
+- experimentation-platform bumped to experimentation-platform-v0.9.3
+- context-aware-config bumped to context-aware-config-v0.15.1
+### Global changes
+#### Bug Fixes
+- fixing error message for experiment create and bulk context api - (bc0d7be) - Jenkins
+- jenkinsfile now sends build alerts in channel - (2e04ca5) - Kartik
+#### Continuous Integration
+- pushing cac image to NY sbx ECR - (78c1b32) - Shubhranshu Sanjeev
+#### Documentation
+- PICAF-25981: add intro doc and features - (4dc6f19) - Natarajan Kannan
+- PICAF-25981: add intro doc and features - (14a7f44) - Natarajan Kannan
+- PICAF-25981: add intro doc and features - (0e11056) - Natarajan Kannan
+- [PICAF-25981] context aware config docs - (ea04b76) - Kartik
+- (PICAF-25983) added setup instruction - (e7d00d9) - Saurav Suman
+#### Features
+- [PICAF-25981] client-integration-doc - (bc4927d) - Pratik Mishra
+- added bool, i64 and decimal in default config form - (fca1ca6) - Saurav Suman
+#### Miscellaneous Chores
+- [PICAF-25973] autodeploy to sbx - (b812140) - Kartik
+- experimentation docs first cut - (d81aea4) - Shubhranshu Sanjeev
+
+- - -
+
 ## v0.19.0 - 2024-01-31
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.15.0

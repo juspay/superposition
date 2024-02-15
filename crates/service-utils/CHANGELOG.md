@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service-utils-v0.10.3 - 2024-02-15
+#### Bug Fixes
+- fixing error message for experiment create and bulk context api - (bc0d7be) - Jenkins
+
+- - -
+
 ## service-utils-v0.10.2 - 2024-01-22
 #### Bug Fixes
 - fixed host resolve issue for internal calls in SSR. - (3cc9d6e) - Shubhranshu Sanjeev
