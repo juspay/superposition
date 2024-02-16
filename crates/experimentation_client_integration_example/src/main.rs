@@ -5,7 +5,7 @@ use actix_web::{
 };
 
 use serde_json::json;
-use superposition_client as exp;
+use experimentation_client as exp;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

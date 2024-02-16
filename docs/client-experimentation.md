@@ -1,6 +1,6 @@
 # Experimentation Client Integration
 
-This provides SDK to interact with ```experimentation-platform```.We support superposition_client for
+This provides SDK to interact with ```experimentation-platform```.We support experimentation_client for
  1. Rust
  2. Haskell
 
@@ -23,7 +23,7 @@ for tenant in tenants {
                                 hostname.to_string()// superposition hostname
                             )
                 .await
-                .expect(format!("{}: Failed to acquire superposition_client", tenant).as_str())
+                .expect(format!("{}: Failed to acquire experimentation_client", tenant).as_str())
                 .clone()
                 .run_polling_updates(),
         );
@@ -35,7 +35,7 @@ let sp_client = sp::CLIENT_FACTORY
         .await
         .map_err(|e| {
             log::error!("{}: {}", tenant, e);
-            ErrorType::IgnoreError(format!("{}: Failed to get superposition_client", tenant))
+            ErrorType::IgnoreError(format!("{}: Failed to get experimentation_client", tenant))
         })?;
 
 
