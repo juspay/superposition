@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-superposition_client = { path = "../superposition_client" }
+experimentation_client = { path = "../experimentation_client" }
 chrono = { workspace = true }
 
 # Https server framework
