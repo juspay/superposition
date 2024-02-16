@@ -1392,8 +1392,8 @@ dependencies = [
  "actix",
  "actix-web",
  "chrono",
+ "experimentation_client",
  "serde_json",
- "superposition_client",
 ]
 
 [[package]]
@@ -1416,6 +1416,23 @@ dependencies = [
  "serde_json",
  "service-utils",
  "uuid",
+]
+
+[[package]]
+name = "experimentation_client"
+version = "0.4.0"
+dependencies = [
+ "cbindgen",
+ "chrono",
+ "derive_more",
+ "dotenv",
+ "jsonlogic",
+ "log",
+ "once_cell",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -3693,23 +3710,6 @@ name = "subtle"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
-
-[[package]]
-name = "superposition_client"
-version = "0.5.0"
-dependencies = [
- "cbindgen",
- "chrono",
- "derive_more",
- "dotenv",
- "jsonlogic",
- "log",
- "once_cell",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
-]
 
 [[package]]
 name = "sval"

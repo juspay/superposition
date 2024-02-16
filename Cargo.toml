@@ -4,7 +4,7 @@ resolver = "2"
 members = [
   "crates/service-utils",
   "crates/context-aware-config",
-  "crates/superposition_client",
+  "crates/experimentation_client",
   "crates/cac_client",
   "crates/superposition_client_integration_example",
   "crates/frontend",

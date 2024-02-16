@@ -32,4 +32,4 @@ external = { path = "crates/external" }
 frontend = { path = "crates/frontend" }
 caclang = { path = "crates/caclang" }
 cac_client = { path = "crates/cac_client" }
-superposition_client = { path = "crates/superposition_client" }
+experimentation_client = { path = "crates/experimentation_client" }

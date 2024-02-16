@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
-## superposition_client-v0.4.0 - 2023-11-11
+## experimentation_client-v0.4.0 - 2023-11-11
 #### Features
 - added format check in the JenkinsFile(PICAF-24813) - (4fdf864) - Saurav Suman
 #### Miscellaneous Chores
@@ -18,31 +18,31 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
-## superposition_client-v0.3.0 - 2023-10-27
+## experimentation_client-v0.3.0 - 2023-10-27
 #### Features
 - multi-tenant support for client libraries - (c603be0) - Shubhranshu Sanjeev
 
 - - -
 
-## superposition_client-v0.2.0 - 2023-10-20
+## experimentation_client-v0.2.0 - 2023-10-20
 #### Features
 - PICAF-23643 - Dimension value schema validation on context-addition - (b2fad9e) - Prasanna P
 
 - - -
 
-## superposition_client-v0.1.3 - 2023-10-13
+## experimentation_client-v0.1.3 - 2023-10-13
 #### Bug Fixes
 - PICAF-24612 add all variants in manifest - (0f15ac9) - Pratik Mishra
 
 - - -
 
-## superposition_client-v0.1.2 - 2023-09-06
+## experimentation_client-v0.1.2 - 2023-09-06
 #### Bug Fixes
 - trimming newline character from version string - (2c61077) - Shubhranshu Sanjeev
 
 - - -
 
-## superposition_client-v0.1.1 - 2023-09-06
+## experimentation_client-v0.1.1 - 2023-09-06
 #### Bug Fixes
 - fixed setting env in docker image - (272454b) - Shubhranshu Sanjeev
 #### Continuous Integration
@@ -50,7 +50,7 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
-## superposition_client-v0.1.0 - 2023-09-01
+## experimentation_client-v0.1.0 - 2023-09-01
 #### Bug Fixes
 - PICAF-24114 removed unwanted parameter to prevent warning - (3de7fe7) - Ritick Madaan
 - PICAF-24114 allowing cug users to fall under test variants - (c095333) - Ritick Madaan

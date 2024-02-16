@@ -270,7 +270,7 @@ All notable changes to this project will be documented in this file. See [conven
 - cac_client locked to cac_client-v0.5.0
 - external locked to external-v0.3.0
 - service-utils locked to service-utils-v0.10.2
-- superposition_client locked to superposition_client-v0.4.0
+- experimentation_client locked to experimentation_client-v0.4.0
 - context-aware-config locked to context-aware-config-v0.14.2
 ### Global changes
 #### Bug Fixes
@@ -420,7 +420,7 @@ All notable changes to this project will be documented in this file. See [conven
 - external bumped to external-v0.3.0
 - cac_client bumped to cac_client-v0.4.0
 - service-utils bumped to service-utils-v0.9.0
-- superposition_client bumped to superposition_client-v0.4.0
+- experimentation_client bumped to experimentation_client-v0.4.0
 - experimentation-platform bumped to experimentation-platform-v0.8.0
 ### Global changes
 #### Bug Fixes
@@ -474,7 +474,7 @@ All notable changes to this project will be documented in this file. See [conven
 - context-aware-config bumped to context-aware-config-v0.10.1
 - cac_client bumped to cac_client-v0.3.0
 - service-utils bumped to service-utils-v0.7.1
-- superposition_client bumped to superposition_client-v0.3.0
+- experimentation_client bumped to experimentation_client-v0.3.0
 ### Global changes
 #### Bug Fixes
 - fixed failing health check (x-tenant header not set) - (23af679) - Shubhranshu Sanjeev
@@ -501,14 +501,14 @@ All notable changes to this project will be documented in this file. See [conven
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.9.0
 - service-utils bumped to service-utils-v0.6.0
-- superposition_client bumped to superposition_client-v0.2.0
+- experimentation_client bumped to experimentation_client-v0.2.0
 ### Global changes
 
 - - -
 
 ## v0.9.1 - 2023-10-13
 ### Package updates
-- superposition_client bumped to superposition_client-v0.1.3
+- experimentation_client bumped to experimentation_client-v0.1.3
 ### Global changes
 
 - - -
@@ -594,7 +594,7 @@ All notable changes to this project will be documented in this file. See [conven
 
 ## v0.5.1 - 2023-09-06
 ### Package updates
-- superposition_client bumped to superposition_client-v0.1.2
+- experimentation_client bumped to experimentation_client-v0.1.2
 ### Global changes
 #### Bug Fixes
 - trimming newline character from version string - (2c61077) - Shubhranshu Sanjeev
@@ -614,7 +614,7 @@ All notable changes to this project will be documented in this file. See [conven
 
 ## v0.4.1 - 2023-09-06
 ### Package updates
-- superposition_client bumped to superposition_client-v0.1.1
+- experimentation_client bumped to experimentation_client-v0.1.1
 ### Global changes
 #### Bug Fixes
 - fixed setting env in docker image - (272454b) - Shubhranshu Sanjeev
@@ -664,7 +664,7 @@ All notable changes to this project will be documented in this file. See [conven
 - service-utils bumped to service-utils-v0.1.0
 - cac_client bumped to cac_client-v0.1.0
 - context-aware-config bumped to context-aware-config-v0.1.0
-- superposition_client bumped to superposition_client-v0.1.0
+- experimentation_client bumped to experimentation_client-v0.1.0
 ### Global changes
 #### Bug Fixes
 - PICAF-24114 logged env variable's value before kms decrypting - (5bda6fb) - Ritick Madaan
