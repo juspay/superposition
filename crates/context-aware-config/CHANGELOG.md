@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.15.2 - 2024-02-19
+#### Bug Fixes
+- [PICAF-26004] better logging - (b3d1bc8) - Kartik
+
+- - -
+
 ## context-aware-config-v0.15.1 - 2024-02-15
 #### Bug Fixes
 - fixing error message for experiment create and bulk context api - (bc0d7be) - Jenkins

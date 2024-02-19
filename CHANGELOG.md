@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.20.1 - 2024-02-19
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.15.2
+### Global changes
+#### Bug Fixes
+- [PICAF-26004] better logging - (b3d1bc8) - Kartik
+
+- - -
+
 ## v0.20.0 - 2024-02-15
 ### Package updates
 - service-utils bumped to service-utils-v0.10.3
