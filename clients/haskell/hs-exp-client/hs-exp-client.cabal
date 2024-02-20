@@ -65,7 +65,7 @@ library
       BlockArguments
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded
   extra-libraries:
-      superposition_client
+      experimentation_client
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -112,7 +112,7 @@ executable hs-exp-client-exe
       BlockArguments
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -threaded -rtsopts -with-rtsopts=-N
   extra-libraries:
-      superposition_client
+      experimentation_client
   build-depends:
       aeson
     , base >=4.7 && <5

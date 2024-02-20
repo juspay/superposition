@@ -4,8 +4,8 @@ use actix_web::{
     App, HttpResponse, HttpServer,
 };
 
-use serde_json::json;
 use experimentation_client as exp;
+use serde_json::json;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
