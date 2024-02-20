@@ -6,6 +6,6 @@ fn main() {
     config.language = cbindgen::Language::C;
     println!("Calling build.rs in cac_client");
     cbindgen::generate_with_config(&crate_dir, config)
-      .unwrap()
-      .write_to_file("../../headers/libcac_client.h");
+        .unwrap()
+        .write_to_file("../../headers/libcac_client.h");
 }

@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
-## superposition_client-v0.5.0 - 2024-03-18
+## experimentation_client-v0.5.0 - 2024-03-18
 #### Documentation
 - PICAF-25981: add intro doc and features - (d09ba53) - Natarajan Kannan
 #### Features

@@ -2,10 +2,7 @@ mod eval;
 mod interface;
 mod utils;
 
-use actix_web::{
-    rt::{self, time::interval},
-    web::Data,
-};
+use actix_web::{rt::time::interval, web::Data};
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
 use reqwest::{RequestBuilder, Response, StatusCode};
@@ -47,6 +44,16 @@ impl Default for MergeStrategy {
     }
 }
 
+impl From<String> for MergeStrategy {
+    fn from(value: String) -> Self {
+        match value.to_lowercase().as_str() {
+            "replace" => MergeStrategy::REPLACE,
+            "merge" => MergeStrategy::MERGE,
+            _ => MergeStrategy::default(),
+        }
+    }
+}
+
 #[repr(C)]
 #[derive(Clone)]
 pub struct Client {
@@ -77,7 +84,6 @@ fn get_last_modified(resp: &Response) -> Option<DateTime<Utc>> {
 impl Client {
     pub async fn new(
         tenant: String,
-        update_config_periodically: bool,
         polling_interval: Duration,
         hostname: String,
     ) -> Result<Self, String> {
@@ -101,9 +107,6 @@ impl Client {
             )),
             config: Data::new(RwLock::new(config)),
         };
-        if update_config_periodically {
-            client.clone().start_polling_update().await;
-        }
         Ok(client)
     }
 
@@ -139,30 +142,16 @@ impl Client {
         Ok(format!("{}: CAC updated successfully", self.tenant))
     }
 
-    pub async fn start_polling_update(self) {
-        rt::spawn(async move {
-            let mut interval = interval(self.polling_interval);
-            loop {
-                interval.tick().await;
-                let result = self.update_cac().await.unwrap_or_else(identity);
-                log::info!("{result}",);
-            }
-        });
-    }
-
-    pub async fn ffi_polling_update(self) {
-        println!("into polling updates");
+    pub async fn run_polling_updates(self: Arc<Self>) {
         let mut interval = interval(self.polling_interval);
         loop {
-            println!("started polling updates");
             interval.tick().await;
             let result = self.update_cac().await.unwrap_or_else(identity);
-            println!("{result}");
             log::info!("{result}",);
         }
     }
 
-    pub fn get_config(&self) -> Result<Config, String> {
+    pub fn get_full_config_state(&self) -> Result<Config, String> {
         self.config.read().map(|c| c.clone()).map_err_to_string()
     }
 
@@ -184,6 +173,46 @@ impl Client {
             merge_strategy,
         )
     }
+
+    pub fn get_resolved_config(
+        &self,
+        query_data: Map<String, Value>,
+        keys: Vec<String>,
+        merge_strategy: MergeStrategy,
+    ) -> Result<Map<String, Value>, String> {
+        let cac = self.eval(query_data, merge_strategy)?;
+        if keys.is_empty() {
+            return Ok(cac);
+        }
+        Ok(Map::from_iter(
+            cac.iter()
+                .filter_map(|(config, v)| {
+                    if keys.contains(config) {
+                        Some((config.to_owned(), v.to_owned()))
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<(String, Value)>>(),
+        ))
+    }
+
+    pub fn get_default_config(
+        &self,
+        keys: Vec<String>,
+    ) -> Result<Map<String, Value>, String> {
+        let configs = self.config.read().map_err(|e| e.to_string())?;
+        let default_configs = configs.default_configs.clone();
+        let default_configs = if keys.len() > 0 {
+            default_configs
+                .into_iter()
+                .filter(|(item, _)| keys.contains(item))
+                .collect::<Map<String, Value>>()
+        } else {
+            default_configs
+        };
+        Ok(default_configs)
+    }
 }
 
 #[derive(Deref, DerefMut)]
@@ -192,7 +221,6 @@ impl ClientFactory {
     pub async fn create_client(
         &self,
         tenant: String,
-        update_config_periodically: bool,
         polling_interval: Duration,
         hostname: String,
     ) -> Result<Arc<Client>, String> {
@@ -208,15 +236,8 @@ impl ClientFactory {
             return Ok(client.clone());
         }
 
-        let client = Arc::new(
-            Client::new(
-                tenant.to_string(),
-                update_config_periodically,
-                polling_interval,
-                hostname,
-            )
-            .await?,
-        );
+        let client =
+            Arc::new(Client::new(tenant.to_string(), polling_interval, hostname).await?);
         factory.insert(tenant.to_string(), client.clone());
         return Ok(client.clone());
     }

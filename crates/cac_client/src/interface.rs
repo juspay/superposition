@@ -10,7 +10,6 @@ use serde_json::{Map, Value};
 use std::{
     cell::RefCell,
     ffi::{c_int, CString},
-    str::FromStr,
     time::Duration,
 };
 use tokio::{runtime::Runtime, task};
@@ -19,7 +18,33 @@ thread_local! {
     static LAST_ERROR: RefCell<Option<Box<String>>> = RefCell::new(None);
 }
 
+macro_rules! null_check {
+    ($client: ident, $err: literal, $return: stmt) => {
+        if $client.is_null() {
+            update_last_error($err.into());
+            $return
+        }
+    };
+}
+
+macro_rules! unwrap_safe {
+    ($result: expr, $return: stmt) => {
+        match $result {
+            Ok(value) => value,
+            Err(err) => {
+                update_last_error(err.to_string());
+                $return
+            }
+        }
+    };
+}
+
 fn cstring_to_rstring(s: *const c_char) -> Result<String, String> {
+    null_check!(
+        s,
+        "Invalid C string passed: string was a NULL pointer",
+        return Err("Invalid C string passed: string was a NULL pointer".into())
+    );
     let s = unsafe { CStr::from_ptr(s) };
     s.to_str().map(str::to_string).map_err_to_string()
 }
@@ -30,7 +55,6 @@ fn rstring_to_cstring(s: String) -> CString {
 
 pub fn update_last_error(err: String) {
     println!("Setting LAST_ERROR: {}", err);
-
     LAST_ERROR.with(|prev| {
         *prev.borrow_mut() = Some(Box::new(err));
     });
@@ -50,10 +74,10 @@ pub extern "C" fn last_error_length() -> c_int {
 
 #[no_mangle]
 pub unsafe extern "C" fn last_error_message() -> *const c_char {
-    let last_error = match take_last_error() {
-        Some(err) => err,
-        None => return std::ptr::null_mut(),
-    };
+    let last_error = unwrap_safe!(
+        take_last_error().ok_or("No error found"),
+        return std::ptr::null_mut()
+    );
     let error_message = last_error.to_string();
     // println!("Error in last_error_message {error_message}");
     let err = rstring_to_cstring(error_message);
@@ -73,31 +97,18 @@ pub unsafe extern "C" fn free_string(s: *mut c_char) {
 #[no_mangle]
 pub extern "C" fn new_client(
     tenant: *const c_char,
-    update_periodically: bool,
     update_frequency: c_ulong,
     hostname: *const c_char,
 ) -> c_int {
     let duration = Duration::new(update_frequency, 0);
-    let tenant = match cstring_to_rstring(tenant) {
-        Ok(value) => value,
-        Err(err) => {
-            update_last_error(err);
-            return 1;
-        }
-    };
-    let hostname = match cstring_to_rstring(hostname) {
-        Ok(value) => value,
-        Err(err) => {
-            update_last_error(err);
-            return 1;
-        }
-    };
+    let tenant = unwrap_safe!(cstring_to_rstring(tenant), return 1);
+    let hostname = unwrap_safe!(cstring_to_rstring(hostname), return 1);
 
     // println!("Creating cac client thread for tenant {tenant}");
     let local = task::LocalSet::new();
     local.block_on(&Runtime::new().unwrap(), async move {
         match CLIENT_FACTORY
-            .create_client(tenant.clone(), update_periodically, duration, hostname)
+            .create_client(tenant.clone(), duration, hostname)
             .await
         {
             Ok(_) => return 0,
@@ -112,16 +123,15 @@ pub extern "C" fn new_client(
 
 #[no_mangle]
 pub extern "C" fn start_polling_update(tenant: *const c_char) {
-    if tenant.is_null() {
-        return ();
-    }
+    null_check!(tenant, "NULL pointer provided for tenant", return ());
     unsafe {
         let client = get_client(tenant);
+        null_check!(client, "CAC client for tenant not found", return ());
         let local = task::LocalSet::new();
         // println!("in FFI polling");
         local.block_on(
             &Runtime::new().unwrap(),
-            (**client).clone().ffi_polling_update(),
+            (*client).clone().run_polling_updates(),
         );
     }
 }
@@ -138,97 +148,117 @@ pub extern "C" fn free_client(ptr: *mut Arc<Client>) {
 
 #[no_mangle]
 pub extern "C" fn get_client(tenant: *const c_char) -> *mut Arc<Client> {
-    let ten = match cstring_to_rstring(tenant) {
-        Ok(t) => t,
-        Err(err) => {
-            update_last_error(err);
-            return std::ptr::null_mut();
-        }
-    };
+    let ten = unwrap_safe!(cstring_to_rstring(tenant), return std::ptr::null_mut());
     // println!("fetching cac client thread for tenant {ten}");
-    match CLIENT_FACTORY.get_client(ten).map_err(|e| format!("{}", e)) {
-        Ok(client) => Box::into_raw(Box::new(client)),
-        Err(err) => {
-            // println!("error occurred {err}");
-            update_last_error(err);
-            // println!("error set");
-            std::ptr::null_mut()
-        }
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn cac_eval(
-    client: *mut Arc<Client>,
-    query: *const c_char,
-    merge_strategy: *const c_char,
-) -> *const c_char {
-    let context_string = match cstring_to_rstring(query) {
-        Ok(s) => s,
-        Err(err) => {
-            update_last_error(err);
-            return std::ptr::null();
-        }
-    };
-    let context: Map<String, Value> =
-        match serde_json::from_str::<Map<String, Value>>(context_string.as_str()) {
-            Ok(json) => json,
-            Err(err) => {
-                update_last_error(err.to_string());
-                return std::ptr::null();
-            }
-        };
-    let merge_strategy = match cstring_to_rstring(merge_strategy) {
-        Ok(s) => match MergeStrategy::from_str(s.as_str()) {
-            Ok(strat) => strat,
-            Err(err) => {
-                update_last_error(err.to_string());
-                return std::ptr::null();
-            }
-        },
-        Err(err) => {
-            update_last_error(err);
-            return std::ptr::null();
-        }
-    };
-    let overrides = match unsafe { (*client).eval(context, merge_strategy) } {
-        Ok(ov) => match serde_json::to_string::<Map<String, Value>>(&ov) {
-            Ok(ove) => ove,
-            Err(err) => {
-                update_last_error(err.to_string());
-                return std::ptr::null();
-            }
-        },
-        Err(err) => {
-            update_last_error(err);
-            return std::ptr::null();
-        }
-    };
-    rstring_to_cstring(overrides).into_raw()
+    unwrap_safe!(
+        CLIENT_FACTORY
+            .get_client(ten)
+            .map(|client| Box::into_raw(Box::new(client))),
+        std::ptr::null_mut()
+    )
 }
 
 #[no_mangle]
 pub extern "C" fn get_last_modified(client: *mut Arc<Client>) -> *const c_char {
-    let last_modified = unsafe { (*client).get_last_modified() };
-    match last_modified {
-        Ok(date) => rstring_to_cstring(date.to_string()).into_raw(),
-        Err(err) => {
-            update_last_error(err);
-            std::ptr::null()
-        }
-    }
+    null_check!(
+        client,
+        "an invalid null pointer client is being used, please call get_client()",
+        return std::ptr::null()
+    );
+    unwrap_safe!(
+        unsafe {
+            (*client)
+                .get_last_modified()
+                .map(|date| rstring_to_cstring(date.to_string()).into_raw())
+        },
+        std::ptr::null()
+    )
 }
 
 #[no_mangle]
 pub extern "C" fn get_config(client: *mut Arc<Client>) -> *const c_char {
-    let config = unsafe { (*client).get_config() };
-    match config {
-        Ok(c) => {
-            rstring_to_cstring(serde_json::to_value(c).unwrap().to_string()).into_raw()
-        }
-        Err(err) => {
-            update_last_error(err);
-            std::ptr::null_mut()
-        }
-    }
+    null_check!(
+        client,
+        "an invalid null pointer client is being used, please call get_client()",
+        return std::ptr::null()
+    );
+    unwrap_safe!(
+        unsafe {
+            (*client).get_full_config_state().map(|config| {
+                rstring_to_cstring(serde_json::to_value(config).unwrap().to_string())
+                    .into_raw()
+            })
+        },
+        return std::ptr::null_mut()
+    )
+}
+
+#[no_mangle]
+pub extern "C" fn get_resolved_config(
+    client: *mut Arc<Client>,
+    query: *const c_char,
+    keys: *const c_char,
+    merge_strategy: *const c_char,
+) -> *const c_char {
+    null_check!(
+        client,
+        "an invalid null pointer client is being used, please call get_client()",
+        return std::ptr::null()
+    );
+
+    let key = unwrap_safe!(cstring_to_rstring(keys), return std::ptr::null());
+    let key_vector = key.split("|").map(str::to_string).collect();
+
+    let query = unwrap_safe!(cstring_to_rstring(query), return std::ptr::null());
+    let merge_strategem =
+        unwrap_safe!(cstring_to_rstring(merge_strategy), return std::ptr::null());
+    println!(
+        "key vector {:#?}, merge strategy {:#?}",
+        key_vector, merge_strategem
+    );
+
+    let context = unwrap_safe!(
+        serde_json::from_str::<Map<String, Value>>(query.as_str()),
+        return std::ptr::null()
+    );
+
+    unwrap_safe!(
+        unsafe {
+            (*client)
+                .get_resolved_config(
+                    context,
+                    key_vector,
+                    MergeStrategy::from(merge_strategem),
+                )
+                .map(|ov| {
+                    unwrap_safe!(
+                        serde_json::to_string::<Map<String, Value>>(&ov)
+                            .map(|overrides| rstring_to_cstring(overrides).into_raw()),
+                        return std::ptr::null()
+                    )
+                })
+        },
+        return std::ptr::null()
+    )
+}
+
+#[no_mangle]
+pub extern "C" fn get_default_config(
+    client: *mut Arc<Client>,
+    keys: *const c_char,
+) -> *const c_char {
+    let key = unwrap_safe!(cstring_to_rstring(keys), return std::ptr::null());
+    let key_vector = key.split("|").map(str::to_string).collect();
+    unwrap_safe!(
+        unsafe {
+            (*client).get_default_config(key_vector).map(|ov| {
+                unwrap_safe!(
+                    serde_json::to_string::<Map<String, Value>>(&ov)
+                        .map(|overrides| rstring_to_cstring(overrides).into_raw()),
+                    return std::ptr::null()
+                )
+            })
+        },
+        return std::ptr::null()
+    )
 }

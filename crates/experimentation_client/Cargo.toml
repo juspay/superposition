@@ -16,7 +16,7 @@ derive_more = { workspace = true }
 log = { workspace = true }
 
 [lib]
-name = "superposition_client"
+name = "experimentation_client"
 crate-type = ["cdylib", "lib"]
 
 [build-dependencies]
