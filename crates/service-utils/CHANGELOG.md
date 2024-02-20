@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service-utils-v0.11.0 - 2024-02-20
+#### Features
+- support for service prefix - (a2915b4) - Shubhranshu Sanjeev
+
+- - -
+
 ## service-utils-v0.10.3 - 2024-02-15
 #### Bug Fixes
 - fixing error message for experiment create and bulk context api - (bc0d7be) - Jenkins
