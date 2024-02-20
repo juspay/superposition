@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.21.0 - 2024-02-20
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.16.0
+- service-utils bumped to service-utils-v0.11.0
+### Global changes
+#### Features
+- support for service prefix - (a2915b4) - Shubhranshu Sanjeev
+
+- - -
+
 ## v0.20.1 - 2024-02-19
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.15.2
