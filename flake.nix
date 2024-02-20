@@ -29,6 +29,7 @@
         devShells.default = pkgs.mkShell {
           inputsFrom = [
             self'.devShells.rust
+            self'.devShells.haskell
           ];
           packages = with pkgs; [
             docker-compose

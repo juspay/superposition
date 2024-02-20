@@ -6,5 +6,5 @@ fn main() {
     config.language = cbindgen::Language::C;
     cbindgen::generate_with_config(&crate_dir, config)
         .unwrap()
-        .write_to_file("../../headers/libsuperposition_client.h");
+        .write_to_file("../../headers/libexperimentation_client.h");
 }
