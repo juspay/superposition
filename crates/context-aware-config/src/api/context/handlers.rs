@@ -212,7 +212,7 @@ fn update_override_of_existing_ctx(
         .filter(dsl::id.eq(&ctx.id))
         .select(dsl::override_)
         .first(conn)?;
-    json_patch::merge(&mut new_override, &ctx.override_);
+    cac_client::merge(&mut new_override, &ctx.override_);
     let new_override_id = hash(&new_override);
     let new_ctx = Context {
         override_: new_override,

@@ -615,7 +615,6 @@ dependencies = [
  "actix-web",
  "chrono",
  "derive_more",
- "json-patch",
  "jsonlogic",
  "log",
  "once_cell",
@@ -860,7 +859,6 @@ dependencies = [
  "futures",
  "futures-util",
  "itertools 0.10.5",
- "json-patch",
  "jsonschema",
  "leptos",
  "leptos_actix",
@@ -1924,18 +1922,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cee9c64da59eae3b50095c18d3e74f8b73c0b86d2792824ff01bbce68ba229ca"
 dependencies = [
  "wasm-bindgen",
-]
-
-[[package]]
-name = "json-patch"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f54898088ccb91df1b492cc80029a6fdf1c48ca0db7c6822a8babad69c94658"
-dependencies = [
- "serde",
- "serde_json",
- "thiserror",
- "treediff",
 ]
 
 [[package]]
@@ -3914,15 +3900,6 @@ dependencies = [
  "tracing-core",
  "tracing-serde",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "treediff"
-version = "4.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52984d277bdf2a751072b5df30ec0377febdb02f7696d64c2d7d54630bac4303"
-dependencies = [
- "serde_json",
 ]
 
 [[package]]
