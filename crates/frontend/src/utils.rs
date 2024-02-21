@@ -32,7 +32,7 @@ pub fn add_prefix(o_str: &str, prefix: &str) -> String {
 }
 
 pub fn is_server() -> bool {
-    env::var("SERVER_NAME").is_ok()
+    env::var("SERVICE_NAME").is_ok()
 }
 
 pub fn use_url_base() -> String {
