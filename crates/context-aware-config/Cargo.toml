@@ -43,7 +43,6 @@ diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
 urlencoding = { workspace = true }
 jsonschema = { workspace = true }
 reqwest = { workspace = true, features = ["rustls-tls"] }
-json-patch = { workspace = true }
 rand = { workspace = true }
 service-utils = { path = "../service-utils" }
 experimentation-platform = { path = "../experimentation-platform" }
