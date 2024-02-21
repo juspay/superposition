@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.22.0 - 2024-02-21
+### Packages
+- context-aware-config locked to context-aware-config-v0.16.0
+- cac_client locked to cac_client-v0.5.0
+- superposition_client locked to superposition_client-v0.4.0
+- service-utils locked to service-utils-v0.11.0
+- external locked to external-v0.3.0
+- experimentation-platform locked to experimentation-platform-v0.9.3
+### Global changes
+#### Bug Fixes
+- using SERVICE_NAME in is_server instead of SERVER_NAME(wrong var name) - (efe97f0) - Shubhranshu Sanjeev
+
+- - -
+
 ## v0.21.0 - 2024-02-20
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.16.0
