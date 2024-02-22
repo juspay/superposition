@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.24.0 - 2024-02-22
+### Package updates
+- cac_client bumped to cac_client-v0.5.1
+- context-aware-config bumped to context-aware-config-v0.18.0
+### Global changes
+#### Bug Fixes
+- PICAF-26157 Do not remove keys with null value on merge - (bd3c196) - ayush.jain@juspay.in
+#### Features
+- PICAF-25876 CRUD APIs for function validator - (7c0c963) - ankit.mahato
+
+- - -
+
 ## v0.23.0 - 2024-02-22
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.17.0
