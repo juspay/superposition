@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.23.0 - 2024-02-22
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.17.0
+### Global changes
+#### Features
+- [PICAF-25877] js eval with node exec - (adc9b19) - Pratik Mishra
+
+- - -
+
 ## v0.22.0 - 2024-02-21
 ### Packages
 - context-aware-config locked to context-aware-config-v0.16.0
