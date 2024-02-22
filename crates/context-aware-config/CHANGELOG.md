@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.17.0 - 2024-02-22
+#### Features
+- [PICAF-25877] js eval with node exec - (adc9b19) - Pratik Mishra
+
+- - -
+
 ## context-aware-config-v0.16.0 - 2024-02-20
 #### Features
 - support for service prefix - (a2915b4) - Shubhranshu Sanjeev
