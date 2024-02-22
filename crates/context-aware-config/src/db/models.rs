@@ -1,4 +1,4 @@
-use crate::db::schema::{contexts, default_configs, dimensions, event_log};
+use crate::db::schema::{contexts, default_configs, dimensions, event_log, functions};
 use chrono::{offset::Utc, DateTime, NaiveDateTime};
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
 use serde::Serialize;
@@ -38,6 +38,22 @@ pub struct DefaultConfig {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: Value,
+}
+
+#[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize, Clone, Debug)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+#[diesel(primary_key(name))]
+pub struct Function {
+    pub function_name: String,
+    pub published_code: Option<String>,
+    pub draft_code: String,
+    pub function_description: String,
+    pub published_runtime_version: Option<String>,
+    pub draft_runtime_version: String,
+    pub published_at: Option<NaiveDateTime>,
+    pub draft_edited_at: NaiveDateTime,
+    pub published_by: Option<String>,
+    pub draft_edited_by: String,
 }
 
 #[derive(Queryable, Selectable, Insertable, Serialize, Clone, Debug)]

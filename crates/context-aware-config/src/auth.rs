@@ -134,3 +134,46 @@ pub mod dimension {
         )])
     }
 }
+
+pub mod functions {
+    use dashboard_auth::types::AuthenticatedRoute;
+    pub fn authenticated_routes() -> Vec<(&'static str, AuthenticatedRoute)> {
+        Vec::from([
+            (
+                "POST::/function",
+                AuthenticatedRoute {
+                    api_tag: "MANAGER".into(),
+                    user_permissions: ("manager".into(), "RW".into()),
+                },
+            ),
+            (
+                "PATCH::/function/{function_name}",
+                AuthenticatedRoute {
+                    api_tag: "MANAGER".into(),
+                    user_permissions: ("manager".into(), "RW".into()),
+                },
+            ),
+            (
+                "GET::/function/{function_name}",
+                AuthenticatedRoute {
+                    api_tag: "MANAGER".into(),
+                    user_permissions: ("manager".into(), "RW".into()),
+                },
+            ),
+            (
+                "DELETE::/function/{function_name}",
+                AuthenticatedRoute {
+                    api_tag: "MANAGER".into(),
+                    user_permissions: ("manager".into(), "RW".into()),
+                },
+            ),
+            (
+                "GET::/function",
+                AuthenticatedRoute {
+                    api_tag: "MANAGER".into(),
+                    user_permissions: ("manager".into(), "RW".into()),
+                },
+            ),
+        ])
+    }
+}
