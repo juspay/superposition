@@ -16,6 +16,7 @@ use std::{
     sync::{Arc, RwLock},
     time::{Duration, UNIX_EPOCH},
 };
+use strum_macros;
 use utils::core::MapError;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -29,6 +30,19 @@ pub struct Config {
     contexts: Vec<Context>,
     overrides: Map<String, Value>,
     default_configs: Map<String, Value>,
+}
+
+#[derive(strum_macros::EnumString)]
+#[strum(serialize_all = "snake_case")]
+pub enum MergeStrategy {
+    MERGE,
+    REPLACE,
+}
+
+impl Default for MergeStrategy {
+    fn default() -> Self {
+        return Self::MERGE;
+    }
 }
 
 #[derive(Clone)]
@@ -137,13 +151,14 @@ impl Client {
         self.config.read().map(|c| c.clone()).map_err_to_string()
     }
 
-    pub fn get_last_modified<E>(&'static self) -> Result<DateTime<Utc>, String> {
+    pub fn get_last_modified(&self) -> Result<DateTime<Utc>, String> {
         self.last_modified.read().map(|t| *t).map_err_to_string()
     }
 
     pub fn eval(
         &self,
         query_data: Map<String, Value>,
+        merge_strategy: MergeStrategy,
     ) -> Result<Map<String, Value>, String> {
         let cac = self.config.read().map_err_to_string()?;
         eval::eval_cac(
@@ -151,6 +166,7 @@ impl Client {
             &cac.contexts,
             &cac.overrides,
             &query_data,
+            merge_strategy,
         )
     }
 }
