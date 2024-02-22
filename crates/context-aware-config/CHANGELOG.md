@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.18.0 - 2024-02-22
+#### Bug Fixes
+- PICAF-26157 Do not remove keys with null value on merge - (bd3c196) - ayush.jain@juspay.in
+#### Features
+- PICAF-25876 CRUD APIs for function validator - (7c0c963) - ankit.mahato
+
+- - -
+
 ## context-aware-config-v0.17.0 - 2024-02-22
 #### Features
 - [PICAF-25877] js eval with node exec - (adc9b19) - Pratik Mishra
