@@ -579,6 +579,23 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    functions (function_name) {
+        function_name -> Text,
+        published_code -> Nullable<Text>,
+        draft_code -> Text,
+        function_description -> Text,
+        #[max_length = 16]
+        published_runtime_version -> Nullable<Varchar>,
+        #[max_length = 16]
+        draft_runtime_version -> Varchar,
+        published_at -> Nullable<Timestamp>,
+        draft_edited_at -> Timestamp,
+        published_by -> Nullable<Text>,
+        draft_edited_by -> Text,
+    }
+}
+
 diesel::allow_tables_to_appear_in_same_query!(
     contexts,
     default_configs,
@@ -625,4 +642,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     event_log_y2026m10,
     event_log_y2026m11,
     event_log_y2026m12,
+    functions,
 );

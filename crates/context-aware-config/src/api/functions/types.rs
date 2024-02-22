@@ -1,0 +1,27 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateFunctionRequest {
+    pub function: Option<String>,
+    pub runtime_version: Option<String>,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CreateFunctionRequest {
+    pub function_name: String,
+    pub function: String,
+    pub runtime_version: String,
+    pub description: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FunctionResponse {
+    pub function_name: String,
+    pub function: String,
+    pub function_description: String,
+    pub runtime_version: String,
+    pub status: String,
+    pub published_at: String,
+    pub drafted_at: String,
+}

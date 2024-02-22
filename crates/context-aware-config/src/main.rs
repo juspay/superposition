@@ -244,6 +244,11 @@ async fn main() -> Result<()> {
                             .service(audit_log::endpoints()),
                     )
                     .service(
+                        scope("/function")
+                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
+                            .service(functions::endpoints()),
+                    )
+                    .service(
                         external::endpoints(experiments::endpoints(scope("/experiments"))).wrap(
                             AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION),
                         ),
@@ -273,5 +278,6 @@ fn authenticated_routes(service_prefix: &str) -> AuthenticatedRouteList {
     route_vector.append(&mut auth::default_config::authenticated_routes());
     route_vector.append(&mut auth::dimension::authenticated_routes());
     route_vector.append(&mut auth::experiments::authenticated_routes());
+    route_vector.append(&mut auth::functions::authenticated_routes());
     AuthenticatedRouteList::from(fill_service_prefix(route_vector, service_prefix))
 }

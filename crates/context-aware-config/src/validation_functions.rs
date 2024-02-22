@@ -52,7 +52,7 @@ fn runtime_wrapper(function_name: &str, value: Value) -> String {
     fun_call + EXIT_LOGIC_CODE
 }
 
-pub fn execute_fn(code_str: &str, fun_name: &str, value: Value) -> bool {
+pub fn execute_fn(code_str: &str, fun_name: &str, value: Value) -> Result<(), String> {
     let output = Command::new("node")
         .arg("-e")
         .arg(IMPORT_CODE.to_string() + code_str + &runtime_wrapper(fun_name, value))
@@ -64,13 +64,18 @@ pub fn execute_fn(code_str: &str, fun_name: &str, value: Value) -> bool {
                 let stderr = str::from_utf8(&val.stderr)
                     .unwrap_or("[Invalid UTF-8 in stderr]")
                     .to_owned();
-                log::error!("{}", format!("validation function output : {:?}", stderr));
+                log::error!(
+                    "{}",
+                    format!("validation function output error: {:?}", stderr)
+                );
+                Err(stderr)
+            } else {
+                Ok(())
             }
-            val.status.success()
         }
         Err(e) => {
             log::error!("js_eval error: {}", e);
-            false
+            Err(format!("js_eval error: {}", e))
         }
     }
 }
@@ -81,7 +86,7 @@ fn eslint_logic(code_str: &str) -> String {
     fun_call + ES_LINT_CODE
 }
 
-pub fn compile_fn(code_str: &str) -> bool {
+pub fn compile_fn(code_str: &str) -> Result<(), String> {
     let output = Command::new("node")
         .arg("-e")
         .arg(eslint_logic(code_str))
@@ -92,13 +97,15 @@ pub fn compile_fn(code_str: &str) -> bool {
                 let stderr = str::from_utf8(&val.stderr)
                     .unwrap_or("[Invalid UTF-8 in stderr]")
                     .to_owned();
-                log::error!("{}", format!("eslint check output : {:?}", stderr));
+                log::error!("{}", format!("eslint check output error: {:?}", stderr));
+                Err(stderr)
+            } else {
+                Ok(())
             }
-            val.status.success()
         }
         Err(e) => {
             log::error!("eslint check error: {}", e);
-            false
+            Err(format!("js_eval error: {}", e))
         }
     }
 }

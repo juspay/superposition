@@ -21,18 +21,23 @@ fn test_execute_fn() {
         }
     "#;
 
+    let err_execute = match execute_fn(
+        &(execute_code_error.to_owned()),
+        &"test_fun".to_owned(),
+        json!(10),
+    ) {
+        Ok(()) => false,
+        Err(e) => e.contains("Bad schema"),
+    };
+    let err_compile = match compile_fn(&(compile_code_error.to_owned())) {
+        Ok(()) => false,
+        Err(e) => e.contains("Bad schema"),
+    };
     assert_eq!(
         execute_fn(&(code_ok.to_owned()), &"test_fun".to_owned(), json!(10)),
-        true
+        Ok(())
     );
-    assert_eq!(
-        execute_fn(
-            &(execute_code_error.to_owned()),
-            &"test_fun".to_owned(),
-            json!(10)
-        ),
-        false
-    );
-    assert_eq!(compile_fn(&(code_ok.to_owned())), true);
-    assert_eq!(compile_fn(&(compile_code_error.to_owned())), true);
+    assert_eq!(err_execute, true);
+    assert_eq!(compile_fn(&(code_ok.to_owned())), Ok(()));
+    assert_eq!(err_compile, true);
 }
