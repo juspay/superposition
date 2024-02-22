@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
 
 use super::types::{Config, Context};
 use crate::db::schema::{
@@ -8,7 +8,7 @@ use actix_http::header::{HeaderName, HeaderValue};
 use actix_web::{
     error::ErrorBadRequest, get, web::Query, HttpRequest, HttpResponse, Scope,
 };
-use cac_client::{eval_cac, eval_cac_with_reasoning};
+use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, NaiveDateTime, Timelike, Utc};
 use diesel::{
     dsl::max,
@@ -176,6 +176,13 @@ async fn get_resolved_config(
         })
         .collect();
 
+    let merge_strategy = req
+        .headers()
+        .get("x-merge-strategy")
+        .and_then(|header_value: &HeaderValue| header_value.to_str().ok())
+        .and_then(|val| MergeStrategy::from_str(val).ok())
+        .unwrap_or(MergeStrategy::default());
+
     let response = if let Some(Value::String(_)) = query_params_map.get("show_reasoning")
     {
         HttpResponse::Ok().json(
@@ -184,6 +191,7 @@ async fn get_resolved_config(
                 &cac_client_contexts,
                 &res.overrides,
                 &query_params_map,
+                merge_strategy,
             )
             .map_err_to_internal_server("cac eval failed", Null)?,
         )
@@ -194,6 +202,7 @@ async fn get_resolved_config(
                 &cac_client_contexts,
                 &res.overrides,
                 &query_params_map,
+                merge_strategy,
             )
             .map_err_to_internal_server("cac eval failed", Null)?,
         )
