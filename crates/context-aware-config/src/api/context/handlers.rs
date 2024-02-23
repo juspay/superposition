@@ -97,7 +97,7 @@ fn validate_dimensions_and_calculate_priority(
                 let expected_dimension_name = dimension_condition.var;
                 let (dimension_value_schema, _) = dimension_schema_map
                     .get(&expected_dimension_name)
-                    .ok_or("No matching `dimension` for in dimension table")?;
+                    .ok_or(format!("No matching `dimension` {expected_dimension_name} in dimension table").as_str())?;
 
                 validate_context_jsonschema(
                     object_key,
