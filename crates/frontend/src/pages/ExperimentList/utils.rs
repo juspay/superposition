@@ -20,12 +20,14 @@ pub fn experiment_table_columns() -> Vec<Column> {
                 let experiment_id = row.get("id").map_or(String::from(""), |value| {
                     value.as_str().unwrap_or("").to_string()
                 });
-                let experiment_id_copy = experiment_id.to_string();
+                let experiment_id_copy = experiment_id.clone();
                 let handle_copy = move |event: MouseEvent| {
                     event.prevent_default();
 
-                    let copy_code =
-                        format!("navigator.clipboard.writeText({})", experiment_id_copy);
+                    let copy_code = format!(
+                        "navigator.clipboard.writeText('{}')",
+                        &experiment_id_copy
+                    );
                     match js_sys::eval(&copy_code) {
                         Ok(_) => {
                             set_copied.set(true);
