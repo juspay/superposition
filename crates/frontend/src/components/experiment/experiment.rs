@@ -4,9 +4,8 @@ use leptos::*;
 
 use crate::components::condition_pills::utils::extract_and_format;
 use crate::components::table::table::Table;
-use crate::components::table::types::Column;
 
-use super::utils::gen_variant_rows;
+use super::utils::gen_variant_table;
 use crate::types::{Experiment, ExperimentStatusType};
 
 #[component]
@@ -191,12 +190,7 @@ where
                             let experiment_clone = experiment_rc.clone();
                             move || {
                                 let exp = experiment_clone.clone();
-                                let rows = gen_variant_rows(&exp.variants).unwrap();
-                                let mut columns: Vec<Column> = Vec::new();
-                                columns.push(Column::default("Variant".into()));
-                                for okey in exp.override_keys.as_array().unwrap().into_iter() {
-                                    columns.push(Column::default(okey.as_str().unwrap().into()));
-                                }
+                                let (rows, columns) = gen_variant_table(&exp.variants).unwrap();
                                 view! {
                                     <Table
                                         table_style="abc".to_string()

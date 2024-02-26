@@ -76,7 +76,9 @@ pub fn experiment_table_columns() -> Vec<Column> {
                 };
                 let class = format!("badge {}", badge_color);
                 let traffic_percentage = row.get("traffic_percentage");
-                let traffic_percentage = traffic_percentage.map(|val| val.as_u64().unwrap_or(0)).unwrap_or(0);
+                let traffic_percentage = traffic_percentage
+                    .map(|val| val.as_u64().unwrap_or(0))
+                    .unwrap_or(0);
                 view! {
                 <div class={class}>
                     <span class="text-white font-semibold text-xs">
