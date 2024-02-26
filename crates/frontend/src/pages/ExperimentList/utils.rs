@@ -64,23 +64,35 @@ pub fn experiment_table_columns() -> Vec<Column> {
                     .into_view()
             },
         ),
-        Column::new("status".to_string(), None, |value: &str, _| {
-            let badge_color = match value {
-                "CREATED" => "badge-info",
-                "INPROGRESS" => "badge-warning",
-                "CONCLUDED" => "badge-success",
-                &_ => "info",
-            };
-            let class = format!("badge {}", badge_color);
-            view! {
+        Column::new(
+            "status".to_string(),
+            None,
+            |value: &str, row: &Map<String, Value>| {
+                let badge_color = match value {
+                    "CREATED" => "badge-info",
+                    "INPROGRESS" => "badge-warning",
+                    "CONCLUDED" => "badge-success",
+                    &_ => "info",
+                };
+                let class = format!("badge {}", badge_color);
+                let traffic_percentage = row.get("traffic_percentage");
+                let traffic_percentage = traffic_percentage.map(|val| val.as_u64().unwrap_or(0)).unwrap_or(0);
+                view! {
                 <div class={class}>
                     <span class="text-white font-semibold text-xs">
-                        {value.to_string()}
+                        {
+                            if value == "INPROGRESS" {
+                                format!("{}: {}%", value.to_string(), traffic_percentage)
+                            } else {
+                                value.to_string()
+                            }
+                        }
                     </span>
                 </div>
             }
             .into_view()
-        }),
+            },
+        ),
         Column::new(
             "context".to_string(),
             None,
