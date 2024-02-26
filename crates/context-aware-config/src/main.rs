@@ -155,7 +155,7 @@ async fn main() -> Result<()> {
     let conf = get_configuration(Some("Cargo.toml")).await.unwrap();
     // Generate the list of routes in your Leptos App
     let routes = generate_route_list(move || {
-        return view! {  <App app_envs={routes_ui_envs.clone()} /> };
+        return view! { <App app_envs=routes_ui_envs.clone()/> };
     });
 
     HttpServer::new(move || {
@@ -208,7 +208,7 @@ async fn main() -> Result<()> {
             .leptos_routes(
                 leptos_options.to_owned(),
                 routes.to_owned(),
-                move || view! { <App app_envs={leptos_envs.clone()} /> },
+                move || view! { <App app_envs=leptos_envs.clone()/> },
             )
             .service(
                 scope(&base)

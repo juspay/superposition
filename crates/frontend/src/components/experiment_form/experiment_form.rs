@@ -145,7 +145,7 @@ where
 
             <div class="my-4">
                 <ContextForm
-                    dimensions={dimensions.clone()}
+                    dimensions=dimensions.clone()
                     context=context
                     handle_change=handle_context_form_change
                     is_standalone=false

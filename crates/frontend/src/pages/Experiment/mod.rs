@@ -57,7 +57,7 @@ pub fn experiment_page() -> impl IntoView {
     let handle_start = move |experiment_id: String| {
         spawn_local(async move {
             let tenant = tenant_rs.get();
-            let _ = ramp_experiment(&experiment_id, 1, &tenant).await;
+            let _ = ramp_experiment(&experiment_id, 0, &tenant).await;
             combined_resource.refetch();
         })
     };
