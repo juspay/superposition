@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.24.1 - 2024-02-26
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.18.1
+### Global changes
+#### Bug Fixes
+- [PICAF-26195] fix copy of experiment ID - (37e4c24) - Kartik
+
+- - -
+
 ## v0.24.0 - 2024-02-22
 ### Package updates
 - cac_client bumped to cac_client-v0.5.1

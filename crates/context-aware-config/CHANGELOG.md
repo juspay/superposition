@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.18.1 - 2024-02-26
+#### Bug Fixes
+- [PICAF-26195] fix copy of experiment ID - (37e4c24) - Kartik
+
+- - -
+
 ## context-aware-config-v0.18.0 - 2024-02-22
 #### Bug Fixes
 - PICAF-26157 Do not remove keys with null value on merge - (bd3c196) - ayush.jain@juspay.in
