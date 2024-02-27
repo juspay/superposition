@@ -56,7 +56,7 @@ pub fn endpoints(scope: Scope) -> Scope {
 
 async fn process_http_response(
     response: Result<Response, reqwest::Error>,
-) -> Result<Option<Vec<ContextPutResp>>, Error> {
+) -> Result<Vec<ContextPutResp>, Error> {
     match response {
         Ok(res) if res.status().is_success() => {
             match res.json::<Vec<ContextBulkResponse>>().await {
@@ -72,7 +72,7 @@ async fn process_http_response(
                                 }
                                 acc
                             });
-                    Ok(Some(contexts))
+                    Ok(contexts)
                 }
                 Err(e) => {
                     log::error!("Failed to parse JSON response: {}", e);
@@ -222,19 +222,12 @@ async fn create(
         .send()
         .await;
 
+    // directly return an error response if not a 200 response
     let created_contexts = process_http_response(response).await?;
-
-    match created_contexts {
-        Some(contexts) => {
-            for i in 0..contexts.len() {
-                let created_context = &contexts[i];
-                variants[i].context_id = Some(created_context.context_id.clone());
-                variants[i].override_id = Some(created_context.override_id.clone());
-            }
-        }
-        None => {
-            log::info!("No contexts were created or returned.");
-        }
+    for i in 0..created_contexts.len() {
+        let created_context = &created_contexts[i];
+        variants[i].context_id = Some(created_context.context_id.clone());
+        variants[i].override_id = Some(created_context.override_id.clone());
     }
 
     // inserting experiment in db
@@ -699,23 +692,13 @@ async fn update_overrides(
         .send()
         .await;
 
-    let created_contexts = process_http_response(response).await;
+    // directly return an error response if not a 200 response
+    let created_contexts = process_http_response(response).await?;
+    for i in 0..created_contexts.len() {
+        let created_context = &created_contexts[i];
 
-    match created_contexts {
-        Ok(Some(contexts)) => {
-            for i in 0..contexts.len() {
-                let created_context = &contexts[i];
-
-                new_variants[i].context_id = Some(created_context.context_id.clone());
-                new_variants[i].override_id = Some(created_context.override_id.clone());
-            }
-        }
-        Ok(None) => {
-            log::info!("No contexts were created or returned.");
-        }
-        Err(e) => {
-            log::error!("An error occurred: {}", e);
-        }
+        new_variants[i].context_id = Some(created_context.context_id.clone());
+        new_variants[i].override_id = Some(created_context.override_id.clone());
     }
 
     /*************************** Updating experiment in DB **************************/
