@@ -238,7 +238,7 @@ pipeline {
       steps {
         sh """curl -v --location --request POST 'https://${AUTOPILOT_HOST_SBX}/release' \
                 --header 'Content-Type: application/json' \
-                --header 'Authorization: Basic ${CREDS}' \
+                --header 'x-api-key: ${CREDS}' \
                 --data-raw '{
                       "service": ["CONTEXT_AWARE_CONFIG"],
                       "release_manager": "jenkins.jenkins",
