@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.9.4 - 2024-02-27
+#### Bug Fixes
+- returning error response if CAC call not 200 - (fa0eb5e) - Shubhranshu Sanjeev
+
+- - -
+
 ## experimentation-platform-v0.9.3 - 2024-02-15
 #### Bug Fixes
 - fixing error message for experiment create and bulk context api - (bc0d7be) - Jenkins
