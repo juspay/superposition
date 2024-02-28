@@ -230,7 +230,7 @@ pipeline {
 	    branch 'main'
       }
       environment {
-        CREDS = credentials('AUTOPILOT_AUTH_HEADER')
+        CREDS = credentials('SDK_SBX_AP_KEY')
         COMMIT_MSG = sh(returnStdout: true, script: "git log --format=format:%s -1")
         CHANGE_LOG = "Commit message: ${COMMIT_MSG}";
         AUTHOR_NAME = sh(returnStdout: true, script: "git log -1 --pretty=format:'%ae'")
