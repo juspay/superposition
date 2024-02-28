@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.25.0 - 2024-02-28
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.18.2
+### Global changes
+#### Bug Fixes
+- [PICAF-26199] transpose columns in single experiment page for variants - (a1a8ac8) - Kartik
+- [PICAF-26196] add traffic percentage to experiments table - (5fb0221) - Kartik
+#### Features
+- autodeploy - (94bc7c7) - Kartik
+
+- - -
+
 ## v0.24.2 - 2024-02-27
 ### Package updates
 - experimentation-platform bumped to experimentation-platform-v0.9.4
