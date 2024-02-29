@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.26.0 - 2024-02-29
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.19.0
+### Global changes
+#### Bug Fixes
+- autodeploy - (43a4ada) - Kartik
+#### Features
+- [PICAF-25879] added test,publish api for functions - (050ab24) - Pratik Mishra
+
+- - -
+
 ## v0.25.0 - 2024-02-28
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.18.2
