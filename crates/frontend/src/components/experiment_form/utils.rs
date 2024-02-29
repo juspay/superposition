@@ -7,6 +7,13 @@ use crate::utils::get_host;
 use reqwest::StatusCode;
 use serde_json::json;
 
+pub fn validate_experiment(experiment: &ExperimentCreateRequest) -> Result<bool, String> {
+    if experiment.name.is_empty() {
+        return Err(String::from("experiment name should not be empty"));
+    }
+    Ok(true)
+}
+
 pub async fn create_experiment(
     conditions: Vec<(String, String, String)>,
     variants: Vec<Variant>,
@@ -19,6 +26,8 @@ pub async fn create_experiment(
         variants,
         context: construct_context(conditions, dimensions),
     };
+
+    let _ = validate_experiment(&payload)?;
 
     let client = reqwest::Client::new();
     let host = get_host();

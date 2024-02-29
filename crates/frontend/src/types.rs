@@ -6,6 +6,8 @@ use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
 use serde_json::{Map, Value};
 
+use crate::components::dropdown::utils::DropdownOption;
+
 #[derive(Clone, Debug)]
 pub struct AppRoute {
     pub key: String,
@@ -135,6 +137,15 @@ pub struct Dimension {
     pub schema: Value,
 }
 
+impl DropdownOption for Dimension {
+    fn key(&self) -> String {
+        self.dimension.clone()
+    }
+    fn label(&self) -> String {
+        self.dimension.clone()
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct DefaultConfig {
     pub key: String,
@@ -142,6 +153,15 @@ pub struct DefaultConfig {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: Value,
+}
+
+impl DropdownOption for DefaultConfig {
+    fn key(&self) -> String {
+        self.key.clone()
+    }
+    fn label(&self) -> String {
+        self.key.clone()
+    }
 }
 
 #[derive(Deserialize, Serialize, Clone)]
