@@ -4,8 +4,8 @@ use leptos_router::*;
 use serde_json::json;
 
 use crate::hoc::layout::layout::Layout;
+use crate::pages::experiment_list::experiment_list::ExperimentList;
 use crate::pages::Dimensions::Dimensions::Dimensions;
-use crate::pages::ExperimentList::ExperimentList::ExperimentList;
 use crate::pages::{
     ContextOverride::ContextOverride::ContextOverride,
     DefaultConfig::DefaultConfig::DefaultConfig, Experiment::ExperimentPage,

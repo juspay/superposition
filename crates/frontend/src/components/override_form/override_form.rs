@@ -1,8 +1,9 @@
-use crate::types::DefaultConfig;
+use crate::{
+    components::dropdown::dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+    types::DefaultConfig,
+};
 use leptos::*;
 use serde_json::{json, Map, Value};
-use std::collections::HashSet;
-use std::rc::Rc;
 use std::str::FromStr;
 use web_sys::MouseEvent;
 
@@ -24,29 +25,32 @@ pub fn override_form<NF>(
     default_config: Vec<DefaultConfig>,
     handle_change: NF,
     is_standalone: bool,
+    #[prop(default = false)] disable_remove: bool,
+    #[prop(default = true)] show_add_override: bool,
+    #[prop(into, default = None)] handle_key_remove: Option<Callback<String, ()>>,
 ) -> impl IntoView
 where
     NF: Fn(Map<String, Value>) + 'static,
 {
-    let has_default_config = default_config.len() != 0;
-    let (used_config_keys, set_used_config_keys) = create_signal(
-        overrides
-            .keys()
-            .map(String::from)
-            .collect::<HashSet<String>>(),
-    );
+    let default_config = StoredValue::new(default_config);
     let (overrides, set_overrides) = create_signal(overrides.clone());
+    let unused_config_keys = Signal::derive(move || {
+        default_config
+            .get_value()
+            .into_iter()
+            .filter(|config| !overrides.get().contains_key(&config.key))
+            .collect::<Vec<DefaultConfig>>()
+    });
+    let has_default_config = Signal::derive(move || unused_config_keys.get().len() > 0);
 
     let on_submit = move |event: MouseEvent| {
         event.prevent_default();
         logging::log!("{:?}", overrides.get());
     };
 
-    let default_config_rc = Rc::new(default_config.clone());
-
     let default_config_value =
-        |name: &str, val: &str, default_configs: &Vec<DefaultConfig>| {
-            let dimension_type = get_default_config_type(default_configs.clone(), name);
+        |name: &str, val: &str, default_config: &Vec<DefaultConfig>| {
+            let dimension_type = get_default_config_type(default_config.clone(), name);
             match dimension_type.replace("\"", "").as_str() {
                 "boolean" => match bool::from_str(val) {
                     Ok(boolean) => Value::Bool(boolean),
@@ -60,6 +64,13 @@ where
             }
         };
 
+    let handle_config_key_select = move |default_config: DefaultConfig| {
+        let config_key = default_config.key;
+        set_overrides.update(|value| {
+            value.insert(config_key.to_string(), json!(""));
+        });
+    };
+
     create_effect(move |_| {
         let f_override = overrides.get();
         handle_change(f_override.clone());
@@ -72,53 +83,16 @@ where
                     <label class="label">
                         <span class="label-text font-semibold text-base">Overrides</span>
                     </label>
-                    <div>
-                        <div class="dropdown dropdown-left">
-                            <label tabindex="0" class="btn btn-outline btn-sm text-xs m-1">
-                                <i class="ri-add-line"></i>
-                                Add Override
-                            </label>
-                            <ul
-                                tabindex="0"
-                                class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
-                            >
-                                <Show when=move || !has_default_config>No default config</Show>
-                                <For
-                                    each=move || {
-                                        default_config
-                                            .clone()
-                                            .into_iter()
-                                            .filter(|item| {
-                                                !used_config_keys.get().contains(&item.key)
-                                            })
-                                            .collect::<Vec<DefaultConfig>>()
-                                    }
-
-                                    key=|item: &DefaultConfig| item.key.to_string()
-                                    children=move |item: DefaultConfig| {
-                                        let config_key = item.key.to_string();
-                                        let label = config_key.to_string();
-                                        view! {
-                                            <li on:click=move |_| {
-                                                set_overrides
-                                                    .update(|value| {
-                                                        value.insert(config_key.to_string(), json!(""));
-                                                    });
-                                                set_used_config_keys
-                                                    .update(|value: &mut HashSet<String>| {
-                                                        value.insert(config_key.to_string());
-                                                    });
-                                            }>
-
-                                                <a>{label.to_string()}</a>
-                                            </li>
-                                        }
-                                    }
-                                />
-
-                            </ul>
-                        </div>
-                    </div>
+                    <Show when=move || show_add_override>
+                        <Dropdown
+                            dropdown_btn_type=DropdownBtnType::Link
+                            dropdown_direction=DropdownDirection::Left
+                            dropdown_text=String::from("Add Override")
+                            dropdown_icon=String::from("ri-add-line")
+                            dropdown_options=unused_config_keys.get()
+                            on_select=Box::new(handle_config_key_select)
+                        />
+                    </Show>
                 </div>
                 <Show when=move || overrides.get().len() == 0>
                     <div class="p-4 text-gray-400 flex flex-col justify-center items-center">
@@ -137,7 +111,6 @@ where
                         let config_key_label = config_key.to_string();
                         let config_key_value = config_key.to_string();
                         let config_value = config_value.to_string().replace("\"", "");
-                        let default_config_clone = default_config_rc.clone();
                         view! {
                             <div>
                                 <div class="flex items-center gap-4">
@@ -158,7 +131,7 @@ where
                                                 let default_config_val = default_config_value(
                                                     &config_key_value,
                                                     &input_value,
-                                                    &default_config_clone.clone(),
+                                                    &default_config.get_value(),
                                                 );
                                                 logging::log!("Default Config: {}", default_config_val);
                                                 set_overrides
@@ -174,23 +147,33 @@ where
 
                                     </div>
                                     <div class="w-1/5">
-                                        <button
-                                            class="btn btn-ghost btn-circle btn-sm"
-                                            on:click=move |ev| {
-                                                ev.prevent_default();
-                                                set_overrides
-                                                    .update(|value| {
-                                                        value.remove(&config_key);
-                                                    });
-                                                set_used_config_keys
-                                                    .update(|value| {
-                                                        value.remove(&config_key);
-                                                    });
-                                            }
-                                        >
 
-                                            <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
-                                        </button>
+                                        {if !disable_remove {
+                                            view! {
+                                                <button
+                                                    class="btn btn-ghost btn-circle btn-sm"
+                                                    on:click=move |ev| {
+                                                        ev.prevent_default();
+                                                        match handle_key_remove {
+                                                            Some(f) => f.call(config_key.clone()),
+                                                            None => {
+                                                                set_overrides
+                                                                    .update(|value| {
+                                                                        value.remove(&config_key);
+                                                                    })
+                                                            }
+                                                        };
+                                                    }
+                                                >
+
+                                                    <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
+                                                </button>
+                                            }
+                                                .into_view()
+                                        } else {
+                                            view! {}.into_view()
+                                        }}
+
                                     </div>
                                 </div>
                             </div>
