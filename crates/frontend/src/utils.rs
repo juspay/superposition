@@ -148,7 +148,7 @@ pub fn use_service_prefix() -> String {
         .unwrap_or(String::new())
 }
 
-pub fn get_element_by_id<T>(id: &'static str) -> Option<T>
+pub fn get_element_by_id<T>(id: &str) -> Option<T>
 where
     T: wasm_bindgen::JsCast + Clone,
 {
@@ -160,7 +160,7 @@ where
     }
 }
 
-pub fn show_modal(id: &'static str) {
+pub fn show_modal(id: &str) {
     let option_dialog_ele = get_element_by_id::<web_sys::HtmlDialogElement>(id);
     if let Some(dialog_ele) = option_dialog_ele {
         let _ = dialog_ele.show_modal();
@@ -168,7 +168,7 @@ pub fn show_modal(id: &'static str) {
     }
 }
 
-pub fn close_modal(id: &'static str) {
+pub fn close_modal(id: &str) {
     let option_dialog_ele = get_element_by_id::<web_sys::HtmlDialogElement>(id);
     if let Some(dialog_ele) = option_dialog_ele {
         let _ = dialog_ele.close();

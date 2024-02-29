@@ -26,3 +26,49 @@
 .value_link {
     text-decoration:underline;
 }
+
+.drawer-zindex {
+    z-index: 99999999;
+}
+
+.btn-purple-outline {
+    @apply text-purple-500;
+    @apply dark:text-purple-800;
+    @apply bg-white;
+    @apply hover:bg-white;
+    @apply ring-2;
+    @apply ring-purple-500;
+    @apply dark:ring-purple-800;
+}
+
+.btn-purple-link {
+    @apply text-purple-500;
+    @apply dark:text-purple-800;
+    @apply bg-transparent;
+    @apply outline-none;
+    @apply focus:outline-none;
+    @apply border-0;
+    @apply shadow-none;
+    @apply hover:bg-transparent;
+}
+
+.btn-purple {
+    @apply text-white;
+    @apply bg-gradient-to-r;
+    @apply from-purple-500;
+    @apply via-purple-600;
+    @apply to-purple-700;
+    @apply hover:bg-gradient-to-br;
+    @apply focus:ring-4;
+    @apply focus:outline-none;
+    @apply focus:ring-purple-300;
+    @apply dark:focus:ring-purple-800;
+    @apply shadow-lg;
+    @apply shadow-purple-500/50;
+    @apply dark:shadow-lg;
+    @apply dark:shadow-purple-800/80;
+}
+
+.word-break-break {
+    word-break: break-word;
+}

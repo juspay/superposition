@@ -5,9 +5,10 @@ use leptos::*;
 use chrono::{prelude::Utc, TimeZone};
 use serde::{Deserialize, Serialize};
 
+use crate::components::drawer::drawer::{close_drawer, Drawer, DrawerBtn};
 use crate::components::{
-    button::button::Button, experiment_form::experiment_form::ExperimentForm,
-    pagination::pagination::Pagination, stat::stat::Stat, table::table::Table,
+    experiment_form::experiment_form::ExperimentForm, pagination::pagination::Pagination,
+    stat::stat::Stat, table::table::Table,
 };
 
 use crate::types::{ExperimentsResponse, ListFilters};
@@ -18,7 +19,6 @@ use crate::{
     types::{DefaultConfig, Dimension},
 };
 use serde_json::{json, Map, Value};
-use wasm_bindgen::JsCast;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct CombinedResource {
@@ -28,7 +28,7 @@ struct CombinedResource {
 }
 
 #[component]
-pub fn ExperimentList() -> impl IntoView {
+pub fn experiment_list() -> impl IntoView {
     // acquire tenant
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let (filters, set_filters) = create_signal(ListFilters {
@@ -38,8 +38,8 @@ pub fn ExperimentList() -> impl IntoView {
         page: Some(1),
         count: Some(10),
     });
-    let (open_form_modal, set_open_form_modal) = create_signal(false);
 
+    let (reset_exp_form, set_exp_form) = create_signal(0);
     let table_columns = create_memo(move |_| experiment_table_columns());
 
     let combined_resource: Resource<(String, ListFilters), CombinedResource> =
@@ -72,18 +72,10 @@ pub fn ExperimentList() -> impl IntoView {
 
     let handle_submit_experiment_form = move || {
         combined_resource.refetch();
-        set_open_form_modal.set(false);
-        if let Some(element) = document().get_element_by_id("create_exp_modal") {
-            let dialog_ele = element.dyn_ref::<web_sys::HtmlDialogElement>();
-            match dialog_ele {
-                Some(ele) => {
-                    ele.close();
-                }
-                None => {
-                    log!("no modal element");
-                }
-            }
-        }
+        set_exp_form.update(|val| {
+            *val += 1;
+        });
+        close_drawer("create_exp_drawer");
     };
 
     // TODO: Add filters
@@ -113,29 +105,10 @@ pub fn ExperimentList() -> impl IntoView {
                         <div class="flex justify-between">
                             <h2 class="card-title">Experiments</h2>
                             <div>
-                                <Button
-                                    on_click=move |event: web_sys::MouseEvent| {
-                                        event.prevent_default();
-                                        set_open_form_modal.set(true);
-                                        if let Some(element) = document()
-                                            .get_element_by_id("create_exp_modal")
-                                        {
-                                            log!("opening the experiment modal");
-                                            let dialog_ele = element
-                                                .dyn_ref::<web_sys::HtmlDialogElement>();
-                                            match dialog_ele {
-                                                Some(ele) => {
-                                                    let _ = ele.show_modal();
-                                                }
-                                                None => {
-                                                    log!("no modal element");
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    text="Create Experiment".to_string()
-                                />
+                                <DrawerBtn drawer_id="create_exp_drawer"
+                                    .to_string()>
+                                    Create Experiment <i class="ri-edit-2-line ml-2"></i>
+                                </DrawerBtn>
                             </div>
                         </div>
                         <div>
@@ -249,51 +222,18 @@ pub fn ExperimentList() -> impl IntoView {
                             default_config: vec![],
                         })
                         .default_config;
+                    let _ = reset_exp_form.get();
                     view! {
-                        <Show when=move || { open_form_modal.get() }>
-                            <dialog id="create_exp_modal" class="modal">
-                                <div class="modal-box w-12/12 max-w-5xl">
-                                    <div class="flex justify-between">
-                                        <h3 class="font-bold text-lg">Create Experiment</h3>
-                                        <div>
-                                            <button on:click=move |_| {
-                                                set_open_form_modal.set(false);
-                                                if let Some(element) = document()
-                                                    .get_element_by_id("create_exp_modal")
-                                                {
-                                                    log!("FOUND AND CLOSING THE FORM");
-                                                    let dialog_ele = element
-                                                        .dyn_ref::<web_sys::HtmlDialogElement>();
-                                                    match dialog_ele {
-                                                        Some(ele) => {
-                                                            ele.close();
-                                                        }
-                                                        None => {
-                                                            log!("no modal element");
-                                                        }
-                                                    }
-                                                } else {
-                                                    log!("outer close button no modal element");
-                                                }
-                                            }>
-
-                                                <i class="ri-close-fill"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="modal-action flex flex-col">
-                                        <ExperimentForm
-                                            name="".to_string()
-                                            context=vec![]
-                                            variants=vec![]
-                                            dimensions=dim.clone()
-                                            default_config=def_conf.clone()
-                                            handle_submit=handle_submit_experiment_form
-                                        />
-                                    </div>
-                                </div>
-                            </dialog>
-                        </Show>
+                        <Drawer id="create_exp_drawer".to_string() header="Create New Experiment">
+                            <ExperimentForm
+                                name="".to_string()
+                                context=vec![]
+                                variants=vec![]
+                                dimensions=dim.clone()
+                                default_config=def_conf.clone()
+                                handle_submit=handle_submit_experiment_form
+                            />
+                        </Drawer>
                     }
                 }}
 
