@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.19.0 - 2024-02-29
+#### Features
+- [PICAF-25879] added test,publish api for functions - (050ab24) - Pratik Mishra
+
+- - -
+
 ## context-aware-config-v0.18.2 - 2024-02-28
 #### Bug Fixes
 - [PICAF-26199] transpose columns in single experiment page for variants - (a1a8ac8) - Kartik
