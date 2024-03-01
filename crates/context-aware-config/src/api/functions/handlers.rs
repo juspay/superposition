@@ -24,7 +24,6 @@ use dashboard_auth::types::User;
 use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{json, Value};
 use service_utils::service::types::DbConnection;
-use tracing_utils::tracing;
 use validation_functions::{compile_fn, execute_fn};
 
 use super::types::{CreateFunctionRequest, UpdateFunctionRequest};
@@ -77,7 +76,7 @@ async fn create(
         }
         Err(e) => match e {
             diesel::result::Error::DatabaseError(kind, e) => {
-                tracing::error!("Function error: {:?}", e);
+                log::error!("Function error: {:?}", e);
                 match kind {
                     diesel::result::DatabaseErrorKind::UniqueViolation => {
                         return Err(ErrorBadRequest(
@@ -92,7 +91,7 @@ async fn create(
                 }
             }
             _ => {
-                tracing::error!("Function creation failed with error: {e}");
+                log::error!("Function creation failed with error: {e}");
                 return Err(ErrorInternalServerError(
                     json!({"message": "An error occured please contact the admin."}),
                 ));
@@ -115,11 +114,11 @@ async fn update(
     let result = match fetch_function(&f_name, &mut conn) {
         Ok(val) => val,
         Err(diesel::result::Error::NotFound) => {
-            tracing::error!("Function not found.");
+            log::error!("Function not found.");
             return Err(ErrorBadRequest(json!({"message": "Function not found."})));
         }
         Err(e) => {
-            tracing::error!("Failed to update Function with error: {e}");
+            log::error!("Failed to update Function with error: {e}");
             return Err(ErrorInternalServerError(
                 json!({"message": "Failed to update Function"}),
             ));
@@ -162,7 +161,7 @@ async fn update(
             Ok(Json(res))
         }
         Err(e) => {
-            tracing::error!("Function updation failed with error: {e}");
+            log::error!("Function updation failed with error: {e}");
             Err(ErrorInternalServerError(
                 json!({"message": "Failed to update Function"}),
             ))
@@ -182,7 +181,7 @@ async fn get(params: web::Path<String>, db_conn: DbConnection) -> Result<HttpRes
             Ok(HttpResponse::Ok().json(function))
         }
         Err(e) => {
-            tracing::error!("Error getting function: {e}");
+            log::error!("Error getting function: {e}");
             Err(ErrorInternalServerError(
                 json!({"message": "Function does not exists."}),
             ))
@@ -204,7 +203,7 @@ async fn list_functions(db_conn: DbConnection) -> Result<Json<Vec<Function>>> {
             Ok(Json(function_list))
         }
         Err(e) => {
-            tracing::error!("Error getting the functions: {e}");
+            log::error!("Error getting the functions: {e}");
             Err(ErrorInternalServerError(
                 json!({"message": "Error getting the functions."}),
             ))
@@ -226,11 +225,11 @@ async fn delete_function(
     match deleted_row {
         Ok(0) => Err(ErrorNotFound(json!({"message": "Function not found."}))),
         Ok(_) => {
-            tracing::info!("{f_name} function deleted by {}", user.email);
+            log::info!("{f_name} function deleted by {}", user.email);
             Ok(HttpResponse::NoContent().finish())
         }
         Err(e) => {
-            tracing::error!("function delete query failed with error: {e}");
+            log::error!("function delete query failed with error: {e}");
             Err(ErrorInternalServerError(""))
         }
     }
@@ -249,11 +248,11 @@ async fn test(
     let mut function = match fetch_function(fun_name, &mut conn) {
         Ok(val) => val,
         Err(diesel::result::Error::NotFound) => {
-            tracing::error!("Function not found.");
+            log::error!("Function not found.");
             return Err(ErrorBadRequest(json!({"message": "Function not found."})));
         }
         Err(e) => {
-            tracing::error!("Failed to update Function with error: {e}");
+            log::error!("Failed to update Function with error: {e}");
             return Err(ErrorInternalServerError(
                 json!({"message": "Failed to update Function due to unexpected DB issue"}),
             ));
@@ -265,7 +264,7 @@ async fn test(
         Stage::PUBLISHED => match function.published_code {
             Some(code) => execute_fn(&code, fun_name, req),
             None => {
-                tracing::error!("Function test failed: function not published yet");
+                log::error!("Function test failed: function not published yet");
                 Err("Function test failed as function not published yet".to_owned())
             }
         },
@@ -290,11 +289,11 @@ async fn publish(
     let function = match fetch_function(&fun_name, &mut conn) {
         Ok(val) => val,
         Err(diesel::result::Error::NotFound) => {
-            tracing::error!("Function not found.");
+            log::error!("Function not found.");
             return Err(ErrorBadRequest(json!({"message": "Function not found."})));
         }
         Err(e) => {
-            tracing::error!("Failed to update Function with error: {e}");
+            log::error!("Failed to update Function with error: {e}");
             return Err(ErrorInternalServerError(
                 json!({"message": "Failed to update Function"}),
             ));
@@ -318,7 +317,7 @@ async fn publish(
             "message": "Function published successfully."
         }))),
         Err(e) => {
-            tracing::error!("Function publish failed with error: {e}");
+            log::error!("Function publish failed with error: {e}");
             Err(ErrorInternalServerError(
                 json!({"message": "Failed to publish Function due to unexpected DB issue"}),
             ))

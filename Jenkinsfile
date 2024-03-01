@@ -234,6 +234,7 @@ pipeline {
         COMMIT_MSG = sh(returnStdout: true, script: "git log --format=format:%s -1")
         CHANGE_LOG = "Commit message: ${COMMIT_MSG}";
         AUTHOR_NAME = sh(returnStdout: true, script: "git log -1 --pretty=format:'%ae'")
+        AP_DEPLOY_VERSION = env.NEW_SEMANTIC_VERSION.replace(".", "x")
       }
       steps {
         sh """curl -v --location --request POST 'https://${AUTOPILOT_HOST_SBX}/release' \
@@ -243,7 +244,7 @@ pipeline {
                       "service": ["CONTEXT_AWARE_CONFIG"],
                       "release_manager": "jenkins.jenkins",
                       "release_tag": "",
-                      "new_version": "${NEW_SEMANTIC_VERSION}",
+                      "new_version": "${AP_DEPLOY_VERSION}",
                       "docker_image" : "${NEW_SEMANTIC_VERSION}",
                       "priority" : 0,
                       "cluster" : "EKS_MUM",
