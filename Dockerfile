@@ -38,11 +38,21 @@ RUN --mount=type=ssh cargo build --release
 
 FROM debian:bookworm-slim
 WORKDIR /app
+ENV NODE_VERSION=18.19.0
 
 ARG SOURCE_COMMIT
 ARG CONTEXT_AWARE_CONFIG_VERSION
 
-RUN apt-get update && apt-get install -y libpq5 ca-certificates
+RUN apt-get update && apt-get install -y libpq5 ca-certificates curl
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+ENV NVM_DIR=/root/.nvm
+RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
+ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
+RUN node --version
+
+
 COPY --from=builder /build/target/release/context-aware-config /app/context-aware-config
 COPY --from=builder /build/Cargo.toml /app/Cargo.toml
 COPY --from=builder /build/target/site /app/target/site
