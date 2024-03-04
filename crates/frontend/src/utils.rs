@@ -3,6 +3,7 @@ use std::env;
 use crate::types::Envs;
 use leptos::*;
 use serde_json::Value;
+use url::Url;
 use wasm_bindgen::JsCast;
 
 pub fn modal_action(name: &str, action: &str) {
@@ -262,4 +263,14 @@ pub fn extract_conditions(
     }
 
     Ok(condition_tuples)
+}
+
+pub fn check_url_and_return_val(s: String) -> String {
+    match Url::parse(&s) {
+        Ok(_) => format!(
+            "<a class='value_link' href={} target='_blank'>{}</a>",
+            &s, &s
+        ),
+        Err(_) => s,
+    }
 }
