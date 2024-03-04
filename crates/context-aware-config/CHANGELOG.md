@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.21.0 - 2024-03-04
+#### Features
+- PICAF-26185 Replace merge-strategy option for resolve/eval - (453cfb9) - ayush.jain@juspay.in
+
+- - -
+
 ## context-aware-config-v0.20.0 - 2024-03-04
 #### Features
 - [PICAF-25877 add node to app directory - (9671875) - Pratik Mishra
