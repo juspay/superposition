@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.27.0 - 2024-03-04
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.20.0
+### Global changes
+#### Features
+- [PICAF-25877 add node to app directory - (9671875) - Pratik Mishra
+
+- - -
+
 ## v0.26.0 - 2024-02-29
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.19.0
