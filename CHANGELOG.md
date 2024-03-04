@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.28.0 - 2024-03-04
+### Package updates
+- cac_client bumped to cac_client-v0.6.0
+- context-aware-config bumped to context-aware-config-v0.21.0
+### Global changes
+#### Features
+- PICAF-26185 Replace merge-strategy option for resolve/eval - (453cfb9) - ayush.jain@juspay.in
+
+- - -
+
 ## v0.27.0 - 2024-03-04
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.20.0
