@@ -22,3 +22,7 @@
 .context_condition{
     font-size: 0.9rem;
 }
+
+.value_link {
+    text-decoration:underline;
+}

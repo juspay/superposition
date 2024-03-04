@@ -10,7 +10,7 @@ use crate::{
         condition_pills::utils::{extract_and_format, parse_conditions},
         context_form::context_form::ContextForm,
     },
-    utils::get_host,
+    utils::{check_url_and_return_val, get_host},
 };
 
 async fn resolve_config(tenant: String, context: String) -> Result<Value, String> {
@@ -213,8 +213,8 @@ pub fn home() -> impl IntoView {
             for (key, value) in config.iter() {
                 table_rows.push_str(
                     format!(
-                        "<tr><td>{key}</td><td>{}</td></tr>",
-                        value.as_str().unwrap()
+                        "<tr><td>{key}</td><td style='word-break: break-word;'>{}</td></tr>",
+                        check_url_and_return_val(value.as_str().unwrap().to_owned())
                     )
                     .as_str(),
                 )
@@ -282,9 +282,9 @@ pub fn home() -> impl IntoView {
                                                                 view! {
                                                                     <tr>
                                                                         <td>{config}</td>
-                                                                        <td>
+                                                                        <td style="word-break: break-word;">
                                                                             {match value {
-                                                                                Value::String(s) => s,
+                                                                                Value::String(s) => check_url_and_return_val(s),
                                                                                 Value::Number(num) => num.to_string(),
                                                                                 Value::Bool(b) => b.to_string(),
                                                                                 _ => "".into(),
@@ -347,10 +347,10 @@ pub fn home() -> impl IntoView {
                                                     < tr > < td > < span name = format!("{unique_name}-1") class
                                                     = "config-name" class : text - black = { ! striked } class :
                                                     font - bold = { ! striked } class : text - gray - 300 = {
-                                                    striked } > { key } </ span > </ td > < td > < span name =
+                                                    striked } > { key } </ span > </ td > < td style="word-break: break-word;"> < span name =
                                                     format!("{unique_name}-2") class = "config-value" class :
                                                     text - black = { ! striked } class : font - bold = { !
-                                                    striked } class : text - gray - 300 = { striked } > { value
+                                                    striked } class : text - gray - 300 = { striked } > { check_url_and_return_val(value)
                                                     } </ span > </ td > </ tr >
                                                 },
                                             )
