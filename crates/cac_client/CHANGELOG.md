@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.6.0 - 2024-03-04
+#### Features
+- PICAF-26185 Replace merge-strategy option for resolve/eval - (453cfb9) - ayush.jain@juspay.in
+
+- - -
+
 ## cac_client-v0.5.1 - 2024-02-22
 #### Bug Fixes
 - PICAF-26157 Do not remove keys with null value on merge - (bd3c196) - ayush.jain@juspay.in
