@@ -1,3 +1,6 @@
+extern crate base64;
+use std::str;
+
 use crate::helpers::{json_to_sorted_string, validate_context_jsonschema};
 use crate::{
     api::{
@@ -35,6 +38,10 @@ use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{from_value, json, Map, Value};
 use service_utils::{helpers::ToActixErr, service::types::DbConnection};
 use std::collections::HashMap;
+
+use super::helpers::{
+    validate_condition_with_functions, validate_override_with_functions,
+};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -169,6 +176,8 @@ fn create_ctx_from_put_req(
     let ctx_condition = Value::Object(req.context.to_owned());
     let ctx_override: Value = req.r#override.to_owned().into();
     validate_override_with_default_configs(conn, &req.r#override)?;
+    validate_condition_with_functions(conn, &ctx_condition)?;
+    validate_override_with_functions(conn, &req.r#override)?;
 
     let dimension_schema_map = get_all_dimension_schema_map(conn)?;
 
@@ -277,8 +286,11 @@ async fn put_handler(
             if let Some(io_error) = e.downcast_ref::<std::io::Error>() {
                 log::info!("{}", { io_error });
                 ErrorInternalServerError("")
-            } else if e.to_string().contains("Bad schema") {
-                ErrorBadRequest("")
+            } else if ["Bad schema", "validation failed"]
+                .iter()
+                .any(|&s| e.to_string().contains(s))
+            {
+                ErrorBadRequest(format!("{e}"))
             } else {
                 ErrorInternalServerError("")
             }
