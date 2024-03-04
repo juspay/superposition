@@ -55,3 +55,9 @@ impl From<diesel::result::Error> for TransactionError {
         TransactionError::DieselError(error)
     }
 }
+
+#[derive(Deserialize, Clone)]
+pub struct FunctionsInfo {
+    pub name: String,
+    pub code: Option<String>,
+}

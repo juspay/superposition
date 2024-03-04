@@ -3,6 +3,7 @@ use experimentation_platform::api::experiments::helpers;
 use experimentation_platform::db::models::{Experiment, ExperimentStatusType};
 use serde_json::{json, Map, Value};
 use service_utils::errors::types::Error as AppError;
+use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::ExperimentationFlags;
 
 enum Dimensions {
@@ -94,15 +95,9 @@ fn test_extract_dimensions() -> Result<(), AppError> {
         serde_json::Map::from_iter(vec![("clientId".to_string(), json!("testclient1"))]);
 
     // more than one dimension in context
-    assert_eq!(
-        helpers::extract_dimensions(&context_a)?,
-        expected_dimensions_1
-    );
+    assert_eq!(extract_dimensions(&context_a)?, expected_dimensions_1);
     // only one dimension in context
-    assert_eq!(
-        helpers::extract_dimensions(&context_b)?,
-        expected_dimensions_2
-    );
+    assert_eq!(extract_dimensions(&context_b)?, expected_dimensions_2);
     Ok(())
 }
 

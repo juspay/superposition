@@ -15,10 +15,11 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
-use experimentation_platform::api::experiments::helpers::extract_dimensions;
 use serde_json::{json, Map, Value, Value::Null};
 use service_utils::{
-    errors::types::Error as err, helpers::ToActixErr, service::types::DbConnection,
+    errors::types::Error as err,
+    helpers::{extract_dimensions, ToActixErr},
+    service::types::DbConnection,
     types as app,
 };
 

@@ -1,5 +1,5 @@
 use crate::{
-    api::dimension::types::CreateReq,
+    api::{dimension::types::CreateReq, functions::helpers::fetch_function},
     db::{models::Dimension, schema::dimensions::dsl::*},
     helpers::validate_jsonschema,
 };
@@ -51,12 +51,22 @@ async fn create(
             .body(String::from(format!("Bad schema: {:?}", e)));
     };
 
+    if let Some(func_name) = create_req.function_name.clone() {
+        let function = fetch_function(&func_name, &mut conn);
+        if let Err(e) = function {
+            log::error!("{func_name} function not found with error: {e:?}");
+            return HttpResponse::BadRequest()
+                .body(String::from(format!("{func_name} function not found")));
+        }
+    }
+
     let new_dimension = Dimension {
         dimension: create_req.dimension,
         priority: i32::from(create_req.priority),
         schema: schema_value,
         created_by: user.email,
         created_at: Utc::now(),
+        function_name: create_req.function_name,
     };
 
     let upsert = diesel::insert_into(dimensions)

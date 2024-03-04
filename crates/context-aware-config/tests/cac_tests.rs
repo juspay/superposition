@@ -26,8 +26,8 @@ fn test_execute_fn() {
         &"test_fun".to_owned(),
         json!(10),
     ) {
-        Ok(()) => false,
-        Err(e) => e.contains("Bad schema"),
+        Ok(_) => false,
+        Err((e, stdout)) => e.contains("Bad schema"),
     };
     let err_compile = match compile_fn(&(compile_code_error.to_owned())) {
         Ok(()) => false,
@@ -35,7 +35,7 @@ fn test_execute_fn() {
     };
     assert_eq!(
         execute_fn(&(code_ok.to_owned()), &"test_fun".to_owned(), json!(10)),
-        Ok(())
+        Ok("true".to_string())
     );
     assert_eq!(err_execute, true);
     assert_eq!(compile_fn(&(code_ok.to_owned())), Ok(()));

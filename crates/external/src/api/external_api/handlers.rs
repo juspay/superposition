@@ -12,13 +12,13 @@ use crate::api::external_api::{
 use experimentation_platform::{
     api::experiments::{
         handlers::{conclude, get_experiment},
-        helpers::extract_dimensions,
         types::{ConcludeExperimentRequest, ExperimentResponse, VariantType},
     },
     db::models::Experiment,
 };
 use serde_json::Value;
 use service_utils::{
+    helpers::extract_dimensions,
     service::types::{AppState, DbConnection, Tenant},
     types as app,
 };

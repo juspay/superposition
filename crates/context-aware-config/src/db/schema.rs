@@ -20,6 +20,7 @@ diesel::table! {
         created_at -> Timestamptz,
         created_by -> Varchar,
         schema -> Json,
+        function_name -> Nullable<Text>,
     }
 }
 
@@ -30,6 +31,7 @@ diesel::table! {
         created_at -> Timestamptz,
         created_by -> Varchar,
         schema -> Json,
+        function_name -> Nullable<Text>,
     }
 }
 
@@ -595,6 +597,9 @@ diesel::table! {
         draft_edited_by -> Text,
     }
 }
+
+diesel::joinable!(default_configs -> functions (function_name));
+diesel::joinable!(dimensions -> functions (function_name));
 
 diesel::allow_tables_to_appear_in_same_query!(
     contexts,
