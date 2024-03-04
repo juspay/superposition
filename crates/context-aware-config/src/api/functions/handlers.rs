@@ -265,15 +265,18 @@ async fn test(
             Some(code) => execute_fn(&code, fun_name, req),
             None => {
                 log::error!("Function test failed: function not published yet");
-                Err("Function test failed as function not published yet".to_owned())
+                Err((
+                    "Function test failed as function not published yet".to_owned(),
+                    None,
+                ))
             }
         },
     };
 
     match result {
-        Ok(()) => Ok(HttpResponse::Ok()
-            .json(json!({"message": "Function validated the given value successfully"}))),
-        Err(e) => Err(ErrorBadRequest(json!({ "message": e }))),
+        Ok(stdout) => Ok(HttpResponse::Ok()
+            .json(json!({"message": "Function validated the given value successfully", "stdout": stdout}))),
+        Err((e, stdout)) => Err(ErrorBadRequest(json!({ "message": format!( "Function validation failed with error: {e}" ), "stdout": stdout }))),
     }
 }
 

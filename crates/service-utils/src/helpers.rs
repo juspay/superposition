@@ -8,6 +8,8 @@ use std::{
 };
 
 use super::errors::types::{Error as err, ErrorResponse};
+use crate::types as app;
+use serde_json::{Map, Value};
 
 //WARN Do NOT use this fxn inside api requests, instead add the required
 //env to AppState and get value from there. As this panics, it should
@@ -132,4 +134,86 @@ pub fn remove_error_abstraction(e: reqwest::Error) -> err {
         }),
         _ => err::InternalServerErr(e.to_string()),
     }
+}
+
+pub fn extract_dimensions(context_json: &Value) -> app::Result<Map<String, Value>> {
+    // Assuming max 2-level nesting in context json logic
+    let context = context_json
+        .as_object()
+        .ok_or(err::BadArgument(ErrorResponse { message: "An error occurred while extracting dimensions: context not a valid JSON object".to_string(), possible_fix: "send a valid JSON context".to_string() }))?;
+
+    let conditions = match context.get("and") {
+        Some(conditions_json) => conditions_json
+            .as_array()
+            .ok_or(err::BadArgument(ErrorResponse { message: "An error occurred while extracting dimensions: failed parsing conditions as an array".to_string(), possible_fix: "ensure the context provided obeys the rules of JSON logic".to_string() }))?
+            .clone(),
+        None => vec![context_json.clone()],
+    };
+
+    let mut dimension_tuples = Vec::new();
+    for condition in &conditions {
+        let condition_obj =
+            condition
+                .as_object()
+                .ok_or(err::BadArgument(ErrorResponse {
+                    message: " failed to parse condition as an object".to_string(),
+                    possible_fix:
+                        "ensure the context provided obeys the rules of JSON logic"
+                            .to_string(),
+                }))?;
+        let operators = condition_obj.keys();
+
+        for operator in operators {
+            let operands = condition_obj[operator].as_array().ok_or(err::BadArgument(
+                ErrorResponse {
+                    message: " failed to parse operands as an arrays".to_string(),
+                    possible_fix:
+                        "ensure the context provided obeys the rules of JSON logic"
+                            .to_string(),
+                },
+            ))?;
+
+            let (variable_name, variable_value) = get_variable_name_and_value(operands)?;
+
+            dimension_tuples.push((String::from(variable_name), variable_value.clone()));
+        }
+    }
+
+    Ok(Map::from_iter(dimension_tuples))
+}
+
+pub fn get_variable_name_and_value(operands: &Vec<Value>) -> app::Result<(&str, &Value)> {
+    let (obj_pos, variable_obj) = operands
+        .iter()
+        .enumerate()
+        .find(|(_, operand)| {
+            operand.is_object() && operand.as_object().unwrap().get("var").is_some()
+        })
+        .ok_or(err::BadArgument(ErrorResponse {
+            message: " failed to get variable name from operands list".to_string(),
+            possible_fix: "ensure the context provided obeys the rules of JSON logic"
+                .to_string(),
+        }))?;
+
+    let variable_name = variable_obj
+        .as_object()
+        .map_or(None, |obj| obj.get("var"))
+        .map_or(None, |value| value.as_str())
+        .ok_or(err::BadArgument(ErrorResponse {
+            message: " failed to get variable name from operands list".to_string(),
+            possible_fix: "ensure the context provided obeys the rules of JSON logic"
+                .to_string(),
+        }))?;
+
+    let value_pos = (obj_pos + 1) % 2;
+    let variable_value =
+        operands
+            .get(value_pos)
+            .ok_or(err::BadArgument(ErrorResponse {
+                message: " failed to get variable value from operands list".to_string(),
+                possible_fix: "ensure the context provided obeys the rules of JSON logic"
+                    .to_string(),
+            }))?;
+
+    Ok((variable_name, variable_value))
 }

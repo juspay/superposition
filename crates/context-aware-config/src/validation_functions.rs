@@ -10,6 +10,7 @@ const IMPORT_CODE: &str = r#"
 
 const EXIT_LOGIC_CODE: &str = r#"
     if (fun_value != true) {
+        console.error(fun_value)
         process.exit(1);
     };
     "#;
@@ -45,8 +46,8 @@ const ES_LINT_CODE: &str = r#"
             process.exit(1);
         } 
         }).catch((error) => {
+            console.error(error);
             process.exit(1);
-        
         });
 
     "#;
@@ -56,7 +57,11 @@ fn runtime_wrapper(function_name: &str, value: Value) -> String {
     fun_call + EXIT_LOGIC_CODE
 }
 
-pub fn execute_fn(code_str: &str, fun_name: &str, value: Value) -> Result<(), String> {
+pub fn execute_fn(
+    code_str: &str,
+    fun_name: &str,
+    value: Value,
+) -> Result<String, (String, Option<String>)> {
     let output = Command::new("node")
         .arg("-e")
         .arg(IMPORT_CODE.to_string() + code_str + &runtime_wrapper(fun_name, value))
@@ -64,6 +69,9 @@ pub fn execute_fn(code_str: &str, fun_name: &str, value: Value) -> Result<(), St
     log::trace!("{}", format!("validation function output : {:?}", output));
     match output {
         Ok(val) => {
+            let stdout = str::from_utf8(&val.stdout)
+                .unwrap_or("[Invalid UTF-8 in stdout]")
+                .to_owned();
             if !(val.status.success()) {
                 let stderr = str::from_utf8(&val.stderr)
                     .unwrap_or("[Invalid UTF-8 in stderr]")
@@ -72,14 +80,14 @@ pub fn execute_fn(code_str: &str, fun_name: &str, value: Value) -> Result<(), St
                     "{}",
                     format!("validation function output error: {:?}", stderr)
                 );
-                Err(stderr)
+                Err((stderr, Some(stdout)))
             } else {
-                Ok(())
+                Ok(stdout)
             }
         }
         Err(e) => {
             log::error!("js_eval error: {}", e);
-            Err(format!("js_eval error: {}", e))
+            Err((format!("js_eval error: {}", e), None))
         }
     }
 }
