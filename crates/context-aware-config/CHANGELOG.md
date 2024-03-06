@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.22.0 - 2024-03-06
+#### Features
+- support more operations - (4db2c31) - Kartik Gajendra
+
+- - -
+
 ## context-aware-config-v0.21.0 - 2024-03-04
 #### Features
 - PICAF-26185 Replace merge-strategy option for resolve/eval - (453cfb9) - ayush.jain@juspay.in

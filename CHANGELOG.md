@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.30.0 - 2024-03-06
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.22.0
+- caclang bumped to caclang-v0.1.0
+### Global changes
+#### Features
+- support more operations - (4db2c31) - Kartik Gajendra
+- added CAC language support - (c549384) - Kartik Gajendra
+
+- - -
+
 ## v0.29.0 - 2024-03-06
 ### Package updates
 - frontend bumped to frontend-v0.1.0
