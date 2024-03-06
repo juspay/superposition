@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.29.0 - 2024-03-06
+### Package updates
+- frontend bumped to frontend-v0.1.0
+### Global changes
+#### Bug Fixes
+- added frontend crate to cog.toml - (c901e21) - Shubhranshu Sanjeev
+#### Features
+- PICAF-26266 url click and text wrap fixes - (643c54d) - Saurav CV
+
+- - -
+
 ## v0.28.0 - 2024-03-04
 ### Package updates
 - cac_client bumped to cac_client-v0.6.0
