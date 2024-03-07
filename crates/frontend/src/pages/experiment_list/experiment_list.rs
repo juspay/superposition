@@ -142,7 +142,7 @@ pub fn experiment_list() -> impl IntoView {
                                             .to_owned();
                                         view! {
                                             <Table
-                                                table_style="abc".to_string()
+                                                cell_style="min-w-48 font-mono".to_string()
                                                 rows=data
                                                 key_column="id".to_string()
                                                 columns=table_columns.get()

@@ -72,3 +72,7 @@
 .word-break-break {
     word-break: break-word;
 }
+
+.min-w-48 {
+    min-width: 12rem;
+}
