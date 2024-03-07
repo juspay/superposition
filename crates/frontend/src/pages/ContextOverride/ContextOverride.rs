@@ -304,7 +304,7 @@ pub fn ContextOverride() -> impl IntoView {
                                                             </div>
                                                             <div class="space-x-4">
                                                                 <Table
-                                                                    table_style="font-mono".to_string()
+                                                                    cell_style="min-w-48 font-mono".to_string()
                                                                     rows=contexts.clone()
                                                                     key_column="id".to_string()
                                                                     columns=table_columns.get()

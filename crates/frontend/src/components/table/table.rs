@@ -20,7 +20,7 @@ fn generate_table_row_str(row: &Value) -> String {
 #[component]
 pub fn table(
     key_column: String,
-    table_style: String,
+    cell_style: String,
     columns: Vec<Column>,
     rows: Vec<Map<String, Value>>,
 ) -> impl IntoView {
@@ -68,7 +68,7 @@ pub fn table(
                                                 row.get(cname).unwrap_or(&Value::String("".to_string())),
                                             );
                                             view! {
-                                                <td class=table_style
+                                                <td class=cell_style
                                                     .to_string()>{(column.formatter)(&value, &row)}</td>
                                             }
                                         })
