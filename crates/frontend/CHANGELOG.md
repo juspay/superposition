@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.1.1 - 2024-03-07
+#### Bug Fixes
+- adding min-width settings for table component - (0fcd0c1) - Kartik
+
+- - -
+
 ## frontend-v0.1.0 - 2024-03-06
 #### Bug Fixes
 - added drawer, improved UX & single click override addition to variants - (14a1ead) - Shubhranshu Sanjeev
