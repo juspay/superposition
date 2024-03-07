@@ -193,7 +193,7 @@ where
                                 let (rows, columns) = gen_variant_table(&exp.variants).unwrap();
                                 view! {
                                     <Table
-                                        table_style="abc".to_string()
+                                        cell_style="min-w-48 font-mono".to_string()
                                         rows=rows
                                         key_column="overrides".to_string()
                                         columns=columns
