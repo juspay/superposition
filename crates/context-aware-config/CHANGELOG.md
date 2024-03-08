@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.23.0 - 2024-03-08
+#### Features
+- PICAF-25884 Added function validation for context and default_config - (990b729) - ankit.mahato
+
+- - -
+
 ## context-aware-config-v0.22.0 - 2024-03-06
 #### Features
 - support more operations - (4db2c31) - Kartik Gajendra

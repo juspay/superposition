@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## external-v0.4.0 - 2024-03-08
+#### Features
+- PICAF-25884 Added function validation for context and default_config - (990b729) - ankit.mahato
+
+- - -
+
 ## external-v0.3.0 - 2023-11-11
 #### Features
 - added format check in the JenkinsFile(PICAF-24813) - (4fdf864) - Saurav Suman
