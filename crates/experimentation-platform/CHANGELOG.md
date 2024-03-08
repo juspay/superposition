@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.10.0 - 2024-03-08
+#### Features
+- PICAF-25884 Added function validation for context and default_config - (990b729) - ankit.mahato
+
+- - -
+
 ## experimentation-platform-v0.9.4 - 2024-02-27
 #### Bug Fixes
 - returning error response if CAC call not 200 - (fa0eb5e) - Shubhranshu Sanjeev
