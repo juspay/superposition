@@ -9,7 +9,7 @@ pub enum DropdownBtnType {
     Fill,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Copy, Clone)]
 pub enum DropdownDirection {
     Right,
     Left,

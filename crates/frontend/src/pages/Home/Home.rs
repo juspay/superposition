@@ -1,17 +1,32 @@
-use leptos::*;
-use serde_json::{Map, Value};
-use wasm_bindgen::JsCast;
-use web_sys::{HtmlInputElement, HtmlSelectElement, HtmlSpanElement, MouseEvent};
+use std::time::Duration;
 
+use crate::components::condition_pills::condition_pills::ContextPills;
 use crate::{
     api::{fetch_config, fetch_dimensions},
     components::{
-        button::button::Button,
-        condition_pills::utils::{extract_and_format, parse_conditions},
-        context_form::context_form::ContextForm,
+        button::button::Button, context_form::context_form::ContextForm,
+        dropdown::dropdown::DropdownDirection,
     },
-    utils::{check_url_and_return_val, get_host},
+    utils::{check_url_and_return_val, get_element_by_id, get_host},
 };
+use leptos::*;
+use serde_json::{Map, Value};
+use strum::EnumProperty;
+use strum_macros::Display;
+use wasm_bindgen::JsCast;
+use web_sys::{
+    HtmlButtonElement, HtmlInputElement, HtmlSelectElement, HtmlSpanElement, MouseEvent,
+};
+
+#[derive(Clone, Debug, Copy, Display, strum_macros::EnumProperty, PartialEq)]
+enum ResolveTab {
+    #[strum(props(id = "resolved_config_tab"))]
+    ResolvedConfig,
+    // #[strum(props(id = "selected_configs_tab"))]
+    // SelectedConfig,
+    #[strum(props(id = "all_configs_tab"))]
+    AllConfig,
+}
 
 async fn resolve_config(tenant: String, context: String) -> Result<Value, String> {
     let client = reqwest::Client::new();
@@ -39,7 +54,6 @@ fn gen_name_id(s0: &String, s1: &String, s2: &String) -> String {
 #[component]
 pub fn home() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-    // let (config_display_rs, config_display_ws) = create_signal(Map::new());
     let config_data = create_blocking_resource(
         move || tenant_rs.get(),
         move |tenant| fetch_config(tenant),
@@ -54,7 +68,7 @@ pub fn home() -> impl IntoView {
         },
     );
 
-    let (_display_configs_rs, _display_configs_ws) = create_signal(true);
+    let (selected_tab_rs, selected_tab_ws) = create_signal(ResolveTab::AllConfig);
 
     let unstrike = |search_field_prefix: &String, config: &Map<String, Value>| {
         for (dimension, value) in config.into_iter() {
@@ -92,11 +106,15 @@ pub fn home() -> impl IntoView {
                 let _ = config_name_element
                     .class_list()
                     .add_2("text-black", "font-bold");
-                let _ = config_name_element.class_list().remove_1("text-gray-300");
+                let _ = config_name_element
+                    .class_list()
+                    .remove_2("text-gray-300", "line-through");
                 let _ = config_value_element
                     .class_list()
                     .add_2("text-black", "font-bold");
-                let _ = config_value_element.class_list().remove_1("text-gray-300");
+                let _ = config_value_element
+                    .class_list()
+                    .remove_2("text-gray-300", "line-through");
                 logging::log!(
                     "config name after replace {} and value {}",
                     config_name_element.to_string(),
@@ -129,9 +147,9 @@ pub fn home() -> impl IntoView {
                 dimension_labels
                     .item(i)
                     .expect("missing input")
-                    .dyn_ref::<HtmlSpanElement>()
+                    .dyn_ref::<HtmlInputElement>()
                     .unwrap()
-                    .inner_text(),
+                    .value(),
                 dimension_ops
                     .item(i)
                     .expect("missing input")
@@ -157,11 +175,15 @@ pub fn home() -> impl IntoView {
             let _ = config_name_element
                 .class_list()
                 .remove_2("text-black", "font-bold");
-            let _ = config_name_element.class_list().add_1("text-gray-300");
+            let _ = config_name_element
+                .class_list()
+                .add_2("text-gray-300", "line-through");
             let _ = config_value_element
                 .class_list()
                 .remove_2("text-black", "font-bold");
-            let _ = config_value_element.class_list().add_1("text-gray-300");
+            let _ = config_value_element
+                .class_list()
+                .add_2("text-gray-300", "line-through");
         }
         logging::log!("query vector {:#?}", query_vector);
         // resolve the context and get the config that would apply
@@ -205,26 +227,28 @@ pub fn home() -> impl IntoView {
             logging::log!("unstrike default config if needed");
             unstrike(&String::new(), &config);
 
-            let resolution_card = document()
-                .get_element_by_id("resolved_table_body")
-                .expect("resolve table card not found");
+            if selected_tab_rs.get_untracked() == ResolveTab::ResolvedConfig {
+                let resolution_card = document()
+                    .get_element_by_id("resolved_table_body")
+                    .expect("resolve table card not found");
 
-            let mut table_rows = String::new();
-            for (key, value) in config.iter() {
-                table_rows.push_str(
+                let mut table_rows = String::new();
+                for (key, value) in config.iter() {
+                    table_rows.push_str(
                     format!(
                         "<tr><td>{key}</td><td style='word-break: break-word;'>{}</td></tr>",
                         check_url_and_return_val(value.as_str().unwrap().to_owned())
                     )
                     .as_str(),
                 )
+                }
+                resolution_card.set_inner_html(&table_rows);
             }
-            resolution_card.set_inner_html(&table_rows);
         });
     };
     view! {
-        <div class="flex w-full flex-row mt-5 justify-evenly">
-            <div class="card mr-5 ml-5 mt-6 h-4/5 shadow bg-base-100 w-4/12">
+        <div class="flex w-full flex-col flex-wrap mt-5 justify-evenly">
+            <div class="card mr-5 ml-5 mt-6 h-4/5 shadow bg-base-100">
                 <Suspense fallback=move || {
                     view! { <p>"Loading..."</p> }
                 }>
@@ -232,18 +256,25 @@ pub fn home() -> impl IntoView {
                         dimension_resource
                             .with(|dimension| {
                                 view! {
-                                    <div class="card m-2 bg-base-100">
+                                    <div class="card flex flex-row m-2 bg-base-100">
                                         <div class="card-body">
                                             <h2 class="card-title">Resolve Configs</h2>
 
                                             <ContextForm
                                                 dimensions=dimension.to_owned().unwrap_or(vec![])
                                                 context=vec![]
+                                                heading_sub_text="Query your configs".to_string()
+                                                dropdown_direction=DropdownDirection::Right
                                                 is_standalone=false
+                                                resolve_mode=true
                                                 handle_change=|_| ()
                                             />
-                                            <div class="card-actions justify-end">
-                                                <Button text="Resolve".to_string() on_click=resolve_click/>
+                                            <div class="card-actions mt-6 justify-end">
+                                                <Button
+                                                    id="resolve_btn".to_string()
+                                                    text="Resolve".to_string()
+                                                    on_click=resolve_click
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -252,213 +283,265 @@ pub fn home() -> impl IntoView {
                     }}
 
                 </Suspense>
-                // config suspense
-                <Suspense fallback=move || {
-                    view! { <p>"Loading..."</p> }
-                }>
-
-                    {config_data
-                        .with(move |conf| {
-                            match conf {
-                                Some(Ok(config)) => {
-                                    let default_configs = config.default_configs.clone();
-                                    view! {
-                                        <div class="card m-2 bg-base-100">
-                                            <div class="card-body">
-                                                <h2 class="card-title">Resolved Config</h2>
-                                                <table class="table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Config Key</th>
-                                                            <th>Value</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody id="resolved_table_body">
-                                                        <For
-                                                            each=move || { default_configs.clone().into_iter() }
-
-                                                            key=|(key, value)| format!("{key}-{value}")
-                                                            children=move |(config, value)| {
-                                                                view! {
-                                                                    <tr>
-                                                                        <td>{config}</td>
-                                                                        <td style="word-break: break-word;">
-                                                                            {match value {
-                                                                                Value::String(s) => check_url_and_return_val(s),
-                                                                                Value::Number(num) => num.to_string(),
-                                                                                Value::Bool(b) => b.to_string(),
-                                                                                _ => "".into(),
-                                                                            }}
-
-                                                                        </td>
-
-                                                                    </tr>
-                                                                }
-                                                            }
-                                                        />
-
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    }
-                                }
-                                Some(Err(error)) => {
-                                    view! {
-                                        <div class="error">
-                                            {"Failed to fetch config data: "} {error.to_string()}
-                                        </div>
-                                    }
-                                }
-                                None => {
-                                    view! { <div class="error">{"No config data fetched"}</div> }
-                                }
-                            }
-                        })}
-
-                </Suspense>
             </div>
-            <Suspense fallback=move || {
-                view! { <p>"Loading (Suspense Fallback)..."</p> }
-            }>
+            <div role="tablist" class="tabs m-6 w-30 self-start tabs-lifted tabs-md">
+                <a
+                    role="tab"
+                    id=ResolveTab::AllConfig.get_str("id").expect("ID not defined for Resolve tab")
+                    class=move || match selected_tab_rs.get() {
+                        ResolveTab::AllConfig => {
+                            "tab tab-active [--tab-border-color:#a651f5] text-center"
+                        }
+                        _ => "tab",
+                    }
 
-                {config_data
-                    .with(move |result| {
-                        match result {
-                            Some(Ok(config)) => {
-                                let rows = |k: &String, v: &Value, striked: bool| {
-                                    let mut view_vector = vec![];
-                                    println!("{:?}", v);
-                                    let default_iter = vec![(k.clone(), v.clone())];
-                                    for (key, value) in v
-                                        .as_object()
-                                        .unwrap_or(&Map::from_iter(default_iter))
-                                        .iter()
-                                    {
-                                        let key = key.replace("\"", "").trim().to_string();
-                                        let value = format!("{}", value)
-                                            .replace("\"", "")
-                                            .trim()
-                                            .to_string();
-                                        let unique_name = gen_name_id(k, &key, &value);
-                                        view_vector
-                                            .push(
-                                                view! {
-                                                    < tr > < td > < span name = format!("{unique_name}-1") class
-                                                    = "config-name" class : text - black = { ! striked } class :
-                                                    font - bold = { ! striked } class : text - gray - 300 = {
-                                                    striked } > { key } </ span > </ td > < td style="word-break: break-word;"> < span name =
-                                                    format!("{unique_name}-2") class = "config-value" class :
-                                                    text - black = { ! striked } class : font - bold = { !
-                                                    striked } class : text - gray - 300 = { striked } > { check_url_and_return_val(value)
-                                                    } </ span > </ td > </ tr >
-                                                },
-                                            )
-                                    }
-                                    view_vector
-                                };
-                                let contexts_views: Vec<_> = config
-                                    .contexts
-                                    .iter()
-                                    .map(|context| {
-                                        let condition = parse_conditions(
-                                            extract_and_format(&context.condition),
-                                        );
-                                        let rows: Vec<_> = context
-                                            .override_with_keys
-                                            .iter()
-                                            .filter_map(|key| {
-                                                let o = config.overrides.get(key);
-                                                if o.is_some() { Some((key, o.unwrap())) } else { None }
-                                            })
-                                            .map(|(k, v)| { rows(&k, &v, true) })
-                                            .collect();
-                                        view! {
-                                            <div class="card bg-base-100 shadow m-6">
-                                                <div class="card-body">
-                                                    <h2 class="card-title">
-                                                        {condition
+                    on:click=move |_| {
+                        selected_tab_ws.set(ResolveTab::AllConfig);
+                        set_timeout(
+                            || {
+                                get_element_by_id::<HtmlButtonElement>("resolve_btn")
+                                    .map(|btn| btn.click());
+                            },
+                            Duration::new(1, 0),
+                        );
+                    }
+                >
+
+                    All Contexts
+                </a>
+                <a
+                    role="tab"
+                    id=ResolveTab::ResolvedConfig
+                        .get_str("id")
+                        .expect("ID not defined for Resolve tab")
+                    class=move || match selected_tab_rs.get() {
+                        ResolveTab::ResolvedConfig => {
+                            "tab tab-active [--tab-border-color:orange] text-center"
+                        }
+                        _ => "tab",
+                    }
+
+                    on:click=move |_| {
+                        selected_tab_ws.set(ResolveTab::ResolvedConfig);
+                        set_timeout(
+                            || {
+                                get_element_by_id::<HtmlButtonElement>("resolve_btn")
+                                    .map(|btn| btn.click());
+                            },
+                            Duration::new(1, 0),
+                        );
+                    }
+                >
+
+                    Resolved Configuration
+                </a>
+            </div>
+            {move || {
+                selected_tab_rs
+                    .with(|tab| {
+                        match tab {
+                            ResolveTab::AllConfig => {
+                                view! {
+                                    <Suspense fallback=move || {
+                                        view! { <p>"Loading (Suspense Fallback)..."</p> }
+                                    }>
+                                        {config_data
+                                            .with(move |result| {
+                                                match result {
+                                                    Some(Ok(config)) => {
+                                                        let rows = |k: &String, v: &Value, striked: bool| {
+                                                            let mut view_vector = vec![];
+                                                            let default_iter = vec![(k.clone(), v.clone())];
+                                                            for (key, value) in v
+                                                                .as_object()
+                                                                .unwrap_or(&Map::from_iter(default_iter))
+                                                                .iter()
+                                                            {
+                                                                let key = key.replace("\"", "").trim().to_string();
+                                                                let value = value
+                                                                    .as_str()
+                                                                    .unwrap_or(&value.to_string().trim_matches('"')[..])
+                                                                    .into();
+                                                                let unique_name = gen_name_id(k, &key, &value);
+                                                                view_vector
+                                                                    .push(
+                                                                        view! {
+                                                                            < tr > < td class = "min-w-48 font-mono" > < span name =
+                                                                            format!("{unique_name}-1") class = "config-name" class :
+                                                                            text - black = { ! striked } class : font - bold = { !
+                                                                            striked } class : text - gray - 300 = { striked } > { key }
+                                                                            </ span > </ td > < td class = "min-w-48 font-mono" style =
+                                                                            "word-break: break-word;" > < span name =
+                                                                            format!("{unique_name}-2") class = "config-value" class :
+                                                                            text - black = { ! striked } class : font - bold = { !
+                                                                            striked } class : text - gray - 300 = { striked } > {
+                                                                            check_url_and_return_val(value) } </ span > </ td > </ tr >
+                                                                        },
+                                                                    )
+                                                            }
+                                                            view_vector
+                                                        };
+                                                        let contexts_views: Vec<_> = config
+                                                            .contexts
                                                             .iter()
-                                                            .map(|(dim, op, val)| {
+                                                            .map(|context| {
+                                                                let rows: Vec<_> = context
+                                                                    .override_with_keys
+                                                                    .iter()
+                                                                    .filter_map(|key| {
+                                                                        let o = config.overrides.get(key);
+                                                                        if o.is_some() { Some((key, o.unwrap())) } else { None }
+                                                                    })
+                                                                    .map(|(k, v)| { rows(&k, &v, true) })
+                                                                    .collect();
                                                                 view! {
-                                                                    <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs ring-1 ring-inset ring-purple-700/10 shadow-md gap-x-2">
-                                                                        <span class="font-mono font-medium context_condition text-gray-500">
-                                                                            {dim}
-                                                                        </span>
-                                                                        <span class="font-mono font-medium text-gray-650 context_condition ">
-                                                                            {op}
-                                                                        </span>
-                                                                        <span class="font-mono font-semibold context_condition">
-                                                                            {val}
-                                                                        </span>
-                                                                    </span>
+                                                                    <div class="card bg-base-100 shadow m-6">
+                                                                        <div class="card-body">
+                                                                            <h2 class="card-title">
+                                                                                <ContextPills context=context.condition.clone()/>
+                                                                            </h2>
+                                                                            <table class="table table-zebra mt-10">
+                                                                                <thead>
+                                                                                    <tr>
+                                                                                        <th>Key</th>
+                                                                                        <th>Value</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>{rows}</tbody>
+                                                                            </table>
+
+                                                                        </div>
+                                                                    </div>
                                                                 }
                                                             })
-                                                            .collect_view()}
+                                                            .collect::<Vec<_>>();
+                                                        let new_context_views = contexts_views
+                                                            .into_iter()
+                                                            .rev()
+                                                            .collect::<Vec<_>>();
+                                                        let default_config: Vec<_> = config
+                                                            .default_configs
+                                                            .iter()
+                                                            .map(|(k, v)| { rows(&k, &v, false) })
+                                                            .collect();
+                                                        vec![
+                                                            view! {
+                                                                <div class="mb-4 overflow-y-scroll">
+                                                                    {new_context_views}
+                                                                    <div class="card bg-base-100 shadow m-6">
+                                                                        <div class="card-body">
+                                                                            <h2 class="card-title">Default Configuration</h2>
+                                                                            <table class="table table-zebra">
+                                                                                <thead>
+                                                                                    <tr>
+                                                                                        <th>Key</th>
+                                                                                        <th>Value</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>{default_config}</tbody>
+                                                                            </table>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            },
+                                                        ]
+                                                    }
+                                                    Some(Err(error)) => {
+                                                        vec![
+                                                            view! {
+                                                                <div class="error">
+                                                                    {"Failed to fetch config data: "} {error.to_string()}
+                                                                </div>
+                                                            },
+                                                        ]
+                                                    }
+                                                    None => {
+                                                        vec![
+                                                            view! {
+                                                                <div class="error">{"No config data fetched"}</div>
+                                                            },
+                                                        ]
+                                                    }
+                                                }
+                                            })}
 
-                                                    </h2>
-                                                    <table class="table mt-10">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Key</th>
-                                                                <th>Value</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>{rows}</tbody>
-                                                    </table>
+                                    </Suspense>
+                                }
+                            }
+                            ResolveTab::ResolvedConfig => {
+                                view! {
+                                    <Suspense fallback=move || {
+                                        view! { <p>"Loading..."</p> }
+                                    }>
 
-                                                </div>
-                                            </div>
-                                        }
-                                    })
-                                    .collect::<Vec<_>>();
-                                let new_context_views = contexts_views
-                                    .into_iter()
-                                    .rev()
-                                    .collect::<Vec<_>>();
-                                let default_config: Vec<_> = config
-                                    .default_configs
-                                    .iter()
-                                    .map(|(k, v)| { rows(&k, &v, false) })
-                                    .collect();
-                                vec![
-                                    view! {
-                                        <div class="mb-4 w-8/12 overflow-y-auto max-h-screen">
-                                            {new_context_views}
-                                            <div class="card bg-base-100 shadow m-6">
-                                                <div class="card-body">
-                                                    <h2 class="card-title">Default Configuration</h2>
-                                                    <table class="table">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Key</th>
-                                                                <th>Value</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>{default_config}</tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    },
-                                ]
-                            }
-                            Some(Err(error)) => {
-                                vec![
-                                    view! {
-                                        <div class="error">
-                                            {"Failed to fetch config data: "} {error.to_string()}
-                                        </div>
-                                    },
-                                ]
-                            }
-                            None => {
-                                vec![view! { <div class="error">{"No config data fetched"}</div> }]
+                                        {config_data
+                                            .with(move |conf| {
+                                                match conf {
+                                                    Some(Ok(config)) => {
+                                                        let default_configs = config.default_configs.clone();
+                                                        view! {
+                                                            <div class="card m-6 shadow bg-base-100">
+                                                                <div class="card-body">
+                                                                    <h2 class="card-title">Resolved Config</h2>
+                                                                    <table class="table table-zebra">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Config Key</th>
+                                                                                <th>Value</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody id="resolved_table_body">
+                                                                            <For
+                                                                                each=move || { default_configs.clone().into_iter() }
+
+                                                                                key=|(key, value)| format!("{key}-{value}")
+                                                                                children=move |(config, value)| {
+                                                                                    view! {
+                                                                                        <tr>
+                                                                                            <td>{config}</td>
+                                                                                            <td style="word-break: break-word;">
+                                                                                                {match value {
+                                                                                                    Value::String(s) => check_url_and_return_val(s),
+                                                                                                    Value::Number(num) => num.to_string(),
+                                                                                                    Value::Bool(b) => b.to_string(),
+                                                                                                    _ => "".into(),
+                                                                                                }}
+
+                                                                                            </td>
+
+                                                                                        </tr>
+                                                                                    }
+                                                                                }
+                                                                            />
+
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    }
+                                                    Some(Err(error)) => {
+                                                        view! {
+                                                            <div class="error">
+                                                                {"Failed to fetch config data: "} {error.to_string()}
+                                                            </div>
+                                                        }
+                                                    }
+                                                    None => {
+                                                        view! {
+                                                            <div class="error">{"No config data fetched"}</div>
+                                                        }
+                                                    }
+                                                }
+                                            })}
+
+                                    </Suspense>
+                                }
                             }
                         }
-                    })}
+                    })
+            }}
 
-            </Suspense>
         </div>
     }
 }
