@@ -7,7 +7,7 @@ use crate::hoc::layout::layout::Layout;
 use crate::pages::experiment_list::experiment_list::ExperimentList;
 use crate::pages::Dimensions::Dimensions::Dimensions;
 use crate::pages::{
-    ContextOverride::ContextOverride::ContextOverride,
+    ContextOverride::context_override::ContextOverride,
     DefaultConfig::DefaultConfig::DefaultConfig, Experiment::ExperimentPage,
     Home::Home::Home,
 };

@@ -12,6 +12,8 @@ pub fn context_form<NF>(
     context: Vec<(String, String, String)>,
     #[prop(default = String::new())] heading_sub_text: String,
     #[prop(default = false)] disabled: bool,
+    #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
+    #[prop(default = false)] resolve_mode: bool,
 ) -> impl IntoView
 where
     NF: Fn(Vec<(String, String, String)>) + 'static,
@@ -64,7 +66,7 @@ where
                                     dropdown_width="w-80"
                                     dropdown_icon="ri-add-line".to_string()
                                     dropdown_text="Add Context".to_string()
-                                    dropdown_direction=DropdownDirection::Left
+                                    dropdown_direction
                                     dropdown_options=dimensions.get_value()
                                     disabled=disabled
                                     on_select=Box::new(handle_select_dropdown_option)
@@ -86,12 +88,24 @@ where
                                 let dimension_name = dimension.to_string();
                                 view! {
                                     <div class="flex gap-x-6">
+                                        <div class="form-control">
+                                            <label class="label font-mono text-sm">
+                                                <span class="label-text">Dimension</span>
+                                            </label>
+                                            <input
+                                                value=dimension_label
+                                                class="input w-full max-w-xs"
+                                                name="context-dimension-name"
+                                                disabled=true
+                                            />
+                                        </div>
                                         <div class="form-control w-20">
                                             <label class="label font-medium font-mono text-sm">
                                                 <span class="label-text">Operator</span>
                                             </label>
+
                                             <select
-                                                disabled=disabled
+                                                disabled=disabled || resolve_mode
                                                 value=operator.clone()
                                                 on:input=move |event| {
                                                     let input_value = event_target_value(&event);
@@ -102,12 +116,15 @@ where
                                                 }
 
                                                 name="context-dimension-operator"
-                                                class="select select-bordered w-full text-sm rounded-lg h-10 px-4 appearance-none leading-tight focus:outline-none focus:shadow-outline"
+                                                class="select select-bordered w-full max-w-xs text-sm rounded-lg h-10 px-4 appearance-none leading-tight focus:outline-none focus:shadow-outline"
                                             >
-                                                <option disabled selected>
+                                                <option disabled selected=!resolve_mode>
                                                     Pick one
                                                 </option>
-                                                <option value="==" selected=operator.clone() == "==">
+                                                <option
+                                                    value="=="
+                                                    selected=operator.clone() == "==" || resolve_mode
+                                                >
                                                     "IS"
                                                 </option>
                                                 <option value="IN" selected=operator.clone() == "IN">
@@ -121,9 +138,7 @@ where
                                         </div>
                                         <div class="form-control">
                                             <label class="label font-mono text-sm">
-                                                <span class="label-text" name="context-dimension-name">
-                                                    {dimension_label}
-                                                </span>
+                                                <span class="label-text">Value</span>
                                             </label>
                                             <div class="flex gap-x-6 items-center">
                                                 <input
@@ -195,6 +210,7 @@ where
                                             dropdown_text="Add Context".to_string()
                                             dropdown_options=dimensions
                                             disabled=disabled
+                                            dropdown_direction
                                             on_select=Box::new(handle_select_dropdown_option)
                                         />
                                     }
