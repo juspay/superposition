@@ -15,7 +15,7 @@ use serde_json::{Map, Value};
 use web_sys::MouseEvent;
 
 #[component]
-fn ContextModalForm<NF>(
+fn context_modal_form<NF>(
     handle_change: NF,
     dimensions: Resource<String, Result<Vec<Dimension>, ServerFnError>>,
 ) -> impl IntoView
@@ -68,7 +68,7 @@ where
 }
 
 #[component]
-fn OverrideModalForm<NF>(handle_change: NF) -> impl IntoView
+fn override_modal_form<NF>(handle_change: NF) -> impl IntoView
 where
     NF: Fn(Map<String, Value>) + 'static + Clone,
 {
@@ -124,7 +124,7 @@ where
 }
 
 #[component]
-fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
+fn modal_component(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
     let (context_condition, set_context_condition) =
         create_signal::<Vec<(String, String, String)>>(vec![]);
     let (overrides, set_overrides) = create_signal::<Map<String, Value>>(Map::new());
@@ -155,12 +155,15 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
 
             spawn_local({
                 let handle_submit = handle_submit_clone;
+                let overrides = move || overrides.get();
+                let context_conditions = move || context_condition.get();
+                let dimensions = move || dimensions.get();
                 async move {
                     let result = create_context(
                         current_tenant,
-                        overrides.get(),
-                        context_condition.get(),
-                        dimensions.get().unwrap().expect("resource not loaded"),
+                        overrides(),
+                        context_conditions(),
+                        dimensions().unwrap().expect("resource not loaded"),
                     )
                     .await;
 
@@ -217,7 +220,7 @@ fn ModalComponent(handle_submit: Rc<dyn Fn()>) -> impl IntoView {
 }
 
 #[component]
-pub fn ContextOverride() -> impl IntoView {
+pub fn context_override() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
 
     let context_data: Vec<(String, String, String)> = vec![];

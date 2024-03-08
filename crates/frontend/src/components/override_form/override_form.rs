@@ -41,7 +41,7 @@ where
             .filter(|config| !overrides.get().contains_key(&config.key))
             .collect::<Vec<DefaultConfig>>()
     });
-    let has_default_config = Signal::derive(move || unused_config_keys.get().len() > 0);
+    // let has_default_config = Signal::derive(move || unused_config_keys.get().len() > 0);
 
     let on_submit = move |event: MouseEvent| {
         event.prevent_default();
