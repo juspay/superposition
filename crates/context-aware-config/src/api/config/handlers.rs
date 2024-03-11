@@ -1,6 +1,11 @@
+use std::collections::HashSet;
 use std::{collections::HashMap, str::FromStr};
 
-use super::types::{Config, Context};
+use super::helpers::{
+    filter_config_by_dimensions, filter_config_by_prefix, filter_context,
+};
+
+use super::types::Config;
 use crate::db::schema::{
     contexts::dsl as ctxt, default_configs::dsl as def_conf, event_log::dsl as event_log,
 };
@@ -17,10 +22,7 @@ use diesel::{
 };
 use serde_json::{json, Map, Value, Value::Null};
 use service_utils::{
-    errors::types::Error as err,
-    helpers::{extract_dimensions, ToActixErr},
-    service::types::DbConnection,
-    types as app,
+    errors::types::Error as err, helpers::ToActixErr, service::types::DbConnection,
 };
 
 pub fn endpoints() -> Scope {
@@ -135,9 +137,43 @@ async fn get(req: HttpRequest, db_conn: DbConnection) -> actix_web::Result<HttpR
     if let Ok(true) = is_not_modified {
         return Ok(HttpResponse::NotModified().finish());
     }
-    let res = HttpResponse::Ok().json(generate_cac(&mut conn).await?);
 
-    add_last_modified_header(max_created_at, res)
+    let params = Query::<HashMap<String, String>>::from_query(req.query_string())
+        .map_err(|_| ErrorBadRequest("Unable to retrieve query parameters."))?;
+    let mut query_params_map: serde_json::Map<String, Value> = Map::new();
+
+    for (key, value) in params.0.into_iter() {
+        query_params_map.insert(
+            key,
+            value
+                .parse::<i32>()
+                .map_or_else(|_| json!(value), |int_val| json!(int_val)),
+        );
+    }
+
+    let config = generate_cac(&mut conn).await?;
+
+    let filtered_config_by_dimensions =
+        filter_config_by_dimensions(&config, &query_params_map)?;
+
+    let filtered_config_by_prefix = if let Some(prefix) = query_params_map.get("prefix") {
+        let prefix_list: HashSet<&str> = prefix
+            .as_str()
+            .ok_or_else(|| {
+                log::error!("Prefix is not a valid string.");
+                err::InternalServerErr("Prefix is not a valid string.".to_string())
+            })?
+            .split(",")
+            .collect();
+        filter_config_by_prefix(&filtered_config_by_dimensions, &prefix_list)?
+    } else {
+        filtered_config_by_dimensions
+    };
+
+    add_last_modified_header(
+        max_created_at,
+        HttpResponse::Ok().json(filtered_config_by_prefix),
+    )
 }
 
 #[get("/resolve")]
@@ -237,7 +273,7 @@ async fn get_filtered_config(
     let config = generate_cac(&mut conn).await?;
     let contexts = config.contexts;
 
-    let filtered_context = filter_context(contexts, query_params_map)?;
+    let filtered_context = filter_context(&contexts, &query_params_map)?;
     let mut filtered_overrides: Map<String, Value> = Map::new();
     for ele in filtered_context.iter() {
         let override_with_key = &ele.override_with_keys[0];
@@ -260,27 +296,4 @@ async fn get_filtered_config(
     };
 
     Ok(HttpResponse::Ok().json(filtered_config))
-}
-
-fn filter_context(
-    contexts: Vec<Context>,
-    query_params_map: Map<String, Value>,
-) -> app::Result<Vec<Context>> {
-    let mut filtered_context: Vec<Context> = Vec::new();
-    for context in contexts.into_iter() {
-        if should_add_ctx(&context, &query_params_map)? {
-            filtered_context.push(context);
-        }
-    }
-    return Ok(filtered_context);
-}
-
-fn should_add_ctx(
-    context: &Context,
-    query_params_map: &Map<String, Value>,
-) -> app::Result<bool> {
-    let dimension = extract_dimensions(&context.condition)?;
-    Ok(dimension
-        .iter()
-        .all(|(key, value)| query_params_map.get(key).map_or(true, |val| val == value)))
 }
