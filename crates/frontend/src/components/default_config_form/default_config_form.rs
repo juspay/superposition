@@ -181,7 +181,7 @@ where
                     value="decimal"
                     selected=move || { config_type.get() == "decimal".to_string() }
                 >
-                    "Decimal"
+                    "Decimal (16 digits)"
                 </option>
                 <option
                     value="boolean"

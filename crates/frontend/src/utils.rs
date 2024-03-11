@@ -1,8 +1,9 @@
 use std::env;
 
-use crate::types::Envs;
+use crate::types::{DefaultConfig, Dimension, Envs};
 use leptos::*;
-use serde_json::Value;
+use serde_json::{Number, Value};
+use std::str::FromStr;
 use url::Url;
 use wasm_bindgen::JsCast;
 
@@ -272,5 +273,73 @@ pub fn check_url_and_return_val(s: String) -> String {
             &s, &s
         ),
         Err(_) => s,
+    }
+}
+
+pub enum ConfigType {
+    DefaultConfig(DefaultConfig),
+    Dimension(Dimension),
+}
+
+pub enum ConfigValueType {
+    Boolean,
+    Number,
+    String,
+    Other,
+}
+
+pub fn get_config_type(
+    configs: &[ConfigType],
+    key_name: &str,
+) -> Option<ConfigValueType> {
+    let config = configs.iter().find(|conf| match conf {
+        ConfigType::DefaultConfig(default_conf) => default_conf.key == key_name,
+        ConfigType::Dimension(dimension) => dimension.dimension == key_name,
+    });
+
+    let types_mapping = |type_str: Option<&str>| match type_str {
+        Some("boolean") => ConfigValueType::Boolean,
+        Some("number") => ConfigValueType::Number,
+        Some("string") => ConfigValueType::String,
+        _ => ConfigValueType::Other,
+    };
+
+    config.and_then(|config| match config {
+        ConfigType::DefaultConfig(default_conf) => default_conf
+            .schema
+            .get("type")
+            .map(|t| types_mapping(t.as_str())),
+        ConfigType::Dimension(dimension) => dimension
+            .schema
+            .get("type")
+            .map(|t| types_mapping(t.as_str())),
+    })
+}
+
+pub fn get_config_value(
+    name: &str,
+    val: &str,
+    configs: &[ConfigType],
+) -> Result<Value, String> {
+    let config_value_type = get_config_type(configs, name);
+    match config_value_type {
+        Some(ConfigValueType::Boolean) => bool::from_str(val)
+            .map(Value::Bool)
+            .map_err(|_| "Invalid boolean".to_string()),
+        Some(ConfigValueType::Number) => val
+            .parse::<i64>()
+            .map(|number| Value::Number(number.into()))
+            .or_else(|_| {
+                f64::from_str(val)
+                    .ok()
+                    .and_then(|num| Number::from_f64(num).map(Value::Number))
+                    .ok_or_else(|| {
+                        "Invalid decimal format or precision issue".to_string()
+                    })
+            }),
+        Some(ConfigValueType::String) => Ok(Value::String(val.to_string())),
+        Some(ConfigValueType::Other) | None => {
+            Value::from_str(val).map_err(|err| format!("Error parsing JSON: {}", err))
+        }
     }
 }
