@@ -1,38 +1,17 @@
 use crate::types::Dimension;
-use crate::utils::get_host;
+use crate::utils::{get_config_value, get_host, ConfigType};
+use anyhow::{Error, Result};
 use reqwest::StatusCode;
-use serde_json::{json, Map, Value};
+use serde_json::{json, Map, Number, Value};
+use std::io::ErrorKind;
 use std::str::FromStr;
-
-pub fn get_dimension_type(dimensions: Vec<Dimension>, dimension_name: &str) -> String {
-    let dimension = dimensions
-        .iter()
-        .find(|&dimension| dimension.dimension == dimension_name.to_string());
-    let schema = &dimension.unwrap().schema;
-    let schema_type = schema.get("type").unwrap();
-    schema_type.to_string()
-}
 
 pub fn get_condition_schema(
     var: &str,
     op: &str,
     val: &str,
     dimensions: Vec<Dimension>,
-) -> Value {
-    let dimension_value = |variable: &str, val: &str, dimensions: &Vec<Dimension>| {
-        let dimension_type = get_dimension_type(dimensions.clone(), variable);
-        match dimension_type.replace("\"", "").as_str() {
-            "boolean" => match bool::from_str(val) {
-                Ok(boolean) => Value::Bool(boolean),
-                _ => Value::String("Invalid Boolean".to_string()),
-            },
-            "number" => match val.parse::<i64>() {
-                Ok(number) => Value::Number(number.into()),
-                Err(_) => Value::String(val.to_string()),
-            },
-            _ => Value::String(val.to_string()),
-        }
-    };
+) -> Result<Value, String> {
     match op {
         "<=" => {
             let mut split_value = val.split(',');
@@ -40,25 +19,38 @@ pub fn get_condition_schema(
             let first_operand =
                 split_value.next().unwrap().trim().parse::<i64>().unwrap();
 
-            let dimension_val =
-                dimension_value(var, split_value.next().unwrap().trim(), &dimensions);
+            let dimension_val = get_config_value(
+                var,
+                split_value.next().unwrap().trim(),
+                &dimensions
+                    .into_iter()
+                    .map(ConfigType::Dimension)
+                    .collect::<Vec<_>>(),
+            );
 
-            json!({
+            Ok(json!({
                 op: [
                     first_operand,
                     { "var": var },
-                    dimension_val
+                    dimension_val.expect("can't parse dimension value")
                 ]
-            })
+            }))
         }
         _ => {
-            let dimension_val = dimension_value(var, val, &dimensions);
-            json!({
+            let dimension_val = get_config_value(
+                var,
+                val,
+                &dimensions
+                    .into_iter()
+                    .map(ConfigType::Dimension)
+                    .collect::<Vec<_>>(),
+            );
+            Ok(json!({
                 op: [
                     {"var": var},
-                    dimension_val
+                    dimension_val.expect("can't parse dimension value")
                 ]
-            })
+            }))
         }
     }
 }
@@ -70,7 +62,7 @@ pub fn construct_context(
     let condition_schemas = conditions
         .iter()
         .map(|(variable, operator, value)| {
-            get_condition_schema(variable, operator, value, dimensions.clone())
+            get_condition_schema(variable, operator, value, dimensions.clone()).unwrap()
         })
         .collect::<Vec<Value>>();
 

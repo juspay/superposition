@@ -1,23 +1,11 @@
 use crate::{
     components::dropdown::dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
     types::DefaultConfig,
+    utils::{get_config_value, ConfigType},
 };
 use leptos::*;
 use serde_json::{json, Map, Value};
-use std::str::FromStr;
 use web_sys::MouseEvent;
-
-pub fn get_default_config_type(
-    default_configs: Vec<DefaultConfig>,
-    key_name: &str,
-) -> String {
-    let default_config = default_configs
-        .iter()
-        .find(|&default_conf| default_conf.key == key_name.to_string());
-    let schema = &default_config.unwrap().schema;
-    let schema_type = schema.get("type").unwrap();
-    schema_type.to_string()
-}
 
 #[component]
 pub fn override_form<NF>(
@@ -47,22 +35,6 @@ where
         event.prevent_default();
         logging::log!("{:?}", overrides.get());
     };
-
-    let default_config_value =
-        |name: &str, val: &str, default_config: &Vec<DefaultConfig>| {
-            let dimension_type = get_default_config_type(default_config.clone(), name);
-            match dimension_type.replace("\"", "").as_str() {
-                "boolean" => match bool::from_str(val) {
-                    Ok(boolean) => Value::Bool(boolean),
-                    _ => Value::String("Invalid Boolean".to_string()),
-                },
-                "number" => match val.parse::<i64>() {
-                    Ok(number) => Value::Number(number.into()),
-                    Err(_) => Value::String(val.to_string()),
-                },
-                _ => Value::String(val.to_string()),
-            }
-        };
 
     let handle_config_key_select = move |default_config: DefaultConfig| {
         let config_key = default_config.key;
@@ -128,12 +100,11 @@ where
                                             value=config_value
                                             on:input=move |event| {
                                                 let input_value = event_target_value(&event);
-                                                let default_config_val = default_config_value(
+                                                let default_config_val = get_config_value(
                                                     &config_key_value,
                                                     &input_value,
-                                                    &default_config.get_value(),
-                                                );
-                                                logging::log!("Default Config: {}", default_config_val);
+                                                    &default_config.get_value().into_iter().map(ConfigType::DefaultConfig).collect::<Vec<_>>(),
+                                                ).expect("can't parse default config key");
                                                 set_overrides
                                                     .update(|curr_overrides| {
                                                         curr_overrides

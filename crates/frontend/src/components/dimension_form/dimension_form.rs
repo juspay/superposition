@@ -43,6 +43,17 @@ where
                     "type": f_type.to_string()
                 })
             }
+            "decimal" => {
+                json!({
+                    "type": "number".to_string(),
+                })
+            }
+            "boolean" => {
+                json!({
+                    "type": "boolean".to_string(),
+                }
+                )
+            }
             "enum" => {
                 json!({
                     "type": "string",
@@ -110,6 +121,12 @@ where
                         "number" => {
                             set_dimension_type.set("number".to_string());
                         }
+                        "decimal" => {
+                            set_dimension_type.set("decimal".to_string());
+                        }
+                        "boolean" => {
+                            set_dimension_type.set("boolean".to_string());
+                        }
                         "enum" => {
                             set_dimension_type.set("enum".to_string());
                             set_dimension_pattern
@@ -140,6 +157,18 @@ where
                     "Number"
                 </option>
                 <option
+                  value="decimal"
+                  selected= move || {dimension_type.get() == "decimal".to_string()}
+                >
+                  "Decimal (Max Value : 1.7976931348623157e+308)"
+                  </option>
+                <option
+                  value= "boolean"
+                  selected= move || {dimension_type.get() == "boolean".to_string()}
+                >
+                    "Boolean"
+                </option>
+                <option
                     value="enum"
                     selected=move || { dimension_type.get() == "enum".to_string() }
                 >
@@ -161,7 +190,6 @@ where
 
             {move || {
                 view! {
-                    <Show when=move || (dimension_type.get() == "number")>
                         <div class="form-control">
                             <label class="label font-mono">
                                 <span class="label-text text-gray-700 font-mono">Priority</span>
@@ -183,30 +211,8 @@ where
                             />
 
                         </div>
-                    </Show>
 
-                    <Show when=move || (show_labels.get() && (dimension_type.get() != "number"))>
-                        <div class="form-control">
-                            <label class="label font-mono">
-                                <span class="label-text text-gray-700 font-mono">Priority</span>
-                            </label>
-                            <input
-                                type="Number"
-                                placeholder="Priority"
-                                class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                                value=priority.get()
-                                on:change=move |ev| {
-                                    logging::log!(
-                                        "{:?}", event_target_value(& ev).parse::< u16 > ()
-                                    );
-                                    match event_target_value(&ev).parse::<u16>() {
-                                        Ok(i_prio) => set_priority.set(i_prio),
-                                        Err(e) => logging::log!("{e}"),
-                                    };
-                                }
-                            />
-
-                        </div>
+                    <Show when=move || (show_labels.get() && ((dimension_type.get() == "enum") || (dimension_type.get() == "pattern") || (dimension_type.get() == "other")))>
                         <div class="form-control">
                             <label class="label font-mono">
                                 <span class="label-text text-gray-700 font-mono">
