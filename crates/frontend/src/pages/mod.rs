@@ -7,3 +7,4 @@ pub mod Experiment;
 pub mod Home;
 pub mod NotFound;
 pub mod experiment_list;
+pub mod function;

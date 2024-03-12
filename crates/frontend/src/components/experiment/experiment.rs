@@ -158,20 +158,16 @@ where
                         {move || {
                             let mut view = Vec::new();
                             for token in contexts.clone() {
-                                    let (dimension, value) = (token.left_operand, token.right_operand);
-                                    view.push(
-                                        view! {
-                                            <div class="stat w-3/12">
-                                                <div class="stat-title">
-                                                    {dimension}
-                                                </div>
-                                                <div class="stat-value text-base">
-                                                    {&value.replace("\"", "")}
-
-                                                </div>
+                                let (dimension, value) = (token.left_operand, token.right_operand);
+                                view.push(
+                                    view! {
+                                        <div class="stat w-3/12">
+                                            <div class="stat-title">{dimension}</div>
+                                            <div class="stat-value text-base">{&value.replace("\"", "")}
                                             </div>
-                                        },
-                                    );
+                                        </div>
+                                    },
+                                );
                             }
                             view
                         }}

@@ -5,6 +5,10 @@ use serde_json::json;
 
 use crate::hoc::layout::layout::Layout;
 use crate::pages::experiment_list::experiment_list::ExperimentList;
+use crate::pages::function::{
+    function::FunctionPage, function_create::CreateFunctionView,
+    function_list::FunctionList,
+};
 use crate::pages::Dimensions::Dimensions::Dimensions;
 use crate::pages::{
     ContextOverride::context_override::ContextOverride,
@@ -91,6 +95,42 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                                 view! {
                                     <Layout>
                                         <Dimensions/>
+                                    </Layout>
+                                }
+                            }
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path="/admin/:tenant/function"
+                            view=move || {
+                                view! {
+                                    <Layout>
+                                        <FunctionList/>
+                                    </Layout>
+                                }
+                            }
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path="/admin/:tenant/function/create"
+                            view=move || {
+                                view! {
+                                    <Layout>
+                                        <CreateFunctionView/>
+                                    </Layout>
+                                }
+                            }
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path="/admin/:tenant/function/:function_name"
+                            view=move || {
+                                view! {
+                                    <Layout>
+                                        <FunctionPage/>
                                     </Layout>
                                 }
                             }
