@@ -2,7 +2,8 @@ use leptos::ServerFnError;
 
 use crate::{
     types::{
-        Config, DefaultConfig, Dimension, Experiment, ExperimentsResponse, ListFilters,
+        Config, DefaultConfig, Dimension, Experiment, ExperimentsResponse,
+        FunctionResponse, ListFilters,
     },
     utils::use_host_server,
 };
@@ -75,6 +76,47 @@ pub async fn fetch_experiments(
 
     let url = format!("{}/experiments?{}", host, query_params.join("&"));
     let response: ExperimentsResponse = client
+        .get(url)
+        .header("x-tenant", tenant)
+        .send()
+        .await
+        .map_err(|e| ServerFnError::ServerError(e.to_string()))?
+        .json()
+        .await
+        .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+
+    Ok(response)
+}
+
+pub async fn fetch_functions(
+    tenant: String,
+) -> Result<Vec<FunctionResponse>, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = use_host_server();
+
+    let url = format!("{}/function", host);
+    let response: Vec<FunctionResponse> = client
+        .get(url)
+        .header("x-tenant", tenant)
+        .send()
+        .await
+        .map_err(|e| ServerFnError::ServerError(e.to_string()))?
+        .json()
+        .await
+        .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+
+    Ok(response)
+}
+
+pub async fn fetch_function(
+    function_name: String,
+    tenant: String,
+) -> Result<FunctionResponse, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = use_host_server();
+
+    let url = format!("{}/function/{}", host, function_name);
+    let response: FunctionResponse = client
         .get(url)
         .header("x-tenant", tenant)
         .send()

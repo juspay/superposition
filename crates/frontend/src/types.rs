@@ -2,7 +2,7 @@ use leptos::{ReadSignal, WriteSignal};
 use serde::{Deserialize, Serialize};
 use std::{str::FromStr, vec::Vec};
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use derive_more::{Deref, DerefMut};
 use serde_json::{Map, Value};
 
@@ -43,6 +43,22 @@ pub struct Envs {
     pub host: String,
     pub tenants: Vec<String>,
     pub service_prefix: &'static str,
+}
+
+/*************************Function Type ***************************/
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct FunctionResponse {
+    pub function_name: String,
+    pub published_code: Option<String>,
+    pub draft_code: String,
+    pub function_description: String,
+    pub published_runtime_version: Option<String>,
+    pub draft_runtime_version: String,
+    pub published_at: Option<NaiveDateTime>,
+    pub draft_edited_at: NaiveDateTime,
+    pub published_by: Option<String>,
+    pub draft_edited_by: String,
 }
 
 /*********************** Experimentation Types ****************************************/
