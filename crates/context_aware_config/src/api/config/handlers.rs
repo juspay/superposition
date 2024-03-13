@@ -4,10 +4,15 @@ use std::{collections::HashMap, str::FromStr};
 use super::helpers::{
     filter_config_by_dimensions, filter_config_by_prefix, filter_context,
 };
-
-use super::types::Config;
-use crate::db::schema::{
-    contexts::dsl as ctxt, default_configs::dsl as def_conf, event_log::dsl as event_log,
+use super::types::{Config, Context};
+use crate::api::context::validate_dimensions_and_calculate_priority;
+use crate::api::dimension::get_all_dimension_schema_map;
+use crate::{
+    db::schema::{
+        contexts::dsl as ctxt, default_configs::dsl as def_conf,
+        event_log::dsl as event_log,
+    },
+    helpers::json_to_sorted_string,
 };
 use actix_http::header::{HeaderName, HeaderValue};
 use actix_web::{get, web::Query, HttpRequest, HttpResponse, Scope};
@@ -24,11 +29,15 @@ use service_utils::{bad_argument, db_error, unexpected_error};
 
 use service_utils::result as superposition;
 use uuid::Uuid;
+use itertools::Itertools;
+use jsonschema::JSONSchema;
+use service_utils::helpers::extract_dimensions;
 
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(get)
         .service(get_resolved_config)
+        .service(reduce_context)
         .service(get_filtered_config)
 }
 
@@ -145,6 +154,272 @@ async fn generate_cac(
         overrides,
         default_configs,
     })
+}
+
+// and and ==
+
+fn generate_subsets(map: &Map<String, Value>) -> Vec<Map<String, Value>> {
+    let mut subsets = Vec::new();
+    let keys: Vec<String> = map.keys().cloned().collect_vec();
+    let all_subsets_keys = generate_subsets_keys(keys);
+    // println!("All Subset Keys {:#?}",all_subsets_keys);
+
+    for subset_keys in &all_subsets_keys {
+        if subset_keys.len() >= 0 {
+            let mut subset_map = Map::new();
+
+            for key in subset_keys {
+                if let Some(value) = map.get(key) {
+                    subset_map.insert(key.to_string(), value.clone());
+                }
+            }
+
+            subsets.push(subset_map);
+        }
+    }
+
+    subsets
+}
+
+fn generate_subsets_keys(keys: Vec<String>) -> Vec<Vec<String>> {
+    let mut res = vec![[].to_vec()];
+    for element in keys {
+        let len = res.len();
+        for ind in 0..len {
+            let mut sub = res[ind].clone();
+            sub.push(element.clone());
+            res.push(sub);
+        }
+    }
+    res
+}
+
+fn resolve(
+    contexts_overrides_values: Vec<(Context, Map<String, Value>, Value, String)>,
+    default_config_val: Option<&Value>,
+) -> Vec<Map<String, Value>> {
+    let mut dimensions: Vec<Map<String, Value>> = Vec::new();
+    println!("Saurav key_val is {:?}", default_config_val);
+    for (context, overrides, key_val, override_id) in contexts_overrides_values {
+        let mut ct_dimensions = extract_dimensions(&context.condition).unwrap();
+        ct_dimensions.insert("key_val".to_string(), key_val);
+        let request_payload = json!({
+            "override": overrides,
+            "context": context.condition,
+            "id": context.id,
+            "to_be_deleted": overrides.is_empty(),
+            "override_id": override_id,
+        });
+        ct_dimensions.insert("req_payload".to_string(), request_payload);
+        dimensions.push(ct_dimensions);
+    }
+
+    //adding default config value
+    let mut default_config_map = Map::new();
+    if let Some(some_default_config_val) = default_config_val {
+        default_config_map
+            .insert("key_val".to_string(), some_default_config_val.to_owned());
+    };
+    dimensions.push(default_config_map);
+
+    for (index1, c1) in dimensions.clone().iter().enumerate() {
+        let mut temp_c1 = c1.clone();
+        let mut nc1 = c1.clone();
+        nc1.remove("req_payload");
+        let c1_val = nc1.remove("key_val");
+        let all_subsets_c1 = generate_subsets(&nc1);
+        let mut can_be_removed = false;
+        for (index2, c2) in dimensions.iter().enumerate() {
+            let mut temp_c2 = c2.clone();
+            temp_c2.remove("req_payload");
+            let c2_val = temp_c2.remove("key_val");
+            if index2 != index1 {
+                if all_subsets_c1.contains(&temp_c2) {
+                    if c1_val == c2_val {
+                        println!("Matched one is : {:#?}", c2);
+                        can_be_removed = true;
+                        break;
+                    } else if c2_val.is_some() {
+                        println!("There is a c2 which has different value : {:#?} {:#?} {:#?} {:#?}",c2, temp_c2,c1_val,c2_val);
+                        break;
+                    }
+                }
+            }
+        }
+        if can_be_removed {
+            if let Some(req_payload) = temp_c1.get("req_payload") {
+                let mut t = Map::new();
+                t.insert("req_payload".to_string(), req_payload.clone());
+                temp_c1 = t;
+            };
+        }
+        dimensions[index1] = temp_c1;
+    }
+    dimensions
+}
+
+fn get_contextids_from_overrideid(
+    contexts: Vec<Context>,
+    overrides: Map<String, Value>,
+    key_val: Value,
+    override_id: &str,
+) -> Vec<(Context, Map<String, Value>, Value, String)> {
+    let mut res: Vec<(Context, Map<String, Value>, Value, String)> = Vec::new();
+    for ct in contexts {
+        let ct_dimensions = extract_dimensions(&ct.condition).unwrap();
+        if ct_dimensions.contains_key("variantIds") {
+            continue;
+        }
+        let override_keys = &ct.override_with_keys;
+        if override_keys.contains(&override_id.to_owned()) {
+            res.push((
+                ct,
+                overrides.clone(),
+                key_val.clone(),
+                override_id.to_string(),
+            ));
+        }
+    }
+    res
+}
+
+async fn reduce_context_key(
+    mut og_contexts: Vec<Context>,
+    mut og_overrides: Map<String, Value>,
+    check_key: &str,
+    dimension_schema_map: &HashMap<String, (JSONSchema, i32)>,
+    default_config: Map<String, Value>,
+) -> Config {
+    let default_config_val = default_config.get(check_key);
+    let mut contexts_overrides_values: Vec<(Context, Map<String, Value>, Value, String)> =
+        Vec::new();
+
+    for (key, val) in og_overrides.clone() {
+        match val {
+            Value::Object(obj_val) => {
+                if let Some(ans_val) = obj_val.get(check_key) {
+                    let mut temp_obj_val = obj_val.clone();
+                    temp_obj_val.remove(check_key);
+                    let context_arr = get_contextids_from_overrideid(
+                        og_contexts.clone(),
+                        temp_obj_val,
+                        ans_val.clone(),
+                        &key,
+                    );
+                    contexts_overrides_values.extend(context_arr);
+                }
+            }
+            _ => (),
+        }
+    }
+
+    contexts_overrides_values.sort_by(|a, b| {
+        (validate_dimensions_and_calculate_priority(
+            "context",
+            &(b.0).condition,
+            dimension_schema_map,
+        )
+        .unwrap())
+        .cmp(
+            &(validate_dimensions_and_calculate_priority(
+                "context",
+                &(a.0).condition,
+                dimension_schema_map,
+            )
+            .unwrap()),
+        )
+    });
+
+    let resolved_dimensions = resolve(contexts_overrides_values, default_config_val);
+    for rd in resolved_dimensions {
+        if rd.len() == 1 {
+            if let Some(Value::Object(request_payload)) = rd.get("req_payload") {
+                if let Some(Value::String(cid)) = request_payload.get("id") {
+                    if let Some(Value::String(oid)) = request_payload.get("override_id") {
+                        if let Some(Value::Bool(to_be_deleted)) =
+                            request_payload.get("to_be_deleted")
+                        {
+                            // After extracting values
+                            if *to_be_deleted {
+                                // remove cid from contexts
+                                println!(
+                                    "Saurav is removing this context {:#?}",
+                                    rd.get("context")
+                                );
+                                og_contexts.retain(|x| x.id != *cid);
+                            } else {
+                                //update the override by removing the key
+                                if let Some(override_val) =
+                                    request_payload.get("override")
+                                {
+                                    println!("Saurav is updating this context {:#?} by removing {:?} from it's override",rd.get("context"), check_key);
+                                    let new_id = hash(override_val);
+                                    og_overrides
+                                        .insert(new_id.clone(), override_val.to_owned());
+
+                                    // the below thing is not necessary if we just do delete and update context api
+                                    let mut ctx_index = 0;
+                                    let mut delete_old_oid = true;
+
+                                    for (ind, ctx) in og_contexts.iter().enumerate() {
+                                        if ctx.id == *cid {
+                                            ctx_index = ind;
+                                        } else if ctx.override_with_keys.contains(oid) {
+                                            delete_old_oid = false;
+                                        }
+                                    }
+                                    let mut elem = og_contexts[ctx_index].clone();
+                                    elem.override_with_keys = [new_id];
+                                    og_contexts[ctx_index] = elem;
+
+                                    if delete_old_oid {
+                                        og_overrides.remove(oid);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Config {
+        contexts: og_contexts,
+        overrides: og_overrides,
+        default_configs: default_config,
+    }
+}
+
+fn hash(val: &Value) -> String {
+    let sorted_str: String = json_to_sorted_string(val);
+    blake3::hash(sorted_str.as_bytes()).to_string()
+}
+
+#[get("/reduce")]
+async fn reduce_context(
+    req: HttpRequest,
+    db_conn: DbConnection,
+) -> actix_web::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let dimensions_schema_map = get_all_dimension_schema_map(&mut conn).unwrap();
+    let mut config = generate_cac(&mut conn).await?;
+    let default_config = (config.default_configs).clone();
+    for (key, val) in default_config {
+        let contexts = config.contexts;
+        let overrides = config.overrides;
+        let default_config = config.default_configs;
+        config = reduce_context_key(
+            contexts.clone(),
+            overrides.clone(),
+            key.as_str(),
+            &dimensions_schema_map,
+            default_config.clone(),
+        )
+        .await;
+    }
+
+    Ok(HttpResponse::Ok().json(config))
 }
 
 #[get("")]
