@@ -165,6 +165,7 @@ async fn main() -> Result<()> {
         let cac_host = cac_host.to_owned() + base.as_str();
         App::new()
             .wrap(DashboardAuth::default(authenticated_routes(base.as_str())))
+            .wrap(DashboardAuth::default(authenticated_routes("")))
             .wrap(TenantMiddlewareFactory)
             .wrap(middlewares::cors())
             .wrap(GoldenSignalFactory)
@@ -260,6 +261,47 @@ async fn main() -> Result<()> {
                     // serve other assets from the `assets` directory
                     .service(Files::new("/assets", format!("{site_root}")))
                     // serve the favicon from /favicon.ico
+            )
+            .route(
+                "/health",
+                get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
+            )
+            /***************************** V1 Routes *****************************/
+            .service(
+                scope("/context")
+                    .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
+                    .service(context::endpoints()),
+            )
+            .service(
+                scope("/dimension")
+                    .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
+                    .service(dimension::endpoints()),
+            )
+            .service(
+                scope("/default-config")
+                    .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
+                    .service(default_config::endpoints()),
+            )
+            .service(
+                scope("/config")
+                    .wrap(AuditHeader::new(TableName::Contexts))
+                    .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
+                    .service(config::endpoints()),
+            )
+            .service(
+                scope("/audit")
+                    .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
+                    .service(audit_log::endpoints()),
+            )
+            .service(
+                scope("/function")
+                    .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
+                    .service(functions::endpoints()),
+            )
+            .service(
+                external::endpoints(experiments::endpoints(scope("/experiments"))).wrap(
+                    AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION),
+                ),
             )
             .app_data(Data::new(leptos_options.to_owned()))
     })
