@@ -34,5 +34,6 @@ function generate_sql() {
 
 generate_sql "context-aware-config" $CAC_SCHEMA
 generate_sql "experimentation-platform" $EXP_SCHEMA
+psql "$DB_URL" -c "INSERT INTO $CAC_SCHEMA.dimensions (dimension, priority, created_at, created_by, schema, function_name) VALUES ('variantIds', 1, CURRENT_TIMESTAMP, 'anon@juspay.in', '{\"type\": \"string\",\"pattern\": \".*\"}'::json, null);"
 
 shopt -u extglob
