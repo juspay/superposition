@@ -1,10 +1,19 @@
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 use serde_json::Value;
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct CreateReq {
     pub dimension: String,
     pub priority: u16,
     pub schema: Value,
-    pub function_name: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_option")]
+    pub function_name: Option<Value>,
+}
+
+fn deserialize_option<'de, D>(deserializer: D) -> Result<Option<Value>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value: Value = Deserialize::deserialize(deserializer)?;
+    Ok(Some(value))
 }

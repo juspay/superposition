@@ -48,7 +48,7 @@ async fn create(
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
 
-    if let Err(e) = compile_fn(&req.function) {
+    if let Err(e) = compile_fn(&req.function, &req.function_name) {
         return Err(ErrorBadRequest(json!({ "message": e })));
     }
 
@@ -127,7 +127,7 @@ async fn update(
 
     // Function Linter Check
     if let Some(function) = &req.function {
-        if let Err(e) = compile_fn(function) {
+        if let Err(e) = compile_fn(function, &f_name) {
             return Err(ErrorBadRequest(json!({ "message": e })));
         }
     }

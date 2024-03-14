@@ -21,6 +21,7 @@ pub struct Context {
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(dimension))]
+#[diesel(treat_none_as_null = true)]
 pub struct Dimension {
     pub dimension: String,
     pub priority: i32,
@@ -33,6 +34,7 @@ pub struct Dimension {
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize, Clone)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(key))]
+#[diesel(treat_none_as_null = true)]
 pub struct DefaultConfig {
     pub key: String,
     pub value: Value,

@@ -92,16 +92,17 @@ pub fn execute_fn(
     }
 }
 
-fn eslint_logic(code_str: &str) -> String {
-    let code = IMPORT_CODE.to_string() + code_str;
+fn eslint_logic(code_str: &str, fun_name: &str) -> String {
+    let code =
+        IMPORT_CODE.to_string() + code_str + &format!("console.log({});", fun_name);
     let fun_call: String = format!("\nconst codeToLint = {};", json!(code));
     fun_call + ES_LINT_CODE
 }
 
-pub fn compile_fn(code_str: &str) -> Result<(), String> {
+pub fn compile_fn(code_str: &str, fun_name: &str) -> Result<(), String> {
     let output = Command::new("node")
         .arg("-e")
-        .arg(eslint_logic(code_str))
+        .arg(eslint_logic(code_str, fun_name))
         .output();
     log::trace!("{}", format!("validation function output : {:?}", output));
     match output {
