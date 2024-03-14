@@ -1,5 +1,5 @@
 use crate::{
-    api::{dimension::types::CreateReq, functions::helpers::fetch_function},
+    api::dimension::types::CreateReq,
     db::{models::Dimension, schema::dimensions::dsl::*},
     helpers::validate_jsonschema,
 };
@@ -12,6 +12,7 @@ use chrono::Utc;
 use dashboard_auth::types::User;
 use diesel::RunQueryDsl;
 use jsonschema::{Draft, JSONSchema};
+use serde_json::Value;
 use service_utils::{
     service::types::{AppState, DbConnection},
     types as app,
@@ -51,14 +52,16 @@ async fn create(
             .body(String::from(format!("Bad schema: {:?}", e)));
     };
 
-    if let Some(func_name) = create_req.function_name.clone() {
-        let function = fetch_function(&func_name, &mut conn);
-        if let Err(e) = function {
-            log::error!("{func_name} function not found with error: {e:?}");
-            return HttpResponse::BadRequest()
-                .body(String::from(format!("{func_name} function not found")));
+    let fun_name = match create_req.function_name {
+        Some(Value::String(func_name)) => Some(func_name),
+        Some(Value::Null) | None => None,
+        _ => {
+            log::error!("Expected a string or null as the function name.");
+            return HttpResponse::BadRequest().body(String::from(format!(
+                "Expected a string or null as the function name."
+            )));
         }
-    }
+    };
 
     let new_dimension = Dimension {
         dimension: create_req.dimension,
@@ -66,7 +69,7 @@ async fn create(
         schema: schema_value,
         created_by: user.email,
         created_at: Utc::now(),
-        function_name: create_req.function_name,
+        function_name: fun_name.clone(),
     };
 
     let upsert = diesel::insert_into(dimensions)
@@ -81,8 +84,16 @@ async fn create(
             return HttpResponse::Created()
                 .body("Dimension created/updated successfully.")
         }
+        Err(diesel::result::Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::ForeignKeyViolation,
+            e,
+        )) => {
+            log::error!("{fun_name:?} function not found with error: {e:?}");
+            return HttpResponse::BadRequest()
+                .body(String::from(format!("Function not found.")));
+        }
         Err(e) => {
-            log::info!("Dimension upsert failed with error: {e}");
+            log::error!("Dimension upsert failed with error: {e}");
             return HttpResponse::InternalServerError()
                 .body("Failed to create/update dimension\n");
         }

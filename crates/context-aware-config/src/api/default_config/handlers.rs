@@ -51,26 +51,53 @@ async fn create(
         })));
     }
 
-    let default_config = if req.value.is_none() || req.schema.is_none() {
-        let (value, schema, function_name) = fetch_default_key(&key, &mut conn)
-            .map_err(|e| ErrorBadRequest(json!({"message" : e.to_string()})))?;
-        DefaultConfig {
-            key: key.to_owned(),
-            value: req.value.unwrap_or_else(|| value),
-            schema: req.schema.map_or_else(|| schema, Value::Object),
-            function_name: req.function_name.or(function_name),
-            created_by: user.email,
-            created_at: Utc::now(),
+    let func_name = match &req.function_name {
+        Some(Value::String(s)) => Some(s.clone()),
+        Some(Value::Null) | None => None,
+        Some(_) => {
+            return Err(ErrorBadRequest(json!({
+                "message": "Expected a string or null as the function name."
+            })))
         }
-    } else {
-        DefaultConfig {
-            key: key.to_owned(),
-            value: req.value.unwrap(),
-            schema: Value::Object(req.schema.unwrap()),
-            function_name: req.function_name,
-            created_by: user.email,
-            created_at: Utc::now(),
+    };
+
+    let result = fetch_default_key(&key, &mut conn);
+
+    let (value, schema, function_name) = match result {
+        Ok((val, schema, f_name)) => {
+            let val = req.value.unwrap_or_else(|| val);
+            let schema = req.schema.map_or_else(|| schema, Value::Object);
+            let f_name = if req.function_name == Some(Value::Null) {
+                None
+            } else {
+                func_name.or(f_name)
+            };
+            (val, schema, f_name)
         }
+        Err(diesel::NotFound) => match (req.value, req.schema) {
+            (Some(val), Some(schema)) => (val, Value::Object(schema), func_name),
+            _ => {
+                log::error!("No record found for {key}.");
+                return Err(ErrorBadRequest(json!({
+                    "message": format!( "No record found for {key}." )
+                })));
+            }
+        },
+        Err(e) => {
+            log::error!("Failed to fetch default_config {key} with error: {e}.");
+            return Err(ErrorBadRequest(json!({
+                "message": format!( "Something went wrong." )
+            })));
+        }
+    };
+
+    let default_config = DefaultConfig {
+        key: key.to_owned(),
+        value,
+        schema,
+        function_name,
+        created_by: user.email,
+        created_at: Utc::now(),
     };
 
     if let Err(e) = validate_jsonschema(
@@ -120,7 +147,7 @@ async fn create(
             {
                 log::info!("function validation failed for {key} with error: {e}");
                 return Err(ErrorBadRequest(json!({
-                    "message": "function validation failed", "stdout": stdout
+                    "message": format!( "function validation failed with error: {}", e), "stdout": stdout
                 })));
             }
         }
@@ -149,7 +176,7 @@ async fn create(
 fn fetch_default_key(
     key: &String,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-) -> anyhow::Result<(Value, Value, Option<String>)> {
+) -> Result<(Value, Value, Option<String>), diesel::result::Error> {
     let res: (Value, Value, Option<String>) = default_configs
         .filter(db::schema::default_configs::key.eq(key))
         .select((
