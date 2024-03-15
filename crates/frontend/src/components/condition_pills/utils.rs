@@ -1,33 +1,21 @@
+use std::mem::swap;
+
 use serde_json::Value;
 
-pub fn parse_conditions(input: String) -> Vec<(String, String, String)> {
+pub fn parse_conditions(
+    input: Vec<Option<(String, String, String)>>,
+) -> Vec<(String, String, String)> {
     let mut conditions = Vec::new();
-    let operators = vec!["==", "in", "<="];
 
     // Split the string by "&&" and iterate over each condition
-    for condition in input.split("&&") {
-        let mut parts = Vec::new();
-        let mut operator_found = "";
-
-        // Check for each operator
-        for operator in &operators {
-            if condition.contains(operator) {
-                operator_found = operator;
-                parts = condition.split(operator).map(|s| s.trim()).collect();
-
-                // TODO: add this when context update is enabled
-                if parts.len() == 2 && operator == &"in" {
-                    parts.swap(0, 1);
-                }
-
-                break;
+    for opt_condition in input {
+        if let Some(condition) = opt_condition {
+            let mut key = condition.0;
+            let mut op = condition.1;
+            let mut val = condition.2;
+            if op == "in" {
+                swap(&mut key, &mut val)
             }
-        }
-
-        if parts.len() == 2 {
-            let mut key = parts[0].to_string();
-            let mut op = operator_found.to_string();
-            let mut val = parts[1].to_string();
             // Add a space after key
             key.push(' ');
             if op == "==".to_string() {
@@ -49,7 +37,7 @@ pub fn parse_conditions(input: String) -> Vec<(String, String, String)> {
     conditions
 }
 
-pub fn extract_and_format(condition: &Value) -> String {
+pub fn extract_and_format(condition: &Value) -> Vec<Option<(String, String, String)>> {
     if condition.is_object() && condition.get("and").is_some() {
         // Handling complex "and" conditions
         let empty_vec = vec![];
@@ -63,14 +51,14 @@ pub fn extract_and_format(condition: &Value) -> String {
             formatted_conditions.push(format_condition(cond));
         }
 
-        formatted_conditions.join(" && ")
+        formatted_conditions
     } else {
         // Handling single conditions
-        format_condition(condition)
+        vec![format_condition(condition)]
     }
 }
 
-fn format_condition(condition: &Value) -> String {
+fn format_condition(condition: &Value) -> Option<(String, String, String)> {
     if let Some(ref operator) = condition.as_object().and_then(|obj| obj.keys().next()) {
         let empty_vec = vec![];
         let operands = condition[operator].as_array().unwrap_or(&empty_vec);
@@ -88,7 +76,7 @@ fn format_condition(condition: &Value) -> String {
 
             if right_operand.is_object() && right_operand["var"].is_string() {
                 let var_str = right_operand["var"].as_str().unwrap();
-                return format!("{} {} {}", left_str, operator, var_str);
+                return Some((left_str, operator.to_string(), var_str.to_string()));
             }
         }
 
@@ -103,33 +91,31 @@ fn format_condition(condition: &Value) -> String {
 
             if mid_operand.is_object() && mid_operand["var"].is_string() {
                 let var_str = mid_operand["var"].as_str().unwrap();
-                return format!(
-                    "{} {} {}",
-                    var_str,
-                    operator,
-                    left_str + "," + &right_str
-                );
+                return Some((
+                    var_str.to_string(),
+                    operator.to_string(),
+                    left_str + "," + &right_str,
+                ));
             }
         }
         // Handling regular operators
         if let Some(first_operand) = operands.get(0) {
             if first_operand.is_object() && first_operand["var"].is_string() {
-                let key = first_operand["var"].as_str().unwrap_or("UnknownVar");
+                let key = first_operand["var"]
+                    .as_str()
+                    .unwrap_or("UnknownVar")
+                    .to_string();
                 if let Some(value) = operands.get(1) {
-                    if value.is_string() {
-                        return format!(
-                            "{} {} \"{}\"",
-                            key,
-                            operator,
-                            value.as_str().unwrap()
-                        );
-                    } else {
-                        return format!("{} {} {}", key, operator, value);
-                    }
+                    let val_str = match value {
+                        Value::Null => "null".to_string(),
+                        Value::String(v) => v.clone(),
+                        _ => value.to_string(),
+                    };
+                    return Some((key.to_string(), operator.to_string(), val_str));
                 }
             }
         }
     }
 
-    "Invalid Condition".to_string()
+    None
 }
