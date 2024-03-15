@@ -1,4 +1,4 @@
-FROM rust:1.73 as builder
+FROM public.ecr.aws/docker/library/rust:1.73.0 as builder
 WORKDIR /build
 ENV NVM_DIR /usr/local/nvm
 ENV NODE_VERSION 18.19.0
@@ -36,7 +36,7 @@ RUN cp .env.example .env
 # building backend
 RUN --mount=type=ssh cargo build --release
 
-FROM debian:bookworm-slim
+FROM public.ecr.aws/debian/debian:bookworm-slim
 WORKDIR /app
 ENV NODE_VERSION=18.19.0
 
