@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use leptos::*;
 
-use crate::components::condition_pills::utils::extract_and_format;
+use crate::components::condition_pills::utils::{extract_and_format, parse_conditions};
 use crate::components::table::table::Table;
 
 use super::utils::gen_variant_table;
@@ -156,25 +156,24 @@ where
                     <h2 class="card-title">Context</h2>
                     <div class="flex flex-row flex-wrap gap-2">
                         {move || {
-                            let context = contexts.clone();
                             let mut view = Vec::new();
-                            let tokens = context.split("&&");
-                            for token in tokens.into_iter() {
-                                let mut t = token.trim().split(" ");
-                                let (dimension, _, value) = (t.next(), t.next(), t.next());
-                                view.push(
-                                    view! {
-                                        <div class="stat w-3/12">
-                                            <div class="stat-title">
-                                                {format!("{}", dimension.unwrap())}
-                                            </div>
-                                            <div class="stat-value text-base">
-                                                {format!("{}", &value.unwrap().replace("\"", ""))}
+                            for token in contexts.clone() {
+                                if let Some(t) =  token{
+                                    let (dimension, value) = (t.0, t.2);
+                                    view.push(
+                                        view! {
+                                            <div class="stat w-3/12">
+                                                <div class="stat-title">
+                                                    {dimension}
+                                                </div>
+                                                <div class="stat-value text-base">
+                                                    {&value.replace("\"", "")}
 
+                                                </div>
                                             </div>
-                                        </div>
-                                    },
-                                );
+                                        },
+                                    );
+                                }
                             }
                             view
                         }}
