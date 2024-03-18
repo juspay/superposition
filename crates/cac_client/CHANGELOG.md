@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.7.0 - 2024-03-18
+#### Documentation
+- PICAF-25981: add intro doc and features - (d09ba53) - Natarajan Kannan
+#### Features
+- [PICAF-26126] haskell client for superposition - (7106b56) - Kartik
+
+- - -
+
 ## cac_client-v0.6.0 - 2024-03-04
 #### Features
 - PICAF-26185 Replace merge-strategy option for resolve/eval - (453cfb9) - ayush.jain@juspay.in
