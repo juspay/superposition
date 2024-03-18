@@ -665,7 +665,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "blake3",
- "clap",
+ "clap 4.3.4",
  "derive_more",
  "env_logger 0.8.4",
  "evalexpr",
@@ -700,7 +700,7 @@ dependencies = [
  "serde_json",
  "syn 1.0.109",
  "tempfile",
- "toml",
+ "toml 0.5.11",
 ]
 
 [[package]]
@@ -4015,7 +4015,7 @@ version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d34d383cd00a163b4a5b85053df514d45bc330f6de7737edfe0a93311d1eaa03"
 dependencies = [
- "indexmap",
+ "indexmap 2.0.2",
  "serde",
  "serde_spanned",
  "toml_datetime",

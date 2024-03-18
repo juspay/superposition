@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/rust:1.73.0 as builder
+FROM public.ecr.aws/docker/library/rust:1.76.0 as builder
 WORKDIR /build
 ENV NVM_DIR /usr/local/nvm
 ENV NODE_VERSION 18.19.0

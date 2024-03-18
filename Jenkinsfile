@@ -59,7 +59,7 @@ pipeline {
           sh 'git fetch'
           sh 'git config user.name ""Jenkins User""'
           sh 'git config user.email bitbucket.jenkins.read@juspay.in'
-          sh 'rustup toolchain uninstall stable && rustup toolchain install 1.73.0'
+          sh 'rustup toolchain uninstall stable && rustup toolchain install 1.76.0'
         }
       }
     }
