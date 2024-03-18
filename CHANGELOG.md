@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.32.0 - 2024-03-18
+### Package updates
+- experimentation-platform bumped to experimentation-platform-v0.11.0
+- cac_client bumped to cac_client-v0.7.0
+- superposition_client bumped to superposition_client-v0.5.0
+### Global changes
+#### Bug Fixes
+- [PICAF-26428] update cargo.lock - (b7aa8b6) - Kartik
+- [PICAF-26428] moved to AWS Public ECR for docker images - (26cd710) - Shubhranshu Sanjeev
+#### Documentation
+- PICAF-25981: add intro doc and features - (d09ba53) - Natarajan Kannan
+#### Features
+- [PICAF-26126] haskell client for superposition - (7106b56) - Kartik
+
+- - -
+
 ## v0.31.0 - 2024-03-08
 ### Package updates
 - external bumped to external-v0.4.0
