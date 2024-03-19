@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.32.1 - 2024-03-19
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.23.1
+### Global changes
+
+- - -
+
 ## v0.32.0 - 2024-03-18
 ### Package updates
 - experimentation-platform bumped to experimentation-platform-v0.11.0
