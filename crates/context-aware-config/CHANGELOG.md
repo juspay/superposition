@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.23.1 - 2024-03-19
+#### Bug Fixes
+- [PICAF-26348] added routes without service prefix for b/w compatibility - (079c02d) - Shubhranshu Sanjeev
+#### Documentation
+- PICAF-25981: add intro doc and features - (d09ba53) - Natarajan Kannan
+
+- - -
+
 ## context-aware-config-v0.23.0 - 2024-03-08
 #### Features
 - PICAF-25884 Added function validation for context and default_config - (990b729) - ankit.mahato
