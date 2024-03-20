@@ -10,12 +10,15 @@ pub fn context_pills(context: Value) -> impl IntoView {
     view! {
         {ctx_values
             .into_iter()
-            .map(|(dim, op, val)| {
+            .map(|condition| {
+                let dimension = condition.left_operand;
+                let op = condition.operator;
+                let val = condition.right_operand;
                 let operator = op.clone();
                 view! {
                     <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs ring-1 ring-inset ring-purple-700/10 shadow-md gap-x-2">
                         <span class="font-mono font-medium context_condition text-gray-500">
-                            {dim}
+                            {dimension}
                         </span>
                         <span class="font-mono font-medium text-gray-650 context_condition ">
                             {op}

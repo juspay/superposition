@@ -158,8 +158,7 @@ where
                         {move || {
                             let mut view = Vec::new();
                             for token in contexts.clone() {
-                                if let Some(t) =  token{
-                                    let (dimension, value) = (t.0, t.2);
+                                    let (dimension, value) = (token.left_operand, token.right_operand);
                                     view.push(
                                         view! {
                                             <div class="stat w-3/12">
@@ -173,7 +172,6 @@ where
                                             </div>
                                         },
                                     );
-                                }
                             }
                             view
                         }}
