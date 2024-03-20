@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.32.2 - 2024-03-20
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.23.2
+### Global changes
+#### Bug Fixes
+- PICAF-25598 auto-create variantIds dimension - (ee2e7dc) - ankit.mahato
+
+- - -
+
 ## v0.32.1 - 2024-03-19
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.23.1
