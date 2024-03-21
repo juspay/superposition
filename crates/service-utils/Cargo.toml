@@ -33,3 +33,4 @@ serde_json = { workspace = true }
 derive_more = { workspace = true }
 dashboard-auth = { workspace = true }
 reqwest = { workspace = true }
+thiserror = { workspace = true }

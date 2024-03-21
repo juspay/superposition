@@ -58,3 +58,4 @@ tracing-utils = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.g
 leptos = { version = "0.5.2" }
 leptos_meta = { version = "0.5.2" }
 leptos_router = { version = "0.5.2" }
+thiserror = { version = "1.0.57" }
