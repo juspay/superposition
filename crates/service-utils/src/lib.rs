@@ -5,3 +5,5 @@ pub mod helpers;
 pub mod middlewares;
 pub mod service;
 pub mod types;
+pub mod result;
+pub mod macros;
