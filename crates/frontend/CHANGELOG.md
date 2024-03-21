@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.2.0 - 2024-03-21
+#### Features
+- [PICAF-26197] refactor resolve page - (acc763a) - Kartik
+
+- - -
+
 ## frontend-v0.1.1 - 2024-03-07
 #### Bug Fixes
 - adding min-width settings for table component - (0fcd0c1) - Kartik
