@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.2.1 - 2024-03-21
+#### Bug Fixes
+- PICAF-26324 added type for condition - (3607336) - Saurav CV
+- PICAF-26324 ui bug fix for contexts - (7ec15ec) - Saurav CV
+
+- - -
+
 ## frontend-v0.2.0 - 2024-03-21
 #### Features
 - [PICAF-26197] refactor resolve page - (acc763a) - Kartik

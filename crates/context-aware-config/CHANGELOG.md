@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.24.0 - 2024-03-21
+#### Features
+- PICAF-26307 Filter Config by prefix - (c0a0bfe) - ankit.mahato
+
+- - -
+
 ## context-aware-config-v0.23.2 - 2024-03-20
 #### Bug Fixes
 - PICAF-25884 Functions bug fixes - (8e7452b) - ankit.mahato
