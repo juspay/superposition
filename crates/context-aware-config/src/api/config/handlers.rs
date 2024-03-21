@@ -151,12 +151,8 @@ async fn get(req: HttpRequest, db_conn: DbConnection) -> actix_web::Result<HttpR
         );
     }
 
-    let config = generate_cac(&mut conn).await?;
-
-    let filtered_config_by_dimensions =
-        filter_config_by_dimensions(&config, &query_params_map)?;
-
-    let filtered_config_by_prefix = if let Some(prefix) = query_params_map.get("prefix") {
+    let mut config = generate_cac(&mut conn).await?;
+    if let Some(prefix) = query_params_map.get("prefix") {
         let prefix_list: HashSet<&str> = prefix
             .as_str()
             .ok_or_else(|| {
@@ -165,15 +161,16 @@ async fn get(req: HttpRequest, db_conn: DbConnection) -> actix_web::Result<HttpR
             })?
             .split(",")
             .collect();
-        filter_config_by_prefix(&filtered_config_by_dimensions, &prefix_list)?
-    } else {
-        filtered_config_by_dimensions
-    };
+        config = filter_config_by_prefix(&config, &prefix_list)?
+    }
 
-    add_last_modified_header(
-        max_created_at,
-        HttpResponse::Ok().json(filtered_config_by_prefix),
-    )
+    query_params_map.remove("prefix");
+
+    if !query_params_map.is_empty() {
+        config = filter_config_by_dimensions(&config, &query_params_map)?
+    }
+
+    add_last_modified_header(max_created_at, HttpResponse::Ok().json(config))
 }
 
 #[get("/resolve")]
