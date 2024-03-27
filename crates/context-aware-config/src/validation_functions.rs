@@ -52,19 +52,27 @@ const ES_LINT_CODE: &str = r#"
 
     "#;
 
-fn runtime_wrapper(function_name: &str, value: Value) -> String {
-    let fun_call: String = format!("const fun_value = {}({});", function_name, value);
+fn runtime_wrapper(function_name: &str, key: &str, value: Value) -> String {
+    let fun_call: String = format!(
+        "const fun_value = {}({});",
+        function_name,
+        json!({
+            "key": key,
+            "value": value
+        })
+    );
     fun_call + EXIT_LOGIC_CODE
 }
 
 pub fn execute_fn(
     code_str: &str,
     fun_name: &str,
+    key: &str,
     value: Value,
 ) -> Result<String, (String, Option<String>)> {
     let output = Command::new("node")
         .arg("-e")
-        .arg(IMPORT_CODE.to_string() + code_str + &runtime_wrapper(fun_name, value))
+        .arg(IMPORT_CODE.to_string() + code_str + &runtime_wrapper(fun_name, key, value))
         .output();
     log::trace!("{}", format!("validation function output : {:?}", output));
     match output {

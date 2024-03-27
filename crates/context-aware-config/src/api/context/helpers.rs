@@ -114,9 +114,9 @@ fn validate_value_with_function(
     key: &String,
     value: &Value,
 ) -> anyhow::Result<()> {
-    let base64_decoded = BASE64_STANDARD.decode(function.clone())?;
+    let base64_decoded = BASE64_STANDARD.decode(function)?;
     let utf8_decoded = str::from_utf8(&base64_decoded)?;
-    if let Err((e, stdout)) = execute_fn(&utf8_decoded, fun_name, value.to_owned()) {
+    if let Err((e, stdout)) = execute_fn(&utf8_decoded, fun_name, key, value.to_owned()) {
         log::error!("function validation failed for {key} with error: {e}");
         return Err(anyhow!(json!({
             "message": format!("function validation failed for {} with error {}", key, e), "stdout": stdout

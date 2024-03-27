@@ -4,7 +4,7 @@ use base64::prelude::*;
 use super::helpers::{decode_function, fetch_function};
 
 use crate::{
-    api::functions::types::{Stage, TestParam},
+    api::functions::types::{Stage, TestFunctionRequest, TestParam},
     db::{
         self,
         models::Function,
@@ -22,7 +22,7 @@ use actix_web::{
 use chrono::Utc;
 use dashboard_auth::types::User;
 use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl};
-use serde_json::{json, Value};
+use serde_json::json;
 use service_utils::service::types::DbConnection;
 use validation_functions::{compile_fn, execute_fn};
 
@@ -238,7 +238,7 @@ async fn delete_function(
 #[put("/{function_name}/{stage}/test")]
 async fn test(
     params: Path<TestParam>,
-    request: web::Json<Value>,
+    request: web::Json<TestFunctionRequest>,
     db_conn: DbConnection,
 ) -> actix_web::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -260,9 +260,9 @@ async fn test(
     };
     decode_function(&mut function)?;
     let result = match path_params.stage {
-        Stage::DRAFT => execute_fn(&function.draft_code, fun_name, req),
+        Stage::DRAFT => execute_fn(&function.draft_code, fun_name, &req.key, req.value),
         Stage::PUBLISHED => match function.published_code {
-            Some(code) => execute_fn(&code, fun_name, req),
+            Some(code) => execute_fn(&code, fun_name, &req.key, req.value),
             None => {
                 log::error!("Function test failed: function not published yet");
                 Err((

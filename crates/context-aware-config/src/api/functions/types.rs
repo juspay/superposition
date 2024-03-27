@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 #[derive(Debug, Deserialize)]
 pub struct UpdateFunctionRequest {
@@ -37,4 +38,10 @@ pub enum Stage {
 pub struct TestParam {
     pub function_name: String,
     pub stage: Stage,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TestFunctionRequest {
+    pub key: String,
+    pub value: Value,
 }
