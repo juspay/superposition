@@ -24,6 +24,7 @@ fn test_execute_fn() {
     let err_execute = match execute_fn(
         &(execute_code_error.to_owned()),
         &"test_fun".to_owned(),
+        "test",
         json!(10),
     ) {
         Ok(_) => false,
@@ -35,7 +36,12 @@ fn test_execute_fn() {
             Err(e) => e.contains("Bad schema"),
         };
     assert_eq!(
-        execute_fn(&(code_ok.to_owned()), &"test_fun".to_owned(), json!(10)),
+        execute_fn(
+            &(code_ok.to_owned()),
+            &"test_fun".to_owned(),
+            "test",
+            json!(10)
+        ),
         Ok("true".to_string())
     );
     assert_eq!(err_execute, true);

@@ -142,9 +142,12 @@ async fn create(
                 ErrorInternalServerError(json!({"message": e.to_string()}))
             })?;
 
-            if let Err((e, stdout)) =
-                execute_fn(&utf8_decoded, &f_name, default_config.value.to_owned())
-            {
+            if let Err((e, stdout)) = execute_fn(
+                &utf8_decoded,
+                &f_name,
+                &key,
+                default_config.value.to_owned(),
+            ) {
                 log::info!("function validation failed for {key} with error: {e}");
                 return Err(ErrorBadRequest(json!({
                     "message": format!( "function validation failed with error: {}", e), "stdout": stdout
