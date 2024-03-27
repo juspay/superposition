@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.24.2 - 2024-03-27
+#### Bug Fixes
+- PICAF-26454 JS validator functions to take config value and key - (656fe39) - ankit.mahato
+
+- - -
+
 ## context-aware-config-v0.24.1 - 2024-03-21
 #### Bug Fixes
 - PICAF-26307 filter config fix - (aa114fb) - ankit.mahato
