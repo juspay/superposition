@@ -2,77 +2,116 @@ use serde_json::{json, Value};
 use std::process::Command;
 use std::str;
 
-const IMPORT_CODE: &str = r#"
-    /*eslint no-unused-vars: "off"*/
-    /*eslint no-extra-semi: "off"*/
-    const axios =  require("./target/node_modules/axios");
-    "#;
+fn type_check_validate(code_str: &str) -> String {
+    format!(
+        r#"const vm = require("node:vm")
+        const axios = require("axios")
+        const script = new vm.Script(\`
+       
+        {}
 
-const EXIT_LOGIC_CODE: &str = r#"
-    if (fun_value != true) {
-        console.error(fun_value)
-        process.exit(1);
-    };
-    "#;
+        if(typeof(validate)!="function")
+        {{
+            throw Error("validate is not of function type")
+        }}\`);
+           
+        script.runInNewContext({{axios,console}}, {{ timeout: 1500}});
+        "#,
+        code_str
+    )
+}
 
-const ES_LINT_CODE: &str = r#"
-    const {ESLint} = require("./target/node_modules/eslint");
-    const linter = new ESLint({
-        useEslintrc: false,
-        overrideConfig: {
-            extends: ["eslint:recommended"],
-            parserOptions: {
-                sourceType: "module",
-                ecmaVersion: "latest",
-            },
-            env: {
-                browser: true,
-                commonjs: true,
-            }
-        },
-    });
+fn execute_validate_fun(code_str: &str, val: Value) -> String {
+    format!(
+        r#"
+        const vm = require("node:vm")
+        const axios = require("axios")
+        const script = new vm.Script(\`
+       
+        {}
+        Promise.resolve(validate({})).then((output) => {{
+                
+            if(output!=true){{
+                throw new Error("The function did not return true as expected. Check the conditions or logic inside the function.")
+            }}
+            return output;
+        }}).catch((err)=> {{
+            throw new Error(err)
+        }});\`);
+       
+        script.runInNewContext({{axios,console,process}}, {{ timeout: 1500}});
+        "#,
+        code_str, val
+    )
+}
 
-    linter.lintText(codeToLint).then((results) => {
-        var err_count = 0;
-        var err_msgs = [];
-        for (var err_obj of results) {
-            console.log(err_obj.messages);
-            err_count = err_count + err_obj.errorCount;
-            err_msgs.push(err_obj.messages);
-        }
+fn generate_code(code_str: &str) -> String {
+    format!(
+        r#"
+    const {{ Worker, isMainThread, threadId }} =  require("node:worker_threads");
+
+    if (isMainThread) {{
+    
+    // starting worker thread , making separated from the main thread
+    function runService() {{
+        return new Promise((resolve, reject) => {{
+        const worker = new Worker(
+            `{}`,{{eval:true}}
+        );
+        worker.on("message", (msg) => {{
+            console.log(msg);
+        }});
+        worker.on("error", (err) => {{
+            clearTimeout(tl);
+            console.error(err.message);
+            process.exit(1);
+        }});
+        worker.on("exit", (code) => {{
+            clearTimeout(tl);
+            if (code !== 0) {{
+                console.error(`Script stopped with exit code ${{code}}`);
+                process.exit(code);
+            }} else {{
+                worker.terminate();
+            }}
+        }});
+
+        function timelimit() {{
+            worker.terminate();
+            throw new Error("time limit exceeded");
+        }}
+
+        // terminate worker thread if execution time exceed 2 secs
         
-        if (err_count > 0) {
-            console.error(err_msgs);
-            process.exit(1);
-        } 
-        }).catch((error) => {
-            console.error(error);
-            process.exit(1);
-        });
+        var tl = setTimeout(timelimit, 2000);
+        }});
+    }}
 
-    "#;
+    async function run() {{
+        const result = await runService();
+        console.log("result output: ", result);
+    }}
+    run().catch((err) => console.error(err));
+    }}
 
-fn runtime_wrapper(function_name: &str, key: &str, value: Value) -> String {
-    let fun_call: String = format!(
-        "const fun_value = {}({});",
-        function_name,
-        json!({
-            "key": key,
-            "value": value
-        })
-    );
-    fun_call + EXIT_LOGIC_CODE
+    "#,
+        code_str
+    )
 }
 
 pub fn execute_fn(
     code_str: &str,
-    fun_name: &str,
     key: &str,
     value: Value,
 ) -> Result<String, (String, Option<String>)> {
+    let fun_val = json!({
+        "key": key,
+        "value": value
+    });
+    let exec_code = execute_validate_fun(code_str, fun_val);
     let output = Command::new("node")
         .arg("-e")
-        .arg(IMPORT_CODE.to_string() + code_str + &runtime_wrapper(fun_name, key, value))
+        .arg(generate_code(&exec_code))
         .output();
     log::trace!("{}", format!("validation function output : {:?}", output));
     match output {
@@ -100,18 +139,13 @@ pub fn execute_fn(
     }
 }
 
-fn eslint_logic(code_str: &str, fun_name: &str) -> String {
-    let code =
-        IMPORT_CODE.to_string() + code_str + &format!("console.log({});", fun_name);
-    let fun_call: String = format!("\nconst codeToLint = {};", json!(code));
-    fun_call + ES_LINT_CODE
-}
-
-pub fn compile_fn(code_str: &str, fun_name: &str) -> Result<(), String> {
+pub fn compile_fn(code_str: &str) -> Result<(), String> {
+    let type_check_code = type_check_validate(code_str);
     let output = Command::new("node")
         .arg("-e")
-        .arg(eslint_logic(code_str, fun_name))
+        .arg(generate_code(&type_check_code))
         .output();
+
     log::trace!("{}", format!("validation function output : {:?}", output));
     match output {
         Ok(val) => {
