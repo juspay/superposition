@@ -5,19 +5,17 @@ use experimentation_platform::{
 };
 
 use serde_json::{Map, Value};
-use service_utils::{
-    errors::types::Error as err, service::types::AppState, types as app,
-};
+use service_utils::{result, service::types::AppState, unexpected_error};
 
 pub fn fetch_variant_id(
     experiment: &Experiment,
     variant: VariantType,
-) -> app::Result<String> {
+) -> result::Result<String> {
     let variants = &experiment.variants;
     let experiment_variants: Vec<Variant> = serde_json::from_value(variants.clone())
         .map_err(|e| {
             log::error!("parsing to variant type failed with err: {e}");
-            err::InternalServerErr("".to_string())
+            unexpected_error!("Something went wrong.")
         })?;
 
     for ele in experiment_variants {
@@ -30,13 +28,13 @@ pub fn fetch_variant_id(
         variant,
         experiment.id
     );
-    return Err(err::InternalServerErr("".to_string()));
+    return Err(unexpected_error!("Something went wrong."));
 }
 
 pub async fn get_resolved_config(
     state: &Data<AppState>,
     dimension_ctx: &Map<String, Value>,
-) -> app::Result<Value> {
+) -> result::Result<Value> {
     let http_client = reqwest::Client::new();
     let url = format!("{}/config/resolve", state.cac_host);
     let resp = http_client
@@ -46,9 +44,9 @@ pub async fn get_resolved_config(
         .query(dimension_ctx)
         .send()
         .await
-        .map_err(|e| err::InternalServerErr(e.to_string()))?
+        .map_err(|e| unexpected_error!(e))?
         .json()
         .await
-        .map_err(|e| err::InternalServerErr(e.to_string()))?;
+        .map_err(|e| unexpected_error!(e))?;
     Ok(resp)
 }

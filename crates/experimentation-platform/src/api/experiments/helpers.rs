@@ -3,13 +3,13 @@ use crate::db::models::{Experiment, ExperimentStatusType};
 use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
-use service_utils::errors::types::ErrorResponse;
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::ExperimentationFlags;
-use service_utils::{errors::types::Error as err, types as app};
 use std::collections::HashSet;
 
-pub fn check_variant_types(variants: &Vec<Variant>) -> app::Result<()> {
+use service_utils::{bad_argument, result as superposition};
+
+pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()> {
     let mut experimental_variant_cnt = 0;
     let mut control_variant_cnt = 0;
 
@@ -25,28 +25,25 @@ pub fn check_variant_types(variants: &Vec<Variant>) -> app::Result<()> {
     }
 
     if control_variant_cnt > 1 || control_variant_cnt == 0 {
-        return Err(err::BadArgument(ErrorResponse {
-            message: "experiment should have exactly 1 control variant".to_string(),
-            possible_fix: "ensure only one control variant is present".to_string(),
-        }));
+        return Err(bad_argument!(
+            "Experiment should have exactly 1 control variant. Ensure only one control variant is present"
+        ));
     } else if experimental_variant_cnt < 1 {
-        return Err(err::BadArgument(ErrorResponse {
-            message: "experiment should have at least 1 experimental variant".to_string(),
-            possible_fix: "ensure only one control variant is present".to_string(),
-        }));
+        return Err(bad_argument!(
+            "Experiment should have at least 1 experimental variant. Ensure only one control variant is present"
+        ));
     }
 
     Ok(())
 }
 
-pub fn validate_override_keys(override_keys: &Vec<String>) -> app::Result<()> {
+pub fn validate_override_keys(override_keys: &Vec<String>) -> superposition::Result<()> {
     let mut key_set: HashSet<&str> = HashSet::new();
     for key in override_keys {
         if !key_set.insert(key) {
-            return Err(err::BadArgument(ErrorResponse {
-                message: "override_keys are not unique".to_string(),
-                possible_fix: "remove duplicate entries in override_keys".to_string(),
-            }));
+            return Err(bad_argument!(
+                "override_keys are not unique. Remove duplicate entries in override_keys"
+            ));
         }
     }
 
@@ -56,7 +53,7 @@ pub fn validate_override_keys(override_keys: &Vec<String>) -> app::Result<()> {
 pub fn are_overlapping_contexts(
     context_a: &Value,
     context_b: &Value,
-) -> app::Result<bool> {
+) -> superposition::Result<bool> {
     let dimensions_a = extract_dimensions(context_a)?;
     let dimensions_b = extract_dimensions(context_b)?;
 
@@ -117,7 +114,7 @@ pub fn is_valid_experiment(
     override_keys: &Vec<String>,
     flags: &ExperimentationFlags,
     active_experiments: &Vec<Experiment>,
-) -> app::Result<(bool, String)> {
+) -> superposition::Result<(bool, String)> {
     let mut valid_experiment = true;
     let mut invalid_reason = String::new();
     if !flags.allow_same_keys_overlapping_ctx
@@ -129,11 +126,10 @@ pub fn is_valid_experiment(
             let are_overlapping =
                 are_overlapping_contexts(context, &active_experiment.context)
                     .map_err(|e| {
-                        log::info!("validate_experiment: {e}");
-                        err::BadArgument(ErrorResponse {
-                            message: "Failed to validate for overlapping context. One of the current running experiments already has this context or overlaps with it".into(),
-                            possible_fix: "Overlapping contexts are not allowed currently as per your configuration of CAC".into(),
-                        })
+                        log::info!("experiment validation failed with error: {e}");
+                        bad_argument!(
+                            "Context overlap validation failed, given context overlaps with a running experiment's context. Overlapping contexts are not allowed currently as per your configuration"
+                        )
                     })?;
 
             let have_intersecting_key_set = active_experiment
@@ -175,7 +171,7 @@ pub fn validate_experiment(
     experiment_id: Option<i64>,
     flags: &ExperimentationFlags,
     conn: &mut PgConnection,
-) -> app::Result<(bool, String)> {
+) -> superposition::Result<(bool, String)> {
     use crate::db::schema::experiments::dsl as experiments_dsl;
 
     let active_experiments: Vec<Experiment> = experiments_dsl::experiments
@@ -195,23 +191,17 @@ pub fn validate_experiment(
 pub fn add_variant_dimension_to_ctx(
     context_json: &Value,
     variant: String,
-) -> app::Result<Value> {
-    let context = context_json
-        .as_object()
-        .ok_or(err::BadArgument(ErrorResponse {
-            message: "context not an object".to_string(),
-            possible_fix: "ensure the context provided obeys the rules of JSON logic"
-                .to_string(),
-        }))?;
+) -> superposition::Result<Value> {
+    let context = context_json.as_object().ok_or(bad_argument!(
+        "Context not an object. Ensure the context provided obeys the rules of JSON logic"
+    ))?;
 
     let mut conditions = match context.get("and") {
         Some(conditions_json) => conditions_json
             .as_array()
-            .ok_or(err::BadArgument(ErrorResponse {
-                message: " failed parsing conditions as an array".to_string(),
-                possible_fix: "ensure the context provided obeys the rules of JSON logic"
-                    .to_string(),
-            }))?
+            .ok_or(bad_argument!(
+                "Failed parsing conditions as an array. Ensure the context provided obeys the rules of JSON logic"
+            ))?
             .clone(),
         None => vec![context_json.clone()],
     };
@@ -229,10 +219,9 @@ pub fn add_variant_dimension_to_ctx(
 
     match serde_json::to_value(updated_ctx) {
         Ok(value) => Ok(value),
-        Err(_) => Err(err::BadArgument(ErrorResponse {
-            message: "Failed to convert context to a valid JSON object".to_string(),
-            possible_fix: "Check the request sent for correctness".to_string(),
-        })),
+        Err(_) => Err(bad_argument!(
+            "Failed to convert context to a valid JSON object. Check the request sent for correctness"
+        )),
     }
 }
 

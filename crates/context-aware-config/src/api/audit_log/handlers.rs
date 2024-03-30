@@ -2,7 +2,7 @@ use actix_web::{get, web::Query, HttpResponse, Scope};
 use chrono::{Duration, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::json;
-use service_utils::{service::types::DbConnection, types as app};
+use service_utils::{result as superposition, service::types::DbConnection};
 
 use crate::{api::audit_log::types::AuditQueryFilters, db::models::EventLog};
 
@@ -16,7 +16,7 @@ pub fn endpoints() -> Scope {
 async fn get_audit_logs(
     filters: Query<AuditQueryFilters>,
     db_conn: DbConnection,
-) -> app::Result<HttpResponse> {
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
     let query_builder = |filters: &AuditQueryFilters| {

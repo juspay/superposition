@@ -1,4 +1,7 @@
 use serde_json::{json, Value};
+use service_utils::result as superposition;
+use service_utils::unexpected_error;
+use service_utils::validation_error;
 use std::process::Command;
 use std::str;
 
@@ -7,14 +10,14 @@ fn type_check_validate(code_str: &str) -> String {
         r#"const vm = require("node:vm")
         const axios = require("./target/node_modules/axios")
         const script = new vm.Script(\`
-       
+
         {}
 
         if(typeof(validate)!="function")
         {{
             throw Error("validate is not of function type")
         }}\`);
-           
+
         script.runInNewContext({{axios,console}}, {{ timeout: 1500}});
         "#,
         code_str
@@ -27,10 +30,10 @@ fn execute_validate_fun(code_str: &str, val: Value) -> String {
         const vm = require("node:vm")
         const axios = require("./target/node_modules/axios")
         const script = new vm.Script(\`
-       
+
         {}
         Promise.resolve(validate({})).then((output) => {{
-                
+
             if(output!=true){{
                 throw new Error("The function did not return true as expected. Check the conditions or logic inside the function.")
             }}
@@ -38,7 +41,7 @@ fn execute_validate_fun(code_str: &str, val: Value) -> String {
         }}).catch((err)=> {{
             throw new Error(err)
         }});\`);
-       
+
         script.runInNewContext({{axios,console,process}}, {{ timeout: 1500}});
         "#,
         code_str, val
@@ -51,7 +54,7 @@ fn generate_code(code_str: &str) -> String {
     const {{ Worker, isMainThread, threadId }} =  require("node:worker_threads");
 
     if (isMainThread) {{
-    
+
     // starting worker thread , making separated from the main thread
     function runService() {{
         return new Promise((resolve, reject) => {{
@@ -82,7 +85,7 @@ fn generate_code(code_str: &str) -> String {
         }}
 
         // terminate worker thread if execution time exceed 2 secs
-        
+
         var tl = setTimeout(timelimit, 2000);
         }});
     }}
@@ -139,7 +142,7 @@ pub fn execute_fn(
     }
 }
 
-pub fn compile_fn(code_str: &str) -> Result<(), String> {
+pub fn compile_fn(code_str: &str) -> superposition::Result<()> {
     let type_check_code = type_check_validate(code_str);
     let output = Command::new("node")
         .arg("-e")
@@ -154,14 +157,14 @@ pub fn compile_fn(code_str: &str) -> Result<(), String> {
                     .unwrap_or("[Invalid UTF-8 in stderr]")
                     .to_owned();
                 log::error!("{}", format!("eslint check output error: {:?}", stderr));
-                Err(stderr)
+                Err(validation_error!(stderr))
             } else {
                 Ok(())
             }
         }
         Err(e) => {
             log::error!("eslint check error: {}", e);
-            Err(format!("js_eval error: {}", e))
+            Err(unexpected_error!("js_eval error: {}", e))
         }
     }
 }

@@ -44,18 +44,6 @@ pub enum ContextBulkResponse {
     MOVE(PutResp),
 }
 
-#[derive(Debug)]
-pub enum TransactionError {
-    DieselError(diesel::result::Error),
-    BadRequest(String), // Custom error type for bad requests
-}
-
-impl From<diesel::result::Error> for TransactionError {
-    fn from(error: diesel::result::Error) -> Self {
-        TransactionError::DieselError(error)
-    }
-}
-
 #[derive(Deserialize, Clone)]
 pub struct FunctionsInfo {
     pub name: String,
