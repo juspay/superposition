@@ -19,8 +19,8 @@ use experimentation_platform::{
 use serde_json::Value;
 use service_utils::{
     helpers::extract_dimensions,
+    result,
     service::types::{AppState, DbConnection, Tenant},
-    types as app,
 };
 
 pub fn endpoints(scope: Scope) -> Scope {
@@ -37,7 +37,7 @@ async fn stabilize(
     db_conn: DbConnection,
     user: User,
     tenant: Tenant,
-) -> app::Result<Json<ExperimentResponse>> {
+) -> result::Result<Json<ExperimentResponse>> {
     let response = conclude_experiment(
         params.into_inner(),
         state,
@@ -57,7 +57,7 @@ async fn revert(
     db_conn: DbConnection,
     user: User,
     tenant: Tenant,
-) -> app::Result<Json<ExperimentResponse>> {
+) -> result::Result<Json<ExperimentResponse>> {
     let response = conclude_experiment(
         params.into_inner(),
         state,
@@ -77,7 +77,7 @@ pub async fn conclude_experiment(
     user: User,
     tenant: Tenant,
     variant: VariantType,
-) -> app::Result<Experiment> {
+) -> result::Result<Experiment> {
     let DbConnection(mut conn) = db_conn;
 
     let experiment = get_experiment(exp_id, &mut conn)?;
@@ -94,7 +94,7 @@ pub async fn diff_handler(
     params: web::Path<i64>,
     state: Data<AppState>,
     db_conn: DbConnection,
-) -> app::Result<Json<DiffResponse>> {
+) -> result::Result<Json<DiffResponse>> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
     let experiment = get_experiment(exp_id, &mut conn)?;

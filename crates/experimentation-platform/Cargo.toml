@@ -31,3 +31,4 @@ diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
 service-utils = { path = "../service-utils" }
 reqwest = { workspace = true }
 dashboard-auth = { workspace = true }
+anyhow = { workspace = true }

@@ -7,8 +7,6 @@ pub mod types;
 mod utils;
 use cfg_if::cfg_if;
 
-use utils::use_env;
-
 cfg_if! {
     if #[cfg(feature = "hydrate")] {
         use wasm_bindgen::prelude::wasm_bindgen;
@@ -20,7 +18,7 @@ cfg_if! {
 
 
             console_error_panic_hook::set_once();
-            let envs = use_env();
+            let envs = utils::use_env();
 
             leptos::mount_to_body(move || {
                 view! { <App app_envs={envs.clone()} /> }

@@ -4,7 +4,7 @@ use actix_web::{
     HttpResponse,
 };
 use derive_more::Display;
-use serde_json::json;
+use serde::{Deserialize, Serialize};
 use thiserror::Error as this_error;
 
 #[derive(this_error)]
@@ -13,10 +13,12 @@ pub enum AppError {
     ValidationError(String),
     #[error("bad arguments ( `{0}` )")]
     BadArgument(String),
+    #[error("not found ( `{0}` )")]
+    NotFound(String),
     #[error(transparent)]
     DbError(#[from] diesel::result::Error),
     #[error(transparent)]
-    ServerError(#[from] ServerError),
+    ResponseError(#[from] ResponseError),
     #[error(transparent)]
     UnexpectedError(anyhow::Error),
 }
@@ -27,16 +29,23 @@ pub enum AppError {
     message,
     status_code
 )]
-pub struct ServerError {
+pub struct ResponseError {
     pub message: String,
     pub status_code: StatusCode,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Display)]
+pub struct ErrorResponse {
+    pub message: String,
 }
 
 pub type Result<T> = core::result::Result<T, AppError>;
 
 impl AppError {
     fn generate_err_response(code: StatusCode, msg: &str) -> HttpResponse {
-        let response = json!({ "message" : msg });
+        let response = ErrorResponse {
+            message: msg.into(),
+        };
         HttpResponse::build(code)
             .insert_header(ContentType::json())
             .json(response)
@@ -50,16 +59,19 @@ impl error::ResponseError for AppError {
 
         log::error!("{}", self);
         match self {
-            AppError::ValidationError(msg) => {
+            AppError::ValidationError(msg) | AppError::BadArgument(msg) => {
                 Self::generate_err_response(StatusCode::BAD_REQUEST, msg)
             }
-            AppError::BadArgument(msg) => {
-                Self::generate_err_response(StatusCode::BAD_REQUEST, msg)
+            AppError::NotFound(msg) => {
+                Self::generate_err_response(StatusCode::NOT_FOUND, msg)
             }
             AppError::UnexpectedError(_) => Self::generate_err_response(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Something went wrong",
             ),
+            AppError::ResponseError(error) => {
+                Self::generate_err_response(error.status_code, &error.message)
+            }
 
             AppError::DbError(diesel_error::InvalidCString(_)) => {
                 Self::generate_err_response(
@@ -85,10 +97,6 @@ impl error::ResponseError for AppError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Something went wrong",
             ),
-
-            AppError::ServerError(error) => {
-                Self::generate_err_response(error.status_code, &error.message)
-            }
         }
     }
 }

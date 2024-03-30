@@ -2,8 +2,8 @@ use chrono::Utc;
 use experimentation_platform::api::experiments::helpers;
 use experimentation_platform::db::models::{Experiment, ExperimentStatusType};
 use serde_json::{json, Map, Value};
-use service_utils::errors::types::Error as AppError;
 use service_utils::helpers::extract_dimensions;
+use service_utils::result::AppError;
 use service_utils::service::types::ExperimentationFlags;
 
 enum Dimensions {

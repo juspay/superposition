@@ -14,8 +14,9 @@ use diesel::RunQueryDsl;
 use jsonschema::{Draft, JSONSchema};
 use serde_json::Value;
 use service_utils::{
+    bad_argument, result as superposition,
     service::types::{AppState, DbConnection},
-    types as app,
+    unexpected_error,
 };
 
 pub fn endpoints() -> Scope {
@@ -28,28 +29,28 @@ async fn create(
     req: web::Json<CreateReq>,
     user: User,
     db_conn: DbConnection,
-) -> HttpResponse {
+) -> superposition::Result<HttpResponse> {
     //TODO move this to the type itself rather than special if check
     let DbConnection(mut conn) = db_conn;
 
     if req.priority <= 0 {
-        return HttpResponse::BadRequest().body("Priority should be greater than 0");
+        return Err(bad_argument!("Priority should be greater than 0"));
     }
 
     let create_req = req.into_inner();
     let schema_value = create_req.schema;
 
-    if let Err(e) = validate_jsonschema(&state.meta_schema, &schema_value) {
-        return HttpResponse::BadRequest().body(e);
-    };
+    validate_jsonschema(&state.meta_schema, &schema_value)?;
 
     let schema_compile_result = JSONSchema::options()
         .with_draft(Draft::Draft7)
         .compile(&schema_value);
 
     if let Err(e) = schema_compile_result {
-        return HttpResponse::BadRequest()
-            .body(String::from(format!("Bad schema: {:?}", e)));
+        return Err(bad_argument!(
+            "Invalid JSON schema (failed to compile): {:?}",
+            e
+        ));
     };
 
     let fun_name = match create_req.function_name {
@@ -57,9 +58,9 @@ async fn create(
         Some(Value::Null) | None => None,
         _ => {
             log::error!("Expected a string or null as the function name.");
-            return HttpResponse::BadRequest().body(String::from(format!(
+            return Err(bad_argument!(
                 "Expected a string or null as the function name."
-            )));
+            ));
         }
     };
 
@@ -77,31 +78,33 @@ async fn create(
         .on_conflict(dimension)
         .do_update()
         .set(&new_dimension)
-        .execute(&mut conn);
+        .get_result::<Dimension>(&mut conn);
 
     match upsert {
-        Ok(_) => {
-            return HttpResponse::Created()
-                .body("Dimension created/updated successfully.")
+        Ok(upserted_dimension) => {
+            return Ok(HttpResponse::Created().json(upserted_dimension))
         }
         Err(diesel::result::Error::DatabaseError(
             diesel::result::DatabaseErrorKind::ForeignKeyViolation,
             e,
         )) => {
             log::error!("{fun_name:?} function not found with error: {e:?}");
-            return HttpResponse::BadRequest()
-                .body(String::from(format!("Function not found.")));
+            return Err(bad_argument!(
+                "Funtion {} doesn't exists",
+                fun_name.unwrap_or(String::new())
+            ));
         }
         Err(e) => {
             log::error!("Dimension upsert failed with error: {e}");
-            return HttpResponse::InternalServerError()
-                .body("Failed to create/update dimension\n");
+            return Err(unexpected_error!(
+                "Something went wrong, failed to create/update dimension"
+            ));
         }
     }
 }
 
 #[get("")]
-async fn get(db_conn: DbConnection) -> app::Result<Json<Vec<Dimension>>> {
+async fn get(db_conn: DbConnection) -> superposition::Result<Json<Vec<Dimension>>> {
     let DbConnection(mut conn) = db_conn;
 
     let result: Vec<Dimension> = dimensions.get_results(&mut conn)?;

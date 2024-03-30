@@ -4,13 +4,13 @@ use super::types::{Config, Context};
 
 use serde_json::{Map, Value};
 use service_utils::{
-    errors::types::Error as err, helpers::extract_dimensions, types as app,
+    helpers::extract_dimensions, result as superposition, unexpected_error,
 };
 
 pub fn filter_context(
     contexts: &Vec<Context>,
     query_params_map: &Map<String, Value>,
-) -> app::Result<Vec<Context>> {
+) -> superposition::Result<Vec<Context>> {
     let mut filtered_context: Vec<Context> = Vec::new();
     for context in contexts.iter() {
         if should_add_ctx(&context, query_params_map)? {
@@ -23,7 +23,7 @@ pub fn filter_context(
 fn should_add_ctx(
     context: &Context,
     query_params_map: &Map<String, Value>,
-) -> app::Result<bool> {
+) -> superposition::Result<bool> {
     let dimension = extract_dimensions(&context.condition)?;
     Ok(dimension
         .iter()
@@ -33,7 +33,7 @@ fn should_add_ctx(
 pub fn filter_config_by_prefix(
     config: &Config,
     prefix_list: &HashSet<&str>,
-) -> actix_web::Result<Config> {
+) -> superposition::Result<Config> {
     let mut filtered_overrides: Map<String, Value> = Map::new();
 
     let filtered_default_config: Map<String, Value> = config
@@ -52,7 +52,7 @@ pub fn filter_config_by_prefix(
             .as_object()
             .ok_or_else(|| {
                 log::error!("failed to decode overrides.");
-                err::InternalServerErr("failed to decode overrides.".to_string())
+                unexpected_error!("failed to decode overrides.")
             })?
             .clone();
 
@@ -85,7 +85,7 @@ pub fn filter_config_by_prefix(
 pub fn filter_config_by_dimensions(
     config: &Config,
     query_params_map: &Map<String, Value>,
-) -> actix_web::Result<Config> {
+) -> superposition::Result<Config> {
     let filtered_context = filter_context(&config.contexts, &query_params_map)?;
     let filtered_overrides: Map<String, Value> = filtered_context
         .iter()
