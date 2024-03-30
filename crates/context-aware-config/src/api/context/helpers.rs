@@ -1,6 +1,7 @@
 extern crate base64;
 use base64::prelude::*;
 use service_utils::helpers::extract_dimensions;
+use service_utils::{result as superposition, unexpected_error, validation_error};
 use std::str;
 
 use crate::api::functions::helpers::get_published_functions_by_names;
@@ -12,19 +13,18 @@ use crate::{
         dimensions::{self},
     },
 };
-use anyhow::anyhow;
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use std::collections::HashMap;
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
 pub fn validate_condition_with_functions(
     conn: &mut DBConnection,
     context: &Value,
-) -> anyhow::Result<()> {
+) -> superposition::Result<()> {
     use dimensions::dsl;
     let context = extract_dimensions(&context)?;
     let dimensions_list: Vec<String> = context.keys().cloned().collect();
@@ -53,7 +53,7 @@ pub fn validate_condition_with_functions(
 pub fn validate_override_with_functions(
     conn: &mut DBConnection,
     override_: &Map<String, Value>,
-) -> anyhow::Result<()> {
+) -> superposition::Result<()> {
     let default_config_keys: Vec<String> = override_.keys().cloned().collect();
     let keys_function_array: Vec<(String, Option<String>)> = dsl::default_configs
         .filter(dsl::key.eq_any(default_config_keys))
@@ -80,7 +80,7 @@ pub fn validate_override_with_functions(
 fn get_functions_map(
     conn: &mut DBConnection,
     keys_function_array: Vec<(String, String)>,
-) -> anyhow::Result<HashMap<String, FunctionsInfo>> {
+) -> superposition::Result<HashMap<String, FunctionsInfo>> {
     let functions_map: HashMap<String, Option<String>> =
         get_published_functions_by_names(
             conn,
@@ -108,19 +108,29 @@ fn get_functions_map(
     Ok(default_config_functions_map)
 }
 
-fn validate_value_with_function(
+pub fn validate_value_with_function(
     fun_name: &str,
     function: &str,
     key: &String,
     value: &Value,
-) -> anyhow::Result<()> {
-    let base64_decoded = BASE64_STANDARD.decode(function)?;
-    let utf8_decoded = str::from_utf8(&base64_decoded)?;
-    if let Err((e, stdout)) = execute_fn(&utf8_decoded, key, value.to_owned()) {
-        log::error!("function validation failed for {key} with error: {e}");
-        return Err(anyhow!(json!({
-            "message": format!("function validation failed for {} with error {}", key, e), "stdout": stdout
-        })));
+) -> superposition::Result<()> {
+    let base64_decoded = BASE64_STANDARD.decode(function).map_err(|err| {
+        log::error!("Failed to decode function code: {}", err);
+        unexpected_error!("Failed to decode function code: {}", err)
+    })?;
+    let utf8_decoded = str::from_utf8(&base64_decoded).map_err(|err| {
+        log::error!("Failed to parse function code in UTF-8: {}", err);
+        unexpected_error!("Failed to parse function code in UTF-8: {}", err)
+    })?;
+    if let Err((err, stdout)) = execute_fn(&utf8_decoded, key, value.to_owned()) {
+        let stdout = stdout.unwrap_or(String::new());
+        log::error!("function validation failed for {key} with error: {err}");
+        return Err(validation_error!(
+            "Function validation failed for {} with error {}. {}",
+            key,
+            err,
+            stdout
+        ));
     }
     Ok(())
 }

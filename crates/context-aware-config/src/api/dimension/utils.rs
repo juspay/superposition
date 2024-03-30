@@ -7,10 +7,11 @@ use diesel::{
     PgConnection,
 };
 use jsonschema::{Draft, JSONSchema};
+use service_utils::result as superposition;
 
 pub fn get_all_dimension_schema_map(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-) -> anyhow::Result<HashMap<String, (JSONSchema, i32)>> {
+) -> superposition::Result<HashMap<String, (JSONSchema, i32)>> {
     let dimensions_vec = dimensions.load::<Dimension>(conn)?;
 
     let dimension_schema_map = dimensions_vec

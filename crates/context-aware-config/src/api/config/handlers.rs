@@ -10,9 +10,7 @@ use crate::db::schema::{
     contexts::dsl as ctxt, default_configs::dsl as def_conf, event_log::dsl as event_log,
 };
 use actix_http::header::{HeaderName, HeaderValue};
-use actix_web::{
-    error::ErrorBadRequest, get, web::Query, HttpRequest, HttpResponse, Scope,
-};
+use actix_web::{get, web::Query, HttpRequest, HttpResponse, Scope};
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, NaiveDateTime, Timelike, Utc};
 use diesel::{
@@ -20,10 +18,11 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
-use serde_json::{json, Map, Value, Value::Null};
-use service_utils::{
-    errors::types::Error as err, helpers::ToActixErr, service::types::DbConnection,
-};
+use serde_json::{json, Map, Value};
+use service_utils::service::types::DbConnection;
+use service_utils::{bad_argument, db_error, unexpected_error};
+
+use service_utils::result as superposition;
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -35,7 +34,7 @@ pub fn endpoints() -> Scope {
 fn add_last_modified_header(
     max_created_at: Option<NaiveDateTime>,
     mut res: HttpResponse,
-) -> actix_web::Result<HttpResponse> {
+) -> superposition::Result<HttpResponse> {
     let header_name = HeaderName::from_static("last-modified");
 
     if let Some(ele) = max_created_at {
@@ -58,10 +57,7 @@ fn get_max_created_at(
         .and_then(|res| res.ok_or(diesel::result::Error::NotFound))
 }
 
-fn is_not_modified(
-    max_created_at: Option<NaiveDateTime>,
-    req: &HttpRequest,
-) -> anyhow::Result<bool> {
+fn is_not_modified(max_created_at: Option<NaiveDateTime>, req: &HttpRequest) -> bool {
     let nanosecond_erasure = |t: NaiveDateTime| t.with_nanosecond(0);
     let last_modified = req
         .headers()
@@ -75,17 +71,20 @@ fn is_not_modified(
         .and_then(nanosecond_erasure);
     log::info!("last modified {last_modified:?}");
     let parsed_max: Option<NaiveDateTime> = max_created_at.and_then(nanosecond_erasure);
-    Ok(max_created_at.is_some() && parsed_max <= last_modified)
+    max_created_at.is_some() && parsed_max <= last_modified
 }
 
 async fn generate_cac(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-) -> actix_web::Result<Config> {
+) -> superposition::Result<Config> {
     let contexts_vec = ctxt::contexts
         .select((ctxt::id, ctxt::value, ctxt::override_id, ctxt::override_))
         .order_by((ctxt::priority.asc(), ctxt::created_at.asc()))
         .load::<(String, Value, String, Value)>(conn)
-        .map_err_to_internal_server("error getting contexts", Null)?;
+        .map_err(|err| {
+            log::error!("failed to fetch contexts with error: {}", err);
+            db_error!(err)
+        })?;
 
     let (contexts, overrides) = contexts_vec.into_iter().fold(
         (Vec::new(), Map::new()),
@@ -104,7 +103,10 @@ async fn generate_cac(
     let default_config_vec = def_conf::default_configs
         .select((def_conf::key, def_conf::value))
         .load::<(String, Value)>(conn)
-        .map_err_to_internal_server("error getting default configs", Null)?;
+        .map_err(|err| {
+            log::error!("failed to fetch default_configs with error: {}", err);
+            db_error!(err)
+        })?;
 
     let default_configs =
         default_config_vec
@@ -122,7 +124,10 @@ async fn generate_cac(
 }
 
 #[get("")]
-async fn get(req: HttpRequest, db_conn: DbConnection) -> actix_web::Result<HttpResponse> {
+async fn get(
+    req: HttpRequest,
+    db_conn: DbConnection,
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
     let max_created_at = get_max_created_at(&mut conn)
@@ -131,15 +136,17 @@ async fn get(req: HttpRequest, db_conn: DbConnection) -> actix_web::Result<HttpR
 
     log::info!("Max created at: {max_created_at:?}");
 
-    let is_not_modified = is_not_modified(max_created_at, &req)
-        .map_err(|e| log::error!("config not modified: {e}"));
+    let is_not_modified = is_not_modified(max_created_at, &req);
 
-    if let Ok(true) = is_not_modified {
+    if is_not_modified {
         return Ok(HttpResponse::NotModified().finish());
     }
 
     let params = Query::<HashMap<String, String>>::from_query(req.query_string())
-        .map_err(|_| ErrorBadRequest("Unable to retrieve query parameters."))?;
+        .map_err(|err| {
+            log::error!("Failed to parse query params with err: {}", err);
+            bad_argument!("Unable to retrieve query parameters.")
+        })?;
     let mut query_params_map: serde_json::Map<String, Value> = Map::new();
 
     for (key, value) in params.0.into_iter() {
@@ -157,7 +164,7 @@ async fn get(req: HttpRequest, db_conn: DbConnection) -> actix_web::Result<HttpR
             .as_str()
             .ok_or_else(|| {
                 log::error!("Prefix is not a valid string.");
-                err::InternalServerErr("Prefix is not a valid string.".to_string())
+                bad_argument!("Prefix is not a valid string")
             })?
             .split(",")
             .collect();
@@ -177,10 +184,13 @@ async fn get(req: HttpRequest, db_conn: DbConnection) -> actix_web::Result<HttpR
 async fn get_resolved_config(
     req: HttpRequest,
     db_conn: DbConnection,
-) -> actix_web::Result<HttpResponse> {
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let params = Query::<HashMap<String, String>>::from_query(req.query_string())
-        .map_err(|_| ErrorBadRequest("error getting query params"))?;
+        .map_err(|err| {
+            log::error!("failed to parse query params with err: {}", err);
+            bad_argument!("error getting query params")
+        })?;
 
     let mut query_params_map: serde_json::Map<String, Value> = Map::new();
 
@@ -197,10 +207,9 @@ async fn get_resolved_config(
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log : {e}"))
         .ok();
 
-    let is_not_modified = is_not_modified(max_created_at, &req)
-        .map_err(|e| log::error!("config not modified: {e}"));
+    let is_not_modified = is_not_modified(max_created_at, &req);
 
-    if let Ok(true) = is_not_modified {
+    if is_not_modified {
         return Ok(HttpResponse::NotModified().finish());
     }
 
@@ -232,7 +241,10 @@ async fn get_resolved_config(
                 &query_params_map,
                 merge_strategy,
             )
-            .map_err_to_internal_server("cac eval failed", Null)?,
+            .map_err(|err| {
+                log::error!("failed to eval cac with err: {}", err);
+                unexpected_error!("cac eval failed")
+            })?,
         )
     } else {
         HttpResponse::Ok().json(
@@ -243,7 +255,10 @@ async fn get_resolved_config(
                 &query_params_map,
                 merge_strategy,
             )
-            .map_err_to_internal_server("cac eval failed", Null)?,
+            .map_err(|err| {
+                log::error!("failed to eval cac with err: {}", err);
+                unexpected_error!("cac eval failed")
+            })?,
         )
     };
     add_last_modified_header(max_created_at, response)
@@ -253,10 +268,13 @@ async fn get_resolved_config(
 async fn get_filtered_config(
     req: HttpRequest,
     db_conn: DbConnection,
-) -> actix_web::Result<HttpResponse> {
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let params = Query::<HashMap<String, String>>::from_query(req.query_string())
-        .map_err(|_| ErrorBadRequest("error getting query params"))?;
+        .map_err(|err| {
+            log::error!("failed to parse query params with err: {}", err);
+            bad_argument!("Error getting query params.")
+        })?;
     let mut query_params_map: serde_json::Map<String, Value> = Map::new();
 
     for (key, value) in params.0.into_iter() {
@@ -279,9 +297,10 @@ async fn get_filtered_config(
             config
                 .overrides
                 .get(override_with_key)
-                .ok_or(err::InternalServerErr(
-                    "Could not fetch override_key".to_string(),
-                ))?
+                .ok_or_else(|| {
+                    log::error!("Could not fetch override_with_key");
+                    unexpected_error!("Something went wrong")
+                })?
                 .to_owned(),
         );
     }

@@ -2,6 +2,7 @@ use actix_web::http::header::{HeaderMap, HeaderName, HeaderValue};
 use itertools::{self, Itertools};
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{json, Value};
+use service_utils::{result as superposition, validation_error};
 use std::collections::HashMap;
 
 pub fn get_default_config_validation_schema() -> JSONSchema {
@@ -136,7 +137,7 @@ pub fn validate_context_jsonschema(
     object_key: &str,
     dimension_value: &Value,
     dimension_schema: &JSONSchema,
-) -> Result<(), String> {
+) -> superposition::Result<()> {
     match dimension_value {
         Value::Array(val_arr) if object_key == "in" => {
             let mut verrors = Vec::new();
@@ -166,15 +167,27 @@ pub fn validate_context_jsonschema(
                             "Validation errors for dimensions in array: {:?}",
                             verrors
                         );
-                        Err(format!("Bad schema: {:?}", verrors))
+                        Err(validation_error!(
+                            "failed to validate dimension value {:?} with error: {:?}",
+                            dimension_value,
+                            verrors
+                        ))
                     }
                 }
             }
         }
         _ => dimension_schema.validate(dimension_value).map_err(|e| {
             let verrors = e.collect::<Vec<ValidationError>>();
-            log::error!("Validation error: {:?}", verrors);
-            format!("Bad schema: {:?}", verrors)
+            log::error!(
+                "failed to validate dimension value {:?} with error : {:?}",
+                dimension_value,
+                verrors
+            );
+            validation_error!(
+                "failed to validate dimension value {:?} with error: {:?}",
+                dimension_value,
+                verrors
+            )
         }),
     }
 }
@@ -189,16 +202,16 @@ pub fn validate_context_jsonschema(
 pub fn validate_jsonschema(
     validation_schema: &JSONSchema,
     schema: &Value,
-) -> Result<(), String> {
+) -> superposition::Result<()> {
     let res = match validation_schema.validate(schema) {
         Ok(_) => Ok(()),
         Err(e) => {
             //TODO: Try & render as json.
             let verrors = e.collect::<Vec<ValidationError>>();
-            Err(String::from(format!(
-                "Bad schema: {:?}",
+            Err(validation_error!(
+                "schema validation failed: {:?}",
                 verrors.as_slice()
-            )))
+            ))
         }
     };
     res
@@ -356,15 +369,15 @@ mod tests {
         let err_arr_context =
             match validate_context_jsonschema("==", &arr_dimension_val, &test_jsonschema)
             {
-                Ok(_) => false,
-                Err(e) => {
-                    print!("{:?}", e);
-                    e.contains("Bad schema")
+                Err(superposition::AppError::ValidationError(err)) => {
+                    log::info!("{:?}", err);
+                    true
                 }
+                _ => false,
             };
 
-        assert_eq!(ok_str_context, Ok(()));
+        assert_eq!(ok_str_context.unwrap(), ());
         assert_eq!(err_arr_context, true);
-        assert_eq!(ok_arr_context, Ok(()));
+        assert_eq!(ok_arr_context.unwrap(), ());
     }
 }

@@ -1402,6 +1402,7 @@ version = "0.12.0"
 dependencies = [
  "actix",
  "actix-web",
+ "anyhow",
  "chrono",
  "dashboard-auth",
  "derive_more",
@@ -1441,6 +1442,7 @@ version = "0.4.0"
 dependencies = [
  "actix",
  "actix-web",
+ "anyhow",
  "chrono",
  "dashboard-auth",
  "dotenv",

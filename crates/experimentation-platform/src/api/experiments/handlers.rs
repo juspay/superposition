@@ -12,15 +12,12 @@ use diesel::{
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 
-use service_utils::errors::types::{Error, ServerError};
+use service_utils::{
+    bad_argument, response_error, result as superposition, unexpected_error,
+};
 
 use reqwest::{Response, StatusCode};
-use service_utils::{
-    errors::types::{Error as err, ErrorResponse},
-    helpers::remove_error_abstraction,
-    service::types::{AppState, DbConnection, Tenant},
-    types as app,
-};
+use service_utils::service::types::{AppState, DbConnection, Tenant};
 
 use super::{
     helpers::{
@@ -30,9 +27,9 @@ use super::{
     },
     types::{
         AuditQueryFilters, ConcludeExperimentRequest, ContextAction, ContextBulkResponse,
-        ContextMoveReq, ContextPutReq, ContextPutResp, ExperimentCreateRequest,
-        ExperimentCreateResponse, ExperimentResponse, ExperimentsResponse, ListFilters,
-        OverrideKeysUpdateRequest, RampRequest, Variant,
+        ContextMoveReq, ContextPutReq, ExperimentCreateRequest, ExperimentCreateResponse,
+        ExperimentResponse, ExperimentsResponse, ListFilters, OverrideKeysUpdateRequest,
+        RampRequest, Variant,
     },
 };
 
@@ -54,56 +51,46 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(update_overrides)
 }
 
-async fn process_http_response(
+async fn parse_error_response(
+    response: reqwest::Response,
+) -> superposition::Result<(StatusCode, superposition::ErrorResponse)> {
+    let status_code = response.status();
+    let error_response = response
+        .json::<superposition::ErrorResponse>()
+        .await
+        .map_err(|err: reqwest::Error| {
+            log::error!("failed to parse error response: {}", err);
+            unexpected_error!("Something went wrong")
+        })?;
+    log::error!("http call to CAC failed with err {:?}", error_response);
+
+    Ok((status_code, error_response))
+}
+
+async fn process_cac_http_response(
     response: Result<Response, reqwest::Error>,
-) -> Result<Vec<ContextPutResp>, Error> {
+) -> superposition::Result<Vec<ContextBulkResponse>> {
+    let internal_server_error = unexpected_error!("Something went wrong.");
     match response {
         Ok(res) if res.status().is_success() => {
-            match res.json::<Vec<ContextBulkResponse>>().await {
-                Ok(bulk_responses) => {
-                    let contexts =
-                        bulk_responses
-                            .into_iter()
-                            .fold(Vec::new(), |mut acc, item| {
-                                if let ContextBulkResponse::PUT(context) = item {
-                                    acc.push(context);
-                                } else {
-                                    log::error!("Unexpected response item: {:?}", item);
-                                }
-                                acc
-                            });
-                    Ok(contexts)
-                }
-                Err(e) => {
-                    log::error!("Failed to parse JSON response: {}", e);
-                    Err(Error::InternalServerErr(e.to_string()))
-                }
-            }
+            res.json::<Vec<ContextBulkResponse>>().await.map_err(|err| {
+                log::error!("failed to parse JSON response with error: {}", err);
+                internal_server_error
+            })
         }
         Ok(res) => {
-            let error_response = ErrorResponse {
-                message: format!("HTTP error with status: {}", res.status().as_u16()),
-                possible_fix: String::from("Please check the request and try again."),
-            };
-            match res.status() {
-                StatusCode::BAD_REQUEST => Err(Error::BadRequest(error_response)),
-                StatusCode::NOT_FOUND => Err(Error::NotFound(error_response)),
-                StatusCode::INTERNAL_SERVER_ERROR => Err(Error::InternalServerErr(
-                    "Internal server error occurred".to_string(),
-                )),
-                _ => Err(Error::Generic(ServerError {
-                    message: "Unexpected HTTP response".into(),
-                    possible_fix: "Please contact support".into(),
-                    status_code: res.status(),
-                })),
+            log::error!("http call to CAC failed with status_code {}", res.status());
+
+            if res.status().is_client_error() {
+                let (status_code, error_response) = parse_error_response(res).await?;
+                Err(response_error!(status_code, error_response.message))
+            } else {
+                Err(internal_server_error)
             }
         }
-        Err(e) => {
-            log::error!("HTTP request failed: {}", e);
-            Err(Error::ConnectionFailed(
-                "External API".into(),
-                e.to_string(),
-            ))
+        Err(err) => {
+            log::error!("reqwest failed to send request to CAC with error: {}", err);
+            Err(internal_server_error)
         }
     }
 }
@@ -115,7 +102,7 @@ async fn create(
     user: User,
     db_conn: DbConnection,
     tenant: Tenant,
-) -> app::Result<Json<ExperimentCreateResponse>> {
+) -> superposition::Result<Json<ExperimentCreateResponse>> {
     use crate::db::schema::experiments::dsl::experiments;
     let mut variants = req.variants.to_vec();
 
@@ -132,12 +119,10 @@ async fn create(
         HashSet::from_iter(variants.iter().map(|v| v.id.as_str()));
 
     if unique_ids_of_variants_from_req.len() != variants.len() {
-        return Err(err::BadRequest(ErrorResponse {
-            message: "variant ids are expected to be unique".to_string(),
-            possible_fix: "provide unqiue variant IDs".to_string(),
-        }));
+        return Err(bad_argument!(
+            "Variant ids are expected to be unique. Provide unqiue variant IDs"
+        ));
     }
-
     validate_override_keys(&unique_override_keys)?;
 
     // Checking if all the variants are overriding the mentioned keys
@@ -148,19 +133,16 @@ async fn create(
     let are_valid_variants =
         check_variants_override_coverage(&variant_overrides, &unique_override_keys);
     if !are_valid_variants {
-        return Err(err::BadRequest(ErrorResponse {
-            message: "all variants should contain the keys mentioned in override_keys"
-                .to_string(),
-            possible_fix: format!("Check if any of the following keys [{}] are missing from keys in your variants",  unique_override_keys.join(","))
-        }));
+        return Err(bad_argument!(
+            "all variants should contain the keys mentioned in override_keys. Check if any of the following keys [{}] are missing from keys in your variants",
+                unique_override_keys.join(",")
+            )
+        );
     }
 
     // Checking if context is a key-value pair map
     if !req.context.is_object() {
-        return Err(err::BadRequest(ErrorResponse {
-            message: "context should be map of key value pairs".to_string(),
-            possible_fix: "Please refer documentation or contact an admin".to_string(),
-        }));
+        return Err(bad_argument!("Context should be map of key value pairs."));
     }
 
     // validating experiment against other active experiments based on permission flags
@@ -173,10 +155,7 @@ async fn create(
         &mut conn,
     )?;
     if !valid {
-        return Err(err::BadRequest(ErrorResponse {
-            message: reason,
-            possible_fix: "Please refer documentation or contact an admin".to_string(),
-        }));
+        return Err(bad_argument!(reason));
     }
 
     // generating snowflake id for experiment
@@ -197,9 +176,12 @@ async fn create(
         let payload = ContextPutReq {
             context: updated_cacccontext
                 .as_object()
-                .ok_or(err::InternalServerErr(
-                    "Could not convert updated CAC context to serde Object".to_string(),
-                ))?
+                .ok_or_else(|| {
+                    log::error!("Could not convert updated CAC context to serde Object");
+                    unexpected_error!(
+                        "Something went wrong, failed to create experiment contexts"
+                    )
+                })?
                 .clone(),
             r#override: json!(variant.overrides),
         };
@@ -223,7 +205,17 @@ async fn create(
         .await;
 
     // directly return an error response if not a 200 response
-    let created_contexts = process_http_response(response).await?;
+    let created_contexts = process_cac_http_response(response).await?.into_iter().fold(
+        Vec::new(),
+        |mut acc, item| {
+            if let ContextBulkResponse::PUT(context) = item {
+                acc.push(context);
+            } else {
+                log::error!("Unexpected response item: {:?}", item);
+            }
+            acc
+        },
+    );
     for i in 0..created_contexts.len() {
         let created_context = &created_contexts[i];
         variants[i].context_id = Some(created_context.context_id.clone());
@@ -264,7 +256,7 @@ async fn conclude_handler(
     db_conn: DbConnection,
     user: User,
     tenant: Tenant,
-) -> app::Result<Json<ExperimentResponse>> {
+) -> superposition::Result<Json<ExperimentResponse>> {
     let DbConnection(conn) = db_conn;
     let response = conclude(
         state,
@@ -285,7 +277,7 @@ pub async fn conclude(
     mut conn: PooledConnection<ConnectionManager<PgConnection>>,
     user: User,
     tenant: Tenant,
-) -> app::Result<Experiment> {
+) -> superposition::Result<Experiment> {
     use crate::db::schema::experiments::dsl;
 
     let winner_variant_id: String = req.chosen_variant.to_owned();
@@ -295,30 +287,33 @@ pub async fn conclude(
         .get_result::<Experiment>(&mut conn)?;
 
     if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
-        return Err(err::BadRequest(ErrorResponse {
-            message: format!("experiment with id {} is already concluded", experiment_id),
-            possible_fix: "Try to conclude a different experiment".to_string(),
-        }));
+        return Err(bad_argument!(
+            "experiment with id {} is already concluded",
+            experiment_id
+        ));
     }
 
-    let experiment_context =
-        experiment
-            .context
-            .as_object()
-            .ok_or(err::InternalServerErr(
-                "Could not convert the context read from DB to JSON object".to_string(),
-            ))?;
+    let experiment_context = experiment.context.as_object().ok_or_else(|| {
+        log::error!("could not convert the context read from DB to JSON object");
+        unexpected_error!("Something went wrong, failed to conclude experiment")
+    })?;
 
     let mut operations: Vec<ContextAction> = vec![];
-    let experiment_variants: Vec<Variant> =
-        serde_json::from_value(experiment.variants)
-            .map_err(|e| err::InternalServerErr(e.to_string()))?;
+    let experiment_variants: Vec<Variant> = serde_json::from_value(experiment.variants)
+        .map_err(|err| {
+        log::error!(
+            "failed parse eixisting experiment variant while concluding with error: {}",
+            err
+        );
+        unexpected_error!("Something went wrong, failed to conclude experiment")
+    })?;
 
     let mut is_valid_winner_variant = false;
     for variant in experiment_variants {
-        let context_id = variant.context_id.ok_or(err::InternalServerErr(
-            "Could not read context ID from experiment".to_string(),
-        ))?;
+        let context_id = variant.context_id.ok_or_else(|| {
+            log::error!("context id not available for variant {:?}", variant.id);
+            unexpected_error!("Something went wrong, failed to conclude experiment")
+        })?;
 
         if variant.id == winner_variant_id {
             let context_move_req = ContextMoveReq {
@@ -335,12 +330,9 @@ pub async fn conclude(
     }
 
     if !is_valid_winner_variant {
-        return Err(err::NotFound(ErrorResponse {
-            message: "winner variant not found".to_string(),
-            possible_fix:
-                "A wrong variant ID may have been sent, please check and try again"
-                    .to_string(),
-        }));
+        return Err(bad_argument!(
+            "winner variant not found. A wrong variant id may have been sent, check and try again"
+        ));
     }
 
     // calling CAC bulk api with operations as payload
@@ -355,15 +347,9 @@ pub async fn conclude(
         .header("x-tenant", tenant.as_str())
         .json(&operations)
         .send()
-        .await
-        .map_err(|e| remove_error_abstraction(e))?;
+        .await;
 
-    if response.status().is_server_error() {
-        return Err(err::InternalServerErr(format!(
-            "Request to {} failed with response: {:?}",
-            url, response
-        )));
-    }
+    let _ = process_cac_http_response(response).await?;
 
     // updating experiment status in db
     let updated_experiment = diesel::update(dsl::experiments)
@@ -384,7 +370,7 @@ async fn list_experiments(
     req: HttpRequest,
     filters: Query<ListFilters>,
     db_conn: DbConnection,
-) -> app::Result<HttpResponse> {
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
     let max_event_timestamp: Option<NaiveDateTime> = event_log::event_log
@@ -437,8 +423,8 @@ async fn list_experiments(
     let total_pages = (number_of_experiments as f64 / limit as f64).ceil() as i64;
 
     Ok(HttpResponse::Ok().json(ExperimentsResponse {
+        total_pages,
         total_items: number_of_experiments,
-        total_pages: total_pages,
         data: experiment_list
             .into_iter()
             .map(|entry| ExperimentResponse::from(entry))
@@ -450,7 +436,7 @@ async fn list_experiments(
 async fn get_experiment_handler(
     params: web::Path<i64>,
     db_conn: DbConnection,
-) -> app::Result<Json<ExperimentResponse>> {
+) -> superposition::Result<Json<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
     let response = get_experiment(params.into_inner(), &mut conn)?;
     return Ok(Json(ExperimentResponse::from(response)));
@@ -459,7 +445,7 @@ async fn get_experiment_handler(
 pub fn get_experiment(
     experiment_id: i64,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-) -> app::Result<Experiment> {
+) -> superposition::Result<Experiment> {
     use crate::db::schema::experiments::dsl::*;
     let result: Experiment = experiments
         .find(experiment_id)
@@ -474,7 +460,7 @@ async fn ramp(
     req: web::Json<RampRequest>,
     db_conn: DbConnection,
     user: User,
-) -> app::Result<Json<ExperimentResponse>> {
+) -> superposition::Result<Json<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
 
@@ -484,29 +470,29 @@ async fn ramp(
 
     let old_traffic_percentage = experiment.traffic_percentage as u8;
     let new_traffic_percentage = req.traffic_percentage as u8;
-    let experiment_variants: Vec<Variant> =
-        serde_json::from_value(experiment.variants)
-            .map_err(|e| err::InternalServerErr(e.to_string()))?;
+    let experiment_variants: Vec<Variant> = serde_json::from_value(experiment.variants)
+        .map_err(|e| {
+        log::error!(
+            "failed to parse existing experiment variants while ramping {}",
+            e
+        );
+        unexpected_error!("Something went wrong, failed to ramp traffic percentage")
+    })?;
     let variants_count = experiment_variants.len() as u8;
     let max = 100 / variants_count;
 
     if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
-        return Err(err::BadRequest(ErrorResponse {
-            message: "Experiment is already concluded".to_string(),
-            possible_fix: "".to_string(),
-        }));
+        return Err(bad_argument!(
+            "experiment already concluded, cannot ramp a concluded experiment"
+        ));
     } else if new_traffic_percentage > max {
-        return Err(err::BadRequest(ErrorResponse {
-            message: format!("The traffic_percentage cannot exceed {}", max),
-            possible_fix: format!("Provide a traffic percentage less than {}", max),
-        }));
+        return Err(bad_argument!(
+            "The traffic_percentage cannot exceed {}. Provide a traffic percentage less than {}", max, max
+        ))?;
     } else if new_traffic_percentage != 0
         && new_traffic_percentage == old_traffic_percentage
     {
-        return Err(err::BadRequest(ErrorResponse {
-            message: "The traffic_percentage is same as provided".to_string(),
-            possible_fix: "".to_string(),
-        }));
+        return Err(bad_argument!("The traffic_percentage is same as provided"))?;
     }
     let updated_experiment: Experiment = diesel::update(experiments::experiments)
         .filter(experiments::id.eq(exp_id))
@@ -529,17 +515,16 @@ async fn update_overrides(
     user: User,
     req: web::Json<OverrideKeysUpdateRequest>,
     tenant: Tenant,
-) -> app::Result<Json<ExperimentResponse>> {
+) -> superposition::Result<Json<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
     let experiment_id = params.into_inner();
 
     let payload = req.into_inner();
     let variants = payload.variants;
 
-    let first_variant = variants.get(0).ok_or(err::BadRequest(ErrorResponse {
-        message: "Variant not found in request".to_string(),
-        possible_fix: "Provide at least one entry in variant's list".to_string(),
-    }))?;
+    let first_variant = variants.get(0).ok_or(bad_argument!(
+        "Variant not found in request. Provide at least one entry in variant's list",
+    ))?;
     let override_keys = extract_override_keys(&first_variant.overrides)
         .into_iter()
         .collect();
@@ -550,18 +535,15 @@ async fn update_overrides(
         .first::<Experiment>(&mut conn)?;
 
     if experiment.status != ExperimentStatusType::CREATED {
-        return Err(err::BadRequest(ErrorResponse {
-            message: "Only experiments in CREATED state can be updated".to_string(),
-            possible_fix: "Please refer the documentation or contact an admin"
-                .to_string(),
-        }));
+        return Err(bad_argument!(
+            "Only experiments in CREATED state can be updated"
+        ));
     }
 
     let experiment_variants: Vec<Variant> = serde_json::from_value(experiment.variants)
-        .map_err(|e| {
-        err::InternalServerErr(
-            format!("Failed to parse exisitng variants: {e}").to_string(),
-        )
+        .map_err(|err| {
+        log::error!("failed to parse exisiting variants with error {}", err);
+        unexpected_error!("Something went wrong, failed to update experiment")
     })?;
 
     let id_to_existing_variant: HashMap<String, &Variant> = HashMap::from_iter(
@@ -584,16 +566,11 @@ async fn update_overrides(
     );
     for existing_id in id_to_existing_variant.keys() {
         if !variant_ids.contains(existing_id) {
-            return Err(err::BadRequest(ErrorResponse {
-                message:
-                    "some variant ids do not match with exisiting experiment variants"
-                        .to_string(),
-                possible_fix: "provide all existing variants of the experiment"
-                    .to_string(),
-            }));
+            Err(bad_argument!(
+                "Some variant ids do not match with exisiting experiment variants. Provide all existing variants of the experiment"
+            ))?;
         }
     }
-
     // Checking if all the variants are overriding the mentioned keys
     let mut new_variants: Vec<Variant> = variants
         .into_iter()
@@ -617,11 +594,12 @@ async fn update_overrides(
     let are_valid_variants =
         check_variants_override_coverage(&variant_overrides, &override_keys);
     if !are_valid_variants {
-        return Err(err::BadRequest(ErrorResponse {
-            message: "all variants should contain the keys mentioned in override_keys"
-                .to_string(),
-            possible_fix: format!("Check if any of the following keys [{}] are missing from keys in your variants",  override_keys.join(","))
-        }));
+        return Err(
+            bad_argument!(
+                "All variants should contain the keys mentioned in override_keys. Check if any of the following keys [{}] are missing from keys in your variants",
+                override_keys.join(",")
+            )
+        )?;
     }
 
     // validating experiment against other active experiments based on permission flags
@@ -634,10 +612,7 @@ async fn update_overrides(
         &mut conn,
     )?;
     if !valid {
-        return Err(err::BadRequest(ErrorResponse {
-            message: reason,
-            possible_fix: "Please refer documentation or contact an admin".to_string(),
-        }));
+        return Err(bad_argument!(reason));
     }
 
     /******************************* Updating contexts ************************************/
@@ -645,13 +620,13 @@ async fn update_overrides(
 
     // adding operations to remove exisiting variant contexts
     for existing_variant in experiment_variants {
-        let context_id = existing_variant
-            .context_id
-            .ok_or(format!(
-                "Context Id not available for variant {:?}",
+        let context_id = existing_variant.context_id.ok_or_else(|| {
+            log::error!(
+                "context id not available for variant {:?}",
                 existing_variant.id
-            ))
-            .map_err(|e| err::InternalServerErr(e))?;
+            );
+            unexpected_error!("Something went wrong, failed to update experiment")
+        })?;
         cac_operations.push(ContextAction::DELETE(context_id.to_string()));
     }
 
@@ -660,18 +635,17 @@ async fn update_overrides(
         let updated_cacccontext =
             add_variant_dimension_to_ctx(&experiment.context, variant.id.to_string())
                 .map_err(|e| {
-                    err::InternalServerErr(
-                        format!("failed to add variant dimension to context: {e}")
-                            .to_string(),
-                    )
+                    log::error!("failed to add `variantIds` dimension to context: {e}");
+                    unexpected_error!("Something went wrong, failed to update experiment")
                 })?;
 
         let payload = ContextPutReq {
             context: updated_cacccontext
                 .as_object()
-                .ok_or(err::InternalServerErr(
-                    "failed to parse updated context with variant dimension".to_string(),
-                ))?
+                .ok_or_else(|| {
+                    log::error!("failed to parse updated context with variant dimension");
+                    unexpected_error!("Something went wrong, failed to update experiment")
+                })?
                 .clone(),
             r#override: json!(variant.overrides),
         };
@@ -693,7 +667,17 @@ async fn update_overrides(
         .await;
 
     // directly return an error response if not a 200 response
-    let created_contexts = process_http_response(response).await?;
+    let created_contexts = process_cac_http_response(response).await?.into_iter().fold(
+        Vec::new(),
+        |mut acc, item| {
+            if let ContextBulkResponse::PUT(context) = item {
+                acc.push(context);
+            } else {
+                log::error!("Unexpected response item: {:?}", item);
+            }
+            acc
+        },
+    );
     for i in 0..created_contexts.len() {
         let created_context = &created_contexts[i];
 
@@ -702,9 +686,9 @@ async fn update_overrides(
     }
 
     /*************************** Updating experiment in DB **************************/
-
     let new_variants_json = serde_json::to_value(new_variants).map_err(|e| {
-        err::InternalServerErr(format!("failed to convert new variants to json: {e}"))
+        log::error!("failed to serialize new variants to json with error: {e}");
+        bad_argument!("failed to update experiment, bad variant data")
     })?;
     let updated_experiment = diesel::update(experiments::experiments.find(experiment_id))
         .set((
@@ -722,7 +706,7 @@ async fn update_overrides(
 async fn get_audit_logs(
     filters: Query<AuditQueryFilters>,
     db_conn: DbConnection,
-) -> app::Result<HttpResponse> {
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
     let query_builder = |filters: &AuditQueryFilters| {

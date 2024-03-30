@@ -13,9 +13,7 @@ use crate::{
     validation_functions,
 };
 use actix_web::{
-    delete,
-    error::{ErrorBadRequest, ErrorInternalServerError, ErrorNotFound},
-    get, patch, post, put,
+    delete, get, patch, post, put,
     web::{self, Json, Path},
     HttpResponse, Result, Scope,
 };
@@ -23,7 +21,8 @@ use chrono::Utc;
 use dashboard_auth::types::User;
 use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::json;
-use service_utils::service::types::DbConnection;
+use service_utils::{bad_argument, not_found, service::types::DbConnection};
+use service_utils::{result as superposition, unexpected_error};
 use validation_functions::{compile_fn, execute_fn};
 
 use super::types::{CreateFunctionRequest, UpdateFunctionRequest};
@@ -44,13 +43,11 @@ async fn create(
     user: User,
     request: web::Json<CreateFunctionRequest>,
     db_conn: DbConnection,
-) -> Result<Json<Function>> {
+) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
 
-    if let Err(e) = compile_fn(&req.function) {
-        return Err(ErrorBadRequest(json!({ "message": e })));
-    }
+    compile_fn(&req.function)?;
 
     let function = Function {
         function_name: req.function_name,
@@ -79,21 +76,19 @@ async fn create(
                 log::error!("Function error: {:?}", e);
                 match kind {
                     diesel::result::DatabaseErrorKind::UniqueViolation => {
-                        return Err(ErrorBadRequest(
-                            json!({"message": "Function already exists."}),
-                        ))
+                        return Err(bad_argument!("Function already exists."))
                     }
                     _ => {
-                        return Err(ErrorBadRequest(
-                            json!({"message": "An error occured please contact the admin"}),
+                        return Err(unexpected_error!(
+                            "Something went wrong, failed to create function"
                         ))
                     }
                 }
             }
             _ => {
                 log::error!("Function creation failed with error: {e}");
-                return Err(ErrorInternalServerError(
-                    json!({"message": "An error occured please contact the admin."}),
+                return Err(unexpected_error!(
+                    "An error occured please contact the admin."
                 ));
             }
         },
@@ -106,30 +101,26 @@ async fn update(
     params: web::Path<String>,
     request: web::Json<UpdateFunctionRequest>,
     db_conn: DbConnection,
-) -> Result<Json<Function>> {
+) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
     let f_name = params.into_inner();
 
     let result = match fetch_function(&f_name, &mut conn) {
         Ok(val) => val,
-        Err(diesel::result::Error::NotFound) => {
+        Err(superposition::AppError::DbError(diesel::result::Error::NotFound)) => {
             log::error!("Function not found.");
-            return Err(ErrorBadRequest(json!({"message": "Function not found."})));
+            return Err(bad_argument!("Function {} doesn't exists", f_name));
         }
         Err(e) => {
             log::error!("Failed to update Function with error: {e}");
-            return Err(ErrorInternalServerError(
-                json!({"message": "Failed to update Function"}),
-            ));
+            return Err(unexpected_error!("Failed to update Function"));
         }
     };
 
     // Function Linter Check
     if let Some(function) = &req.function {
-        if let Err(e) = compile_fn(function) {
-            return Err(ErrorBadRequest(json!({ "message": e })));
-        }
+        compile_fn(function)?;
     }
 
     let new_function = Function {
@@ -150,65 +141,38 @@ async fn update(
         published_runtime_version: result.published_runtime_version,
     };
 
-    let update: Result<Function, diesel::result::Error> = diesel::update(functions)
+    let mut updated_function = diesel::update(functions)
         .filter(db::schema::functions::function_name.eq(f_name))
         .set(new_function)
-        .get_result(&mut conn);
+        .get_result::<Function>(&mut conn)?;
 
-    match update {
-        Ok(mut res) => {
-            decode_function(&mut res)?;
-            Ok(Json(res))
-        }
-        Err(e) => {
-            log::error!("Function updation failed with error: {e}");
-            Err(ErrorInternalServerError(
-                json!({"message": "Failed to update Function"}),
-            ))
-        }
-    }
+    decode_function(&mut updated_function)?;
+    Ok(Json(updated_function))
 }
 
 #[get("/{function_name}")]
-async fn get(params: web::Path<String>, db_conn: DbConnection) -> Result<HttpResponse> {
+async fn get(
+    params: web::Path<String>,
+    db_conn: DbConnection,
+) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let f_name = params.into_inner();
-    let result = fetch_function(&f_name, &mut conn);
+    let mut function = fetch_function(&f_name, &mut conn)?;
 
-    match result {
-        Ok(mut function) => {
-            decode_function(&mut function)?;
-            Ok(HttpResponse::Ok().json(function))
-        }
-        Err(e) => {
-            log::error!("Error getting function: {e}");
-            Err(ErrorInternalServerError(
-                json!({"message": "Function does not exists."}),
-            ))
-        }
-    }
+    decode_function(&mut function)?;
+    Ok(Json(function))
 }
 
 #[get("")]
-async fn list_functions(db_conn: DbConnection) -> Result<Json<Vec<Function>>> {
+async fn list_functions(
+    db_conn: DbConnection,
+) -> superposition::Result<Json<Vec<Function>>> {
     let DbConnection(mut conn) = db_conn;
-    let result: Result<Vec<Function>, diesel::result::Error> =
-        functions.get_results(&mut conn);
-
-    match result {
-        Ok(mut function_list) => {
-            for function in function_list.iter_mut() {
-                decode_function(function)?;
-            }
-            Ok(Json(function_list))
-        }
-        Err(e) => {
-            log::error!("Error getting the functions: {e}");
-            Err(ErrorInternalServerError(
-                json!({"message": "Error getting the functions."}),
-            ))
-        }
+    let mut function_list = functions.get_results(&mut conn)?;
+    for function in function_list.iter_mut() {
+        decode_function(function)?;
     }
+    Ok(Json(function_list))
 }
 
 #[delete("/{function_name}")]
@@ -216,21 +180,23 @@ async fn delete_function(
     user: User,
     params: web::Path<String>,
     db_conn: DbConnection,
-) -> Result<HttpResponse> {
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let f_name = params.into_inner();
 
     let deleted_row =
         delete(functions.filter(function_name.eq(&f_name))).execute(&mut conn);
     match deleted_row {
-        Ok(0) => Err(ErrorNotFound(json!({"message": "Function not found."}))),
+        Ok(0) => Err(not_found!("Function {} doesn't exists", f_name)),
         Ok(_) => {
             log::info!("{f_name} function deleted by {}", user.email);
             Ok(HttpResponse::NoContent().finish())
         }
         Err(e) => {
             log::error!("function delete query failed with error: {e}");
-            Err(ErrorInternalServerError(""))
+            Err(unexpected_error!(
+                "Something went wrong, failed to delete the function"
+            ))
         }
     }
 }
@@ -240,24 +206,25 @@ async fn test(
     params: Path<TestParam>,
     request: web::Json<TestFunctionRequest>,
     db_conn: DbConnection,
-) -> actix_web::Result<HttpResponse> {
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let path_params = params.into_inner();
     let fun_name = &path_params.function_name;
     let req = request.into_inner();
     let mut function = match fetch_function(fun_name, &mut conn) {
         Ok(val) => val,
-        Err(diesel::result::Error::NotFound) => {
+        Err(superposition::AppError::DbError(diesel::result::Error::NotFound)) => {
             log::error!("Function not found.");
-            return Err(ErrorBadRequest(json!({"message": "Function not found."})));
+            return Err(bad_argument!("Function {} doesn't exists", fun_name));
         }
         Err(e) => {
-            log::error!("Failed to update Function with error: {e}");
-            return Err(ErrorInternalServerError(
-                json!({"message": "Failed to update Function due to unexpected DB issue"}),
+            log::error!("Failed to fetch Function {fun_name} with error: {e}");
+            return Err(unexpected_error!(
+                "Something went wrong, failed to update function"
             ));
         }
     };
+
     decode_function(&mut function)?;
     let result = match path_params.stage {
         Stage::DRAFT => execute_fn(&function.draft_code, &req.key, req.value),
@@ -276,7 +243,7 @@ async fn test(
     match result {
         Ok(stdout) => Ok(HttpResponse::Ok()
             .json(json!({"message": "Function validated the given value successfully", "stdout": stdout}))),
-        Err((e, stdout)) => Err(ErrorBadRequest(json!({ "message": format!( "Function validation failed with error: {e}" ), "stdout": stdout }))),
+        Err((e, stdout)) => Err(bad_argument!("Function validation failed with error: {}, stdout: {:?}", e, stdout )),
     }
 }
 
@@ -285,45 +252,34 @@ async fn publish(
     user: User,
     params: web::Path<String>,
     db_conn: DbConnection,
-) -> actix_web::Result<HttpResponse> {
+) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let fun_name = params.into_inner();
 
     let function = match fetch_function(&fun_name, &mut conn) {
         Ok(val) => val,
-        Err(diesel::result::Error::NotFound) => {
-            log::error!("Function not found.");
-            return Err(ErrorBadRequest(json!({"message": "Function not found."})));
+        Err(superposition::AppError::DbError(diesel::result::Error::NotFound)) => {
+            log::error!("Function {} not found.", fun_name);
+            return Err(bad_argument!("Function {} doesn't exists", fun_name));
         }
         Err(e) => {
             log::error!("Failed to update Function with error: {e}");
-            return Err(ErrorInternalServerError(
-                json!({"message": "Failed to update Function"}),
+            return Err(unexpected_error!(
+                "Something went wrong, failed to update function"
             ));
         }
     };
 
-    let updated_function: Result<Function, diesel::result::Error> =
-        diesel::update(functions)
-            .filter(dsl::function_name.eq(fun_name))
-            .set((
-                dsl::published_code.eq(Some(function.draft_code.clone())),
-                dsl::published_runtime_version
-                    .eq(Some(function.draft_runtime_version.clone())),
-                dsl::published_by.eq(Some(user.email)),
-                dsl::published_at.eq(Some(Utc::now().naive_utc())),
-            ))
-            .get_result(&mut conn);
+    let updated_function = diesel::update(functions)
+        .filter(dsl::function_name.eq(fun_name.clone()))
+        .set((
+            dsl::published_code.eq(Some(function.draft_code.clone())),
+            dsl::published_runtime_version
+                .eq(Some(function.draft_runtime_version.clone())),
+            dsl::published_by.eq(Some(user.email)),
+            dsl::published_at.eq(Some(Utc::now().naive_utc())),
+        ))
+        .get_result::<Function>(&mut conn)?;
 
-    match updated_function {
-        Ok(_) => Ok(HttpResponse::Ok().json(json!({
-            "message": "Function published successfully."
-        }))),
-        Err(e) => {
-            log::error!("Function publish failed with error: {e}");
-            Err(ErrorInternalServerError(
-                json!({"message": "Failed to publish Function due to unexpected DB issue"}),
-            ))
-        }
-    }
+    Ok(Json(updated_function))
 }

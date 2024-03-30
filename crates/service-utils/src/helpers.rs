@@ -1,4 +1,4 @@
-use actix_web::{error::ErrorInternalServerError, http::StatusCode, Error};
+use actix_web::{error::ErrorInternalServerError, Error};
 use log::info;
 use serde::de::{self, IntoDeserializer};
 use std::{
@@ -7,8 +7,7 @@ use std::{
     str::FromStr,
 };
 
-use super::errors::types::{Error as err, ErrorResponse};
-use crate::types as app;
+use super::result;
 use serde_json::{Map, Value};
 
 //WARN Do NOT use this fxn inside api requests, instead add the required
@@ -124,28 +123,18 @@ pub fn get_pod_info() -> (String, String) {
     (pod_id, deployment_id)
 }
 
-pub fn remove_error_abstraction(e: reqwest::Error) -> err {
-    match e.status() {
-        Some(StatusCode::BAD_REQUEST) => err::BadRequest(ErrorResponse {
-            message: e.to_string(),
-            possible_fix:
-                "Please try again with correct value. Schema type / Validation is failing"
-                    .to_string(),
-        }),
-        _ => err::InternalServerErr(e.to_string()),
-    }
-}
-
-pub fn extract_dimensions(context_json: &Value) -> app::Result<Map<String, Value>> {
+pub fn extract_dimensions(context_json: &Value) -> result::Result<Map<String, Value>> {
     // Assuming max 2-level nesting in context json logic
     let context = context_json
         .as_object()
-        .ok_or(err::BadArgument(ErrorResponse { message: "An error occurred while extracting dimensions: context not a valid JSON object".to_string(), possible_fix: "send a valid JSON context".to_string() }))?;
+        .ok_or(
+            result::AppError::BadArgument("Error extracting dimensions, contect not a valid JSON object. Provide a valid JSON context".into())
+            )?;
 
     let conditions = match context.get("and") {
         Some(conditions_json) => conditions_json
             .as_array()
-            .ok_or(err::BadArgument(ErrorResponse { message: "An error occurred while extracting dimensions: failed parsing conditions as an array".to_string(), possible_fix: "ensure the context provided obeys the rules of JSON logic".to_string() }))?
+            .ok_or(result::AppError::BadArgument("Error extracting dimensions, failed parsing conditions as an array. Ensure the context provided obeys the rules of JSON logic".into()))?
             .clone(),
         None => vec![context_json.clone()],
     };
@@ -155,22 +144,15 @@ pub fn extract_dimensions(context_json: &Value) -> app::Result<Map<String, Value
         let condition_obj =
             condition
                 .as_object()
-                .ok_or(err::BadArgument(ErrorResponse {
-                    message: " failed to parse condition as an object".to_string(),
-                    possible_fix:
-                        "ensure the context provided obeys the rules of JSON logic"
-                            .to_string(),
-                }))?;
+                .ok_or(result::AppError::BadArgument(
+                    "Failed to parse condition as an object. Ensure the context provided obeys the rules of JSON logic".to_string()
+                ))?;
         let operators = condition_obj.keys();
 
         for operator in operators {
-            let operands = condition_obj[operator].as_array().ok_or(err::BadArgument(
-                ErrorResponse {
-                    message: " failed to parse operands as an arrays".to_string(),
-                    possible_fix:
-                        "ensure the context provided obeys the rules of JSON logic"
-                            .to_string(),
-                },
+            let operands = condition_obj[operator].as_array().ok_or(result::AppError::BadArgument(
+                    "Failed to parse operands as an arrays. Ensure the context provided obeys the rules of JSON logic"
+                            .into()
             ))?;
 
             let (variable_name, variable_value) = get_variable_name_and_value(operands)?;
@@ -182,38 +164,37 @@ pub fn extract_dimensions(context_json: &Value) -> app::Result<Map<String, Value
     Ok(Map::from_iter(dimension_tuples))
 }
 
-pub fn get_variable_name_and_value(operands: &Vec<Value>) -> app::Result<(&str, &Value)> {
+pub fn get_variable_name_and_value(
+    operands: &Vec<Value>,
+) -> result::Result<(&str, &Value)> {
     let (obj_pos, variable_obj) = operands
         .iter()
         .enumerate()
         .find(|(_, operand)| {
             operand.is_object() && operand.as_object().unwrap().get("var").is_some()
         })
-        .ok_or(err::BadArgument(ErrorResponse {
-            message: " failed to get variable name from operands list".to_string(),
-            possible_fix: "ensure the context provided obeys the rules of JSON logic"
-                .to_string(),
-        }))?;
+        .ok_or(result::AppError::BadArgument(
+            "Failed to get variable name from operands list. Ensure the context provided obeys the rules of JSON logic"
+                .into()
+        ))?;
 
     let variable_name = variable_obj
         .as_object()
         .map_or(None, |obj| obj.get("var"))
         .map_or(None, |value| value.as_str())
-        .ok_or(err::BadArgument(ErrorResponse {
-            message: " failed to get variable name from operands list".to_string(),
-            possible_fix: "ensure the context provided obeys the rules of JSON logic"
-                .to_string(),
-        }))?;
+        .ok_or(result::AppError::BadArgument(
+            "Failed to get variable name as string. Ensure the context provided obeys the rules of JSON logic"
+                .into()
+        ))?;
 
     let value_pos = (obj_pos + 1) % 2;
     let variable_value =
         operands
             .get(value_pos)
-            .ok_or(err::BadArgument(ErrorResponse {
-                message: " failed to get variable value from operands list".to_string(),
-                possible_fix: "ensure the context provided obeys the rules of JSON logic"
-                    .to_string(),
-            }))?;
+            .ok_or(result::AppError::BadArgument(
+                "Failed to get variable value from operands list. Ensure the context provided obeys the rules of JSON logic"
+                    .into()
+            ))?;
 
     Ok((variable_name, variable_value))
 }
