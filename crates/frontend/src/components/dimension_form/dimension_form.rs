@@ -3,7 +3,8 @@ use super::utils::create_dimension;
 use crate::components::button::button::Button;
 use crate::utils::parse_string_to_json_value_vec;
 use leptos::*;
-use serde_json::json;
+use serde_json::{json, Value};
+use std::str::FromStr;
 use web_sys::MouseEvent;
 
 #[component]
@@ -54,9 +55,7 @@ where
                     "pattern": f_pattern.to_string()
                 })
             }
-            _ => {
-                json!(f_pattern.to_string())
-            }
+            _ => Value::from_str(&f_pattern).expect("Error parsing JSON"),
         };
 
         let payload = DimensionCreateReq {
