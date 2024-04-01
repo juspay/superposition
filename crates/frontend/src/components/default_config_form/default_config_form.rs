@@ -52,7 +52,7 @@ where
                 Ok(boolean) => Value::Bool(boolean),
                 _ => Value::String("Invalid Boolean".to_string()),
             },
-            _ => Value::String(f_value),
+            _ => Value::from_str(&f_value).expect("Error parsing JSON"),
         };
 
         let f_schema = match f_type.as_str() {
@@ -84,9 +84,7 @@ where
                     "pattern": f_pattern.to_string()
                 })
             }
-            _ => {
-                json!(f_pattern.to_string())
-            }
+            _ => Value::from_str(&f_pattern).expect("Error parsing JSON"),
         };
 
         let payload = DefaultConfigCreateReq {
