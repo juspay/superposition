@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation-platform-v0.12.0 - 2024-04-05
+#### Documentation
+- PICAF-25981: add intro doc and features - (64fa30f) - Natarajan Kannan
+#### Features
+- [PICAF-26126] haskell client for superposition - (651a66d) - Kartik
+
+- - -
+
 ## experimentation-platform-v0.11.0 - 2024-03-18
 #### Documentation
 - PICAF-25981: add intro doc and features - (d09ba53) - Natarajan Kannan

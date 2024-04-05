@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.3.0 - 2024-04-05
+#### Features
+- [PICAF-26522] added support for dynamic json schema in frontend - (b02f08f) - Saurav Suman
+- [PICAF-26346] function ui - (9360aca) - Pratik Mishra
+
+- - -
+
 ## frontend-v0.2.1 - 2024-03-21
 #### Bug Fixes
 - PICAF-26324 added type for condition - (3607336) - Saurav CV

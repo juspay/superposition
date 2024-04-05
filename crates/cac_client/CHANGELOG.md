@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.8.0 - 2024-04-05
+#### Bug Fixes
+- [PICAF-26101] empty key filters should return all keys - (f9dd889) - Kartik
+#### Documentation
+- PICAF-25981: add intro doc and features - (64fa30f) - Natarajan Kannan
+#### Features
+- [PICAF-26101] client interface improvements - (d606cb1) - Kartik
+- [PICAF-26126] haskell client for superposition - (651a66d) - Kartik
+
+- - -
+
 ## cac_client-v0.7.0 - 2024-03-18
 #### Documentation
 - PICAF-25981: add intro doc and features - (d09ba53) - Natarajan Kannan
