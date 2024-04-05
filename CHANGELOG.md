@@ -2,6 +2,23 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.35.0 - 2024-04-05
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.25.0
+- experimentation-platform bumped to experimentation-platform-v0.12.0
+- frontend bumped to frontend-v0.3.0
+- cac_client bumped to cac_client-v0.8.0
+### Global changes
+#### Documentation
+- PICAF-25981: add intro doc and features - (64fa30f) - Natarajan Kannan
+#### Features
+- [PICAF-26101] client interface improvements - (d606cb1) - Kartik
+- [PICAF-26126] haskell client for superposition - (651a66d) - Kartik
+#### Miscellaneous Chores
+- rename superposition to experimentation - (9efa3cb) - Kartik
+
+- - -
+
 ## v0.34.2 - 2024-03-27
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.24.2
