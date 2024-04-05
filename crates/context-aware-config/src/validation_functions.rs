@@ -5,7 +5,7 @@ use std::str;
 fn type_check_validate(code_str: &str) -> String {
     format!(
         r#"const vm = require("node:vm")
-        const axios = require("axios")
+        const axios = require("./target/node_modules/axios")
         const script = new vm.Script(\`
        
         {}
@@ -25,7 +25,7 @@ fn execute_validate_fun(code_str: &str, val: Value) -> String {
     format!(
         r#"
         const vm = require("node:vm")
-        const axios = require("axios")
+        const axios = require("./target/node_modules/axios")
         const script = new vm.Script(\`
        
         {}
