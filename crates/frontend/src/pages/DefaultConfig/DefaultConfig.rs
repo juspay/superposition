@@ -1,15 +1,11 @@
-use std::collections::HashMap;
-
-use crate::components::default_config_form::default_config_form::DefaultConfigForm;
-use crate::components::modal::modal::Modal;
-use crate::components::table::{table::Table, types::Column};
-
 use crate::api::fetch_default_config;
-use crate::components::button::button::Button;
+use crate::components::default_config_form::default_config_form::DefaultConfigForm;
+use crate::components::drawer::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::stat::stat::Stat;
-use crate::utils::{close_modal, show_modal};
+use crate::components::table::{table::Table, types::Column};
 use leptos::*;
 use serde_json::{json, Map, Value};
+use std::collections::HashMap;
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -17,6 +13,7 @@ pub struct RowData {
     pub value: String,
     pub pattern: String,
     pub type_: String,
+    pub function_name: Option<Value>,
 }
 
 #[component]
@@ -43,6 +40,12 @@ pub fn DefaultConfig() -> impl IntoView {
             let schema = row["schema"].clone().to_string();
             let schema_object = serde_json::from_str::<HashMap<String, Value>>(&schema)
                 .unwrap_or(HashMap::new());
+
+            let function_name = row["function_name"].clone().to_string();
+            let fun_name = match function_name.as_str() {
+                "null" => None,
+                _ => Some(json!(function_name.replace("\"", ""))),
+            };
 
             let pattern_or_enum = schema_object
                 .keys()
@@ -103,23 +106,23 @@ pub fn DefaultConfig() -> impl IntoView {
                     value: row_value.clone(),
                     type_: row_type.clone(),
                     pattern: row_pattern.clone(),
+                    function_name: fun_name.clone(),
                 };
-
                 logging::log!("{:?}", row_data);
-
                 selected_config.set(Some(row_data));
-                show_modal("default_config_modal_form");
+                open_drawer("default_config_drawer");
             };
 
             let edit_icon: HtmlElement<html::I> =
                 view! { <i class="ri-pencil-line ri-xl text-blue-500"></i> };
 
-            view! { <span on:click=edit_click_handler>{edit_icon}</span> }.into_view()
+            view! { <span class="cursor-pointer" on:click=edit_click_handler>{edit_icon}</span> }.into_view()
         };
         vec![
             Column::default("key".to_string()),
             Column::default("schema".to_string()),
             Column::default("value".to_string()),
+            Column::default("function_name".to_string()),
             Column::default("created_at".to_string()),
             Column::default("created_by".to_string()),
             Column::new("EDIT".to_string(), None, edit_col_formatter),
@@ -128,45 +131,44 @@ pub fn DefaultConfig() -> impl IntoView {
 
     view! {
         <div class="p-8">
-            <Modal
-                id="default_config_modal_form".to_string()
-                handle_close=move || {
-                    close_modal("default_config_modal_form");
+            {move || {
+                let handle_close = move || {
+                    close_drawer("default_config_drawer");
                     selected_config.set(None);
-                }
-            >
-
-                {move || {
-                    if let Some(selected_config_data) = selected_config.get() {
-                        view! {
-                            <DefaultConfigForm
-                                edit=true
-                                config_key=selected_config_data.key
-                                config_value=selected_config_data.value
-                                config_type=selected_config_data.type_
-                                config_pattern=selected_config_data.pattern
-                                handle_submit=move || {
-                                    default_config_resource.refetch();
-                                    close_modal("default_config_modal_form");
-                                    selected_config.set(None);
-                                }
-                            />
-                        }
-                    } else {
-                        view! {
+                };
+                if let Some(selected_config_data) = selected_config.get() {
+                    view! {
+                        <Drawer id="default_config_drawer".to_string() header="Edit Key" handle_close=handle_close>
+                        <DefaultConfigForm
+                            edit=true
+                            config_key=selected_config_data.key
+                            config_value=selected_config_data.value
+                            config_type=selected_config_data.type_
+                            config_pattern=selected_config_data.pattern
+                            function_name=selected_config_data.function_name
+                            handle_submit=move || {
+                                default_config_resource.refetch();
+                                close_drawer("default_config_drawer");
+                                selected_config.set(None);
+                            }
+                        />
+                        </Drawer>
+                    }
+                } else {
+                    view! {
+                        <Drawer id="default_config_drawer".to_string() header="Create New Key" handle_close=handle_close>
                             <DefaultConfigForm handle_submit=move || {
                                 default_config_resource.refetch();
-                                close_modal("default_config_modal_form");
+                                close_drawer("default_config_drawer");
                             }/>
-                        }
+                        </Drawer>
                     }
-                }}
+                }
+            }}
 
-            </Modal>
             <Suspense fallback=move || {
                 view! { <p>"Loading (Suspense Fallback)..."</p> }
             }>
-
                 {move || {
                     let default_config = default_config_resource.get().unwrap_or(vec![]);
                     let total_default_config_keys = default_config.len().to_string();
@@ -184,11 +186,7 @@ pub fn DefaultConfig() -> impl IntoView {
                         .collect::<Vec<Map<String, Value>>>();
                     view! {
                         <div class="pb-4">
-                            <Stat
-                                heading="Config Keys"
-                                icon="ri-tools-line"
-                                number=total_default_config_keys
-                            />
+                            <Stat heading="Config Keys" icon="ri-tools-line" number=total_default_config_keys/>
                         </div>
                         <div class="card rounded-lg w-full bg-base-100 shadow">
                             <div class="card-body">
@@ -196,13 +194,9 @@ pub fn DefaultConfig() -> impl IntoView {
                                     <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
                                         "Default Config"
                                     </h2>
-                                    <Button
-                                        text="Create Key".to_string()
-                                        on_click=move |_| {
-                                            show_modal("default_config_modal_form")
-                                        }
-                                    />
-
+                                    <DrawerBtn drawer_id="default_config_drawer".to_string()>
+                                        Create Key <i class="ri-edit-2-line ml-2"></i>
+                                    </DrawerBtn>
                                 </div>
                                 <Table
                                     cell_style="min-w-48 font-mono".to_string()
@@ -214,7 +208,6 @@ pub fn DefaultConfig() -> impl IntoView {
                         </div>
                     }
                 }}
-
             </Suspense>
         </div>
     }

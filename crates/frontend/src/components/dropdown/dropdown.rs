@@ -7,20 +7,23 @@ pub enum DropdownBtnType {
     Outline,
     Link,
     Fill,
+    Select,
 }
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum DropdownDirection {
     Right,
     Left,
+    Top,
+    Down,
 }
 
 #[component]
 pub fn dropdown<T>(
     dropdown_text: String,
-    dropdown_icon: String,
     dropdown_options: Vec<T>,
     on_select: Box<dyn Fn(T)>,
+    #[prop(default = "".to_string())] dropdown_icon: String,
     #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
     #[prop(default = DropdownBtnType::Outline)] dropdown_btn_type: DropdownBtnType,
     #[prop(default = "w-96")] dropdown_width: &'static str,
@@ -42,19 +45,23 @@ where
     });
     let on_select = StoredValue::new(on_select);
 
+    let btn_class = match dropdown_btn_type {
+        DropdownBtnType::Outline => "btn btn-sm text-xs m-1 w-full btn-purple-outline",
+        DropdownBtnType::Link => "btn btn-sm text-xs m-1 w-full btn-purple-link",
+        DropdownBtnType::Fill => "btn btn-sm text-xs m-1 w-full btn-purple-fill",
+        DropdownBtnType::Select => "select select-bordered w-[28rem] items-center",
+    };
+
     view! {
         <div
             class="dropdown"
             class=("disable-click", disabled)
             class=("dropdown-right", dropdown_direction == DropdownDirection::Right)
             class=("dropdown-left", dropdown_direction == DropdownDirection::Left)
+            class=("dropdown-top", dropdown_direction == DropdownDirection::Top)
+            class=("dropdown-down", dropdown_direction == DropdownDirection::Down)
         >
-            <label
-                tabindex="0"
-                class="btn btn-sm text-xs m-1 w-full"
-                class=("btn-purple-outline", dropdown_btn_type == DropdownBtnType::Outline)
-                class=("btn-purple-link", dropdown_btn_type == DropdownBtnType::Link)
-            >
+            <label tabindex="0" class=btn_class>
                 <i class=format!("{dropdown_icon}")></i>
                 {dropdown_text}
             </label>
