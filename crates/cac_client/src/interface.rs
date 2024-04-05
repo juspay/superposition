@@ -207,7 +207,11 @@ pub extern "C" fn get_resolved_config(
     );
 
     let key = unwrap_safe!(cstring_to_rstring(keys), return std::ptr::null());
-    let key_vector = key.split("|").map(str::to_string).collect();
+    let key_vector = if key.is_empty() {
+        vec![]
+    } else {
+        key.split("|").map(str::to_string).collect()
+    };
 
     let query = unwrap_safe!(cstring_to_rstring(query), return std::ptr::null());
     let merge_strategem =
@@ -248,7 +252,11 @@ pub extern "C" fn get_default_config(
     keys: *const c_char,
 ) -> *const c_char {
     let key = unwrap_safe!(cstring_to_rstring(keys), return std::ptr::null());
-    let key_vector = key.split("|").map(str::to_string).collect();
+    let key_vector = if key.is_empty() {
+        vec![]
+    } else {
+        key.split("|").map(str::to_string).collect()
+    };
     unwrap_safe!(
         unsafe {
             (*client).get_default_config(key_vector).map(|ov| {
