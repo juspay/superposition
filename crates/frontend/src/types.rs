@@ -151,6 +151,7 @@ pub struct Dimension {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: Value,
+    pub function_name: Option<String>,
 }
 
 impl DropdownOption for Dimension {
@@ -169,6 +170,7 @@ pub struct DefaultConfig {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: Value,
+    pub function_name: Option<String>,
 }
 
 impl DropdownOption for DefaultConfig {
@@ -192,4 +194,14 @@ pub struct Config {
     pub contexts: Vec<Context>,
     pub overrides: Map<String, Value>,
     pub default_configs: Map<String, Value>,
+}
+
+pub type FunctionsName = String;
+impl DropdownOption for FunctionsName {
+    fn key(&self) -> String {
+        self.clone()
+    }
+    fn label(&self) -> String {
+        self.clone()
+    }
 }
