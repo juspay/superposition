@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.4.0 - 2024-04-05
+#### Features
+- [PICAF-26360] added decimal support in context and override form and fixed dimension modal - (3f1f998) - Saurav Suman
+
+- - -
+
 ## frontend-v0.3.0 - 2024-04-05
 #### Features
 - [PICAF-26522] added support for dynamic json schema in frontend - (b02f08f) - Saurav Suman
