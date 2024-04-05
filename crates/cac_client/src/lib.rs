@@ -203,14 +203,13 @@ impl Client {
     ) -> Result<Map<String, Value>, String> {
         let configs = self.config.read().map_err(|e| e.to_string())?;
         let default_configs = configs.default_configs.clone();
-        let default_configs = if keys.len() > 0 {
-            default_configs
-                .into_iter()
-                .filter(|(item, _)| keys.contains(item))
-                .collect::<Map<String, Value>>()
-        } else {
-            default_configs
-        };
+        if keys.is_empty() {
+            return Ok(default_configs);
+        }
+        let default_configs = default_configs
+            .into_iter()
+            .filter(|(item, _)| keys.contains(item))
+            .collect::<Map<String, Value>>();
         Ok(default_configs)
     }
 }
