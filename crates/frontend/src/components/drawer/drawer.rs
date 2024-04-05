@@ -38,20 +38,26 @@ pub fn drawer_btn(drawer_id: String, children: Children) -> impl IntoView {
 }
 
 #[component]
-pub fn drawer(
+pub fn drawer<NF>(
     id: String,
     children: Children,
     #[prop(default = "")] header: &'static str,
     #[prop(default = "w-[60vw]")] drawer_width: &'static str,
-) -> impl IntoView {
-    let close_drawer_id = id.clone();
+    handle_close: NF,
+) -> impl IntoView
+where
+    NF: Fn() + 'static + Clone,
+{
+    let close_drawer = move |_| {
+        handle_close();
+    };
 
     view! {
         <div class="drawer drawer-end">
             <input id=id.clone() type="checkbox" class="drawer-toggle"/>
 
             <div class="drawer-side drawer-zindex w-full">
-                <label for=id.clone() class="drawer-overlay"></label>
+                <label for=id.clone() class="drawer-overlay" on:click=close_drawer.clone()></label>
                 <div class=format!(
                     "min-h-full {drawer_width} bg-base-100 overflow-x-hidden overflow-y-auto",
                 )>
@@ -59,7 +65,7 @@ pub fn drawer(
                         <h3 class="text-lg font-bold">{header}</h3>
                         <button
                             class="btn btn-sm btn-circle btn-ghost"
-                            on:click=move |_| { close_drawer(&close_drawer_id) }
+                            on:click=close_drawer
                         >
                             <i class="ri-close-line"></i>
                         </button>

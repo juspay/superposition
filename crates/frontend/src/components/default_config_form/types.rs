@@ -5,4 +5,5 @@ use serde_json::Value;
 pub struct DefaultConfigCreateReq {
     pub schema: Value,
     pub value: Value,
+    pub function_name: Option<Value>,
 }

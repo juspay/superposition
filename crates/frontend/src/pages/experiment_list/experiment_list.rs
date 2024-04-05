@@ -224,7 +224,9 @@ pub fn experiment_list() -> impl IntoView {
                         .default_config;
                     let _ = reset_exp_form.get();
                     view! {
-                        <Drawer id="create_exp_drawer".to_string() header="Create New Experiment">
+                        <Drawer id="create_exp_drawer".to_string() header="Create New Experiment" handle_close=move || {
+                            close_drawer("create_exp_drawer");
+                        }>
                             <ExperimentForm
                                 name="".to_string()
                                 context=vec![]

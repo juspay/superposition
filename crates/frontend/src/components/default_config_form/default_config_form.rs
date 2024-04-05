@@ -3,7 +3,15 @@ use serde_json::{json, Number, Value};
 use std::str::FromStr;
 use web_sys::MouseEvent;
 
-use crate::{components::button::button::Button, utils::parse_string_to_json_value_vec};
+use crate::{
+    api::fetch_functions,
+    components::{
+        button::button::Button,
+        dropdown::dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+    },
+    types::FunctionsName,
+    utils::parse_string_to_json_value_vec,
+};
 
 use super::{types::DefaultConfigCreateReq, utils::create_default_config};
 
@@ -14,6 +22,7 @@ pub fn default_config_form<NF>(
     #[prop(default = String::new())] config_type: String,
     #[prop(default = String::new())] config_pattern: String,
     #[prop(default = String::new())] config_value: String,
+    #[prop(default = None)] function_name: Option<Value>,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -25,6 +34,30 @@ where
     let (config_type, set_config_type) = create_signal(config_type);
     let (config_pattern, set_config_pattern) = create_signal(config_pattern);
     let (config_value, set_config_value) = create_signal(config_value);
+    let (function_name, set_function_name) = create_signal(function_name);
+
+    let functions_resource: Resource<String, Vec<crate::types::FunctionResponse>> =
+        create_blocking_resource(
+            move || tenant_rs.get(),
+            |current_tenant| async move {
+                match fetch_functions(current_tenant).await {
+                    Ok(data) => data,
+                    Err(_) => vec![],
+                }
+            },
+        );
+
+    let handle_select_dropdown_option = move |selected_function: FunctionsName| {
+        set_function_name.update(|value| {
+            let function_name = selected_function.clone();
+            leptos::logging::log!("function selected: {:?}", function_name);
+            let fun_name = match function_name.as_str() {
+                "None" => None,
+                _ => Some(json!(function_name)),
+            };
+            *value = fun_name;
+        });
+    };
 
     let (show_labels, set_show_labels) = create_signal(edit);
 
@@ -36,6 +69,7 @@ where
         let f_type = config_type.get();
         let f_pattern = config_pattern.get();
         let f_value = config_value.get();
+        let fun_name = function_name.get();
 
         let f_value = match f_type.as_str() {
             "number" => Value::Number(f_value.parse::<i64>().unwrap().into()),
@@ -52,6 +86,7 @@ where
                 Ok(boolean) => Value::Bool(boolean),
                 _ => Value::String("Invalid Boolean".to_string()),
             },
+            "pattern" | "enum" => Value::String(f_value),
             _ => Value::from_str(&f_value).expect("Error parsing JSON"),
         };
 
@@ -90,6 +125,7 @@ where
         let payload = DefaultConfigCreateReq {
             schema: f_schema,
             value: f_value,
+            function_name: fun_name,
         };
 
         let handle_submit_clone = handle_submit.clone();
@@ -119,14 +155,14 @@ where
     view! {
         <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
             <div class="form-control">
-                <label class="label font-mono">
-                    <span class="label-text text-gray-700 font-mono">Key</span>
+                <label class="label">
+                    <span class="label-text">Key Name</span>
                 </label>
                 <input
                     disabled=edit
                     type="text"
                     placeholder="Key"
-                    class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                    class="input input-bordered w-full max-w-md"
                     value=config_key.get()
                     on:change=move |ev| {
                         let value = event_target_value(&ev);
@@ -136,6 +172,12 @@ where
 
             </div>
 
+            <div class="divider"></div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Set Schema</span>
+                </label>
             <select
                 name="schemaType[]"
                 on:change=move |ev| {
@@ -165,10 +207,10 @@ where
                     };
                 }
 
-                class="select select-bordered"
+                class="select select-bordered w-full max-w-md"
             >
                 <option disabled selected>
-                    Set Schema
+                    Choose Schema Type
                 </option>
 
                 <option
@@ -202,6 +244,9 @@ where
                     "Other"
                 </option>
             </select>
+            </div>
+
+            <div class="divider"></div>
 
             {move || {
                 view! {
@@ -209,13 +254,13 @@ where
                         (config_type.get() == "number") || (config_type.get() == "decimal")
                     }>
                         <div class="form-control">
-                            <label class="label font-mono">
-                                <span class="label-text text-gray-700 font-mono">Value</span>
+                            <label class="label">
+                                <span class="label-text">Value</span>
                             </label>
                             <input
                                 type="number"
                                 placeholder="Value"
-                                class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                                class="input input-bordered w-full max-w-md"
                                 value=config_value.get()
                                 on:change=move |ev| {
                                     logging::log!("{:?}", event_target_value(& ev));
@@ -224,20 +269,20 @@ where
                             />
 
                         </div>
+                        <div class="divider"></div>
                     </Show>
 
-                    <Show when=move || {
-                        show_labels.get() && (config_type.get() != "number")
+                    <Show when=move || { show_labels.get() && (config_type.get() != "number")
                             && (config_type.get() != "decimal")
                     }>
                         <div class="form-control">
-                            <label class="label font-mono">
-                                <span class="label-text text-gray-700 font-mono">Value</span>
+                            <label class="label">
+                                <span class="label-text ">Value</span>
                             </label>
                             <input
                                 type="text"
                                 placeholder="Value"
-                                class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                                class="input input-bordered w-full max-w-md"
                                 value=config_value.get()
                                 on:change=move |ev| {
                                     logging::log!("{:?}", event_target_value(& ev));
@@ -246,16 +291,19 @@ where
                             />
 
                         </div>
+
+                        <div class="divider"></div>
+
                         <Show when=move || (config_type.get() != "boolean")>
                             <div class="form-control">
-                                <label class="label font-mono">
-                                    <span class="label-text text-gray-700 font-mono">
+                                <label class="label">
+                                    <span class="label-text">
                                         {config_type.get()}
                                     </span>
                                 </label>
                                 <textarea
                                     type="text"
-                                    class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                                    class="input input-bordered w-full max-w-md pt-[10px]"
                                     on:change=move |ev| {
                                         let value = event_target_value(&ev);
                                         logging::log!("{:?}", value);
@@ -265,15 +313,53 @@ where
 
                                     {config_pattern.get()}
                                 </textarea>
-
                             </div>
+                            <div class="divider"></div>
                         </Show>
+
                     </Show>
                 }
             }}
 
-            <div class="form-control mt-6">
-                <Button text="Submit".to_string() on_click=on_submit/>
+            <Suspense>
+            {move || {
+                let functions = functions_resource.get().unwrap_or(vec![]);
+                let mut function_names: Vec<FunctionsName> = vec![];
+                functions.into_iter().for_each(|ele| {
+                    function_names.push(ele.function_name);
+                });
+                function_names.sort();
+                function_names.insert(0, "None".to_string());
+                view! {
+                    <div class="form-control">
+                        <div class="gap-1">
+                            <label class="label flex-col justify-center items-start">
+                                <span class="label-text">Function Name</span>
+                                <span class="label-text text-slate-400">Assign Function validation to your key</span>
+                            </label>
+                        </div>
+
+                        <div class="mt-2">
+                            <Dropdown
+                                dropdown_width="w-100"
+                                dropdown_icon="".to_string()
+                                dropdown_text={function_name.get().and_then(|v|  match v {
+                                    Value::String(s) => Some(s),
+                                    _ => None,
+                                }).map_or("Add Function".to_string(), |v| v.to_string())}
+                                dropdown_direction=DropdownDirection::Down
+                                dropdown_btn_type=DropdownBtnType::Select
+                                dropdown_options=function_names
+                                on_select=Box::new(handle_select_dropdown_option)
+                            />
+                        </ div>
+                    </ div>
+                }
+            }}
+            </ Suspense>
+
+            <div class="form-control grid w-full justify-end">
+                <Button class="pl-[70px] pr-[70px]".to_string() text="Submit".to_string() on_click=on_submit/>
             </div>
 
             {
