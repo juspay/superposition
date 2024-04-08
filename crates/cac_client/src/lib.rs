@@ -9,13 +9,17 @@ use reqwest::{RequestBuilder, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     convert::identity,
     sync::{Arc, RwLock},
     time::{Duration, UNIX_EPOCH},
 };
 use strum_macros;
 use utils::core::MapError;
+
+use service_utils::{
+    errors::types::Error as err, helpers::extract_dimensions, types as app,
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Context {
@@ -151,8 +155,34 @@ impl Client {
         }
     }
 
-    pub fn get_full_config_state(&self) -> Result<Config, String> {
-        self.config.read().map(|c| c.clone()).map_err_to_string()
+    pub fn get_full_config_state_with_filter(
+        &self,
+        query_data: Option<Map<String, Value>>,
+    ) -> Result<Config, String> {
+        let mut config = self.config.read().map(|c| c.clone()).map_err_to_string()?;
+        if let Some(mut query_map) = query_data {
+            if let Some(prefix) = query_map.get("prefix") {
+                let prefix_list: HashSet<&str> = prefix
+                    .as_str()
+                    .ok_or_else(|| {
+                        log::error!("Prefix is not a valid string.");
+                        format!("Prefix is not a valid string.")
+                    })
+                    .map_err_to_string()?
+                    .split(",")
+                    .collect();
+                config =
+                    filter_config_by_prefix(&config, &prefix_list).map_err_to_string()?;
+            }
+
+            query_map.remove("prefix");
+
+            if !query_map.is_empty() {
+                config = filter_config_by_dimensions(&config, &query_map)
+                    .map_err_to_string()?;
+            }
+        }
+        Ok(config)
     }
 
     pub fn get_last_modified(&self) -> Result<DateTime<Utc>, String> {
@@ -177,40 +207,31 @@ impl Client {
     pub fn get_resolved_config(
         &self,
         query_data: Map<String, Value>,
-        keys: Vec<String>,
+        filter_keys: Option<Vec<String>>,
         merge_strategy: MergeStrategy,
     ) -> Result<Map<String, Value>, String> {
-        let cac = self.eval(query_data, merge_strategy)?;
-        if keys.is_empty() {
-            return Ok(cac);
+        let mut cac = self.eval(query_data, merge_strategy)?;
+        if let Some(keys) = filter_keys {
+            cac = filter_keys_by_prefix(cac, &keys.iter().map(|s| s.as_str()).collect())
+                .map_err_to_string()?;
         }
-        Ok(Map::from_iter(
-            cac.iter()
-                .filter_map(|(config, v)| {
-                    if keys.contains(config) {
-                        Some((config.to_owned(), v.to_owned()))
-                    } else {
-                        None
-                    }
-                })
-                .collect::<Vec<(String, Value)>>(),
-        ))
+        return Ok(cac);
     }
 
     pub fn get_default_config(
         &self,
-        keys: Vec<String>,
+        filter_keys: Option<Vec<String>>,
     ) -> Result<Map<String, Value>, String> {
         let configs = self.config.read().map_err(|e| e.to_string())?;
-        let default_configs = configs.default_configs.clone();
-        if keys.is_empty() {
-            return Ok(default_configs);
+        let mut default_configs = configs.default_configs.clone();
+        if let Some(keys) = filter_keys {
+            default_configs = filter_keys_by_prefix(
+                default_configs,
+                &keys.iter().map(|s| s.as_str()).collect(),
+            )
+            .map_err_to_string()?;
         }
-        let default_configs = default_configs
-            .into_iter()
-            .filter(|(item, _)| keys.contains(item))
-            .collect::<Map<String, Value>>();
-        Ok(default_configs)
+        return Ok(default_configs);
     }
 }
 
@@ -264,3 +285,104 @@ pub static CLIENT_FACTORY: Lazy<ClientFactory> =
 pub use eval::eval_cac;
 pub use eval::eval_cac_with_reasoning;
 pub use eval::merge;
+
+pub fn filter_keys_by_prefix(
+    keys: Map<String, Value>,
+    prefix_list: &HashSet<&str>,
+) -> actix_web::Result<Map<String, Value>> {
+    Ok(keys
+        .into_iter()
+        .filter(|(key, _)| {
+            prefix_list
+                .iter()
+                .any(|prefix_str| key.starts_with(prefix_str))
+        })
+        .collect())
+}
+
+pub fn filter_config_by_prefix(
+    config: &Config,
+    prefix_list: &HashSet<&str>,
+) -> actix_web::Result<Config> {
+    let mut filtered_overrides: Map<String, Value> = Map::new();
+
+    let filtered_default_config: Map<String, Value> =
+        filter_keys_by_prefix(config.default_configs.clone(), prefix_list)?;
+
+    for (key, overrides) in &config.overrides {
+        let overrides_map = overrides
+            .as_object()
+            .ok_or_else(|| {
+                log::error!("failed to decode overrides.");
+                err::InternalServerErr("failed to decode overrides.".to_string())
+            })?
+            .clone();
+
+        let filtered_overrides_map: Map<String, Value> = overrides_map
+            .into_iter()
+            .filter(|(key, _)| filtered_default_config.contains_key(key))
+            .collect();
+
+        if !filtered_overrides_map.is_empty() {
+            filtered_overrides.insert(key.clone(), Value::Object(filtered_overrides_map));
+        }
+    }
+
+    let filtered_context: Vec<Context> = config
+        .contexts
+        .clone()
+        .into_iter()
+        .filter(|context| filtered_overrides.contains_key(&context.override_with_keys[0]))
+        .collect();
+
+    let filtered_config = Config {
+        contexts: filtered_context,
+        overrides: filtered_overrides,
+        default_configs: filtered_default_config,
+    };
+
+    Ok(filtered_config)
+}
+
+pub fn filter_config_by_dimensions(
+    config: &Config,
+    query_params_map: &Map<String, Value>,
+) -> actix_web::Result<Config> {
+    let filter_context = |contexts: &Vec<Context>,
+                          query_params_map: &Map<String, Value>|
+     -> app::Result<Vec<Context>> {
+        let mut filtered_context: Vec<Context> = Vec::new();
+        for context in contexts.iter() {
+            let dimension = extract_dimensions(&context.condition)?;
+            let should_add_ctx = dimension.iter().all(|(key, value)| {
+                query_params_map.get(key).map_or(true, |val| {
+                    val == value || val.as_array().unwrap_or(&vec![]).contains(value)
+                })
+            });
+            if should_add_ctx {
+                filtered_context.push(context.clone());
+            }
+        }
+        return Ok(filtered_context);
+    };
+
+    let filtered_context = filter_context(&config.contexts, &query_params_map)?;
+    let filtered_overrides: Map<String, Value> = filtered_context
+        .iter()
+        .flat_map(|ele| {
+            let override_with_key = &ele.override_with_keys[0];
+            config
+                .overrides
+                .get(override_with_key)
+                .map(|value| (override_with_key.to_string(), value.clone()))
+        })
+        .collect();
+
+    let filtered_config = Config {
+        contexts: filtered_context,
+        overrides: filtered_overrides,
+        default_configs: config.default_configs.clone(),
+    };
+
+    Ok(filtered_config)
+}

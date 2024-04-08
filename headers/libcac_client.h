@@ -21,11 +21,11 @@ struct Arc_Client *get_client(const char *tenant);
 
 const char *get_last_modified(struct Arc_Client *client);
 
-const char *get_config(struct Arc_Client *client);
+const char *get_config(struct Arc_Client *client, const char *query);
 
 const char *get_resolved_config(struct Arc_Client *client,
                                 const char *query,
-                                const char *keys,
+                                const char *filter_keys,
                                 const char *merge_strategy);
 
-const char *get_default_config(struct Arc_Client *client, const char *keys);
+const char *get_default_config(struct Arc_Client *client, const char *filter_keys);

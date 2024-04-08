@@ -176,7 +176,31 @@ pub extern "C" fn get_last_modified(client: *mut Arc<Client>) -> *const c_char {
 }
 
 #[no_mangle]
-pub extern "C" fn get_config(client: *mut Arc<Client>) -> *const c_char {
+pub extern "C" fn get_config(
+    client: *mut Arc<Client>,
+    query: *const c_char,
+) -> *const c_char {
+    let filter = if query.is_null() {
+        None
+    } else {
+        let filter_string = match cstring_to_rstring(query) {
+            Ok(s) => s,
+            Err(err) => {
+                update_last_error(err);
+                return std::ptr::null();
+            }
+        };
+        let filters: Map<String, Value> =
+            match serde_json::from_str::<Map<String, Value>>(filter_string.as_str()) {
+                Ok(json) => json,
+                Err(err) => {
+                    update_last_error(err.to_string());
+                    return std::ptr::null();
+                }
+            };
+        Some(filters)
+    };
+
     null_check!(
         client,
         "an invalid null pointer client is being used, please call get_client()",
@@ -184,10 +208,12 @@ pub extern "C" fn get_config(client: *mut Arc<Client>) -> *const c_char {
     );
     unwrap_safe!(
         unsafe {
-            (*client).get_full_config_state().map(|config| {
-                rstring_to_cstring(serde_json::to_value(config).unwrap().to_string())
-                    .into_raw()
-            })
+            (*client)
+                .get_full_config_state_with_filter(filter)
+                .map(|config| {
+                    rstring_to_cstring(serde_json::to_value(config).unwrap().to_string())
+                        .into_raw()
+                })
         },
         return std::ptr::null_mut()
     )
@@ -197,7 +223,7 @@ pub extern "C" fn get_config(client: *mut Arc<Client>) -> *const c_char {
 pub extern "C" fn get_resolved_config(
     client: *mut Arc<Client>,
     query: *const c_char,
-    keys: *const c_char,
+    filter_keys: *const c_char,
     merge_strategy: *const c_char,
 ) -> *const c_char {
     null_check!(
@@ -206,11 +232,17 @@ pub extern "C" fn get_resolved_config(
         return std::ptr::null()
     );
 
-    let key = unwrap_safe!(cstring_to_rstring(keys), return std::ptr::null());
-    let key_vector = if key.is_empty() {
-        vec![]
+    let keys: Option<Vec<String>> = if filter_keys.is_null() {
+        None
     } else {
-        key.split("|").map(str::to_string).collect()
+        let filter_string = match cstring_to_rstring(filter_keys) {
+            Ok(s) => s,
+            Err(err) => {
+                update_last_error(err);
+                return std::ptr::null();
+            }
+        };
+        Some(filter_string.split("|").map(str::to_string).collect())
     };
 
     let query = unwrap_safe!(cstring_to_rstring(query), return std::ptr::null());
@@ -218,7 +250,7 @@ pub extern "C" fn get_resolved_config(
         unwrap_safe!(cstring_to_rstring(merge_strategy), return std::ptr::null());
     println!(
         "key vector {:#?}, merge strategy {:#?}",
-        key_vector, merge_strategem
+        keys, merge_strategem
     );
 
     let context = unwrap_safe!(
@@ -229,11 +261,7 @@ pub extern "C" fn get_resolved_config(
     unwrap_safe!(
         unsafe {
             (*client)
-                .get_resolved_config(
-                    context,
-                    key_vector,
-                    MergeStrategy::from(merge_strategem),
-                )
+                .get_resolved_config(context, keys, MergeStrategy::from(merge_strategem))
                 .map(|ov| {
                     unwrap_safe!(
                         serde_json::to_string::<Map<String, Value>>(&ov)
@@ -249,17 +277,24 @@ pub extern "C" fn get_resolved_config(
 #[no_mangle]
 pub extern "C" fn get_default_config(
     client: *mut Arc<Client>,
-    keys: *const c_char,
+    filter_keys: *const c_char,
 ) -> *const c_char {
-    let key = unwrap_safe!(cstring_to_rstring(keys), return std::ptr::null());
-    let key_vector = if key.is_empty() {
-        vec![]
+    let keys: Option<Vec<String>> = if filter_keys.is_null() {
+        None
     } else {
-        key.split("|").map(str::to_string).collect()
+        let filter_string = match cstring_to_rstring(filter_keys) {
+            Ok(s) => s,
+            Err(err) => {
+                update_last_error(err);
+                return std::ptr::null();
+            }
+        };
+        Some(filter_string.split("|").map(str::to_string).collect())
     };
+
     unwrap_safe!(
         unsafe {
-            (*client).get_default_config(key_vector).map(|ov| {
+            (*client).get_default_config(keys).map(|ov| {
                 unwrap_safe!(
                     serde_json::to_string::<Map<String, Value>>(&ov)
                         .map(|overrides| rstring_to_cstring(overrides).into_raw()),
