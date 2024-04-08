@@ -25,9 +25,11 @@ fn should_add_ctx(
     query_params_map: &Map<String, Value>,
 ) -> superposition::Result<bool> {
     let dimension = extract_dimensions(&context.condition)?;
-    Ok(dimension
-        .iter()
-        .all(|(key, value)| query_params_map.get(key).map_or(true, |val| val == value)))
+    Ok(dimension.iter().all(|(key, value)| {
+        query_params_map.get(key).map_or(true, |val| {
+            val == value || val.as_array().unwrap_or(&vec![]).contains(value)
+        })
+    }))
 }
 
 pub fn filter_config_by_prefix(
