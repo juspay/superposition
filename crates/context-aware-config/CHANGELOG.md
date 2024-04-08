@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.25.1 - 2024-04-08
+#### Bug Fixes
+- [PICAF-26346] add path to node_modules - (c4bc7b6) - Pratik Mishra
+
+- - -
+
 ## context-aware-config-v0.25.0 - 2024-04-05
 #### Features
 - PICAF-26168-js-secure-sandbox - (566f8be) - Pratik Mishra
