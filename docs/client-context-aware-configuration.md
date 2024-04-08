@@ -148,7 +148,7 @@ pub struct Config {
 ##### Funtion Definition
 
 ```
-pub fn get_full_config_state() -> Result<Config, String>
+pub fn get_full_config_state_with_filter(query_data: Option<Map<String, Value>>) -> Result<Config, String>
 ``` 
 
 #### Get the last modified Time
@@ -163,33 +163,33 @@ pub fn get_last_modified() -> Result<DateTime<Utc>, String>
 
 #### Evaluate Context to derive configs
 
-Given a context, get overrides for a specific set of keys, if provided. If empty vector is provided for `keys`, all configs are returned.
+Given a context, get overrides for a specific set of keys, if provided. If None is provided for `filter_keys`, all configs are returned.
 
 ##### Function Definition
 
 ```
-pub fn get_resolved_config(context: Map<String, Value>, keys: Vec<String>) -> Result<Map<String, Value>, String>
+pub fn get_resolved_config(context: Map<String, Value>, filter_keys: Option<Vec<String>>) -> Result<Map<String, Value>, String>
 ``` 
 ##### Params
 
-| Param     | type               | description                                                                           | Example value                             |
-| --------- | ------------------ | ------------------------------------------------------------------------------------- | ----------------------------------------- |
-| `context` | Map<String, Value> | The context under which you want to resolve configs                                   | `{"os": "android", "merchant": "juspay"}` |
-| `keys`    | Vec<String>        | The keys for which you want the values. If empty, all configuration keys are returned | `[payment, network, color]`               |
+| Param         | type                | description                                                                           | Example value                             |
+| ---------     | ------------------  | ------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `context`     | Map<String, Value>  | The context under which you want to resolve configs                                   | `{"os": "android", "merchant": "juspay"}` |
+| `filter_keys` | Option<Vec<String>> | The keys for which you want the values. If empty, all configuration keys are returned | `Some([payment, network, color])`         |
 
 #### Get Default Config
 
-The default config for a specific set of keys, if provided. If empty vector is provided for `keys`, all configs are returned.
+The default config for a specific set of keys, if provided. If None is provided for `filter_keys`, all configs are returned.
 
 ##### Function Definition
 
 ```
-pub fn get_default_config(keys: Vec<String>) -> Result<Map<String, Value>, String>
+pub fn get_default_config(filter_keys: Option<Vec<String>>) -> Result<Map<String, Value>, String>
 ```
 ##### Param
-| Param  | type        | description                                                                           | Example value               |
-| ------ | ----------- | ------------------------------------------------------------------------------------- | --------------------------- |
-| `keys` | Vec<String> | The keys for which you want the values. If empty, all configuration keys are returned | `[payment, network, color]` |
+| Param         | type                | description                                                                           | Example value                     |
+| ------        | -----------         | ------------------------------------------------------------------------------------- | ---------------------------       |
+| `filter_keys` | Option<Vec<String>> | The keys for which you want the values. If None, all configuration keys are returned | `Some([payment, network, color])` |
 
 ---
 
@@ -295,7 +295,7 @@ Get the full config definition of your tenants configuration from superposition.
 ##### Funtion Definition
 
 ```
-getFullConfigState :: ForeignPtr CacClient -> IO (Either Error Value)
+getFullConfigStateWithFilter :: ForeignPtr CacClient -> Maybe String -> IO (Either Error Value)
 ``` 
 
 #### Get the last modified Time
@@ -310,32 +310,32 @@ getCacLastModified :: ForeignPtr CacClient -> IO (Either Error String)
 
 #### Evaluate Context to derive configs
 
-Given a context, get overrides for a specific set of keys, if provided. If empty vector is provided for `keys`, all configs are returned.
+Given a context, get overrides for a specific set of keys, if provided. If Nothing is provided for `filter_keys`, all configs are returned.
 
 ##### Function Definition
 
 ```
-getResolvedConfig :: ForeignPtr CacClient -> String -> [String] -> IO (Either Error Value)
+getResolvedConfig :: ForeignPtr CacClient -> String -> Maybe [String] -> IO (Either Error Value)
 ``` 
 ##### Params
 
-| Param     | type               | description                                                                           | Example value                             |
-| --------- | ------------------ | ------------------------------------------------------------------------------------- | ----------------------------------------- |
-| `context` | String | The context under which you want to resolve configs                                   | `{"os": "android", "merchant": "juspay"}` |
-| `keys`    | [String]        | The keys for which you want the values. If empty, all configuration keys are returned | `[payment, network, color]`               |
+| Param             | type               | description                                                                           | Example value                             |
+| ---------         | ------------------ | ------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `context`         | String             | The context under which you want to resolve configs                                   | `{"os": "android", "merchant": "juspay"}` |
+| `filter_keys`     | Maybe([String])    | The keys for which you want the values. If empty, all configuration keys are returned | `Just ([payment, network, color])`        |
 
 #### Get Default Config
 
-The default config for a specific set of keys, if provided. If empty vector is provided for `keys`, all configs are returned.
+The default config for a specific set of keys, if provided. If Nothing is provided for `filter_keys`, all configs are returned.
 
 ##### Function Definition
 
 ```
-getDefaultConfig :: ForeignPtr CacClient -> [String] -> IO (Either Error Value)
+getDefaultConfig :: ForeignPtr CacClient -> Maybe [String] -> IO (Either Error Value)
 ```
-| Param  | type        | description                                                                           | Example value               |
-| ------ | ----------- | ------------------------------------------------------------------------------------- | --------------------------- |
-| `keys` | [String] | The keys for which you want the values. If empty, all configuration keys are returned | `[payment, network, color]` |
+| Param         | type              | description                                                                               | Example value                     |
+| ------        | -----------       | -------------------------------------------------------------------------------------     | ---------------------------       |
+| `filter_keys` | Maybe([String])   | The keys for which you want the values. If Nothing, all configuration keys are returned   | `Just ([payment, network, color])`|
 
 #### Sample Integration
 
@@ -344,7 +344,7 @@ getDefaultConfig :: ForeignPtr CacClient -> [String] -> IO (Either Error Value)
 module Main (main) where
 
 import           Client             (getResolvedConfig, createCacClient, getCacClient,
-                                     getFullConfigState, getCacLastModified, cacStartPolling, getDefaultConfig)
+                                     getFullConfigStateWithFilter, getCacLastModified, cacStartPolling, getDefaultConfig)
 import           Control.Concurrent
 import           Prelude
 
@@ -358,14 +358,16 @@ main = do
     getCacClient "dev" >>= \case
         Left err     -> putStrLn err
         Right client -> do
-            config       <- getFullConfigState client
-            lastModified <- getCacLastModified client
-            overrides    <- getResolvedConfig client "{\"country\": \"India\"}" ["country_image_url", "hyperpay_version"]
-            defaults     <- getDefaultConfig client ["country_image_url", "hyperpay_version"]
+            config          <- getFullConfigStateWithFilter client Nothing
+            lastModified    <- getCacLastModified client
+            overrides       <- getResolvedConfig client "{\"country\": \"India\"}" $ Just ["country_image_url", "hyperpay_version"]
+            defaults        <- getDefaultConfig client $ Just ["country_image_url", "hyperpay_version"]
+            filteredConfig  <- getFullConfigStateWithFilter client $ Just "{\"prefix\": \"hyperpay\"}"
             print config
             print lastModified
             print overrides
             print defaults
+            print filteredConfig
             threadDelay 1000000000
     pure ()
 

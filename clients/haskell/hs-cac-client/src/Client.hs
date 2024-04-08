@@ -6,7 +6,7 @@
 module Client
 ( createCacClient
 , getCacClient
-, getFullConfigState
+, getFullConfigStateWithFilter
 , getCacLastModified
 , getResolvedConfig
 , cacStartPolling
@@ -50,7 +50,7 @@ foreign import ccall unsafe "get_last_modified"
     c_get_last_modified_time :: Ptr CacClient -> IO CString
 
 foreign import ccall unsafe "get_config"
-    c_get_config :: Ptr CacClient -> IO CString
+    c_get_config :: Ptr CacClient -> CString -> IO CString
 
 foreign import ccall unsafe "get_resolved_config"
     c_cac_get_resolved_config :: Ptr CacClient -> CString -> CString -> CString -> IO CString
@@ -100,9 +100,13 @@ getCacClient tenant = do
         then Left <$> getError
         else Right <$> newForeignPtr c_free_cac_client cacClient
 
-getFullConfigState :: ForeignPtr CacClient -> IO (Either Error Value)
-getFullConfigState client = do
-    config <- withForeignPtr client c_get_config
+getFullConfigStateWithFilter :: ForeignPtr CacClient -> Maybe String -> IO (Either Error Value)
+getFullConfigStateWithFilter client mbFilters = do
+    cFilters <- case mbFilters of
+        Just filters -> newCAString filters
+        Nothing -> return nullPtr
+    config <- withForeignPtr client (`c_get_config` cFilters)
+    _ <- cleanup [cFilters]
     if config == nullPtr
         then Left <$> getError
         else do
@@ -118,11 +122,13 @@ getCacLastModified client = do
             fptrLastModified <- newForeignPtr c_free_string lastModified
             Right <$> withForeignPtr fptrLastModified peekCAString
 
-getResolvedConfigWithStrategy :: ForeignPtr CacClient -> String -> [String] -> MergeStrategy -> IO (Either Error Value)
-getResolvedConfigWithStrategy client context keys mergeStrat = do
+getResolvedConfigWithStrategy :: ForeignPtr CacClient -> String -> Maybe [String] -> MergeStrategy -> IO (Either Error Value)
+getResolvedConfigWithStrategy client context mbKeys mergeStrat = do
     cContext    <- newCAString context
     cMergeStrat <- newCAString (show mergeStrat)
-    cStrKeys    <- newCAString (intercalate "|" keys)
+    cStrKeys    <- case mbKeys of
+        Just keys   ->  newCAString (intercalate "|" keys)
+        Nothing     ->  return nullPtr
     overrides   <- withForeignPtr client $ \client -> c_cac_get_resolved_config client cContext cStrKeys cMergeStrat
     _           <- cleanup [cContext, cStrKeys]
     if overrides == nullPtr
@@ -131,9 +137,11 @@ getResolvedConfigWithStrategy client context keys mergeStrat = do
             fptrOverrides <- newForeignPtr c_free_string overrides
             Right . toJSON <$> withForeignPtr fptrOverrides peekCAString
 
-getDefaultConfig :: ForeignPtr CacClient -> [String] -> IO (Either Error Value)
-getDefaultConfig client keys = do
-    cStrKeys    <- newCAString (intercalate "|" keys)
+getDefaultConfig :: ForeignPtr CacClient -> Maybe [String] -> IO (Either Error Value)
+getDefaultConfig client mbKeys = do
+    cStrKeys    <- case mbKeys of
+        Just keys   ->  newCAString (intercalate "|" keys)
+        Nothing     ->  return nullPtr
     overrides   <- withForeignPtr client $ \client -> c_cac_get_default_config client cStrKeys
     _           <- cleanup [cStrKeys]
     if overrides == nullPtr
@@ -142,5 +150,6 @@ getDefaultConfig client keys = do
             fptrOverrides <- newForeignPtr c_free_string overrides
             Right . toJSON <$> withForeignPtr fptrOverrides peekCAString
 
-getResolvedConfig :: ForeignPtr CacClient -> String -> [String] -> IO (Either Error Value)
-getResolvedConfig client context keys = getResolvedConfigWithStrategy client context keys MERGE
+getResolvedConfig :: ForeignPtr CacClient -> String -> Maybe [String] -> IO (Either Error Value)
+getResolvedConfig client context mbKeys = getResolvedConfigWithStrategy client context mbKeys MERGE
+
