@@ -523,33 +523,10 @@ async fn bulk_operations(
             }
         }
         Ok(()) // Commit the transaction
-    })?;
-    Ok(Json(response))
-}
-
-
-async fn delete_context2(host:&str,cid:String,tenant:&str) -> String {
-    let client = reqwest::Client::new();
-    let url = format!("{host}/context/{cid}");
-    let response = client
-        .delete(url)
-        .header("x-tenant", tenant)
-        .send()
-        .await
-        .map_err(|e| e.to_string()).unwrap();
-    return "Deleted".to_string();
-}
-
-// fn
-async fn update_context2(host:&str,request_payload:Value,tenant:&str) -> String {
-    let client = reqwest::Client::new();
-    let url = format!("{host}/context");
-    let response = client
-        .put(url)
-        .header("x-tenant", tenant)
-        .json(&request_payload)
-        .send()
-        .await
-        .map_err(|e| e.to_string()).unwrap();
-    return "Okay".to_string()
+    });
+    match result {
+        Ok(_) => Ok(web::Json(resp)),
+        Err(TransactionError::BadRequest(_)) => Err(ErrorBadRequest("")),
+        Err(TransactionError::DieselError(_)) => Err(ErrorInternalServerError("")),
+    }
 }

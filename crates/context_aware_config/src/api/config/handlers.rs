@@ -32,6 +32,13 @@ use uuid::Uuid;
 use itertools::Itertools;
 use jsonschema::JSONSchema;
 use service_utils::helpers::extract_dimensions;
+use serde_json::{json, Map, Value, Value::Null};
+use service_utils::helpers::{delete_context_api, update_context_api};
+use service_utils::{
+    helpers::extract_dimensions,
+    errors::types::Error as err, helpers::ToActixErr, service::types::DbConnection,
+};
+use dashboard_auth::types::User;
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -156,13 +163,10 @@ async fn generate_cac(
     })
 }
 
-// and and ==
-
 fn generate_subsets(map: &Map<String, Value>) -> Vec<Map<String, Value>> {
     let mut subsets = Vec::new();
     let keys: Vec<String> = map.keys().cloned().collect_vec();
     let all_subsets_keys = generate_subsets_keys(keys);
-    // println!("All Subset Keys {:#?}",all_subsets_keys);
 
     for subset_keys in &all_subsets_keys {
         if subset_keys.len() >= 0 {
@@ -199,7 +203,6 @@ fn resolve(
     default_config_val: Option<&Value>,
 ) -> Vec<Map<String, Value>> {
     let mut dimensions: Vec<Map<String, Value>> = Vec::new();
-    println!("Saurav key_val is {:?}", default_config_val);
     for (context, overrides, key_val, override_id) in contexts_overrides_values {
         let mut ct_dimensions = extract_dimensions(&context.condition).unwrap();
         ct_dimensions.insert("key_val".to_string(), key_val);
@@ -283,6 +286,14 @@ fn get_contextids_from_overrideid(
     res
 }
 
+fn construct_new_payload(req_payload: &Map<String,Value>) -> Map<String,Value>{
+    let mut res = req_payload.clone();
+    res.remove("to_be_deleted");
+    res.remove("override_id");
+    res.remove("id");
+    res
+}
+
 async fn reduce_context_key(
     mut og_contexts: Vec<Context>,
     mut og_overrides: Map<String, Value>,
@@ -342,6 +353,7 @@ async fn reduce_context_key(
                             // After extracting values
                             if *to_be_deleted {
                                 // remove cid from contexts
+                                delete_context_api("http://localhost:8080",cid.to_owned(), "sdk_build_config").await;
                                 println!(
                                     "Saurav is removing this context {:#?}",
                                     rd.get("context")
@@ -349,6 +361,11 @@ async fn reduce_context_key(
                                 og_contexts.retain(|x| x.id != *cid);
                             } else {
                                 //update the override by removing the key
+                                delete_context_api("http://localhost:8080",cid.to_owned(), "sdk_build_config").await;
+                                let temp_request_payload = construct_new_payload(request_payload);
+                                update_context_api("http://localhost:8080", Value::Object(temp_request_payload), "sdk_build_config").await;
+
+
                                 if let Some(override_val) =
                                     request_payload.get("override")
                                 {
@@ -399,6 +416,7 @@ fn hash(val: &Value) -> String {
 #[get("/reduce")]
 async fn reduce_context(
     req: HttpRequest,
+    user: User,
     db_conn: DbConnection,
 ) -> actix_web::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
