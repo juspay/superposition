@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service-utils-v0.13.0 - 2024-04-10
+#### Features
+- [PICAF-25423] added new result, error type and error macros - (e673fb1) - Shubhranshu Sanjeev
+#### Refactoring
+- [PICAF-26558] refactored service to use new error type and better error handling - (741f391) - Shubhranshu Sanjeev
+
+- - -
+
 ## service-utils-v0.12.0 - 2024-03-08
 #### Features
 - PICAF-25884 Added function validation for context and default_config - (990b729) - ankit.mahato
