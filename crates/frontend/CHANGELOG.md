@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.5.0 - 2024-04-10
+#### Features
+- PICAF-26529 Add function support in dimension and default config form - (6a942fe) - ankit.mahato
+#### Refactoring
+- [PICAF-26558] refactored service to use new error type and better error handling - (741f391) - Shubhranshu Sanjeev
+
+- - -
+
 ## frontend-v0.4.0 - 2024-04-05
 #### Features
 - [PICAF-26360] added decimal support in context and override form and fixed dimension modal - (3f1f998) - Saurav Suman
