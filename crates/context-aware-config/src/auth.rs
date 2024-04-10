@@ -140,49 +140,49 @@ pub mod functions {
     pub fn authenticated_routes() -> Vec<(&'static str, AuthenticatedRoute)> {
         Vec::from([
             (
-                "POST::/function",
+                "POST::{service_prefix}/function",
                 AuthenticatedRoute {
                     api_tag: "MANAGER".into(),
                     user_permissions: ("manager".into(), "RW".into()),
                 },
             ),
             (
-                "PATCH::/function/{function_name}",
+                "PATCH::{service_prefix}/function/{function_name}",
                 AuthenticatedRoute {
                     api_tag: "MANAGER".into(),
                     user_permissions: ("manager".into(), "RW".into()),
                 },
             ),
             (
-                "GET::/function/{function_name}",
+                "GET::{service_prefix}/function/{function_name}",
                 AuthenticatedRoute {
                     api_tag: "MANAGER".into(),
                     user_permissions: ("manager".into(), "RW".into()),
                 },
             ),
             (
-                "DELETE::/function/{function_name}",
+                "DELETE::{service_prefix}/function/{function_name}",
                 AuthenticatedRoute {
                     api_tag: "MANAGER".into(),
                     user_permissions: ("manager".into(), "RW".into()),
                 },
             ),
             (
-                "GET::/function",
+                "GET::{service_prefix}/function",
                 AuthenticatedRoute {
                     api_tag: "MANAGER".into(),
                     user_permissions: ("manager".into(), "RW".into()),
                 },
             ),
             (
-                "PUT::/function/{function_name}/{stage}/test",
+                "PUT::{service_prefix}/function/{function_name}/{stage}/test",
                 AuthenticatedRoute {
                     api_tag: "MANAGER".into(),
                     user_permissions: ("manager".into(), "RW".into()),
                 },
             ),
             (
-                "PUT::/function/{function_name}/publish",
+                "PUT::{service_prefix}/function/{function_name}/publish",
                 AuthenticatedRoute {
                     api_tag: "MANAGER".into(),
                     user_permissions: ("manager".into(), "RW".into()),
