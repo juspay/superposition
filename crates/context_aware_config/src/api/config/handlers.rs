@@ -33,12 +33,10 @@ use itertools::Itertools;
 use jsonschema::JSONSchema;
 use service_utils::helpers::extract_dimensions;
 use serde_json::{json, Map, Value, Value::Null};
-use service_utils::helpers::{delete_context_api, update_context_api};
 use service_utils::{
-    helpers::extract_dimensions,
-    errors::types::Error as err, helpers::ToActixErr, service::types::DbConnection,
+    errors::types::Error as err, helpers::extract_dimensions, helpers::ToActixErr,
+    service::types::DbConnection,
 };
-use dashboard_auth::types::User;
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -284,14 +282,6 @@ fn get_contextids_from_overrideid(
     res
 }
 
-fn construct_new_payload(req_payload: &Map<String,Value>) -> Map<String,Value>{
-    let mut res = req_payload.clone();
-    res.remove("to_be_deleted");
-    res.remove("override_id");
-    res.remove("id");
-    res
-}
-
 async fn reduce_context_key(
     mut og_contexts: Vec<Context>,
     mut og_overrides: Map<String, Value>,
@@ -355,7 +345,6 @@ async fn reduce_context_key(
                             } else {
                                 //update the override by removing the key
 
-
                                 if let Some(override_val) =
                                     request_payload.get("override")
                                 {
@@ -405,7 +394,6 @@ fn hash(val: &Value) -> String {
 #[get("/reduce")]
 async fn reduce_context(
     req: HttpRequest,
-    user: User,
     db_conn: DbConnection,
 ) -> actix_web::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;

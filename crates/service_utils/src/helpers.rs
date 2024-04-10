@@ -326,26 +326,3 @@ pub fn validation_err_to_str(errors: Vec<ValidationError>) -> Vec<String> {
         }
     }).collect()
 }
-
-pub async fn delete_context_api(host:&str,cid:String,tenant:&str) {
-    let client = reqwest::Client::new();
-    let url = format!("{host}/context/{cid}");
-    let _ = client
-        .delete(url)
-        .header("x-tenant", tenant)
-        .send()
-        .await
-        .map_err(|e| e.to_string()).unwrap();
-}
-
-pub async fn update_context_api(host:&str,request_payload:Value,tenant:&str) {
-    let client = reqwest::Client::new();
-    let url = format!("{host}/context");
-    let _ = client
-        .put(url)
-        .header("x-tenant", tenant)
-        .json(&request_payload)
-        .send()
-        .await
-        .map_err(|e| e.to_string()).unwrap();
-}
