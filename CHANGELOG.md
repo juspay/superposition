@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.37.0 - 2024-04-10
+### Package updates
+- service-utils bumped to service-utils-v0.13.0
+### Global changes
+#### Features
+- [PICAF-25423] added new result, error type and error macros - (e673fb1) - Shubhranshu Sanjeev
+#### Refactoring
+- [PICAF-26558] refactored service to use new error type and better error handling - (741f391) - Shubhranshu Sanjeev
+
+- - -
+
 ## v0.36.1 - 2024-04-08
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.25.1
