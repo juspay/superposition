@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.25.2 - 2024-04-10
+#### Bug Fixes
+- PICAF-26366 added service-prefix to functions endpoints - (5492072) - ankit.mahato
+#### Refactoring
+- [PICAF-26558] refactored service to use new error type and better error handling - (741f391) - Shubhranshu Sanjeev
+
+- - -
+
 ## context-aware-config-v0.25.1 - 2024-04-08
 #### Bug Fixes
 - [PICAF-26346] add path to node_modules - (c4bc7b6) - Pratik Mishra

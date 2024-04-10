@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.38.1 - 2024-04-10
+### Package updates
+- context-aware-config bumped to context-aware-config-v0.25.2
+### Global changes
+
+- - -
+
 ## v0.38.0 - 2024-04-10
 ### Package updates
 - frontend bumped to frontend-v0.5.0
