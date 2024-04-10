@@ -239,11 +239,9 @@ fn resolve(
             if index2 != index1 {
                 if all_subsets_c1.contains(&temp_c2) {
                     if c1_val == c2_val {
-                        println!("Matched one is : {:#?}", c2);
                         can_be_removed = true;
                         break;
                     } else if c2_val.is_some() {
-                        println!("There is a c2 which has different value : {:#?} {:#?} {:#?} {:#?}",c2, temp_c2,c1_val,c2_val);
                         break;
                     }
                 }
@@ -353,23 +351,14 @@ async fn reduce_context_key(
                             // After extracting values
                             if *to_be_deleted {
                                 // remove cid from contexts
-                                delete_context_api("http://localhost:8080",cid.to_owned(), "sdk_build_config").await;
-                                println!(
-                                    "Saurav is removing this context {:#?}",
-                                    rd.get("context")
-                                );
                                 og_contexts.retain(|x| x.id != *cid);
                             } else {
                                 //update the override by removing the key
-                                delete_context_api("http://localhost:8080",cid.to_owned(), "sdk_build_config").await;
-                                let temp_request_payload = construct_new_payload(request_payload);
-                                update_context_api("http://localhost:8080", Value::Object(temp_request_payload), "sdk_build_config").await;
 
 
                                 if let Some(override_val) =
                                     request_payload.get("override")
                                 {
-                                    println!("Saurav is updating this context {:#?} by removing {:?} from it's override",rd.get("context"), check_key);
                                     let new_id = hash(override_val);
                                     og_overrides
                                         .insert(new_id.clone(), override_val.to_owned());
