@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.38.0 - 2024-04-10
+### Package updates
+- frontend bumped to frontend-v0.5.0
+### Global changes
+
+- - -
+
 ## v0.37.0 - 2024-04-10
 ### Package updates
 - service-utils bumped to service-utils-v0.13.0
