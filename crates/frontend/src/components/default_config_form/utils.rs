@@ -19,9 +19,13 @@ pub async fn create_default_config(
         .await
         .map_err(|e| e.to_string())?;
     match response.status() {
-        StatusCode::OK => response.text().await.map_err(|e| e.to_string()),
-        StatusCode::CREATED => response.text().await.map_err(|e| e.to_string()),
-        StatusCode::BAD_REQUEST => Err("Schema Validation Failed".to_string()),
+        StatusCode::OK | StatusCode::CREATED => {
+            response.text().await.map_err(|e| e.to_string())
+        }
+        StatusCode::BAD_REQUEST => Err(response
+            .text()
+            .await
+            .unwrap_or("Validation of configuration value failed, but the error could not be understood by the system. Contact an admin for help if this persists".to_string())),
         _ => Err("Internal Server Error".to_string()),
     }
 }
