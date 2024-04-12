@@ -1,6 +1,5 @@
 use crate::components::function_form::function_form::FunctionEditor;
 use crate::types::FunctionResponse;
-use crate::utils::use_url_base;
 use leptos::*;
 use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
@@ -48,8 +47,7 @@ pub fn create_function_view() -> impl IntoView {
                 edit=false
                 handle_submit=move || {
                     let tenant = tenant_rs.get();
-                    let base = use_url_base();
-                    let redirect_url = format!("{base}/admin/{tenant}/function");
+                    let redirect_url = format!("admin/{tenant}/function");
                     let navigate = use_navigate();
                     navigate(redirect_url.as_str(), Default::default())
                 }
