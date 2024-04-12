@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.38.2 - 2024-04-12
+### Package updates
+- frontend bumped to frontend-v0.5.1
+### Global changes
+#### Bug Fixes
+- [PICAF-26529] function route fix - (aba54da) - Pratik Mishra
+
+- - -
+
 ## v0.38.1 - 2024-04-10
 ### Package updates
 - context-aware-config bumped to context-aware-config-v0.25.2
