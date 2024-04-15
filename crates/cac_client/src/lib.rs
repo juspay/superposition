@@ -17,9 +17,7 @@ use std::{
 use strum_macros;
 use utils::core::MapError;
 
-use service_utils::{
-    errors::types::Error as err, helpers::extract_dimensions, types as app,
-};
+use service_utils::{helpers::extract_dimensions, result, unexpected_error};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Context {
@@ -289,7 +287,7 @@ pub use eval::merge;
 pub fn filter_keys_by_prefix(
     keys: Map<String, Value>,
     prefix_list: &HashSet<&str>,
-) -> actix_web::Result<Map<String, Value>> {
+) -> result::Result<Map<String, Value>> {
     Ok(keys
         .into_iter()
         .filter(|(key, _)| {
@@ -303,7 +301,7 @@ pub fn filter_keys_by_prefix(
 pub fn filter_config_by_prefix(
     config: &Config,
     prefix_list: &HashSet<&str>,
-) -> actix_web::Result<Config> {
+) -> result::Result<Config> {
     let mut filtered_overrides: Map<String, Value> = Map::new();
 
     let filtered_default_config: Map<String, Value> =
@@ -314,7 +312,7 @@ pub fn filter_config_by_prefix(
             .as_object()
             .ok_or_else(|| {
                 log::error!("failed to decode overrides.");
-                err::InternalServerErr("failed to decode overrides.".to_string())
+                unexpected_error!("failed to decode overrides.")
             })?
             .clone();
 
@@ -347,10 +345,10 @@ pub fn filter_config_by_prefix(
 pub fn filter_config_by_dimensions(
     config: &Config,
     query_params_map: &Map<String, Value>,
-) -> actix_web::Result<Config> {
+) -> result::Result<Config> {
     let filter_context = |contexts: &Vec<Context>,
                           query_params_map: &Map<String, Value>|
-     -> app::Result<Vec<Context>> {
+     -> result::Result<Vec<Context>> {
         let mut filtered_context: Vec<Context> = Vec::new();
         for context in contexts.iter() {
             let dimension = extract_dimensions(&context.condition)?;
