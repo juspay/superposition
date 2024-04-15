@@ -28,9 +28,9 @@ pub struct Context {
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
-    contexts: Vec<Context>,
-    overrides: Map<String, Value>,
-    default_configs: Map<String, Value>,
+    pub contexts: Vec<Context>,
+    pub overrides: Map<String, Value>,
+    pub default_configs: Map<String, Value>,
 }
 
 #[derive(strum_macros::EnumString)]
