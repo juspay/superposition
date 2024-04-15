@@ -23,12 +23,36 @@ use service_utils::service::types::DbConnection;
 use service_utils::{bad_argument, db_error, unexpected_error};
 
 use service_utils::result as superposition;
+use uuid::Uuid;
 
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(get)
         .service(get_resolved_config)
         .service(get_filtered_config)
+}
+
+pub fn add_audit_header(
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    mut res: HttpResponse,
+) -> superposition::Result<HttpResponse> {
+    let header_name = HeaderName::from_static("x-audit-id");
+    if let Ok(uuid) = event_log::event_log
+        .select(event_log::id)
+        .filter(event_log::table_name.eq("contexts"))
+        .order_by(event_log::timestamp.desc())
+        .first::<Uuid>(conn)
+    {
+        let uuid_string = uuid.to_string();
+        if let Ok(header_value) = HeaderValue::from_str(&uuid_string) {
+            res.headers_mut().insert(header_name, header_value);
+        } else {
+            log::error!("Failed to convert UUID to string");
+        }
+    } else {
+        log::error!("Failed to fetch contexts from event_log");
+    }
+    Ok(res)
 }
 
 fn add_last_modified_header(
@@ -177,7 +201,10 @@ async fn get(
         config = filter_config_by_dimensions(&config, &query_params_map)?
     }
 
-    add_last_modified_header(max_created_at, HttpResponse::Ok().json(config))
+    let resp = HttpResponse::Ok().json(config);
+    let audit_resp = add_audit_header(&mut conn, resp)?;
+
+    add_last_modified_header(max_created_at, audit_resp)
 }
 
 #[get("/resolve")]
@@ -261,7 +288,8 @@ async fn get_resolved_config(
             })?,
         )
     };
-    add_last_modified_header(max_created_at, response)
+    let audit_resp = add_audit_header(&mut conn, response)?;
+    add_last_modified_header(max_created_at, audit_resp)
 }
 
 #[get("/filter")]
@@ -311,5 +339,5 @@ async fn get_filtered_config(
         default_configs: config.default_configs,
     };
 
-    Ok(HttpResponse::Ok().json(filtered_config))
+    add_audit_header(&mut conn, HttpResponse::Ok().json(filtered_config))
 }

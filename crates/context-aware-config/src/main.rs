@@ -6,10 +6,7 @@ mod logger;
 mod middlewares;
 mod validation_functions;
 
-use crate::middlewares::{
-    audit_response_header::{AuditHeader, TableName},
-    cookie_to_header::CookieToHeader,
-};
+use crate::middlewares::cookie_to_header::CookieToHeader;
 use actix_web::{web, web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
 use api::*;
 use auth::fill_service_prefix;
@@ -91,7 +88,7 @@ async fn main() -> Result<()> {
     let cac_host: String = get_from_env_unsafe("CAC_HOST").expect("CAC host is not set");
     let cac_version: String = get_from_env_unsafe("CONTEXT_AWARE_CONFIG_VERSION")
         .expect("CONTEXT_AWARE_CONFIG_VERSION is not set");
-    let max_pool_size = get_from_env_or_default("MAX_DB_CONNECTION_POOL_SIZE", 3);
+    let max_pool_size = get_from_env_or_default("MAX_DB_CONNECTION_POOL_SIZE", 2);
 
     let api_host: String =
         get_from_env_unsafe("API_HOSTNAME").expect("API_HOSTNAME is not set");
@@ -234,8 +231,7 @@ async fn main() -> Result<()> {
                             .service(default_config::endpoints()),
                     )
                     .service(
-                        scope("/config")
-                            .wrap(AuditHeader::new(TableName::Contexts))
+                        scope("/config") 
                             .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(config::endpoints()),
                     )
@@ -284,7 +280,6 @@ async fn main() -> Result<()> {
             )
             .service(
                 scope("/config")
-                    .wrap(AuditHeader::new(TableName::Contexts))
                     .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                     .service(config::endpoints()),
             )
