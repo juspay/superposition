@@ -613,6 +613,7 @@ name = "cac_client"
 version = "0.8.0"
 dependencies = [
  "actix-web",
+ "anyhow",
  "cbindgen",
  "chrono",
  "derive_more",

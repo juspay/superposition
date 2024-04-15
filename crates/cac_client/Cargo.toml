@@ -20,6 +20,7 @@ strum_macros = { workspace = true }
 strum = { workspace = true }
 tokio = {version = "1.29.1", features = ["full"]}
 service-utils = { path = "../service-utils" }
+anyhow = { workspace = true}
 
 [lib]
 name = "cac_client"
