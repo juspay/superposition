@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context-aware-config-v0.26.0 - 2024-04-16
+#### Features
+- PICAF-26366 Add filter support to client - (f4c12c7) - ankit.mahato
+
+- - -
+
 ## context-aware-config-v0.25.2 - 2024-04-10
 #### Bug Fixes
 - PICAF-26366 added service-prefix to functions endpoints - (5492072) - ankit.mahato

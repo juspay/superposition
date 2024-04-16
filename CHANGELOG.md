@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.39.0 - 2024-04-16
+### Package updates
+- cac_client bumped to cac_client-v0.9.0
+- context-aware-config bumped to context-aware-config-v0.26.0
+### Global changes
+#### Bug Fixes
+- PICAF-26366 fixed error in client - (d1b1f03) - ankit.mahato
+#### Features
+- PICAF-26366 Add filter support to client - (f4c12c7) - ankit.mahato
+
+- - -
+
 ## v0.38.2 - 2024-04-12
 ### Package updates
 - frontend bumped to frontend-v0.5.1

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.9.0 - 2024-04-16
+#### Bug Fixes
+- PICAF-26366 fixed error in client - (d1b1f03) - ankit.mahato
+#### Features
+- PICAF-26366 Add filter support to client - (f4c12c7) - ankit.mahato
+
+- - -
+
 ## cac_client-v0.8.0 - 2024-04-05
 #### Bug Fixes
 - [PICAF-26101] empty key filters should return all keys - (f9dd889) - Kartik
