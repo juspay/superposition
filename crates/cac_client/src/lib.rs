@@ -17,7 +17,9 @@ use std::{
 use strum_macros;
 use utils::core::MapError;
 
-use service_utils::{helpers::extract_dimensions, result, unexpected_error};
+use service_utils::{
+    helpers::extract_dimensions, result as superposition, unexpected_error,
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Context {
@@ -287,7 +289,7 @@ pub use eval::merge;
 pub fn filter_keys_by_prefix(
     keys: Map<String, Value>,
     prefix_list: &HashSet<&str>,
-) -> result::Result<Map<String, Value>> {
+) -> superposition::Result<Map<String, Value>> {
     Ok(keys
         .into_iter()
         .filter(|(key, _)| {
@@ -301,7 +303,7 @@ pub fn filter_keys_by_prefix(
 pub fn filter_config_by_prefix(
     config: &Config,
     prefix_list: &HashSet<&str>,
-) -> result::Result<Config> {
+) -> superposition::Result<Config> {
     let mut filtered_overrides: Map<String, Value> = Map::new();
 
     let filtered_default_config: Map<String, Value> =
@@ -345,10 +347,10 @@ pub fn filter_config_by_prefix(
 pub fn filter_config_by_dimensions(
     config: &Config,
     query_params_map: &Map<String, Value>,
-) -> result::Result<Config> {
+) -> superposition::Result<Config> {
     let filter_context = |contexts: &Vec<Context>,
                           query_params_map: &Map<String, Value>|
-     -> result::Result<Vec<Context>> {
+     -> superposition::Result<Vec<Context>> {
         let mut filtered_context: Vec<Context> = Vec::new();
         for context in contexts.iter() {
             let dimension = extract_dimensions(&context.condition)?;

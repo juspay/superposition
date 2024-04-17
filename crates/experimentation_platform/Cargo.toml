@@ -1,6 +1,6 @@
 [package]
-name = "external"
-version = "0.4.0"
+name = "experimentation_platform"
+version = "0.12.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,17 +11,24 @@ dotenv = { workspace = true }
 # Https server framework
 actix = { workspace = true }
 actix-web = { workspace = true }
+# To help generate snowflake ids
+rs-snowflake = { workspace = true }
+# To help with generating uuids
+uuid = { workspace = true }
 # To serialize and deserialize objects from json
 serde = { workspace = true }
 serde_json = { workspace = true }
 # For logging and debugging
+env_logger = { workspace = true }
 log = { workspace = true }
+# to work with enums
+derive_more = { workspace = true }
 # date and time
 chrono = { workspace = true }
 # ORM
+diesel = { workspace = true }
+diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
+service_utils = { path = "../service_utils" }
+superposition_types = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/context-aware-config.git", version = "0.1.0" }
 reqwest = { workspace = true }
 anyhow = { workspace = true }
-service_utils = { path = "../service_utils" }
-experimentation_platform = { path = "../experimentation_platform" }
-superposition_types = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/context-aware-config.git", version = "0.1.0" }
-dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.9.0" }

@@ -257,7 +257,7 @@ where
                                         set_error_message.set("".to_string());
                                         set_output_message.set("".to_string());
                                     }
-                                    Err(e) => {
+                                    Err(_) => {
                                         set_val.set(json!(value));
                                         set_error_message.set("".to_string());
                                         set_output_message.set("".to_string());

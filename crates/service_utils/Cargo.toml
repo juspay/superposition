@@ -1,0 +1,35 @@
+[package]
+name = "service_utils"
+version = "0.13.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# env
+dotenv = { workspace = true }
+# Https server framework
+actix = { workspace = true }
+actix-web = { workspace = true }
+futures-util = "0.3.28"
+# To help generate snowflake ids
+rs-snowflake = { workspace = true }
+#ORM
+env_logger = { workspace = true }
+anyhow = { workspace = true }
+strum_macros = { workspace = true }
+strum = { workspace = true }
+diesel = { workspace = true }
+rusoto_kms = { workspace = true }
+rusoto_signature = { workspace = true }
+bytes = { workspace = true }
+rusoto_core = { workspace = true }
+base64 = { workspace = true }
+urlencoding = { workspace = true }
+jsonschema = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+derive_more = { workspace = true }
+reqwest = { workspace = true }
+thiserror = { workspace = true }
