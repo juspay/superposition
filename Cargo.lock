@@ -623,7 +623,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "service-utils",
+ "service_utils",
  "strum",
  "strum_macros",
  "tokio",
@@ -901,7 +901,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13418e745008f7349ec7e449155f419a61b92b58a99cc3616942b926825ec76b"
 
 [[package]]
-name = "context-aware-config"
+name = "context_aware_config"
 version = "0.26.1"
 dependencies = [
  "actix",
@@ -915,13 +915,12 @@ dependencies = [
  "bytes",
  "cac_client",
  "chrono",
- "dashboard-auth",
  "derive_more",
  "diesel",
  "diesel-derive-enum",
  "dotenv",
  "env_logger 0.8.4",
- "experimentation-platform",
+ "experimentation_platform",
  "external",
  "frontend",
  "futures",
@@ -941,11 +940,11 @@ dependencies = [
  "rusoto_signature",
  "serde",
  "serde_json",
- "service-utils",
+ "service_utils",
  "strum",
  "strum_macros",
+ "superposition_types 0.1.0 (git+ssh://git@ssh.bitbucket.juspay.net/picaf/context-aware-config.git)",
  "tracing-log",
- "tracing-utils",
  "urlencoding",
  "uuid",
  "valuable",
@@ -1156,8 +1155,8 @@ dependencies = [
 
 [[package]]
 name = "dashboard-auth"
-version = "0.4.2"
-source = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git?tag=v1.5.4#3abd65d22652613bad6ac0f739fae2f2e69daef6"
+version = "0.6.0"
+source = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git?tag=v1.9.0#cc0cf0267f5fe1f125c7d27e01667e8b2c025a7f"
 dependencies = [
  "actix",
  "actix-web",
@@ -1169,6 +1168,25 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "superposition_types 0.1.0 (git+ssh://git@ssh.bitbucket.juspay.net/picaf/context-aware-config.git?tag=superposition_types-v0.1.0)",
+]
+
+[[package]]
+name = "dashboard-auth"
+version = "0.6.0"
+source = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git#cc0cf0267f5fe1f125c7d27e01667e8b2c025a7f"
+dependencies = [
+ "actix",
+ "actix-web",
+ "derive_more",
+ "dotenv",
+ "env_logger 0.10.0",
+ "futures-util",
+ "log",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "superposition_types 0.1.0 (git+ssh://git@ssh.bitbucket.juspay.net/picaf/context-aware-config.git?tag=superposition_types-v0.1.0)",
 ]
 
 [[package]]
@@ -1399,29 +1417,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "experimentation-platform"
-version = "0.12.0"
-dependencies = [
- "actix",
- "actix-web",
- "anyhow",
- "chrono",
- "dashboard-auth",
- "derive_more",
- "diesel",
- "diesel-derive-enum",
- "dotenv",
- "env_logger 0.8.4",
- "log",
- "reqwest",
- "rs-snowflake",
- "serde",
- "serde_json",
- "service-utils",
- "uuid",
-]
-
-[[package]]
 name = "experimentation_client"
 version = "0.5.0"
 dependencies = [
@@ -1439,6 +1434,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "experimentation_platform"
+version = "0.12.0"
+dependencies = [
+ "actix",
+ "actix-web",
+ "anyhow",
+ "chrono",
+ "derive_more",
+ "diesel",
+ "diesel-derive-enum",
+ "dotenv",
+ "env_logger 0.8.4",
+ "log",
+ "reqwest",
+ "rs-snowflake",
+ "serde",
+ "serde_json",
+ "service_utils",
+ "superposition_types 0.1.0 (git+ssh://git@ssh.bitbucket.juspay.net/picaf/context-aware-config.git)",
+ "uuid",
+]
+
+[[package]]
 name = "external"
 version = "0.4.0"
 dependencies = [
@@ -1446,14 +1464,15 @@ dependencies = [
  "actix-web",
  "anyhow",
  "chrono",
- "dashboard-auth",
+ "dashboard-auth 0.6.0 (git+ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git?tag=v1.9.0)",
  "dotenv",
- "experimentation-platform",
+ "experimentation_platform",
  "log",
  "reqwest",
  "serde",
  "serde_json",
- "service-utils",
+ "service_utils",
+ "superposition_types 0.1.0 (git+ssh://git@ssh.bitbucket.juspay.net/picaf/context-aware-config.git)",
 ]
 
 [[package]]
@@ -2118,6 +2137,58 @@ dependencies = [
  "time",
  "url",
  "uuid",
+]
+
+[[package]]
+name = "juspay_superposition"
+version = "0.1.0"
+dependencies = [
+ "actix",
+ "actix-cors",
+ "actix-files",
+ "actix-http",
+ "actix-web",
+ "anyhow",
+ "base64 0.21.2",
+ "blake3",
+ "bytes",
+ "cac_client",
+ "chrono",
+ "context_aware_config",
+ "dashboard-auth 0.6.0 (git+ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git)",
+ "derive_more",
+ "diesel",
+ "diesel-derive-enum",
+ "dotenv",
+ "env_logger 0.8.4",
+ "experimentation_platform",
+ "external",
+ "frontend",
+ "futures",
+ "futures-util",
+ "itertools 0.10.5",
+ "jsonschema",
+ "leptos",
+ "leptos_actix",
+ "leptos_meta",
+ "leptos_router",
+ "log",
+ "rand",
+ "reqwest",
+ "rs-snowflake",
+ "rusoto_core",
+ "rusoto_kms",
+ "rusoto_signature",
+ "serde",
+ "serde_json",
+ "service_utils",
+ "strum",
+ "strum_macros",
+ "tracing-log",
+ "tracing-utils",
+ "urlencoding",
+ "uuid",
+ "valuable",
 ]
 
 [[package]]
@@ -3536,7 +3607,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "service-utils"
+name = "service_utils"
 version = "0.13.0"
 dependencies = [
  "actix",
@@ -3544,7 +3615,6 @@ dependencies = [
  "anyhow",
  "base64 0.21.2",
  "bytes",
- "dashboard-auth",
  "derive_more",
  "diesel",
  "dotenv",
@@ -3715,6 +3785,103 @@ name = "subtle"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
+
+[[package]]
+name = "superposition"
+version = "0.1.0"
+dependencies = [
+ "actix",
+ "actix-cors",
+ "actix-files",
+ "actix-http",
+ "actix-web",
+ "anyhow",
+ "base64 0.21.2",
+ "blake3",
+ "bytes",
+ "cac_client",
+ "chrono",
+ "context_aware_config",
+ "derive_more",
+ "diesel",
+ "diesel-derive-enum",
+ "dotenv",
+ "env_logger 0.8.4",
+ "experimentation_platform",
+ "frontend",
+ "futures",
+ "futures-util",
+ "itertools 0.10.5",
+ "jsonschema",
+ "leptos",
+ "leptos_actix",
+ "leptos_meta",
+ "leptos_router",
+ "log",
+ "rand",
+ "reqwest",
+ "rs-snowflake",
+ "rusoto_core",
+ "rusoto_kms",
+ "rusoto_signature",
+ "serde",
+ "serde_json",
+ "service_utils",
+ "strum",
+ "strum_macros",
+ "superposition_types 0.1.0 (git+ssh://git@ssh.bitbucket.juspay.net/picaf/context-aware-config.git)",
+ "tracing-log",
+ "urlencoding",
+ "uuid",
+ "valuable",
+]
+
+[[package]]
+name = "superposition_types"
+version = "0.1.0"
+dependencies = [
+ "actix",
+ "actix-web",
+ "derive_more",
+ "log",
+ "serde",
+ "serde_json",
+ "strum",
+ "strum_macros",
+ "thiserror",
+]
+
+[[package]]
+name = "superposition_types"
+version = "0.1.0"
+source = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/context-aware-config.git?tag=superposition_types-v0.1.0#086131051b61b1a62989019794c4893251d204a6"
+dependencies = [
+ "actix",
+ "actix-web",
+ "derive_more",
+ "log",
+ "serde",
+ "serde_json",
+ "strum",
+ "strum_macros",
+ "thiserror",
+]
+
+[[package]]
+name = "superposition_types"
+version = "0.1.0"
+source = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/context-aware-config.git#086131051b61b1a62989019794c4893251d204a6"
+dependencies = [
+ "actix",
+ "actix-web",
+ "derive_more",
+ "log",
+ "serde",
+ "serde_json",
+ "strum",
+ "strum_macros",
+ "thiserror",
+]
 
 [[package]]
 name = "sval"
@@ -4124,8 +4291,8 @@ dependencies = [
 
 [[package]]
 name = "tracing-utils"
-version = "0.1.0"
-source = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git#d89ab1e04e193c7fc01ef2d96e144f8a7474c04f"
+version = "0.3.0"
+source = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git#cc0cf0267f5fe1f125c7d27e01667e8b2c025a7f"
 dependencies = [
  "actix-http",
  "actix-web",

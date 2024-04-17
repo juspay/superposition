@@ -2,21 +2,24 @@
 resolver = "2"
 
 members = [
-  "crates/service-utils",
-  "crates/context-aware-config",
-  "crates/experimentation-platform",
+  "crates/service_utils",
+  "crates/context_aware_config",
+  "crates/experimentation_platform",
   "crates/external",
-  "crates/service-utils",
+  "crates/service_utils",
   "crates/experimentation_client",
   "crates/cac_client",
   "crates/experimentation_client_integration_example",
   "crates/frontend",
-  "crates/caclang"
-]
+  "crates/caclang",
+  "crates/juspay_superposition",
+  "crates/superposition",
+  "crates/superposition_types"
+  ]
 
 [[workspace.metadata.leptos]]
 name = "cac"
-bin-package = "context-aware-config"
+bin-package = "juspay_superposition"
 output-name = "frontend"
 lib-package = "frontend"
 site-root = "target/site"
@@ -52,9 +55,6 @@ anyhow = "1.0.75"
 strum_macros = "0.25"
 strum = "0.25"
 blake3 = "1.3.3"
-# juspay dependencies
-dashboard-auth = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", tag = "v1.5.4"}
-tracing-utils = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/sdk-rs-utils.git", version = "0.1.0" }
 leptos = { version = "0.5.2" }
 leptos_meta = { version = "0.5.2" }
 leptos_router = { version = "0.5.2" }

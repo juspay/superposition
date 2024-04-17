@@ -25,9 +25,9 @@ authors = []
 [bump_profiles]
 
 [packages]
-context-aware-config = { path = "crates/context-aware-config" }
-experimentation-platform = { path = "crates/experimentation-platform" }
-service-utils = { path = "crates/service-utils" }
+context_aware_config = { path = "crates/context_aware_config" }
+experimentation_platform = { path = "crates/experimentation_platform" }
+service_utils = { path = "crates/service_utils" }
 external = { path = "crates/external" }
 frontend = { path = "crates/frontend" }
 caclang = { path = "crates/caclang" }
