@@ -7,13 +7,15 @@ pub trait SuperpositionUser {
     fn get_email(&self) -> String;
     fn get_username(&self) -> String;
     fn get_auth_token(&self) -> String;
+    fn get_auth_type(&self) -> String;
 }
 
 #[derive(Debug, Clone)]
 pub struct User {
-    email: String,
-    username: String,
-    auth_token: String,
+    pub email: String,
+    pub username: String,
+    pub auth_token: String,
+    pub auth_type: String,
 }
 
 impl SuperpositionUser for User {
@@ -28,6 +30,10 @@ impl SuperpositionUser for User {
     fn get_auth_token(&self) -> String {
         self.auth_token.clone()
     }
+
+    fn get_auth_type(&self) -> String {
+        self.auth_type.clone()
+    }
 }
 
 impl Default for User {
@@ -36,6 +42,7 @@ impl Default for User {
             email: "superposition@juspay.in".into(),
             username: "superposition".into(),
             auth_token: "1234abcd".into(),
+            auth_type: "Bearer".into(),
         }
     }
 }
@@ -46,6 +53,7 @@ impl From<Box<dyn SuperpositionUser>> for User {
             email: value.get_email(),
             username: value.get_username(),
             auth_token: value.get_auth_token(),
+            auth_type: value.get_auth_type(),
         }
     }
 }
