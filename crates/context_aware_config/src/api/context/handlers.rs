@@ -212,7 +212,7 @@ fn create_ctx_from_put_req(
     })
 }
 
-fn hash(val: &Value) -> String {
+pub fn hash(val: &Value) -> String {
     let sorted_str: String = json_to_sorted_string(val);
     blake3::hash(sorted_str.as_bytes()).to_string()
 }
@@ -248,7 +248,7 @@ fn get_put_resp(ctx: Context) -> PutResp {
     }
 }
 
-fn put(
+pub fn put(
     req: Json<PutReq>,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
@@ -435,18 +435,13 @@ async fn list_contexts(
     Ok(Json(result))
 }
 
-#[delete("/{ctx_id}")]
-async fn delete_context(
-    path: Path<String>,
-    db_conn: DbConnection,
+pub async fn delete_context_api(
+    ctx_id: String,
     user: User,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl;
-    let DbConnection(mut conn) = db_conn;
-
-    let ctx_id = path.into_inner();
-    let deleted_row =
-        delete(dsl::contexts.filter(dsl::id.eq(&ctx_id))).execute(&mut conn);
+    let deleted_row = delete(dsl::contexts.filter(dsl::id.eq(&ctx_id))).execute(conn);
     match deleted_row {
         Ok(0) => Err(not_found!("Context Id `{}` doesn't exists", ctx_id)),
         Ok(_) => {
@@ -458,6 +453,16 @@ async fn delete_context(
             Err(unexpected_error!("Something went wrong."))
         }
     }
+}
+
+#[delete("/{ctx_id}")]
+async fn delete_context(
+    path: Path<String>,
+    user: User,
+    mut db_conn: DbConnection,
+) -> superposition::Result<HttpResponse> {
+    let ctx_id = path.into_inner();
+    delete_context_api(ctx_id, user, &mut db_conn).await
 }
 
 #[put("/bulk-operations")]
@@ -523,10 +528,6 @@ async fn bulk_operations(
             }
         }
         Ok(()) // Commit the transaction
-    });
-    match result {
-        Ok(_) => Ok(web::Json(resp)),
-        Err(TransactionError::BadRequest(_)) => Err(ErrorBadRequest("")),
-        Err(TransactionError::DieselError(_)) => Err(ErrorInternalServerError("")),
-    }
+    })?;
+    Ok(Json(response))
 }

@@ -5,7 +5,9 @@ use super::helpers::{
     filter_config_by_dimensions, filter_config_by_prefix, filter_context,
 };
 use super::types::{Config, Context};
-use crate::api::context::validate_dimensions_and_calculate_priority;
+use crate::api::context::{
+    delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
+};
 use crate::api::dimension::get_all_dimension_schema_map;
 use crate::{
     db::schema::{
@@ -15,7 +17,10 @@ use crate::{
     helpers::json_to_sorted_string,
 };
 use actix_http::header::{HeaderName, HeaderValue};
-use actix_web::{get, web::Query, HttpRequest, HttpResponse, Scope};
+use actix_web::web;
+use actix_web::{
+    error::ErrorBadRequest, get, put, web::Query, HttpRequest, HttpResponse, Scope,
+};
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
 use diesel::{
@@ -27,17 +32,12 @@ use serde_json::{json, Map, Value};
 use service_utils::service::types::DbConnection;
 use service_utils::{bad_argument, db_error, unexpected_error};
 
-use service_utils::result as superposition;
-use uuid::Uuid;
+use dashboard_auth::types::User;
 use itertools::Itertools;
 use jsonschema::JSONSchema;
 use service_utils::helpers::extract_dimensions;
-use serde_json::{json, Map, Value, Value::Null};
-use service_utils::{
-    errors::types::Error as err, helpers::extract_dimensions, helpers::ToActixErr,
-    service::types::DbConnection,
-};
-
+use service_utils::result as superposition;
+use uuid::Uuid;
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(get)
@@ -282,12 +282,34 @@ fn get_contextids_from_overrideid(
     res
 }
 
+fn construct_new_payload(req_payload: &Map<String, Value>) -> web::Json<PutReq> {
+    let mut res = req_payload.clone();
+    res.remove("to_be_deleted");
+    res.remove("override_id");
+    res.remove("id");
+    if let Some(Value::Object(res_context)) = res.get("context") {
+        if let Some(Value::Object(res_override)) = res.get("override") {
+            return web::Json(PutReq {
+                context: res_context.to_owned(),
+                r#override: res_override.to_owned(),
+            });
+        }
+    }
+    web::Json(PutReq {
+        context: Map::new(),
+        r#override: Map::new(),
+    })
+}
+
 async fn reduce_context_key(
+    user: User,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     mut og_contexts: Vec<Context>,
     mut og_overrides: Map<String, Value>,
     check_key: &str,
     dimension_schema_map: &HashMap<String, (JSONSchema, i32)>,
     default_config: Map<String, Value>,
+    is_approve: bool,
 ) -> Config {
     let default_config_val = default_config.get(check_key);
     let mut contexts_overrides_values: Vec<(Context, Map<String, Value>, Value, String)> =
@@ -341,9 +363,27 @@ async fn reduce_context_key(
                             // After extracting values
                             if *to_be_deleted {
                                 // remove cid from contexts
+                                if is_approve {
+                                    let _ = delete_context_api(
+                                        cid.to_owned(),
+                                        user.clone(),
+                                        conn,
+                                    )
+                                    .await;
+                                }
                                 og_contexts.retain(|x| x.id != *cid);
                             } else {
                                 //update the override by removing the key
+                                if is_approve {
+                                    let _ = delete_context_api(
+                                        cid.to_owned(),
+                                        user.clone(),
+                                        conn,
+                                    )
+                                    .await;
+                                    let put_req = construct_new_payload(request_payload);
+                                    let _ = put(put_req, &user, conn, false);
+                                }
 
                                 if let Some(override_val) =
                                     request_payload.get("override")
@@ -386,17 +426,19 @@ async fn reduce_context_key(
     }
 }
 
-fn hash(val: &Value) -> String {
-    let sorted_str: String = json_to_sorted_string(val);
-    blake3::hash(sorted_str.as_bytes()).to_string()
-}
-
-#[get("/reduce")]
+#[put("/reduce")]
 async fn reduce_context(
     req: HttpRequest,
+    user: User,
     db_conn: DbConnection,
 ) -> actix_web::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+    let is_approve = req
+        .headers()
+        .get("x-approve")
+        .and_then(|value| value.to_str().ok().and_then(|s| s.parse::<bool>().ok()))
+        .unwrap_or(false);
+
     let dimensions_schema_map = get_all_dimension_schema_map(&mut conn).unwrap();
     let mut config = generate_cac(&mut conn).await?;
     let default_config = (config.default_configs).clone();
@@ -405,11 +447,14 @@ async fn reduce_context(
         let overrides = config.overrides;
         let default_config = config.default_configs;
         config = reduce_context_key(
+            user.clone(),
+            &mut conn,
             contexts.clone(),
             overrides.clone(),
             key.as_str(),
             &dimensions_schema_map,
             default_config.clone(),
+            is_approve,
         )
         .await;
     }
