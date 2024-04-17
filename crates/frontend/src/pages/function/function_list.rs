@@ -32,18 +32,17 @@ pub fn function_list() -> impl IntoView {
     });
     let table_columns = create_memo(move |_| function_table_columns());
 
-    let combined_resource: Resource<(String), CombinedResource> =
-        create_blocking_resource(
-            move || (tenant_rs.get()),
-            |(current_tenant)| async move {
-                let functions_future = fetch_functions(current_tenant.to_string());
+    let combined_resource: Resource<String, CombinedResource> = create_blocking_resource(
+        move || (tenant_rs.get()),
+        |current_tenant| async move {
+            let functions_future = fetch_functions(current_tenant.to_string());
 
-                let functions_result = functions_future.await;
-                CombinedResource {
-                    functions: functions_result.unwrap_or_else(|_| vec![]),
-                }
-            },
-        );
+            let functions_result = functions_future.await;
+            CombinedResource {
+                functions: functions_result.unwrap_or_else(|_| vec![]),
+            }
+        },
+    );
 
     view! {
         <div class="p-8">

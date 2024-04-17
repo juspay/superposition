@@ -39,7 +39,6 @@ pub async fn get_resolved_config(
     let url = format!("{}/config/resolve", state.cac_host);
     let resp = http_client
         .get(&url)
-        .bearer_auth(&state.admin_token)
         .header("x-tenant", "mjos")
         .query(dimension_ctx)
         .send()

@@ -1,10 +1,8 @@
 use crate::types::Dimension;
 use crate::utils::{get_config_value, get_host, ConfigType};
-use anyhow::{Error, Result};
+use anyhow::Result;
 use reqwest::StatusCode;
-use serde_json::{json, Map, Number, Value};
-use std::io::ErrorKind;
-use std::str::FromStr;
+use serde_json::{json, Map, Value};
 
 pub fn get_condition_schema(
     var: &str,

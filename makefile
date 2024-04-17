@@ -21,8 +21,8 @@ cleanup:
 	-docker rmi -f $$(docker images | grep context-aware-config-postgres | cut -f 10 -d " ")
 
 db-init:
-	diesel migration run --locked-schema --config-file=crates/context-aware-config/diesel.toml
-	-diesel migration run --locked-schema --config-file=crates/experimentation-platform/diesel.toml
+	diesel migration run --locked-schema --config-file=crates/context_aware_config/diesel.toml
+	-diesel migration run --locked-schema --config-file=crates/experimentation_platform/diesel.toml
 
 cac-migration: cleanup
 	docker-compose up -d postgres
@@ -32,7 +32,7 @@ cac-migration: cleanup
 		do echo "waiting for postgres bootup"; \
 		sleep 0.5; \
 		done
-	diesel migration run --config-file=crates/context-aware-config/diesel.toml
+	diesel migration run --config-file=crates/context_aware_config/diesel.toml
 	docker-compose down
 
 exp-migration: cleanup
@@ -43,7 +43,7 @@ exp-migration: cleanup
 		do echo "waiting for postgres bootup"; \
 		sleep 0.5; \
 		done
-	diesel migration run --config-file=crates/experimentation-platform/diesel.toml
+	diesel migration run --config-file=crates/experimentation_platform/diesel.toml
 	docker-compose down
 
 migration: cac-migration exp-migration
@@ -94,18 +94,27 @@ setup: migration env-setup test-tenant dev-tenant
 	# NOTE: The container spinned up are stopped and removed after the work is done.
 
 kill:
-	-pkill -f target/debug/context-aware-config &
+	-pkill -f target/debug/juspay_superposition &
 
 get-password:
 	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh` && echo $$DB_PASSWORD
 
-cac:
+juspay_superposition:
 	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
-	cargo run --color always --bin context-aware-config --no-default-features --features=ssr
+	cargo run --color always --bin juspay_superposition --no-default-features --features=ssr
 
-dev:
+juspay_superposition_dev:
 	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
-	cargo watch -x 'run --color always --bin context-aware-config --no-default-features --features=ssr'
+	cargo watch -x 'run --color always --bin juspay_superposition --no-default-features --features=ssr'
+
+superposition:
+	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
+	cargo run --color always --bin superposition --no-default-features --features=ssr
+
+superposition_dev:
+	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
+	cargo watch -x 'run --color always --bin superposition --no-default-features --features=ssr'
+
 
 frontend:
 	cd crates/frontend && \
@@ -119,8 +128,8 @@ frontend:
 
 backend:
 	-rm -rf target/node_modules
-	npm --prefix ./crates/context-aware-config/ ci
-	mv crates/context-aware-config/node_modules target/
+	npm --prefix ./crates/context_aware_config/ ci
+	mv crates/context_aware_config/node_modules target/
 	cargo build --color always
 
 build: frontend backend
@@ -130,9 +139,17 @@ run: kill build
 		do echo "waiting for postgres, localstack bootup"; \
 		sleep 0.5; \
 		done
+	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
+	make superposition -e DOCKER_DNS=$(DOCKER_DNS)
+
+juspay_run: kill build
+	while ! make validate-psql-connection validate-aws-connection; \
+		do echo "waiting for postgres, localstack bootup"; \
+		sleep 0.5; \
+		done
 	cp .env.example .env
 	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
-	make cac -e DOCKER_DNS=$(DOCKER_DNS)
+	make juspay_superposition -e DOCKER_DNS=$(DOCKER_DNS)
 
 ci-test: cleanup ci-setup
 	cargo test

@@ -3,7 +3,6 @@ use actix_web::{
     web::{self, Data, Json},
     Scope,
 };
-use dashboard_auth::types::User;
 
 use crate::api::external_api::{
     helpers::{fetch_variant_id, get_resolved_config},
@@ -23,6 +22,8 @@ use service_utils::{
     service::types::{AppState, DbConnection, Tenant},
 };
 
+use superposition_types::User;
+
 pub fn endpoints(scope: Scope) -> Scope {
     scope
         .service(stabilize)
@@ -35,16 +36,16 @@ async fn stabilize(
     params: web::Path<i64>,
     state: Data<AppState>,
     db_conn: DbConnection,
-    user: User,
     tenant: Tenant,
+    user: User,
 ) -> result::Result<Json<ExperimentResponse>> {
     let response = conclude_experiment(
         params.into_inner(),
         state,
         db_conn,
-        user,
         tenant,
         VariantType::EXPERIMENTAL,
+        user,
     )
     .await?;
     return Ok(Json(ExperimentResponse::from(response)));
@@ -55,16 +56,16 @@ async fn revert(
     params: web::Path<i64>,
     state: Data<AppState>,
     db_conn: DbConnection,
-    user: User,
     tenant: Tenant,
+    user: User,
 ) -> result::Result<Json<ExperimentResponse>> {
     let response = conclude_experiment(
         params.into_inner(),
         state,
         db_conn,
-        user,
         tenant,
         VariantType::CONTROL,
+        user,
     )
     .await?;
     return Ok(Json(ExperimentResponse::from(response)));
@@ -74,9 +75,9 @@ pub async fn conclude_experiment(
     exp_id: i64,
     state: Data<AppState>,
     db_conn: DbConnection,
-    user: User,
     tenant: Tenant,
     variant: VariantType,
+    user: User,
 ) -> result::Result<Experiment> {
     let DbConnection(mut conn) = db_conn;
 
@@ -85,7 +86,7 @@ pub async fn conclude_experiment(
     let req_body = ConcludeExperimentRequest {
         chosen_variant: id.to_string(),
     };
-    let response = conclude(state, exp_id, req_body, conn, user, tenant).await?;
+    let response = conclude(state, exp_id, req_body, conn, tenant, user).await?;
     return Ok(response);
 }
 
