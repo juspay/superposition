@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.9.1 - 2024-04-17
+#### Bug Fixes
+- [PICAF-26653] removed audit log middleware and reduced max db connection pool size to 2 - (82022eb) - Saurav Suman
+
+- - -
+
 ## cac_client-v0.9.0 - 2024-04-16
 #### Bug Fixes
 - PICAF-26366 fixed error in client - (d1b1f03) - ankit.mahato
