@@ -1,6 +1,6 @@
 [package]
 name = "cac_client"
-version = "0.9.1"
+version = "0.10.0"
 edition = "2021"
 build = "build.rs"
 

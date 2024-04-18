@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.13.0 - 2024-04-18
+#### Features
+- ready for open source! - (b7d36be) - Kartik
+
+- - -
+
 ## experimentation-platform-v0.12.0 - 2024-04-05
 #### Documentation
 - PICAF-25981: add intro doc and features - (64fa30f) - Natarajan Kannan

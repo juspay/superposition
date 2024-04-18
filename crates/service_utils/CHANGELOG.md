@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.14.0 - 2024-04-18
+#### Features
+- ready for open source! - (b7d36be) - Kartik
+
+- - -
+
 ## service_utils-v0.13.0 - 2024-04-10
 #### Features
 - [PICAF-25423] added new result, error type and error macros - (e673fb1) - Shubhranshu Sanjeev
