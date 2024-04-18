@@ -29,6 +29,6 @@ chrono = { workspace = true }
 diesel = { workspace = true }
 diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
 service_utils = { path = "../service_utils" }
-superposition_types = { git = "ssh://git@ssh.bitbucket.juspay.net/picaf/context-aware-config.git", version = "0.1.0" }
+superposition_types = { path = "../superposition_types" }
 reqwest = { workspace = true }
 anyhow = { workspace = true }
