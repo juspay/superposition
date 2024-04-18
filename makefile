@@ -94,18 +94,10 @@ setup: migration env-setup test-tenant dev-tenant
 	# NOTE: The container spinned up are stopped and removed after the work is done.
 
 kill:
-	-pkill -f target/debug/juspay_superposition &
+	-pkill -f target/debug/superposition &
 
 get-password:
 	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh` && echo $$DB_PASSWORD
-
-juspay_superposition:
-	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
-	cargo run --color always --bin juspay_superposition --no-default-features --features=ssr
-
-juspay_superposition_dev:
-	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
-	cargo watch -x 'run --color always --bin juspay_superposition --no-default-features --features=ssr'
 
 superposition:
 	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
@@ -141,15 +133,6 @@ run: kill build
 		done
 	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
 	make superposition -e DOCKER_DNS=$(DOCKER_DNS)
-
-juspay_run: kill build
-	while ! make validate-psql-connection validate-aws-connection; \
-		do echo "waiting for postgres, localstack bootup"; \
-		sleep 0.5; \
-		done
-	cp .env.example .env
-	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
-	make juspay_superposition -e DOCKER_DNS=$(DOCKER_DNS)
 
 ci-test: cleanup ci-setup
 	cargo test
