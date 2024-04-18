@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## external-v0.5.0 - 2024-04-18
+#### Features
+- ready for open source! - (b7d36be) - Kartik
+#### Refactoring
+- [PICAF-26558] refactored service to use new error type and better error handling - (741f391) - Shubhranshu Sanjeev
+
+- - -
+
 ## external-v0.4.0 - 2024-03-08
 #### Features
 - PICAF-25884 Added function validation for context and default_config - (990b729) - ankit.mahato

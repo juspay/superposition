@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.6.0 - 2024-04-18
+#### Features
+- ready for open source! - (b7d36be) - Kartik
+
+- - -
+
 ## frontend-v0.5.1 - 2024-04-12
 #### Bug Fixes
 - [PICAF-26529] function route fix - (aba54da) - Pratik Mishra

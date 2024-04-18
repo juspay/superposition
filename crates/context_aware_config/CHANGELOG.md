@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.27.0 - 2024-04-18
+#### Features
+- ready for open source! - (b7d36be) - Kartik
+
+- - -
+
 ## context-aware-config-v0.26.1 - 2024-04-17
 #### Bug Fixes
 - [PICAF-26653] removed audit log middleware and reduced max db connection pool size to 2 - (82022eb) - Saurav Suman

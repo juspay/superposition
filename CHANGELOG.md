@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.40.0 - 2024-04-18
+### Package updates
+- cac_client bumped to cac_client-v0.10.0
+- external bumped to external-v0.5.0
+- frontend bumped to frontend-v0.6.0
+- context_aware_config bumped to context_aware_config-v0.27.0
+- service_utils bumped to service_utils-v0.14.0
+- experimentation_platform bumped to experimentation_platform-v0.13.0
+### Global changes
+#### Features
+- ready for open source! - (b7d36be) - Kartik
+- add auth_type so this can be used when making API calls - (0861310) - Kartik
+
+- - -
+
 ## v0.39.1 - 2024-04-17
 ### Package updates
 - cac_client bumped to cac_client-v0.9.1
