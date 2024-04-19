@@ -2,7 +2,7 @@
 
 # CONSTANTS
 region="ap-south-1"
-alias aws="aws --endpoint-url=http://$DOCKER_DNS:4566 --region=${region}"
+alias aws="aws --endpoint-url=http://localhost:4566 --region=${region}"
 
 # ****** KMS *******
 

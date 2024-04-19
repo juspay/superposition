@@ -9,25 +9,21 @@ SHELL := /usr/bin/env bash
 	kill
 	run
 	ci-test
-	ci-build
-	ci-push
-	registry-login
 	validate-aws-connection
 	validate-psql-connection
 	cac
-
-cleanup:
-	-docker rm -f $$(docker container ls --filter name=^context-aware-config -a -q)
-	-docker rmi -f $$(docker images | grep context-aware-config-postgres | cut -f 10 -d " ")
 
 db-init:
 	diesel migration run --locked-schema --config-file=crates/context_aware_config/diesel.toml
 	-diesel migration run --locked-schema --config-file=crates/experimentation_platform/diesel.toml
 
+cleanup:
+	-docker rm -f $$(docker container ls --filter name=^context-aware-config -a -q)
+	-docker rmi -f $$(docker images | grep context-aware-config-postgres | cut -f 10 -d " ")
+
 cac-migration: cleanup
 	docker-compose up -d postgres
 	cp .env.example .env
-	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
 	while ! make validate-psql-connection; \
 		do echo "waiting for postgres bootup"; \
 		sleep 0.5; \
@@ -38,7 +34,6 @@ cac-migration: cleanup
 exp-migration: cleanup
 	docker-compose up -d postgres
 	cp .env.example .env
-	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
 	while ! make validate-psql-connection; \
 		do echo "waiting for postgres bootup"; \
 		sleep 0.5; \
@@ -63,7 +58,7 @@ validate-psql-connection:
 
 env-setup:
 	npm ci
-	docker-compose up -d postgres localstack
+	-docker-compose up -d postgres localstack
 	cp .env.example .env
 	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
 	while ! make validate-psql-connection validate-aws-connection; \
@@ -131,31 +126,13 @@ run: kill build
 		do echo "waiting for postgres, localstack bootup"; \
 		sleep 0.5; \
 		done
-	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
 	make superposition -e DOCKER_DNS=$(DOCKER_DNS)
 
-ci-test: cleanup ci-setup
+ci-test: ci-setup
 	cargo test
 	npm run test
 	rm test_cac.sql
 	rm test_experimentation.sql
-
-ci-build:
-	docker buildx build --ssh default=$(SSH_AUTH_SOCK) \
-	    -t $(IMAGE_NAME):$(VERSION) \
-			--build-arg "CONTEXT_AWARE_CONFIG_VERSION=${VERSION}" \
-			--build-arg "SOURCE_COMMIT=${SOURCE_COMMIT}" \
-			.
-
-ci-push: registry-login
-	docker tag $(IMAGE_NAME):$(VERSION) $(REGISTRY_HOST)/$(IMAGE_NAME):$(VERSION)
-	docker push $(REGISTRY_HOST)/$(IMAGE_NAME):$(VERSION)
-
-registry-login:
-	aws ecr get-login-password --region $(REGION) | \
-	docker login \
-	    --username AWS \
-	    --password-stdin $(REGISTRY_HOST)
 
 tailwind:
 	cd crates/frontend && npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css --watch
