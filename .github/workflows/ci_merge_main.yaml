@@ -35,10 +35,11 @@ jobs:
                   release: true
                   git-user: "Superposition Bot"
                   git-user-email: "super_bot@juspay.in"
+                  check-latest-tag-only: true
 
             - name: Push code to main
               shell: bash
               run: |
                 git config user.email "super_bot@juspay.in"
                 git config user.name "Superposition Bot"
-                git push --follow-tags
+                git push --follow-tags origin main
