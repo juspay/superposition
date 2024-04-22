@@ -3,7 +3,7 @@ version: "3.4"
 services:
   postgres:
     build: ./docker-compose/postgres/
-    container_name: context-aware-config_postgres
+    container_name: superposition_postgres
     ports:
       - "5432:5432"
     environment:
@@ -14,7 +14,7 @@ services:
 
   localstack:
     build : ./docker-compose/localstack/
-    container_name: context-aware-config_localstack
+    container_name: superposition_localstack
     ports:
       - "4510-4559:4510-4559"  # external service port range
       - "4566:4566"            # LocalStack Edge Proxy
