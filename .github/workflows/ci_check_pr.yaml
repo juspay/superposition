@@ -1,0 +1,132 @@
+name: CI Checks on PRs
+
+on:
+    pull_request:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+    # Disable incremental compilation.
+    #
+    # Incremental compilation is useful as part of an edit-build-test-edit cycle,
+    # as it lets the compiler avoid recompiling code that hasn't changed. However,
+    # on CI, we're not making small edits; we're almost always building the entire
+    # project from scratch. Thus, incremental compilation on CI actually
+    # introduces *additional* overhead to support making future builds
+    # faster...but no future builds will ever occur in any given CI environment.
+    #
+    # See https://matklad.github.io/2021/09/04/fast-rust-builds.html#ci-workflow
+    # for details.
+    CARGO_INCREMENTAL: 0
+    # Allow more retries for network requests in cargo (downloading crates) and
+    # rustup (installing toolchains). This should help to reduce flaky CI failures
+    # from transient network timeouts or other issues.
+    CARGO_NET_RETRY: 10
+    RUSTUP_MAX_RETRIES: 10
+    # Don't emit giant backtraces in the CI logs.
+    RUST_BACKTRACE: short
+    # Use cargo's sparse index protocol
+    CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+    AWS_ACCESS_KEY_ID: test
+    AWS_SECRET_ACCESS_KEY: test
+    AWS_SESSION_TOKEN: test
+    AWS_REGION: ap-south-1
+    APP_ENV: "TEST"
+
+jobs:
+    formatting:
+        name: Check formatting
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            # - name: Check git settings
+            #   shell: bash
+            #   run: |
+            #       echo "${{ github.event.pull_request.head.ref }}"
+            #       git log --pretty=oneline --abbrev-commit
+            #       echo "----------------"
+            #       git tag "abc_tag" ${{github.event.pull_request.head.sha}}
+            #       git tag
+
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@master
+              with:
+                  toolchain: 1.76.0
+                  targets: wasm32-unknown-unknown
+                  components: rustfmt, clippy
+
+            - name: Check formatting
+              shell: bash
+              run: cargo fmt --all --check
+
+            - name: install cocogitto
+              uses: baptiste0928/cargo-install@v2.2.0
+              with:
+                  crate: cocogitto
+
+            - name: Check conventional commit
+              shell: bash
+              run: |
+                  git config --global user.name "${{ github.event.pull_request.user.login }}"
+                  git config --global user.email "temp_email@juspay.in"
+                  commit=$(git log --format=%B -n 1 ${{ github.event.pull_request.head.sha }})
+                  cog verify "$commit"
+
+    test:
+        name: Testing
+        runs-on: ubuntu-latest
+        services:
+            postgres:
+                image: postgres:12-alpine
+                ports:
+                    - 5432:5432
+                env:
+                    POSTGRES_PASSWORD: "docker"
+                    POSTGRES_DB: "config"
+                    restart: on-failure
+
+            localstack:
+                image: localstack/localstack:1.3.0
+                ports:
+                    - 4510-4559:4510-4559 # external service port range
+                    - 4566:4566 # LocalStack Edge Proxy
+                    - 4571:4571
+                env:
+                    LOCALSTACK_SERVICES: kms
+                    AWS_DEFAULT_REGION: ap-south-1
+                    EDGE_PORT: 4566
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@master
+              with:
+                  toolchain: 1.76.0
+                  targets: wasm32-unknown-unknown
+                  components: rustfmt, clippy
+
+            - name: install node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 18.19.0
+
+            - name: Install wasm-pack
+              shell: bash
+              run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+            - name: run tests
+              shell: bash
+              run: |
+                  export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh | base64 --decode` && echo $DB_PASSWORD
+                  make ci-test
+              env:
+                  APP_ENV: "TEST"

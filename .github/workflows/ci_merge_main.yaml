@@ -1,0 +1,44 @@
+name: Create release tags
+
+permissions:
+    contents: write
+
+on:
+    push:
+        branches:
+            - main
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    tag-release:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@master
+              with:
+                  toolchain: 1.76.0
+                  targets: wasm32-unknown-unknown
+                  components: rustfmt, clippy
+
+            - name: Semver release
+              uses: cocogitto/cocogitto-action@v3
+              id: release
+              with:
+                  release: true
+                  git-user: "Superposition Bot"
+                  git-user-email: "super_bot@juspay.in"
+
+            - name: Push code to main
+              shell: bash
+              run: |
+                git config user.email "super_bot@juspay.in"
+                git config user.name "Superposition Bot"
+                git push --follow-tags

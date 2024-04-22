@@ -23,6 +23,7 @@ pub type InputVector = Vec<(ReadSignal<String>, WriteSignal<String>)>;
 pub enum AppEnv {
     PROD,
     SANDBOX,
+    TEST,
     DEV,
 }
 
@@ -33,6 +34,7 @@ impl FromStr for AppEnv {
             "PROD" => Ok(AppEnv::PROD),
             "SANDBOX" => Ok(AppEnv::SANDBOX),
             "DEV" => Ok(AppEnv::DEV),
+            "TEST" => Ok(AppEnv::TEST),
             _ => Err("invalid app env!!".to_string()),
         }
     }
