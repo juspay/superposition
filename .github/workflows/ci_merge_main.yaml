@@ -20,6 +20,7 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
+                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
 
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
@@ -28,18 +29,24 @@ jobs:
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
-            - name: Semver release
-              uses: cocogitto/cocogitto-action@v3
-              id: release
+            - name: install cargo-edit to perform set-version
+              uses: baptiste0928/cargo-install@v2.2.0
               with:
-                  release: true
-                  git-user: "Superposition Bot"
-                  git-user-email: "super_bot@juspay.in"
-                  check-latest-tag-only: true
+                  crate: cargo-edit
 
-            - name: Push code to main
+            - name: install cocogitto
+              uses: baptiste0928/cargo-install@v2.2.0
+              with:
+                  crate: cocogitto
+
+            - name: Semver release
               shell: bash
               run: |
                 git config user.email "super_bot@juspay.in"
                 git config user.name "Superposition Bot"
-                git push --follow-tags origin main
+                cog bump --auto --skip-ci-override "[skip ci]"
+
+            - name: Push code to main
+              shell: bash
+              run: |
+                git push --follow-tags
