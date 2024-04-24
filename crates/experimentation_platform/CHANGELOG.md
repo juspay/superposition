@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.14.0 - 2024-04-24
+#### Bug Fixes
+- post merge release tagging - (3b7e262) - Kartik
+#### Features
+- ready for open source! - (5f7af15) - Kartik
+#### Miscellaneous Chores
+- **(version)** v0.40.0 [skip ci] - (cdfe3f4) - Jenkins
+- open source superposition - (cbd5b6f) - Kartik
+
+- - -
+
 ## experimentation_platform-v0.13.0 - 2024-04-18
 #### Features
 - ready for open source! - (b7d36be) - Kartik

@@ -49,4 +49,4 @@ jobs:
             - name: Push code to main
               shell: bash
               run: |
-                git push --follow-tags
+                git push origin --tags
