@@ -253,6 +253,40 @@ pub fn json_to_sorted_string(v: &Value) -> String {
     }
 }
 
+pub fn calculate_context_priority(
+    object_key: &str,
+    cond: &Value,
+    dimension_schema_map: &HashMap<String, (JSONSchema, i32)>,
+) -> Result<i32, String> {
+    let get_priority = |key: &str, val: &Value| -> Result<i32, String> {
+        if key == "var" {
+            let dimension_name = val
+                .as_str()
+                .ok_or_else(|| "failed to decode dimension as str")?;
+            dimension_schema_map
+                .get(dimension_name)
+                .map(|(_, priority)| priority)
+                .ok_or(String::from(
+                    "No matching `dimension` found in dimension table",
+                ))
+                .copied()
+        } else {
+            calculate_context_priority(key, val, dimension_schema_map)
+        }
+    };
+
+    match cond {
+        Value::Object(x) => x.iter().try_fold(0, |acc, (key, val)| {
+            get_priority(key, val).map(|res| res + acc)
+        }),
+        Value::Array(arr) => arr.iter().try_fold(0, |acc, item| {
+            calculate_context_priority(object_key, item, dimension_schema_map)
+                .map(|res| res + acc)
+        }),
+        _ => Ok(0),
+    }
+}
+
 // ************ Tests *************
 
 #[cfg(test)]

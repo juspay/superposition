@@ -1,12 +1,14 @@
 extern crate base64;
 use std::str;
 
-use crate::helpers::{json_to_sorted_string, validate_context_jsonschema};
+use crate::helpers::{
+    calculate_context_priority, json_to_sorted_string, validate_context_jsonschema,
+};
 use crate::{
     api::{
         context::types::{
             ContextAction, ContextBulkResponse, DimensionCondition, MoveReq,
-            PaginationParams, PutReq, PutResp,
+            PaginationParams, PriorityRecomputeResponse, PutReq, PutResp,
         },
         dimension::get_all_dimension_schema_map,
     },
@@ -28,6 +30,7 @@ use diesel::{
     delete,
     r2d2::{ConnectionManager, PooledConnection},
     result::{DatabaseErrorKind::*, Error::DatabaseError},
+    upsert::excluded,
     Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 use jsonschema::{Draft, JSONSchema, ValidationError};
@@ -52,6 +55,7 @@ pub fn endpoints() -> Scope {
         .service(bulk_operations)
         .service(list_contexts)
         .service(get_context)
+        .service(priority_recompute)
 }
 
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
@@ -525,4 +529,69 @@ async fn bulk_operations(
         Ok(()) // Commit the transaction
     })?;
     Ok(Json(response))
+}
+
+#[put("/priority/recompute")]
+async fn priority_recompute(
+    db_conn: DbConnection,
+) -> superposition::Result<HttpResponse> {
+    use crate::db::schema::contexts::dsl::*;
+    let DbConnection(mut conn) = db_conn;
+
+    let result: Vec<Context> = contexts.load(&mut conn).map_err(|err| {
+        log::error!("failed to fetch contexts with error: {}", err);
+        unexpected_error!("Something went wrong")
+    })?;
+
+    let dimension_schema_map = get_all_dimension_schema_map(&mut conn)?;
+    let mut response: Vec<PriorityRecomputeResponse> = vec![];
+
+    let update_contexts = result
+        .clone()
+        .into_iter()
+        .map(|context| {
+            let new_priority = calculate_context_priority(
+                "context",
+                &context.value,
+                &dimension_schema_map,
+            )
+            .map_err(|err| {
+                log::error!("failed to calculate context priority: {}", err);
+                unexpected_error!("Something went wrong")
+            });
+
+            match new_priority {
+                Ok(val) => {
+                    response.push(PriorityRecomputeResponse {
+                        id: context.id.clone(),
+                        condition: context.value.clone(),
+                        old_priority: context.priority.clone(),
+                        new_priority: val,
+                    });
+                    Ok(Context {
+                        priority: val,
+                        ..context.clone()
+                    })
+                }
+                Err(e) => Err(e),
+            }
+        })
+        .collect::<superposition::Result<Vec<Context>>>()?;
+
+    let insert = diesel::insert_into(contexts)
+        .values(&update_contexts)
+        .on_conflict(id)
+        .do_update()
+        .set(priority.eq(excluded(priority)))
+        .execute(&mut conn);
+
+    match insert {
+        Ok(_) => Ok(HttpResponse::Ok().json(response)),
+        Err(err) => {
+            log::error!(
+                "Failed to execute query while recomputing priority, error: {err}"
+            );
+            Err(db_error!(err))
+        }
+    }
 }
