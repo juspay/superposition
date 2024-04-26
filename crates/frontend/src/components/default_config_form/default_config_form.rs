@@ -23,6 +23,7 @@ pub fn default_config_form<NF>(
     #[prop(default = String::new())] config_pattern: String,
     #[prop(default = String::new())] config_value: String,
     #[prop(default = None)] function_name: Option<Value>,
+    #[prop(default = None)] prefix: Option<String>,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -65,7 +66,9 @@ where
 
     let on_submit = move |ev: MouseEvent| {
         ev.prevent_default();
-        let f_name = config_key.get();
+        let f_name = prefix
+            .clone()
+            .map_or_else(|| config_key.get(), |prefix| prefix + &config_key.get());
         let f_type = config_type.get();
         let f_pattern = config_pattern.get();
         let f_value = config_value.get();
