@@ -131,7 +131,7 @@ pub fn home() -> impl IntoView {
                 "==" => "=",
                 _ => break, // query params do not support the other operators :  != and IN, do something differently later
             };
-            context.push(format!("{}{op}{}", dimension, value.to_lowercase()));
+            context.push(format!("{}{op}{}", dimension, value));
         }
         context.join("&").to_string()
     };
