@@ -2,6 +2,126 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.11.0 - 2024-04-26
+#### Features
+- ready for open source! - (5f7af15) - Kartik
+#### Miscellaneous Chores
+- **(version)** v0.41.0 [skip ci] - (b1462bc) - Superposition Bot
+- **(version)** v0.40.0 [skip ci] - (cdfe3f4) - Jenkins
+
+- - -
+
+## v0.39.1 - 2024-04-26
+#### Bug Fixes
+-  removed audit log middleware and reduced max db connection pool size to 2 - (bdfdaed) - Saurav Suman
+#### Miscellaneous Chores
+- **(version)** v0.39.1 [skip ci] - (9cf8f81) - Jenkins
+
+- - -
+
+## v0.39.0 - 2024-04-26
+#### Bug Fixes
+-  fixed error in client - (5db1ba4) - ankit.mahato
+#### Features
+-  Add filter support to client - (0cc2e6d) - ankit.mahato
+#### Miscellaneous Chores
+- **(version)** v0.39.0 [skip ci] - (3405b5d) - Jenkins
+
+- - -
+
+## v0.35.0 - 2024-04-26
+#### Bug Fixes
+-  empty key filters should return all keys - (de71bb2) - Kartik
+#### Documentation
+-  add intro doc and features - (85751e0) - Natarajan Kannan
+#### Features
+-  client interface improvements - (659d384) - Kartik
+-  haskell client for superposition - (af6ea75) - Kartik
+#### Miscellaneous Chores
+- **(version)** v0.35.0 [skip ci] - (233bf7d) - Jenkins
+
+- - -
+
+## v0.32.0 - 2024-04-26
+#### Documentation
+-  add intro doc and features - (39bd090) - Natarajan Kannan
+#### Features
+-  haskell client for superposition - (0ce569b) - Kartik
+#### Miscellaneous Chores
+- **(version)** v0.32.0 [skip ci] - (ae88083) - Jenkins
+
+- - -
+
+## v0.28.0 - 2024-04-26
+#### Features
+-  Replace merge-strategy option for resolve/eval - (032dc3a) - ayush.jain@juspay.in
+#### Miscellaneous Chores
+- **(version)** v0.28.0 [skip ci] - (75396e5) - Jenkins
+
+- - -
+
+## v0.24.0 - 2024-04-26
+#### Bug Fixes
+-  Do not remove keys with null value on merge - (06974f1) - ayush.jain@juspay.in
+#### Miscellaneous Chores
+- **(version)** v0.24.0 [skip ci] - (372c9de) - Jenkins
+
+- - -
+
+## v0.17.0 - 2024-04-26
+#### Features
+- working resolve page - (27fbb99) - Kartik Gajendra
+#### Miscellaneous Chores
+- **(version)** v0.17.0 [skip ci] - (5759a15) - Jenkins
+
+- - -
+
+## v0.15.0 - 2024-04-26
+#### Bug Fixes
+- cac service to set last_modified header - (8ad81c3) - ankit.mahato
+#### Features
+- added format check in the JenkinsFile() - (3611ef3) - Saurav Suman
+#### Miscellaneous Chores
+- **(version)** v0.15.0 [skip ci] - (3afb567) - Jenkins
+-  move dependencies to workspaces - (bb87c89) - Kartik Gajendra
+
+- - -
+
+## v0.12.0 - 2024-04-26
+#### Features
+- multi-tenant support for client libraries - (f524388) - Shubhranshu Sanjeev
+#### Miscellaneous Chores
+- **(version)** v0.12.0 [skip ci] - (1612123) - Jenkins
+
+- - -
+
+## v0.6.1 - 2024-04-26
+#### Bug Fixes
+-  patching overrides on default-config instead of merge - (8e311c7) - Ritick Madaan
+#### Miscellaneous Chores
+- **(version)** v0.6.1 [skip ci] - (5c471b2) - Jenkins
+
+- - -
+
+## v0.6.0 - 2024-04-26
+#### Bug Fixes
+-  eval param fix - (a9c5b04) - Pratik Mishra
+#### Features
+-  cac eval return update - (a2fde06) - Pratik Mishra
+-  Adding generic eval - (b63c753) - Pratik Mishra
+#### Miscellaneous Chores
+- **(version)** v0.6.0 [skip ci] - (a5f8757) - Jenkins
+
+- - -
+
+## v0.1.0 - 2024-04-26
+#### Features
+-  added experimentation client with few fixes - (be0b70f) - Kartik Gajendra
+#### Miscellaneous Chores
+- **(version)** v0.1.0 [skip ci] - (bfbc1f5) - Jenkins
+
+- - -
+
 ## cac_client-v0.11.0 - 2024-04-24
 #### Features
 - ready for open source! - (5f7af15) - Kartik

@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.14.0 - 2024-04-26
+#### Bug Fixes
+- Do not lowercase dmension inputs while resolving (#11) - (7af4542) - Ayush Jain
+- post merge release tagging - (3b7e262) - Kartik
+#### Features
+- Added grouping in default_config page (#9) - (5ac099d) - Ankit Kumar Mahato
+- ready for open source! - (5f7af15) - Kartik
+#### Miscellaneous Chores
+- **(version)** v0.41.0 [skip ci] - (b1462bc) - Superposition Bot
+- **(version)** v0.40.0 [skip ci] - (cdfe3f4) - Jenkins
+- open source superposition - (cbd5b6f) - Kartik
+
+- - -
+
 ## experimentation_platform-v0.14.0 - 2024-04-24
 #### Bug Fixes
 - post merge release tagging - (3b7e262) - Kartik

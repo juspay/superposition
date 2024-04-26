@@ -2,6 +2,139 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.7.0 - 2024-04-26
+#### Bug Fixes
+- Do not lowercase dmension inputs while resolving (#11) - (7af4542) - Ayush Jain
+#### Features
+- Added grouping in default_config page (#9) - (5ac099d) - Ankit Kumar Mahato
+- ready for open source! - (5f7af15) - Kartik
+#### Miscellaneous Chores
+- **(version)** v0.41.0 [skip ci] - (b1462bc) - Superposition Bot
+- **(version)** v0.40.0 [skip ci] - (cdfe3f4) - Jenkins
+- add PR testing workflows (#6) - (6085588) - Datron
+
+- - -
+
+## v0.38.2 - 2024-04-26
+#### Bug Fixes
+-  function route fix - (6735635) - Pratik Mishra
+#### Miscellaneous Chores
+- **(version)** v0.38.2 [skip ci] - (64560fb) - Jenkins
+
+- - -
+
+## v0.38.0 - 2024-04-26
+#### Features
+-  Add function support in dimension and default config form - (59ecc4c) - ankit.mahato
+#### Miscellaneous Chores
+- **(version)** v0.38.0 [skip ci] - (9208b3e) - Jenkins
+#### Refactoring
+-  refactored service to use new error type and better error handling - (a99f4af) - Shubhranshu Sanjeev
+
+- - -
+
+## v0.36.0 - 2024-04-26
+#### Features
+-  added decimal support in context and override form and fixed dimension modal - (c86b89a) - Saurav Suman
+#### Miscellaneous Chores
+- **(version)** v0.36.0 [skip ci] - (cdc46ce) - Jenkins
+
+- - -
+
+## v0.35.0 - 2024-04-26
+#### Features
+-  added support for dynamic json schema in frontend - (e5164de) - Saurav Suman
+-  function ui - (7e859fc) - Pratik Mishra
+#### Miscellaneous Chores
+- **(version)** v0.35.0 [skip ci] - (233bf7d) - Jenkins
+
+- - -
+
+## v0.34.0 - 2024-04-26
+#### Bug Fixes
+-  added type for condition - (fb14036) - Saurav CV
+-  ui bug fix for contexts - (7856b95) - Saurav CV
+#### Miscellaneous Chores
+- **(version)** v0.34.0 [skip ci] - (bd807ec) - Jenkins
+
+- - -
+
+## v0.33.0 - 2024-04-26
+#### Features
+-  refactor resolve page - (3005cfc) - Kartik
+#### Miscellaneous Chores
+- **(version)** v0.33.0 [skip ci] - (693a023) - Jenkins
+
+- - -
+
+## v0.30.1 - 2024-04-26
+#### Bug Fixes
+- adding min-width settings for table component - (6f70186) - Kartik
+#### Miscellaneous Chores
+- **(version)** v0.30.1 [skip ci] - (fd38192) - Jenkins
+
+- - -
+
+## v0.29.0 - 2024-04-26
+#### Bug Fixes
+- added drawer, improved UX & single click override addition to variants - (50c8a96) - Shubhranshu Sanjeev
+-  transpose columns in single experiment page for variants - (f3bfcc0) - Kartik
+-  add traffic percentage to experiments table - (a270dee) - Kartik
+-  fix copy of experiment ID - (f039558) - Kartik
+- using SERVICE_NAME in is_server instead of SERVER_NAME(wrong var name) - (b018117) - Shubhranshu Sanjeev
+- fixing error message for experiment create and bulk context api - (3d64762) - Jenkins
+- refactored experiment page and fixed experiment edit flow - (1c678b9) - Shubhranshu Sanjeev
+- getting api hostname from env for frontend - (8141696) - Shubhranshu Sanjeev
+- fixed host resolve issue for internal calls in SSR. - (5c0ebc3) - Shubhranshu Sanjeev
+- error resolving pages with internal call to server - (46ca970) - Shubhranshu Sanjeev
+- refactored DefaultConfig component + fixed edit flow - (dfd8abb) - Shubhranshu Sanjeev
+- fixed dimension form edit flow + fixed table component CellFormatter to accept move closures - (a297aca) - Shubhranshu Sanjeev
+- frontend build process - (c937b68) - Shubhranshu Sanjeev
+- fixed tenant hydration bug - (3311c5e) - Saurav Suman
+- fixed ci-test to support multi-tenant setup - (cad8e7f) - Shubhranshu Sanjeev
+- cleanup code - (00c36a6) - Kartik Gajendra
+- UI fixes for demo - (caa9739) - Kartik Gajendra
+- frontend multi-tenancy support + config and dimension page - (adafb49) - Shubhranshu Sanjeev
+- fixed experiment list page feedback - (41905a6) - Shubhranshu Sanjeev
+- context parsing - (ba2d33b) - Kartik Gajendra
+- resolve UI bugs - (8b0d0a3) - Kartik Gajendra
+- dimensions page updates - (b04d3f5) - ankit.mahato
+#### Features
+-  url click and text wrap fixes - (6553e30) - Saurav CV
+- support for service prefix - (19223be) - Shubhranshu Sanjeev
+- added bool, i64 and decimal in default config form - (adad811) - Saurav Suman
+-  added authentication header for frontend apis - (e1ab466) - Saurav Suman
+- added between in frontend - (4bf9ac8) - Akhilesh Bhadauriya
+- added validation inside default config form , formatted dates , added disable feature of edit - (97f7f1b) - Saurav Suman
+- resolve page with unified UI - (83d0f03) - Kartik Gajendra
+- working resolve page - (27fbb99) - Kartik Gajendra
+- fixed experiment suspense block , added generic button - (93a3abd) - Saurav Suman
+- experiment create form - (588d15a) - Shubhranshu Sanjeev
+- fixed theme + ui changes + form validation + context validation error handling - (6376194) - Saurav Suman
+- working resolve page - (c651e4a) - Kartik Gajendra
+- added state changes in the form - (3843763) - Saurav Suman
+- testing create form - (c697e4d) - Kartik Gajendra
+- working experiments page - (ba2eb38) - Kartik Gajendra
+- experiment UI - (3ce29f0) - Kartik Gajendra
+- added default config and override screen - (27f1236) - Saurav Suman
+- added default config page - (c8bcfcc) - Saurav Suman
+- working experiments page - (bf94e31) - Kartik Gajendra
+- override and context form - (3a6036c) - Shubhranshu Sanjeev
+- dimensions - (24b4cbf) - ankit.mahato
+- added experiment-list page - (d00db1c) - Shubhranshu Sanjeev
+- experiment UI - (1f4bd77) - Kartik Gajendra
+- ui for cac and exp - (7e87921) - Shubhranshu Sanjeev
+- added frontend crate,combined frontend and backend binaries () - (345b4af) - Saurav Suman
+#### Miscellaneous Chores
+- **(version)** v0.29.0 [skip ci] - (53a20b5) - Jenkins
+- formatted code + cleanup - (ec7aecc) - Shubhranshu Sanjeev
+- formatted frontend code - (4db1f16) - Shubhranshu Sanjeev
+#### Refactoring
+- using snake case for component fxn names - (8a5b1b1) - Shubhranshu Sanjeev
+- fixed warnings, added redirection for home page and script for setting up the project - (0ee0618) - Saurav Suman
+
+- - -
+
 ## frontend-v0.7.0 - 2024-04-24
 #### Features
 - ready for open source! - (5f7af15) - Kartik
