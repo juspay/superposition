@@ -11,8 +11,8 @@ use crate::pages::function::{
 };
 use crate::pages::Dimensions::Dimensions::Dimensions;
 use crate::pages::{
-    ContextOverride::context_override::ContextOverride,
-    DefaultConfig::DefaultConfig::DefaultConfig, Experiment::ExperimentPage,
+    default_config::default_config::DefaultConfig,
+    ContextOverride::context_override::ContextOverride, Experiment::ExperimentPage,
     Home::Home::Home,
 };
 use crate::types::Envs;

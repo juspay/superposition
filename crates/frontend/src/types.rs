@@ -207,3 +207,10 @@ impl DropdownOption for FunctionsName {
         self.clone()
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct BreadCrums {
+    pub key: String,
+    pub value: Option<String>,
+    pub is_link: bool,
+}
