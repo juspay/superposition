@@ -28,6 +28,10 @@
 }
 
 .drawer-zindex {
+    z-index: 9999999;
+}
+
+.toast-zindex {
     z-index: 99999999;
 }
 

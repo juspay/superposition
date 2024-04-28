@@ -17,4 +17,6 @@ pub mod pagination;
 pub mod side_nav;
 pub mod stat;
 pub mod table;
+pub mod toast;
 pub mod variant_form;
+pub mod alert;

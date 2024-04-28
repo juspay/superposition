@@ -15,6 +15,7 @@ use crate::pages::{
     ContextOverride::context_override::ContextOverride, Experiment::ExperimentPage,
     Home::Home::Home,
 };
+use crate::providers::alert_provider::AlertProvider;
 use crate::types::Envs;
 
 #[component]
@@ -87,127 +88,129 @@ pub fn App(app_envs: Envs) -> impl IntoView {
             <script type_="text/javascript">"__APP_ENVS=" {json!(app_envs).to_string()}</script>
             <Router base=service_prefix>
                 <body class="m-0 min-h-screen bg-gray-50 font-mono">
-                    <Routes base=service_prefix.to_string()>
-                        <Route
-                            ssr=SsrMode::Async
-                            path="/admin/:tenant/dimensions"
-                            view=move || {
-                                view! {
-                                    <Layout>
-                                        <Dimensions/>
-                                    </Layout>
+                    <AlertProvider>
+                        <Routes base=service_prefix.to_string()>
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/dimensions"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <Dimensions/>
+                                        </Layout>
+                                    }
                                 }
-                            }
-                        />
+                            />
 
-                        <Route
-                            ssr=SsrMode::Async
-                            path="/admin/:tenant/function"
-                            view=move || {
-                                view! {
-                                    <Layout>
-                                        <FunctionList/>
-                                    </Layout>
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/function"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <FunctionList/>
+                                        </Layout>
+                                    }
                                 }
-                            }
-                        />
+                            />
 
-                        <Route
-                            ssr=SsrMode::Async
-                            path="/admin/:tenant/function/create"
-                            view=move || {
-                                view! {
-                                    <Layout>
-                                        <CreateFunctionView/>
-                                    </Layout>
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/function/create"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <CreateFunctionView/>
+                                        </Layout>
+                                    }
                                 }
-                            }
-                        />
+                            />
 
-                        <Route
-                            ssr=SsrMode::Async
-                            path="/admin/:tenant/function/:function_name"
-                            view=move || {
-                                view! {
-                                    <Layout>
-                                        <FunctionPage/>
-                                    </Layout>
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/function/:function_name"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <FunctionPage/>
+                                        </Layout>
+                                    }
                                 }
-                            }
-                        />
+                            />
 
-                        <Route
-                            ssr=SsrMode::Async
-                            path="/admin/:tenant/experiments"
-                            view=move || {
-                                view! {
-                                    <Layout>
-                                        <ExperimentList/>
-                                    </Layout>
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/experiments"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <ExperimentList/>
+                                        </Layout>
+                                    }
                                 }
-                            }
-                        />
+                            />
 
-                        <Route
-                            ssr=SsrMode::Async
-                            path="/admin/:tenant/experiments/:id"
-                            view=move || {
-                                view! {
-                                    <Layout>
-                                        <ExperimentPage/>
-                                    </Layout>
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/experiments/:id"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <ExperimentPage/>
+                                        </Layout>
+                                    }
                                 }
-                            }
-                        />
+                            />
 
-                        <Route
-                            ssr=SsrMode::Async
-                            path="/admin/:tenant/default-config"
-                            view=move || {
-                                view! {
-                                    <Layout>
-                                        <DefaultConfig/>
-                                    </Layout>
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/default-config"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <DefaultConfig/>
+                                        </Layout>
+                                    }
                                 }
-                            }
-                        />
+                            />
 
-                        <Route
-                            ssr=SsrMode::Async
-                            path="/admin/:tenant/overrides"
-                            view=move || {
-                                view! {
-                                    <Layout>
-                                        <ContextOverride/>
-                                    </Layout>
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/overrides"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <ContextOverride/>
+                                        </Layout>
+                                    }
                                 }
-                            }
-                        />
+                            />
 
-                        <Route
-                            ssr=SsrMode::Async
-                            path="/admin/:tenant/resolve"
-                            view=move || {
-                                view! {
-                                    <Layout>
-                                        <Home/>
-                                    </Layout>
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/resolve"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <Home/>
+                                        </Layout>
+                                    }
                                 }
-                            }
-                        />
+                            />
 
-                    // <Route
-                    // path="/*any"
-                    // view=move || {
-                    // view! {
-                    // <Layout>
-                    // <NotFound/>
-                    // </Layout>
-                    // }
-                    // }
-                    // />
+                        // <Route
+                        // path="/*any"
+                        // view=move || {
+                        // view! {
+                        // <Layout>
+                        // <NotFound/>
+                        // </Layout>
+                        // }
+                        // }
+                        // />
 
-                    </Routes>
+                        </Routes>
+                    </AlertProvider>
                 </body>
             </Router>
 
