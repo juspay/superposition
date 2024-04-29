@@ -1,7 +1,8 @@
 use crate::types::Dimension;
-use crate::utils::{get_config_value, get_host, ConfigType};
+use crate::utils::{
+    construct_request_headers, get_config_value, get_host, request, ConfigType,
+};
 use anyhow::Result;
-use reqwest::StatusCode;
 use serde_json::{json, Map, Value};
 
 pub fn get_condition_schema(
@@ -98,21 +99,15 @@ pub async fn create_context(
     overrides: Map<String, Value>,
     conditions: Vec<(String, String, String)>,
     dimensions: Vec<Dimension>,
-) -> Result<String, String> {
-    let client = reqwest::Client::new();
+) -> Result<serde_json::Value, String> {
     let host = get_host();
     let url = format!("{host}/context");
     let request_payload = construct_request_payload(overrides, conditions, dimensions);
-    let response = client
-        .put(url)
-        .header("x-tenant", tenant)
-        .json(&request_payload)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
-    match response.status() {
-        StatusCode::OK => response.text().await.map_err(|e| e.to_string()),
-        StatusCode::BAD_REQUEST => Err("Schema Validation Failed".to_string()),
-        _ => Err("Internal Server Error".to_string()),
-    }
+    request(
+        url,
+        reqwest::Method::PUT,
+        Some(request_payload),
+        construct_request_headers(&[("x-tenant", &tenant)])?,
+    )
+    .await
 }

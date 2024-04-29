@@ -63,6 +63,12 @@ pub struct FunctionResponse {
     pub draft_edited_by: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct FunctionTestResponse {
+    pub message: String,
+    pub stdout: String,
+}
+
 /*********************** Experimentation Types ****************************************/
 
 #[derive(
@@ -213,4 +219,9 @@ pub struct BreadCrums {
     pub key: String,
     pub value: Option<String>,
     pub is_link: bool,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ErrorResponse {
+    pub message: String,
 }

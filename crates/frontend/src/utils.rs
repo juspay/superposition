@@ -1,7 +1,13 @@
 use std::env;
 
-use crate::types::{DefaultConfig, Dimension, Envs};
+use crate::{
+    components::alert::AlertType,
+    providers::alert_provider::enqueue_alert,
+    types::{DefaultConfig, Dimension, Envs, ErrorResponse},
+};
+use anyhow::anyhow;
 use leptos::*;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde_json::{Number, Value};
 use std::str::FromStr;
 use url::Url;
@@ -343,3 +349,68 @@ pub fn get_config_value(
         }
     }
 }
+
+/********* Request Utils **********/
+
+use once_cell::sync::Lazy;
+static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(|| reqwest::Client::new());
+
+pub fn construct_request_headers(entries: &[(&str, &str)]) -> Result<HeaderMap, String> {
+    entries
+        .into_iter()
+        .map(|(name, value)| {
+            let h_name = HeaderName::from_str(name);
+            let h_value = HeaderValue::from_str(value);
+
+            match (h_name, h_value) {
+                (Ok(n), Ok(v)) => Some((n, v)),
+                _ => None,
+            }
+        })
+        .collect::<Option<Vec<(HeaderName, HeaderValue)>>>()
+        .map(HeaderMap::from_iter)
+        .ok_or(String::from("failed to parse headers"))
+}
+
+pub async fn request<'a, T, R>(
+    url: String,
+    method: reqwest::Method,
+    body: Option<T>,
+    headers: HeaderMap,
+) -> Result<R, String>
+where
+    T: serde::Serialize,
+    R: serde::de::DeserializeOwned,
+{
+    let mut request_builder = HTTP_CLIENT.request(method.clone(), url).headers(headers);
+    request_builder = match (method, body) {
+        (reqwest::Method::GET | reqwest::Method::DELETE, _) => request_builder,
+        (_, Some(data)) => request_builder.json(&data),
+        _ => request_builder,
+    };
+
+    let response = request_builder
+        .send()
+        .await
+        .map_err(|err| err.to_string())?;
+
+    let status = response.status();
+    if status.is_client_error() || status.is_server_error() {
+        let error_msg = response
+            .json::<ErrorResponse>()
+            .await
+            .map_or(String::from("Something went wrong"), |error| error.message);
+        logging::error!("{}", error_msg);
+        enqueue_alert(error_msg.clone(), AlertType::Error, 5000);
+
+        return Err(error_msg);
+    }
+
+    response.json::<R>().await.map_err(|err| {
+        enqueue_alert(err.to_string(), AlertType::Error, 5000);
+        logging::error!("{}", err.to_string());
+        err.to_string()
+    })
+}
+
+/********* Reqyest Utils ends ****/

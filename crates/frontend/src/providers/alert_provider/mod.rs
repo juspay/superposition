@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use leptos::*;
 
-use crate::components::toast::{Alert, AlertType};
+use crate::components::alert::{Alert, AlertType};
 
 #[derive(Clone, Debug)]
 pub struct AlertQueue {
