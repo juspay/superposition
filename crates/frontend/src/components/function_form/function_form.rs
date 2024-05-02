@@ -281,7 +281,7 @@ where
                     </div>
 
                     <div>
-                        <p class="text-red-500">{move || output_message.get()}</p>
+                        <p class="text-green-700">{move || output_message.get()}</p>
                     </div>
 
                 </form>

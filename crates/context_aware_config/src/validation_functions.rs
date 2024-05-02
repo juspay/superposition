@@ -24,7 +24,7 @@ fn type_check_validate(code_str: &str) -> String {
     )
 }
 
-fn execute_validate_fun(code_str: &str, val: Value) -> String {
+fn execute_validate_fun(code_str: &str, value: Value, key: String) -> String {
     format!(
         r#"
         const vm = require("node:vm")
@@ -32,7 +32,7 @@ fn execute_validate_fun(code_str: &str, val: Value) -> String {
         const script = new vm.Script(\`
 
         {}
-        Promise.resolve(validate({})).then((output) => {{
+        Promise.resolve(validate({}, {})).then((output) => {{
 
             if(output!=true){{
                 throw new Error("The function did not return true as expected. Check the conditions or logic inside the function.")
@@ -44,7 +44,7 @@ fn execute_validate_fun(code_str: &str, val: Value) -> String {
 
         script.runInNewContext({{axios,console,process}}, {{ timeout: 1500}});
         "#,
-        code_str, val
+        code_str, value, key
     )
 }
 
@@ -107,11 +107,7 @@ pub fn execute_fn(
     key: &str,
     value: Value,
 ) -> Result<String, (String, Option<String>)> {
-    let fun_val = json!({
-        "key": key,
-        "value": value
-    });
-    let exec_code = execute_validate_fun(code_str, fun_val);
+    let exec_code = execute_validate_fun(code_str, value, format!("/{}/", key));
     let output = Command::new("node")
         .arg("-e")
         .arg(generate_code(&exec_code))
