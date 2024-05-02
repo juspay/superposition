@@ -104,7 +104,6 @@ pub fn function_list() -> impl IntoView {
                                             .collect::<Vec<Map<String, Value>>>()
                                             .to_owned();
                                         view! {
-
                                             <Table
                                                 cell_style="".to_string()
                                                 rows=data
@@ -113,13 +112,7 @@ pub fn function_list() -> impl IntoView {
                                             />
                                         }
                                     }
-                                    None => {
-                                        view! {
-
-                                            <div>Loading....</div>
-                                        }
-                                            .into_view()
-                                    }
+                                    None => view! { <div>Loading....</div> }.into_view(),
                                 }
                             }}
 

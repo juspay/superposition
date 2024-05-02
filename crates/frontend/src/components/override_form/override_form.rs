@@ -101,10 +101,15 @@ where
                                             on:input=move |event| {
                                                 let input_value = event_target_value(&event);
                                                 let default_config_val = get_config_value(
-                                                    &config_key_value,
-                                                    &input_value,
-                                                    &default_config.get_value().into_iter().map(ConfigType::DefaultConfig).collect::<Vec<_>>(),
-                                                ).expect("can't parse default config key");
+                                                        &config_key_value,
+                                                        &input_value,
+                                                        &default_config
+                                                            .get_value()
+                                                            .into_iter()
+                                                            .map(ConfigType::DefaultConfig)
+                                                            .collect::<Vec<_>>(),
+                                                    )
+                                                    .expect("can't parse default config key");
                                                 set_overrides
                                                     .update(|curr_overrides| {
                                                         curr_overrides

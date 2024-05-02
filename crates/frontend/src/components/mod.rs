@@ -1,3 +1,4 @@
+pub mod alert;
 pub mod button;
 pub mod condition_pills;
 pub mod context_form;
@@ -19,4 +20,3 @@ pub mod stat;
 pub mod table;
 pub mod toast;
 pub mod variant_form;
-pub mod alert;

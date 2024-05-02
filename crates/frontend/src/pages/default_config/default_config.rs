@@ -148,7 +148,12 @@ pub fn default_config() -> impl IntoView {
             if is_folder {
                 view! { <span>{"-"}</span> }.into_view()
             } else {
-                view! { <span class="cursor-pointer" on:click=edit_click_handler>{edit_icon}</span> }.into_view()
+                view! {
+                    <span class="cursor-pointer" on:click=edit_click_handler>
+                        {edit_icon}
+                    </span>
+                }
+                .into_view()
             }
         };
 
@@ -158,17 +163,22 @@ pub fn default_config() -> impl IntoView {
             let is_folder = key_name.contains(".");
 
             if is_folder && enable_grouping.get() {
-                view! { <span class="cursor-pointer text-blue-500 underline underline-offset-2" 
-                    on:click=move |_| {
+                view! {
+                    <span
+                        class="cursor-pointer text-blue-500 underline underline-offset-2"
+                        on:click=move |_| {
                             let mut key = key_name.clone();
                             if let Some(prefix_) = key_prefix.get() {
                                 key = prefix_.clone() + &key;
                             }
                             folder_click_handler(Some(key.clone()))
-                        }>
-                            {label}
-                        </span>}
-                        .into_view()
+                        }
+                    >
+
+                        {label}
+                    </span>
+                }
+                .into_view()
             } else {
                 view! { <span>{key_name}</span> }.into_view()
             }
@@ -195,12 +205,16 @@ pub fn default_config() -> impl IntoView {
             <Suspense fallback=move || {
                 view! { <p>"Loading (Suspense Fallback)..."</p> }
             }>
-                {
-                    move || {
-                        let prefix = key_prefix.get();
-                        if let Some(selected_config_data) = selected_config.get() {
-                            view! {
-                                <Drawer id="default_config_drawer".to_string() header="Edit Key" handle_close=handle_close>
+
+                {move || {
+                    let prefix = key_prefix.get();
+                    if let Some(selected_config_data) = selected_config.get() {
+                        view! {
+                            <Drawer
+                                id="default_config_drawer".to_string()
+                                header="Edit Key"
+                                handle_close=handle_close
+                            >
                                 <DefaultConfigForm
                                     edit=true
                                     config_key=selected_config_data.key
@@ -215,78 +229,100 @@ pub fn default_config() -> impl IntoView {
                                         close_drawer("default_config_drawer");
                                     }
                                 />
-                                </Drawer>
-                            }
-                        } else {
-                            view! {
-                                <Drawer id="default_config_drawer".to_string() header="Create New Key" handle_close=handle_close>
-                                    <DefaultConfigForm prefix handle_submit=move || {
+
+                            </Drawer>
+                        }
+                    } else {
+                        view! {
+                            <Drawer
+                                id="default_config_drawer".to_string()
+                                header="Create New Key"
+                                handle_close=handle_close
+                            >
+                                <DefaultConfigForm
+                                    prefix
+                                    handle_submit=move || {
                                         default_config_resource.refetch();
                                         selected_config.set(None);
                                         close_drawer("default_config_drawer");
-                                    }/>
-                                </Drawer>
-                            }
+                                    }
+                                />
+
+                            </Drawer>
                         }
                     }
-                }
-                {
-                    move || {
-                        let default_config = default_config_resource.get().unwrap_or(vec![]);
-                        let table_rows = default_config
-                            .into_iter()
-                            .map(|config| {
-                                let mut ele_map = json!(config).as_object().unwrap().to_owned();
-                                ele_map
-                                    .insert(
-                                        "created_at".to_string(),
-                                        json!(config.created_at.format("%v").to_string()),
-                                    );
-                                ele_map
-                            })
-                            .collect::<Vec<Map<String, Value>>>();
-
-                        let mut filtered_rows = table_rows.clone();
-                        if enable_grouping.get() {
-                            let empty_map = Map::new();
-                            let cols = filtered_rows.get(0).unwrap_or(&empty_map).keys().map(|key| key.as_str()).collect();
-                            filtered_rows = modify_rows(filtered_rows.clone(), key_prefix.get(), cols);
-                        }
-
-                        let total_default_config_keys = filtered_rows.len().to_string();
-
-                        view! {
-                            <div class="pb-4">
-                                <Stat heading="Config Keys" icon="ri-tools-line" number=total_default_config_keys/>
-                            </div>
-                            <div class="card rounded-lg w-full bg-base-100 shadow">
-                                <div class="card-body">
-                                    <div class="flex justify-between pb-2">
-                                        <BreadCrums bread_crums=bread_crums.get()  folder_click_handler/>
-                                        <div class="flex">
-                                            <label on:click=move |_| {
+                }}
+                {move || {
+                    let default_config = default_config_resource.get().unwrap_or(vec![]);
+                    let table_rows = default_config
+                        .into_iter()
+                        .map(|config| {
+                            let mut ele_map = json!(config).as_object().unwrap().to_owned();
+                            ele_map
+                                .insert(
+                                    "created_at".to_string(),
+                                    json!(config.created_at.format("%v").to_string()),
+                                );
+                            ele_map
+                        })
+                        .collect::<Vec<Map<String, Value>>>();
+                    let mut filtered_rows = table_rows.clone();
+                    if enable_grouping.get() {
+                        let empty_map = Map::new();
+                        let cols = filtered_rows
+                            .get(0)
+                            .unwrap_or(&empty_map)
+                            .keys()
+                            .map(|key| key.as_str())
+                            .collect();
+                        filtered_rows = modify_rows(filtered_rows.clone(), key_prefix.get(), cols);
+                    }
+                    let total_default_config_keys = filtered_rows.len().to_string();
+                    view! {
+                        <div class="pb-4">
+                            <Stat
+                                heading="Config Keys"
+                                icon="ri-tools-line"
+                                number=total_default_config_keys
+                            />
+                        </div>
+                        <div class="card rounded-lg w-full bg-base-100 shadow">
+                            <div class="card-body">
+                                <div class="flex justify-between pb-2">
+                                    <BreadCrums bread_crums=bread_crums.get() folder_click_handler/>
+                                    <div class="flex">
+                                        <label
+                                            on:click=move |_| {
                                                 folder_click_handler(None);
-                                                enable_grouping.set(!enable_grouping.get());}
-                                                class="cursor-pointer label mr-10">
-                                                <span class="label-text mr-4">Enable Grouping</span>
-                                                <input type="checkbox" class="toggle toggle-primary" checked=enable_grouping.get() />
-                                            </label>
-                                            <DrawerBtn drawer_id="default_config_drawer".to_string()>
-                                                Create Key <i class="ri-edit-2-line ml-2"></i>
-                                            </DrawerBtn>
-                                        </div>
+                                                enable_grouping.set(!enable_grouping.get());
+                                            }
+
+                                            class="cursor-pointer label mr-10"
+                                        >
+                                            <span class="label-text mr-4">Enable Grouping</span>
+                                            <input
+                                                type="checkbox"
+                                                class="toggle toggle-primary"
+                                                checked=enable_grouping.get()
+                                            />
+                                        </label>
+                                        <DrawerBtn drawer_id="default_config_drawer"
+                                            .to_string()>
+                                            Create Key <i class="ri-edit-2-line ml-2"></i>
+                                        </DrawerBtn>
                                     </div>
-                                    <Table
-                                        cell_style="min-w-48 font-mono".to_string()
-                                        rows=filtered_rows
-                                        key_column="id".to_string()
-                                        columns=table_columns.get()
-                                    />
                                 </div>
+                                <Table
+                                    cell_style="min-w-48 font-mono".to_string()
+                                    rows=filtered_rows
+                                    key_column="id".to_string()
+                                    columns=table_columns.get()
+                                />
                             </div>
-                        }
+                        </div>
                     }
-                }
+                }}
+
             </Suspense>
         </div>
     }
@@ -303,27 +339,38 @@ where
     let last_index = bread_crums.len() - 1;
     view! {
         <div class="flex justify-between pt-3">
-        {
-            bread_crums.iter().enumerate().map(|(index, ele)| {
-                let value = ele.value.clone();
-                let is_link = ele.is_link.clone();
-                let handler = folder_click_handler.clone();
-                view! {
-                    <div class="flex">
-                        <h2 on:click=move |_| {
-                            if is_link {
-                                handler(value.clone())
-                            }}
-                            class={if ele.is_link {"cursor-pointer text-blue-500 underline underline-offset-2"} else {""}}>
-                        {ele.key.clone()}
-                        </h2>
-                        <h2 class="pl-4 pr-4">
-                            {if index < last_index {">"} else {""}}
-                        </h2>
-                    </div>
-                }
-            }).collect_view()
-        }</div>
+
+            {bread_crums
+                .iter()
+                .enumerate()
+                .map(|(index, ele)| {
+                    let value = ele.value.clone();
+                    let is_link = ele.is_link.clone();
+                    let handler = folder_click_handler.clone();
+                    view! {
+                        <div class="flex">
+                            <h2
+                                on:click=move |_| {
+                                    if is_link {
+                                        handler(value.clone())
+                                    }
+                                }
+
+                                class=if ele.is_link {
+                                    "cursor-pointer text-blue-500 underline underline-offset-2"
+                                } else {
+                                    ""
+                                }
+                            >
+
+                                {ele.key.clone()}
+                            </h2>
+                            <h2 class="pl-4 pr-4">{if index < last_index { ">" } else { "" }}</h2>
+                        </div>
+                    }
+                })
+                .collect_view()}
+        </div>
     }
 }
 

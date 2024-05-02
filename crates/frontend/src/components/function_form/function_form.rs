@@ -88,7 +88,8 @@ where
                                 logging::log!("Function editor - Function Name: {:?}", value);
                                 set_function.set(value);
                             }
-                        ></div>
+                        >
+                        </div>
                     </div>
 
                     <div class="mx-auto w-auto" style="width: 250px">
@@ -104,6 +105,7 @@ where
                                     on:input=move |ev| {
                                         set_function_name.set(event_target_value(&ev))
                                     }
+
                                     type="text"
                                     name="funName"
                                     id="funName"
@@ -290,6 +292,7 @@ where
                                         |o| { format!("{}\n{}", o.message, o.stdout) },
                                     )
                             }}
+
                         </p>
                     </div>
 

@@ -98,7 +98,6 @@ pub fn function_page() -> impl IntoView {
                             });
                         };
                         view! {
-
                             <div class="flex flex-col flex-row overflow-x-auto p-2 bg-transparent">
 
                                 <div class="flex bg-base-100 flex-row gap-3 justify-between flex-wrap shadow m-5">
@@ -256,6 +255,7 @@ pub fn function_page() -> impl IntoView {
                                                                                     test_mode_ws.set(false);
                                                                                 }
                                                                             >
+
                                                                                 <i class="gmdi-cancel-presentation-o"></i>
                                                                                 Cancel
 
@@ -271,6 +271,7 @@ pub fn function_page() -> impl IntoView {
                                                                                     editor_mode_ws.set(true);
                                                                                 }
                                                                             >
+
                                                                                 <i class="gmdi-cancel-presentation-o"></i>
                                                                                 Cancel
 
@@ -306,6 +307,7 @@ pub fn function_page() -> impl IntoView {
                                                                                     publish_error_ws.set("".to_string())
                                                                                 }
                                                                             >
+
                                                                                 <i class="ri-edit-line"></i>
                                                                                 Edit
 
@@ -318,6 +320,7 @@ pub fn function_page() -> impl IntoView {
                                                                                     publish_error_ws.set("".to_string())
                                                                                 }
                                                                             >
+
                                                                                 <i class="fontisto-test-tube-alt"></i>
                                                                                 Test
                                                                             </button>
@@ -342,7 +345,6 @@ pub fn function_page() -> impl IntoView {
                                         && (test_mode_rs.get() == false);
                                     let fun_clone = function_data.clone();
                                     let fun_clone_ = function_data.clone();
-
                                     let pub_code = fun_clone
                                         .published_code
                                         .clone()
@@ -428,6 +430,7 @@ pub fn function_page() -> impl IntoView {
                                                                                     editor_mode_ws.set(true)
                                                                                 }
                                                                             />
+
                                                                         </div>
                                                                     </Show>
 
@@ -490,13 +493,7 @@ pub fn function_page() -> impl IntoView {
                         }
                             .into_view()
                     }
-                    None => {
-                        view! {
-
-                            <h1>Error fetching function</h1>
-                        }
-                            .into_view()
-                    }
+                    None => view! { <h1>Error fetching function</h1> }.into_view(),
                 }
             }}
 

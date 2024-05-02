@@ -6,11 +6,14 @@ use super::alert::Alert;
 pub fn toast(alerts: Vec<Alert>) -> impl IntoView {
     view! {
         <div class="toast toast-end toast-zindex">
-            {
-                alerts.into_iter().map(|alert| {
-                    view! { <Alert alert /> }
-                }).collect_view()
-            }
+
+            {alerts
+                .into_iter()
+                .map(|alert| {
+                    view! { <Alert alert/> }
+                })
+                .collect_view()}
+
         </div>
     }
 }

@@ -163,7 +163,8 @@ where
                                     view! {
                                         <div class="stat w-3/12">
                                             <div class="stat-title">{dimension}</div>
-                                            <div class="stat-value text-base">{&value.replace("\"", "")}
+                                            <div class="stat-value text-base">
+                                                {&value.replace("\"", "")}
                                             </div>
                                         </div>
                                     },

@@ -63,10 +63,7 @@ where
                 )>
                     <div class="px-4 py-4 flex justify-between items-center">
                         <h3 class="text-lg font-bold">{header}</h3>
-                        <button
-                            class="btn btn-sm btn-circle btn-ghost"
-                            on:click=close_drawer
-                        >
+                        <button class="btn btn-sm btn-circle btn-ghost" on:click=close_drawer>
                             <i class="ri-close-line"></i>
                         </button>
                     </div>
