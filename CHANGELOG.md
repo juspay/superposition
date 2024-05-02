@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.41.1 - 1970-01-01
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.28.1
+- frontend bumped to frontend-v0.7.1
+### Global changes
+
+- - -
+
 ## v0.41.0 - 2024-04-24
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.14.0

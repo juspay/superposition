@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.7.1 - 2024-05-02
+#### Bug Fixes
+- fixed function template (#16) - (1a9861c) - Ankit Kumar Mahato
+
+- - -
+
 ## frontend-v0.7.0 - 2024-04-24
 #### Features
 - ready for open source! - (5f7af15) - Kartik

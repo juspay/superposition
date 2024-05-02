@@ -902,7 +902,7 @@ checksum = "13418e745008f7349ec7e449155f419a61b92b58a99cc3616942b926825ec76b"
 
 [[package]]
 name = "context_aware_config"
-version = "0.28.0"
+version = "0.28.1"
 dependencies = [
  "actix",
  "actix-cors",
@@ -1477,7 +1477,7 @@ dependencies = [
 
 [[package]]
 name = "frontend"
-version = "0.7.0"
+version = "0.7.1"
 dependencies = [
  "actix-files",
  "actix-web",
