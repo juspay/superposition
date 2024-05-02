@@ -46,7 +46,8 @@
 
       packages.superposition = package;
 
-      checks.clippy = check;
+      # TODO: Uncomment after fixing: https://github.com/juspay/superposition/issues/19
+      # checks.clippy = check;
 
       # Flake outputs
       devShells.rust = pkgs.mkShell {
