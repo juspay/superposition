@@ -3,10 +3,7 @@ name: Create release tags
 permissions:
     contents: write
 
-on:
-    push:
-        branches:
-            - main
+on: workflow_dispatch
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
