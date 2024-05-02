@@ -245,7 +245,7 @@ async fn test(
     match result {
         Ok(stdout) => Ok(HttpResponse::Ok()
             .json(json!({"message": "Function validated the given value successfully", "stdout": stdout}))),
-        Err((e, stdout)) => Err(bad_argument!("Function validation failed with error: {}, stdout: {:?}", e, stdout )),
+        Err((e, stdout)) => Err(bad_argument!("Function validation failed with error: {}, stdout: {:?}", e, stdout.unwrap_or(String::new()))),
     }
 }
 
