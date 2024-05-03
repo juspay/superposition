@@ -290,7 +290,7 @@ where
                             <label class="label">
                                 <span class="label-text ">Value</span>
                             </label>
-                            <input
+                            <textarea
                                 type="text"
                                 placeholder="Value"
                                 class="input input-bordered w-full max-w-md"
@@ -299,7 +299,7 @@ where
                                     logging::log!("{:?}", event_target_value(& ev));
                                     set_config_value.set(event_target_value(&ev));
                                 }
-                            />
+                            ></textarea>
 
                         </div>
 

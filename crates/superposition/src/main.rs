@@ -86,12 +86,6 @@ async fn main() -> Result<()> {
             .map(String::from)
             .collect::<HashSet<String>>();
 
-    let string_to_int = |s: &String| -> i32 {
-        s.chars()
-            .map(|i| (i as i32) & rand::random::<i32>())
-            .fold(0, i32::wrapping_add)
-    };
-
     let schema_manager: PgSchemaManager = init_pool_manager(
         tenants.clone(),
         enable_tenant_and_scope,

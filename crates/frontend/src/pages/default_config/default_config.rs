@@ -174,7 +174,6 @@ pub fn default_config() -> impl IntoView {
                             folder_click_handler(Some(key.clone()))
                         }
                     >
-
                         {label}
                     </span>
                 }
@@ -247,7 +246,6 @@ pub fn default_config() -> impl IntoView {
                                         close_drawer("default_config_drawer");
                                     }
                                 />
-
                             </Drawer>
                         }
                     }
@@ -296,7 +294,6 @@ pub fn default_config() -> impl IntoView {
                                                 folder_click_handler(None);
                                                 enable_grouping.set(!enable_grouping.get());
                                             }
-
                                             class="cursor-pointer label mr-10"
                                         >
                                             <span class="label-text mr-4">Enable Grouping</span>
@@ -362,7 +359,6 @@ where
                                     ""
                                 }
                             >
-
                                 {ele.key.clone()}
                             </h2>
                             <h2 class="pl-4 pr-4">{if index < last_index { ">" } else { "" }}</h2>

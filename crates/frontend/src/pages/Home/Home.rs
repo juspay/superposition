@@ -237,7 +237,7 @@ pub fn home() -> impl IntoView {
                     table_rows.push_str(
                     format!(
                         "<tr><td>{key}</td><td style='word-break: break-word;'>{}</td></tr>",
-                        check_url_and_return_val(value.as_str().unwrap().to_owned())
+                        check_url_and_return_val(serde_json::from_value(value.to_owned()).unwrap_or(format!("{}", value)))
                     )
                     .as_str(),
                 )
@@ -366,11 +366,12 @@ pub fn home() -> impl IntoView {
                                                                 view_vector
                                                                     .push(
                                                                         view! {
-                                                                            < tr > < td class = "min-w-48 font-mono" > < span name =
-                                                                            format!("{unique_name}-1") class = "config-name" class :
-                                                                            text - black = { ! striked } class : font - bold = { !
-                                                                            striked } class : text - gray - 300 = { striked } > { key }
-                                                                            </ span > </ td > < td class = "min-w-48 font-mono" style =
+                                                                            < tr > < td class = "min-w-48 max-w-72 font-mono" > < span
+                                                                            name = format!("{unique_name}-1") class = "config-name"
+                                                                            class : text - black = { ! striked } class : font - bold = {
+                                                                            ! striked } class : text - gray - 300 = { striked } > { key
+                                                                            } </ span > </ td > < td class =
+                                                                            "min-w-48 max-w-72 font-mono" style =
                                                                             "word-break: break-word;" > < span name =
                                                                             format!("{unique_name}-2") class = "config-value" class :
                                                                             text - black = { ! striked } class : font - bold = { !
@@ -497,7 +498,7 @@ pub fn home() -> impl IntoView {
                                                                                 key=|(key, value)| format!("{key}-{value}")
                                                                                 children=move |(config, value)| {
                                                                                     view! {
-                                                                                        <tr>
+                                                                                        <tr class="min-w-48 max-w-72">
                                                                                             <td>{config}</td>
                                                                                             <td style="word-break: break-word;">
                                                                                                 {match value {
