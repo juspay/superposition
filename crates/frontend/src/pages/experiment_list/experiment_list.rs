@@ -6,6 +6,7 @@ use chrono::{prelude::Utc, TimeZone};
 use serde::{Deserialize, Serialize};
 
 use crate::components::drawer::drawer::{close_drawer, Drawer, DrawerBtn};
+use crate::components::skeleton::Skeleton;
 use crate::components::{
     experiment_form::experiment_form::ExperimentForm, pagination::pagination::Pagination,
     stat::stat::Stat, table::table::Table,
@@ -81,7 +82,7 @@ pub fn experiment_list() -> impl IntoView {
     // TODO: Add filters
     view! {
         <div class="p-8">
-            <Suspense fallback=move || view! { <p>"Loading (Suspense Fallback)..."</p> }>
+            <Suspense fallback=move || view! { <Skeleton/> }>
                 <div class="pb-4">
 
                     {move || {
@@ -231,6 +232,7 @@ pub fn experiment_list() -> impl IntoView {
                                 close_drawer("create_exp_drawer");
                             }
                         >
+
                             <ExperimentForm
                                 name="".to_string()
                                 context=vec![]

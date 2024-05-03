@@ -9,7 +9,9 @@ use crate::{
         experiment::experiment::Experiment,
         experiment_conclude_form::experiment_conclude_form::ExperimentConcludeForm,
         experiment_form::experiment_form::ExperimentForm,
-        experiment_ramp_form::utils::ramp_experiment, modal::modal::Modal,
+        experiment_ramp_form::utils::ramp_experiment,
+        modal::modal::Modal,
+        skeleton::{Skeleton, SkeletonVariant},
     },
     types::{DefaultConfig, Dimension, Experiment},
     utils::{close_modal, extract_conditions, show_modal},
@@ -68,7 +70,11 @@ pub fn experiment_page() -> impl IntoView {
 
     view! {
         <Transition fallback=move || {
-            view! { <h1>Loading....</h1> }
+            view! {
+                <div class="m-4">
+                    <Skeleton variant=SkeletonVariant::DetailPage/>
+                </div>
+            }
         }>
             {move || {
                 let resource = match combined_resource.get() {

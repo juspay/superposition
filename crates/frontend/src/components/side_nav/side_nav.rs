@@ -1,4 +1,5 @@
 use crate::components::nav_item::nav_item::NavItem;
+use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::types::AppRoute;
 use crate::utils::{get_tenants, use_url_base};
 
@@ -90,7 +91,7 @@ pub fn side_nav(
                 </A>
             </div>
             <Suspense fallback=move || {
-                view! { <p>"Loading (Suspense Fallback)..."</p> }
+                view! { <Skeleton variant=SkeletonVariant::Content/> }
             }>
                 <select
                     value=tenant_rs.get()

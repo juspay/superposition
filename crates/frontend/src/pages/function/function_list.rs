@@ -5,6 +5,7 @@ use chrono::{prelude::Utc, TimeZone};
 use leptos_router::A;
 use serde::{Deserialize, Serialize};
 
+use crate::components::skeleton::Skeleton;
 use crate::components::{
     pagination::pagination::Pagination, stat::stat::Stat, table::table::Table,
 };
@@ -46,7 +47,7 @@ pub fn function_list() -> impl IntoView {
 
     view! {
         <div class="p-8">
-            <Suspense fallback=move || view! { <p>"Loading (Suspense Fallback)..."</p> }>
+            <Suspense fallback=move || view! { <Skeleton/> }>
                 <div class="pb-4">
 
                     {move || {

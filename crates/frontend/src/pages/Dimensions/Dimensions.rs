@@ -1,5 +1,6 @@
 use crate::components::dimension_form::dimension_form::DimensionForm;
 use crate::components::drawer::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
+use crate::components::skeleton::Skeleton;
 use crate::components::{
     stat::stat::Stat,
     table::{table::Table, types::Column},
@@ -187,7 +188,7 @@ pub fn Dimensions() -> impl IntoView {
                 }
             }}
             <Suspense fallback=move || {
-                view! { <p>"Loading (Suspense Fallback)...."</p> }
+                view! { <Skeleton/> }
             }>
                 {move || {
                     let value = dimensions_resource.get().unwrap_or(vec![]);
