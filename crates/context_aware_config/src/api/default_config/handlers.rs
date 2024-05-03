@@ -1,5 +1,6 @@
 extern crate base64;
 use super::types::CreateReq;
+use service_utils::helpers::validation_err_to_str;
 use service_utils::{bad_argument, unexpected_error, validation_error};
 
 use superposition_types::{SuperpositionUser, User};
@@ -118,9 +119,10 @@ async fn create(
             verrors
         );
         return Err(validation_error!(
-            "Schema validation failed for key {} with error {:?}",
-            default_config.key,
-            verrors
+            "Schema validation failed: {}",
+            &validation_err_to_str(verrors)
+                .first()
+                .unwrap_or(&String::new())
         ));
     }
 

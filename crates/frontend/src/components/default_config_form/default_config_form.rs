@@ -181,72 +181,79 @@ where
                 <label class="label">
                     <span class="label-text">Set Schema</span>
                 </label>
-            <select
-                name="schemaType[]"
-                on:change=move |ev| {
-                    set_show_labels.set(true);
-                    match event_target_value(&ev).as_str() {
-                        "number" => {
-                            set_config_type.set("number".to_string());
-                        }
-                        "decimal" => {
-                            set_config_type.set("decimal".to_string());
-                        }
-                        "boolean" => {
-                            set_config_type.set("boolean".to_string());
-                        }
-                        "enum" => {
-                            set_config_type.set("enum".to_string());
-                            set_config_pattern.set(format!("{:?}", vec!["android", "web", "ios"]));
-                        }
-                        "pattern" => {
-                            set_config_type.set("pattern".to_string());
-                            set_config_pattern.set(".*".to_string());
-                        }
-                        _ => {
-                            set_config_type.set("other".to_string());
-                            set_config_pattern.set("".to_string());
-                        }
-                    };
-                }
+                <select
+                    name="schemaType[]"
+                    on:change=move |ev| {
+                        set_show_labels.set(true);
+                        match event_target_value(&ev).as_str() {
+                            "number" => {
+                                set_config_type.set("number".to_string());
+                            }
+                            "decimal" => {
+                                set_config_type.set("decimal".to_string());
+                            }
+                            "boolean" => {
+                                set_config_type.set("boolean".to_string());
+                            }
+                            "enum" => {
+                                set_config_type.set("enum".to_string());
+                                set_config_pattern
+                                    .set(format!("{:?}", vec!["android", "web", "ios"]));
+                            }
+                            "pattern" => {
+                                set_config_type.set("pattern".to_string());
+                                set_config_pattern.set(".*".to_string());
+                            }
+                            _ => {
+                                set_config_type.set("other".to_string());
+                                set_config_pattern.set("".to_string());
+                            }
+                        };
+                    }
 
-                class="select select-bordered w-full max-w-md"
-            >
-                <option disabled selected>
-                    Choose Schema Type
-                </option>
+                    class="select select-bordered w-full max-w-md"
+                >
+                    <option disabled selected>
+                        Choose Schema Type
+                    </option>
 
-                <option
-                    value="number"
-                    selected=move || { config_type.get() == "number".to_string() }
-                >
-                    "Number"
-                </option>
-                <option
-                    value="decimal"
-                    selected=move || { config_type.get() == "decimal".to_string() }
-                >
-                    "Decimal (16 digits)"
-                </option>
-                <option
-                    value="boolean"
-                    selected=move || { config_type.get() == "boolean".to_string() }
-                >
-                    "Boolean"
-                </option>
-                <option value="enum" selected=move || { config_type.get() == "enum".to_string() }>
-                    "String (Enum)"
-                </option>
-                <option
-                    value="pattern"
-                    selected=move || { config_type.get() == "pattern".to_string() }
-                >
-                    "String (regex)"
-                </option>
-                <option value="other" selected=move || { config_type.get() == "other".to_string() }>
-                    "Other"
-                </option>
-            </select>
+                    <option
+                        value="number"
+                        selected=move || { config_type.get() == "number".to_string() }
+                    >
+                        "Number"
+                    </option>
+                    <option
+                        value="decimal"
+                        selected=move || { config_type.get() == "decimal".to_string() }
+                    >
+                        "Decimal (16 digits)"
+                    </option>
+                    <option
+                        value="boolean"
+                        selected=move || { config_type.get() == "boolean".to_string() }
+                    >
+                        "Boolean"
+                    </option>
+                    <option
+                        value="enum"
+                        selected=move || { config_type.get() == "enum".to_string() }
+                    >
+                        "String (Enum)"
+                    </option>
+                    <option
+                        value="pattern"
+                        selected=move || { config_type.get() == "pattern".to_string() }
+                    >
+                        "String (regex)"
+                    </option>
+                    <option
+                        value="other"
+                        selected=move || { config_type.get() == "other".to_string() }
+                    >
+                        "Other"
+                    </option>
+                </select>
             </div>
 
             <div class="divider"></div>
@@ -275,7 +282,8 @@ where
                         <div class="divider"></div>
                     </Show>
 
-                    <Show when=move || { show_labels.get() && (config_type.get() != "number")
+                    <Show when=move || {
+                        show_labels.get() && (config_type.get() != "number")
                             && (config_type.get() != "decimal")
                     }>
                         <div class="form-control">
@@ -300,9 +308,7 @@ where
                         <Show when=move || (config_type.get() != "boolean")>
                             <div class="form-control">
                                 <label class="label">
-                                    <span class="label-text">
-                                        {config_type.get()}
-                                    </span>
+                                    <span class="label-text">{config_type.get()}</span>
                                 </label>
                                 <textarea
                                     type="text"
@@ -325,44 +331,56 @@ where
             }}
 
             <Suspense>
-            {move || {
-                let functions = functions_resource.get().unwrap_or(vec![]);
-                let mut function_names: Vec<FunctionsName> = vec![];
-                functions.into_iter().for_each(|ele| {
-                    function_names.push(ele.function_name);
-                });
-                function_names.sort();
-                function_names.insert(0, "None".to_string());
-                view! {
-                    <div class="form-control">
-                        <div class="gap-1">
-                            <label class="label flex-col justify-center items-start">
-                                <span class="label-text">Function Name</span>
-                                <span class="label-text text-slate-400">Assign Function validation to your key</span>
-                            </label>
-                        </div>
+                {move || {
+                    let functions = functions_resource.get().unwrap_or(vec![]);
+                    let mut function_names: Vec<FunctionsName> = vec![];
+                    functions
+                        .into_iter()
+                        .for_each(|ele| {
+                            function_names.push(ele.function_name);
+                        });
+                    function_names.sort();
+                    function_names.insert(0, "None".to_string());
+                    view! {
+                        <div class="form-control">
+                            <div class="gap-1">
+                                <label class="label flex-col justify-center items-start">
+                                    <span class="label-text">Function Name</span>
+                                    <span class="label-text text-slate-400">
+                                        Assign Function validation to your key
+                                    </span>
+                                </label>
+                            </div>
 
-                        <div class="mt-2">
-                            <Dropdown
-                                dropdown_width="w-100"
-                                dropdown_icon="".to_string()
-                                dropdown_text={function_name.get().and_then(|v|  match v {
-                                    Value::String(s) => Some(s),
-                                    _ => None,
-                                }).map_or("Add Function".to_string(), |v| v.to_string())}
-                                dropdown_direction=DropdownDirection::Down
-                                dropdown_btn_type=DropdownBtnType::Select
-                                dropdown_options=function_names
-                                on_select=Box::new(handle_select_dropdown_option)
-                            />
-                        </ div>
-                    </ div>
-                }
-            }}
-            </ Suspense>
+                            <div class="mt-2">
+                                <Dropdown
+                                    dropdown_width="w-100"
+                                    dropdown_icon="".to_string()
+                                    dropdown_text=function_name
+                                        .get()
+                                        .and_then(|v| match v {
+                                            Value::String(s) => Some(s),
+                                            _ => None,
+                                        })
+                                        .map_or("Add Function".to_string(), |v| v.to_string())
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_options=function_names
+                                    on_select=Box::new(handle_select_dropdown_option)
+                                />
+                            </div>
+                        </div>
+                    }
+                }}
+
+            </Suspense>
 
             <div class="form-control grid w-full justify-end">
-                <Button class="pl-[70px] pr-[70px]".to_string() text="Submit".to_string() on_click=on_submit/>
+                <Button
+                    class="pl-[70px] pr-[70px]".to_string()
+                    text="Submit".to_string()
+                    on_click=on_submit
+                />
             </div>
 
             {

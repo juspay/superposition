@@ -1494,6 +1494,7 @@ dependencies = [
  "leptos_actix",
  "leptos_meta",
  "leptos_router",
+ "once_cell",
  "reqwest",
  "serde",
  "serde_json",

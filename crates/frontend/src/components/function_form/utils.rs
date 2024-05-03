@@ -1,7 +1,9 @@
 use super::types::{FunctionCreateRequest, FunctionUpdateRequest};
-use crate::utils::get_host;
-use reqwest::StatusCode;
-use serde_json::{json, Value};
+use crate::{
+    types::{FunctionResponse, FunctionTestResponse},
+    utils::{construct_request_headers, get_host, request},
+};
+use serde_json::Value;
 
 pub async fn create_function(
     function_name: String,
@@ -9,7 +11,7 @@ pub async fn create_function(
     runtime_version: String,
     description: String,
     tenant: String,
-) -> Result<String, String> {
+) -> Result<FunctionResponse, String> {
     let payload = FunctionCreateRequest {
         function_name,
         function,
@@ -17,27 +19,15 @@ pub async fn create_function(
         description,
     };
 
-    let client = reqwest::Client::new();
     let host = get_host();
     let url = format!("{host}/function");
-    let request_payload = json!(payload);
-    let response = client
-        .post(url)
-        .header("x-tenant", tenant)
-        .json(&request_payload)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
-
-    let status = response.status();
-    let resp_data = response
-        .text()
-        .await
-        .unwrap_or("Cannot decode response".to_string());
-    match status {
-        StatusCode::OK => Ok(resp_data),
-        _ => Err(resp_data),
-    }
+    request(
+        url,
+        reqwest::Method::POST,
+        Some(payload),
+        construct_request_headers(&[("x-tenant", &tenant)])?,
+    )
+    .await
 }
 
 pub async fn update_function(
@@ -46,35 +36,23 @@ pub async fn update_function(
     runtime_version: String,
     description: String,
     tenant: String,
-) -> Result<String, String> {
+) -> Result<FunctionResponse, String> {
     let payload = FunctionUpdateRequest {
         function,
         runtime_version,
         description,
     };
 
-    let client = reqwest::Client::new();
     let host = get_host();
     let url = format!("{host}/function/{function_name}");
-    let request_payload = json!(payload);
 
-    let response = client
-        .patch(url)
-        .header("x-tenant", tenant)
-        .json(&request_payload)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
-
-    let status = response.status();
-    let resp_data = response
-        .text()
-        .await
-        .unwrap_or("Cannot decode response".to_string());
-    match status {
-        StatusCode::OK => Ok(resp_data),
-        _ => Err(resp_data),
-    }
+    request(
+        url,
+        reqwest::Method::PATCH,
+        Some(payload),
+        construct_request_headers(&[("x-tenant", &tenant)])?,
+    )
+    .await
 }
 
 pub async fn test_function(
@@ -82,26 +60,15 @@ pub async fn test_function(
     stage: String,
     val: Value,
     tenant: String,
-) -> Result<String, String> {
-    let client = reqwest::Client::new();
+) -> Result<FunctionTestResponse, String> {
     let host = get_host();
     let url = format!("{host}/function/{function_name}/{stage}/test");
 
-    let response = client
-        .put(url)
-        .header("x-tenant", tenant)
-        .json(&val)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
-
-    let status = response.status();
-    let resp_data = response
-        .text()
-        .await
-        .unwrap_or("Cannot decode response".to_string());
-    match status {
-        StatusCode::OK => Ok(resp_data),
-        _ => Err(resp_data),
-    }
+    request(
+        url,
+        reqwest::Method::PUT,
+        Some(val),
+        construct_request_headers(&[("x-tenant", &tenant)])?,
+    )
+    .await
 }

@@ -1,4 +1,5 @@
 use actix_web::{error::ErrorInternalServerError, Error};
+use jsonschema::{error::ValidationErrorKind, ValidationError};
 use log::info;
 use serde::de::{self, IntoDeserializer};
 use std::{
@@ -197,4 +198,131 @@ pub fn get_variable_name_and_value(
             ))?;
 
     Ok((variable_name, variable_value))
+}
+
+pub fn validation_err_to_str(errors: Vec<ValidationError>) -> Vec<String> {
+    errors.into_iter().map(|error| {
+        match error.kind {
+            ValidationErrorKind::AdditionalItems { limit } => {
+                format!("input array contain more items than expected, limit is {limit}")
+            }
+            ValidationErrorKind::AdditionalProperties { unexpected } => {
+                format!("unexpected properties `{}`", unexpected.join(", "))
+            }
+            ValidationErrorKind::AnyOf => {
+                format!("not valid under any of the schemas listed in the 'anyOf' keyword")
+            }
+            ValidationErrorKind::BacktrackLimitExceeded { error: _ } => {
+                format!("backtrack limit exceeded while matching regex")
+            }
+            ValidationErrorKind::Constant { expected_value } => {
+                format!("value doesn't match expected constant `{expected_value}`")
+            }
+            ValidationErrorKind::Contains => {
+                format!("array doesn't contain items conforming to the specified schema")
+            }
+            ValidationErrorKind::ContentEncoding { content_encoding } => {
+                format!("value doesn't respect the defined contentEncoding `{content_encoding}`")
+            }
+            ValidationErrorKind::ContentMediaType { content_media_type } => {
+                format!("value doesn't respect the defined contentMediaType `{content_media_type}`")
+            }
+            ValidationErrorKind::Enum { options } => {
+                format!("value doesn't match any of specified options {}", options.to_string())
+            }
+            ValidationErrorKind::ExclusiveMaximum { limit } => {
+                format!("value is too large, limit is {limit}")
+            }
+            ValidationErrorKind::ExclusiveMinimum { limit } => {
+                format!("value is too small, limit is {limit}")
+            }
+            ValidationErrorKind::FalseSchema => {
+                format!("everything is invalid for `false` schema")
+            }
+            ValidationErrorKind::FileNotFound { error: _ } => {
+                format!("referenced file not found")
+            }
+            ValidationErrorKind::Format { format } => {
+                format!("value doesn't match the specified format `{}`", format)
+            }
+            ValidationErrorKind::FromUtf8 { error: _ } => {
+                format!("invalid UTF-8 data")
+            }
+            ValidationErrorKind::InvalidReference { reference } => {
+                format!("`{}` is not a valid reference", reference)
+            }
+            ValidationErrorKind::InvalidURL { error } => {
+                format!("invalid URL: {}", error)
+            }
+            ValidationErrorKind::JSONParse { error } => {
+                format!("error parsing JSON: {}", error)
+            }
+            ValidationErrorKind::MaxItems { limit } => {
+                format!("too many items in array, limit is {}", limit)
+            }
+            ValidationErrorKind::Maximum { limit } => {
+                format!("value is too large, maximum is {}", limit)
+            }
+            ValidationErrorKind::MaxLength { limit } => {
+                format!("string is too long, maximum length is {}", limit)
+            }
+            ValidationErrorKind::MaxProperties { limit } => {
+                format!("too many properties in object, limit is {}", limit)
+            }
+            ValidationErrorKind::MinItems { limit } => {
+                format!("not enough items in array, minimum is {}", limit)
+            }
+            ValidationErrorKind::Minimum { limit } => {
+                format!("value is too small, minimum is {}", limit)
+            }
+            ValidationErrorKind::MinLength { limit } => {
+                format!("string is too short, minimum length is {}", limit)
+            }
+            ValidationErrorKind::MinProperties { limit } => {
+                format!("not enough properties in object, minimum is {}", limit)
+            }
+            ValidationErrorKind::MultipleOf { multiple_of } => {
+                format!("value is not a multiple of {}", multiple_of)
+            }
+            ValidationErrorKind::Not { schema } => {
+                format!("negated schema `{}` failed validation", schema)
+            }
+            ValidationErrorKind::OneOfMultipleValid => {
+                format!("value is valid under more than one schema listed in the 'oneOf' keyword")
+            }
+            ValidationErrorKind::OneOfNotValid => {
+                format!("value is not valid under any of the schemas listed in the 'oneOf' keyword")
+            }
+            ValidationErrorKind::Pattern { pattern } => {
+                format!("value doesn't match the pattern `{}`", pattern)
+            }
+            ValidationErrorKind::PropertyNames { error } => {
+                format!("object property names are invalid: {}", error)
+            }
+            ValidationErrorKind::Required { property } => {
+                format!("required property `{}` is missing", property)
+            }
+            ValidationErrorKind::Resolver { url, error } => {
+                format!("error resolving reference `{}`: {}", url, error)
+            }
+            ValidationErrorKind::Schema => {
+                format!("resolved schema failed to compile")
+            }
+            ValidationErrorKind::Type { kind } => {
+                format!("value doesn't match the required type(s) `{:?}`", kind)
+            }
+            ValidationErrorKind::UnevaluatedProperties { unexpected } => {
+                format!("unevaluated properties `{}`", unexpected.join(", "))
+            }
+            ValidationErrorKind::UniqueItems => {
+                format!("array contains non-unique elements")
+            }
+            ValidationErrorKind::UnknownReferenceScheme { scheme } => {
+                format!("unknown reference scheme `{}`", scheme)
+            }
+            ValidationErrorKind::Utf8 { error } => {
+                format!("invalid UTF-8 string: {}", error)
+            }
+        }
+    }).collect()
 }

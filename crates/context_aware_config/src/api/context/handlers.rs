@@ -32,6 +32,7 @@ use diesel::{
 };
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{from_value, json, Map, Value};
+use service_utils::helpers::validation_err_to_str;
 use service_utils::service::types::DbConnection;
 use service_utils::{db_error, not_found, unexpected_error, validation_error};
 use std::collections::HashMap;
@@ -164,8 +165,10 @@ fn validate_override_with_default_configs(
             let verrors = e.collect::<Vec<ValidationError>>();
             log::error!("({key}) config key validation error: {:?}", verrors);
             return Err(validation_error!(
-                "schema validation failed for {key} with error {:?}",
-                verrors
+                "schema validation failed for {key}: {}",
+                validation_err_to_str(verrors)
+                    .first()
+                    .unwrap_or(&String::new())
             ));
         };
     }

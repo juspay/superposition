@@ -1,5 +1,5 @@
 use super::utils::{create_function, test_function, update_function};
-use crate::components::button::button::Button;
+use crate::{components::button::button::Button, types::FunctionTestResponse};
 use leptos::*;
 use serde_json::{from_str, json, Value};
 use web_sys::MouseEvent;
@@ -88,7 +88,8 @@ where
                                 logging::log!("Function editor - Function Name: {:?}", value);
                                 set_function.set(value);
                             }
-                        ></div>
+                        >
+                        </div>
                     </div>
 
                     <div class="mx-auto w-auto" style="width: 250px">
@@ -104,6 +105,7 @@ where
                                     on:input=move |ev| {
                                         set_function_name.set(event_target_value(&ev))
                                     }
+
                                     type="text"
                                     name="funName"
                                     id="funName"
@@ -176,7 +178,8 @@ where
 {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let (error_message, set_error_message) = create_signal("".to_string());
-    let (output_message, set_output_message) = create_signal("".to_string());
+    let (output_message, set_output_message) =
+        create_signal::<Option<FunctionTestResponse>>(None);
     let (val, set_val) = create_signal(json!({}));
     let (key, set_key) = create_signal("".to_string());
 
@@ -201,11 +204,11 @@ where
 
                 match result {
                     Ok(resp) => {
-                        set_error_message.set("".to_string());
-                        set_output_message.set(resp);
+                        set_error_message.set(String::new());
+                        set_output_message.set(Some(resp));
                     }
                     Err(e) => {
-                        set_output_message.set("".to_string());
+                        set_output_message.set(None);
                         set_error_message.set(e);
                     }
                 }
@@ -255,13 +258,12 @@ where
                                     Ok(test_val) => {
                                         set_val.set(test_val);
                                         set_error_message.set("".to_string());
-                                        set_output_message.set("".to_string());
+                                        set_output_message.set(None);
                                     }
                                     Err(_) => {
                                         set_val.set(json!(value));
                                         set_error_message.set("".to_string());
-                                        set_output_message.set("".to_string());
-
+                                        set_output_message.set(None);
                                     }
                                 };
                             }
@@ -281,7 +283,17 @@ where
                     </div>
 
                     <div>
-                        <p class="text-green-700">{move || output_message.get()}</p>
+                        <p class="text-green-700">
+                            {move || {
+                                output_message
+                                    .get()
+                                    .map_or(
+                                        String::new(),
+                                        |o| { format!("{}\n{}", o.message, o.stdout) },
+                                    )
+                            }}
+
+                        </p>
                     </div>
 
                 </form>

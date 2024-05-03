@@ -123,7 +123,12 @@ pub fn Dimensions() -> impl IntoView {
             let edit_icon: HtmlElement<html::I> =
                 view! { <i class="ri-pencil-line ri-xl text-blue-500"></i> };
 
-            view! { <span class="cursor-pointer" on:click=edit_click_handler>{edit_icon}</span> }.into_view()
+            view! {
+                <span class="cursor-pointer" on:click=edit_click_handler>
+                    {edit_icon}
+                </span>
+            }
+            .into_view()
         };
         vec![
             Column::default("dimension".to_string()),
@@ -145,25 +150,34 @@ pub fn Dimensions() -> impl IntoView {
                 };
                 if let Some(selected_dimension_data) = selected_dimension.get() {
                     view! {
-                        <Drawer id="dimension_drawer".to_string() header="Edit Dimension" handle_close=handle_close>
-                        <DimensionForm
-                            edit=true
-                            priority=selected_dimension_data.priority
-                            dimension_name=selected_dimension_data.dimension
-                            dimension_type=selected_dimension_data.type_
-                            dimension_pattern=selected_dimension_data.pattern
-                            function_name=selected_dimension_data.function_name
-                            handle_submit=move || {
-                                dimensions_resource.refetch();
-                                selected_dimension.set(None);
-                                close_drawer("dimension_drawer");
-                            }
-                        />
+                        <Drawer
+                            id="dimension_drawer".to_string()
+                            header="Edit Dimension"
+                            handle_close=handle_close
+                        >
+                            <DimensionForm
+                                edit=true
+                                priority=selected_dimension_data.priority
+                                dimension_name=selected_dimension_data.dimension
+                                dimension_type=selected_dimension_data.type_
+                                dimension_pattern=selected_dimension_data.pattern
+                                function_name=selected_dimension_data.function_name
+                                handle_submit=move || {
+                                    dimensions_resource.refetch();
+                                    selected_dimension.set(None);
+                                    close_drawer("dimension_drawer");
+                                }
+                            />
+
                         </Drawer>
                     }
                 } else {
                     view! {
-                        <Drawer id="dimension_drawer".to_string() header="Create New Dimension" handle_close=handle_close>
+                        <Drawer
+                            id="dimension_drawer".to_string()
+                            header="Create New Dimension"
+                            handle_close=handle_close
+                        >
                             <DimensionForm handle_submit=move || {
                                 dimensions_resource.refetch();
                                 close_drawer("dimension_drawer");
@@ -172,7 +186,6 @@ pub fn Dimensions() -> impl IntoView {
                     }
                 }
             }}
-
             <Suspense fallback=move || {
                 view! { <p>"Loading (Suspense Fallback)...."</p> }
             }>
@@ -201,7 +214,8 @@ pub fn Dimensions() -> impl IntoView {
                                     <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
                                         "Dimensions"
                                     </h2>
-                                    <DrawerBtn drawer_id="dimension_drawer".to_string()>
+                                    <DrawerBtn drawer_id="dimension_drawer"
+                                        .to_string()>
                                         Create Dimension <i class="ri-edit-2-line ml-2"></i>
                                     </DrawerBtn>
                                 </div>
@@ -215,6 +229,7 @@ pub fn Dimensions() -> impl IntoView {
                         </div>
                     }
                 }}
+
             </Suspense>
         </div>
     }

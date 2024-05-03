@@ -2,7 +2,9 @@ use actix_web::http::header::{HeaderMap, HeaderName, HeaderValue};
 use itertools::{self, Itertools};
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{json, Value};
-use service_utils::{result as superposition, validation_error};
+use service_utils::{
+    helpers::validation_err_to_str, result as superposition, validation_error,
+};
 use std::collections::HashMap;
 
 pub fn get_default_config_validation_schema() -> JSONSchema {
@@ -168,9 +170,11 @@ pub fn validate_context_jsonschema(
                             verrors
                         );
                         Err(validation_error!(
-                            "failed to validate dimension value {:?} with error: {:?}",
-                            dimension_value,
-                            verrors
+                            "failed to validate dimension value {}: {}",
+                            dimension_value.to_string(),
+                            validation_err_to_str(verrors)
+                                .first()
+                                .unwrap_or(&String::new())
                         ))
                     }
                 }
@@ -179,14 +183,16 @@ pub fn validate_context_jsonschema(
         _ => dimension_schema.validate(dimension_value).map_err(|e| {
             let verrors = e.collect::<Vec<ValidationError>>();
             log::error!(
-                "failed to validate dimension value {:?} with error : {:?}",
-                dimension_value,
+                "failed to validate dimension value {}: {:?}",
+                dimension_value.to_string(),
                 verrors
             );
             validation_error!(
-                "failed to validate dimension value {:?} with error: {:?}",
-                dimension_value,
-                verrors
+                "failed to validate dimension value {}: {}",
+                dimension_value.to_string(),
+                validation_err_to_str(verrors)
+                    .first()
+                    .unwrap_or(&String::new())
             )
         }),
     }
@@ -209,8 +215,10 @@ pub fn validate_jsonschema(
             //TODO: Try & render as json.
             let verrors = e.collect::<Vec<ValidationError>>();
             Err(validation_error!(
-                "schema validation failed: {:?}",
-                verrors.as_slice()
+                "schema validation failed: {}",
+                validation_err_to_str(verrors)
+                    .first()
+                    .unwrap_or(&String::new())
             ))
         }
     };

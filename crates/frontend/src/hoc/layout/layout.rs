@@ -1,4 +1,7 @@
-use crate::components::side_nav::side_nav::SideNav;
+use crate::{
+    components::{side_nav::side_nav::SideNav, toast::Toast},
+    providers::alert_provider::AlertQueue,
+};
 use leptos::*;
 use leptos_router::*;
 
@@ -36,6 +39,16 @@ pub fn Layout(children: Children) -> impl IntoView {
             <main class="ease-soft-in-out xl:ml-96 relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto">
                 {children()}
             </main>
+
+            {move || {
+                let alert_queue = use_context::<ReadSignal<AlertQueue>>();
+                let alerts = match alert_queue {
+                    Some(queue) => queue.get().alerts,
+                    None => Vec::new(),
+                };
+                view! { <Toast alerts/> }
+            }}
+
         </div>
     }
 }
