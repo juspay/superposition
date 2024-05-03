@@ -92,7 +92,7 @@ where
                                         </label>
                                     </div>
                                     <div class="form-control w-2/5">
-                                        <input
+                                        <textarea
                                             type="text"
                                             placeholder="Enter override here"
                                             name="override"
@@ -119,7 +119,7 @@ where
                                                             );
                                                     });
                                             }
-                                        />
+                                        ></textarea>
 
                                     </div>
                                     <div class="w-1/5">

@@ -231,7 +231,6 @@ pub fn experiment_list() -> impl IntoView {
                                 close_drawer("create_exp_drawer");
                             }
                         >
-
                             <ExperimentForm
                                 name="".to_string()
                                 context=vec![]

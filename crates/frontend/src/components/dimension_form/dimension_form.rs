@@ -253,10 +253,10 @@ where
                     </div>
 
                     <Show when=move || {
-                        (show_labels.get()
+                        show_labels.get()
                             && ((dimension_type.get() == "enum")
                                 || (dimension_type.get() == "pattern")
-                                || (dimension_type.get() == "other")))
+                                || (dimension_type.get() == "other"))
                     }>
                         <div class="form-control">
                             <label class="label font-mono">
