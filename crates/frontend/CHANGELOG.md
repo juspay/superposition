@@ -2,6 +2,92 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.8.0 - 2024-05-06
+#### Bug Fixes
+- resolve page failing when any type other than string is used (#21) - (f496634) - Datron
+- fixed function template (#16) - (bb2df67) - Ankit Kumar Mahato
+- Do not lowercase dmension inputs while resolving (#11) - (8536a84) - Ayush Jain
+-  function route fix - (afae0d2) - Pratik Mishra
+-  added type for condition - (70914b6) - Saurav CV
+-  ui bug fix for contexts - (abe2911) - Saurav CV
+- adding min-width settings for table component - (65f71b4) - Kartik
+- added drawer, improved UX & single click override addition to variants - (f96d14a) - Shubhranshu Sanjeev
+-  transpose columns in single experiment page for variants - (df72896) - Kartik
+-  add traffic percentage to experiments table - (c7f4146) - Kartik
+-  fix copy of experiment ID - (283b5c3) - Kartik
+- using SERVICE_NAME in is_server instead of SERVER_NAME(wrong var name) - (ef028a8) - Shubhranshu Sanjeev
+- fixing error message for experiment create and bulk context api - (85cb360) - Jenkins
+- refactored experiment page and fixed experiment edit flow - (8af924a) - Shubhranshu Sanjeev
+- getting api hostname from env for frontend - (b8dbbe9) - Shubhranshu Sanjeev
+- fixed host resolve issue for internal calls in SSR. - (d2189f6) - Shubhranshu Sanjeev
+- error resolving pages with internal call to server - (61c3909) - Shubhranshu Sanjeev
+- refactored DefaultConfig component + fixed edit flow - (a589c61) - Shubhranshu Sanjeev
+- fixed dimension form edit flow + fixed table component CellFormatter to accept move closures - (82a8c2f) - Shubhranshu Sanjeev
+- frontend build process - (3036d77) - Shubhranshu Sanjeev
+- fixed tenant hydration bug - (11e7705) - Saurav Suman
+- fixed ci-test to support multi-tenant setup - (9ad6aa5) - Shubhranshu Sanjeev
+- cleanup code - (c98f00d) - Kartik Gajendra
+- UI fixes for demo - (e9b3825) - Kartik Gajendra
+- frontend multi-tenancy support + config and dimension page - (a632054) - Shubhranshu Sanjeev
+- fixed experiment list page feedback - (4fa25e6) - Shubhranshu Sanjeev
+- context parsing - (743fdcd) - Kartik Gajendra
+- resolve UI bugs - (f4b7912) - Kartik Gajendra
+- dimensions page updates - (392cdf6) - ankit.mahato
+#### Features
+- improved error communication on frontend, with toast component - (51838eb) - Shubhranshu Sanjeev
+- Added grouping in default_config page (#9) - (9f4a46a) - Ankit Kumar Mahato
+- ready for open source! - (f48db35) - Kartik
+-  Add function support in dimension and default config form - (f4542c1) - ankit.mahato
+-  added decimal support in context and override form and fixed dimension modal - (a6834b4) - Saurav Suman
+-  added support for dynamic json schema in frontend - (16b6556) - Saurav Suman
+-  function ui - (7f15a62) - Pratik Mishra
+-  refactor resolve page - (98a6aae) - Kartik
+-  url click and text wrap fixes - (fa2004d) - Saurav CV
+- support for service prefix - (f34705a) - Shubhranshu Sanjeev
+- added bool, i64 and decimal in default config form - (81c9717) - Saurav Suman
+-  added authentication header for frontend apis - (83ba631) - Saurav Suman
+- added between in frontend - (b6043ce) - Akhilesh Bhadauriya
+- added validation inside default config form , formatted dates , added disable feature of edit - (cf3beee) - Saurav Suman
+- resolve page with unified UI - (f7b759d) - Kartik Gajendra
+- working resolve page - (b3096ac) - Kartik Gajendra
+- fixed experiment suspense block , added generic button - (a3c63cc) - Saurav Suman
+- experiment create form - (0fccb5d) - Shubhranshu Sanjeev
+- fixed theme + ui changes + form validation + context validation error handling - (dc8b7e5) - Saurav Suman
+- working resolve page - (ed844f1) - Kartik Gajendra
+- added state changes in the form - (815b13e) - Saurav Suman
+- testing create form - (f6fa783) - Kartik Gajendra
+- working experiments page - (35179c4) - Kartik Gajendra
+- experiment UI - (e40619f) - Kartik Gajendra
+- added default config and override screen - (2e13520) - Saurav Suman
+- added default config page - (59ac86b) - Saurav Suman
+- working experiments page - (1df7dc2) - Kartik Gajendra
+- override and context form - (96dbb81) - Shubhranshu Sanjeev
+- dimensions - (8ea5510) - ankit.mahato
+- added experiment-list page - (3a51c7c) - Shubhranshu Sanjeev
+- experiment UI - (80af3ab) - Kartik Gajendra
+- ui for cac and exp - (10932a1) - Shubhranshu Sanjeev
+- added frontend crate,combined frontend and backend binaries () - (dcf18a6) - Saurav Suman
+#### Miscellaneous Chores
+- **(version)** v0.41.0 [skip ci] - (ceefd83) - Superposition Bot
+- **(version)** v0.40.0 [skip ci] - (836b769) - Jenkins
+- **(version)** v0.38.2 [skip ci] - (577bccb) - Jenkins
+- **(version)** v0.38.0 [skip ci] - (80f47d5) - Jenkins
+- **(version)** v0.36.0 [skip ci] - (ae95229) - Jenkins
+- **(version)** v0.35.0 [skip ci] - (faf984e) - Jenkins
+- **(version)** v0.34.0 [skip ci] - (dd35ac6) - Jenkins
+- **(version)** v0.33.0 [skip ci] - (c2ba364) - Jenkins
+- **(version)** v0.30.1 [skip ci] - (4fc303f) - Jenkins
+- **(version)** v0.29.0 [skip ci] - (eeb03e7) - Jenkins
+- add PR testing workflows (#6) - (d6bb8d4) - Datron
+- formatted code + cleanup - (1658102) - Shubhranshu Sanjeev
+- formatted frontend code - (b1ce60c) - Shubhranshu Sanjeev
+#### Refactoring
+-  refactored service to use new error type and better error handling - (267cda1) - Shubhranshu Sanjeev
+- using snake case for component fxn names - (dc773a7) - Shubhranshu Sanjeev
+- fixed warnings, added redirection for home page and script for setting up the project - (8a70e77) - Saurav Suman
+
+- - -
+
 ## frontend-v0.7.0 - 2024-04-24
 #### Features
 - ready for open source! - (5f7af15) - Kartik

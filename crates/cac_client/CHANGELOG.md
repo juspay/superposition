@@ -2,6 +2,50 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.12.0 - 2024-05-06
+#### Bug Fixes
+-  removed audit log middleware and reduced max db connection pool size to 2 - (5f9fdae) - Saurav Suman
+-  fixed error in client - (c3badc0) - ankit.mahato
+-  empty key filters should return all keys - (e053b5e) - Kartik
+-  Do not remove keys with null value on merge - (c3d7aa5) - ayush.jain@juspay.in
+- cac service to set last_modified header - (6c7d792) - ankit.mahato
+-  patching overrides on default-config instead of merge - (ba461ca) - Ritick Madaan
+-  eval param fix - (5963208) - Pratik Mishra
+#### Documentation
+-  add intro doc and features - (68c667b) - Natarajan Kannan
+-  add intro doc and features - (28aea00) - Natarajan Kannan
+#### Features
+- ready for open source! - (f48db35) - Kartik
+-  Add filter support to client - (378ddf2) - ankit.mahato
+-  client interface improvements - (1453395) - Kartik
+-  haskell client for superposition - (f6cb874) - Kartik
+-  haskell client for superposition - (129fee5) - Kartik
+-  Replace merge-strategy option for resolve/eval - (45a3979) - ayush.jain@juspay.in
+- working resolve page - (b3096ac) - Kartik Gajendra
+- added format check in the JenkinsFile() - (a7055f8) - Saurav Suman
+- multi-tenant support for client libraries - (1611c90) - Shubhranshu Sanjeev
+-  cac eval return update - (06b1cb2) - Pratik Mishra
+-  Adding generic eval - (7f3c73c) - Pratik Mishra
+-  added experimentation client with few fixes - (5198f50) - Kartik Gajendra
+#### Miscellaneous Chores
+- **(version)** v0.41.0 [skip ci] - (ceefd83) - Superposition Bot
+- **(version)** v0.40.0 [skip ci] - (836b769) - Jenkins
+- **(version)** v0.39.1 [skip ci] - (a1d5570) - Jenkins
+- **(version)** v0.39.0 [skip ci] - (84b8d06) - Jenkins
+- **(version)** v0.35.0 [skip ci] - (faf984e) - Jenkins
+- **(version)** v0.32.0 [skip ci] - (1c123d2) - Jenkins
+- **(version)** v0.28.0 [skip ci] - (b781755) - Jenkins
+- **(version)** v0.24.0 [skip ci] - (6cefcdb) - Jenkins
+- **(version)** v0.17.0 [skip ci] - (2414ce5) - Jenkins
+- **(version)** v0.15.0 [skip ci] - (7625d5f) - Jenkins
+- **(version)** v0.12.0 [skip ci] - (935d91e) - Jenkins
+- **(version)** v0.6.1 [skip ci] - (aada669) - Jenkins
+- **(version)** v0.6.0 [skip ci] - (238eb62) - Jenkins
+- **(version)** v0.1.0 [skip ci] - (aae44b9) - Jenkins
+-  move dependencies to workspaces - (20229c6) - Kartik Gajendra
+
+- - -
+
 ## cac_client-v0.11.0 - 2024-04-24
 #### Features
 - ready for open source! - (5f7af15) - Kartik

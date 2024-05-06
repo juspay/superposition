@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.6.0 - 2024-05-06
+#### Features
+-  client interface improvements - (1453395) - Kartik
+#### Miscellaneous Chores
+- rename superposition to experimentation - (bfbf86c) - Kartik
+
+- - -
+
 ## experimentation_client-v0.5.0 - 2024-03-18
 #### Documentation
 - PICAF-25981: add intro doc and features - (d09ba53) - Natarajan Kannan

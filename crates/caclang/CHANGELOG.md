@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## caclang-v0.2.0 - 2024-05-06
+#### Features
+- support more operations - (68afd4a) - Kartik Gajendra
+- added CAC language support - (bc3d48c) - Kartik Gajendra
+#### Miscellaneous Chores
+- **(version)** v0.30.0 [skip ci] - (a51d143) - Jenkins
+
+- - -
+
 ## caclang-v0.1.0 - 2024-03-06
 #### Features
 - support more operations - (4db2c31) - Kartik Gajendra

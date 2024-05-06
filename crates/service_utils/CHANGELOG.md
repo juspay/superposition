@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.16.0 - 2024-05-06
+#### Features
+- improved error communication on frontend, with toast component - (51838eb) - Shubhranshu Sanjeev
+- ready for open source! - (f48db35) - Kartik
+#### Miscellaneous Chores
+- **(version)** v0.41.0 [skip ci] - (ceefd83) - Superposition Bot
+- **(version)** v0.40.0 [skip ci] - (836b769) - Jenkins
+- add PR testing workflows (#6) - (d6bb8d4) - Datron
+
+- - -
+
 ## service_utils-v0.15.0 - 2024-04-24
 #### Features
 - ready for open source! - (5f7af15) - Kartik
