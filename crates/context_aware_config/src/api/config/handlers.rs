@@ -32,7 +32,7 @@ use serde_json::{json, Map, Value};
 use service_utils::service::types::DbConnection;
 use service_utils::{bad_argument, db_error, unexpected_error};
 
-use dashboard_auth::types::User;
+use superposition_types::User;
 use itertools::Itertools;
 use jsonschema::JSONSchema;
 use service_utils::helpers::extract_dimensions;
@@ -382,7 +382,7 @@ async fn reduce_context_key(
                                     )
                                     .await;
                                     let put_req = construct_new_payload(request_payload);
-                                    let _ = put(put_req, &user, conn, false);
+                                    let _ = put(put_req, conn, false, &user);
                                 }
 
                                 if let Some(override_val) =
