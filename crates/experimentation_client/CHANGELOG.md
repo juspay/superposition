@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file. See [conven
 #### Features
 -  client interface improvements - (1453395) - Kartik
 #### Miscellaneous Chores
+- **(version)** v0.42.0 [skip ci] - (e4bc080) - Superposition Bot
+- rename superposition to experimentation - (bfbf86c) - Kartik
+
+- - -
+
+## experimentation_client-v0.6.0 - 2024-05-06
+#### Features
+-  client interface improvements - (1453395) - Kartik
+#### Miscellaneous Chores
 - rename superposition to experimentation - (bfbf86c) - Kartik
 
 - - -

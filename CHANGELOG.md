@@ -4,6 +4,331 @@ All notable changes to this project will be documented in this file. See [conven
 - - -
 ## v0.42.0 - 2024-05-06
 ### Package updates
+- superposition_types bumped to superposition_types-v0.2.0
+- caclang bumped to caclang-v0.2.0
+- experimentation_platform bumped to experimentation_platform-v0.15.0
+- frontend bumped to frontend-v0.8.0
+- cac_client bumped to cac_client-v0.12.0
+- service_utils bumped to service_utils-v0.16.0
+- context_aware_config bumped to context_aware_config-v0.29.0
+- experimentation_client bumped to experimentation_client-v0.6.0
+### Global changes
+#### Bug Fixes
+- corrected env for DB_PASSWORD and default for AWS_REGION - (d840100) - Ritick Madaan
+- improved log for env not found - (19aaea5) - Ritick Madaan
+- base64 decoding kms cypher - (a9a5516) - Ritick Madaan
+- changed host to 0.0.0.0 - (9c76f91) - Ritick Madaan
+-  dimension Table scaffolding, PUT<>DELETE apis `/dimension` - (a11d927) - Ritick Madaan
+- storing pre calculated priority in contexts table - (e89389f) - Ritick Madaan
+- removed delete dimension api - (224500f) - Ritick Madaan
+-  DB password URI encoded. - (b3d2b5c) - Shrey Bana
+-  moved override inside contexts table - (2b92946) - Ritick Madaan
+-  removed unecessary and wrap over conditions - (71d4acb) - Ritick Madaan
+-  added search path for schema in database_url - (8636c94) - Ritick Madaan
+-  database schema url - (a5ebc02) - Ritick Madaan
+-  added moved tables to cac_v1 schema - (edd84dd) - Ritick Madaan
+-  enabled override updates in PUT /context by deep_merge - (10920fb) - Ritick Madaan
+-  moved dimension_type to cac_v1 schema - (fb16bde) - Ritick Madaan
+-  fixed ordering of /context endpoints - (857e1b7) - Ritick Madaan
+-  updated response-type of /context/bulk-operations api - (8ff3bb3) - Ritick Madaan
+- fixed context overlap check logic - (b7f81fe) - Shubhranshu Sanjeev
+- added last_modified column and indexes - (8ba6cd6) - Shubhranshu Sanjeev
+- moved tables and types under cac_v1 schema - (6e31830) - Shubhranshu Sanjeev
+- calling cac apis for creating context - (97e8dcd) - Shubhranshu Sanjeev
+-  updated last_modified in ramp - (19c9630) - ankit.mahato
+-  minor fixes for exp client - (0494a96) - Kartik Gajendra
+- removed traffic-percentage from experiment create request - (cae8b71) - Shubhranshu Sanjeev
+-  added total items to list API response - (70ce4ff) - Kartik Gajendra
+- using audit log tstamp for checking last-modified - (664a2aa) - Shubhranshu Sanjeev
+-  sorting same priority contexts with created_at - (fc3344a) - Ritick Madaan
+-  allowing cug users to fall under test variants - (8158524) - Ritick Madaan
+-  removed unwanted parameter to prevent warning - (872dcc6) - Ritick Madaan
+- added middleware to insert version in response headers - (3bdfac0) - Shubhranshu Sanjeev
+-  logged env variable's value before kms decrypting - (1224359) - Ritick Madaan
+- moved git init to separate stage - (2b0133a) - Shubhranshu Sanjeev
+-  cleaned up Dockerfile - (abb7f9a) - Ritick Madaan
+- fixed setting env in docker image - (be938dc) - Shubhranshu Sanjeev
+- trimming newline character from version string - (374efb2) - Shubhranshu Sanjeev
+- fixed random timeouts in internal http calls to CAC - (f80862d) - Shubhranshu Sanjeev
+- failed build due to untracked schema.rs file changes - (b9e19b6) - Shubhranshu Sanjeev
+-  eval param fix - (5963208) - Pratik Mishra
+-  patching overrides on default-config instead of merge - (ba461ca) - Ritick Madaan
+- ssh.bitbucket.juspay.net added to known hosts in docker bulid - (3a3dbd9) - Ritick Madaan
+-  add user struct in delete context API - (698cc2c) - Kartik Gajendra
+-  add migration for changing default_configs_keys - (1ed3cff) - Pratik Mishra
+- validating override_keys for unique entries - (f759d38) - Shubhranshu Sanjeev
+-  add all variants in manifest - (ca15d2b) - Pratik Mishra
+- fixed failing health check (x-tenant header not set) - (850e7b2) - Shubhranshu Sanjeev
+-  x-tenant header mandate removed for OPTIONS calls - (2254ad5) - Ritick Madaan
+-  x-tenant header added for /config/resolve call in diff - (6b9516e) - Ritick Madaan
+-  added external crate to cocogitto config - (23d34d6) - Ritick Madaan
+- make sure envs with defaults prevent failure - (4f4cc82) - Kartik Gajendra
+- cac service to set last_modified header - (6c7d792) - ankit.mahato
+- Removing acceptance of override_keys in experiment create/update - (336b771) - ankit.mahato
+- failing build due to update of schema.rs file - (f219dbf) - Shubhranshu Sanjeev
+- add different auth types for exp requests to CAC - (a988be3) - Kartik Gajendra
+- fixed deployment ConfigNotFound failure - (d0ba5f0) - Shubhranshu Sanjeev
+-  sort json while context creation - (84e2693) - Pratik Mishra
+- allow ramp 0 - (6666f3e) - Kartik Gajendra
+-  - Cac client library changes to consume backend api response - (ccb40cd) - Prasanna P
+-  fix json schema validation - (48017ea) - ankit.mahato
+-  array validation for in condition - (f6b9d2e) - Pratik Mishra
+- context parsing - (743fdcd) - Kartik Gajendra
+- fixed experiment list page feedback - (4fa25e6) - Shubhranshu Sanjeev
+- frontend multi-tenancy support + config and dimension page - (a632054) - Shubhranshu Sanjeev
+- minor docs update - (0e3122a) - Kartik Gajendra
+- fixed ci-test to support multi-tenant setup - (9ad6aa5) - Shubhranshu Sanjeev
+- fixed build failure due to rust-version - (b6b0332) - Shubhranshu Sanjeev
+- frontend build process - (3036d77) - Shubhranshu Sanjeev
+- error resolving pages with internal call to server - (61c3909) - Shubhranshu Sanjeev
+- fixed host resolve issue for internal calls in SSR. - (d2189f6) - Shubhranshu Sanjeev
+- added partitions for 2025 and 2026 for audit table - (a3f75f1) - Shubhranshu Sanjeev
+- getting api hostname from env for frontend - (b8dbbe9) - Shubhranshu Sanjeev
+- added partitions for audit_log table in cac schema - (e882d6e) - Shubhranshu Sanjeev
+- jenkinsfile now sends build alerts in channel - (4ac23ce) - Kartik
+- fixing error message for experiment create and bulk context api - (85cb360) - Jenkins
+-  better logging - (c8a8428) - Kartik
+-  Do not remove keys with null value on merge - (c3d7aa5) - ayush.jain@juspay.in
+-  fix copy of experiment ID - (283b5c3) - Kartik
+- returning error response if CAC call not 200 - (a5d2e58) - Shubhranshu Sanjeev
+-  transpose columns in single experiment page for variants - (df72896) - Kartik
+- autodeploy - (940c294) - Kartik
+- added frontend crate to cog.toml - (e3da94c) - Shubhranshu Sanjeev
+-  moved to AWS Public ECR for docker images - (aec7ea4) - Shubhranshu Sanjeev
+-  update cargo.lock - (48a872d) - Kartik
+-  added routes without service prefix for b/w compatibility - (1d3fcb9) - Shubhranshu Sanjeev
+-  auto-create variantIds dimension - (1170766) - ankit.mahato
+-  Functions bug fixes - (2a5ba57) - ankit.mahato
+-  filter config fix - (768108c) - ankit.mahato
+-  JS validator functions to take config value and key - (79343f0) - ankit.mahato
+-  add path to node_modules - (0f5afe6) - Pratik Mishra
+-  added service-prefix to functions endpoints - (03214cb) - ankit.mahato
+-  function route fix - (afae0d2) - Pratik Mishra
+-  fixed error in client - (c3badc0) - ankit.mahato
+-  removed audit log middleware and reduced max db connection pool size to 2 - (5f9fdae) - Saurav Suman
+- post merge release tagging - (f589018) - Kartik
+- run github merge action only on PR merge - (30cb550) - Kartik
+- merge build setup - (dc99b92) - Kartik
+- resolve page failing when any type other than string is used (#21) - (f496634) - Datron
+- js-client bundle update (#30) - (beb3d0b) - Ayush Jain
+#### Build system
+-  installing ca-certificates for ssl verification - (dca83d2) - Ritick Madaan
+- added version tag to docker images - (a30456b) - Shubhranshu Sanjeev
+#### Continuous Integration
+- **(flake.nix)** pin nodejs version to 18 in flake - (ab3a038) - Natarajan Kannan
+- made some miscellaneous changes for local setup - (c3adbfa) - Ritick Madaan
+-  Created pipeline for automated-deployment - (fc84fc5) - Shrey Bana
+-  Commented out prod docker push. - (d158192) - Shrey Bana
+-  Enabling production docker image push. - (8123e67) - Shrey Bana
+- moved nixpkgs to nixos-22.11 as the unstable one had broken rustfmt - (5cb87c8) - Ritick Madaan
+-  Upgraded nixos to 23.05. - (6b4f1e5) - Shrey Bana
+- automated newman test setup - (13cef1d) - Natarajan Kannan
+-  switch to using newman - (494b490) - Natarajan Kannan
+- regenerated schema.patch with latest schema.rs - (770d1b9) - Ritick Madaan
+-  enabling tests in pr builds - (34e65b5) - Ritick Madaan
+-  udpated `docker container ls` filter - (dc1ab25) - Ritick Madaan
+- fix newman dev dependency ref - (31a9991) - Natarajan Kannan
+- added postman collection for experimentation-platform - (61d2354) - Shubhranshu Sanjeev
+- added cocogitto config for automatic versioning - (1c7d60c) - Shubhranshu Sanjeev
+-  updated integ AP tracker curl with new version - (e7ee5d3) - Ritick Madaan
+- deleting postgres's docker image on every test - (5f05038) - Ritick Madaan
+- added 20 minutes timeout on pipeline - (5b7252e) - Shubhranshu Sanjeev
+- added NY ECR registry push to Jenkins - (d1363cb) - Shubhranshu Sanjeev
+- removing test tenant sqls after ci-test - (1ae6a4c) - Shubhranshu Sanjeev
+- pushing cac image to NY sbx ECR - (e33c638) - Shubhranshu Sanjeev
+#### Documentation
+- () added setup instruction - (5169c75) - Saurav Suman
+-  context aware config docs - (a3734a8) - Kartik
+-  add intro doc and features - (3a083a0) - Natarajan Kannan
+-  add intro doc and features - (92cfb10) - Natarajan Kannan
+-  add intro doc and features - (43bf9c8) - Natarajan Kannan
+-  add intro doc and features - (28aea00) - Natarajan Kannan
+-  add intro doc and features - (68c667b) - Natarajan Kannan
+#### Features
+- context/add api along with db setup - (6e2cca2) - Ritick Madaan
+-  Added context fetch API - (c4c287a) - Shrey Bana
+-  Added health-check endpoint. - (668c046) - Shrey Bana
+-  added localstack setup along with kms - (8a315d8) - Ritick Madaan
+- /default-config/<key> PUT api - (844ca38) - Ritick Madaan
+- GET /config api - (3bf06b6) - Ritick Madaan
+-  Added context list API - (8c1b54b) - Shrey Bana
+-  Added support for validation via JSON schema. - (cf9b580) - Shrey Bana
+-  rust library - (9c4bda2) - Ritick Madaan
+-  removed properties constraint on objects in schema - (d1a3f73) - Ritick Madaan
+-  Added authentication. - (a7ceff9) - Shrey Bana
+-  added DELETE /context/{ctx_id} api - (ac1c5b5) - Ritick Madaan
+-  PUT /context/move/{ctx_id} api - (7db1c71) - Ritick Madaan
+- added 304 <> last-modified for GET /config - (f9040de) - Saurav Suman
+-  added list experiments API - (9120ec6) - Kartik Gajendra
+- added conclude functionality for experiments - (03c289d) - Shubhranshu Sanjeev
+-  added experimentation client with few fixes - (5198f50) - Kartik Gajendra
+-  add support for last - (fe01a3c) - Kartik Gajendra
+- added log table for all cac_v1 tables - (2f9a018) - Shubhranshu Sanjeev
+-  added support for CUG in super position client - (af8cc43) - Kartik Gajendra
+-  Added Catch all error type for robust error handling - (b8c9192) - Kartik Gajendra
+-  Added Catch all error type for robust error handling - (88d18df) - Kartik Gajendra
+-  implemented tracing-actix-web for logging - (3717953) - Ritick Madaan
+-  add audit log search endpoint - (4a203ca) - Kartik Gajendra
+-  added pod information in response headers and logs - (28a6c73) - Kartik Gajendra
+-  record the chosen variant after conclude - (edcdeb6) - Kartik Gajendra
+- Schema addition for Dimension values - (8fbdedd) - Prasanna P
+-  Adding generic eval - (7f3c73c) - Pratik Mishra
+-  cors middleware attached - (f553880) - Ritick Madaan
+-  added dashboard auth middleware - (3104c5b) - Kartik Gajendra
+- server's keep-alive time and db connection pool max size made configurable - (2c66356) - Ritick Madaan
+- support to update experiment override_keys and variants - (492a384) - Shubhranshu Sanjeev
+-  - Dimension value schema validation on context-addition - (77c1fc8) - Prasanna P
+- added middleware and FromRequest for tenant and app scope info - (7778851) - Shubhranshu Sanjeev
+- added multi-tenant support - (b79de2b) - Shubhranshu Sanjeev
+- multi-tenant support for client libraries - (1611c90) - Shubhranshu Sanjeev
+-  integrate authorize middleware - (1b5af6a) - Kartik Gajendra
+- added frontend crate,combined frontend and backend binaries () - (dcf18a6) - Saurav Suman
+- added format check in the JenkinsFile() - (a7055f8) - Saurav Suman
+- update default keys - (1006533) - ankit.mahato
+- ui for cac and exp - (10932a1) - Shubhranshu Sanjeev
+- experiment UI - (80af3ab) - Kartik Gajendra
+- added experiment-list page - (3a51c7c) - Shubhranshu Sanjeev
+- working experiments page - (1df7dc2) - Kartik Gajendra
+- added default config page - (59ac86b) - Saurav Suman
+- added default config and override screen - (2e13520) - Saurav Suman
+- working experiments page - (35179c4) - Kartik Gajendra
+- fixed theme + ui changes + form validation + context validation error handling - (dc8b7e5) - Saurav Suman
+- experiment create form - (0fccb5d) - Shubhranshu Sanjeev
+- fixed experiment suspense block , added generic button - (a3c63cc) - Saurav Suman
+- working resolve page - (b3096ac) - Kartik Gajendra
+-  added authentication header for frontend apis - (83ba631) - Saurav Suman
+-  client-integration-doc - (e161ee5) - Pratik Mishra
+- support for service prefix - (f34705a) - Shubhranshu Sanjeev
+-  js eval with node exec - (7190868) - Pratik Mishra
+-  CRUD APIs for function validator - (5c4c7c6) - ankit.mahato
+- autodeploy - (556e40f) - Kartik
+-  added test,publish api for functions - (232996e) - Pratik Mishra
+-  add node to app directory - (6987507) - Pratik Mishra
+-  Replace merge-strategy option for resolve/eval - (45a3979) - ayush.jain@juspay.in
+-  url click and text wrap fixes - (fa2004d) - Saurav CV
+- added CAC language support - (bc3d48c) - Kartik Gajendra
+- support more operations - (68afd4a) - Kartik Gajendra
+-  Added function validation for context and default_config - (b8a7e5f) - ankit.mahato
+-  haskell client for superposition - (129fee5) - Kartik
+-  Filter Config by prefix - (465949e) - ankit.mahato
+-  haskell client for superposition - (f6cb874) - Kartik
+-  client interface improvements - (1453395) - Kartik
+- -js-secure-sandbox - (b94f798) - Pratik Mishra
+-  added new result, error type and error macros - (0af0975) - Shubhranshu Sanjeev
+-  Add filter support to client - (378ddf2) - ankit.mahato
+- add auth_type so this can be used when making API calls - (4427384) - Kartik
+- ready for open source! - (f48db35) - Kartik
+- improved error communication on frontend, with toast component - (51838eb) - Shubhranshu Sanjeev
+- Add JS experiment client (#26) - (dbd101e) - Ayush Jain
+#### Miscellaneous Chores
+- **(ci)** Build using Nix - (8eed6c1) - Sridhar Ratnakumar
+- **(nix)** Disable clippy - (8043256) - Sridhar Ratnakumar
+- **(version)** v0.1.0 [skip ci] - (aae44b9) - Jenkins
+- **(version)** v0.2.0 [skip ci] - (9c8c946) - Jenkins
+- **(version)** v0.3.0 [skip ci] - (dfe67cb) - Jenkins
+- **(version)** v0.4.0 [skip ci] - (73eff21) - Jenkins
+- **(version)** v0.4.1 [skip ci] - (8bea246) - Jenkins
+- **(version)** v0.5.0 [skip ci] - (780226e) - Jenkins
+- **(version)** v0.5.1 [skip ci] - (62f7017) - Jenkins
+- **(version)** v0.6.0 [skip ci] - (238eb62) - Jenkins
+- **(version)** v0.6.1 [skip ci] - (aada669) - Jenkins
+- **(version)** v0.7.0 [skip ci] - (6e524e4) - Jenkins
+- **(version)** v0.7.1 [skip ci] - (c29118b) - Jenkins
+- **(version)** v0.8.0 [skip ci] - (01bdc19) - Jenkins
+- **(version)** v0.8.1 [skip ci] - (a7b5805) - Jenkins
+- **(version)** v0.9.0 [skip ci] - (e85c797) - Jenkins
+- **(version)** v0.9.1 [skip ci] - (d47f4f1) - Jenkins
+- **(version)** v0.10.0 [skip ci] - (8d0f259) - Jenkins
+- **(version)** v0.11.0 [skip ci] - (7c192aa) - Jenkins
+- **(version)** v0.12.0 [skip ci] - (935d91e) - Jenkins
+- **(version)** v0.12.1 [skip ci] - (fa4732b) - Jenkins
+- **(version)** v0.13.0 [skip ci] - (ce463c1) - Jenkins
+- **(version)** v0.14.0 [skip ci] - (ec56f27) - Jenkins
+- **(version)** v0.14.1 [skip ci] - (438d4ff) - Jenkins
+- **(version)** v0.15.0 [skip ci] - (7625d5f) - Jenkins
+- **(version)** v0.15.1 [skip ci] - (23f20aa) - Jenkins
+- **(version)** v0.16.0 [skip ci] - (ca5b4dd) - Jenkins
+- **(version)** v0.16.1 [skip ci] - (908cde2) - Jenkins
+- **(version)** v0.16.2 [skip ci] - (02e5e7e) - Jenkins
+- **(version)** v0.16.3 [skip ci] - (bbf6da1) - Jenkins
+- **(version)** v0.17.0 [skip ci] - (2414ce5) - Jenkins
+- **(version)** v0.17.1 [skip ci] - (ae6fdc9) - Jenkins
+- **(version)** v0.17.2 [skip ci] - (05a322e) - Jenkins
+- **(version)** v0.17.3 [skip ci] - (8f36036) - Jenkins
+- **(version)** v0.17.4 [skip ci] - (71a59ae) - Jenkins
+- **(version)** v0.18.0 [skip ci] - (cc4ac18) - Jenkins
+- **(version)** v0.18.1 [skip ci] - (85d1dd2) - Jenkins
+- **(version)** v0.19.0 [skip ci] - (bfb0d26) - Jenkins
+- **(version)** v0.20.0 [skip ci] - (865f762) - Jenkins
+- **(version)** v0.20.1 [skip ci] - (3be0ebe) - Jenkins
+- **(version)** v0.21.0 [skip ci] - (78d7833) - Jenkins
+- **(version)** v0.22.0 [skip ci] - (bfccc4d) - Jenkins
+- **(version)** v0.23.0 [skip ci] - (ba29b3a) - Jenkins
+- **(version)** v0.24.0 [skip ci] - (6cefcdb) - Jenkins
+- **(version)** v0.24.1 [skip ci] - (e88165c) - Jenkins
+- **(version)** v0.24.2 [skip ci] - (5559f60) - Jenkins
+- **(version)** v0.25.0 [skip ci] - (0cf2490) - Jenkins
+- **(version)** v0.26.0 [skip ci] - (4646fc7) - Jenkins
+- **(version)** v0.27.0 [skip ci] - (55330ad) - Jenkins
+- **(version)** v0.28.0 [skip ci] - (b781755) - Jenkins
+- **(version)** v0.29.0 [skip ci] - (eeb03e7) - Jenkins
+- **(version)** v0.30.0 [skip ci] - (a51d143) - Jenkins
+- **(version)** v0.30.1 [skip ci] - (4fc303f) - Jenkins
+- **(version)** v0.31.0 [skip ci] - (82529b8) - Jenkins
+- **(version)** v0.32.0 [skip ci] - (1c123d2) - Jenkins
+- **(version)** v0.32.1 [skip ci] - (0b7f9eb) - Jenkins
+- **(version)** v0.32.2 [skip ci] - (50b098c) - Jenkins
+- **(version)** v0.33.0 [skip ci] - (c2ba364) - Jenkins
+- **(version)** v0.34.0 [skip ci] - (dd35ac6) - Jenkins
+- **(version)** v0.34.1 [skip ci] - (5594b35) - Jenkins
+- **(version)** v0.34.2 [skip ci] - (b69e8ca) - Jenkins
+- **(version)** v0.35.0 [skip ci] - (faf984e) - Jenkins
+- **(version)** v0.36.0 [skip ci] - (ae95229) - Jenkins
+- **(version)** v0.36.1 [skip ci] - (c29f849) - Jenkins
+- **(version)** v0.37.0 [skip ci] - (68b7afd) - Jenkins
+- **(version)** v0.38.0 [skip ci] - (80f47d5) - Jenkins
+- **(version)** v0.38.1 [skip ci] - (01bfa1f) - Jenkins
+- **(version)** v0.38.2 [skip ci] - (577bccb) - Jenkins
+- **(version)** v0.39.0 [skip ci] - (84b8d06) - Jenkins
+- **(version)** v0.39.1 [skip ci] - (a1d5570) - Jenkins
+- **(version)** v0.40.0 [skip ci] - (836b769) - Jenkins
+- **(version)** v0.41.0 [skip ci] - (ceefd83) - Superposition Bot
+- **(version)** v0.42.0 [skip ci] - (e4bc080) - Superposition Bot
+- database migration for dimensions table - (2a8e73a) - Ritick Madaan
+-  move dependencies to workspaces - (20229c6) - Kartik Gajendra
+- formatted code + cleanup - (1658102) - Shubhranshu Sanjeev
+- experimentation docs first cut - (7e8ff75) - Shubhranshu Sanjeev
+-  autodeploy to sbx - (851bb21) - Kartik
+- rename superposition to experimentation - (bfbf86c) - Kartik
+- open source superposition - (b85a0a8) - Kartik
+- add PR testing workflows (#6) - (d6bb8d4) - Datron
+- update merge workflow to work (#8) - (b280539) - Datron
+- trigger semver workflow manually (#18) - (01110e2) - Datron
+- push the commit as well - (37e3157) - Kartik
+#### Refactoring
+-  moved db related modules to db crate - (d3a14fe) - Ritick Madaan
+-  removed old contexts table - (bdf4c53) - Ritick Madaan
+- moved AppState & utility fx to new crate - (93ea2d8) - Shubhranshu Sanjeev
+- moved cac to cargo workspaces - (91be31e) - Shubhranshu Sanjeev
+- moved fetching db connection in FromRequest trait impl - (e5b3d6f) - Shubhranshu Sanjeev
+- improvements to APIs - (f525de9) - Shubhranshu Sanjeev
+- resolved comments - (193bd3f) - Shubhranshu Sanjeev
+- moved tables and types out of cac_v1 schema - (384f0db) - Shubhranshu Sanjeev
+- fixed warnings, added redirection for home page and script for setting up the project - (8a70e77) - Saurav Suman
+- fixed warnings, added redirection for home page and script for setting up the project - (5a70988) - Saurav Suman
+-  refactored service to use new error type and better error handling - (267cda1) - Shubhranshu Sanjeev
+#### Revert
+- Revert "fix:  logged env variable's value before kms decrypting" - (20e5745) - Ritick Madaan
+#### Tests
+- fix newman version used in tests - (545f97a) - Natarajan Kannan
+- update to latest newman that handles top level events and body lang type - (a98985d) - Natarajan Kannan
+- added tests for experiment helper fnxs - (8c6d298) - Shubhranshu Sanjeev
+- added postman test for update override_keys api - (5121816) - Shubhranshu Sanjeev
+
+- - -
+
+## v0.42.0 - 2024-05-06
+### Package updates
 - caclang bumped to caclang-v0.2.0
 - cac_client bumped to cac_client-v0.12.0
 - experimentation_platform bumped to experimentation_platform-v0.15.0

@@ -7,6 +7,16 @@ All notable changes to this project will be documented in this file. See [conven
 - support more operations - (68afd4a) - Kartik Gajendra
 - added CAC language support - (bc3d48c) - Kartik Gajendra
 #### Miscellaneous Chores
+- **(version)** v0.42.0 [skip ci] - (e4bc080) - Superposition Bot
+- **(version)** v0.30.0 [skip ci] - (a51d143) - Jenkins
+
+- - -
+
+## caclang-v0.2.0 - 2024-05-06
+#### Features
+- support more operations - (68afd4a) - Kartik Gajendra
+- added CAC language support - (bc3d48c) - Kartik Gajendra
+#### Miscellaneous Chores
 - **(version)** v0.30.0 [skip ci] - (a51d143) - Jenkins
 
 - - -

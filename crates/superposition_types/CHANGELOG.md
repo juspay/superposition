@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file. See [conven
 #### Features
 - add auth_type so this can be used when making API calls - (4427384) - Kartik
 - created new types crate for superposition movement - (c9c56d1) - Kartik
+#### Miscellaneous Chores
+- **(version)** v0.42.0 [skip ci] - (e4bc080) - Superposition Bot
+
+- - -
+
+## superposition_types-v0.2.0 - 2024-05-06
+#### Features
+- add auth_type so this can be used when making API calls - (4427384) - Kartik
+- created new types crate for superposition movement - (c9c56d1) - Kartik
 
 - - -
 
