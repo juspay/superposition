@@ -33,3 +33,5 @@ caclang = { path = "crates/caclang" }
 cac_client = { path = "crates/cac_client" }
 experimentation_client = { path = "crates/experimentation_client" }
 superposition_types = { path = "crates/superposition_types" }
+js_client = { path = "clients/js" }
+haskell_client = { path = "clients/haskell" }
