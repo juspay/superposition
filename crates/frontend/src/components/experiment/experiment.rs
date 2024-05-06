@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use leptos::*;
 
-use crate::components::condition_pills::utils::extract_and_format;
+use crate::components::condition_pills::utils::extract_conditions;
 use crate::components::table::table::Table;
 
 use super::utils::gen_variant_table;
@@ -23,7 +23,7 @@ where
     HE: Fn() + 'static + Clone,
 {
     let experiment_rc = Rc::new(experiment.clone());
-    let contexts = extract_and_format(&experiment_rc.clone().context);
+    let contexts = extract_conditions(&experiment_rc.clone().context);
 
     view! {
         <div class="flex flex-col overflow-x-auto p-2 bg-transparent">

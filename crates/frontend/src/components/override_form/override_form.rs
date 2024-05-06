@@ -120,7 +120,8 @@ where
                                                     });
                                             }
                                         >
-                                            { config_value }
+
+                                            {config_value}
                                         </textarea>
 
                                     </div>

@@ -298,7 +298,10 @@ where
                                     logging::log!("{:?}", event_target_value(& ev));
                                     set_config_value.set(event_target_value(&ev));
                                 }
-                            >{config_value.get()} </textarea>
+                            >
+
+                                {config_value.get()}
+                            </textarea>
 
                         </div>
 
