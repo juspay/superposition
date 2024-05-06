@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.43.0 - 2024-05-06
+### Package updates
+- js_client bumped to js_client-v0.1.0
+- haskell_client bumped to haskell_client-v0.1.0
+### Global changes
+#### Features
+- Add release tag generation for js and haskell client (#31) - (c8aa534) - Ayush Jain
+
+- - -
+
 ## v0.42.0 - 2024-05-06
 ### Package updates
 - superposition_types bumped to superposition_types-v0.2.0
