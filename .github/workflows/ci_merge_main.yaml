@@ -46,4 +46,5 @@ jobs:
             - name: Push code to main
               shell: bash
               run: |
+                git push origin main
                 git push origin --tags
