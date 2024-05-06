@@ -163,7 +163,51 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Delete default-config key",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"204 check\", function () {",
+									"    pm.response.to.have.status(204);",
+									"})",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/default-config/key2",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"default-config",
+								"key2"
+							]
+						}
+					},
+					"response": []
 				}
+
 			]
 		},
 		{

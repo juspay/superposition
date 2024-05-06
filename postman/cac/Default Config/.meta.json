@@ -1,5 +1,6 @@
 {
   "childrenOrder": [
-    "Add default-config key"
+    "Add default-config key",
+    "Delete default-config key"
   ]
 }

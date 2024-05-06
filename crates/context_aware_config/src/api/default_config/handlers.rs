@@ -1,19 +1,25 @@
 extern crate base64;
 use super::types::CreateReq;
 use service_utils::helpers::validation_err_to_str;
-use service_utils::{bad_argument, unexpected_error, validation_error};
+use service_utils::{
+    bad_argument, db_error, not_found, unexpected_error, validation_error,
+};
 
 use superposition_types::{SuperpositionUser, User};
 
 use crate::api::context::helpers::validate_value_with_function;
 use crate::{
     api::functions::helpers::get_published_function_code,
-    db::{self, models::DefaultConfig, schema::default_configs::dsl::default_configs},
+    db::{
+        self,
+        models::{Context, DefaultConfig},
+        schema::{contexts::dsl::contexts, default_configs::dsl::default_configs},
+    },
     helpers::validate_jsonschema,
 };
 use actix_web::{
-    get, put,
-    web::{self, Data, Json},
+    delete, get, put,
+    web::{self, Data, Json, Path},
     HttpResponse, Scope,
 };
 use chrono::Utc;
@@ -22,14 +28,14 @@ use diesel::{
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 use jsonschema::{Draft, JSONSchema, ValidationError};
-use serde_json::{json, Value};
+use serde_json::{from_value, json, Map, Value};
 use service_utils::{
     result as superposition,
     service::types::{AppState, DbConnection},
 };
 
 pub fn endpoints() -> Scope {
-    Scope::new("").service(create).service(get)
+    Scope::new("").service(create).service(get).service(delete)
 }
 
 #[put("/{key}")]
@@ -183,4 +189,62 @@ async fn get(db_conn: DbConnection) -> superposition::Result<Json<Vec<DefaultCon
 
     let result: Vec<DefaultConfig> = default_configs.get_results(&mut conn)?;
     Ok(Json(result))
+}
+
+pub fn get_key_usage_context_ids(
+    key: &str,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> superposition::Result<Vec<String>> {
+    let result: Vec<Context> = contexts.load(conn).map_err(|err| {
+        log::error!("failed to fetch contexts with error: {}", err);
+        db_error!(err)
+    })?;
+
+    let mut context_ids = vec![];
+    for context in result.iter() {
+        from_value::<Map<String, Value>>(context.override_.to_owned())
+            .map_err(|err| {
+                log::error!("failed decode override into object: {}", err);
+                unexpected_error!("failed to decode override")
+            })?
+            .get(key)
+            .map_or((), |_| context_ids.push(context.id.to_owned()))
+    }
+    Ok(context_ids)
+}
+
+#[delete("/{key}")]
+async fn delete(
+    path: Path<String>,
+    db_conn: DbConnection,
+    user: User,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+
+    let key = path.into_inner();
+    fetch_default_key(&key, &mut conn)?;
+    let context_ids = get_key_usage_context_ids(&key, &mut conn)
+        .map_err(|_| unexpected_error!("Something went wrong"))?;
+    if context_ids.is_empty() {
+        let deleted_row = diesel::delete(
+            default_configs.filter(db::schema::default_configs::key.eq(&key)),
+        )
+        .execute(&mut conn);
+        match deleted_row {
+            Ok(0) => Err(not_found!("default config key `{}` doesn't exists", key)),
+            Ok(_) => {
+                log::info!("default config key: {key} deleted by {}", user.get_email());
+                Ok(HttpResponse::NoContent().finish())
+            }
+            Err(e) => {
+                log::error!("default config delete query failed with error: {e}");
+                Err(unexpected_error!("Something went wrong."))
+            }
+        }
+    } else {
+        Err(bad_argument!(
+            "Given key already in use in contexts: {}",
+            context_ids.join(",")
+        ))
+    }
 }
