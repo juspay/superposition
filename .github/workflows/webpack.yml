@@ -1,0 +1,32 @@
+name: NodeJS with Webpack
+
+on:
+  push:
+    branches: [ "jsExpClient" ]
+  pull_request:
+    branches: [ "jsExpClient" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x, 18.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Build
+      run: |
+        cd clients/js
+        npm install
+        npm run buildLib
+        git add index.js
+        git commit -m "chore: js-client bundle udpate"
+        git push origin
