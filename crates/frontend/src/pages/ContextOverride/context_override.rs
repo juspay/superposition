@@ -56,8 +56,12 @@ pub fn context_override() -> impl IntoView {
                 );
                 CombinedResourceOverride {
                     config: config_result.ok(),
-                    dimensions: dimensions_result.unwrap_or_else(|_| vec![]),
-                    default_config: default_config_result.unwrap_or_else(|_| vec![]),
+                    dimensions: dimensions_result
+                        .unwrap_or(vec![])
+                        .into_iter()
+                        .filter(|d| d.dimension != "variantIds")
+                        .collect::<Vec<Dimension>>(),
+                    default_config: default_config_result.unwrap_or(vec![]),
                 }
             },
         );

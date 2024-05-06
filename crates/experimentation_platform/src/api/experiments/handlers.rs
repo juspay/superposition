@@ -35,6 +35,7 @@ use super::{
 };
 
 use crate::{
+    api::experiments::helpers::validate_context,
     db::models::{EventLog, Experiment, ExperimentStatusType},
     db::schema::{event_log::dsl as event_log, experiments::dsl as experiments},
 };
@@ -140,10 +141,8 @@ async fn create(
         );
     }
 
-    // Checking if context is a key-value pair map
-    if !req.context.is_object() {
-        return Err(bad_argument!("Context should be map of key value pairs."));
-    }
+    // validating context
+    validate_context(&req.context)?;
 
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;

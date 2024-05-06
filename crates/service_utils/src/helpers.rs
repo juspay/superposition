@@ -129,7 +129,7 @@ pub fn extract_dimensions(context_json: &Value) -> result::Result<Map<String, Va
     let context = context_json
         .as_object()
         .ok_or(
-            result::AppError::BadArgument("Error extracting dimensions, contect not a valid JSON object. Provide a valid JSON context".into())
+            result::AppError::BadArgument("Error extracting dimensions, context not a valid JSON object. Provide a valid JSON context".into())
             )?;
 
     let conditions = match context.get("and") {

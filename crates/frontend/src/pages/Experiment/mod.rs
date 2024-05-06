@@ -51,8 +51,12 @@ pub fn experiment_page() -> impl IntoView {
             // Construct the combined result, handling errors as needed
             CombinedResource {
                 experiment: experiments_result.ok(),
-                dimensions: dimensions_result.unwrap_or_else(|_| vec![]),
-                default_config: config_result.unwrap_or_else(|_| vec![]),
+                dimensions: dimensions_result
+                    .unwrap_or(vec![])
+                    .into_iter()
+                    .filter(|d| d.dimension != "variantIds")
+                    .collect(),
+                default_config: config_result.unwrap_or(vec![]),
             }
         });
 
