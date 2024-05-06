@@ -35,13 +35,14 @@ where
 
     create_effect(move |_| {
         let f_context = context.get();
+        logging::log!("{:?}", f_context);
         handle_change(f_context.clone());
     });
 
     let handle_select_dropdown_option = move |selected_dimension: Dimension| {
         let dimension_name = selected_dimension.dimension;
         set_context.update(|value| {
-            leptos::logging::log!("{:?}", value);
+            logging::log!("{:?}", value);
             value.push((dimension_name.to_string(), "".to_string(), "".to_string()))
         });
         set_used_dimensions.update(|value: &mut HashSet<String>| {

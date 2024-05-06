@@ -1,31 +1,31 @@
-use super::utils::{extract_and_format, parse_conditions};
+use crate::components::condition_pills::types::ConditionOperator;
+
+use super::utils::extract_conditions;
 use leptos::*;
 use serde_json::Value;
 
 #[component]
 pub fn context_pills(context: Value) -> impl IntoView {
-    let condition = extract_and_format(&context);
-    let ctx_values = parse_conditions(condition.clone());
+    let conditions = extract_conditions(&context);
 
     view! {
-        {ctx_values
+        {conditions
             .into_iter()
             .map(|condition| {
                 let dimension = condition.left_operand;
                 let op = condition.operator;
                 let val = condition.right_operand;
-                let operator = op.clone();
                 view! {
                     <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs ring-1 ring-inset ring-purple-700/10 shadow-md gap-x-2">
                         <span class="font-mono font-medium context_condition text-gray-500">
                             {dimension}
                         </span>
                         <span class="font-mono font-medium text-gray-650 context_condition ">
-                            {op}
+                            {op.to_string()}
                         </span>
 
-                        {match operator.trim() {
-                            "BETWEEN" => {
+                        {match op {
+                            ConditionOperator::Between => {
                                 let split_val: Vec<String> = val
                                     .clone()
                                     .split(",")
