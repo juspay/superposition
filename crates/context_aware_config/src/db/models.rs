@@ -1,5 +1,6 @@
 use crate::db::schema::{
     config_versions, contexts, default_configs, dimensions, event_log, functions,
+    jsonschema_types,
 };
 use chrono::{offset::Utc, DateTime, NaiveDateTime};
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
@@ -86,4 +87,18 @@ pub struct ConfigVersion {
     pub config_hash: String,
     pub tags: Option<Vec<String>>,
     pub created_at: NaiveDateTime,
+}
+
+#[derive(Queryable, Selectable, Insertable, AsChangeset, Clone, Serialize, Debug)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+#[diesel(table_name = jsonschema_types)]
+#[diesel(primary_key(id))]
+pub struct JsonSchemaTypes {
+    pub id: uuid::Uuid,
+    pub type_name: String,
+    pub display_name: String,
+    pub type_schema: Value,
+    pub created_by: String,
+    pub created_at: NaiveDateTime,
+    pub last_modified: NaiveDateTime,
 }

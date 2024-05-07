@@ -4,3 +4,4 @@ pub mod context;
 pub mod default_config;
 pub mod dimension;
 pub mod functions;
+pub mod custom_types;
