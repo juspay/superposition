@@ -608,6 +608,18 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    jsonschema_types (id) {
+        id -> Uuid,
+        type_name -> Text,
+        display_name -> Text,
+        type_schema -> Json,
+        created_by -> Text,
+        created_at -> Timestamp,
+        last_modified -> Timestamp,
+    }
+}
+
 diesel::joinable!(default_configs -> functions (function_name));
 diesel::joinable!(dimensions -> functions (function_name));
 
@@ -659,4 +671,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     event_log_y2026m11,
     event_log_y2026m12,
     functions,
+    jsonschema_types,
 );

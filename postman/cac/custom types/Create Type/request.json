@@ -1,0 +1,44 @@
+{
+    "method": "PUT",
+    "header": [
+        {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+        },
+        {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+        },
+        {
+            "key": "x-tenant",
+            "value": "test",
+            "type": "default"
+        }
+    ],
+    "body": {
+        "mode": "raw",
+        "options": {
+            "raw": {
+                "language": "json"
+            }
+        },
+        "raw_json_formatted": {
+            "type_schema": {
+                "type": "integer"
+            },
+            "display_name": "Integer",
+            "type_name": "i32"
+        }
+    },
+    "url": {
+        "raw": "{{host}}/types",
+        "host": [
+            "{{host}}"
+        ],
+        "path": [
+            "types"
+        ]
+    }
+}

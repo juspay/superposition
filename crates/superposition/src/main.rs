@@ -217,6 +217,11 @@ async fn main() -> Result<()> {
                             .service(functions::endpoints()),
                     )
                     .service(
+                        scope("/types")
+                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
+                            .service(custom_types::endpoints()),
+                    )
+                    .service(
                         experiments::endpoints(scope("/experiments")).wrap(
                             AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION),
                         ),

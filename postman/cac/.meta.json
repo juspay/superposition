@@ -4,6 +4,7 @@
     "config",
     "Dimension",
     "Context",
-    "audit log"
+    "audit log",
+    "custom types"
   ]
 }
