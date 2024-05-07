@@ -1,16 +1,21 @@
 mod interface;
 mod types;
-use std::{collections::HashMap, sync::Arc};
+mod utils;
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 use chrono::{DateTime, TimeZone, Utc};
 use derive_more::{Deref, DerefMut};
-use serde_json::Value;
+use serde_json::{Map, Value};
 use tokio::{
     sync::RwLock,
     time::{self, Duration},
 };
 pub use types::{Config, Experiment, Experiments, Variants};
 use types::{ExperimentStore, ListExperimentsResponse, Variant, VariantType};
+use utils::MapError;
 
 #[derive(Clone, Debug)]
 pub struct Client {
@@ -52,7 +57,7 @@ impl Client {
                     self.client_config.tenant.to_string(),
                 )
                 .await
-                .unwrap();
+                .unwrap_or(HashMap::new());
 
                 let mut exp_store = self.experiments.write().await;
                 for (exp_id, experiment) in experiments.into_iter() {
@@ -69,34 +74,91 @@ impl Client {
         }
     }
 
-    pub async fn get_applicable_variant(&self, context: &Value, toss: i8) -> Vec<String> {
-        let experiments: Experiments = self.get_satisfied_experiments(context).await;
+    pub async fn get_applicable_variant(
+        &self,
+        context: &Value,
+        toss: i8,
+    ) -> Result<Vec<String>, String> {
+        let experiments: Experiments =
+            self.get_satisfied_experiments(context, None).await?;
         let mut variants: Vec<String> = Vec::new();
         for exp in experiments {
             if let Some(v) =
-                self.decide_variant(exp.traffic_percentage, exp.variants, toss)
+                self.decide_variant(exp.traffic_percentage, exp.variants, toss)?
             {
                 variants.push(v.id)
             }
         }
-        variants
+        Ok(variants)
     }
 
-    pub async fn get_satisfied_experiments(&self, context: &Value) -> Experiments {
+    pub async fn get_satisfied_experiments(
+        &self,
+        context: &Value,
+        prefix: Option<Vec<String>>,
+    ) -> Result<Experiments, String> {
         let running_experiments = self.experiments.read().await;
-        running_experiments
+        let filtered_running_experiments = running_experiments
             .iter()
             .filter(|(_, exp)| {
                 jsonlogic::apply(&exp.context, context) == Ok(Value::Bool(true))
             })
             .map(|(_, exp)| exp.clone())
-            .collect::<Experiments>()
+            .collect::<Experiments>();
+
+        if let Some(prefix) = prefix {
+            let prefix_list: HashSet<&str> = prefix.iter().map(|s| s.as_str()).collect();
+
+            let prefix_filtered_running_experiments: Vec<Experiment> =
+                filtered_running_experiments
+                    .into_iter()
+                    .filter_map(|experiment| {
+                        let variants: Vec<Variant> = experiment
+                            .variants
+                            .into_iter()
+                            .filter_map(|mut variant| {
+                                let overrides_map: Map<String, Value> =
+                                    serde_json::from_value(variant.overrides.clone())
+                                        .ok()?;
+                                let filtered_override: Map<String, Value> = overrides_map
+                                    .into_iter()
+                                    .filter(|(key, _)| {
+                                        prefix_list
+                                            .iter()
+                                            .any(|prefix_str| key.starts_with(prefix_str))
+                                    })
+                                    .collect();
+                                if filtered_override.is_empty() {
+                                    return None; // Skip this variant
+                                }
+
+                                variant.overrides =
+                                    serde_json::to_value(filtered_override).ok()?;
+                                Some(variant)
+                            })
+                            .collect();
+
+                        if !variants.is_empty() {
+                            Some(Experiment {
+                                variants,
+                                ..experiment
+                            })
+                        } else {
+                            None // Skip this experiment
+                        }
+                    })
+                    .collect();
+
+            return Ok(prefix_filtered_running_experiments);
+        }
+
+        Ok(filtered_running_experiments)
     }
 
-    pub async fn get_running_experiments(&self) -> Experiments {
+    pub async fn get_running_experiments(&self) -> Result<Experiments, String> {
         let running_experiments = self.experiments.read().await;
         let experiments: Experiments = running_experiments.values().cloned().collect();
-        experiments
+        Ok(experiments)
     }
 
     // decide which variant to return among all applicable experiments
@@ -105,24 +167,28 @@ impl Client {
         traffic: u8,
         applicable_variants: Variants,
         toss: i8,
-    ) -> Option<Variant> {
+    ) -> Result<Option<Variant>, String> {
         if toss < 0 {
             for variant in applicable_variants.iter() {
                 if variant.variant_type == VariantType::EXPERIMENTAL {
-                    return Some(variant.clone());
+                    return Ok(Some(variant.clone()));
                 }
             }
         }
         let variant_count = applicable_variants.len() as u8;
         let range = (traffic * variant_count) as i32;
         if (toss as i32) >= range {
-            return None;
+            return Ok(None);
         }
         let buckets = (1..=variant_count)
             .map(|i| (traffic * i) as i8)
             .collect::<Vec<i8>>();
-        let index = buckets.into_iter().position(|x| toss < x);
-        applicable_variants.get(index.unwrap()).map(Variant::clone)
+        let index = buckets
+            .into_iter()
+            .position(|x| toss < x)
+            .ok_or_else(|| "Unable to fetch variant's index".to_string())
+            .map_err_to_string()?;
+        Ok(applicable_variants.get(index).map(Variant::clone))
     }
 }
 
@@ -145,13 +211,12 @@ async fn get_experiments(
             .header("x-tenant", tenant.to_string())
             .send()
             .await
-            .unwrap()
+            .map_err_to_string()?
             .json::<ListExperimentsResponse>()
             .await
-            .unwrap_or_default();
+            .map_err_to_string()?;
 
         let experiments = list_experiments_response.data;
-        // println!("got these running experiments: {:?}", running_experiments);
 
         for experiment in experiments.into_iter() {
             curr_exp_store.insert(experiment.id.to_string(), experiment);
