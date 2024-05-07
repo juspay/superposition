@@ -107,7 +107,8 @@ pub fn execute_fn(
     key: &str,
     value: Value,
 ) -> Result<String, (String, Option<String>)> {
-    let exec_code = execute_validate_fun(code_str, value, format!("/{}/", key));
+    let exec_code =
+        execute_validate_fun(code_str, value, format!("\"{}\"", key.to_string()));
     let output = Command::new("node")
         .arg("-e")
         .arg(generate_code(&exec_code))

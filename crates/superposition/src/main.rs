@@ -110,7 +110,7 @@ async fn main() -> Result<()> {
 
     /* Frontend configurations */
     let ui_redirect_path = match tenants.iter().next() {
-        Some(tenant) => format!("{}/admin/{}/resolve", base, tenant),
+        Some(tenant) => format!("{}/admin/{}/default-config", base, tenant),
         None => String::from("/admin"),
     };
 
@@ -169,6 +169,8 @@ async fn main() -> Result<()> {
                     .add(("X-SERVER-VERSION", cac_version.to_string()))
             )
             .service(web::redirect("/", ui_redirect_path.to_string()))
+            .service(web::redirect("/admin", ui_redirect_path.to_string()))
+            .service(web::redirect("/admin/{tenant}/", "default-config"))
             .leptos_routes(
                 leptos_options.to_owned(),
                 routes.to_owned(),
