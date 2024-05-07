@@ -39,7 +39,7 @@ impl SuperpositionUser for User {
 impl Default for User {
     fn default() -> Self {
         Self {
-            email: "superposition@juspay.in".into(),
+            email: "user@superposition.io".into(),
             username: "superposition".into(),
             auth_token: "1234abcd".into(),
             auth_type: "Bearer".into(),
