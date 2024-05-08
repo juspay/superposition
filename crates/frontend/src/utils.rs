@@ -5,7 +5,6 @@ use crate::{
     providers::alert_provider::enqueue_alert,
     types::{DefaultConfig, Dimension, Envs, ErrorResponse},
 };
-use anyhow::anyhow;
 use leptos::*;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde_json::{Number, Value};
@@ -413,4 +412,13 @@ where
     })
 }
 
-/********* Reqyest Utils ends ****/
+pub fn unwrap_option_or_default_with_error<T>(option: Option<T>, default: T) -> T {
+    option.unwrap_or_else(|| {
+        enqueue_alert(
+            "Something went wrong. Please reload.".to_string(),
+            AlertType::Error,
+            5000,
+        );
+        default
+    })
+}

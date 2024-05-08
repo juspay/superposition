@@ -4,6 +4,7 @@ use crate::components::drawer::drawer::{close_drawer, open_drawer, Drawer, Drawe
 use crate::components::stat::stat::Stat;
 use crate::components::table::{table::Table, types::Column};
 use crate::types::BreadCrums;
+use crate::utils::unwrap_option_or_default_with_error;
 use leptos::*;
 use leptos_router::{use_navigate, use_query_map};
 use serde_json::{json, Map, Value};
@@ -412,7 +413,7 @@ pub fn modify_rows(
     cols: Vec<&str>,
 ) -> Vec<Map<String, Value>> {
     let mut groups: HashSet<String> = HashSet::new();
-    filtered_rows
+    let mut grouped_rows: Vec<Map<String, Value>> = filtered_rows
         .into_iter()
         .filter_map(|mut ele| {
             let key = ele.get("key").unwrap().to_owned();
@@ -459,5 +460,18 @@ pub fn modify_rows(
                 None
             }
         })
-        .collect()
+        .collect();
+    grouped_rows.sort_by(|a, b| {
+        let key_a =
+            unwrap_option_or_default_with_error(a.get("key").and_then(Value::as_str), "");
+        let key_b =
+            unwrap_option_or_default_with_error(b.get("key").and_then(Value::as_str), "");
+
+        match (key_a.contains('.'), key_b.contains('.')) {
+            (true, false) => std::cmp::Ordering::Less,
+            (false, true) => std::cmp::Ordering::Greater,
+            _ => std::cmp::Ordering::Equal,
+        }
+    });
+    grouped_rows
 }
