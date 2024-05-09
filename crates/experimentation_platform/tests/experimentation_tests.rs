@@ -9,6 +9,7 @@ use service_utils::service::types::ExperimentationFlags;
 enum Dimensions {
     OS(String),
     CLIENT(String),
+    VARIANTIDS(String),
 }
 
 fn single_dimension_ctx_gen(value: Dimensions) -> serde_json::Value {
@@ -23,6 +24,12 @@ fn single_dimension_ctx_gen(value: Dimensions) -> serde_json::Value {
             "==": [
                 client_id,
                 {"var": "clientId"}
+            ]
+        }),
+        Dimensions::VARIANTIDS(id) => serde_json::json!({
+            "in": [
+                {"var": "variantIds"},
+                id,
             ]
         }),
     }
@@ -573,4 +580,34 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
     );
 
     Ok(())
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_fail_context_with_variantIds_dimensions() {
+    let experiment_context = multiple_dimension_ctx_gen(vec![
+        Dimensions::OS("os1".to_string()),
+        Dimensions::CLIENT("testclient1".to_string()),
+        Dimensions::VARIANTIDS("123456789-variant1".to_string()),
+    ]);
+
+    let result = helpers::validate_context(&experiment_context);
+    assert_eq!(result.is_err(), true);
+
+    let error_msg = result.unwrap_err();
+    match error_msg {
+        AppError::BadArgument(msg) => assert_eq!(msg, "variantIds dimension not allowed in experiment contexts"),
+        _ => panic!("Not a AppError::BadArgument('variantIds dimension not allowed in experiment contexts')")
+    }
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pass_context_without_variantIds_dimensions() {
+    let experiment_context = multiple_dimension_ctx_gen(vec![
+        Dimensions::OS("os1".to_string()),
+        Dimensions::CLIENT("testclient1".to_string()),
+    ]);
+
+    assert_eq!(helpers::validate_context(&experiment_context).is_ok(), true);
 }
