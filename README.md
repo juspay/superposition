@@ -14,6 +14,8 @@ The Superposition platform comes with three components:
 4. [Client Context-Aware-Configuration](docs/client-context-aware-configuration.md)
 4. [Client Experimentation](docs/client-experimentation.md)
 5. [Local setup](docs/setup.md)
+6. [Context-Aware-Configuration API Ref - Postman Collection](postman/cac.postman_collection.json)
+7. [Experimentation API Ref - Postman Collection](postman/experimentation-platform.postman_collection.json)
 
 ## Key highlights
 * **Admin UI** - Out of the box administration (and tools) UI for configurations and experiments
