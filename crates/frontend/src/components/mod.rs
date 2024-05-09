@@ -16,6 +16,7 @@ pub mod nav_item;
 pub mod override_form;
 pub mod pagination;
 pub mod side_nav;
+pub mod skeleton;
 pub mod stat;
 pub mod table;
 pub mod toast;

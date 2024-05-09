@@ -7,6 +7,7 @@ use crate::components::condition_pills::condition_pills::ContextPills;
 use crate::components::context_form::context_form::ContextForm;
 use crate::components::context_form::utils::create_context;
 use crate::components::override_form::override_form::OverrideForm;
+use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::components::table::{table::Table, types::Column};
 use crate::types::Dimension;
 use crate::utils::modal_action;
@@ -25,7 +26,7 @@ where
     view! {
         <div>
             <Suspense fallback=move || {
-                view! { <p>"Loading (Suspense Fallback)..."</p> }
+                view! { <p>Loading ...</p> }
             }>
 
                 {
@@ -81,7 +82,7 @@ where
     view! {
         <div>
             <Suspense fallback=move || {
-                view! { <p>"Loading (Suspense Fallback)..."</p> }
+                view! { <p>Loading ...</p> }
             }>
 
                 {
@@ -258,7 +259,7 @@ pub fn context_override() -> impl IntoView {
             <div class="space-y-6">
                 <ModalComponent handle_submit=Rc::new(move || config_data.refetch())/>
                 <Suspense fallback=move || {
-                    view! { <p>"Loading (Suspense Fallback)..."</p> }
+                    view! { <Skeleton variant=SkeletonVariant::Block/> }
                 }>
 
                     {move || {

@@ -1,6 +1,7 @@
 use crate::api::fetch_default_config;
 use crate::components::default_config_form::default_config_form::DefaultConfigForm;
 use crate::components::drawer::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
+use crate::components::skeleton::Skeleton;
 use crate::components::stat::stat::Stat;
 use crate::components::table::{table::Table, types::Column};
 use crate::types::BreadCrums;
@@ -175,6 +176,7 @@ pub fn default_config() -> impl IntoView {
                             folder_click_handler(Some(key.clone()))
                         }
                     >
+
                         {label}
                     </span>
                 }
@@ -203,7 +205,7 @@ pub fn default_config() -> impl IntoView {
     view! {
         <div class="p-8">
             <Suspense fallback=move || {
-                view! { <p>"Loading (Suspense Fallback)..."</p> }
+                view! { <Skeleton/> }
             }>
 
                 {move || {
@@ -247,6 +249,7 @@ pub fn default_config() -> impl IntoView {
                                         close_drawer("default_config_drawer");
                                     }
                                 />
+
                             </Drawer>
                         }
                     }
@@ -295,6 +298,7 @@ pub fn default_config() -> impl IntoView {
                                                 folder_click_handler(None);
                                                 enable_grouping.set(!enable_grouping.get());
                                             }
+
                                             class="cursor-pointer label mr-10"
                                         >
                                             <span class="label-text mr-4">Enable Grouping</span>
@@ -360,6 +364,7 @@ where
                                     ""
                                 }
                             >
+
                                 {ele.key.clone()}
                             </h2>
                             <h2 class="pl-4 pr-4">{if index < last_index { ">" } else { "" }}</h2>

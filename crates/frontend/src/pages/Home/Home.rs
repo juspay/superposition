@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use crate::components::condition_pills::condition_pills::ContextPills;
+use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::{
     api::{fetch_config, fetch_dimensions},
     components::{
@@ -248,33 +249,35 @@ pub fn home() -> impl IntoView {
     };
     view! {
         <div class="flex w-full flex-col flex-wrap mt-5 justify-evenly">
-            <div class="card mr-5 ml-5 mt-6 h-4/5 shadow bg-base-100">
+            <div class="mr-5 ml-5 mt-6">
                 <Suspense fallback=move || {
-                    view! { <p>"Loading..."</p> }
+                    view! { <Skeleton variant=SkeletonVariant::Block/> }
                 }>
                     {move || {
                         dimension_resource
                             .with(|dimension| {
                                 view! {
-                                    <div class="card flex flex-row m-2 bg-base-100">
-                                        <div class="card-body">
-                                            <h2 class="card-title">Resolve Configs</h2>
+                                    <div class="card h-4/5 shadow bg-base-100">
+                                        <div class="card flex flex-row m-2 bg-base-100">
+                                            <div class="card-body">
+                                                <h2 class="card-title">Resolve Configs</h2>
 
-                                            <ContextForm
-                                                dimensions=dimension.to_owned().unwrap_or(vec![])
-                                                context=vec![]
-                                                heading_sub_text="Query your configs".to_string()
-                                                dropdown_direction=DropdownDirection::Right
-                                                is_standalone=false
-                                                resolve_mode=true
-                                                handle_change=|_| ()
-                                            />
-                                            <div class="card-actions mt-6 justify-end">
-                                                <Button
-                                                    id="resolve_btn".to_string()
-                                                    text="Resolve".to_string()
-                                                    on_click=resolve_click
+                                                <ContextForm
+                                                    dimensions=dimension.to_owned().unwrap_or(vec![])
+                                                    context=vec![]
+                                                    heading_sub_text="Query your configs".to_string()
+                                                    dropdown_direction=DropdownDirection::Right
+                                                    is_standalone=false
+                                                    resolve_mode=true
+                                                    handle_change=|_| ()
                                                 />
+                                                <div class="card-actions mt-6 justify-end">
+                                                    <Button
+                                                        id="resolve_btn".to_string()
+                                                        text="Resolve".to_string()
+                                                        on_click=resolve_click
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -343,7 +346,11 @@ pub fn home() -> impl IntoView {
                             ResolveTab::AllConfig => {
                                 view! {
                                     <Suspense fallback=move || {
-                                        view! { <p>"Loading (Suspense Fallback)..."</p> }
+                                        view! {
+                                            <div class="m-6">
+                                                <Skeleton variant=SkeletonVariant::Content/>
+                                            </div>
+                                        }
                                     }>
                                         {config_data
                                             .with(move |result| {
@@ -472,7 +479,11 @@ pub fn home() -> impl IntoView {
                             ResolveTab::ResolvedConfig => {
                                 view! {
                                     <Suspense fallback=move || {
-                                        view! { <p>"Loading..."</p> }
+                                        view! {
+                                            <div class="m-6">
+                                                <Skeleton variant=SkeletonVariant::Content/>
+                                            </div>
+                                        }
                                     }>
 
                                         {config_data

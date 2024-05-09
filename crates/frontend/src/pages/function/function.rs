@@ -1,7 +1,10 @@
 use leptos::*;
 use leptos_router::use_params_map;
 
-use crate::types::FunctionResponse;
+use crate::{
+    components::skeleton::{Skeleton, SkeletonVariant},
+    types::FunctionResponse,
+};
 
 use super::utils::publish_function;
 
@@ -60,7 +63,11 @@ pub fn function_page() -> impl IntoView {
 
     view! {
         <Transition fallback=move || {
-            view! { <h1>Loading....</h1> }
+            view! {
+                <div class="m-5">
+                    <Skeleton variant=SkeletonVariant::DetailPage/>
+                </div>
+            }
         }>
             {move || {
                 let resource = match combined_resource.get() {
@@ -355,7 +362,7 @@ pub fn function_page() -> impl IntoView {
                                                 CodeTab::PublishedCode => {
                                                     view! {
                                                         <Suspense fallback=move || {
-                                                            view! { <p>"Loading (Suspense Fallback)..."</p> }
+                                                            view! { <p>Loading ...</p> }
                                                         }>
 
                                                             {
@@ -364,11 +371,11 @@ pub fn function_page() -> impl IntoView {
                                                                     <script type="module">
                                                                         {format!(
                                                                             r#"
-                      
+
                                                               import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/+esm';
-                                                            
+
                                                               monaco.editor.create(document.querySelector('.monaco'), {{
-                      
+
                                                                   value: `{pub_code}`,
                                                                   language: 'javascript',
                                                                   readOnly: true
@@ -407,7 +414,7 @@ pub fn function_page() -> impl IntoView {
                                                 CodeTab::DraftCode => {
                                                     view! {
                                                         <Suspense fallback=move || {
-                                                            view! { <p>"Loading..."</p> }
+                                                            view! { <p>Loading ...</p> }
                                                         }>
 
                                                             {
@@ -437,22 +444,22 @@ pub fn function_page() -> impl IntoView {
                                                                     <script type="module">
                                                                         {format!(
                                                                             r#"
-                    
+
                                                             import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/+esm';
-                                                          
+
                                                             window.editor = monaco.editor.create(document.querySelector('.monaco'), {{
-                    
+
                                                                 value: `{fun_code}`,
                                                                 language: 'javascript',
                                                                 readOnly: {is_edit}
                                                             }});
-                    
+
                                                             const form = document.getElementById("MyForm");
                                                             form.addEventListener("formdata", e =>
                                                             {{
                                                                 e.formData.set('function', window.editor.getValue());
                                                             }});
-                                                            
+
                                                             "#,
                                                                         )}
 
