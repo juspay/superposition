@@ -60,7 +60,7 @@ pub fn context_override() -> impl IntoView {
                         .unwrap_or(vec![])
                         .into_iter()
                         .filter(|d| d.dimension != "variantIds")
-                        .collect::<Vec<Dimension>>(),
+                        .collect(),
                     default_config: default_config_result.unwrap_or(vec![]),
                 }
             },

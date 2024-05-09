@@ -28,8 +28,8 @@ fn single_dimension_ctx_gen(value: Dimensions) -> serde_json::Value {
         }),
         Dimensions::VARIANTIDS(id) => serde_json::json!({
             "in": [
-                {"var": "variantIds"},
                 id,
+                {"var": "variantIds"},
             ]
         }),
     }
@@ -596,8 +596,8 @@ fn test_fail_context_with_variantIds_dimensions() {
 
     let error_msg = result.unwrap_err();
     match error_msg {
-        AppError::BadArgument(msg) => assert_eq!(msg, "variantIds dimension not allowed in experiment contexts"),
-        _ => panic!("Not a AppError::BadArgument('variantIds dimension not allowed in experiment contexts')")
+        AppError::BadArgument(msg) => assert_eq!(msg, "experiment's context should not contain variantIds dimension"),
+        _ => panic!("Not a AppError::BadArgument('experiment's context should not contain variantIds dimension')")
     }
 }
 

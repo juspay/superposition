@@ -41,7 +41,7 @@ pub fn validate_context(context: &Value) -> superposition::Result<()> {
     let dimensions = extract_dimensions(context)?;
     if dimensions.contains_key("variantIds") {
         return Err(bad_argument!(
-            "variantIds dimension not allowed in experiment contexts"
+            "experiment's context should not contain variantIds dimension"
         ));
     }
     Ok(())
