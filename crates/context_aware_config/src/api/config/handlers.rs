@@ -32,11 +32,11 @@ use serde_json::{json, Map, Value};
 use service_utils::service::types::DbConnection;
 use service_utils::{bad_argument, db_error, unexpected_error};
 
-use superposition_types::User;
 use itertools::Itertools;
 use jsonschema::JSONSchema;
 use service_utils::helpers::extract_dimensions;
 use service_utils::result as superposition;
+use superposition_types::User;
 use uuid::Uuid;
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -457,6 +457,9 @@ async fn reduce_context(
             is_approve,
         )
         .await;
+        if is_approve {
+            config = generate_cac(&mut conn).await?;
+        }
     }
 
     Ok(HttpResponse::Ok().json(config))
