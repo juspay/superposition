@@ -2,45 +2,64 @@
 
 This document outlines the setup process for the `Superposition Platform`.
 
-## Prerequisites
+## Installation for linux/MacOS
 
-* Docker installed and running.
-* Docker Compose installed.
-* [Follow installation instructions at Zero To Nix ↗](https://zero-to-nix.com/start/install) 
+- Install Rust using rustup
+    `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+- Install wasm-pack
+    `curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh`
+- Install docker
+- make sure you have dependencies like libpq, openssl, libiconv,etc installed
+- make sure `make` command is installed
+  - Linux
+    ```bash
+    sudo apt-get install build-essential
+    ```
+  - MacOS
+    ```bash
+    xcode-select --install
+    ```
+- Clone the repository 
+    ```bash
+    git clone https://github.com/juspay/superposition.git
+    cd superposition
+    ```
+- Start docker daemon
+    - Linux
+        ```bash
+        sudo systemctl start docker
+        ```
+    - MacOS
+        ```bash
+        open --background -a Docker
+        ```
+- setup database and envs
+    `make setup`
+- Run Superposition
+    `make run`
 
-# Setup Steps
+## Nix Installation
 
-## Start docker daemon
-```bash
- open --background -a Docker
- ```
-## Shutdown Local Postgres
+- Install docker
+- make sure you have dependencies like libpq, openssl, libiconv,etc installed
+- Clone the repository 
+    ```bash
+    git clone https://github.com/juspay/superposition.git
+    cd superposition
+    ``` 
+- run `nix develop`
+- Start docker daemon
+    ```bash
+    open --background -a Docker
+    ```
+- setup database and envs
+    `make setup`
+- Run Superposition
+    `make run`
 
-### For HomeBrew: 
-```bash
- # Check if service is running
- brew services
- # If postgres is running, stop it via brew
- brew services stop postgresql@<your_postgres_version>
-```
-## Clone the repository 
-```bash
- git clone ssh://git@ssh.bitbucket.juspay.net/picaf/context-aware-config.git
- cd context-aware-config
-```
-## Build And Run
-```bash
- nix develop
- make setup
- make run 
-```
+
 ## Check Installation
 
-### Check logs
- ```bash
- {"level":"INFO","service":"context-aware-config","timestamp":"2023-08-14T08:08:20.291Z","value":"starting 5 workers"}
- {"level":"INFO","service":"context-aware-config","timestamp":"2023-08-14T08:08:20.292Z","value":"Actix runtime found; starting in Actix runtime"}
-```
 ### Check /health endpoint
 ```bash
  curl --location 'http://localhost:8080/health'

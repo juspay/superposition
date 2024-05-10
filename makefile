@@ -95,11 +95,10 @@ get-password:
 	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh` && echo $$DB_PASSWORD
 
 superposition:
-	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
 	cargo run --color always --bin superposition --no-default-features --features=ssr
 
 superposition_dev:
-	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`; \
+	# export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`
 	cargo watch -x 'run --color always --bin superposition --no-default-features --features=ssr'
 
 

@@ -33,6 +33,7 @@
           ];
           packages = with pkgs; [
             docker-compose
+            gnumake
             # Why do we need this?
             stdenv.cc
             awscli

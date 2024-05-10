@@ -126,7 +126,6 @@ jobs:
             - name: run tests
               shell: bash
               run: |
-                  export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh | base64 --decode` && echo $DB_PASSWORD
                   make ci-test
               env:
                   APP_ENV: "TEST"
