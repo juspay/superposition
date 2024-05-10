@@ -48,6 +48,33 @@ pub async fn fetch_default_config(
     Ok(response)
 }
 
+pub async fn delete_context(
+    tenant: String,
+    context_id: String,
+) -> Result<(), ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = use_host_server();
+
+    // Use the first element of the context_id array in the URL
+    let url = format!("{}/context/{}", host, context_id);
+
+    let response = client
+        .delete(&url) // Make sure to pass the URL by reference here
+        .header("x-tenant", tenant)
+        .send()
+        .await
+        .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+
+    if response.status().is_success() {
+        Ok(())
+    } else {
+        Err(ServerFnError::ServerError(format!(
+            "Failed to delete context with status: {}",
+            response.status()
+        )))
+    }
+}
+
 // #[server(GetExperiments, "/fxn", "GetJson")]
 pub async fn fetch_experiments(
     filters: ListFilters,

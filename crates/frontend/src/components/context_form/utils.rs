@@ -111,3 +111,21 @@ pub async fn create_context(
     )
     .await
 }
+
+pub async fn update_context(
+    tenant: String,
+    overrides: Map<String, Value>,
+    conditions: Vec<(String, String, String)>,
+    dimensions: Vec<Dimension>,
+) -> Result<serde_json::Value, String> {
+    let host = get_host();
+    let url = format!("{host}/context/overrides");
+    let request_payload = construct_request_payload(overrides, conditions, dimensions);
+    request(
+        url,
+        reqwest::Method::PUT,
+        Some(request_payload),
+        construct_request_headers(&[("x-tenant", &tenant)])?,
+    )
+    .await
+}

@@ -190,14 +190,14 @@ impl DropdownOption for DefaultConfig {
     }
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Context {
     pub id: String,
     pub condition: Value,
     pub override_with_keys: [String; 1],
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Config {
     pub contexts: Vec<Context>,
     pub overrides: Map<String, Value>,

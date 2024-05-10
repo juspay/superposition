@@ -50,6 +50,7 @@ use service_utils::{bad_argument, result as superposition};
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(put_handler)
+        .service(update_override_handler)
         .service(move_handler)
         .service(delete_context)
         .service(bulk_operations)
@@ -244,6 +245,25 @@ fn update_override_of_existing_ctx(
     Ok(get_put_resp(new_ctx))
 }
 
+fn replace_override_of_existing_ctx(
+    conn: &mut PgConnection,
+    ctx: Context,
+) -> superposition::Result<Json<PutResp>> {
+    use contexts::dsl;
+    let new_override = ctx.override_;
+    let new_override_id = hash(&new_override);
+    let new_ctx = Context {
+        override_: new_override,
+        override_id: new_override_id,
+        ..ctx
+    };
+    diesel::update(dsl::contexts)
+        .filter(dsl::id.eq(&new_ctx.id))
+        .set(&new_ctx)
+        .execute(conn)?;
+    Ok(Json(get_put_resp(new_ctx)))
+}
+
 fn get_put_resp(ctx: Context) -> PutResp {
     PutResp {
         context_id: ctx.id,
@@ -293,6 +313,40 @@ async fn put_handler(
             log::info!("context put failed with error: {:?}", err);
             err
         })
+}
+
+fn override_helper(
+    req: Json<PutReq>,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    user: &User,
+) -> superposition::Result<Json<PutResp>> {
+    use contexts::dsl::contexts;
+    let new_ctx = create_ctx_from_put_req(req, conn, user)?;
+
+    let insert = diesel::insert_into(contexts).values(&new_ctx).execute(conn);
+
+    match insert {
+        Ok(_) => Ok(Json(get_put_resp(new_ctx))),
+        Err(DatabaseError(UniqueViolation, _)) => {
+            replace_override_of_existing_ctx(conn, new_ctx) // no need for .map(Json)
+        }
+        Err(e) => {
+            log::error!("failed to update context with db error: {:?}", e);
+            Err(db_error!(e))
+        }
+    }
+}
+
+#[put("/overrides")]
+async fn update_override_handler(
+    req: Json<PutReq>,
+    mut db_conn: DbConnection,
+    user: User,
+) -> superposition::Result<Json<PutResp>> {
+    override_helper(req, &mut db_conn, &user).map_err(|err: superposition::AppError| {
+        log::info!("context put failed with error: {:?}", err);
+        err
+    })
 }
 
 fn r#move(

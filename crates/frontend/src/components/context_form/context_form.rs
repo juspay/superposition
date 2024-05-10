@@ -8,7 +8,7 @@ use web_sys::MouseEvent;
 pub fn context_form<NF>(
     handle_change: NF,
     dimensions: Vec<Dimension>,
-    is_standalone: bool,
+    #[prop(default = false)] is_standalone: bool,
     context: Vec<(String, String, String)>,
     #[prop(default = String::new())] heading_sub_text: String,
     #[prop(default = false)] disabled: bool,
@@ -85,7 +85,7 @@ where
                             key=|(idx, (dimension, _, _))| format!("{}-{}", dimension, idx)
                             children=move |(idx, (dimension, operator, value))| {
                                 let dimension_label = dimension.to_string();
-                                let dimension_name = dimension.to_string();
+                                let dimension_name = StoredValue::new(dimension.to_string());
                                 view! {
                                     <div class="flex gap-x-6">
                                         <div class="form-control">
@@ -157,22 +157,25 @@ where
                                                     placeholder="Type here"
                                                     class="input input-bordered w-full bg-white text-gray-700 shadow-md"
                                                 />
+                                                <Show when=move || !disabled >
                                                 <button
                                                     class="btn btn-ghost btn-circle btn-sm"
                                                     disabled=disabled
                                                     on:click=move |_| {
                                                         let mut current_context = context.get();
                                                         current_context.remove(idx);
-                                                        set_context.set(current_context);
+                                                        set_context.set(current_context.clone());
+                                                        logging::log!("current context {:?}",current_context.clone());
                                                         set_used_dimensions
                                                             .update(|value| {
-                                                                value.remove(&dimension_name);
+                                                                value.remove(&dimension_name.get_value());
                                                             });
                                                     }
                                                 >
 
                                                     <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
                                                 </button>
+                                                </Show>
                                             </div>
                                         </div>
                                     </div>
