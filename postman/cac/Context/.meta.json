@@ -5,6 +5,7 @@
     "Move Context",
     "Get Context",
     "List Context",
+    "Recompute Priority Context",
     "Delete Context"
   ]
 }

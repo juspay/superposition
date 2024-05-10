@@ -49,3 +49,11 @@ pub struct FunctionsInfo {
     pub name: String,
     pub code: Option<String>,
 }
+
+#[derive(Serialize)]
+pub struct PriorityRecomputeResponse {
+    pub id: String,
+    pub condition: Value,
+    pub old_priority: i32,
+    pub new_priority: i32,
+}
