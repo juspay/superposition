@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.8.1 - 2024-05-10
+#### Bug Fixes
+- added skeleton loader (#25) - (6d4fb66) - Shubhranshu Sanjeev
+- sorted grouped config keys (#40) - (62a712d) - Ankit Kumar Mahato
+
+- - -
+
 ## frontend-v0.8.0 - 2024-05-06
 #### Bug Fixes
 - resolve page failing when any type other than string is used (#21) - (f496634) - Datron

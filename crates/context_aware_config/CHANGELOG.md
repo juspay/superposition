@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.30.0 - 2024-05-10
+#### Bug Fixes
+- for the first page redirect to default config page - (361054b) - ankit.mahato
+#### Features
+- delete default config api (#34) - (d5c001c) - PRATIK MISHRA
+
+- - -
+
 ## context_aware_config-v0.29.0 - 2024-05-06
 #### Bug Fixes
 - fixed function template (#16) - (bb2df67) - Ankit Kumar Mahato

@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.44.0 - 2024-05-10
+### Package updates
+- frontend bumped to frontend-v0.8.1
+- superposition_types bumped to superposition_types-v0.2.1
+- context_aware_config bumped to context_aware_config-v0.30.0
+### Global changes
+#### Bug Fixes
+- remove juspay email address for anon user - (f174428) - Kartik
+- for the first page redirect to default config page - (361054b) - ankit.mahato
+#### Documentation
+- update README/experimentation - (4e0ed8f) - Natarajan Kannan
+#### Features
+- delete default config api (#34) - (d5c001c) - PRATIK MISHRA
+
+- - -
+
 ## v0.43.0 - 2024-05-06
 ### Package updates
 - js_client bumped to js_client-v0.1.0
