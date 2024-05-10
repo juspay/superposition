@@ -1,6 +1,7 @@
 use leptos::*;
 
 use crate::utils::get_element_by_id;
+use web_sys::MouseEvent;
 
 pub fn open_drawer(id: &str) {
     match get_element_by_id::<web_sys::HtmlInputElement>(id) {
@@ -21,16 +22,22 @@ pub fn close_drawer(id: &str) {
 }
 
 #[component]
-pub fn drawer_btn(drawer_id: String, children: Children) -> impl IntoView {
+pub fn drawer_btn(
+    drawer_id: String,
+    children: Children,
+    #[prop(default = Callback::new(|_| {}))] on_click: Callback<MouseEvent, ()>,
+    #[prop(default = "btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 drawer-button".to_string())]
+    style: String,
+) -> impl IntoView {
     let open_drawer_id = drawer_id.clone();
     view! {
         <button
-            class=format!(
-                "btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 drawer-button",
-            )
-
-            id=format!("{}-btn", drawer_id.clone())
-            on:click=move |_| { open_drawer(&open_drawer_id) }
+            class=style
+            id=format!("{}-btn", drawer_id)
+            on:click=move |e| {
+                open_drawer(&open_drawer_id);
+                on_click.call(e);
+            }
         >
             {children()}
         </button>

@@ -12,7 +12,7 @@ pub fn override_form<NF>(
     overrides: Map<String, Value>,
     default_config: Vec<DefaultConfig>,
     handle_change: NF,
-    is_standalone: bool,
+    #[prop(default = false)] is_standalone: bool,
     #[prop(default = false)] disable_remove: bool,
     #[prop(default = true)] show_add_override: bool,
     #[prop(into, default = None)] handle_key_remove: Option<Callback<String, ()>>,
@@ -83,6 +83,7 @@ where
                         let config_key_label = config_key.to_string();
                         let config_key_value = config_key.to_string();
                         let config_value = config_value.to_string().replace("\"", "");
+                        logging::log!("config value {}", config_value.clone());
                         view! {
                             <div>
                                 <div class="flex items-center gap-4">
@@ -97,7 +98,6 @@ where
                                             placeholder="Enter override here"
                                             name="override"
                                             class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                                            value=config_value
                                             on:input=move |event| {
                                                 let input_value = event_target_value(&event);
                                                 let default_config_val = get_config_value(
@@ -119,7 +119,9 @@ where
                                                             );
                                                     });
                                             }
-                                        ></textarea>
+                                        >
+                                            { config_value }
+                                        </textarea>
 
                                     </div>
                                     <div class="w-1/5">

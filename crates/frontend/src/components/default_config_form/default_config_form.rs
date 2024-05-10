@@ -294,12 +294,11 @@ where
                                 type="text"
                                 placeholder="Value"
                                 class="input input-bordered w-full max-w-md"
-                                value=config_value.get()
                                 on:change=move |ev| {
                                     logging::log!("{:?}", event_target_value(& ev));
                                     set_config_value.set(event_target_value(&ev));
                                 }
-                            ></textarea>
+                            >{config_value.get()} </textarea>
 
                         </div>
 
