@@ -9,6 +9,7 @@ use crate::components::context_form::context_form::ContextForm;
 use crate::components::context_form::utils::{create_context, update_context};
 use crate::components::drawer::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::override_form::override_form::OverrideForm;
+use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::components::table::{table::Table, types::Column};
 use crate::types::{Config, DefaultConfig, Dimension};
 use futures::join;
@@ -80,7 +81,7 @@ pub fn context_override() -> impl IntoView {
             </div>
 
             <Suspense fallback=move || {
-                view! { <p>"Loading (Suspense Fallback)..."</p> }
+                view! { <Skeleton variant=SkeletonVariant::Block/> }
             }>
             <div class="space-y-6">
                 {
@@ -165,7 +166,7 @@ pub fn context_override() -> impl IntoView {
                             }).collect::<Map<String, Value>>();
 
                             view! {
-                                <Drawer id="context_and_override_drawer".to_string() header="Edit Override" handle_close=handle_close>
+                                <Drawer id="context_and_override_drawer".to_string() header="Update Overrides" handle_close=handle_close>
                                     <ContextForm
                                         dimensions=dimension_value.unwrap_or_default()
                                         context=cleaned_context
@@ -201,7 +202,7 @@ pub fn context_override() -> impl IntoView {
                         } else {
                             logging::log!("it entered 2" );
                             view! {
-                                <Drawer id="context_and_override_drawer".to_string() header="Create New Dimension" handle_close=move || {form_data.set(None); close_drawer("context_and_override_drawer"); edit_signal.set(false); combined_resource.refetch() }>
+                                <Drawer id="context_and_override_drawer".to_string() header="Create Overrides" handle_close=move || {form_data.set(None); close_drawer("context_and_override_drawer"); edit_signal.set(false); combined_resource.refetch() }>
                                     <ContextForm
                                       dimensions= dimension_value.unwrap_or_default()
                                       context=vec![]
@@ -304,7 +305,7 @@ pub fn context_override() -> impl IntoView {
                                                                         <ContextPills context=context_data_clone_for_display/>
                                                                     </div>
                                                                     <div class= "flex space-x-4">
-                                                                    <i class="ri-pencil-line ri-xl text-blue-500" on:click = move |_| {
+                                                                    <i class="ri-pencil-line ri-xl text-blue-500 cursor-pointer" on:click = move |_| {
                                                                         edit_signal.set(true);
                                                                         logging::log!("entered 1") ;
                                                                         let condition = extract_and_format(&context_data_clone_for_click);
@@ -325,7 +326,7 @@ pub fn context_override() -> impl IntoView {
                                                                         }));
                                                                         open_drawer("context_and_override_drawer");
                                                                     }> </i>
-                                                                    <i class="ri-file-copy-line ri-xl text-blue-500" on:click = move |_| {
+                                                                    <i class="ri-file-copy-line ri-xl text-blue-500 cursor-pointer" on:click = move |_| {
                                                                         edit_signal.set(false);
                                                                         logging::log!("entered 1") ;
                                                                         let condition = extract_and_format(&context_data_for_edit);
@@ -345,7 +346,7 @@ pub fn context_override() -> impl IntoView {
                                                                         }));
                                                                         open_drawer("context_and_override_drawer");
                                                                     }> </i>
-                                                                    <i class="ri-delete-bin-5-line ri-xl text-blue-500" on:click = move |e| {
+                                                                    <i class="ri-delete-bin-5-line ri-xl text-blue-500 cursor-pointer" on:click = move |e| {
 
                                                                         edit_signal.set(false);
                                                                         logging::log!("entered delete");

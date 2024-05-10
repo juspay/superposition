@@ -196,7 +196,7 @@ where
                             }
                         />
 
-                        <Show when=move || context.get().len() != 0>
+                        <Show when=move || { context.get().len() != 0 && !disabled}>
                             <div class="mt-4">
 
                                 {move || {

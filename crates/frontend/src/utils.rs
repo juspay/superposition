@@ -12,6 +12,7 @@ use std::str::FromStr;
 use url::Url;
 use wasm_bindgen::JsCast;
 
+#[allow(dead_code)]
 pub fn modal_action(name: &str, action: &str) {
     if let Some(window) = web_sys::window() {
         if let Some(document) = window.document() {
