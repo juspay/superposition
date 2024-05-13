@@ -47,7 +47,7 @@ legacy_db_setup:
 	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/legacy-db-setup.sh
 
 tenant:
-	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/create-tenant.sh $(TENANT)
+	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/create-tenant.sh -t $(TENANT) -d
 
 validate-aws-connection:
 	aws --endpoint-url=http://$(DOCKER_DNS):4566 --region=ap-south-1 sts get-caller-identity
@@ -130,8 +130,6 @@ run: kill build
 ci-test: ci-setup
 	cargo test
 	npm run test
-	rm test_cac.sql
-	rm test_experimentation.sql
 
 tailwind:
 	cd crates/frontend && npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css --watch
