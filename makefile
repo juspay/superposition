@@ -131,8 +131,6 @@ run: kill build
 ci-test: ci-setup
 	cargo test
 	npm run test
-	rm test_cac.sql
-	rm test_experimentation.sql
 
 tailwind:
 	cd crates/frontend && npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css --watch
