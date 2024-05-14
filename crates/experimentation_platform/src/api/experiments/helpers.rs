@@ -202,36 +202,41 @@ pub fn add_variant_dimension_to_ctx(
     context_json: &Value,
     variant: String,
 ) -> superposition::Result<Value> {
-    let context = context_json.as_object().ok_or(bad_argument!(
-        "Context not an object. Ensure the context provided obeys the rules of JSON logic"
-    ))?;
-
-    let mut conditions = match context.get("and") {
-        Some(conditions_json) => conditions_json
-            .as_array()
-            .ok_or(bad_argument!(
-                "Failed parsing conditions as an array. Ensure the context provided obeys the rules of JSON logic"
-            ))?
-            .clone(),
-        None => vec![context_json.clone()],
-    };
-
     let variant_condition = serde_json::json!({
         "in" : [
             variant,
             { "var": "variantIds" }
         ]
     });
-    conditions.push(variant_condition);
 
-    let mut updated_ctx = Map::new();
-    updated_ctx.insert(String::from("and"), serde_json::Value::Array(conditions));
+    let context = context_json.as_object().ok_or(bad_argument!(
+        "Context not an object. Ensure the context provided obeys the rules of JSON logic"
+    ))?;
 
-    match serde_json::to_value(updated_ctx) {
-        Ok(value) => Ok(value),
-        Err(_) => Err(bad_argument!(
-            "Failed to convert context to a valid JSON object. Check the request sent for correctness"
-        )),
+    if context.is_empty() {
+        Ok(variant_condition)
+    } else {
+        let mut conditions = match context.get("and") {
+            Some(conditions_json) => conditions_json
+                .as_array()
+                .ok_or(bad_argument!(
+                    "Failed parsing conditions as an array. Ensure the context provided obeys the rules of JSON logic"
+                ))?
+                .clone(),
+            None => vec![context_json.clone()],
+        };
+
+        conditions.push(variant_condition);
+
+        let mut updated_ctx = Map::new();
+        updated_ctx.insert(String::from("and"), serde_json::Value::Array(conditions));
+
+        match serde_json::to_value(updated_ctx) {
+            Ok(value) => Ok(value),
+            Err(_) => Err(bad_argument!(
+                "Failed to convert context to a valid JSON object. Check the request sent for correctness"
+            )),
+        }
     }
 }
 

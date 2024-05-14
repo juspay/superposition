@@ -315,13 +315,33 @@ pub async fn conclude(
         })?;
 
         if variant.id == winner_variant_id {
-            let context_move_req = ContextMoveReq {
-                context: experiment_context.clone(),
-            };
+            if !experiment_context.is_empty() {
+                let context_move_req = ContextMoveReq {
+                    context: experiment_context.clone(),
+                };
+                operations.push(ContextAction::MOVE((context_id, context_move_req)));
+            } else {
+                for (key, val) in variant.overrides {
+                    let mut create_req = Map::new();
+                    create_req.insert("value".to_string(), val);
+                    let http_client = reqwest::Client::new();
+                    let url = state.cac_host.clone()
+                        + format!("/default-config/{key}").as_str();
+                    let _ = http_client
+                        .put(&url)
+                        .header("x-tenant", tenant.as_str())
+                        .header(
+                            "Authorization",
+                            format!("{} {}", user.get_auth_type(), user.get_auth_token()),
+                        )
+                        .json(&create_req)
+                        .send()
+                        .await;
+                }
+                operations.push(ContextAction::DELETE(context_id));
+            }
 
             is_valid_winner_variant = true;
-
-            operations.push(ContextAction::MOVE((context_id, context_move_req)));
         } else {
             // delete this context
             operations.push(ContextAction::DELETE(context_id));

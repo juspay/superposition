@@ -58,20 +58,25 @@ pub fn construct_context(
     conditions: Vec<(String, String, String)>,
     dimensions: Vec<Dimension>,
 ) -> Value {
-    let condition_schemas = conditions
-        .iter()
-        .map(|(variable, operator, value)| {
-            get_condition_schema(variable, operator, value, dimensions.clone()).unwrap()
-        })
-        .collect::<Vec<Value>>();
-
-    let context = if condition_schemas.len() == 1 {
-        condition_schemas[0].clone()
+    if conditions.is_empty() {
+        json!({})
     } else {
-        json!({ "and": condition_schemas })
-    };
+        let condition_schemas = conditions
+            .iter()
+            .map(|(variable, operator, value)| {
+                get_condition_schema(variable, operator, value, dimensions.clone())
+                    .unwrap()
+            })
+            .collect::<Vec<Value>>();
 
-    context
+        let context = if condition_schemas.len() == 1 {
+            condition_schemas[0].clone()
+        } else {
+            json!({ "and": condition_schemas })
+        };
+
+        context
+    }
 }
 
 pub fn construct_request_payload(
