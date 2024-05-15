@@ -35,13 +35,14 @@ where
 
     create_effect(move |_| {
         let f_context = context.get();
+        logging::log!("{:?}", f_context);
         handle_change(f_context.clone());
     });
 
     let handle_select_dropdown_option = move |selected_dimension: Dimension| {
         let dimension_name = selected_dimension.dimension;
         set_context.update(|value| {
-            leptos::logging::log!("{:?}", value);
+            logging::log!("{:?}", value);
             value.push((dimension_name.to_string(), "".to_string(), "".to_string()))
         });
         set_used_dimensions.update(|value: &mut HashSet<String>| {
@@ -127,7 +128,7 @@ where
                                                 >
                                                     "IS"
                                                 </option>
-                                                <option value="IN" selected=operator.clone() == "IN">
+                                                <option value="in" selected=operator.clone() == "in">
                                                     "HAS"
                                                 </option>
                                                 <option value="<=" selected=operator.clone() == "<=">
@@ -157,24 +158,26 @@ where
                                                     placeholder="Type here"
                                                     class="input input-bordered w-full bg-white text-gray-700 shadow-md"
                                                 />
-                                                <Show when=move || !disabled >
-                                                <button
-                                                    class="btn btn-ghost btn-circle btn-sm"
-                                                    disabled=disabled
-                                                    on:click=move |_| {
-                                                        let mut current_context = context.get();
-                                                        current_context.remove(idx);
-                                                        set_context.set(current_context.clone());
-                                                        logging::log!("current context {:?}",current_context.clone());
-                                                        set_used_dimensions
-                                                            .update(|value| {
-                                                                value.remove(&dimension_name.get_value());
-                                                            });
-                                                    }
-                                                >
+                                                <Show when=move || !disabled>
+                                                    <button
+                                                        class="btn btn-ghost btn-circle btn-sm"
+                                                        disabled=disabled
+                                                        on:click=move |_| {
+                                                            let mut current_context = context.get();
+                                                            current_context.remove(idx);
+                                                            set_context.set(current_context.clone());
+                                                            logging::log!(
+                                                                "current context {:?}", current_context.clone()
+                                                            );
+                                                            set_used_dimensions
+                                                                .update(|value| {
+                                                                    value.remove(&dimension_name.get_value());
+                                                                });
+                                                        }
+                                                    >
 
-                                                    <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
-                                                </button>
+                                                        <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
+                                                    </button>
                                                 </Show>
                                             </div>
                                         </div>
@@ -196,7 +199,7 @@ where
                             }
                         />
 
-                        <Show when=move || { context.get().len() != 0 && !disabled}>
+                        <Show when=move || { context.get().len() != 0 && !disabled }>
                             <div class="mt-4">
 
                                 {move || {

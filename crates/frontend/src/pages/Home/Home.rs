@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use crate::components::condition_pills::condition_pills::ContextPills;
+use crate::components::condition_pills::condition_pills::ConditionPills;
+use crate::components::condition_pills::types::Condition;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::{
     api::{fetch_config, fetch_dimensions},
@@ -402,11 +403,14 @@ pub fn home() -> impl IntoView {
                                                                     })
                                                                     .map(|(k, v)| { rows(&k, &v, true) })
                                                                     .collect();
+                                                                let conditions: Vec<Condition> = context
+                                                                    .try_into()
+                                                                    .unwrap_or(vec![]);
                                                                 view! {
                                                                     <div class="card bg-base-100 shadow m-6">
                                                                         <div class="card-body">
                                                                             <h2 class="card-title">
-                                                                                <ContextPills context=context.condition.clone()/>
+                                                                                <ConditionPills conditions=conditions/>
                                                                             </h2>
                                                                             <table class="table table-zebra mt-10">
                                                                                 <thead>

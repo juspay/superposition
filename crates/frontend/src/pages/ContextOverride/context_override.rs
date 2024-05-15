@@ -1,10 +1,8 @@
 use crate::api::fetch_config;
 use crate::api::{delete_context, fetch_default_config, fetch_dimensions};
 use crate::components::button::button::Button;
-use crate::components::condition_pills::{
-    condition_pills::ContextPills,
-    utils::{extract_and_format, parse_conditions},
-};
+use crate::components::condition_pills::condition_pills::ConditionPills;
+use crate::components::condition_pills::types::Condition;
 use crate::components::context_form::context_form::ContextForm;
 use crate::components::context_form::utils::{create_context, update_context};
 use crate::components::drawer::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
@@ -12,6 +10,7 @@ use crate::components::override_form::override_form::OverrideForm;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::components::table::{table::Table, types::Column};
 use crate::types::{Config, DefaultConfig, Dimension};
+use crate::utils::extract_conditions;
 use futures::join;
 use leptos::*;
 use serde::{Deserialize, Serialize};
@@ -130,7 +129,6 @@ pub fn context_override() -> impl IntoView {
                           });
                           };
                         if let Some(_selected_data) = selected_context_and_override.get() {
-                            logging::log!("it entered 1");
                             let handle_close =
                                 move || {
                                     close_drawer("context_and_override_drawer");
@@ -138,20 +136,8 @@ pub fn context_override() -> impl IntoView {
                                     form_data.set(None);
                                     edit_signal.set(false);
                                 };
-                            logging::log!("form data overrides {:?}", form_data.get_untracked().unwrap().overrides);
-                            logging::log!("form data contexts {:?}", form_data.get_untracked().unwrap().context);
 
                             let form_data_untracked = form_data.get_untracked().unwrap();
-
-                            let cleaned_context = form_data_untracked.context.iter().map(|(dim, op, val)| {
-                                let new_op = match op.trim().to_uppercase().as_str() {
-                                    "IS" => "==",
-                                    "HAS" => "IN",
-                                    "BETWEEN (inclusive)" => "<=",
-                                    _ => op.trim()
-                                };
-                                (dim.trim().to_string(), new_op.to_string(), val.clone())
-                            }).collect::<Vec<(String, String, String)>>();
 
                             let overrides = form_data_untracked.overrides.clone();
                             let cleaned_overrides = overrides.iter().map(|(key, value)| {
@@ -169,7 +155,7 @@ pub fn context_override() -> impl IntoView {
                                 <Drawer id="context_and_override_drawer".to_string() header="Update Overrides" handle_close=handle_close>
                                     <ContextForm
                                         dimensions=dimension_value.unwrap_or_default()
-                                        context=cleaned_context
+                                        context=form_data_untracked.context
                                         is_standalone=false
                                       handle_change=move |new_context| {
                                          form_data.update(|prev| {
@@ -285,9 +271,9 @@ pub fn context_override() -> impl IntoView {
                                             }
                                             let overrides_clone = overrides.clone();
                                             let context_data_clone_for_display = context.condition.clone();
+                                            let conditions: Vec<Condition>  = context.try_into().unwrap_or(vec![]);
                                             let context_data_clone_for_click = context.condition.clone();
                                             let context_id = context.id.clone();
-                                            logging::log!("override signal: {:?}", overrides_clone.clone());
 
                                             let create_view = || {
                                                         let override_data = overrides_clone.clone();
@@ -302,22 +288,15 @@ pub fn context_override() -> impl IntoView {
                                                                             "Condition"
                                                                         </h3>
                                                                         <i class="ri-arrow-right-fill ri-xl text-blue-500"></i>
-                                                                        <ContextPills context=context_data_clone_for_display/>
+                                                                        <ConditionPills conditions=conditions />
                                                                     </div>
                                                                     <div class= "flex space-x-4">
                                                                     <i class="ri-pencil-line ri-xl text-blue-500 cursor-pointer" on:click = move |_| {
                                                                         edit_signal.set(true);
-                                                                        logging::log!("entered 1") ;
-                                                                        let condition = extract_and_format(&context_data_clone_for_click);
-                                                                        let ctx_values = parse_conditions(condition.clone());
-                                                                        let transformed_context_data = ctx_values.iter().map(|item| {
-                                                                            (item.left_operand.clone(), item.operator.clone(),item.right_operand.clone())
-                                                                        }).collect::<Vec<(String, String, String)>>();
-
-                                                                        logging::log!("override data for edit: {:?}", override_data_for_edit.clone());
+                                                                        let conditions = extract_conditions(&context_data_clone_for_click).unwrap_or(vec![]);
 
                                                                         form_data.set(Some(TableData {
-                                                                            context: transformed_context_data.clone(),
+                                                                            context: conditions,
                                                                             overrides: override_data_for_edit.clone()
                                                                         }));
                                                                         selected_context_and_override.set(Some(TableData {
@@ -328,16 +307,10 @@ pub fn context_override() -> impl IntoView {
                                                                     }> </i>
                                                                     <i class="ri-file-copy-line ri-xl text-blue-500 cursor-pointer" on:click = move |_| {
                                                                         edit_signal.set(false);
-                                                                        logging::log!("entered 1") ;
-                                                                        let condition = extract_and_format(&context_data_for_edit);
-                                                                        let ctx_values = parse_conditions(condition.clone());
-                                                                        let transformed_context_data = ctx_values.iter().map(|item| {
-                                                                            (item.left_operand.trim().to_string(), item.operator.trim().to_string(), item.right_operand.trim().to_string())
-                                                                        }).collect::<Vec<(String, String, String)>>();
-                                                                        logging::log!("transformed data {:?}",transformed_context_data.clone());
+                                                                        let conditions = extract_conditions(&context_data_for_edit).unwrap_or(vec![]);
 
                                                                         form_data.set(Some(TableData {
-                                                                            context: transformed_context_data.clone(),
+                                                                            context: conditions,
                                                                             overrides: override_data.clone()
                                                                         }));
                                                                         selected_context_and_override.set(Some(TableData {

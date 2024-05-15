@@ -1,5 +1,6 @@
 use crate::components::{
-    condition_pills::condition_pills::ContextPills, table::types::Column,
+    condition_pills::{condition_pills::ConditionPills, utils::extract_conditions},
+    table::types::Column,
 };
 use core::time::Duration;
 use leptos::*;
@@ -106,7 +107,7 @@ pub fn experiment_table_columns() -> Vec<Column> {
 
                 view! {
                     <div class="inline-flex flex-col gap-y-2">
-                        <ContextPills context=context />
+                        <ConditionPills conditions=extract_conditions(&context) />
                     </div>
                 }
                 .into_view()
