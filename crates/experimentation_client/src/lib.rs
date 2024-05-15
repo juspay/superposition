@@ -101,7 +101,12 @@ impl Client {
         let filtered_running_experiments = running_experiments
             .iter()
             .filter(|(_, exp)| {
-                jsonlogic::apply(&exp.context, context) == Ok(Value::Bool(true))
+                let is_empty = exp
+                    .context
+                    .as_object()
+                    .map_or(false, |context| context.is_empty());
+                is_empty
+                    || jsonlogic::apply(&exp.context, context) == Ok(Value::Bool(true))
             })
             .map(|(_, exp)| exp.clone())
             .collect::<Experiments>();
