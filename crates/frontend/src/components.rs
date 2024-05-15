@@ -20,4 +20,5 @@ pub mod skeleton;
 pub mod stat;
 pub mod table;
 pub mod toast;
+pub mod type_template_form;
 pub mod variant_form;

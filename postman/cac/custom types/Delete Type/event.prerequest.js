@@ -16,8 +16,8 @@ function get_context_id() {
         }
         const resp = response.json();
         for (const element of resp) {
-            if (element.display_name === "Integer") {
-                pm.environment.set("id", element.id)
+            if (element.type_name === "Integer") {
+                pm.environment.set("id", element.type_name)
                 break;
             }
         }

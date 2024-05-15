@@ -21,32 +21,28 @@ pm.test('expect response be 200', function () {
         pm.expect(modified_response).to.be.eq([
             {
                 "created_by": "user@superposition.io",
-                "display_name": "Number",
-                "type_name": "number",
+                "type_name": "Number",
                 "type_schema": {
                     "type": "number"
                 }
             },
             {
                 "created_by": "user@superposition.io",
-                "display_name": "Decimal",
-                "type_name": "number",
+                "type_name": "Decimal",
                 "type_schema": {
                     "type": "number"
                 }
             },
             {
                 "created_by": "user@superposition.io",
-                "display_name": "Boolean",
-                "type_name": "boolean",
+                "type_name": "Boolean",
                 "type_schema": {
                     "type": "boolean"
                 }
             },
             {
                 "created_by": "user@superposition.io",
-                "display_name": "String (Enum)",
-                "type_name": "enum",
+                "type_name": "String (Enum)",
                 "type_schema": {
                     "enum": "$replacement",
                     "type": "string"
@@ -54,8 +50,7 @@ pm.test('expect response be 200', function () {
             },
             {
                 "created_by": "user@superposition.io",
-                "display_name": "String (Regex)",
-                "type_name": "pattern",
+                "type_name": "String (Regex)",
                 "type_schema": {
                     "pattern": "$replacement",
                     "type": "string"
@@ -63,10 +58,9 @@ pm.test('expect response be 200', function () {
             },
             {
                 "created_by": "superposition@juspay.in",
-                "display_name": "Integer",
-                "type_name": "i16",
+                "type_name": "Integer",
                 "type_schema": {
-                    "type": "number"
+                    "type": "integer"
                 }
             }
         ])

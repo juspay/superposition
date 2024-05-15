@@ -3,7 +3,7 @@ use leptos::ServerFnError;
 use crate::{
     types::{
         Config, DefaultConfig, Dimension, Experiment, ExperimentsResponse,
-        FunctionResponse, ListFilters,
+        FetchCustomTypeResponse, FunctionResponse, ListFilters,
     },
     utils::{construct_request_headers, get_host, request, use_host_server},
 };
@@ -208,4 +208,26 @@ pub async fn delete_default_config(key: String, tenant: String) -> Result<(), St
     .await?;
 
     Ok(())
+}
+
+
+pub async fn fetch_types(
+    tenant: String,
+    page: i64,
+    count: i64,
+) -> Result<FetchCustomTypeResponse, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = use_host_server();
+
+    let url = format!("{host}/types/{page}/{count}");
+    match client.get(url).header("x-tenant", tenant).send().await {
+        Ok(response) => {
+            let types = response
+                .json()
+                .await
+                .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+            Ok(types)
+        }
+        Err(e) => Err(ServerFnError::ServerError(e.to_string())),
+    }
 }

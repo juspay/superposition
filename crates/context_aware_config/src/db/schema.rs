@@ -609,10 +609,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    jsonschema_types (id) {
-        id -> Uuid,
+    jsonschema_types (type_name) {
         type_name -> Text,
-        display_name -> Text,
         type_schema -> Json,
         created_by -> Text,
         created_at -> Timestamp,

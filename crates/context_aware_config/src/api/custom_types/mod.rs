@@ -1,5 +1,4 @@
 mod types;
-use std::str::FromStr;
 
 use crate::db::models::JsonSchemaTypes;
 use crate::db::schema::jsonschema_types::{self, dsl};
@@ -7,8 +6,7 @@ use actix_web::web::{Json, Path};
 use actix_web::{delete, get, put, HttpResponse, Scope};
 use chrono::Utc;
 
-use diesel::query_dsl::methods::FilterDsl;
-use diesel::{ExpressionMethods, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use jsonschema::JSONSchema;
 use serde_json::json;
 use service_utils::service::types::DbConnection;
@@ -45,18 +43,15 @@ async fn create_or_update_type(
     let timestamp = Utc::now().naive_utc();
     diesel::insert_into(jsonschema_types::table)
         .values((
-            jsonschema_types::display_name.eq(request.display_name.clone()),
             jsonschema_types::type_schema.eq(request.type_schema.clone()),
             jsonschema_types::type_name.eq(request.type_name.clone()),
             jsonschema_types::created_by.eq(user.email.clone()),
             jsonschema_types::created_at.eq(timestamp),
         ))
-        .on_conflict(jsonschema_types::display_name)
+        .on_conflict(jsonschema_types::type_name)
         .do_update()
         .set((
-            jsonschema_types::display_name.eq(request.display_name.clone()),
             jsonschema_types::type_schema.eq(request.type_schema.clone()),
-            jsonschema_types::type_name.eq(request.type_name.clone()),
             jsonschema_types::created_by.eq(user.email),
         ))
         .execute(&mut conn)
@@ -64,27 +59,46 @@ async fn create_or_update_type(
             log::error!("failed to insert custom type with error: {}", err);
             db_error!(err)
         })?;
-    Ok(HttpResponse::Ok()
-        .json(json!({"message": "custom type created successfully"})))
+    Ok(HttpResponse::Ok().json(json!({"message": "custom type created successfully"})))
 }
 
-#[delete("/{id}")]
+#[delete("/{type_name}")]
 async fn delete_type(
     path: Path<String>,
     db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let path_id = path.into_inner();
-    let id = uuid::Uuid::from_str(path_id.as_str())
-        .map_err(|err| bad_argument!("Wrong custom type ID passed {}", err))?;
-    diesel::delete(dsl::jsonschema_types.filter(dsl::id.eq(id))).execute(&mut conn)?;
+    let type_name = path.into_inner();
+    diesel::delete(dsl::jsonschema_types.filter(dsl::type_name.eq(type_name)))
+        .execute(&mut conn)?;
     Ok(HttpResponse::Ok().json(json!({"message": "deleted custom type"})))
 }
 
-#[get("")]
-async fn list_types(db_conn: DbConnection) -> superposition::Result<HttpResponse> {
+#[get("/{page}/{count}")]
+async fn list_types(
+    db_conn: DbConnection,
+    filters: Path<(i64, i64)>,
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let custom_types: Vec<JsonSchemaTypes> =
-        jsonschema_types::dsl::jsonschema_types.get_results(&mut conn)?;
-    Ok(HttpResponse::Ok().json(json!(custom_types)))
+    let (page, limit) = filters.into_inner();
+    if page < 1 {
+        return Err(bad_argument!("Param 'page' has to be at least 1"));
+    } else if limit < 1 {
+        return Err(bad_argument!("Param 'count' has to be at least 1"));
+    }
+    let n_types: i64 = jsonschema_types::dsl::jsonschema_types
+        .count()
+        .get_result(&mut conn)?;
+    let offset = (page - 1) * limit;
+    let custom_types: Vec<JsonSchemaTypes> = jsonschema_types::dsl::jsonschema_types
+        .order(jsonschema_types::dsl::created_at.desc())
+        .limit(limit)
+        .offset(offset)
+        .load(&mut conn)?;
+    let total_pages = (n_types as f64 / limit as f64).ceil() as u64;
+    Ok(HttpResponse::Ok().json(json!({
+        "total_pages": total_pages,
+        "total_items": n_types,
+        "data": custom_types
+    })))
 }
