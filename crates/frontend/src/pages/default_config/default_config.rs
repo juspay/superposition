@@ -1,9 +1,11 @@
-use crate::api::fetch_default_config;
+use crate::api::{delete_default_config, fetch_default_config};
+use crate::components::alert::AlertType;
 use crate::components::default_config_form::default_config_form::DefaultConfigForm;
 use crate::components::drawer::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
 use crate::components::stat::stat::Stat;
 use crate::components::table::{table::Table, types::Column};
+use crate::providers::alert_provider::enqueue_alert;
 use crate::types::BreadCrums;
 use crate::utils::unwrap_option_or_default_with_error;
 use leptos::*;
@@ -63,9 +65,9 @@ pub fn default_config() -> impl IntoView {
 
     let table_columns = create_memo(move |_| {
         let edit_col_formatter = move |_: &str, row: &Map<String, Value>| {
-            logging::log!("{:?}", row);
             let row_key = row["key"].clone().to_string().replace("\"", "");
             let is_folder = row_key.contains(".");
+            let grouping_enabled = enable_grouping.get();
             let row_value = row["value"].clone().to_string().replace("\"", "");
 
             let schema = row["schema"].clone().to_string();
@@ -147,7 +149,7 @@ pub fn default_config() -> impl IntoView {
             let edit_icon: HtmlElement<html::I> =
                 view! { <i class="ri-pencil-line ri-xl text-blue-500"></i> };
 
-            if is_folder {
+            if is_folder && grouping_enabled {
                 view! { <span>{"-"}</span> }.into_view()
             } else {
                 view! {
@@ -186,6 +188,48 @@ pub fn default_config() -> impl IntoView {
             }
         };
 
+        let delete_col_formatter = move |_: &str, row: &Map<String, Value>| {
+            let row_key = row["key"].as_str().map(|v| v.to_owned());
+            let is_folder = row_key.as_ref().is_some_and(|k| k.contains("."));
+
+            let key_name = StoredValue::new(row_key);
+
+            let handle_delete = move |_| {
+                match key_name.get_value() {
+                    Some(k) => {
+                        let tenant = tenant_rs.get();
+                        let prefix = key_prefix.get().unwrap_or(String::new());
+                        spawn_local({
+                            async move {
+                                let _ =
+                                    delete_default_config(format!("{prefix}{k}"), tenant)
+                                        .await;
+                                default_config_resource.refetch();
+                            }
+                        });
+                    }
+                    None => {
+                        enqueue_alert(
+                            String::from("key name is not of expected type."),
+                            AlertType::Error,
+                            5000,
+                        );
+                    }
+                };
+            };
+
+            if is_folder && enable_grouping.get() {
+                view! { <span>{"-"}</span> }.into_view()
+            } else {
+                view! {
+                    <span class="cursor-pointer text-red-500" on:click=handle_delete>
+                        <i class="ri-delete-bin-5-line"></i>
+                    </span>
+                }
+                .into_view()
+            }
+        };
+
         vec![
             Column::new("key".to_string(), None, expand),
             Column::default("schema".to_string()),
@@ -194,6 +238,7 @@ pub fn default_config() -> impl IntoView {
             Column::default("created_at".to_string()),
             Column::default("created_by".to_string()),
             Column::new("EDIT".to_string(), None, edit_col_formatter),
+            Column::new("DELETE".to_string(), None, delete_col_formatter),
         ]
     });
 

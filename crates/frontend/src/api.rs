@@ -5,7 +5,7 @@ use crate::{
         Config, DefaultConfig, Dimension, Experiment, ExperimentsResponse,
         FunctionResponse, ListFilters,
     },
-    utils::use_host_server,
+    utils::{construct_request_headers, get_host, request, use_host_server},
 };
 
 // #[server(GetDimensions, "/fxn", "GetJson")]
@@ -193,4 +193,17 @@ pub async fn fetch_experiment(
         }
         Err(e) => Err(ServerFnError::ServerError(e.to_string())),
     }
+}
+
+pub async fn delete_default_config(key: String, tenant: String) -> Result<(), String> {
+    let host = get_host();
+    let url = format!("{host}/default-config/{key}");
+
+    request(
+        url,
+        reqwest::Method::DELETE,
+        None::<serde_json::Value>,
+        construct_request_headers(&[("x-tenant", &tenant)])?,
+    )
+    .await
 }
