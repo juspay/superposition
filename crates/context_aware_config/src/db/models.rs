@@ -94,9 +94,7 @@ pub struct ConfigVersion {
 #[diesel(table_name = jsonschema_types)]
 #[diesel(primary_key(id))]
 pub struct JsonSchemaTypes {
-    pub id: uuid::Uuid,
     pub type_name: String,
-    pub display_name: String,
     pub type_schema: Value,
     pub created_by: String,
     pub created_at: NaiveDateTime,

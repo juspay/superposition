@@ -225,3 +225,19 @@ pub struct BreadCrums {
 pub struct ErrorResponse {
     pub message: String,
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct CustomType {
+    pub type_name: String,
+    pub type_schema: Value,
+    pub created_by: String,
+    pub created_at: NaiveDateTime,
+    pub last_modified: NaiveDateTime,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct FetchCustomTypeResponse {
+    pub total_items: i64,
+    pub total_pages: i64,
+    pub data: Vec<CustomType>,
+}

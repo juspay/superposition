@@ -10,14 +10,14 @@ use crate::pages::function::{
     function_create::CreateFunctionView, function_list::FunctionList, FunctionPage,
 };
 use crate::pages::{
-    context_override::ContextOverride, default_config::DefaultConfig,
-    experiment::ExperimentPage, home::Home,
+    context_override::ContextOverride, custom_types::TypesPage,
+    default_config::DefaultConfig, experiment::ExperimentPage, home::Home,
 };
 use crate::providers::alert_provider::AlertProvider;
 use crate::types::Envs;
 
 #[component]
-pub fn App(app_envs: Envs) -> impl IntoView {
+pub fn app(app_envs: Envs) -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
 
@@ -191,6 +191,18 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                                     view! {
                                         <Layout>
                                             <Home/>
+                                        </Layout>
+                                    }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/types"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <TypesPage/>
                                         </Layout>
                                     }
                                 }

@@ -28,8 +28,7 @@
             "type_schema": {
                 "type": "integer"
             },
-            "display_name": "Integer",
-            "type_name": "i16"
+            "type_name": "Integer"
         }
     },
     "url": {

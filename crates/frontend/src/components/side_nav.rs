@@ -46,6 +46,12 @@ fn create_routes(tenant: &str) -> Vec<AppRoute> {
             icon: "ri-equalizer-fill".to_string(),
             label: "Resolve".to_string(),
         },
+        AppRoute {
+            key: format!("{base}/admin/{tenant}/types"),
+            path: format!("{base}/admin/{tenant}/types"),
+            icon: "ri-t-box-fill".to_string(),
+            label: "Type Templates".to_string(),
+        },
     ]
 }
 

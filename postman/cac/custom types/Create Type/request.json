@@ -26,10 +26,9 @@
         },
         "raw_json_formatted": {
             "type_schema": {
-                "type": "integer"
+                "type": "number"
             },
-            "display_name": "Integer",
-            "type_name": "i32"
+            "type_name": "Integer"
         }
     },
     "url": {

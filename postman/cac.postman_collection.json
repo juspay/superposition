@@ -1,1015 +1,1624 @@
 {
-	"info": {
-		"_postman_id": "12a7fe9f-2a54-4afa-aa48-4625bfc8e858",
-		"name": "cac",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "15880623"
-	},
-	"item": [
-		{
-			"name": "config",
-			"item": [
-				{
-					"name": "Get Config",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"200 check\", function() {",
-									"    pm.response.to.have.status(200);",
-									"    let response = pm.response.json();",
-									"    let expected_response = {",
-									"        \"contexts\": [],",
-									"        \"overrides\": {},",
-									"        \"default_configs\": {}",
-									"    };",
-									"    pm.expect(JSON.stringify(response)).to.be.eq(JSON.stringify(expected_response));",
-									"})",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{host}}/config",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"config"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "resolve",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{host}}/config/resolve?clientId=zee5",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"config",
-								"resolve"
-							],
-							"query": [
-								{
-									"key": "clientId",
-									"value": "zee5"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Default Config",
-			"item": [
-				{
-					"name": "Add default-config key",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const host = pm.variables.get(\"host\");",
-									"",
-									"function getConfigAndTest(key, value) {",
-									"    const getRequest = {",
-									"        url: `${host}/config`,",
-									"        method: 'GET',",
-									"        header: {",
-									"            'Content-Type': 'application/json',",
-									"        }",
-									"    };",
-									"",
-									"    pm.sendRequest(getRequest, (error, response) => {",
-									"        if(error) {",
-									"            console.log(\"Failed to fetch config\");",
-									"            throw error;",
-									"        }",
-									"",
-									"        const resp_obj = response.json();",
-									"        const default_configs = resp_obj.default_configs;",
-									"",
-									"        console.log(`Checking if key=${key} with value=${value} in default_configs`);",
-									"        pm.expect(default_configs[key]).to.be.eq(value);",
-									"    });",
-									"}",
-									"",
-									"pm.test(\"201 check\", function () {",
-									"    pm.response.to.have.status(201);",
-									"})",
-									"",
-									"pm.test(\"Check if key added to default config\", function () {",
-									"    const key = \"key1\", value = \"value1\";",
-									"    getConfigAndTest(key, value);",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/default-config/key1",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"default-config",
-								"key1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete default-config key",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"204 check\", function () {",
-									"    pm.response.to.have.status(204);",
-									"})",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{host}}/default-config/key2",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"default-config",
-								"key2"
-							]
-						}
-					},
-					"response": []
-				}
-
-			]
-		},
-		{
-			"name": "Dimension",
-			"item": [
-				{
-					"name": "Create Dimension",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"201 Check\", function () {",
-									"    pm.response.to.have.status(201);",
-									"})"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"dimension\":\"clientId\",\"priority\":100,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/dimension",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"dimension"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Context",
-			"item": [
-				{
-					"name": "Create Context",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const host = pm.variables.get(\"host\");",
-									"",
-									"function getConfigAndTest(context_id, override_id, expected_condition, expected_override) {",
-									"    const getRequest = {",
-									"        url: `${host}/config`,",
-									"        method: 'GET',",
-									"        header: {",
-									"            'Content-Type': 'application/json',",
-									"        }",
-									"    };",
-									"",
-									"    pm.sendRequest(getRequest, (error, response) => {",
-									"        if(error) {",
-									"            console.log(\"Failed to fetch config\");",
-									"            throw error;",
-									"        }",
-									"",
-									"        const resp_obj = response.json();",
-									"        const contexts = resp_obj.contexts;",
-									"        const overrides = resp_obj.overrides;",
-									"",
-									"        console.log(`Checking if context=${context_id} contexts list.`);",
-									"        const available_context_ids = contexts.map((context) => context.id);",
-									"        pm.expect(available_context_ids).to.include(context_id);",
-									"",
-									"        const context = contexts.find((context) => context.id === context_id);",
-									"",
-									"        console.log(`Checking if context condition matches.`);",
-									"        const context_condition = context.condition;",
-									"        console.log(`Expected => ${JSON.stringify(expected_condition)}`);",
-									"        console.log(`Actual => ${JSON.stringify(context_condition)}`);",
-									"        pm.expect(JSON.stringify(context_condition)).to.be.eq(JSON.stringify(expected_condition));",
-									"",
-									"        console.log(`Checking if context=${context_id} uses override=${override_id}`);",
-									"        const context_override_ids = context.override_with_keys;",
-									"        pm.expect(context_override_ids).to.include(override_id);",
-									"",
-									"        ",
-									"        console.log(`Checking override=${override_id} in overrides object`);",
-									"        const override = overrides[override_id];        ",
-									"        console.log(`Expected => ${JSON.stringify(expected_override)}`);",
-									"        console.log(`Actual => ${JSON.stringify(override)}`);",
-									"        pm.expect(JSON.stringify(expected_override)).to.be.eq(JSON.stringify(override));",
-									"    });",
-									"}",
-									"",
-									"pm.test(\"200 check\", function () {",
-									"    const response = pm.response.json();",
-									"    const context_id = response.context_id;",
-									"    const override_id = response.override_id;",
-									"",
-									"    pm.environment.set(\"context_id\", context_id);",
-									"    pm.environment.set(\"override_id\", override_id);",
-									"",
-									"    pm.response.to.have.status(200);",
-									"})",
-									"",
-									"pm.test(\"Check if context is added\", function () {",
-									"    const response = pm.response.json();",
-									"    const context_id = response.context_id;",
-									"    const override_id = response.override_id;",
-									"",
-									"    const condition = {",
-									"        \"==\": [",
-									"            {",
-									"                \"var\": \"clientId\"",
-									"            },",
-									"            \"piyaz\"",
-									"        ]",
-									"    };",
-									"    const override = {",
-									"        \"key1\": \"value2\"",
-									"    };",
-									"",
-									"",
-									"    getConfigAndTest(context_id, override_id, condition, override);",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"override\":{\"key1\":\"value2\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]}}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/context",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"context"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Context",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const host = pm.variables.get(\"host\");",
-									"",
-									"function getConfigAndTest(context_id, override_id, expected_condition, expected_override) {",
-									"    const getRequest = {",
-									"        url: `${host}/config`,",
-									"        method: 'GET',",
-									"        header: {",
-									"            'Content-Type': 'application/json',",
-									"        }",
-									"    };",
-									"",
-									"    pm.sendRequest(getRequest, (error, response) => {",
-									"        if(error) {",
-									"            console.log(\"Failed to fetch config\");",
-									"            throw error;",
-									"        }",
-									"",
-									"        const resp_obj = response.json();",
-									"        const contexts = resp_obj.contexts;",
-									"        const overrides = resp_obj.overrides;",
-									"",
-									"        console.log(`Checking if context=${context_id} contexts list.`);",
-									"        const available_context_ids = contexts.map((context) => context.id);",
-									"        pm.expect(available_context_ids).to.include(context_id);",
-									"",
-									"        const context = contexts.find((context) => context.id === context_id);",
-									"",
-									"        console.log(`Checking if context condition matches.`);",
-									"        const context_condition = context.condition;",
-									"        console.log(`Expected => ${JSON.stringify(expected_condition)}`);",
-									"        console.log(`Actual => ${JSON.stringify(context_condition)}`);",
-									"        pm.expect(JSON.stringify(context_condition)).to.be.eq(JSON.stringify(expected_condition));",
-									"",
-									"        console.log(`Checking if context=${context_id} uses override=${override_id}`);",
-									"        const context_override_ids = context.override_with_keys;",
-									"        pm.expect(context_override_ids).to.include(override_id);",
-									"",
-									"        ",
-									"        console.log(`Checking override=${override_id} in overrides object`);",
-									"        const override = overrides[override_id];        ",
-									"        console.log(`Expected => ${JSON.stringify(expected_override)}`);",
-									"        console.log(`Actual => ${JSON.stringify(override)}`);",
-									"        pm.expect(JSON.stringify(expected_override)).to.be.eq(JSON.stringify(override));",
-									"    });",
-									"}",
-									"",
-									"pm.test(\"200 check\", function () {",
-									"    const response = pm.response.json();",
-									"    const context_id = response.context_id;",
-									"    const override_id = response.override_id;",
-									"",
-									"    pm.environment.set(\"context_id\", context_id);",
-									"    pm.environment.set(\"override_id\", override_id);",
-									"",
-									"    pm.response.to.have.status(200);",
-									"})",
-									"",
-									"pm.test(\"Check if context is added\", function () {",
-									"    const response = pm.response.json();",
-									"    const context_id = response.context_id;",
-									"    const override_id = response.override_id;",
-									"",
-									"    const condition = {",
-									"        \"==\": [",
-									"            {",
-									"                \"var\": \"clientId\"",
-									"            },",
-									"            \"piyaz\"",
-									"        ]",
-									"    };",
-									"    const override = {",
-									"        \"key1\": \"value2\"",
-									"    };",
-									"",
-									"",
-									"    getConfigAndTest(context_id, override_id, condition, override);",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]}}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/context",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"context"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Move Context",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const host = pm.variables.get(\"host\");",
-									"",
-									"function getConfigAndTest(context_id, override_id, expected_condition, expected_override) {",
-									"    const getRequest = {",
-									"        url: `${host}/config`,",
-									"        method: 'GET',",
-									"        header: {",
-									"            'Content-Type': 'application/json',",
-									"        }",
-									"    };",
-									"",
-									"    pm.sendRequest(getRequest, (error, response) => {",
-									"        if(error) {",
-									"            console.log(\"Failed to fetch config\");",
-									"            throw error;",
-									"        }",
-									"",
-									"        const resp_obj = response.json();",
-									"        const contexts = resp_obj.contexts;",
-									"        const overrides = resp_obj.overrides;",
-									"",
-									"        console.log(`Checking if context=${context_id} contexts list.`);",
-									"        const available_context_ids = contexts.map((context) => context.id);",
-									"        pm.expect(available_context_ids).to.include(context_id);",
-									"        if (pm.environment.get(\"old_context_id\") in available_context_ids) {",
-									"            throw \"old context not removed on move\"",
-									"        }",
-									"",
-									"        const context = contexts.find((context) => context.id === context_id);",
-									"",
-									"        console.log(`Checking if context condition matches.`);",
-									"        const context_condition = context.condition;",
-									"        console.log(`Expected => ${JSON.stringify(expected_condition)}`);",
-									"        console.log(`Actual => ${JSON.stringify(context_condition)}`);",
-									"        pm.expect(JSON.stringify(context_condition)).to.be.eq(JSON.stringify(expected_condition));",
-									"",
-									"        console.log(`Checking if context=${context_id} uses override=${override_id}`);",
-									"        const context_override_ids = context.override_with_keys;",
-									"        pm.expect(context_override_ids).to.include(override_id);",
-									"",
-									"",
-									"        console.log(`Checking override=${override_id} in overrides object`);",
-									"        const override = overrides[override_id];",
-									"        console.log(`Expected => ${JSON.stringify(expected_override)}`);",
-									"        console.log(`Actual => ${JSON.stringify(override)}`);",
-									"        pm.expect(JSON.stringify(expected_override)).to.be.eq(JSON.stringify(override));",
-									"    });",
-									"}",
-									"",
-									"pm.test(\"200 check\", function () {",
-									"    const response = pm.response.json();",
-									"    const context_id = response.context_id;",
-									"    const override_id = response.override_id;",
-									"",
-									"    pm.environment.set(\"old_context_id\", pm.environment.get(\"context_id\"));",
-									"    pm.environment.set(\"old_override_id\", pm.environment.get(\"override_id\"));",
-									"    pm.environment.set(\"context_id\", context_id);",
-									"    pm.environment.set(\"override_id\", override_id);",
-									"",
-									"    pm.response.to.have.status(200);",
-									"})",
-									"",
-									"pm.test(\"Check if context is added\", function () {",
-									"    const response = pm.response.json();",
-									"    const context_id = response.context_id;",
-									"    const override_id = response.override_id;",
-									"",
-									"    const condition = {",
-									"        \"==\": [",
-									"            {",
-									"                \"var\": \"clientId\"",
-									"            },",
-									"            \"tamatar\"",
-									"        ]",
-									"    };",
-									"    const override = {",
-									"        \"key1\": \"value2\"",
-									"    };",
-									"",
-									"",
-									"    getConfigAndTest(context_id, override_id, condition, override);",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"tamatar\"]}}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/context/move/{{context_id}}",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"context",
-								"move",
-								"{{context_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Context",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const expected_context = {",
-									"    \"id\": pm.environment.get(\"context_id\"),",
-									"    \"value\": {",
-									"        \"==\": [",
-									"            {",
-									"                \"var\": \"clientId\"",
-									"            },",
-									"            \"tamatar\"",
-									"        ]",
-									"    },",
-									"    \"override_id\": pm.environment.get(\"override_id\"),",
-									"    \"priority\": 100,",
-									"    \"override\": {",
-									"        \"key1\": \"value3\"",
-									"    }",
-									"};",
-									"",
-									"pm.test(\"200 check\", function() {",
-									"    pm.response.to.have.status(200);",
-									"})",
-									"",
-									"pm.test(\"Context equality check\", function() {",
-									"    const response = pm.response.json();",
-									"    ",
-									"    delete response.created_at;",
-									"    delete response.created_by;",
-									"",
-									"    pm.expect(JSON.stringify(response)).to.be.eq(JSON.stringify(expected_context));",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "default"
-							}
-						],
-						"url": {
-							"raw": "{{host}}/context/{{context_id}}",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"context",
-								"{{context_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "List Context",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"200 check\", function() {",
-									"    pm.response.to.have.status(200);",
-									"})",
-									"",
-									"",
-									"pm.test(\"Response validation\", function() {",
-									"    const response = pm.response.json();",
-									"    if (response.length == 0) {",
-									"        throw \"list context should return at least one context now\"",
-									"    }",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "default"
-							}
-						],
-						"url": {
-							"raw": "{{host}}/context/list",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"context",
-								"list"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Recompute Priority Context",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"const host = pm.variables.get(\"host\");",
-									"",
-									"function update_dimension_priority() {",
-									"    const options = {",
-									"        'method': 'PUT',",
-									"        'url': `${host}/dimension`,",
-									"        'header': {",
-									"            'x-tenant': 'test',",
-									"            'Content-Type': 'application/json'",
-									"        },",
-									"        \"body\": {",
-									"            \"mode\": \"raw\",",
-									"            \"raw\": JSON.stringify({",
-									"                \"dimension\": \"clientId\",",
-									"                \"priority\": 200,",
-									"                \"schema\": {",
-									"                    \"type\": \"string\",",
-									"                    \"pattern\": \"^[a-z0-9].*$\"",
-									"                }",
-									"            })",
-									"        }",
-									"    };",
-									"    pm.sendRequest(options, function (error, response) {",
-									"        if (error) {",
-									"            console.log(`Error updating dimension: clientId`);",
-									"            console.log(error);",
-									"            return;",
-									"        }",
-									"        console.log(`Updated dimension: clientId`);",
-									"    });",
-									"    ",
-									"}",
-									"",
-									"update_dimension_priority();"
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const host = pm.variables.get(\"host\");",
-									"const context_id = pm.environment.get(\"context_id\");",
-									"",
-									"",
-									"function getContextAndTest() {",
-									"    const getContext = {",
-									"        url : `${host}/context/${context_id}`,",
-									"        method: 'GET',",
-									"        header: {",
-									"            'Content-Type': 'application/json',",
-									"            'x-tenant': 'test',",
-									"        }",
-									"    ",
-									"    };",
-									"    pm.sendRequest(getContext, (error, response) => {",
-									"        if(error) {",
-									"            console.log(\"Failed to fetch context\");",
-									"            throw error;",
-									"        }",
-									"        console.log(response.json())",
-									"        pm.expect(response.json().priority).to.be.eq(200);",
-									"",
-									"    })",
-									"    ",
-									"}",
-									"",
-									"pm.test(\"200 check\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"",
-									"pm.test(\"Check priority update\", function () {",
-									"    getContextAndTest()",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "x-tenant",
-								"value": "test",
-								"type": "default"
-							}
-						],
-						"url": {
-							"raw": "{{host}}/context/priority/recompute",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"context",
-								"priority",
-								"recompute"
-							]
-						}
-					}
-				},
-				{
-					"name": "Delete Context",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const host = pm.variables.get(\"host\");",
-									"const context_id = pm.environment.get(\"context_id\");",
-									"",
-									"pm.test(\"204 check\", function() {",
-									"    pm.response.to.have.status(204);",
-									"})",
-									"",
-									"pm.test(\"Fetch for context should fail with 404\", function () {",
-									"    const getRequest = {",
-									"        url: `${host}/context/${context_id}`,",
-									"        method: 'GET',",
-									"        header: {",
-									"            'Content-Type': 'application/json',",
-									"        }",
-									"    };",
-									"",
-									"    pm.sendRequest(getRequest, (error, response) => {",
-									"        if(error) {",
-									"            console.log(\"Failed to fetch config\");",
-									"            console.log(`alloo ${error}`);",
-									"            throw error;",
-									"        }",
-									"",
-									"        pm.expect(response.code).to.be.eq(404);",
-									"    });",
-									"})",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "default"
-							}
-						],
-						"url": {
-							"raw": "{{host}}/context/{{context_id}}",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"context",
-								"{{context_id}}"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "audit log",
-			"item": [
-				{
-					"name": "get_logs",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('expect response be 200', function () {",
-									"    pm.response.to.be.ok;",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{host}}/audit",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"audit"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		}
-	],
-	"variable": [
-		{
-			"key": "host",
-			"value": "http://localhost:8080",
-			"type": "default"
-		},
-		{
-			"key": "token",
-			"value": "12345678",
-			"type": "default"
-		}
-	]
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "config",
+      "item": [
+        {
+          "name": "Get Config",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200 check\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    let response = pm.response.json();",
+                  "    let expected_response = {",
+                  "        \"contexts\": [],",
+                  "        \"overrides\": {},",
+                  "        \"default_configs\": {}",
+                  "    };",
+                  "    pm.expect(JSON.stringify(response)).to.be.eq(JSON.stringify(expected_response));",
+                  "})",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/config",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "config"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "resolve",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/config/resolve?clientId=zee5",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "config",
+                "resolve"
+              ],
+              "query": [
+                {
+                  "key": "clientId",
+                  "value": "zee5"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Default Config",
+      "item": [
+        {
+          "name": "Add default-config key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const host = pm.variables.get(\"host\");",
+                  "",
+                  "function getConfigAndTest(key, value) {",
+                  "    const getRequest = {",
+                  "        url: `${host}/config`,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "        }",
+                  "    };",
+                  "",
+                  "    pm.sendRequest(getRequest, (error, response) => {",
+                  "        if(error) {",
+                  "            console.log(\"Failed to fetch config\");",
+                  "            throw error;",
+                  "        }",
+                  "",
+                  "        const resp_obj = response.json();",
+                  "        const default_configs = resp_obj.default_configs;",
+                  "",
+                  "        console.log(`Checking if key=${key} with value=${value} in default_configs`);",
+                  "        pm.expect(default_configs[key]).to.be.eq(value);",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(\"201 check\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "pm.test(\"Check if key added to default config\", function () {",
+                  "    const key = \"key1\", value = \"value1\";",
+                  "    getConfigAndTest(key, value);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
+            },
+            "url": {
+              "raw": "{{host}}/default-config/key1",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "default-config",
+                "key1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete default-config key",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const host = pm.variables.get(\"host\");",
+                  "",
+                  "function add_default_config() {",
+                  "    const options = {",
+                  "        'method': 'PUT',",
+                  "        'url': `${host}/default-config/key2`,",
+                  "        'header': {",
+                  "            'x-tenant': 'test',",
+                  "            'Content-Type': 'application/json'",
+                  "        },",
+                  "        \"body\": {",
+                  "            \"mode\": \"raw\",",
+                  "            \"raw\": JSON.stringify({",
+                  "                \"value\": \"value1\",",
+                  "                \"schema\": {",
+                  "                    \"type\": \"string\",",
+                  "                    \"pattern\": \".*\"",
+                  "                }",
+                  "            })",
+                  "        }",
+                  "    };",
+                  "    pm.sendRequest(options, function (error, response) {",
+                  "        if (error) {",
+                  "            console.log(`Error creating default config: new_key`);",
+                  "            console.log(error);",
+                  "            return;",
+                  "        }",
+                  "        console.log(`created default config: new_key`);",
+                  "    });",
+                  "    ",
+                  "}",
+                  "",
+                  "add_default_config();"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"204 check\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "})",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/default-config/key2",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "default-config",
+                "key2"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dimension",
+      "item": [
+        {
+          "name": "Create Dimension",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"201 Check\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\"dimension\":\"clientId\",\"priority\":100,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
+            },
+            "url": {
+              "raw": "{{host}}/dimension",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "dimension"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Context",
+      "item": [
+        {
+          "name": "Create Context",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const host = pm.variables.get(\"host\");",
+                  "",
+                  "function getConfigAndTest(context_id, override_id, expected_condition, expected_override) {",
+                  "    const getRequest = {",
+                  "        url: `${host}/config`,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "        }",
+                  "    };",
+                  "",
+                  "    pm.sendRequest(getRequest, (error, response) => {",
+                  "        if(error) {",
+                  "            console.log(\"Failed to fetch config\");",
+                  "            throw error;",
+                  "        }",
+                  "",
+                  "        const resp_obj = response.json();",
+                  "        const contexts = resp_obj.contexts;",
+                  "        const overrides = resp_obj.overrides;",
+                  "",
+                  "        console.log(`Checking if context=${context_id} contexts list.`);",
+                  "        const available_context_ids = contexts.map((context) => context.id);",
+                  "        pm.expect(available_context_ids).to.include(context_id);",
+                  "",
+                  "        const context = contexts.find((context) => context.id === context_id);",
+                  "",
+                  "        console.log(`Checking if context condition matches.`);",
+                  "        const context_condition = context.condition;",
+                  "        console.log(`Expected => ${JSON.stringify(expected_condition)}`);",
+                  "        console.log(`Actual => ${JSON.stringify(context_condition)}`);",
+                  "        pm.expect(JSON.stringify(context_condition)).to.be.eq(JSON.stringify(expected_condition));",
+                  "",
+                  "        console.log(`Checking if context=${context_id} uses override=${override_id}`);",
+                  "        const context_override_ids = context.override_with_keys;",
+                  "        pm.expect(context_override_ids).to.include(override_id);",
+                  "",
+                  "",
+                  "        console.log(`Checking override=${override_id} in overrides object`);",
+                  "        const override = overrides[override_id];",
+                  "        console.log(`Expected => ${JSON.stringify(expected_override)}`);",
+                  "        console.log(`Actual => ${JSON.stringify(override)}`);",
+                  "        pm.expect(JSON.stringify(expected_override)).to.be.eq(JSON.stringify(override));",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(\"200 check\", function () {",
+                  "    const response = pm.response.json();",
+                  "    const context_id = response.context_id;",
+                  "    const override_id = response.override_id;",
+                  "",
+                  "    pm.environment.set(\"context_id\", context_id);",
+                  "    pm.environment.set(\"override_id\", override_id);",
+                  "",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "pm.test(\"Check if context is added\", function () {",
+                  "    const response = pm.response.json();",
+                  "    const context_id = response.context_id;",
+                  "    const override_id = response.override_id;",
+                  "",
+                  "    const condition = {",
+                  "        \"==\": [",
+                  "            {",
+                  "                \"var\": \"clientId\"",
+                  "            },",
+                  "            \"piyaz\"",
+                  "        ]",
+                  "    };",
+                  "    const override = {",
+                  "        \"key1\": \"value2\"",
+                  "    };",
+                  "",
+                  "",
+                  "    getConfigAndTest(context_id, override_id, condition, override);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\"override\":{\"key1\":\"value2\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]}}"
+            },
+            "url": {
+              "raw": "{{host}}/context",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Context",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const host = pm.variables.get(\"host\");",
+                  "",
+                  "function getConfigAndTest(context_id, override_id, expected_condition, expected_override) {",
+                  "    const getRequest = {",
+                  "        url: `${host}/config`,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "        }",
+                  "    };",
+                  "",
+                  "    pm.sendRequest(getRequest, (error, response) => {",
+                  "        if(error) {",
+                  "            console.log(\"Failed to fetch config\");",
+                  "            throw error;",
+                  "        }",
+                  "",
+                  "        const resp_obj = response.json();",
+                  "        const contexts = resp_obj.contexts;",
+                  "        const overrides = resp_obj.overrides;",
+                  "",
+                  "        console.log(`Checking if context=${context_id} contexts list.`);",
+                  "        const available_context_ids = contexts.map((context) => context.id);",
+                  "        pm.expect(available_context_ids).to.include(context_id);",
+                  "",
+                  "        const context = contexts.find((context) => context.id === context_id);",
+                  "",
+                  "        console.log(`Checking if context condition matches.`);",
+                  "        const context_condition = context.condition;",
+                  "        console.log(`Expected => ${JSON.stringify(expected_condition)}`);",
+                  "        console.log(`Actual => ${JSON.stringify(context_condition)}`);",
+                  "        pm.expect(JSON.stringify(context_condition)).to.be.eq(JSON.stringify(expected_condition));",
+                  "",
+                  "        console.log(`Checking if context=${context_id} uses override=${override_id}`);",
+                  "        const context_override_ids = context.override_with_keys;",
+                  "        pm.expect(context_override_ids).to.include(override_id);",
+                  "",
+                  "",
+                  "        console.log(`Checking override=${override_id} in overrides object`);",
+                  "        const override = overrides[override_id];",
+                  "        console.log(`Expected => ${JSON.stringify(expected_override)}`);",
+                  "        console.log(`Actual => ${JSON.stringify(override)}`);",
+                  "        pm.expect(JSON.stringify(expected_override)).to.be.eq(JSON.stringify(override));",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(\"200 check\", function () {",
+                  "    const response = pm.response.json();",
+                  "    const context_id = response.context_id;",
+                  "    const override_id = response.override_id;",
+                  "",
+                  "    pm.environment.set(\"context_id\", context_id);",
+                  "    pm.environment.set(\"override_id\", override_id);",
+                  "",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "pm.test(\"Check if context is added\", function () {",
+                  "    const response = pm.response.json();",
+                  "    const context_id = response.context_id;",
+                  "    const override_id = response.override_id;",
+                  "",
+                  "    const condition = {",
+                  "        \"==\": [",
+                  "            {",
+                  "                \"var\": \"clientId\"",
+                  "            },",
+                  "            \"piyaz\"",
+                  "        ]",
+                  "    };",
+                  "    const override = {",
+                  "        \"key1\": \"value2\"",
+                  "    };",
+                  "",
+                  "",
+                  "    getConfigAndTest(context_id, override_id, condition, override);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]}}"
+            },
+            "url": {
+              "raw": "{{host}}/context",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Move Context",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const host = pm.variables.get(\"host\");",
+                  "",
+                  "function getConfigAndTest(context_id, override_id, expected_condition, expected_override) {",
+                  "    const getRequest = {",
+                  "        url: `${host}/config`,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "        }",
+                  "    };",
+                  "",
+                  "    pm.sendRequest(getRequest, (error, response) => {",
+                  "        if(error) {",
+                  "            console.log(\"Failed to fetch config\");",
+                  "            throw error;",
+                  "        }",
+                  "",
+                  "        const resp_obj = response.json();",
+                  "        const contexts = resp_obj.contexts;",
+                  "        const overrides = resp_obj.overrides;",
+                  "",
+                  "        console.log(`Checking if context=${context_id} contexts list.`);",
+                  "        const available_context_ids = contexts.map((context) => context.id);",
+                  "        pm.expect(available_context_ids).to.include(context_id);",
+                  "        if (pm.environment.get(\"old_context_id\") in available_context_ids) {",
+                  "            throw \"old context not removed on move\"",
+                  "        }",
+                  "",
+                  "        const context = contexts.find((context) => context.id === context_id);",
+                  "",
+                  "        console.log(`Checking if context condition matches.`);",
+                  "        const context_condition = context.condition;",
+                  "        console.log(`Expected => ${JSON.stringify(expected_condition)}`);",
+                  "        console.log(`Actual => ${JSON.stringify(context_condition)}`);",
+                  "        pm.expect(JSON.stringify(context_condition)).to.be.eq(JSON.stringify(expected_condition));",
+                  "",
+                  "        console.log(`Checking if context=${context_id} uses override=${override_id}`);",
+                  "        const context_override_ids = context.override_with_keys;",
+                  "        pm.expect(context_override_ids).to.include(override_id);",
+                  "",
+                  "",
+                  "        console.log(`Checking override=${override_id} in overrides object`);",
+                  "        const override = overrides[override_id];",
+                  "        console.log(`Expected => ${JSON.stringify(expected_override)}`);",
+                  "        console.log(`Actual => ${JSON.stringify(override)}`);",
+                  "        pm.expect(JSON.stringify(expected_override)).to.be.eq(JSON.stringify(override));",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(\"200 check\", function () {",
+                  "    const response = pm.response.json();",
+                  "    const context_id = response.context_id;",
+                  "    const override_id = response.override_id;",
+                  "",
+                  "    pm.environment.set(\"old_context_id\", pm.environment.get(\"context_id\"));",
+                  "    pm.environment.set(\"old_override_id\", pm.environment.get(\"override_id\"));",
+                  "    pm.environment.set(\"context_id\", context_id);",
+                  "    pm.environment.set(\"override_id\", override_id);",
+                  "",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "pm.test(\"Check if context is added\", function () {",
+                  "    const response = pm.response.json();",
+                  "    const context_id = response.context_id;",
+                  "    const override_id = response.override_id;",
+                  "",
+                  "    const condition = {",
+                  "        \"==\": [",
+                  "            {",
+                  "                \"var\": \"clientId\"",
+                  "            },",
+                  "            \"tamatar\"",
+                  "        ]",
+                  "    };",
+                  "    const override = {",
+                  "        \"key1\": \"value2\"",
+                  "    };",
+                  "",
+                  "",
+                  "    getConfigAndTest(context_id, override_id, condition, override);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"tamatar\"]}}"
+            },
+            "url": {
+              "raw": "{{host}}/context/move/{{context_id}}",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context",
+                "move",
+                "{{context_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Context",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const expected_context = {",
+                  "    \"id\": pm.environment.get(\"context_id\"),",
+                  "    \"value\": {",
+                  "        \"==\": [",
+                  "            {",
+                  "                \"var\": \"clientId\"",
+                  "            },",
+                  "            \"tamatar\"",
+                  "        ]",
+                  "    },",
+                  "    \"override_id\": pm.environment.get(\"override_id\"),",
+                  "    \"priority\": 100,",
+                  "    \"override\": {",
+                  "        \"key1\": \"value3\"",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.test(\"200 check\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "pm.test(\"Context equality check\", function() {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    delete response.created_at;",
+                  "    delete response.created_by;",
+                  "",
+                  "    pm.expect(JSON.stringify(response)).to.be.eq(JSON.stringify(expected_context));",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "default"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/context/{{context_id}}",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context",
+                "{{context_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Context",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200 check\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "",
+                  "pm.test(\"Response validation\", function() {",
+                  "    const response = pm.response.json();",
+                  "    if (response.length == 0) {",
+                  "        throw \"list context should return at least one context now\"",
+                  "    }",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "default"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/context/list",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Recompute Priority Context",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const host = pm.variables.get(\"host\");",
+                  "",
+                  "function update_dimension_priority() {",
+                  "    const options = {",
+                  "        'method': 'PUT',",
+                  "        'url': `${host}/dimension`,",
+                  "        'header': {",
+                  "            'x-tenant': 'test',",
+                  "            'Content-Type': 'application/json'",
+                  "        },",
+                  "        \"body\": {",
+                  "            \"mode\": \"raw\",",
+                  "            \"raw\": JSON.stringify({",
+                  "                \"dimension\": \"clientId\",",
+                  "                \"priority\": 200,",
+                  "                \"schema\": {",
+                  "                    \"type\": \"string\",",
+                  "                    \"pattern\": \"^[a-z0-9].*$\"",
+                  "                }",
+                  "            })",
+                  "        }",
+                  "    };",
+                  "    pm.sendRequest(options, function (error, response) {",
+                  "        if (error) {",
+                  "            console.log(`Error updating dimension: clientId`);",
+                  "            console.log(error);",
+                  "            return;",
+                  "        }",
+                  "        console.log(`Updated dimension: clientId`);",
+                  "    });",
+                  "    ",
+                  "}",
+                  "",
+                  "update_dimension_priority();"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const host = pm.variables.get(\"host\");",
+                  "const context_id = pm.environment.get(\"context_id\");",
+                  "",
+                  "",
+                  "function getContextAndTest() {",
+                  "    const getContext = {",
+                  "        url : `${host}/context/${context_id}`,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "        }",
+                  "    ",
+                  "    };",
+                  "    pm.sendRequest(getContext, (error, response) => {",
+                  "        if(error) {",
+                  "            console.log(\"Failed to fetch context\");",
+                  "            throw error;",
+                  "        }",
+                  "        console.log(response.json())",
+                  "        pm.expect(response.json().priority).to.be.eq(200);",
+                  "",
+                  "    })",
+                  "    ",
+                  "}",
+                  "",
+                  "pm.test(\"200 check\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Check priority update\", function () {",
+                  "    getContextAndTest()",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/context/priority/recompute",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context",
+                "priority",
+                "recompute"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Context",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const host = pm.variables.get(\"host\");",
+                  "const context_id = pm.environment.get(\"context_id\");",
+                  "",
+                  "pm.test(\"204 check\", function() {",
+                  "    pm.response.to.have.status(204);",
+                  "})",
+                  "",
+                  "pm.test(\"Fetch for context should fail with 404\", function () {",
+                  "    const getRequest = {",
+                  "        url: `${host}/context/${context_id}`,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "        }",
+                  "    };",
+                  "",
+                  "    pm.sendRequest(getRequest, (error, response) => {",
+                  "        if(error) {",
+                  "            console.log(\"Failed to fetch config\");",
+                  "            console.log(`alloo ${error}`);",
+                  "            throw error;",
+                  "        }",
+                  "",
+                  "        pm.expect(response.code).to.be.eq(404);",
+                  "    });",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "default"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/context/{{context_id}}",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context",
+                "{{context_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "audit log",
+      "item": [
+        {
+          "name": "get_logs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('expect response be 200', function () {",
+                  "    pm.response.to.be.ok;",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/audit",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "audit"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "custom types",
+      "item": [
+        {
+          "name": "Get Types",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// any prerequest js code goes here",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "/* global pm */",
+                  "",
+                  "pm.test('expect response be 200', function () {",
+                  "    pm.response.to.be.ok;",
+                  "    const response = pm.response.json();",
+                  "    const modified_response = response.data.map(({ created_at, last_modified, ...rest }) => rest);",
+                  "    console.log(\"this is the wrong thing\", modified_response);",
+                  "    pm.expect(JSON.stringify(modified_response)).to.be.eq(JSON.stringify([",
+                  "        {",
+                  "            created_by: \"user@superposition.io\",",
+                  "            type_name: \"Number\",",
+                  "            type_schema: {",
+                  "                type: \"number\"",
+                  "            }",
+                  "        },",
+                  "        {",
+                  "            created_by: \"user@superposition.io\",",
+                  "            type_name: \"Decimal\",",
+                  "            type_schema: {",
+                  "                type: \"number\"",
+                  "            }",
+                  "        },",
+                  "        {",
+                  "            created_by: \"user@superposition.io\",",
+                  "            type_name: \"Boolean\",",
+                  "            type_schema: {",
+                  "                type: \"boolean\"",
+                  "            }",
+                  "        },",
+                  "        {",
+                  "            created_by: \"user@superposition.io\",",
+                  "            type_name: \"String (Enum)\",",
+                  "            type_schema: {",
+                  "                enum: \"$replacement\",",
+                  "                type: \"string\"",
+                  "            }",
+                  "        },",
+                  "        {",
+                  "            created_by: \"user@superposition.io\",",
+                  "            type_name: \"String (Regex)\",",
+                  "            type_schema: {",
+                  "                pattern: \"$replacement\",",
+                  "                type: \"string\"",
+                  "            }",
+                  "        }",
+                  "    ]))",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/types/1/10",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "types",
+                "1",
+                "10"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Type",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// any prerequest js code goes here",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "/* global pm */",
+                  "",
+                  "pm.test('expect response be 200', function () {",
+                  "    pm.response.to.be.ok;",
+                  "    const host = pm.variables.get(\"host\");",
+                  "    const request = {",
+                  "        url: `${host}/types`,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "        }",
+                  "    }",
+                  "    pm.sendRequest(request, (error, response) => {",
+                  "        if(error) {",
+                  "            console.log(\"Failed to fetch types\");",
+                  "            throw error;",
+                  "        }",
+                  "        const resp = response.json();",
+                  "        const modified_response = resp.map(({ created_at, last_modified, ...rest }) => rest);",
+                  "        pm.expect(modified_response).to.be.eq([",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Number\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"number\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Decimal\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"number\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Boolean\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"boolean\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"String (Enum)\",",
+                  "                \"type_schema\": {",
+                  "                    \"enum\": \"$replacement\",",
+                  "                    \"type\": \"string\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"String (Regex)\",",
+                  "                \"type_schema\": {",
+                  "                    \"pattern\": \"$replacement\",",
+                  "                    \"type\": \"string\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"superposition@juspay.in\",",
+                  "                \"type_name\": \"Integer\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"number\"",
+                  "                }",
+                  "            }",
+                  "        ])",
+                  "    })",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\"type_schema\":{\"type\":\"number\"},\"type_name\":\"Integer\"}"
+            },
+            "url": {
+              "raw": "{{host}}/types",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "types"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Type",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// any prerequest js code goes here",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "/* global pm */",
+                  "",
+                  "pm.test('expect response be 200', function () {",
+                  "    pm.response.to.be.ok;",
+                  "    const host = pm.variables.get(\"host\");",
+                  "    const request = {",
+                  "        url: `${host}/types`,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "        }",
+                  "    }",
+                  "    pm.sendRequest(request, (error, response) => {",
+                  "        if(error) {",
+                  "            console.log(\"Failed to fetch types\");",
+                  "            throw error;",
+                  "        }",
+                  "        const resp = response.json();",
+                  "        const modified_response = resp.map(({ created_at, id, last_modified, ...rest }) => rest);",
+                  "        pm.expect(modified_response).to.be.eq([",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Number\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"number\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Decimal\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"number\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Boolean\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"boolean\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"String (Enum)\",",
+                  "                \"type_schema\": {",
+                  "                    \"enum\": \"$replacement\",",
+                  "                    \"type\": \"string\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"String (Regex)\",",
+                  "                \"type_schema\": {",
+                  "                    \"pattern\": \"$replacement\",",
+                  "                    \"type\": \"string\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"superposition@juspay.in\",",
+                  "                \"type_name\": \"Integer\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"integer\"",
+                  "                }",
+                  "            }",
+                  "        ])",
+                  "    })",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\"type_schema\":{\"type\":\"integer\"},\"type_name\":\"Integer\"}"
+            },
+            "url": {
+              "raw": "{{host}}/types",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "types"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Type",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// any prerequest js code goes here",
+                  "function get_context_id() {",
+                  "    const host = pm.variables.get(\"host\");",
+                  "    const request = {",
+                  "        url: `${host}/types`,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "        }",
+                  "    }",
+                  "    pm.sendRequest(request, (error, response) => {",
+                  "        if(error) {",
+                  "            console.log(\"Failed to fetch types\");",
+                  "            throw error;",
+                  "        }",
+                  "        const resp = response.json();",
+                  "        for (const element of resp) {",
+                  "            if (element.type_name === \"Integer\") {",
+                  "                pm.environment.set(\"id\", element.type_name)",
+                  "                break;",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "}",
+                  "",
+                  "get_context_id();"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "/* global pm */",
+                  "",
+                  "pm.test('expect response be 200', function () {",
+                  "    pm.response.to.be.ok;",
+                  "    const host = pm.variables.get(\"host\");",
+                  "    const request = {",
+                  "        url: `${host}/types`,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "        }",
+                  "    }",
+                  "    pm.sendRequest(request, (error, response) => {",
+                  "        if(error) {",
+                  "            console.log(\"Failed to fetch types\");",
+                  "            throw error;",
+                  "        }",
+                  "        const resp = response.json();",
+                  "        const modified_response = resp.map(({ created_at, last_modified, ...rest }) => rest);",
+                  "        pm.expect(modified_response).to.be.eq([",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Number\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"number\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Decimal\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"number\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Boolean\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"boolean\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"String (Enum)\",",
+                  "                \"type_schema\": {",
+                  "                    \"enum\": \"$replacement\",",
+                  "                    \"type\": \"string\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"String (Regex)\",",
+                  "                \"type_schema\": {",
+                  "                    \"pattern\": \"$replacement\",",
+                  "                    \"type\": \"string\"",
+                  "                }",
+                  "            },",
+                  "        ])",
+                  "    })",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/types/{{id}}",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "types",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "info": {
+    "_postman_id": "12a7fe9f-2a54-4afa-aa48-4625bfc8e858",
+    "name": "cac",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "15880623"
+  },
+  "variable": [
+    {
+      "key": "host",
+      "value": "http://localhost:8080",
+      "type": "default"
+    },
+    {
+      "key": "token",
+      "value": "12345678",
+      "type": "default"
+    }
+  ]
 }
