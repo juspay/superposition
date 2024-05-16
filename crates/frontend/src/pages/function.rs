@@ -178,7 +178,11 @@ pub fn function_page() -> impl IntoView {
                                                 publish_error_ws.set("".to_string());
                                                 set_timeout(
                                                     || {
-                                                        if let Some(btn) = get_element_by_id::<HtmlButtonElement>("resolve_btn") { btn.click() }
+                                                        if let Some(btn) = get_element_by_id::<
+                                                            HtmlButtonElement,
+                                                        >("resolve_btn") {
+                                                            btn.click()
+                                                        }
                                                     },
                                                     Duration::new(1, 0),
                                                 );
@@ -204,7 +208,11 @@ pub fn function_page() -> impl IntoView {
                                                 publish_error_ws.set("".to_string());
                                                 set_timeout(
                                                     || {
-                                                        if let Some(btn) = get_element_by_id::<HtmlButtonElement>("resolve_btn") { btn.click() }
+                                                        if let Some(btn) = get_element_by_id::<
+                                                            HtmlButtonElement,
+                                                        >("resolve_btn") {
+                                                            btn.click()
+                                                        }
                                                     },
                                                     Duration::new(1, 0),
                                                 );

@@ -1,6 +1,3 @@
-pub mod types;
-pub mod utils;
-
 use leptos::*;
 use serde_json::{json, Number, Value};
 use std::str::FromStr;
@@ -10,15 +7,15 @@ use crate::{
     api::fetch_functions,
     components::{
         alert::AlertType,
-        button::Button,
-        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        button::button::Button,
+        dropdown::dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
     },
     providers::alert_provider::enqueue_alert,
     types::FunctionsName,
     utils::parse_string_to_json_value_vec,
 };
 
-use self::{types::DefaultConfigCreateReq, utils::create_default_config};
+use super::{types::DefaultConfigCreateReq, utils::create_default_config};
 
 #[component]
 pub fn default_config_form<NF>(
@@ -231,22 +228,40 @@ where
                         Choose Schema Type
                     </option>
 
-                    <option value="number" selected=move || { config_type.get() == "number" }>
+                    <option
+                        value="number"
+                        selected=move || { config_type.get() == "number".to_string() }
+                    >
                         "Number"
                     </option>
-                    <option value="decimal" selected=move || { config_type.get() == "decimal" }>
+                    <option
+                        value="decimal"
+                        selected=move || { config_type.get() == "decimal".to_string() }
+                    >
                         "Decimal (16 digits)"
                     </option>
-                    <option value="boolean" selected=move || { config_type.get() == "boolean" }>
+                    <option
+                        value="boolean"
+                        selected=move || { config_type.get() == "boolean".to_string() }
+                    >
                         "Boolean"
                     </option>
-                    <option value="enum" selected=move || { config_type.get() == "enum" }>
+                    <option
+                        value="enum"
+                        selected=move || { config_type.get() == "enum".to_string() }
+                    >
                         "String (Enum)"
                     </option>
-                    <option value="pattern" selected=move || { config_type.get() == "pattern" }>
+                    <option
+                        value="pattern"
+                        selected=move || { config_type.get() == "pattern".to_string() }
+                    >
                         "String (regex)"
                     </option>
-                    <option value="other" selected=move || { config_type.get() == "other" }>
+                    <option
+                        value="other"
+                        selected=move || { config_type.get() == "other".to_string() }
+                    >
                         "Other"
                     </option>
                 </select>
@@ -484,7 +499,7 @@ where
 
             <Suspense>
                 {move || {
-                    let functions = functions_resource.get().unwrap_or_default();
+                    let functions = functions_resource.get().unwrap_or(vec![]);
                     let mut function_names: Vec<FunctionsName> = vec![];
                     functions
                         .into_iter()

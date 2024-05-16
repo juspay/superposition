@@ -4,6 +4,10 @@ pub mod utils;
 use self::types::DimensionCreateReq;
 use self::utils::create_dimension;
 use crate::components::dropdown::{Dropdown, DropdownBtnType, DropdownDirection};
+
+use crate::components::alert::AlertType;
+use crate::providers::alert_provider::enqueue_alert;
+
 use crate::types::FunctionsName;
 use crate::utils::parse_string_to_json_value_vec;
 use crate::{api::fetch_functions, components::button::Button};
@@ -31,8 +35,9 @@ where
     let (dimension_name, set_dimension_name) = create_signal(dimension_name);
     let (dimension_type, set_dimension_type) = create_signal(dimension_type);
     let (dimension_pattern, set_dimension_pattern) = create_signal(dimension_pattern);
-
     let (function_name, set_function_name) = create_signal(function_name);
+    let (create_enum, set_create_enum) = create_signal(false);
+    let (new_enum, set_new_enum) = create_signal(None);
 
     let functions_resource: Resource<String, Vec<crate::types::FunctionResponse>> =
         create_blocking_resource(
@@ -127,6 +132,7 @@ where
             }
         });
     };
+
     view! {
         <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
             <div class="form-control">
@@ -189,41 +195,23 @@ where
                         Set Schema
                     </option>
 
-                    <option
-                        value="number"
-                        selected=move || { dimension_type.get() == "number" }
-                    >
+                    <option value="number" selected=move || { dimension_type.get() == "number" }>
 
                         "Number"
                     </option>
-                    <option
-                        value="decimal"
-                        selected=move || { dimension_type.get() == "decimal" }
-                    >
+                    <option value="decimal" selected=move || { dimension_type.get() == "decimal" }>
                         "Decimal (Max Value : 1.7976931348623157e+308)"
                     </option>
-                    <option
-                        value="boolean"
-                        selected=move || { dimension_type.get() == "boolean" }
-                    >
+                    <option value="boolean" selected=move || { dimension_type.get() == "boolean" }>
                         "Boolean"
                     </option>
-                    <option
-                        value="enum"
-                        selected=move || { dimension_type.get() == "enum" }
-                    >
+                    <option value="enum" selected=move || { dimension_type.get() == "enum" }>
                         "String (Enum)"
                     </option>
-                    <option
-                        value="pattern"
-                        selected=move || { dimension_type.get() == "pattern" }
-                    >
+                    <option value="pattern" selected=move || { dimension_type.get() == "pattern" }>
                         "String (regex)"
                     </option>
-                    <option
-                        value="other"
-                        selected=move || { dimension_type.get() == "other" }
-                    >
+                    <option value="other" selected=move || { dimension_type.get() == "other" }>
                         "Other"
                     </option>
                 </select>
@@ -255,8 +243,7 @@ where
 
                     <Show when=move || {
                         show_labels.get()
-                            && ((dimension_type.get() == "enum")
-                                || (dimension_type.get() == "pattern")
+                            && ((dimension_type.get() == "pattern")
                                 || (dimension_type.get() == "other"))
                     }>
                         <div class="form-control">
@@ -280,6 +267,132 @@ where
 
                         </div>
                         <div class="divider"></div>
+                    </Show>
+
+                    <Show when=move || (dimension_type.get() == "enum")>
+                        <div class="divider"></div>
+
+                        {move || {
+                            let enum_str = dimension_pattern.get();
+                            logging::log!("<<>> {:?}", enum_str);
+                            let enum_arr: Vec<String> = serde_json::from_str(&enum_str)
+                                .unwrap_or(vec![]);
+                            view! {
+                                <div class="form-control">
+                                    <label class="label mb-2">
+                                        <span class="label-text">Enums</span>
+                                    </label>
+                                    <div class="flex flex-col mb-2">
+                                        <div class="flex flex-col mb-1">
+
+                                            {enum_arr
+                                                .into_iter()
+                                                .enumerate()
+                                                .map(|(idx, val)| {
+                                                    view! {
+                                                        <div class="border rounded-md pt-[6px] pb-[7px] pl-[14px] flex justify-between w-[28rem] items-center mb-2">
+                                                            {val.replace("\"", "")}
+                                                            <button
+                                                                class="btn btn-sm btn-circle btn-ghost"
+                                                                on:click=move |_| {
+                                                                    set_dimension_pattern
+                                                                        .set({
+                                                                            let mut enum_arr: Vec<String> = serde_json::from_str(
+                                                                                    &dimension_pattern.get(),
+                                                                                )
+                                                                                .unwrap_or(vec![]);
+                                                                            enum_arr.swap_remove(idx);
+                                                                            format!("{:?}", enum_arr)
+                                                                        });
+                                                                }
+                                                            >
+
+                                                                <i class="ri-close-line"></i>
+                                                            </button>
+                                                        </div>
+                                                    }
+                                                })
+                                                .collect_view()}
+
+                                        </div>
+                                        <Show when=move || (!create_enum.get())>
+                                            <div>
+                                                <span
+                                                    class="btn btn-sm btn-circle cursor-pointer"
+                                                    on:click=move |_| { set_create_enum.set(true) }
+                                                >
+                                                    <i class="ri-add-line text-blue-500"></i>
+                                                </span>
+                                            </div>
+                                        </Show>
+                                    </div>
+                                    <Show when=move || (create_enum.get())>
+                                        <div class="flex">
+                                            <input
+                                                type="text"
+                                                placeholder="Enum"
+                                                class="input input-bordered w-full max-w-md"
+
+                                                on:change=move |ev| {
+                                                    let value = event_target_value(&ev);
+                                                    logging::log!("{:?}", value);
+                                                    set_new_enum.set(Some(value));
+                                                }
+                                            />
+
+                                            <div class="w-full mt-2 ml-2">
+                                                <button
+                                                    class="btn btn-sm btn-circle"
+                                                    on:click=move |ev| {
+                                                        match new_enum.get() {
+                                                            Some(n_enum) => {
+                                                                set_dimension_pattern
+                                                                    .set({
+                                                                        let mut enum_arr: Vec<String> = serde_json::from_str(
+                                                                                &dimension_pattern.get(),
+                                                                            )
+                                                                            .unwrap_or(vec![]);
+                                                                        set_create_enum.set(false);
+                                                                        enum_arr.push(n_enum);
+                                                                        set_new_enum.set(None);
+                                                                        set_error_message.set(String::from(""));
+                                                                        format!("{:?}", enum_arr)
+                                                                    });
+                                                            }
+                                                            None => {
+                                                                logging::log!("None case");
+                                                                enqueue_alert(
+                                                                    String::from("Please Enter an Enum"),
+                                                                    AlertType::Error,
+                                                                    5000,
+                                                                );
+                                                                set_error_message.set(String::from("Please Enter an Enum"));
+                                                                ev.prevent_default()
+                                                            }
+                                                        }
+                                                    }
+                                                >
+
+                                                    <i class="ri-add-line text-blue-500"></i>
+                                                </button>
+                                                <button
+                                                    class="btn btn-sm btn-circle ml-2"
+                                                    on:click=move |_| {
+                                                        set_new_enum.set(None);
+                                                        set_create_enum.set(false);
+                                                    }
+                                                >
+
+                                                    <i class="ri-close-line"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </Show>
+                                </div>
+                                <div class="divider"></div>
+                            }
+                        }}
+
                     </Show>
                 }
             }}

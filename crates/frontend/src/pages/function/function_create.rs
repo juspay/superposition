@@ -39,7 +39,8 @@ pub fn create_function_view() -> impl IntoView {
                         e.formData.set('function', window.editor.getValue());
                     });
 
-                    "#.to_string()}
+                    "#
+                    .to_string()}
 
             </script>
             <FunctionEditor

@@ -316,7 +316,8 @@ pub fn default_config() -> impl IntoView {
                     let mut filtered_rows = table_rows.clone();
                     if enable_grouping.get() {
                         let empty_map = Map::new();
-                        let cols = filtered_rows.first()
+                        let cols = filtered_rows
+                            .first()
                             .unwrap_or(&empty_map)
                             .keys()
                             .map(|key| key.as_str())
