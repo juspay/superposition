@@ -1,4 +1,4 @@
-use serde_json::{json, Value};
+use serde_json::Value;
 use service_utils::result as superposition;
 use service_utils::unexpected_error;
 use service_utils::validation_error;

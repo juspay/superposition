@@ -109,7 +109,7 @@ fn get_functions_map(
 }
 
 pub fn validate_value_with_function(
-    fun_name: &str,
+    _fun_name: &str,
     function: &str,
     key: &String,
     value: &Value,

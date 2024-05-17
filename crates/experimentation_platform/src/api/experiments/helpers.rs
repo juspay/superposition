@@ -37,6 +37,16 @@ pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()>
     Ok(())
 }
 
+pub fn validate_context(context: &Value) -> superposition::Result<()> {
+    let dimensions = extract_dimensions(context)?;
+    if dimensions.contains_key("variantIds") {
+        return Err(bad_argument!(
+            "experiment's context should not contain variantIds dimension"
+        ));
+    }
+    Ok(())
+}
+
 pub fn validate_override_keys(override_keys: &Vec<String>) -> superposition::Result<()> {
     let mut key_set: HashSet<&str> = HashSet::new();
     for key in override_keys {

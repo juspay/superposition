@@ -168,14 +168,7 @@ where
 }
 
 #[component]
-pub fn test_form<NF>(
-    function_name: String,
-    stage: String,
-    handle_submit: NF,
-) -> impl IntoView
-where
-    NF: Fn() + 'static + Clone,
-{
+pub fn test_form(function_name: String, stage: String) -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let (error_message, set_error_message) = create_signal("".to_string());
     let (output_message, set_output_message) =

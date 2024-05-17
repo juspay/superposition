@@ -105,6 +105,7 @@ pub fn get_tenants() -> Vec<String> {
         .unwrap_or(vec![])
 }
 
+#[allow(dead_code)]
 pub fn use_env() -> Envs {
     let context = use_context::<Envs>();
     context

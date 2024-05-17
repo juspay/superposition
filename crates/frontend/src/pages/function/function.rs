@@ -397,7 +397,6 @@ pub fn function_page() -> impl IntoView {
                                                                             <TestForm
                                                                                 function_name=fun_pub.function_name.clone()
                                                                                 stage="PUBLISHED".to_string()
-                                                                                handle_submit=move || {}
                                                                             />
 
                                                                         </div>
@@ -479,7 +478,6 @@ pub fn function_page() -> impl IntoView {
                                                                             <TestForm
                                                                                 function_name=function_test.function_name.clone()
                                                                                 stage="DRAFT".to_string()
-                                                                                handle_submit=move || {}
                                                                             />
 
                                                                         </div>

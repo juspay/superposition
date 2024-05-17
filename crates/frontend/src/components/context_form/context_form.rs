@@ -165,14 +165,11 @@ where
                                                         on:click=move |_| {
                                                             let mut current_context = context.get();
                                                             current_context.remove(idx);
-                                                            set_context.set(current_context.clone());
-                                                            logging::log!(
-                                                                "current context {:?}", current_context.clone()
-                                                            );
                                                             set_used_dimensions
                                                                 .update(|value| {
                                                                     value.remove(&dimension_name.get_value());
                                                                 });
+                                                            set_context.set(current_context);
                                                         }
                                                     >
 
