@@ -182,16 +182,17 @@ pub extern "C" fn get_applicable_variant(
         },
         Err(err) => return error_block(err),
     };
-    // println!("Fetching variantIds");
     let local = task::LocalSet::new();
-    let variants = local.block_on(&Runtime::new().unwrap(), unsafe {
+    let variants_result = local.block_on(&Runtime::new().unwrap(), unsafe {
         (*client).get_applicable_variant(&context, toss as i8)
     });
-    // println!("variantIds: {:?}", variants);
-    match serde_json::to_string::<Vec<String>>(&variants) {
-        Ok(result) => rstring_to_cstring(result).into_raw(),
-        Err(err) => error_block(err.to_string()),
-    }
+    variants_result
+        .map(|result| {
+            serde_json::to_string(&result)
+                .map(|json| rstring_to_cstring(json).into_raw())
+                .unwrap_or_else(|err| error_block(err.to_string()))
+        })
+        .unwrap_or_else(|err| error_block(err.to_string()))
 }
 
 #[no_mangle]
@@ -209,16 +210,15 @@ pub extern "C" fn get_satisfied_experiments(
 
     let local = task::LocalSet::new();
     let experiments = local.block_on(&Runtime::new().unwrap(), unsafe {
-        (*client).get_satisfied_experiments(&context)
+        (*client).get_satisfied_experiments(&context, None)
     });
     let experiments = match serde_json::to_value(experiments) {
         Ok(value) => value,
         Err(err) => return error_block(err.to_string()),
     };
-    match serde_json::to_string(&experiments) {
-        Ok(result) => rstring_to_cstring(result).into_raw(),
-        Err(err) => error_block(err.to_string()),
-    }
+    serde_json::to_string(&experiments)
+        .map(|exp| rstring_to_cstring(exp).into_raw())
+        .unwrap_or_else(|err| error_block(err.to_string()))
 }
 
 #[no_mangle]
