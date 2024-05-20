@@ -35,7 +35,7 @@ use service_utils::{bad_argument, db_error, unexpected_error};
 use itertools::Itertools;
 use jsonschema::JSONSchema;
 use service_utils::helpers::extract_dimensions;
-use service_utils::result as superposition;
+use service_utils::result::{self as superposition, AppError};
 use superposition_types::User;
 use uuid::Uuid;
 pub fn endpoints() -> Scope {
@@ -198,11 +198,11 @@ fn generate_subsets_keys(keys: Vec<String>) -> Vec<Vec<String>> {
 
 fn resolve(
     contexts_overrides_values: Vec<(Context, Map<String, Value>, Value, String)>,
-    default_config_val: Option<&Value>,
-) -> Vec<Map<String, Value>> {
+    default_config_val: &Value,
+) -> superposition::Result<Vec<Map<String, Value>>> {
     let mut dimensions: Vec<Map<String, Value>> = Vec::new();
     for (context, overrides, key_val, override_id) in contexts_overrides_values {
-        let mut ct_dimensions = extract_dimensions(&context.condition).unwrap();
+        let mut ct_dimensions = extract_dimensions(&context.condition)?;
         ct_dimensions.insert("key_val".to_string(), key_val);
         let request_payload = json!({
             "override": overrides,
@@ -217,19 +217,14 @@ fn resolve(
 
     //adding default config value
     let mut default_config_map = Map::new();
-    if let Some(some_default_config_val) = default_config_val {
-        default_config_map
-            .insert("key_val".to_string(), some_default_config_val.to_owned());
-    };
+    default_config_map.insert("key_val".to_string(), default_config_val.to_owned());
     dimensions.push(default_config_map);
 
     for (index1, c1) in dimensions.clone().iter().enumerate() {
-        let mut temp_c1 = c1.clone();
         let mut nc1 = c1.clone();
         nc1.remove("req_payload");
         let c1_val = nc1.remove("key_val");
         let all_subsets_c1 = generate_subsets(&nc1);
-        let mut can_be_removed = false;
         for (index2, c2) in dimensions.iter().enumerate() {
             let mut temp_c2 = c2.clone();
             temp_c2.remove("req_payload");
@@ -237,7 +232,9 @@ fn resolve(
             if index2 != index1 {
                 if all_subsets_c1.contains(&temp_c2) {
                     if c1_val == c2_val {
-                        can_be_removed = true;
+                        let mut temp_c1 = c1.to_owned();
+                        temp_c1.insert("can_be_reduced".to_string(), Value::Bool(true));
+                        dimensions[index1] = temp_c1;
                         break;
                     } else if c2_val.is_some() {
                         break;
@@ -245,16 +242,8 @@ fn resolve(
                 }
             }
         }
-        if can_be_removed {
-            if let Some(req_payload) = temp_c1.get("req_payload") {
-                let mut t = Map::new();
-                t.insert("req_payload".to_string(), req_payload.clone());
-                temp_c1 = t;
-            };
-        }
-        dimensions[index1] = temp_c1;
     }
-    dimensions
+    Ok(dimensions)
 }
 
 fn get_contextids_from_overrideid(
@@ -262,10 +251,10 @@ fn get_contextids_from_overrideid(
     overrides: Map<String, Value>,
     key_val: Value,
     override_id: &str,
-) -> Vec<(Context, Map<String, Value>, Value, String)> {
+) -> superposition::Result<Vec<(Context, Map<String, Value>, Value, String)>> {
     let mut res: Vec<(Context, Map<String, Value>, Value, String)> = Vec::new();
     for ct in contexts {
-        let ct_dimensions = extract_dimensions(&ct.condition).unwrap();
+        let ct_dimensions = extract_dimensions(&ct.condition)?;
         if ct_dimensions.contains_key("variantIds") {
             continue;
         }
@@ -279,7 +268,7 @@ fn get_contextids_from_overrideid(
             ));
         }
     }
-    res
+    Ok(res)
 }
 
 fn construct_new_payload(req_payload: &Map<String, Value>) -> web::Json<PutReq> {
@@ -310,23 +299,26 @@ async fn reduce_context_key(
     dimension_schema_map: &HashMap<String, (JSONSchema, i32)>,
     default_config: Map<String, Value>,
     is_approve: bool,
-) -> Config {
-    let default_config_val = default_config.get(check_key);
-    let mut contexts_overrides_values: Vec<(Context, Map<String, Value>, Value, String)> =
-        Vec::new();
+) -> superposition::Result<Config> {
+    let default_config_val =
+        default_config
+            .get(check_key)
+            .ok_or(AppError::BadArgument(format!(
+                "{} not found in default config",
+                check_key
+            )))?;
+    let mut contexts_overrides_values = Vec::new();
 
-    for (key, val) in og_overrides.clone() {
-        match val {
-            Value::Object(obj_val) => {
-                if let Some(ans_val) = obj_val.get(check_key) {
-                    let mut temp_obj_val = obj_val.clone();
-                    temp_obj_val.remove(check_key);
+    for (override_id, override_value) in og_overrides.clone() {
+        match override_value {
+            Value::Object(mut override_obj) => {
+                if let Some(value_of_check_key) = override_obj.remove(check_key) {
                     let context_arr = get_contextids_from_overrideid(
                         og_contexts.clone(),
-                        temp_obj_val,
-                        ans_val.clone(),
-                        &key,
-                    );
+                        override_obj,
+                        value_of_check_key.clone(),
+                        &override_id,
+                    )?;
                     contexts_overrides_values.extend(context_arr);
                 }
             }
@@ -351,79 +343,68 @@ async fn reduce_context_key(
         )
     });
 
-    let resolved_dimensions = resolve(contexts_overrides_values, default_config_val);
+    let resolved_dimensions = resolve(contexts_overrides_values, default_config_val)?;
     for rd in resolved_dimensions {
-        if rd.len() == 1 {
-            if let Some(Value::Object(request_payload)) = rd.get("req_payload") {
-                if let Some(Value::String(cid)) = request_payload.get("id") {
-                    if let Some(Value::String(oid)) = request_payload.get("override_id") {
-                        if let Some(Value::Bool(to_be_deleted)) =
-                            request_payload.get("to_be_deleted")
-                        {
-                            // After extracting values
-                            if *to_be_deleted {
-                                // remove cid from contexts
-                                if is_approve {
-                                    let _ = delete_context_api(
-                                        cid.to_owned(),
-                                        user.clone(),
-                                        conn,
-                                    )
-                                    .await;
-                                }
-                                og_contexts.retain(|x| x.id != *cid);
-                            } else {
-                                //update the override by removing the key
-                                if is_approve {
-                                    let _ = delete_context_api(
-                                        cid.to_owned(),
-                                        user.clone(),
-                                        conn,
-                                    )
-                                    .await;
-                                    let put_req = construct_new_payload(request_payload);
-                                    let _ = put(put_req, conn, false, &user);
-                                }
+        match (
+            rd.get("can_be_reduced"),
+            rd.get("req_payload"),
+            rd.get("req_payload").and_then(|v| v.get("id")),
+            rd.get("req_payload").and_then(|v| v.get("override_id")),
+            rd.get("req_payload").and_then(|v| v.get("to_be_deleted")),
+            rd.get("req_payload").and_then(|v| v.get("override")),
+        ) {
+            (
+                Some(Value::Bool(true)),
+                Some(Value::Object(request_payload)),
+                Some(Value::String(cid)),
+                Some(Value::String(oid)),
+                Some(Value::Bool(to_be_deleted)),
+                Some(override_val),
+            ) => {
+                if *to_be_deleted {
+                    if is_approve {
+                        let _ = delete_context_api(cid.clone(), user.clone(), conn).await;
+                    }
+                    og_contexts.retain(|x| x.id != *cid);
+                } else {
+                    if is_approve {
+                        let _ = delete_context_api(cid.clone(), user.clone(), conn).await;
+                        let put_req = construct_new_payload(request_payload);
+                        let _ = put(put_req, conn, false, &user);
+                    }
 
-                                if let Some(override_val) =
-                                    request_payload.get("override")
-                                {
-                                    let new_id = hash(override_val);
-                                    og_overrides
-                                        .insert(new_id.clone(), override_val.to_owned());
+                    let new_id = hash(override_val);
+                    og_overrides.insert(new_id.clone(), override_val.clone());
 
-                                    // the below thing is not necessary if we just do delete and update context api
-                                    let mut ctx_index = 0;
-                                    let mut delete_old_oid = true;
+                    let mut ctx_index = 0;
+                    let mut delete_old_oid = true;
 
-                                    for (ind, ctx) in og_contexts.iter().enumerate() {
-                                        if ctx.id == *cid {
-                                            ctx_index = ind;
-                                        } else if ctx.override_with_keys.contains(oid) {
-                                            delete_old_oid = false;
-                                        }
-                                    }
-                                    let mut elem = og_contexts[ctx_index].clone();
-                                    elem.override_with_keys = [new_id];
-                                    og_contexts[ctx_index] = elem;
-
-                                    if delete_old_oid {
-                                        og_overrides.remove(oid);
-                                    }
-                                }
-                            }
+                    for (ind, ctx) in og_contexts.iter().enumerate() {
+                        if ctx.id == *cid {
+                            ctx_index = ind;
+                        } else if ctx.override_with_keys.contains(oid) {
+                            delete_old_oid = false;
                         }
+                    }
+
+                    let mut elem = og_contexts[ctx_index].clone();
+                    elem.override_with_keys = [new_id];
+                    og_contexts[ctx_index] = elem;
+
+                    if delete_old_oid {
+                        og_overrides.remove(oid);
                     }
                 }
             }
+            _ => continue,
         }
     }
 
-    Config {
+    Ok(Config {
         contexts: og_contexts,
         overrides: og_overrides,
         default_configs: default_config,
-    }
+    })
 }
 
 #[put("/reduce")]
@@ -431,7 +412,7 @@ async fn reduce_context(
     req: HttpRequest,
     user: User,
     db_conn: DbConnection,
-) -> actix_web::Result<HttpResponse> {
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let is_approve = req
         .headers()
@@ -439,7 +420,7 @@ async fn reduce_context(
         .and_then(|value| value.to_str().ok().and_then(|s| s.parse::<bool>().ok()))
         .unwrap_or(false);
 
-    let dimensions_schema_map = get_all_dimension_schema_map(&mut conn).unwrap();
+    let dimensions_schema_map = get_all_dimension_schema_map(&mut conn)?;
     let mut config = generate_cac(&mut conn).await?;
     let default_config = (config.default_configs).clone();
     for (key, val) in default_config {
@@ -456,7 +437,7 @@ async fn reduce_context(
             default_config.clone(),
             is_approve,
         )
-        .await;
+        .await?;
         if is_approve {
             config = generate_cac(&mut conn).await?;
         }
