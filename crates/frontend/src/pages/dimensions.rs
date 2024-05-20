@@ -7,7 +7,6 @@ use crate::components::{
 };
 use leptos::*;
 use serde_json::{json, Map, Value};
-use std::collections::HashMap;
 
 use crate::api::fetch_dimensions;
 
@@ -15,8 +14,7 @@ use crate::api::fetch_dimensions;
 pub struct RowData {
     pub dimension: String,
     pub priority: u16,
-    pub type_: String,
-    pub pattern: String,
+    pub schema: Value,
     pub function_name: Option<Value>,
 }
 
@@ -42,9 +40,8 @@ pub fn Dimensions() -> impl IntoView {
             let row_priority_str = row["priority"].to_string().replace('"', "");
             let row_priority = row_priority_str.parse::<u16>().unwrap_or(0_u16);
 
-            let schema = row["schema"].to_string();
-            let schema_object = serde_json::from_str::<HashMap<String, Value>>(&schema)
-                .unwrap_or_default();
+            let schema = row["schema"].clone().to_string();
+            let schema = serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
 
             let function_name = row["function_name"].to_string();
             let fun_name = match function_name.as_str() {
@@ -52,62 +49,11 @@ pub fn Dimensions() -> impl IntoView {
                 _ => Some(json!(function_name.replace('"', ""))),
             };
 
-            let pattern_or_enum = schema_object
-                .keys()
-                .find(|&key| key == "pattern" || key == "enum")
-                .cloned()
-                .unwrap_or(String::new());
-
-            let row_type = match schema_object.get("type") {
-                Some(Value::String(type_)) if type_ == "string" => {
-                    pattern_or_enum.clone()
-                }
-                Some(Value::String(type_)) if type_ == "number" => type_.clone(),
-                Some(Value::String(_)) => String::from("other"),
-                Some(_) | None => String::new(),
-            };
-
-            let row_pattern = match schema_object.get("type") {
-                Some(Value::String(type_))
-                    if type_ == "string" && pattern_or_enum == "pattern" =>
-                {
-                    schema_object
-                        .get(&pattern_or_enum)
-                        .map(|val| val.to_string())
-                        .unwrap_or_default()
-                        .replace('"', "")
-                }
-                Some(Value::String(type_))
-                    if type_ == "string" && pattern_or_enum == "enum" =>
-                {
-                    schema_object
-                        .get(&pattern_or_enum)
-                        .and_then(|val| {
-                            if let Value::Array(v) = val {
-                                return format!(
-                                    "[{}]",
-                                    v.iter()
-                                        .map(|v| v.to_string())
-                                        .collect::<Vec<String>>()
-                                        .join(",")
-                                )
-                                .into();
-                            }
-                            None
-                        })
-                        .unwrap_or_default()
-                }
-                Some(Value::String(type_)) if type_ == "number" => String::new(),
-                Some(Value::String(_)) => schema,
-                _ => String::new(),
-            };
-
             let edit_click_handler = move |_| {
                 let row_data = RowData {
                     dimension: row_dimension.clone(),
-                    priority: row_priority,
-                    type_: row_type.clone(),
-                    pattern: row_pattern.clone(),
+                    priority: row_priority.clone(),
+                    schema: schema.clone(),
                     function_name: fun_name.clone(),
                 };
                 logging::log!("{:?}", row_data);
@@ -154,8 +100,7 @@ pub fn Dimensions() -> impl IntoView {
                                 edit=true
                                 priority=selected_dimension_data.priority
                                 dimension_name=selected_dimension_data.dimension
-                                dimension_type=selected_dimension_data.type_
-                                dimension_pattern=selected_dimension_data.pattern
+                                dimension_schema=selected_dimension_data.schema
                                 function_name=selected_dimension_data.function_name
                                 handle_submit=move || {
                                     dimensions_resource.refetch();

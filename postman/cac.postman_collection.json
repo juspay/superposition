@@ -21,25 +21,18 @@
   ],
   "item": [
     {
-      "name": "config",
+      "name": "Default Config",
       "item": [
         {
-          "name": "Get Config",
+          "name": "Default-Config Add Key Failure",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"200 check\", function() {",
-                  "    pm.response.to.have.status(200);",
-                  "    let response = pm.response.json();",
-                  "    let expected_response = {",
-                  "        \"contexts\": [],",
-                  "        \"overrides\": {},",
-                  "        \"default_configs\": {}",
-                  "    };",
-                  "    pm.expect(JSON.stringify(response)).to.be.eq(JSON.stringify(expected_response));",
-                  "})",
+                  "pm.test(\"400 check\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
                   ""
                 ],
                 "type": "text/javascript"
@@ -47,11 +40,16 @@
             }
           ],
           "request": {
-            "method": "GET",
+            "method": "PUT",
             "header": [
               {
                 "key": "Authorization",
                 "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
                 "type": "text"
               },
               {
@@ -60,53 +58,85 @@
                 "type": "default"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
+            },
             "url": {
-              "raw": "{{host}}/config",
+              "raw": "{{host}}/default-config/key.",
               "host": [
                 "{{host}}"
               ],
               "path": [
-                "config"
+                "default-config",
+                "key."
               ]
             }
           },
           "response": []
         },
         {
-          "name": "resolve",
+          "name": "Default-Config Add Key Failure-Invalid-Regex",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"400 check\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
-            "method": "GET",
+            "method": "PUT",
             "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
               {
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
+            },
             "url": {
-              "raw": "{{host}}/config/resolve?clientId=zee5",
+              "raw": "{{host}}/default-config/key!",
               "host": [
                 "{{host}}"
               ],
               "path": [
-                "config",
-                "resolve"
-              ],
-              "query": [
-                {
-                  "key": "clientId",
-                  "value": "zee5"
-                }
+                "default-config",
+                "key!"
               ]
             }
           },
           "response": []
-        }
-      ]
-    },
-    {
-      "name": "Default Config",
-      "item": [
+        },
         {
           "name": "Add default-config key",
           "event": [
@@ -278,6 +308,90 @@
               "path": [
                 "default-config",
                 "key2"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "config",
+      "item": [
+        {
+          "name": "Get Config",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200 check\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    let response = pm.response.json();",
+                  "    let expected_response = {",
+                  "        \"contexts\": [],",
+                  "        \"overrides\": {},",
+                  "        \"default_configs\": {\"key1\": \"value1\"}",
+                  "    };",
+                  "    pm.expect(JSON.stringify(response)).to.be.eq(JSON.stringify(expected_response));",
+                  "})",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/config",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "config"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "resolve",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/config/resolve?clientId=zee5",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "config",
+                "resolve"
+              ],
+              "query": [
+                {
+                  "key": "clientId",
+                  "value": "zee5"
+                }
               ]
             }
           },
@@ -1102,16 +1216,6 @@
           "name": "Get Types",
           "event": [
             {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "// any prerequest js code goes here",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            },
-            {
               "listen": "test",
               "script": {
                 "exec": [
@@ -1121,43 +1225,44 @@
                   "    pm.response.to.be.ok;",
                   "    const response = pm.response.json();",
                   "    const modified_response = response.data.map(({ created_at, last_modified, ...rest }) => rest);",
-                  "    console.log(\"this is the wrong thing\", modified_response);",
+                  "    console.log(\"The API returned the response\", modified_response);",
                   "    pm.expect(JSON.stringify(modified_response)).to.be.eq(JSON.stringify([",
                   "        {",
-                  "            created_by: \"user@superposition.io\",",
-                  "            type_name: \"Number\",",
-                  "            type_schema: {",
-                  "                type: \"number\"",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "            \"type_name\": \"Number\",",
+                  "            \"type_schema\": {",
+                  "                \"type\": \"number\"",
                   "            }",
                   "        },",
                   "        {",
-                  "            created_by: \"user@superposition.io\",",
-                  "            type_name: \"Decimal\",",
-                  "            type_schema: {",
-                  "                type: \"number\"",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "            \"type_name\": \"Decimal\",",
+                  "            \"type_schema\": {",
+                  "                \"type\": \"number\"",
                   "            }",
                   "        },",
                   "        {",
-                  "            created_by: \"user@superposition.io\",",
-                  "            type_name: \"Boolean\",",
-                  "            type_schema: {",
-                  "                type: \"boolean\"",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "            \"type_name\": \"Boolean\",",
+                  "            \"type_schema\": {",
+                  "                \"type\": \"boolean\"",
                   "            }",
                   "        },",
                   "        {",
-                  "            created_by: \"user@superposition.io\",",
-                  "            type_name: \"String (Enum)\",",
-                  "            type_schema: {",
-                  "                enum: \"$replacement\",",
-                  "                type: \"string\"",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "            \"type_name\": \"Enum\",",
+                  "            \"type_schema\": {",
+                  "                \"enum\": \"$replacement\",",
+                  "                \"type\": \"string\"",
                   "            }",
                   "        },",
+                  "",
                   "        {",
-                  "            created_by: \"user@superposition.io\",",
-                  "            type_name: \"String (Regex)\",",
-                  "            type_schema: {",
-                  "                pattern: \"$replacement\",",
-                  "                type: \"string\"",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "            \"type_name\": \"Pattern\",",
+                  "            \"type_schema\": {",
+                  "                \"pattern\": \"$replacement\",",
+                  "                \"type\": \"string\"",
                   "            }",
                   "        }",
                   "    ]))",
@@ -1188,14 +1293,12 @@
               }
             ],
             "url": {
-              "raw": "{{host}}/types/1/10",
+              "raw": "{{host}}/types",
               "host": [
                 "{{host}}"
               ],
               "path": [
-                "types",
-                "1",
-                "10"
+                "types"
               ]
             }
           }
@@ -1231,18 +1334,20 @@
                   "        }",
                   "    }",
                   "    pm.sendRequest(request, (error, response) => {",
-                  "        if(error) {",
+                  "        if (error) {",
                   "            console.log(\"Failed to fetch types\");",
                   "            throw error;",
                   "        }",
                   "        const resp = response.json();",
-                  "        const modified_response = resp.map(({ created_at, last_modified, ...rest }) => rest);",
-                  "        pm.expect(modified_response).to.be.eq([",
+                  "        const modified_response = resp.map(({ created_at, last_modified, ...rest }) => rest).sort((a, b) => {",
+                  "            return a.type_name > b.type_name;",
+                  "        });",
+                  "        pm.expect(JSON.stringify(modified_response)).to.be.eq(JSON.stringify([",
                   "            {",
                   "                \"created_by\": \"user@superposition.io\",",
-                  "                \"type_name\": \"Number\",",
+                  "                \"type_name\": \"Boolean\",",
                   "                \"type_schema\": {",
-                  "                    \"type\": \"number\"",
+                  "                    \"type\": \"boolean\"",
                   "                }",
                   "            },",
                   "            {",
@@ -1254,14 +1359,7 @@
                   "            },",
                   "            {",
                   "                \"created_by\": \"user@superposition.io\",",
-                  "                \"type_name\": \"Boolean\",",
-                  "                \"type_schema\": {",
-                  "                    \"type\": \"boolean\"",
-                  "                }",
-                  "            },",
-                  "            {",
-                  "                \"created_by\": \"user@superposition.io\",",
-                  "                \"type_name\": \"String (Enum)\",",
+                  "                \"type_name\": \"Enum\",",
                   "                \"type_schema\": {",
                   "                    \"enum\": \"$replacement\",",
                   "                    \"type\": \"string\"",
@@ -1269,20 +1367,27 @@
                   "            },",
                   "            {",
                   "                \"created_by\": \"user@superposition.io\",",
-                  "                \"type_name\": \"String (Regex)\",",
-                  "                \"type_schema\": {",
-                  "                    \"pattern\": \"$replacement\",",
-                  "                    \"type\": \"string\"",
-                  "                }",
-                  "            },",
-                  "            {",
-                  "                \"created_by\": \"superposition@juspay.in\",",
                   "                \"type_name\": \"Integer\",",
                   "                \"type_schema\": {",
                   "                    \"type\": \"number\"",
                   "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Number\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"number\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Pattern\",",
+                  "                \"type_schema\": {",
+                  "                    \"pattern\": \"$replacement\",",
+                  "                    \"type\": \"string\"",
+                  "                }",
                   "            }",
-                  "        ])",
+                  "        ]))",
                   "    })",
                   "});",
                   ""
@@ -1292,7 +1397,7 @@
             }
           ],
           "request": {
-            "method": "PUT",
+            "method": "POST",
             "header": [
               {
                 "key": "Authorization",
@@ -1338,6 +1443,32 @@
               "script": {
                 "exec": [
                   "// any prerequest js code goes here",
+                  "function get_type_name() {",
+                  "    const host = pm.variables.get(\"host\");",
+                  "    const request = {",
+                  "        url: `${host}/types`,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "        }",
+                  "    }",
+                  "    pm.sendRequest(request, (error, response) => {",
+                  "        if(error) {",
+                  "            console.log(\"Failed to fetch types\");",
+                  "            throw error;",
+                  "        }",
+                  "        const resp = response.json();",
+                  "        for (const element of resp.data) {",
+                  "            if (element.type_name === \"Integer\") {",
+                  "                pm.environment.set(\"type_name\", element.type_name)",
+                  "                break;",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "}",
+                  "",
+                  "get_type_name();",
                   ""
                 ],
                 "type": "text/javascript"
@@ -1361,18 +1492,20 @@
                   "        }",
                   "    }",
                   "    pm.sendRequest(request, (error, response) => {",
-                  "        if(error) {",
+                  "        if (error) {",
                   "            console.log(\"Failed to fetch types\");",
                   "            throw error;",
                   "        }",
                   "        const resp = response.json();",
-                  "        const modified_response = resp.map(({ created_at, id, last_modified, ...rest }) => rest);",
-                  "        pm.expect(modified_response).to.be.eq([",
+                  "        const modified_response = resp.map(({ created_at, id, last_modified, ...rest }) => rest).sort((a, b) => {",
+                  "            return a.type_name > b.type_name;",
+                  "        });",
+                  "        pm.expect(JSON.stringify(modified_response)).to.be.eq(JSON.stringify([",
                   "            {",
                   "                \"created_by\": \"user@superposition.io\",",
-                  "                \"type_name\": \"Number\",",
+                  "                \"type_name\": \"Boolean\",",
                   "                \"type_schema\": {",
-                  "                    \"type\": \"number\"",
+                  "                    \"type\": \"boolean\"",
                   "                }",
                   "            },",
                   "            {",
@@ -1384,14 +1517,7 @@
                   "            },",
                   "            {",
                   "                \"created_by\": \"user@superposition.io\",",
-                  "                \"type_name\": \"Boolean\",",
-                  "                \"type_schema\": {",
-                  "                    \"type\": \"boolean\"",
-                  "                }",
-                  "            },",
-                  "            {",
-                  "                \"created_by\": \"user@superposition.io\",",
-                  "                \"type_name\": \"String (Enum)\",",
+                  "                \"type_name\": \"Enum\",",
                   "                \"type_schema\": {",
                   "                    \"enum\": \"$replacement\",",
                   "                    \"type\": \"string\"",
@@ -1399,20 +1525,27 @@
                   "            },",
                   "            {",
                   "                \"created_by\": \"user@superposition.io\",",
-                  "                \"type_name\": \"String (Regex)\",",
-                  "                \"type_schema\": {",
-                  "                    \"pattern\": \"$replacement\",",
-                  "                    \"type\": \"string\"",
-                  "                }",
-                  "            },",
-                  "            {",
-                  "                \"created_by\": \"superposition@juspay.in\",",
                   "                \"type_name\": \"Integer\",",
                   "                \"type_schema\": {",
                   "                    \"type\": \"integer\"",
                   "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Number\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"number\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Pattern\",",
+                  "                \"type_schema\": {",
+                  "                    \"pattern\": \"$replacement\",",
+                  "                    \"type\": \"string\"",
+                  "                }",
                   "            }",
-                  "        ])",
+                  "        ]))",
                   "    })",
                   "});",
                   ""
@@ -1450,12 +1583,13 @@
               "raw": "{\"type_schema\":{\"type\":\"integer\"},\"type_name\":\"Integer\"}"
             },
             "url": {
-              "raw": "{{host}}/types",
+              "raw": "{{host}}/types/{{type_name}}",
               "host": [
                 "{{host}}"
               ],
               "path": [
-                "types"
+                "types",
+                "{{type_name}}"
               ]
             }
           }
@@ -1468,7 +1602,7 @@
               "script": {
                 "exec": [
                   "// any prerequest js code goes here",
-                  "function get_context_id() {",
+                  "function get_type_name() {",
                   "    const host = pm.variables.get(\"host\");",
                   "    const request = {",
                   "        url: `${host}/types`,",
@@ -1484,16 +1618,17 @@
                   "            throw error;",
                   "        }",
                   "        const resp = response.json();",
-                  "        for (const element of resp) {",
+                  "        for (const element of resp.data) {",
                   "            if (element.type_name === \"Integer\") {",
-                  "                pm.environment.set(\"id\", element.type_name)",
+                  "                pm.environment.set(\"type_name\", element.type_name)",
                   "                break;",
                   "            }",
                   "        }",
                   "    });",
                   "}",
                   "",
-                  "get_context_id();"
+                  "get_type_name();",
+                  ""
                 ],
                 "type": "text/javascript"
               }
@@ -1516,18 +1651,20 @@
                   "        }",
                   "    }",
                   "    pm.sendRequest(request, (error, response) => {",
-                  "        if(error) {",
+                  "        if (error) {",
                   "            console.log(\"Failed to fetch types\");",
                   "            throw error;",
                   "        }",
                   "        const resp = response.json();",
-                  "        const modified_response = resp.map(({ created_at, last_modified, ...rest }) => rest);",
-                  "        pm.expect(modified_response).to.be.eq([",
+                  "        const modified_response = resp.map(({ created_at, last_modified, ...rest }) => rest).sort((a, b) => {",
+                  "            return a.type_name > b.type_name;",
+                  "        });",
+                  "        pm.expect(JSON.stringify(modified_response)).to.be.eq(JSON.stringify([",
                   "            {",
                   "                \"created_by\": \"user@superposition.io\",",
-                  "                \"type_name\": \"Number\",",
+                  "                \"type_name\": \"Boolean\",",
                   "                \"type_schema\": {",
-                  "                    \"type\": \"number\"",
+                  "                    \"type\": \"boolean\"",
                   "                }",
                   "            },",
                   "            {",
@@ -1539,14 +1676,7 @@
                   "            },",
                   "            {",
                   "                \"created_by\": \"user@superposition.io\",",
-                  "                \"type_name\": \"Boolean\",",
-                  "                \"type_schema\": {",
-                  "                    \"type\": \"boolean\"",
-                  "                }",
-                  "            },",
-                  "            {",
-                  "                \"created_by\": \"user@superposition.io\",",
-                  "                \"type_name\": \"String (Enum)\",",
+                  "                \"type_name\": \"Enum\",",
                   "                \"type_schema\": {",
                   "                    \"enum\": \"$replacement\",",
                   "                    \"type\": \"string\"",
@@ -1554,13 +1684,20 @@
                   "            },",
                   "            {",
                   "                \"created_by\": \"user@superposition.io\",",
-                  "                \"type_name\": \"String (Regex)\",",
+                  "                \"type_name\": \"Number\",",
+                  "                \"type_schema\": {",
+                  "                    \"type\": \"number\"",
+                  "                }",
+                  "            },",
+                  "            {",
+                  "                \"created_by\": \"user@superposition.io\",",
+                  "                \"type_name\": \"Pattern\",",
                   "                \"type_schema\": {",
                   "                    \"pattern\": \"$replacement\",",
                   "                    \"type\": \"string\"",
                   "                }",
-                  "            },",
-                  "        ])",
+                  "            }",
+                  "        ]))",
                   "    })",
                   "});",
                   ""
@@ -1589,13 +1726,13 @@
               }
             ],
             "url": {
-              "raw": "{{host}}/types/{{id}}",
+              "raw": "{{host}}/types/{{type_name}}",
               "host": [
                 "{{host}}"
               ],
               "path": [
                 "types",
-                "{{id}}"
+                "{{type_name}}"
               ]
             }
           }

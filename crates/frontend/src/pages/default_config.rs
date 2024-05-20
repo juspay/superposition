@@ -13,14 +13,13 @@ use crate::utils::{
 use leptos::*;
 use leptos_router::{use_navigate, use_query_map};
 use serde_json::{json, Map, Value};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
     pub key: String,
     pub value: String,
-    pub pattern: String,
-    pub type_: String,
+    pub schema: Value,
     pub function_name: Option<Value>,
 }
 
@@ -73,9 +72,9 @@ pub fn default_config() -> impl IntoView {
             let grouping_enabled = enable_grouping.get();
             let row_value = row["value"].to_string().replace('"', "");
 
-            let schema = row["schema"].to_string();
-            let schema_object = serde_json::from_str::<HashMap<String, Value>>(&schema)
-                .unwrap_or_default();
+            let schema = row["schema"].clone().to_string();
+            let schema_object =
+                serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
 
             let function_name = row["function_name"].to_string();
             let fun_name = match function_name.as_str() {
@@ -83,62 +82,11 @@ pub fn default_config() -> impl IntoView {
                 _ => Some(json!(function_name.replace('"', ""))),
             };
 
-            let pattern_or_enum = schema_object
-                .keys()
-                .find(|&key| key == "pattern" || key == "enum")
-                .cloned()
-                .unwrap_or(String::new());
-
-            let row_type = match schema_object.get("type") {
-                Some(Value::String(type_)) if type_ == "string" => {
-                    pattern_or_enum.clone()
-                }
-                Some(Value::String(type_)) if type_ == "number" => type_.clone(),
-                Some(Value::String(_)) => String::from("other"),
-                Some(_) | None => String::new(),
-            };
-
-            let row_pattern = match schema_object.get("type") {
-                Some(Value::String(type_))
-                    if type_ == "string" && pattern_or_enum == "pattern" =>
-                {
-                    schema_object
-                        .get(&pattern_or_enum)
-                        .map(|val| val.to_string())
-                        .unwrap_or_default()
-                        .replace('"', "")
-                }
-                Some(Value::String(type_))
-                    if type_ == "string" && pattern_or_enum == "enum" =>
-                {
-                    schema_object
-                        .get(&pattern_or_enum)
-                        .and_then(|val| {
-                            if let Value::Array(v) = val {
-                                return format!(
-                                    "[{}]",
-                                    v.iter()
-                                        .map(|v| v.to_string())
-                                        .collect::<Vec<String>>()
-                                        .join(",")
-                                )
-                                .into();
-                            }
-                            None
-                        })
-                        .unwrap_or_default()
-                }
-                Some(Value::String(type_)) if type_ == "number" => String::new(),
-                Some(Value::String(_)) => schema,
-                _ => String::new(),
-            };
-
             let edit_click_handler = move |_| {
                 let row_data = RowData {
                     key: row_key.clone(),
                     value: row_value.clone(),
-                    type_: row_type.clone(),
-                    pattern: row_pattern.clone(),
+                    schema: schema_object.clone(),
                     function_name: fun_name.clone(),
                 };
                 logging::log!("{:?}", row_data);
@@ -266,8 +214,7 @@ pub fn default_config() -> impl IntoView {
                                     edit=true
                                     config_key=selected_config_data.key
                                     config_value=selected_config_data.value
-                                    config_type=selected_config_data.type_
-                                    config_pattern=selected_config_data.pattern
+                                    type_schema=selected_config_data.schema
                                     function_name=selected_config_data.function_name
                                     prefix
                                     handle_submit=move || {

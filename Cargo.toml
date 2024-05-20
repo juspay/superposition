@@ -37,6 +37,7 @@ serde_json = {version = "1.0"}
 derive_more = "^0.99"
 base64 = "0.21.2"
 urlencoding = "~2.1.2"
+regex = "1.9.1"
 chrono = { version = "0.4.26", features = ["serde"] }
 uuid = {version = "1.3.4", features = ["v4", "serde"]}
 reqwest = { version = "0.11.18", features = ["json"]}
@@ -57,7 +58,6 @@ leptos = { version = "0.5.2" }
 leptos_meta = { version = "0.5.2" }
 leptos_router = { version = "0.5.2" }
 thiserror = { version = "1.0.57" }
-regex = "1.9.1"
 leptos-use = "0.10.3"
 
 [workspace.lints.clippy]

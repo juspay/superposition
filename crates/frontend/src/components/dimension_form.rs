@@ -3,9 +3,9 @@ pub mod utils;
 
 use self::types::DimensionCreateReq;
 use self::utils::create_dimension;
+use crate::api::fetch_types;
 use crate::components::dropdown::{Dropdown, DropdownBtnType, DropdownDirection};
-use crate::types::FunctionsName;
-use crate::utils::parse_string_to_json_value_vec;
+use crate::types::{CustomType, FunctionsName};
 use crate::{api::fetch_functions, components::button::Button};
 use leptos::*;
 use serde_json::{json, Value};
@@ -18,7 +18,7 @@ pub fn dimension_form<NF>(
     #[prop(default = 0)] priority: u16,
     #[prop(default = String::new())] dimension_name: String,
     #[prop(default = String::new())] dimension_type: String,
-    #[prop(default = String::new())] dimension_pattern: String,
+    #[prop(default = Value::Null)] dimension_schema: Value,
     #[prop(default = None)] function_name: Option<Value>,
     handle_submit: NF,
 ) -> impl IntoView
@@ -28,11 +28,19 @@ where
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
 
     let (priority, set_priority) = create_signal(priority);
-    let (dimension_name, set_dimension_name) = create_signal(dimension_name);
-    let (dimension_type, set_dimension_type) = create_signal(dimension_type);
-    let (dimension_pattern, set_dimension_pattern) = create_signal(dimension_pattern);
-
+    let (dimension_name_rs, dimension_name_ws) = create_signal(dimension_name);
+    let (dimension_type_rs, dimension_type_ws) = create_signal(dimension_type);
+    let (dimension_schema_rs, dimension_schema_ws) = create_signal(dimension_schema);
     let (function_name, set_function_name) = create_signal(function_name);
+
+    let string_to_value_closure = |val: String| {
+        Value::from_str(&val).unwrap_or_else(|_| {
+            // do this for Value::String, since for some reason from_str
+            // cannot convert unquoted rust strings to Value::String
+            Value::from_str(format!("\"{}\"", val).as_str())
+                .expect("Invalid default config value")
+        })
+    };
 
     let functions_resource: Resource<String, Vec<crate::types::FunctionResponse>> =
         create_blocking_resource(
@@ -44,6 +52,16 @@ where
                 }
             },
         );
+
+    let type_template_resource = create_blocking_resource(
+        move || tenant_rs.get(),
+        |current_tenant| async move {
+            match fetch_types(current_tenant, 1, 10000).await {
+                Ok(response) => response.data,
+                Err(_) => vec![],
+            }
+        },
+    );
 
     let handle_select_dropdown_option = move |selected_function: FunctionsName| {
         set_function_name.update(|value| {
@@ -57,49 +75,15 @@ where
         });
     };
 
-    let (show_labels, set_show_labels) = create_signal(edit);
-
     let (error_message, set_error_message) = create_signal("".to_string());
 
     let on_submit = move |ev: MouseEvent| {
         ev.prevent_default();
         let f_priority = priority.get();
-        let f_name = dimension_name.get();
-        let f_type = dimension_type.get();
-        let f_pattern = dimension_pattern.get();
+        let f_name = dimension_name_rs.get();
         let fun_name = function_name.get();
 
-        let f_schema = match f_type.as_str() {
-            "number" => {
-                json!({
-                    "type": f_type.to_string()
-                })
-            }
-            "decimal" => {
-                json!({
-                    "type": "number".to_string(),
-                })
-            }
-            "boolean" => {
-                json!({
-                    "type": "boolean".to_string(),
-                }
-                )
-            }
-            "enum" => {
-                json!({
-                    "type": "string",
-                    "enum": parse_string_to_json_value_vec(f_pattern.as_str())
-                })
-            }
-            "pattern" => {
-                json!({
-                    "type": "string",
-                    "pattern": f_pattern.to_string()
-                })
-            }
-            _ => Value::from_str(&f_pattern).expect("Error parsing JSON"),
-        };
+        let f_schema = dimension_schema_rs.get();
 
         let payload = DimensionCreateReq {
             dimension: f_name,
@@ -138,10 +122,10 @@ where
                     type="text"
                     placeholder="Dimension"
                     class="input input-bordered w-full max-w-md"
-                    value=dimension_name.get()
+                    value=dimension_name_rs.get()
                     on:change=move |ev| {
                         let value = event_target_value(&ev);
-                        set_dimension_name.set(value);
+                        dimension_name_ws.set(value);
                     }
                 />
 
@@ -149,86 +133,52 @@ where
 
             <div class="divider"></div>
 
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Set Schema</span>
-                </label>
-                <select
-                    name="schemaType[]"
-                    on:change=move |ev| {
-                        set_show_labels.set(true);
-                        match event_target_value(&ev).as_str() {
-                            "number" => {
-                                set_dimension_type.set("number".to_string());
-                            }
-                            "decimal" => {
-                                set_dimension_type.set("decimal".to_string());
-                            }
-                            "boolean" => {
-                                set_dimension_type.set("boolean".to_string());
-                            }
-                            "enum" => {
-                                set_dimension_type.set("enum".to_string());
-                                set_dimension_pattern
-                                    .set(format!("{:?}", vec!["android", "web", "ios"]));
-                            }
-                            "pattern" => {
-                                set_dimension_type.set("pattern".to_string());
-                                set_dimension_pattern.set(".*".to_string());
-                            }
-                            _ => {
-                                set_dimension_type.set("other".to_string());
-                                set_dimension_pattern.set("".to_string());
-                            }
-                        };
+            <Suspense>
+                {move || {
+                    let options = type_template_resource.get().unwrap_or(vec![]);
+                    let dimension_t = if dimension_type_rs.get().is_empty() {
+                        "choose a type template".into()
+                    } else {
+                        dimension_type_rs.get()
+                    };
+                    view! {
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Set Schema</span>
+                            </label>
+                            <Dropdown
+                                dropdown_width="w-100"
+                                dropdown_icon="".to_string()
+                                dropdown_text=dimension_t
+                                dropdown_direction=DropdownDirection::Down
+                                dropdown_btn_type=DropdownBtnType::Select
+                                dropdown_options=options
+                                on_select=Box::new(move |selected_item: CustomType| {
+                                    logging::log!("selected item {:?}", selected_item);
+                                    dimension_type_ws.set(selected_item.type_name);
+                                    dimension_schema_ws.set(selected_item.type_schema);
+                                })
+                            />
+
+                            <textarea
+                                type="text"
+                                placeholder="JSON schema"
+                                class="input input-bordered mt-5 rounded-md resize-y w-full max-w-md"
+                                rows=8
+                                on:change=move |ev| {
+                                    dimension_schema_ws
+                                        .set(string_to_value_closure(event_target_value(&ev)))
+                                }
+                            >
+
+                                {format!("{}", dimension_schema_rs.get())}
+                            </textarea>
+
+                        </div>
                     }
+                }}
 
-                    class="select select-bordered w-full max-w-md"
-                >
-                    <option disabled selected>
-                        Set Schema
-                    </option>
-
-                    <option
-                        value="number"
-                        selected=move || { dimension_type.get() == "number" }
-                    >
-
-                        "Number"
-                    </option>
-                    <option
-                        value="decimal"
-                        selected=move || { dimension_type.get() == "decimal" }
-                    >
-                        "Decimal (Max Value : 1.7976931348623157e+308)"
-                    </option>
-                    <option
-                        value="boolean"
-                        selected=move || { dimension_type.get() == "boolean" }
-                    >
-                        "Boolean"
-                    </option>
-                    <option
-                        value="enum"
-                        selected=move || { dimension_type.get() == "enum" }
-                    >
-                        "String (Enum)"
-                    </option>
-                    <option
-                        value="pattern"
-                        selected=move || { dimension_type.get() == "pattern" }
-                    >
-                        "String (regex)"
-                    </option>
-                    <option
-                        value="other"
-                        selected=move || { dimension_type.get() == "other" }
-                    >
-                        "Other"
-                    </option>
-                </select>
-            </div>
-
+            </Suspense>
             <div class="divider"></div>
 
             {move || {
@@ -252,35 +202,6 @@ where
                         />
 
                     </div>
-
-                    <Show when=move || {
-                        show_labels.get()
-                            && ((dimension_type.get() == "enum")
-                                || (dimension_type.get() == "pattern")
-                                || (dimension_type.get() == "other"))
-                    }>
-                        <div class="form-control">
-                            <label class="label font-mono">
-                                <span class="label-text text-gray-700 font-mono">
-                                    {dimension_type.get()}
-                                </span>
-                            </label>
-                            <textarea
-                                type="text"
-                                class="input input-bordered w-full max-w-md pt-[10px]"
-                                on:change=move |ev| {
-                                    let value = event_target_value(&ev);
-                                    logging::log!("{:?}", value);
-                                    set_dimension_pattern.set(value);
-                                }
-                            >
-
-                                {dimension_pattern.get()}
-                            </textarea>
-
-                        </div>
-                        <div class="divider"></div>
-                    </Show>
                 }
             }}
 

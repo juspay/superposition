@@ -1,7 +1,7 @@
 pub mod utils;
 
-use crate::components::button::button::Button;
-use crate::components::type_template_form::utils::create_update_type;
+use crate::components::type_template_form::utils::create_type;
+use crate::components::{button::Button, type_template_form::utils::update_type};
 use leptos::*;
 use serde_json::{from_str, json, Value};
 use web_sys::MouseEvent;
@@ -10,7 +10,7 @@ use web_sys::MouseEvent;
 pub fn type_template_form<NF>(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] type_name: String,
-    #[prop(default = json!({}))] type_schema: Value,
+    #[prop(default = json!({"type": "number"}))] type_schema: Value,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -26,15 +26,20 @@ where
         ev.prevent_default();
         let type_name = type_name_rs.get();
         let type_schema = type_schema_rs.get();
-        let payload = json!({
-            "type_name": type_name,
-            "type_schema": type_schema
-        });
+
         let handle_submit_clone = handle_submit.clone();
         spawn_local({
             let handle_submit = handle_submit_clone;
             async move {
-                let result = create_update_type(tenant_rs.get(), payload.clone()).await;
+                let result = if edit {
+                    update_type(tenant_rs.get(), type_name, type_schema).await
+                } else {
+                    let payload = json!({
+                        "type_name": type_name,
+                        "type_schema": type_schema
+                    });
+                    create_type(tenant_rs.get(), payload.clone()).await
+                };
                 match result {
                     Ok(_) => {
                         handle_submit();
@@ -73,29 +78,35 @@ where
                 <label class="label">
                     <span class="label-text">Type Schema</span>
                 </label>
-                <textarea
-                    type="text"
-                    class="input input-bordered shadow-md"
-                    name="type_schema"
-                    id="type_schema"
-                    style="min-height: 150px"
-                    placeholder="type schema"
-                    on:change=move |ev| {
-                        let value = event_target_value(&ev);
-                        match from_str::<Value>(&value) {
-                            Ok(test_val) => {
-                                type_schema_ws.set(test_val);
-                                set_error_message.set("".to_string());
+                {move || {
+                    let schem = type_schema_rs.get();
+                    view! {
+                        <textarea
+                            type="text"
+                            class="input input-bordered shadow-md"
+                            name="type_schema"
+                            id="type_schema"
+                            style="min-height: 150px"
+                            placeholder="type schema"
+                            on:change=move |ev| {
+                                let value = event_target_value(&ev);
+                                match from_str::<Value>(&value) {
+                                    Ok(test_val) => {
+                                        type_schema_ws.set(test_val);
+                                        set_error_message.set("".to_string());
+                                    }
+                                    Err(err) => {
+                                        set_error_message.set(err.to_string());
+                                    }
+                                };
                             }
-                            Err(err) => {
-                                set_error_message.set(err.to_string());
-                            }
-                        };
-                    }
-                >
+                        >
 
-                    {move || format!("{}", type_schema_rs.get())}
-                </textarea>
+                            {format!("{}", schem)}
+                        </textarea>
+                    }
+                }}
+
             </div>
 
             <div class="form-control grid w-full justify-end">
@@ -105,15 +116,9 @@ where
                     on_click=on_submit
                 />
             </div>
-
-            {
-                view! {
-                    <div>
-                        <p class="text-red-500">{move || error_message.get()}</p>
-                    </div>
-                }
-            }
-
+            <div>
+                <p class="text-red-500">{move || error_message.get()}</p>
+            </div>
         </form>
     }
 }
