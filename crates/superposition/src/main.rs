@@ -167,6 +167,7 @@ async fn main() -> Result<()> {
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()
                     .add(("X-SERVER-VERSION", cac_version.to_string()))
+                    .add(("Cache-Control", "no-store".to_string()))
             )
             .service(web::redirect("/", ui_redirect_path.to_string()))
             .service(web::redirect("/admin", ui_redirect_path.to_string()))
