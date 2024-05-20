@@ -18,14 +18,12 @@
         }
     ],
     "url": {
-        "raw": "{{host}}/types/1/10",
+        "raw": "{{host}}/types",
         "host": [
             "{{host}}"
         ],
         "path": [
-            "types",
-            "1",
-            "10"
+            "types"
         ]
     }
 }

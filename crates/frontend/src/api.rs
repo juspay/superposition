@@ -5,7 +5,10 @@ use crate::{
         Config, DefaultConfig, Dimension, Experiment, ExperimentsResponse,
         FetchCustomTypeResponse, FunctionResponse, ListFilters,
     },
-    utils::{construct_request_headers, get_host, request, use_host_server},
+    utils::{
+        construct_request_headers, get_host, parse_json_response, request,
+        use_host_server,
+    },
 };
 
 // #[server(GetDimensions, "/fxn", "GetJson")]
@@ -210,24 +213,23 @@ pub async fn delete_default_config(key: String, tenant: String) -> Result<(), St
     Ok(())
 }
 
-
 pub async fn fetch_types(
     tenant: String,
     page: i64,
     count: i64,
 ) -> Result<FetchCustomTypeResponse, ServerFnError> {
-    let client = reqwest::Client::new();
     let host = use_host_server();
-
-    let url = format!("{host}/types/{page}/{count}");
-    match client.get(url).header("x-tenant", tenant).send().await {
-        Ok(response) => {
-            let types = response
-                .json()
-                .await
-                .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
-            Ok(types)
-        }
-        Err(e) => Err(ServerFnError::ServerError(e.to_string())),
-    }
+    let url = format!("{host}/types?page={page}&count={count}");
+    let err_handler = |e: String| ServerFnError::ServerError(e.to_string());
+    let response = request::<()>(
+        url,
+        reqwest::Method::GET,
+        None,
+        construct_request_headers(&[("x-tenant", &tenant)]).map_err(err_handler)?,
+    )
+    .await
+    .map_err(err_handler)?;
+    parse_json_response::<FetchCustomTypeResponse>(response)
+        .await
+        .map_err(err_handler)
 }

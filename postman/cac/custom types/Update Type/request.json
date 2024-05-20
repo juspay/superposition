@@ -32,12 +32,13 @@
         }
     },
     "url": {
-        "raw": "{{host}}/types",
+        "raw": "{{host}}/types/{{type_name}}",
         "host": [
             "{{host}}"
         ],
         "path": [
-            "types"
+            "types",
+            "{{type_name}}"
         ]
     }
 }

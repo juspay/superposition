@@ -235,6 +235,15 @@ pub struct CustomType {
     pub last_modified: NaiveDateTime,
 }
 
+impl DropdownOption for CustomType {
+    fn key(&self) -> String {
+        self.type_name.clone()
+    }
+    fn label(&self) -> String {
+        self.type_name.clone()
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct FetchCustomTypeResponse {
     pub total_items: i64,

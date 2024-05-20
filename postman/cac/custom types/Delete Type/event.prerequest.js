@@ -1,5 +1,5 @@
 // any prerequest js code goes here
-function get_context_id() {
+function get_type_name() {
     const host = pm.variables.get("host");
     const request = {
         url: `${host}/types`,
@@ -15,13 +15,13 @@ function get_context_id() {
             throw error;
         }
         const resp = response.json();
-        for (const element of resp) {
+        for (const element of resp.data) {
             if (element.type_name === "Integer") {
-                pm.environment.set("id", element.type_name)
+                pm.environment.set("type_name", element.type_name)
                 break;
             }
         }
     });
 }
 
-get_context_id();
+get_type_name();

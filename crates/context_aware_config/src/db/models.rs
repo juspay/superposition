@@ -92,7 +92,7 @@ pub struct ConfigVersion {
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Clone, Serialize, Debug)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(table_name = jsonschema_types)]
-#[diesel(primary_key(id))]
+#[diesel(primary_key(type_name))]
 pub struct JsonSchemaTypes {
     pub type_name: String,
     pub type_schema: Value,

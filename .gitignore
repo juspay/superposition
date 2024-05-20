@@ -34,3 +34,4 @@ test_logs
 
 # pre-commit config
 .pre-commit-config.yaml
+.cargo

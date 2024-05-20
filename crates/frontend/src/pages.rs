@@ -1,4 +1,5 @@
 pub mod context_override;
+pub mod custom_types;
 pub mod default_config;
 pub mod dimensions;
 pub mod experiment;

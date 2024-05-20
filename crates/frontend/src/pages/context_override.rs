@@ -216,24 +216,10 @@ pub fn context_override() -> impl IntoView {
                                 </Drawer>
                             }
                         } else {
-                            logging::log!("it entered 2");
                             view! {
                                 // This holds both the context and overrides
                                 // Access by cloning the inner data
-                                // Access by cloning the inner data
-                                // Access by cloning the inner data
-                                // Access by cloning the inner data
-
                                 // Reset the state
-
-                                // This holds both the context and overrides
-                                // Access by cloning the inner data
-                                // Access by cloning the inner data
-                                // Access by cloning the inner data
-                                // Access by cloning the inner data
-
-                                // Reset the state
-
                                 <Drawer
                                     id="context_and_override_drawer".to_string()
                                     header="Create Overrides"
@@ -432,9 +418,6 @@ pub fn context_override() -> impl IntoView {
                             vec![
                                 view! {
                                     // Reset the state
-
-                                    // Reset the state
-
                                     <div>Loading....</div>
                                 },
                             ]
