@@ -3456,6 +3456,7 @@ dependencies = [
  "futures-util",
  "jsonschema",
  "log",
+ "once_cell",
  "reqwest",
  "rs-snowflake",
  "rusoto_core",
