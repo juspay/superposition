@@ -22,8 +22,13 @@ where
 {
     let _has_dimensions = !dimensions.is_empty();
 
+    let (used_dimensions, set_used_dimensions) = create_signal(
+        context
+            .iter()
+            .map(|(d, _, _)| d.clone())
+            .collect::<HashSet<String>>(),
+    );
     let (context, set_context) = create_signal(context.clone());
-    let (used_dimensions, set_used_dimensions) = create_signal(HashSet::new());
 
     let dimensions = StoredValue::new(dimensions);
 
@@ -37,20 +42,20 @@ where
 
     create_effect(move |_| {
         let f_context = context.get();
-        logging::log!("{:?}", f_context);
+        logging::log!("effect {:?}", f_context);
         handle_change(f_context.clone());
     });
 
-    let handle_select_dropdown_option = move |selected_dimension: Dimension| {
-        let dimension_name = selected_dimension.dimension;
-        set_context.update(|value| {
-            logging::log!("{:?}", value);
-            value.push((dimension_name.to_string(), "".to_string(), "".to_string()))
+    let handle_select_dropdown_option =
+        Callback::new(move |selected_dimension: Dimension| {
+            let dimension_name = selected_dimension.dimension;
+            set_context.update(|value| {
+                value.push((dimension_name.clone(), "".to_string(), "".to_string()))
+            });
+            set_used_dimensions.update(|value: &mut HashSet<String>| {
+                value.insert(dimension_name);
+            });
         });
-        set_used_dimensions.update(|value: &mut HashSet<String>| {
-            value.insert(dimension_name.to_string());
-        });
-    };
 
     view! {
         <div>
@@ -72,7 +77,7 @@ where
                                     dropdown_direction
                                     dropdown_options=dimensions.get_value()
                                     disabled=disabled
-                                    on_select=Box::new(handle_select_dropdown_option)
+                                    on_select=handle_select_dropdown_option
                                 />
                             </div>
                         </Show>
@@ -216,7 +221,7 @@ where
                                             dropdown_options=dimensions
                                             disabled=disabled
                                             dropdown_direction
-                                            on_select=Box::new(handle_select_dropdown_option)
+                                            on_select=handle_select_dropdown_option
                                         />
                                     }
                                 }}

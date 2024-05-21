@@ -1,77 +1,206 @@
 use crate::api::fetch_config;
 use crate::api::{delete_context, fetch_default_config, fetch_dimensions};
+use crate::components::alert::AlertType;
 use crate::components::button::Button;
-use crate::components::condition_pills::types::Condition;
-use crate::components::condition_pills::ConditionPills;
+use crate::components::context_card::ContextCard;
 use crate::components::context_form::utils::{create_context, update_context};
 use crate::components::context_form::ContextForm;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::override_form::OverrideForm;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
-use crate::components::table::{types::Column, Table};
-use crate::types::{Config, DefaultConfig, Dimension};
+use crate::providers::alert_provider::enqueue_alert;
+use crate::types::{Config, Context, DefaultConfig, Dimension};
 use crate::utils::extract_conditions;
 use futures::join;
 use leptos::*;
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 
 #[derive(Clone, Debug, Default)]
-pub struct TableData {
+pub struct Data {
     pub context: Vec<(String, String, String)>,
-    pub overrides: Map<String, Value>,
+    pub overrides: Vec<(String, Value)>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-struct CombinedResourceOverride {
-    config: Option<Config>,
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+struct PageResource {
+    config: Config,
     dimensions: Vec<Dimension>,
     default_config: Vec<DefaultConfig>,
+}
+
+#[derive(Debug, Clone)]
+enum FormMode {
+    Edit,
+    Create,
+}
+
+#[component]
+fn form(
+    context: Vec<(String, String, String)>,
+    overrides: Vec<(String, Value)>,
+    dimensions: Vec<Dimension>,
+    edit: bool,
+    default_config: Vec<DefaultConfig>,
+    handle_submit: Callback<(), ()>,
+) -> impl IntoView {
+    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let (context, set_context) = create_signal(context);
+    let (overrides, set_overrides) = create_signal(overrides);
+    let dimensions = StoredValue::new(dimensions);
+
+    let on_submit = move |_| {
+        spawn_local(async move {
+            let f_context = context.get();
+            let f_overrides = overrides.get();
+            let dimensions = dimensions.get_value();
+            let result = if edit {
+                update_context(
+                    tenant_rs.get().clone(),
+                    Map::from_iter(f_overrides),
+                    f_context,
+                    dimensions,
+                )
+                .await
+            } else {
+                create_context(
+                    tenant_rs.get().clone(),
+                    Map::from_iter(f_overrides),
+                    f_context,
+                    dimensions,
+                )
+                .await
+            };
+
+            match result {
+                Ok(_) => {
+                    logging::log!("Context and overrides submitted successfully");
+                    handle_submit.call(());
+                }
+                Err(e) => {
+                    logging::log!("Error submitting context and overrides: {:?}", e);
+                }
+            }
+        });
+    };
+    view! {
+        <ContextForm
+            dimensions=dimensions.get_value()
+            context=context.get_untracked()
+            is_standalone=false
+            handle_change=move |new_context| {
+                set_context
+                    .update(|value| {
+                        *value = new_context;
+                    });
+            }
+
+            disabled=edit
+        />
+        <OverrideForm
+            overrides=overrides.get_untracked()
+            default_config=default_config
+            is_standalone=false
+            handle_change=move |new_overrides| {
+                set_overrides
+                    .update(|value| {
+                        *value = new_overrides;
+                    });
+            }
+        />
+
+        <div class="form-control grid w-full justify-end">
+            <Button
+                class="pl-[70px] pr-[70px]".to_string()
+                text="Submit".to_string()
+                on_click=on_submit
+            />
+        </div>
+    }
 }
 
 #[component]
 pub fn context_override() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
 
-    let selected_context_and_override = create_rw_signal::<Option<TableData>>(None);
-    let form_data = create_rw_signal::<Option<TableData>>(None);
+    let (selected_data, set_selected_data) = create_signal::<Option<Data>>(None);
+    let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
 
-    let table_columns = create_memo(move |_| {
-        vec![
-            Column::default("KEY".to_string()),
-            Column::default("VALUE".to_string()),
-        ]
+    let page_resource: Resource<String, PageResource> = create_blocking_resource(
+        move || tenant_rs.get().clone(),
+        |current_tenant| async move {
+            let (config_result, dimensions_result, default_config_result) = join!(
+                fetch_config(current_tenant.to_string()),
+                fetch_dimensions(current_tenant.to_string()),
+                fetch_default_config(current_tenant.to_string())
+            );
+            PageResource {
+                config: config_result.unwrap_or_default(),
+                dimensions: dimensions_result
+                    .unwrap_or_default()
+                    .into_iter()
+                    .filter(|d| d.dimension != "variantIds")
+                    .collect(),
+                default_config: default_config_result.unwrap_or_default(),
+            }
+        },
+    );
+
+    let handle_context_create = Callback::new(move |_| {
+        set_form_mode.set(Some(FormMode::Create));
+        set_selected_data.set(None);
+        open_drawer("context_and_override_drawer");
     });
 
-    let edit_signal = create_rw_signal(false);
+    let handle_submit = Callback::new(move |_| {
+        close_drawer("context_and_override_drawer");
+        set_form_mode.set(None);
+        set_selected_data.set(None);
+        page_resource.refetch();
+    });
 
-    let combined_resource: Resource<String, CombinedResourceOverride> =
-        create_blocking_resource(
-            move || tenant_rs.get().clone(),
-            |current_tenant| async move {
-                let (config_result, dimensions_result, default_config_result) = join!(
-                    fetch_config(current_tenant.to_string()),
-                    fetch_dimensions(current_tenant.to_string()),
-                    fetch_default_config(current_tenant.to_string())
-                );
-                CombinedResourceOverride {
-                    config: config_result.ok(),
-                    dimensions: dimensions_result
-                        .unwrap_or(vec![])
-                        .into_iter()
-                        .filter(|d| d.dimension != "variantIds")
-                        .collect(),
-                    default_config: default_config_result.unwrap_or(vec![]),
+    let handle_context_edit =
+        Callback::new(move |data: (Context, Map<String, Value>)| {
+            let (context, overrides) = data;
+            let conditions = extract_conditions(&context.condition).unwrap_or(vec![]);
+
+            set_selected_data.set(Some(Data {
+                context: conditions,
+                overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
+            }));
+            set_form_mode.set(Some(FormMode::Edit));
+
+            open_drawer("context_and_override_drawer");
+        });
+
+    let handle_context_clone =
+        Callback::new(move |data: (Context, Map<String, Value>)| {
+            let (context, overrides) = data;
+            let conditions = extract_conditions(&context.condition).unwrap_or(vec![]);
+
+            set_selected_data.set(Some(Data {
+                context: conditions,
+                overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
+            }));
+            set_form_mode.set(Some(FormMode::Create));
+
+            open_drawer("context_and_override_drawer");
+        });
+
+    let handle_context_delete = Callback::new(move |id: String| {
+        spawn_local(async move {
+            let result = delete_context(tenant_rs.get(), id).await;
+
+            match result {
+                Ok(_) => {
+                    logging::log!("Context and overrides deleted successfully");
+                    page_resource.refetch();
                 }
-            },
-        );
-
-    let handle_create_click = Callback::new(move |_| {
-        edit_signal.set(false);
-        form_data.set(Some(TableData {
-            context: vec![],
-            overrides: Map::new(),
-        }));
+                Err(e) => {
+                    logging::log!("Error deleting context and overrides: {:?}", e);
+                }
+            }
+        });
     });
 
     view! {
@@ -80,7 +209,7 @@ pub fn context_override() -> impl IntoView {
                 <h2 class="card-title">Overrides</h2>
                 <DrawerBtn
                     drawer_id="context_and_override_drawer".to_string()
-                    on_click=handle_create_click
+                    on_click=handle_context_create
                 >
                     Create Override
                     <i class="ri-edit-2-line ml-2"></i>
@@ -93,335 +222,107 @@ pub fn context_override() -> impl IntoView {
                 <div class="space-y-6">
 
                     {move || {
-                        let dimension_value = combined_resource.get().map(|r| r.dimensions.clone());
-                        let default_config_value = combined_resource
+                        let PageResource { config: _, dimensions, default_config } = page_resource
                             .get()
-                            .map(|r| r.default_config.clone());
-                        let on_submit = move |_| {
-                            spawn_local(async move {
-                                let form_data_clone = form_data.get();
-                                let dimensions = combined_resource
-                                    .get()
-                                    .map(|r| r.dimensions.clone());
-                                if let Some(final_form_data) = form_data_clone {
-                                    let result = if edit_signal.get_untracked() {
-                                        update_context(
-                                                tenant_rs.get().clone(),
-                                                final_form_data.overrides.clone(),
-                                                final_form_data.context.clone(),
-                                                dimensions.unwrap_or_default(),
-                                            )
-                                            .await
-                                    } else {
-                                        create_context(
-                                                tenant_rs.get().clone(),
-                                                final_form_data.overrides.clone(),
-                                                final_form_data.context.clone(),
-                                                dimensions.unwrap_or_default(),
-                                            )
-                                            .await
-                                    };
-                                    match result {
-                                        Ok(_) => {
-                                            combined_resource.refetch();
-                                            logging::log!(
-                                                "Context and overrides submitted successfully"
-                                            );
-                                            form_data.set(None);
-                                            selected_context_and_override.set(None);
-                                            edit_signal.set(false);
-                                            close_drawer("context_and_override_drawer");
-                                        }
-                                        Err(e) => {
-                                            logging::log!(
-                                                "Error submitting context and overrides: {:?}", e
-                                            );
-                                        }
-                                    }
-                                } else {
-                                    logging::log!("No data to submit");
-                                }
-                            });
+                            .unwrap_or_default();
+                        let data = selected_data.get();
+                        let drawer_header = match form_mode.get() {
+                            Some(FormMode::Edit) => "Update Overrides",
+                            Some(FormMode::Create) => "Create Overrides",
+                            None => "",
                         };
-                        if let Some(_selected_data) = selected_context_and_override.get() {
-                            let handle_close = move || {
-                                close_drawer("context_and_override_drawer");
-                                selected_context_and_override.set(None);
-                                form_data.set(None);
-                                edit_signal.set(false);
-                            };
-                            let form_data_untracked = form_data.get_untracked().unwrap();
-                            let overrides = form_data_untracked.overrides.clone();
-                            let cleaned_overrides = overrides
-                                .iter()
-                                .map(|(key, value)| {
-                                    let clean_key = key.trim_matches('\"').to_string();
-                                    let clean_value = match value {
-                                        Value::String(s) => Value::String(s.clone()),
-                                        _ => value.clone(),
-                                    };
-                                    (clean_key, clean_value)
-                                })
-                                .collect::<Map<String, Value>>();
-                            view! {
-                                // This holds both the context and overrides
-                                // Access by cloning the inner data
-                                // Access by cloning the inner data
-                                // Access by cloning the inner data
-                                // Access by cloning the inner data
+                        view! {
+                            <Drawer
+                                id="context_and_override_drawer".to_string()
+                                header=drawer_header
+                                handle_close=move || {
+                                    close_drawer("context_and_override_drawer");
+                                    set_form_mode.set(None);
+                                    set_selected_data.set(None);
+                                }
+                            >
 
-                                // Reset the state
-
-                                <Drawer
-                                    id="context_and_override_drawer".to_string()
-                                    header="Update Overrides"
-                                    handle_close=handle_close
-                                >
-                                    <ContextForm
-                                        dimensions=dimension_value.unwrap_or_default()
-                                        context=form_data_untracked.context
-                                        is_standalone=false
-                                        handle_change=move |new_context| {
-                                            form_data
-                                                .update(|prev| {
-                                                    if let Some(inner) = prev {
-                                                        inner.context = new_context;
-                                                    }
-                                                })
+                                {match (form_mode.get(), data) {
+                                    (Some(FormMode::Edit), Some(data)) => {
+                                        view! {
+                                            <Form
+                                                context=data.context
+                                                overrides=data.overrides
+                                                dimensions=dimensions
+                                                default_config=default_config
+                                                handle_submit=handle_submit
+                                                edit=true
+                                            />
                                         }
-
-                                        disabled=edit_signal.get()
-                                    />
-                                    <OverrideForm
-                                        overrides=cleaned_overrides
-                                        default_config=default_config_value.unwrap_or_default()
-                                        is_standalone=false
-                                        handle_change=move |new_overrides| {
-                                            form_data
-                                                .update(|prev| {
-                                                    if let Some(inner) = prev {
-                                                        inner.overrides = new_overrides;
-                                                    }
-                                                });
-                                        }
-                                    />
-
-                                    <div class="form-control grid w-full justify-end">
-                                        <Button
-                                            class="pl-[70px] pr-[70px]".to_string()
-                                            text="Submit".to_string()
-                                            on_click=on_submit
-                                        />
-                                    </div>
-                                </Drawer>
-                            }
-                        } else {
-                            view! {
-                                // This holds both the context and overrides
-                                // Access by cloning the inner data
-                                // Reset the state
-                                <Drawer
-                                    id="context_and_override_drawer".to_string()
-                                    header="Create Overrides"
-                                    handle_close=move || {
-                                        form_data.set(None);
-                                        close_drawer("context_and_override_drawer");
-                                        edit_signal.set(false);
-                                        combined_resource.refetch()
+                                            .into_view()
                                     }
-                                >
-
-                                    <ContextForm
-                                        dimensions=dimension_value.unwrap_or_default()
-                                        context=vec![]
-                                        handle_change=move |new_context| {
-                                            form_data
-                                                .update(|prev| {
-                                                    if let Some(inner) = prev {
-                                                        inner.context = new_context;
-                                                    }
-                                                });
+                                    (Some(FormMode::Create), data) => {
+                                        let Data { context, overrides } = data.unwrap_or_default();
+                                        view! {
+                                            <Form
+                                                context=context
+                                                overrides=overrides
+                                                dimensions=dimensions
+                                                default_config=default_config
+                                                handle_submit=handle_submit
+                                                edit=false
+                                            />
                                         }
-                                    />
+                                            .into_view()
+                                    }
+                                    (Some(FormMode::Edit), None) => {
+                                        enqueue_alert(
+                                            String::from("Something went wrong, failed to load form"),
+                                            AlertType::Error,
+                                            5000,
+                                        );
+                                        view! {}.into_view()
+                                    }
+                                    (None, _) => view! {}.into_view(),
+                                }}
 
-                                    <OverrideForm
-                                        overrides=Map::new()
-                                        default_config=default_config_value.unwrap_or_default()
-                                        handle_change=move |new_overrides| {
-                                            form_data
-                                                .update(|prev| {
-                                                    if let Some(ref mut inner) = prev {
-                                                        inner.overrides = new_overrides;
-                                                    }
-                                                });
-                                        }
-                                    />
-
-                                    <div class="form-control grid w-full justify-end">
-                                        <Button
-                                            class="pl-[70px] pr-[70px]".to_string()
-                                            text="Submit".to_string()
-                                            on_click=on_submit
-                                        />
-                                    </div>
-                                </Drawer>
-                            }
+                            </Drawer>
                         }
                     }}
                     {move || {
-                        let handle_delete = move |_, context_id| {
-                            spawn_local(async move {
-                                let result = delete_context(tenant_rs.get().clone(), context_id)
-                                    .await;
-                                match result {
-                                    Ok(_) => {
-                                        logging::log!("Context and overrides deleted successfully");
-                                        form_data.set(None);
-                                        selected_context_and_override.set(None);
-                                        combined_resource.refetch();
-                                        close_drawer("context_and_override_drawer");
-                                    }
-                                    Err(e) => {
-                                        logging::log!(
-                                            "Error deleting context and overrides: {:?}", e
-                                        );
-                                    }
-                                }
-                            });
-                        };
-                        if let Some(resource) = combined_resource.get() {
-                            let config = resource.config.as_ref().unwrap();
-                            let mut contexts: Vec<Map<String, Value>> = Vec::new();
-                            let mut context_views = Vec::new();
-                            let mut overrides = Map::new();
-                            for context in config.contexts.iter() {
-                                for key in context.override_with_keys.iter() {
-                                    let mut map = Map::new();
-                                    let ovr = config.overrides.get(key).unwrap();
-                                    let ovr_obj = ovr.as_object().unwrap();
-                                    for (key, value) in ovr_obj.iter() {
-                                        let trimmed_key = key.trim_matches('"').to_string();
-                                        let formatted_value = Value::String(
-                                            format!("{}", value).trim_matches('"').to_string(),
-                                        );
-                                        overrides
-                                            .insert(trimmed_key.clone(), formatted_value.clone());
-                                        map.insert("KEY".to_string(), Value::String(trimmed_key));
-                                        map.insert("VALUE".to_string(), formatted_value);
-                                        contexts.push(map.clone());
-                                    }
-                                }
-                                let overrides_clone = overrides.clone();
-                                let context_data_clone_for_display = context.condition.clone();
-                                let conditions: Vec<Condition> = context
-                                    .try_into()
-                                    .unwrap_or(vec![]);
-                                let context_data_clone_for_click = context.condition.clone();
-                                let context_id = context.id.clone();
-                                let create_view = || {
-                                    let override_data = overrides_clone.clone();
-                                    let override_data_for_edit = override_data.clone();
-                                    let context_data_for_edit = context_data_clone_for_display
-                                        .clone();
-                                    view! {
-                                        // Reset the state
-
-                                        <div class="rounded-lg shadow bg-base-100 p-6 shadow">
-                                            <div class="flex justify-between">
-                                                <div class="flex items-center space-x-4">
-                                                    <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono">
-                                                        "Condition"
-                                                    </h3>
-                                                    <i class="ri-arrow-right-fill ri-xl text-blue-500"></i>
-                                                    <ConditionPills conditions=conditions/>
-                                                </div>
-                                                <div class="flex space-x-4">
-                                                    <i
-                                                        class="ri-pencil-line ri-xl text-blue-500 cursor-pointer"
-                                                        on:click=move |_| {
-                                                            edit_signal.set(true);
-                                                            let conditions = extract_conditions(
-                                                                    &context_data_clone_for_click,
-                                                                )
-                                                                .unwrap_or_default();
-                                                            form_data
-                                                                .set(
-                                                                    Some(TableData {
-                                                                        context: conditions,
-                                                                        overrides: override_data_for_edit.clone(),
-                                                                    }),
-                                                                );
-                                                            selected_context_and_override
-                                                                .set(
-                                                                    Some(TableData {
-                                                                        context: vec![],
-                                                                        overrides: override_data_for_edit.clone(),
-                                                                    }),
-                                                                );
-                                                            open_drawer("context_and_override_drawer");
-                                                        }
-                                                    >
-                                                    </i>
-                                                    <i
-                                                        class="ri-file-copy-line ri-xl text-blue-500 cursor-pointer"
-                                                        on:click=move |_| {
-                                                            edit_signal.set(false);
-                                                            let conditions = extract_conditions(&context_data_for_edit)
-                                                                .unwrap_or_default();
-                                                            form_data
-                                                                .set(
-                                                                    Some(TableData {
-                                                                        context: conditions,
-                                                                        overrides: override_data.clone(),
-                                                                    }),
-                                                                );
-                                                            selected_context_and_override
-                                                                .set(
-                                                                    Some(TableData {
-                                                                        context: vec![],
-                                                                        overrides: override_data.clone(),
-                                                                    }),
-                                                                );
-                                                            open_drawer("context_and_override_drawer");
-                                                        }
-                                                    >
-                                                    </i>
-                                                    <i
-                                                        class="ri-delete-bin-5-line ri-xl text-blue-500 cursor-pointer"
-                                                        on:click=move |e| {
-                                                            edit_signal.set(false);
-                                                            logging::log!("entered delete");
-                                                            logging::log!("context_id {:?}", context_id.clone());
-                                                            handle_delete(e, context_id.clone())
-                                                        }
-                                                    >
-                                                    </i>
-                                                </div>
-                                            </div>
-                                            <div class="space-x-4">
-                                                <Table
-                                                    cell_style="min-w-48 font-mono".to_string()
-                                                    rows=contexts.clone()
-                                                    key_column="id".to_string()
-                                                    columns=table_columns.get()
-                                                />
-                                            </div>
-                                        </div>
-                                    }
-                                };
-                                context_views.push(create_view());
-                                contexts.clear();
-                                overrides.clear();
-                            }
-                            context_views
-                        } else {
-                            vec![
+                        let config = page_resource.get().map(|v| v.config).unwrap_or_default();
+                        let ctx_n_overrides = config
+                            .contexts
+                            .into_iter()
+                            .map(|context| {
+                                let overrides = context
+                                    .override_with_keys
+                                    .iter()
+                                    .flat_map(|id| {
+                                        config
+                                            .overrides
+                                            .get(id)
+                                            .cloned()
+                                            .unwrap_or(json!("{}"))
+                                            .as_object()
+                                            .cloned()
+                                            .unwrap_or(Map::new())
+                                            .into_iter()
+                                            .collect::<Vec<(String, Value)>>()
+                                    })
+                                    .collect::<Map<String, Value>>();
+                                (context.clone(), overrides)
+                            })
+                            .collect::<Vec<(Context, Map<String, Value>)>>();
+                        ctx_n_overrides
+                            .into_iter()
+                            .map(|(context, overrides)| {
                                 view! {
-                                    // Reset the state
-                                    <div>Loading....</div>
-                                },
-                            ]
-                        }
+                                    <ContextCard
+                                        context=context
+                                        overrides=overrides
+                                        handle_edit=handle_context_edit
+                                        handle_clone=handle_context_clone
+                                        handle_delete=handle_context_delete
+                                    />
+                                }
+                            })
+                            .collect_view()
                     }}
 
                 </div>

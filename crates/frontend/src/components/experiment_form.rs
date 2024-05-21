@@ -5,44 +5,39 @@ use self::utils::{create_experiment, update_experiment};
 use crate::components::button::Button;
 use crate::components::context_form::ContextForm;
 use crate::components::variant_form::VariantForm;
-use crate::types::{DefaultConfig, Dimension, Variant, VariantType};
+use crate::types::{DefaultConfig, Dimension, VariantFormT, VariantType};
 use leptos::*;
-use serde_json::Map;
 use web_sys::MouseEvent;
 
-fn default_variants_for_form() -> Vec<(String, Variant)> {
+fn default_variants_for_form() -> Vec<(String, VariantFormT)> {
     vec![
         (
             "control-variant".to_string(),
-            Variant {
+            VariantFormT {
                 id: "control".to_string(),
                 variant_type: VariantType::CONTROL,
-                context_id: None,
-                override_id: None,
-                overrides: Map::new(),
+                overrides: vec![],
             },
         ),
         (
             "experimental-variant".to_string(),
-            Variant {
+            VariantFormT {
                 id: "experimental".to_string(),
                 variant_type: VariantType::EXPERIMENTAL,
-                context_id: None,
-                override_id: None,
-                overrides: Map::new(),
+                overrides: vec![],
             },
         ),
     ]
 }
 
-fn get_init_state(variants: &[Variant]) -> Vec<(String, Variant)> {
+fn get_init_state(variants: &[VariantFormT]) -> Vec<(String, VariantFormT)> {
     let init_variants = if variants.is_empty() {
         default_variants_for_form()
     } else {
         variants
             .iter()
             .map(|variant| (variant.id.to_string(), variant.clone()))
-            .collect::<Vec<(String, Variant)>>()
+            .collect::<Vec<(String, VariantFormT)>>()
     };
 
     init_variants
@@ -54,7 +49,7 @@ pub fn experiment_form<NF>(
     #[prop(default = String::new())] id: String,
     name: String,
     context: Vec<(String, String, String)>,
-    variants: Vec<Variant>,
+    variants: Vec<VariantFormT>,
     handle_submit: NF,
     default_config: Vec<DefaultConfig>,
     dimensions: Vec<Dimension>,
@@ -74,9 +69,10 @@ where
         set_context.set_untracked(updated_ctx);
     };
 
-    let handle_variant_form_change = move |updated_varaints: Vec<(String, Variant)>| {
-        set_variants.set_untracked(updated_varaints);
-    };
+    let handle_variant_form_change =
+        move |updated_varaints: Vec<(String, VariantFormT)>| {
+            set_variants.set_untracked(updated_varaints);
+        };
 
     let dimensions = StoredValue::new(dimensions);
     let on_submit = move |event: MouseEvent| {
@@ -90,7 +86,7 @@ where
             .get()
             .into_iter()
             .map(|(_, variant)| variant)
-            .collect::<Vec<Variant>>();
+            .collect::<Vec<VariantFormT>>();
         let tenant = tenant_rs.get();
         let experiment_id = id.clone();
         let handle_submit_clone = handle_submit.clone();

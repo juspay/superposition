@@ -1,15 +1,17 @@
+use std::collections::HashSet;
+
 use crate::{
     components::dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
     types::DefaultConfig,
     utils::{get_config_value, ConfigType},
 };
 use leptos::*;
-use serde_json::{json, Map, Value};
+use serde_json::{json, Value};
 use web_sys::MouseEvent;
 
 #[component]
 pub fn override_form<NF>(
-    overrides: Map<String, Value>,
+    overrides: Vec<(String, Value)>,
     default_config: Vec<DefaultConfig>,
     handle_change: NF,
     #[prop(default = false)] is_standalone: bool,
@@ -18,30 +20,25 @@ pub fn override_form<NF>(
     #[prop(into, default = None)] handle_key_remove: Option<Callback<String, ()>>,
 ) -> impl IntoView
 where
-    NF: Fn(Map<String, Value>) + 'static,
+    NF: Fn(Vec<(String, Value)>) + 'static,
 {
     let default_config = StoredValue::new(default_config);
-    let (overrides, set_overrides) = create_signal(overrides.clone());
-    let unused_config_keys = Signal::derive(move || {
-        default_config
-            .get_value()
-            .into_iter()
-            .filter(|config| !overrides.get().contains_key(&config.key))
-            .collect::<Vec<DefaultConfig>>()
+    let (overrides, set_overrides) = create_signal(overrides);
+    let override_keys = Signal::derive(move || {
+        HashSet::<String>::from_iter(overrides.get().iter().map(|(k, _)| String::from(k)))
     });
-    // let has_default_config = Signal::derive(move || unused_config_keys.get().len() > 0);
 
     let on_submit = move |event: MouseEvent| {
         event.prevent_default();
         logging::log!("{:?}", overrides.get());
     };
 
-    let handle_config_key_select = move |default_config: DefaultConfig| {
+    let handle_config_key_select = Callback::new(move |default_config: DefaultConfig| {
         let config_key = default_config.key;
         set_overrides.update(|value| {
-            value.insert(config_key.to_string(), json!(""));
+            value.push((config_key, json!("")));
         });
-    };
+    });
 
     create_effect(move |_| {
         let f_override = overrides.get();
@@ -55,16 +52,27 @@ where
                     <label class="label">
                         <span class="label-text font-semibold text-base">Overrides</span>
                     </label>
-                    <Show when=move || show_add_override>
-                        <Dropdown
-                            dropdown_btn_type=DropdownBtnType::Link
-                            dropdown_direction=DropdownDirection::Left
-                            dropdown_text=String::from("Add Override")
-                            dropdown_icon=String::from("ri-add-line")
-                            dropdown_options=unused_config_keys.get()
-                            on_select=Box::new(handle_config_key_select)
-                        />
-                    </Show>
+
+                    {move || {
+                        let unused_config_keys = default_config
+                            .get_value()
+                            .into_iter()
+                            .filter(|config| !override_keys.get().contains(&config.key))
+                            .collect::<Vec<DefaultConfig>>();
+                        view! {
+                            <Show when=move || show_add_override>
+                                <Dropdown
+                                    dropdown_btn_type=DropdownBtnType::Link
+                                    dropdown_direction=DropdownDirection::Left
+                                    dropdown_text=String::from("Add Override")
+                                    dropdown_icon=String::from("ri-add-line")
+                                    dropdown_options=unused_config_keys.clone()
+                                    on_select=handle_config_key_select
+                                />
+                            </Show>
+                        }
+                    }}
+
                 </div>
                 <Show when=move || overrides.get().is_empty()>
                     <div class="p-4 text-gray-400 flex flex-col justify-center items-center">
@@ -112,11 +120,12 @@ where
                                                     .expect("can't parse default config key");
                                                 set_overrides
                                                     .update(|curr_overrides| {
-                                                        curr_overrides
-                                                            .insert(
-                                                                config_key_value.to_string(),
-                                                                json!(default_config_val),
-                                                            );
+                                                        let position = curr_overrides
+                                                            .iter()
+                                                            .position(|(k, _)| k.to_owned() == config_key_value);
+                                                        if let Some(idx) = position {
+                                                            curr_overrides[idx].1 = json!(default_config_val);
+                                                        }
                                                     });
                                             }
                                         >
@@ -138,7 +147,12 @@ where
                                                             None => {
                                                                 set_overrides
                                                                     .update(|value| {
-                                                                        value.remove(&config_key);
+                                                                        let position = value
+                                                                            .iter()
+                                                                            .position(|(k, _)| k.to_owned() == config_key);
+                                                                        if let Some(idx) = position {
+                                                                            value.remove(idx);
+                                                                        }
                                                                     })
                                                             }
                                                         };

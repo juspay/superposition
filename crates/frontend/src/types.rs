@@ -133,6 +133,47 @@ pub struct Variant {
     pub overrides: Map<String, Value>,
 }
 
+impl FromIterator<VariantFormT> for Vec<Variant> {
+    fn from_iter<T: IntoIterator<Item = VariantFormT>>(iter: T) -> Self {
+        iter.into_iter().map(Variant::from).collect()
+    }
+}
+
+impl From<VariantFormT> for Variant {
+    fn from(value: VariantFormT) -> Self {
+        Variant {
+            id: value.id,
+            variant_type: value.variant_type,
+            overrides: Map::from_iter(value.overrides),
+            context_id: None,
+            override_id: None,
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub struct VariantFormT {
+    pub id: String,
+    pub variant_type: VariantType,
+    pub overrides: Vec<(String, Value)>,
+}
+
+impl From<Variant> for VariantFormT {
+    fn from(value: Variant) -> Self {
+        VariantFormT {
+            id: value.id,
+            variant_type: value.variant_type,
+            overrides: value.overrides.into_iter().collect(),
+        }
+    }
+}
+
+impl FromIterator<Variant> for Vec<VariantFormT> {
+    fn from_iter<T: IntoIterator<Item = Variant>>(iter: T) -> Self {
+        iter.into_iter().map(VariantFormT::from).collect()
+    }
+}
+
 pub type Variants = Vec<Variant>;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -197,7 +238,7 @@ pub struct Context {
     pub override_with_keys: [String; 1],
 }
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug, Default)]
 pub struct Config {
     pub contexts: Vec<Context>,
     pub overrides: Map<String, Value>,

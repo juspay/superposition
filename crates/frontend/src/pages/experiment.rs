@@ -135,7 +135,7 @@ pub fn experiment_page() -> impl IntoView {
                                     name=experiment_ef.name
                                     context=extract_conditions(&experiment_ef.context)
                                         .unwrap_or_default()
-                                    variants=experiment_ef.variants
+                                    variants=FromIterator::from_iter(experiment_ef.variants)
                                     default_config=default_config
                                     dimensions=dimensions
                                     handle_submit=move || { combined_resource.refetch() }

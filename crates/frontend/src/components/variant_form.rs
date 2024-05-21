@@ -2,42 +2,44 @@ use std::collections::HashSet;
 
 use chrono::Local;
 use leptos::*;
-use serde_json::{json, Map, Value};
+use serde_json::{json, Value};
 
 use crate::{
     components::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         override_form::OverrideForm,
     },
-    types::{DefaultConfig, Variant, VariantType},
+    types::{DefaultConfig, VariantFormT, VariantType},
 };
 
-fn get_override_keys_from_variants(variants: &[(String, Variant)]) -> HashSet<String> {
+fn get_override_keys_from_variants(
+    variants: &[(String, VariantFormT)],
+) -> HashSet<String> {
     variants
         .iter()
         .flat_map(|(_, variant)| {
             variant
                 .overrides
-                .keys()
-                .map(String::from)
+                .iter()
+                .map(|(k, _)| String::from(k))
                 .collect::<Vec<String>>()
         })
         .collect::<HashSet<String>>()
 }
 
-fn get_init_state(variants: &[(String, Variant)]) -> HashSet<String> {
+fn get_init_state(variants: &[(String, VariantFormT)]) -> HashSet<String> {
     get_override_keys_from_variants(variants)
 }
 
 #[component]
 pub fn variant_form<HC>(
     edit: bool,
-    variants: Vec<(String, Variant)>,
+    variants: Vec<(String, VariantFormT)>,
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
 ) -> impl IntoView
 where
-    HC: Fn(Vec<(String, Variant)>) + 'static + Clone,
+    HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
 {
     let init_override_keys = get_init_state(&variants);
     let (f_variants, set_variants) = create_signal(variants);
@@ -61,13 +63,20 @@ where
         });
         set_variants.update(|current_variants| {
             for variant in current_variants.iter_mut() {
-                variant.1.overrides.remove(&removed_key);
+                let position = variant
+                    .1
+                    .overrides
+                    .iter()
+                    .position(|(k, _)| k.to_owned() == removed_key);
+                if let Some(idx) = position {
+                    variant.1.overrides.remove(idx);
+                }
             }
         });
     };
 
     let handle_override_form_change = move |variant_idx: usize| {
-        move |updated_overrides: Map<String, Value>| {
+        move |updated_overrides: Vec<(String, Value)>| {
             set_variants.update_untracked(|curr_variants| {
                 curr_variants[variant_idx]
                     .1
@@ -83,17 +92,17 @@ where
         handle_change.get_value()(f_variants.clone());
     });
 
-    let handle_config_key_select = move |default_config: DefaultConfig| {
+    let handle_config_key_select = Callback::new(move |default_config: DefaultConfig| {
         let config_key = default_config.key;
-        set_variants.update(|current_variants: &mut Vec<(String, Variant)>| {
+        set_variants.update(|current_variants: &mut Vec<(String, VariantFormT)>| {
             for (_, variant) in current_variants.iter_mut() {
-                variant.overrides.insert(config_key.clone(), json!(""));
+                variant.overrides.push((config_key.clone(), json!("")));
             }
         });
         set_override_keys.update(|value: &mut HashSet<String>| {
             value.insert(config_key.clone());
         });
-    };
+    });
 
     view! {
         <div class="form-control w-full">
@@ -112,7 +121,7 @@ where
                         .get()
                         .into_iter()
                         .enumerate()
-                        .collect::<Vec<(usize, (String, Variant))>>()
+                        .collect::<Vec<(usize, (String, VariantFormT))>>()
                 }
 
                 key=|(_, (key, _))| key.to_string()
@@ -140,7 +149,7 @@ where
                                         dropdown_text=String::from("Add Override")
                                         dropdown_icon=String::from("ri-add-line")
                                         dropdown_options=unused_config_keys.get()
-                                        on_select=Box::new(handle_config_key_select)
+                                        on_select=handle_config_key_select
                                     />
                                 </Show>
                             </div>
@@ -161,7 +170,9 @@ where
                                         on:input=move |event| {
                                             let variant_id = event_target_value(&event);
                                             set_variants
-                                                .update(|current_variants: &mut Vec<(String, Variant)>| {
+                                                .update(|
+                                                    current_variants: &mut Vec<(String, VariantFormT)>|
+                                                {
                                                     let variant_to_be_updated = current_variants.get_mut(idx);
                                                     match variant_to_be_updated {
                                                         Some((_, ref mut variant)) => {
@@ -190,7 +201,7 @@ where
                                             dropdown_text=String::from("Add Override")
                                             dropdown_icon=String::from("ri-add-line")
                                             dropdown_options=unused_config_keys.get()
-                                            on_select=Box::new(handle_config_key_select)
+                                            on_select=handle_config_key_select
                                         />
                                         <div>
                                             <span class="label-text text-slate-400 text-sm">
@@ -261,17 +272,17 @@ where
                             .update(|curr_variants| {
                                 let total_variants = curr_variants.len();
                                 let key = Local::now().timestamp().to_string();
-                                let overrides = Map::from_iter(
-                                    override_keys.get().into_iter().map(|key| { (key, json!("")) }),
-                                );
+                                let overrides = override_keys
+                                    .get()
+                                    .into_iter()
+                                    .map(|key| { (key, json!("")) })
+                                    .collect();
                                 curr_variants
                                     .push((
                                         key,
-                                        Variant {
+                                        VariantFormT {
                                             id: format!("variant-{}", total_variants),
                                             variant_type: VariantType::EXPERIMENTAL,
-                                            context_id: None,
-                                            override_id: None,
                                             overrides,
                                         },
                                     ))

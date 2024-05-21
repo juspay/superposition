@@ -24,7 +24,7 @@ pub enum DropdownDirection {
 pub fn dropdown<T>(
     dropdown_text: String,
     dropdown_options: Vec<T>,
-    on_select: Box<dyn Fn(T)>,
+    on_select: Callback<T, ()>,
     #[prop(default = "".to_string())] dropdown_icon: String,
     #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
     #[prop(default = DropdownBtnType::Outline)] dropdown_btn_type: DropdownBtnType,
@@ -45,7 +45,6 @@ where
             .filter(|option| option.label().contains(&term))
             .collect::<Vec<T>>()
     });
-    let on_select = StoredValue::new(on_select);
 
     let btn_class = match dropdown_btn_type {
         DropdownBtnType::Outline => "btn btn-sm text-xs m-1 w-full btn-purple-outline",
@@ -108,7 +107,7 @@ where
                                 class="w-full"
                                 on:click=move |_| {
                                     let selected_option = option.clone();
-                                    on_select.with_value(|f| f(selected_option));
+                                    on_select.call(selected_option);
                                 }
                             >
 

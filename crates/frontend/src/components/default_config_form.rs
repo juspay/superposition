@@ -69,17 +69,18 @@ where
         },
     );
 
-    let handle_select_dropdown_option = move |selected_function: FunctionsName| {
-        set_function_name.update(|value| {
-            let function_name = selected_function.clone();
-            leptos::logging::log!("function selected: {:?}", function_name);
-            let fun_name = match function_name.as_str() {
-                "None" => None,
-                _ => Some(json!(function_name)),
-            };
-            *value = fun_name;
+    let handle_select_dropdown_option =
+        Callback::new(move |selected_function: FunctionsName| {
+            set_function_name.update(|value| {
+                let function_name = selected_function.clone();
+                leptos::logging::log!("function selected: {:?}", function_name);
+                let fun_name = match function_name.as_str() {
+                    "None" => None,
+                    _ => Some(json!(function_name)),
+                };
+                *value = fun_name;
+            });
         });
-    };
 
     let (error_message, set_error_message) = create_signal("".to_string());
 
@@ -167,7 +168,7 @@ where
                                 dropdown_direction=DropdownDirection::Down
                                 dropdown_btn_type=DropdownBtnType::Select
                                 dropdown_options=options
-                                on_select=Box::new(move |selected_item: TypeTemplate| {
+                                on_select=Callback::new(move |selected_item: TypeTemplate| {
                                     logging::log!("selected item {:?}", selected_item);
                                     config_type_ws.set(selected_item.type_name);
                                     config_schema_ws.set(selected_item.type_schema);
@@ -280,7 +281,7 @@ where
                                     dropdown_direction=DropdownDirection::Down
                                     dropdown_btn_type=DropdownBtnType::Select
                                     dropdown_options=function_names
-                                    on_select=Box::new(handle_select_dropdown_option)
+                                    on_select=handle_select_dropdown_option
                                 />
                             </div>
                         </div>

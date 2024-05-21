@@ -127,13 +127,12 @@ pub fn types_page() -> impl IntoView {
                         header="Create New Type Template"
                         handle_close=handle_close
                     >
-                        <TypeTemplateForm
-                            handle_submit=move || {
-                                types_resource.refetch();
-                                selected_type.set(None);
-                                close_drawer(TYPE_DRAWER_ID);
-                            }
-                        />
+                        <TypeTemplateForm handle_submit=move || {
+                            types_resource.refetch();
+                            selected_type.set(None);
+                            close_drawer(TYPE_DRAWER_ID);
+                        }/>
+
                     </Drawer>
                 }
             }
@@ -147,7 +146,11 @@ pub fn types_page() -> impl IntoView {
                         let data = types
                             .iter()
                             .map(|ele| {
-                                let mut ele_map = unwrap_option_or_default_with_error(json!(ele).as_object(), &Map::new()).to_owned();
+                                let mut ele_map = unwrap_option_or_default_with_error(
+                                        json!(ele).as_object(),
+                                        &Map::new(),
+                                    )
+                                    .to_owned();
                                 ele_map
                                     .insert(
                                         "created_at".to_string(),
