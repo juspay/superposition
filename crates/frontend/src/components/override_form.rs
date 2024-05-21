@@ -117,7 +117,7 @@ where
                                                             .map(ConfigType::DefaultConfig)
                                                             .collect::<Vec<_>>(),
                                                     )
-                                                    .expect("can't parse default config key");
+                                                    .unwrap_or(json!(input_value));
                                                 set_overrides
                                                     .update(|curr_overrides| {
                                                         let position = curr_overrides
