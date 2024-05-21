@@ -196,7 +196,7 @@ fn generate_subsets_keys(keys: Vec<String>) -> Vec<Vec<String>> {
     res
 }
 
-fn resolve(
+fn reduce(
     contexts_overrides_values: Vec<(Context, Map<String, Value>, Value, String)>,
     default_config_val: &Value,
 ) -> superposition::Result<Vec<Map<String, Value>>> {
@@ -220,23 +220,61 @@ fn resolve(
     default_config_map.insert("key_val".to_string(), default_config_val.to_owned());
     dimensions.push(default_config_map);
 
-    for (index1, c1) in dimensions.clone().iter().enumerate() {
-        let mut nc1 = c1.clone();
-        nc1.remove("req_payload");
-        let c1_val = nc1.remove("key_val");
-        let all_subsets_c1 = generate_subsets(&nc1);
-        for (index2, c2) in dimensions.iter().enumerate() {
-            let mut temp_c2 = c2.clone();
-            temp_c2.remove("req_payload");
-            let c2_val = temp_c2.remove("key_val");
-            if index2 != index1 {
-                if all_subsets_c1.contains(&temp_c2) {
-                    if c1_val == c2_val {
-                        let mut temp_c1 = c1.to_owned();
+    /*
+    We now have dimensions array, which is a vector of elements representing each context present where each element is a type of Map<String,Value> which contains the following
+        1. all the dimensions and value of those dimensions in the context
+        2. key_val, which is the value of the override key for which we are trying to reduce
+        3. A req_payload which contains the details of the context like, context_id, override_id, the context_condition, new overrides (without containing the key that has to be reduced)
+        {
+            dimension1_in_context : value_of_dimension1_in_context,
+            dimension2_in_context : value_of_dimension2_in_context,
+            .
+            .
+            key_val: value of the override key that we are trying to reduce
+            req_payload : {
+                override : new_overrides(without the key that is to be reduced)
+                context : context_condition
+                id : context_id
+                to_be_deleted : if new_overrides is empty then delete this context
+            }
+        }
+
+    We have also sorted this dimensions vector in descending order based on the priority of the dimensions in that context
+    and in this vector the default config will be at the end of the list as it has no dimensions and it's priority is the least
+
+    Now we iterate from start and then pick an element and generate all subsets of that element keys excluding the req_payload and key_val
+    i.e we only generate different subsets of dimensions of that context along with the value of those dimensions in that context
+
+    Next we check if in the vector we find any other element c2 whose dimensions is part of the subsets of the parent element c1
+    if dimensions_subsets_of_c1 contains dimensions_of_c2
+
+        if the value of the override key is same in both c1 and c2 then we can reduce or remove that key in the override of c1
+        so we mark the can_be_reduce to be true, and then update the dimensions vector.
+
+        but if we find any other element c3 whose dimensions is a subset of c1_dimensions but the value is not the same
+        then that means we can't reduce this key from c1, because in resolve if we remove it from c1 it will pick the value form c3 which is different.
+        So if we find this element c3 before any other element which is a subset of c1 with the same value, then we can't reduce this key for c1 so we break
+        and continue with the next element.
+        Here "before" means the element with higher priority comes first with a subset of c1 but differnt override value for the key
+     */
+    for (c1_index, dimensions_of_c1_with_payload) in dimensions.clone().iter().enumerate()
+    {
+        let mut dimensions_of_c1 = dimensions_of_c1_with_payload.clone();
+        dimensions_of_c1.remove("req_payload");
+        let override_val_of_key_in_c1 = dimensions_of_c1.remove("key_val");
+        let dimensions_subsets_of_c1 = generate_subsets(&dimensions_of_c1);
+        for (c2_index, dimensions_in_c2_with_payload) in dimensions.iter().enumerate() {
+            let mut dimensions_of_c2 = dimensions_in_c2_with_payload.clone();
+            dimensions_of_c2.remove("req_payload");
+            let override_val_of_key_in_c2 = dimensions_of_c2.remove("key_val");
+            if c2_index != c1_index {
+                if dimensions_subsets_of_c1.contains(&dimensions_of_c2) {
+                    if override_val_of_key_in_c1 == override_val_of_key_in_c2 {
+                        let mut temp_c1 = dimensions_of_c1_with_payload.to_owned();
                         temp_c1.insert("can_be_reduced".to_string(), Value::Bool(true));
-                        dimensions[index1] = temp_c1;
+                        dimensions[c1_index] = temp_c1;
                         break;
-                    } else if c2_val.is_some() {
+                    } else if override_val_of_key_in_c2.is_some() {
                         break;
                     }
                 }
@@ -343,7 +381,7 @@ async fn reduce_context_key(
         )
     });
 
-    let resolved_dimensions = resolve(contexts_overrides_values, default_config_val)?;
+    let resolved_dimensions = reduce(contexts_overrides_values, default_config_val)?;
     for rd in resolved_dimensions {
         match (
             rd.get("can_be_reduced"),
