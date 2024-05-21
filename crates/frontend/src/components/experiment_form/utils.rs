@@ -1,8 +1,6 @@
-use super::types::{
-    ExperimentCreateRequest, ExperimentUpdateRequest, VariantUpdateRequest,
-};
+use super::types::{ExperimentCreateRequest, ExperimentUpdateRequest};
 use crate::components::context_form::utils::construct_context;
-use crate::types::{Dimension, Variant};
+use crate::types::{Dimension, VariantFormT};
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
 use serde_json::Value;
 
@@ -15,14 +13,14 @@ pub fn validate_experiment(experiment: &ExperimentCreateRequest) -> Result<bool,
 
 pub async fn create_experiment(
     conditions: Vec<(String, String, String)>,
-    variants: Vec<Variant>,
+    variants: Vec<VariantFormT>,
     name: String,
     tenant: String,
     dimensions: Vec<Dimension>,
 ) -> Result<Value, String> {
     let payload = ExperimentCreateRequest {
         name,
-        variants,
+        variants: FromIterator::from_iter(variants),
         context: construct_context(conditions, dimensions),
     };
 
@@ -43,17 +41,11 @@ pub async fn create_experiment(
 
 pub async fn update_experiment(
     experiment_id: String,
-    variants: Vec<Variant>,
+    variants: Vec<VariantFormT>,
     tenant: String,
 ) -> Result<Value, String> {
     let payload = ExperimentUpdateRequest {
-        variants: variants
-            .into_iter()
-            .map(|variant| VariantUpdateRequest {
-                id: variant.id,
-                overrides: variant.overrides,
-            })
-            .collect::<Vec<VariantUpdateRequest>>(),
+        variants: FromIterator::from_iter(variants),
     };
 
     let host = get_host();

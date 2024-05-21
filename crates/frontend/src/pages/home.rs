@@ -299,7 +299,11 @@ pub fn home() -> impl IntoView {
                         selected_tab_ws.set(ResolveTab::AllConfig);
                         set_timeout(
                             || {
-                                if let Some(btn) = get_element_by_id::<HtmlButtonElement>("resolve_btn") { btn.click() }
+                                if let Some(btn) = get_element_by_id::<
+                                    HtmlButtonElement,
+                                >("resolve_btn") {
+                                    btn.click()
+                                }
                             },
                             Duration::new(1, 0),
                         );
@@ -324,7 +328,11 @@ pub fn home() -> impl IntoView {
                         selected_tab_ws.set(ResolveTab::ResolvedConfig);
                         set_timeout(
                             || {
-                                if let Some(btn) = get_element_by_id::<HtmlButtonElement>("resolve_btn") { btn.click() }
+                                if let Some(btn) = get_element_by_id::<
+                                    HtmlButtonElement,
+                                >("resolve_btn") {
+                                    btn.click()
+                                }
                             },
                             Duration::new(1, 0),
                         );
@@ -392,9 +400,7 @@ pub fn home() -> impl IntoView {
                                                                     .override_with_keys
                                                                     .iter()
                                                                     .filter_map(|key| {
-                                                                        config.overrides
-                                                                            .get(key)
-                                                                            .map(|o| (key, o))
+                                                                        config.overrides.get(key).map(|o| (key, o))
                                                                     })
                                                                     .map(|(k, v)| { rows(k, v, true) })
                                                                     .collect();
