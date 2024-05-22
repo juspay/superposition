@@ -1,4 +1,6 @@
-use super::types::Column;
+use crate::components::pagination::pagination::Pagination;
+
+use super::types::{Column, TablePaginationProps};
 use leptos::*;
 use serde_json::{json, Map, Value};
 
@@ -23,7 +25,9 @@ pub fn table(
     cell_style: String,
     columns: Vec<Column>,
     rows: Vec<Map<String, Value>>,
+    #[prop(default = TablePaginationProps::default())] pagination: TablePaginationProps,
 ) -> impl IntoView {
+    let pagination_props = StoredValue::new(pagination);
     view! {
         <div class="overflow-x-auto">
             <table class="table table-zebra">
@@ -55,9 +59,16 @@ pub fn table(
                                 .as_str()
                                 .unwrap()
                                 .to_string();
+                            let TablePaginationProps { enabled, current_page, count, .. } = pagination_props
+                                .get_value();
+                            let row_num = if enabled {
+                                index as i64 + 1 + ((current_page - 1) * count)
+                            } else {
+                                index as i64 + 1
+                            };
                             view! {
                                 <tr id=row_id>
-                                    <th>{index + 1}</th>
+                                    <th>{row_num}</th>
 
                                     {columns
                                         .iter()
@@ -81,6 +92,26 @@ pub fn table(
 
                 </tbody>
             </table>
+            <Show when=move || {
+                pagination_props.get_value().enabled
+            }>
+
+                {move || {
+                    let TablePaginationProps { current_page, total_pages, on_prev, on_next, .. } = pagination_props
+                        .get_value();
+                    view! {
+                        <div class="mt-2 flex justify-end">
+                            <Pagination
+                                current_page=current_page
+                                total_pages=total_pages
+                                next=on_next
+                                previous=on_prev
+                            />
+                        </div>
+                    }
+                }}
+
+            </Show>
         </div>
     }
 }

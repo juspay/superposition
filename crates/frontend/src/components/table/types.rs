@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use leptos::{view, IntoView, View};
+use leptos::{view, Callback, IntoView, View};
 use serde_json::{Map, Value};
 
 pub type CellFormatter = Box<Rc<dyn Fn(&str, &Map<String, Value>) -> View>>;
@@ -43,6 +43,29 @@ impl Column {
             name,
             hidden: hidden.unwrap_or(false),
             formatter: Box::new(Rc::new(formatter)),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TablePaginationProps {
+    pub enabled: bool,
+    pub current_page: i64,
+    pub total_pages: i64,
+    pub count: i64,
+    pub on_next: Callback<i64>,
+    pub on_prev: Callback<()>,
+}
+
+impl Default for TablePaginationProps {
+    fn default() -> Self {
+        TablePaginationProps {
+            enabled: false,
+            current_page: 0,
+            total_pages: 0,
+            count: 0,
+            on_next: Callback::new(move |_| {}),
+            on_prev: Callback::new(move |_| {}),
         }
     }
 }
