@@ -2,41 +2,75 @@
 
 This document outlines the setup process for the `Superposition Platform`.
 
-## Installation for linux/MacOS
+## Installation for Linux/MacOS
 
-- Install Rust using rustup
-    `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
-- Install wasm-pack
-    `curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh`
-- Install docker
-- make sure you have dependencies like libpq, openssl, libiconv,etc installed
-- make sure `make` command is installed
-  - Linux
+- **Install** [rust](https://rustup.rs).
+
+- **Install** [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
+
+- **Install Docker**
+
+- **Installing Lib Dependencies & Tools :** <br>
+    `libpq`, `openssl`, `libiconv` are required for building the project. `diesel_cli` and `aws cli` is needed for dev.
+
+    For MacOS :
     ```bash
-    sudo apt-get install build-essential
+    brew install libpq openssl libiconv awscli
     ```
-  - MacOS
+    Set the PQ_LIB_DIR environment variable for ensuring libpq is picked up by diesel and/or diesel_cli.
     ```bash
-    xcode-select --install
+    export PQ_LIB_DIR="$(brew --prefix libpq)/lib"
     ```
-- Clone the repository 
+    `diesel_cli` can be installed using `cargo`.
+    ```bash
+    cargo install diesel_cli --no-default-features --features postgres
+    ```
+
+- **Configure AWS CLI**
+    ```bash
+    aws configure
+    ```
+    Use the following values as input: <br>
+      - `AWS Access Key ID`: Test <br>
+      - `AWS Secret Access Key`: Test <br>
+      - `Default region name`: None <br>
+      - `Default output format`: None
+
+- **Ensure `make` Command is Installed**
+    - For Linux:
+      ```bash
+      sudo apt-get install build-essential
+      ```
+    - For MacOS:
+      ```bash
+      xcode-select --install
+      ```
+
+- **Clone the Repository**
     ```bash
     git clone https://github.com/juspay/superposition.git
     cd superposition
     ```
-- Start docker daemon
-    - Linux
-        ```bash
-        sudo systemctl start docker
-        ```
-    - MacOS
-        ```bash
-        open --background -a Docker
-        ```
-- setup database and envs
-    `make setup`
-- Run Superposition
-    `make run`
+
+- **Start Docker Daemon**
+    - For Linux:
+      ```bash
+      sudo systemctl start docker
+      ```
+    - For MacOS:
+      ```bash
+      open --background -a Docker
+      ```
+
+- **Setup Database and Environment Variables**
+    ```bash
+    make setup
+    ```
+
+- **Run Superposition**
+    ```bash
+    make run
+    ```
 
 ## Nix Installation
 
