@@ -50,7 +50,7 @@ tenant:
 	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/create-tenant.sh -t $(TENANT) -d
 
 validate-aws-connection:
-	aws --endpoint-url=http://$(DOCKER_DNS):4566 --region=ap-south-1 sts get-caller-identity
+	aws --no-cli-pager --endpoint-url=http://$(DOCKER_DNS):4566 --region=ap-south-1 sts get-caller-identity
 
 validate-psql-connection:
 	pg_isready -h $(DOCKER_DNS) -p 5432
