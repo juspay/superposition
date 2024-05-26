@@ -22,7 +22,7 @@ pub fn create_function_view() -> impl IntoView {
                     r#"
 
                     import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/+esm';
-                    
+
                     window.editor = monaco.editor.create(document.querySelector('.monaco'), {{
 
                         value: [
@@ -39,7 +39,7 @@ pub fn create_function_view() -> impl IntoView {
                     {{
                         e.formData.set('function', window.editor.getValue());
                     }});
-                    
+
                     "#,
                 )}
 
