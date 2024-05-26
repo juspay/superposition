@@ -31,3 +31,6 @@ test_logs
 .keep
 .vscode
 *.session.sql
+
+# pre-commit config
+.pre-commit-config.yaml

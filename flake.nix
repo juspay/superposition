@@ -4,6 +4,7 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     haskell-flake.url = "github:srid/haskell-flake";
     systems.url = "github:nix-systems/default";
+    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     crane = {
       url = "github:ipetkov/crane";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -21,15 +22,18 @@
 
       imports = [
         inputs.haskell-flake.flakeModule
+        inputs.pre-commit-hooks.flakeModule
+        ./nix/pre-commit.nix
         ./clients/haskell
         ./rust.nix
       ];
 
-      perSystem = { pkgs, self', ... }: {
+      perSystem = { pkgs, self', config, ... }: {
         devShells.default = pkgs.mkShell {
           inputsFrom = [
             self'.devShells.rust
             self'.devShells.haskell
+            config.pre-commit.devShell
           ];
           packages = with pkgs; [
             docker-compose
