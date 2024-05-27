@@ -36,7 +36,7 @@
             gnumake
             # Why do we need this?
             stdenv.cc
-            awscli
+            awscli2
             jq
             nodejs_18
             nixpkgs-fmt
