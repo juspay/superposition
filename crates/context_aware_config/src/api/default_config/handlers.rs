@@ -50,6 +50,14 @@ async fn create(
     let req = request.into_inner();
     let key = key.into_inner();
 
+    if key.ends_with(".") {
+        log::error!("configuration key {key} cannot end with a '.' character.");
+        return Err(bad_argument!(
+            "Configuration key cannot end with a '.' character. \
+            Please remove the trailing '.' in the key name."
+        ));
+    }
+
     if req.value.is_none() && req.schema.is_none() && req.function_name.is_none() {
         log::error!("No data provided in the request body for {key}");
         return Err(bad_argument!("Please provide data in the request body."));
