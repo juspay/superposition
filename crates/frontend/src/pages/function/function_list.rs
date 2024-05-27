@@ -6,9 +6,8 @@ use leptos_router::A;
 use serde::{Deserialize, Serialize};
 
 use crate::components::skeleton::Skeleton;
-use crate::components::{
-    pagination::pagination::Pagination, stat::stat::Stat, table::table::Table,
-};
+use crate::components::table::types::TablePaginationProps;
+use crate::components::{stat::stat::Stat, table::table::Table};
 
 use crate::types::{FunctionResponse, ListFilters};
 
@@ -44,6 +43,26 @@ pub fn function_list() -> impl IntoView {
             }
         },
     );
+
+    let handle_next_click = Callback::new(move |total_pages: i64| {
+        set_filters.update(|f| {
+            f.page = match f.page {
+                Some(p) if p < total_pages => Some(p + 1),
+                Some(p) => Some(p),
+                None => None,
+            }
+        });
+    });
+
+    let handle_prev_click = Callback::new(move |_| {
+        set_filters.update(|f| {
+            f.page = match f.page {
+                Some(p) if p > 1 => Some(p - 1),
+                Some(p) => Some(p),
+                None => None,
+            }
+        });
+    });
 
     view! {
         <div class="p-8">
@@ -82,6 +101,7 @@ pub fn function_list() -> impl IntoView {
 
                             {move || {
                                 let value = combined_resource.get();
+                                let filters = filters.get();
                                 match value {
                                     Some(v) => {
                                         let data = v
@@ -104,58 +124,27 @@ pub fn function_list() -> impl IntoView {
                                             })
                                             .collect::<Vec<Map<String, Value>>>()
                                             .to_owned();
+                                        let total_pages = (v.functions.len() as f64 / 10 as f64)
+                                            .ceil() as i64;
+                                        let pagination_props = TablePaginationProps {
+                                            enabled: true,
+                                            count: filters.count.unwrap_or_default(),
+                                            current_page: filters.page.unwrap_or_default(),
+                                            total_pages: total_pages,
+                                            on_next: handle_next_click,
+                                            on_prev: handle_prev_click,
+                                        };
                                         view! {
                                             <Table
                                                 cell_style="".to_string()
                                                 rows=data
                                                 key_column="id".to_string()
                                                 columns=table_columns.get()
+                                                pagination=pagination_props
                                             />
                                         }
                                     }
                                     None => view! { <div>Loading....</div> }.into_view(),
-                                }
-                            }}
-
-                        </div>
-                        <div class="mt-2 flex justify-end">
-
-                            {move || {
-                                let current_page = filters.get().page.unwrap_or(0);
-                                let total_pages = match combined_resource.get() {
-                                    Some(val) => {
-                                        (val.functions.len() as f64 / 10 as f64).ceil() as i64
-                                    }
-                                    None => 0,
-                                };
-                                view! {
-                                    <Pagination
-                                        current_page=current_page
-                                        total_pages=total_pages
-                                        next=move || {
-                                            set_filters
-                                                .update(|f| {
-                                                    f
-                                                        .page = match f.page {
-                                                        Some(p) if p < total_pages => Some(p + 1),
-                                                        Some(p) => Some(p),
-                                                        None => None,
-                                                    }
-                                                });
-                                        }
-
-                                        previous=move || {
-                                            set_filters
-                                                .update(|f| {
-                                                    f
-                                                        .page = match f.page {
-                                                        Some(p) if p > 1 => Some(p - 1),
-                                                        Some(p) => Some(p),
-                                                        None => None,
-                                                    }
-                                                });
-                                        }
-                                    />
                                 }
                             }}
 
