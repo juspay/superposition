@@ -42,7 +42,7 @@ pub fn endpoints() -> Scope {
     Scope::new("")
         .service(get)
         .service(get_resolved_config)
-        .service(reduce_context)
+        .service(reduce_config)
         .service(get_filtered_config)
 }
 
@@ -328,7 +328,7 @@ fn construct_new_payload(req_payload: &Map<String, Value>) -> web::Json<PutReq> 
     })
 }
 
-async fn reduce_context_key(
+async fn reduce_config_key(
     user: User,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     mut og_contexts: Vec<Context>,
@@ -364,24 +364,27 @@ async fn reduce_context_key(
         }
     }
 
-    contexts_overrides_values.sort_by(|a, b| {
-        (validate_dimensions_and_calculate_priority(
-            "context",
-            &(b.0).condition,
-            dimension_schema_map,
-        )
-        .unwrap())
-        .cmp(
-            &(validate_dimensions_and_calculate_priority(
-                "context",
-                &(a.0).condition,
-                dimension_schema_map,
-            )
-            .unwrap()),
-        )
-    });
+    let mut priorities = Vec::new();
 
-    let resolved_dimensions = reduce(contexts_overrides_values, default_config_val)?;
+    for (index, ctx) in contexts_overrides_values.iter().enumerate() {
+        let priority = validate_dimensions_and_calculate_priority(
+            "context",
+            &(ctx.0).condition,
+            dimension_schema_map,
+        )?;
+        priorities.push((index, priority))
+    }
+
+    // Sort the collected results based on priority
+    priorities.sort_by(|a, b| b.1.cmp(&a.1));
+
+    // Use the sorted indices to reorder the original vector
+    let sorted_priority_contexts = priorities
+        .into_iter()
+        .map(|(index, _)| contexts_overrides_values[index].clone())
+        .collect();
+
+    let resolved_dimensions = reduce(sorted_priority_contexts, default_config_val)?;
     for rd in resolved_dimensions {
         match (
             rd.get("can_be_reduced"),
@@ -446,7 +449,7 @@ async fn reduce_context_key(
 }
 
 #[put("/reduce")]
-async fn reduce_context(
+async fn reduce_config(
     req: HttpRequest,
     user: User,
     db_conn: DbConnection,
@@ -465,7 +468,7 @@ async fn reduce_context(
         let contexts = config.contexts;
         let overrides = config.overrides;
         let default_config = config.default_configs;
-        config = reduce_context_key(
+        config = reduce_config_key(
             user.clone(),
             &mut conn,
             contexts.clone(),
