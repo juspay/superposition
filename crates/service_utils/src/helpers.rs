@@ -1,6 +1,7 @@
 use actix_web::{error::ErrorInternalServerError, Error};
 use jsonschema::{error::ValidationErrorKind, ValidationError};
 use log::info;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::de::{self, IntoDeserializer};
 use std::{
     env::VarError,
@@ -325,4 +326,46 @@ pub fn validation_err_to_str(errors: Vec<ValidationError>) -> Vec<String> {
             }
         }
     }).collect()
+}
+
+use once_cell::sync::Lazy;
+static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(|| reqwest::Client::new());
+
+pub fn construct_request_headers(entries: &[(&str, &str)]) -> Result<HeaderMap, String> {
+    entries
+        .into_iter()
+        .map(|(name, value)| {
+            let h_name = HeaderName::from_str(name);
+            let h_value = HeaderValue::from_str(value);
+
+            match (h_name, h_value) {
+                (Ok(n), Ok(v)) => Some((n, v)),
+                _ => None,
+            }
+        })
+        .collect::<Option<Vec<(HeaderName, HeaderValue)>>>()
+        .map(HeaderMap::from_iter)
+        .ok_or(String::from("failed to parse headers"))
+}
+
+pub async fn request<'a, T, R>(
+    url: String,
+    method: reqwest::Method,
+    body: Option<T>,
+    headers: HeaderMap,
+) -> Result<R, reqwest::Error>
+where
+    T: serde::Serialize,
+    R: serde::de::DeserializeOwned,
+{
+    let mut request_builder = HTTP_CLIENT.request(method.clone(), url).headers(headers);
+    request_builder = match (method, body) {
+        (reqwest::Method::GET | reqwest::Method::DELETE, _) => request_builder,
+        (_, Some(data)) => request_builder.json(&data),
+        _ => request_builder,
+    };
+
+    let response = request_builder.send().await?;
+
+    response.json::<R>().await
 }

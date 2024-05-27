@@ -5,6 +5,7 @@ use actix_web::{
     web::{self, Data, Json, Query},
     HttpRequest, HttpResponse, Scope,
 };
+use anyhow::anyhow;
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
@@ -12,12 +13,16 @@ use diesel::{
 };
 
 use service_utils::{
-    bad_argument, response_error, result as superposition, unexpected_error,
+    bad_argument,
+    helpers::{construct_request_headers, request},
+    response_error,
+    result::{self as superposition, AppError},
+    unexpected_error,
 };
 
 use superposition_types::{SuperpositionUser, User};
 
-use reqwest::{Response, StatusCode};
+use reqwest::{Method, Response, StatusCode};
 use service_utils::service::types::{AppState, DbConnection, Tenant};
 
 use super::{
@@ -315,13 +320,39 @@ pub async fn conclude(
         })?;
 
         if variant.id == winner_variant_id {
-            let context_move_req = ContextMoveReq {
-                context: experiment_context.clone(),
-            };
+            if !experiment_context.is_empty() {
+                let context_move_req = ContextMoveReq {
+                    context: experiment_context.clone(),
+                };
+                operations.push(ContextAction::MOVE((context_id, context_move_req)));
+            } else {
+                for (key, val) in variant.overrides {
+                    let create_req = HashMap::from([("value", val)]);
+
+                    let url = format!("{}/default-config/{}", state.cac_host, key);
+
+                    let headers = construct_request_headers(&[
+                        ("x-tenant", tenant.as_str()),
+                        (
+                            "Authorization",
+                            &format!(
+                                "{} {}",
+                                user.get_auth_type(),
+                                user.get_auth_token()
+                            ),
+                        ),
+                    ])
+                    .map_err(|err| AppError::UnexpectedError(anyhow!(err)))?;
+
+                    let _ =
+                        request::<_, Value>(url, Method::PUT, Some(create_req), headers)
+                            .await
+                            .map_err(|err| AppError::UnexpectedError(anyhow!(err)))?;
+                }
+                operations.push(ContextAction::DELETE(context_id));
+            }
 
             is_valid_winner_variant = true;
-
-            operations.push(ContextAction::MOVE((context_id, context_move_req)));
         } else {
             // delete this context
             operations.push(ContextAction::DELETE(context_id));
