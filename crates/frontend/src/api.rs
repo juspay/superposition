@@ -205,5 +205,7 @@ pub async fn delete_default_config(key: String, tenant: String) -> Result<(), St
         None::<serde_json::Value>,
         construct_request_headers(&[("x-tenant", &tenant)])?,
     )
-    .await
+    .await?;
+
+    Ok(())
 }

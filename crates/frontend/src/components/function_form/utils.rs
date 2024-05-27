@@ -1,7 +1,7 @@
 use super::types::{FunctionCreateRequest, FunctionUpdateRequest};
 use crate::{
     types::{FunctionResponse, FunctionTestResponse},
-    utils::{construct_request_headers, get_host, request},
+    utils::{construct_request_headers, get_host, parse_json_response, request},
 };
 use serde_json::Value;
 
@@ -21,13 +21,15 @@ pub async fn create_function(
 
     let host = get_host();
     let url = format!("{host}/function");
-    request(
+    let response = request(
         url,
         reqwest::Method::POST,
         Some(payload),
         construct_request_headers(&[("x-tenant", &tenant)])?,
     )
-    .await
+    .await?;
+
+    parse_json_response(response).await
 }
 
 pub async fn update_function(
@@ -46,13 +48,14 @@ pub async fn update_function(
     let host = get_host();
     let url = format!("{host}/function/{function_name}");
 
-    request(
+    let response = request(
         url,
         reqwest::Method::PATCH,
         Some(payload),
         construct_request_headers(&[("x-tenant", &tenant)])?,
     )
-    .await
+    .await?;
+    parse_json_response(response).await
 }
 
 pub async fn test_function(
@@ -64,11 +67,13 @@ pub async fn test_function(
     let host = get_host();
     let url = format!("{host}/function/{function_name}/{stage}/test");
 
-    request(
+    let response = request(
         url,
         reqwest::Method::PUT,
         Some(val),
         construct_request_headers(&[("x-tenant", &tenant)])?,
     )
-    .await
+    .await?;
+
+    parse_json_response(response).await
 }

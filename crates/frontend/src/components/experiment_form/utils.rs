@@ -3,7 +3,7 @@ use super::types::{
 };
 use crate::components::context_form::utils::construct_context;
 use crate::types::{Dimension, Variant};
-use crate::utils::{construct_request_headers, get_host, request};
+use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
 use serde_json::Value;
 
 pub fn validate_experiment(experiment: &ExperimentCreateRequest) -> Result<bool, String> {
@@ -30,13 +30,15 @@ pub async fn create_experiment(
 
     let host = get_host();
     let url = format!("{host}/experiments");
-    request(
+    let response = request(
         url,
         reqwest::Method::POST,
         Some(payload),
         construct_request_headers(&[("x-tenant", &tenant)])?,
     )
-    .await
+    .await?;
+
+    parse_json_response(response).await
 }
 
 pub async fn update_experiment(
@@ -57,11 +59,13 @@ pub async fn update_experiment(
     let host = get_host();
     let url = format!("{}/experiments/{}/overrides", host, experiment_id);
 
-    request(
+    let response = request(
         url,
         reqwest::Method::PUT,
         Some(payload),
         construct_request_headers(&[("x-tenant", &tenant)])?,
     )
-    .await
+    .await?;
+
+    parse_json_response(response).await
 }

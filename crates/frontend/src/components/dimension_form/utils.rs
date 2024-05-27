@@ -1,7 +1,7 @@
 use super::types::DimensionCreateReq;
 use crate::{
     types::Dimension,
-    utils::{construct_request_headers, get_host, request},
+    utils::{construct_request_headers, get_host, parse_json_response, request},
 };
 
 pub async fn create_dimension(
@@ -11,11 +11,13 @@ pub async fn create_dimension(
     let host = get_host();
     let url = format!("{host}/dimension");
 
-    request(
+    let response = request(
         url,
         reqwest::Method::PUT,
         Some(payload),
         construct_request_headers(&[("x-tenant", &tenant)])?,
     )
-    .await
+    .await?;
+
+    parse_json_response(response).await
 }
