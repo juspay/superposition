@@ -31,6 +31,7 @@ strum = { workspace = true }
 js-sys = "0.3.65"
 url = "2.5.0"
 once_cell = { workspace = true }
+leptos-use = { workspace = true}
 
 
 [features]

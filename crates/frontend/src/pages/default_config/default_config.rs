@@ -7,7 +7,9 @@ use crate::components::stat::stat::Stat;
 use crate::components::table::{table::Table, types::Column};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::types::BreadCrums;
-use crate::utils::unwrap_option_or_default_with_error;
+use crate::utils::{
+    get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
+};
 use leptos::*;
 use leptos_router::{use_navigate, use_query_map};
 use serde_json::{json, Map, Value};
@@ -37,7 +39,8 @@ pub fn default_config() -> impl IntoView {
 
     let selected_config = create_rw_signal::<Option<RowData>>(None);
     let key_prefix = create_rw_signal::<Option<String>>(None);
-    let enable_grouping = create_rw_signal(false);
+    let enable_grouping =
+        create_rw_signal(get_local_storage::<bool>("enable_grouping").unwrap_or(false));
     let query_params = use_query_map();
     let bread_crums = Signal::derive(move || get_bread_crums(key_prefix.get()));
 
@@ -342,6 +345,10 @@ pub fn default_config() -> impl IntoView {
                                             on:click=move |_| {
                                                 folder_click_handler(None);
                                                 enable_grouping.set(!enable_grouping.get());
+                                                set_local_storage(
+                                                    "enable_grouping",
+                                                    &enable_grouping.get().to_string(),
+                                                );
                                             }
 
                                             class="cursor-pointer label mr-10"

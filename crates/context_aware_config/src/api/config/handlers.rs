@@ -9,18 +9,12 @@ use crate::api::context::{
     delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
 };
 use crate::api::dimension::get_all_dimension_schema_map;
-use crate::{
-    db::schema::{
-        contexts::dsl as ctxt, default_configs::dsl as def_conf,
-        event_log::dsl as event_log,
-    },
-    helpers::json_to_sorted_string,
+use crate::db::schema::{
+    contexts::dsl as ctxt, default_configs::dsl as def_conf, event_log::dsl as event_log,
 };
 use actix_http::header::{HeaderName, HeaderValue};
 use actix_web::web;
-use actix_web::{
-    error::ErrorBadRequest, get, put, web::Query, HttpRequest, HttpResponse, Scope,
-};
+use actix_web::{get, put, web::Query, HttpRequest, HttpResponse, Scope};
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
 use diesel::{
@@ -167,17 +161,15 @@ fn generate_subsets(map: &Map<String, Value>) -> Vec<Map<String, Value>> {
     let all_subsets_keys = generate_subsets_keys(keys);
 
     for subset_keys in &all_subsets_keys {
-        if subset_keys.len() >= 0 {
-            let mut subset_map = Map::new();
+        let mut subset_map = Map::new();
 
-            for key in subset_keys {
-                if let Some(value) = map.get(key) {
-                    subset_map.insert(key.to_string(), value.clone());
-                }
+        for key in subset_keys {
+            if let Some(value) = map.get(key) {
+                subset_map.insert(key.to_string(), value.clone());
             }
-
-            subsets.push(subset_map);
         }
+
+        subsets.push(subset_map);
     }
 
     subsets
@@ -464,7 +456,7 @@ async fn reduce_config(
     let dimensions_schema_map = get_all_dimension_schema_map(&mut conn)?;
     let mut config = generate_cac(&mut conn).await?;
     let default_config = (config.default_configs).clone();
-    for (key, val) in default_config {
+    for (key, _) in default_config {
         let contexts = config.contexts;
         let overrides = config.overrides;
         let default_config = config.default_configs;
