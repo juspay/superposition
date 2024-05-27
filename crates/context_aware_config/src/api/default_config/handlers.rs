@@ -28,12 +28,12 @@ use diesel::{
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 use jsonschema::{Draft, JSONSchema, ValidationError};
+use regex::Regex;
 use serde_json::{from_value, json, Map, Value};
 use service_utils::{
     result as superposition,
     service::types::{AppState, DbConnection},
 };
-use regex::Regex;
 
 const KEY_NAME_REGEX: &str = "^[a-zA-Z0-9-_.]{1,64}$";
 
