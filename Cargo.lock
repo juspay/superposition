@@ -932,6 +932,7 @@ dependencies = [
  "leptos_router",
  "log",
  "rand",
+ "regex",
  "reqwest",
  "rs-snowflake",
  "rusoto_core",

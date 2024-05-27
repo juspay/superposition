@@ -1,0 +1,45 @@
+{
+  "method": "PUT",
+  "header": [
+    {
+      "key": "Authorization",
+      "value": "Bearer {{token}}",
+      "type": "text"
+    },
+    {
+      "key": "Content-Type",
+      "value": "application/json",
+      "type": "text"
+    },
+    {
+        "key": "x-tenant",
+        "value": "test",
+        "type": "default"
+    }
+  ],
+  "body": {
+    "mode": "raw",
+    "options": {
+      "raw": {
+        "language": "json"
+      }
+    },
+    "raw_json_formatted": {
+      "value": "value1",
+      "schema": {
+        "type": "string",
+        "pattern": ".*"
+      }
+    }
+  },
+  "url": {
+    "raw": "{{host}}/default-config/key.",
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "default-config",
+      "key!"
+    ]
+  }
+}

@@ -33,6 +33,9 @@ use service_utils::{
     result as superposition,
     service::types::{AppState, DbConnection},
 };
+use regex::Regex;
+
+const KEY_NAME_REGEX: &str = "^[a-zA-Z0-9-_.]{1,64}$";
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create).service(get).service(delete)
@@ -50,11 +53,23 @@ async fn create(
     let req = request.into_inner();
     let key = key.into_inner();
 
-    if key.ends_with(".") {
-        log::error!("configuration key {key} cannot end with a '.' character.");
+    let regex = Regex::new(KEY_NAME_REGEX).map_err(|err| {
+        unexpected_error!("could not parse regex due to: {}", err.to_string())
+    })?;
+
+    if !regex.is_match(&key) {
         return Err(bad_argument!(
-            "Configuration key cannot end with a '.' character. \
-            Please remove the trailing '.' in the key name."
+            "The key name {} is invalid, it should obey the regex {}",
+            key,
+            KEY_NAME_REGEX
+        ));
+    }
+
+    if key.starts_with(".") || key.ends_with(".") {
+        log::error!("configuration key {key} cannot start or end with a '.' character.");
+        return Err(bad_argument!(
+            "Configuration key cannot start or end with a '.' character. \
+            Please remove the leading/trailing '.' in the key name."
         ));
     }
 

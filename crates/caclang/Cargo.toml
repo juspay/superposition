@@ -17,7 +17,7 @@ path = "src/bin.rs"
 toml = "0.8.8"
 clap = { version = "4.3.0", features = ["derive"] }
 inquire = "0.6.2"
-regex = "1.9.1"
+regex = { workspace = true }
 serde = "1.0.163"
 blake3 = { workspace = true }
 anyhow = { workspace = true }
