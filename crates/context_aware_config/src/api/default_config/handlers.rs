@@ -37,7 +37,8 @@ use service_utils::{
 
 // the first part of the regex covers for key names more than 1 character in length and
 // the second part of the regex covers for key names that is 1 character in length
-const KEY_NAME_REGEX: &str = "^([a-zA-Z0-9-_][a-zA-Z0-9-_.]{0,62}[a-zA-Z0-9-_]|[a-zA-Z0-9-_])$";
+const KEY_NAME_REGEX: &str =
+    "^([a-zA-Z0-9-_][a-zA-Z0-9-_.]{0,62}[a-zA-Z0-9-_]|[a-zA-Z0-9-_])$";
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create).service(get).service(delete)
