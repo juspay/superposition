@@ -39,12 +39,12 @@ jobs:
             - name: Semver release
               shell: bash
               run: |
-                git config user.email "super_bot@juspay.in"
-                git config user.name "Superposition Bot"
-                cog bump --auto --skip-ci-override "[skip ci]"
+                  git config user.email "super_bot@juspay.in"
+                  git config user.name "Superposition Bot"
+                  cog bump --auto --skip-ci-override "[skip ci]"
 
             - name: Push code to main
               shell: bash
               run: |
-                git push origin main
-                git push origin --tags
+                  git push origin main
+                  git push origin --tags
