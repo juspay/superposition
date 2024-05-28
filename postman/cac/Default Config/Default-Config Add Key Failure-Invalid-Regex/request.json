@@ -33,7 +33,7 @@
     }
   },
   "url": {
-    "raw": "{{host}}/default-config/key.",
+    "raw": "{{host}}/default-config/key!",
     "host": [
       "{{host}}"
     ],
