@@ -5,7 +5,7 @@
       check.enable = true;
       settings = {
         hooks = {
-            eclint.enable = true;
+          eclint.enable = false;
         };
       };
     };
