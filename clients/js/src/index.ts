@@ -1,6 +1,6 @@
 import * as jsonLogic from 'json-logic-js';
 import { deepMerge } from './utils/deepMerge';
-import { compareSemanticIsGreater } from './utils/operations'
+import { isJPVersionEqual, isJPVersionGreater, isJPVersionGreaterEqual, isJPVersionLesser, isJPVersionLesserEqual, matchRegex } from './utils/operations'
 import { IObject, Dimension, Experiments, Variant, VariantType, Variants } from './types'
 
 type DataFromCacApi = {
@@ -15,7 +15,12 @@ export class CacReader {
     defaultConfig: IObject;
 
     static {
-        jsonLogic.add_operation(">>", compareSemanticIsGreater);
+        jsonLogic.add_operation("match", matchRegex);
+        jsonLogic.add_operation("jp_ver_eq", isJPVersionEqual);
+        jsonLogic.add_operation("jp_ver_gt", isJPVersionGreater);
+        jsonLogic.add_operation("jp_ver_ge", isJPVersionGreaterEqual);
+        jsonLogic.add_operation("jp_ver_lt", isJPVersionLesser);
+        jsonLogic.add_operation("jp_ver_le", isJPVersionLesserEqual);
     }
 
     constructor(completeConfig: DataFromCacApi) {
@@ -28,10 +33,14 @@ export class CacReader {
 
         const requiredOverrides: Array<IObject> = [];
         for (let i = 0; i < this.contexts.length; i++) {
-            if (jsonLogic.apply(this.contexts[i].condition, data)) {
-                requiredOverrides.push(
-                    ...this.contexts[i].override_with_keys.map(x => this.overrides[x])
-                );
+            try {
+                if (jsonLogic.apply(this.contexts[i].condition, data)) {
+                    requiredOverrides.push(
+                        ...this.contexts[i].override_with_keys.map(x => this.overrides[x])
+                    );
+                }
+            } catch (e) {
+                console.error(e);
             }
         }
 
