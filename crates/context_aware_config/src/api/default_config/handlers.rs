@@ -35,7 +35,9 @@ use service_utils::{
     service::types::{AppState, DbConnection},
 };
 
-const KEY_NAME_REGEX: &str = "^[a-zA-Z0-9-_.]{1,64}$";
+// the first part of the regex covers for key names more than 1 character in length and
+// the second part of the regex covers for key names that is 1 character in length
+const KEY_NAME_REGEX: &str = "^([a-zA-Z0-9-_][a-zA-Z0-9-_.]{0,62}[a-zA-Z0-9-_]|[a-zA-Z0-9-_])$";
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create).service(get).service(delete)
@@ -59,17 +61,11 @@ async fn create(
 
     if !regex.is_match(&key) {
         return Err(bad_argument!(
-            "The key name {} is invalid, it should obey the regex {}",
+            "The key name {} is invalid, it should obey the regex {}. \
+            It can contain the following characters only [a-zA-Z0-9-_.] \
+            and it should not start or end with a '.' character.",
             key,
             KEY_NAME_REGEX
-        ));
-    }
-
-    if key.starts_with(".") || key.ends_with(".") {
-        log::error!("configuration key {key} cannot start or end with a '.' character.");
-        return Err(bad_argument!(
-            "Configuration key cannot start or end with a '.' character. \
-            Please remove the leading/trailing '.' in the key name."
         ));
     }
 
