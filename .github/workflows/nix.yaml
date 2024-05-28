@@ -1,24 +1,24 @@
 name: "CI Nix"
 on:
-  # Run only when pushing to main branch, and making PRs
-  push:
-    branches:
-      - main
-  pull_request:
+    # Run only when pushing to main branch, and making PRs
+    push:
+        branches:
+            - main
+    pull_request:
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-14]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
-        with:
-          extra-conf: |
-            trusted-public-keys = cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
-            substituters = https://cache.garnix.io?priority=41 https://cache.nixos.org/
-      - uses: yaxitech/nix-install-pkgs-action@v3
-        with:
-          packages: "github:srid/nixci"
-      - run: nixci build
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [ubuntu-latest, macos-14]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: DeterminateSystems/nix-installer-action@main
+              with:
+                  extra-conf: |
+                      trusted-public-keys = cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+                      substituters = https://cache.garnix.io?priority=41 https://cache.nixos.org/
+            - uses: yaxitech/nix-install-pkgs-action@v3
+              with:
+                  packages: "github:srid/nixci"
+            - run: nixci build
