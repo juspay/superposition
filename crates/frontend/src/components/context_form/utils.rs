@@ -1,6 +1,7 @@
 use crate::types::Dimension;
 use crate::utils::{
-    construct_request_headers, get_config_value, get_host, request, ConfigType,
+    construct_request_headers, get_config_value, get_host, parse_json_response, request,
+    ConfigType,
 };
 use anyhow::Result;
 use serde_json::{json, Map, Value};
@@ -108,13 +109,15 @@ pub async fn create_context(
     let host = get_host();
     let url = format!("{host}/context");
     let request_payload = construct_request_payload(overrides, conditions, dimensions);
-    request(
+    let response = request(
         url,
         reqwest::Method::PUT,
         Some(request_payload),
         construct_request_headers(&[("x-tenant", &tenant)])?,
     )
-    .await
+    .await?;
+
+    parse_json_response(response).await
 }
 
 pub async fn update_context(
@@ -126,11 +129,13 @@ pub async fn update_context(
     let host = get_host();
     let url = format!("{host}/context/overrides");
     let request_payload = construct_request_payload(overrides, conditions, dimensions);
-    request(
+    let response = request(
         url,
         reqwest::Method::PUT,
         Some(request_payload),
         construct_request_headers(&[("x-tenant", &tenant)])?,
     )
-    .await
+    .await?;
+
+    parse_json_response(response).await
 }

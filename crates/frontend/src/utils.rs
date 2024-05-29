@@ -6,7 +6,11 @@ use crate::{
     types::{DefaultConfig, Dimension, Envs, ErrorResponse},
 };
 use leptos::*;
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use reqwest::{
+    header::{HeaderMap, HeaderName, HeaderValue},
+    StatusCode,
+};
+use serde::de::DeserializeOwned;
 use serde_json::{Number, Value};
 use std::str::FromStr;
 use url::Url;
@@ -373,15 +377,25 @@ pub fn construct_request_headers(entries: &[(&str, &str)]) -> Result<HeaderMap, 
         .ok_or(String::from("failed to parse headers"))
 }
 
-pub async fn request<'a, T, R>(
+pub async fn parse_json_response<T>(response: reqwest::Response) -> Result<T, String>
+where
+    T: DeserializeOwned,
+{
+    response.json::<T>().await.map_err(|err| {
+        enqueue_alert(err.to_string(), AlertType::Error, 5000);
+        logging::error!("{}", err.to_string());
+        err.to_string()
+    })
+}
+
+pub async fn request<'a, T>(
     url: String,
     method: reqwest::Method,
     body: Option<T>,
     headers: HeaderMap,
-) -> Result<R, String>
+) -> Result<reqwest::Response, String>
 where
     T: serde::Serialize,
-    R: serde::de::DeserializeOwned,
 {
     let mut request_builder = HTTP_CLIENT.request(method.clone(), url).headers(headers);
     request_builder = match (method, body) {
@@ -407,11 +421,7 @@ where
         return Err(error_msg);
     }
 
-    response.json::<R>().await.map_err(|err| {
-        enqueue_alert(err.to_string(), AlertType::Error, 5000);
-        logging::error!("{}", err.to_string());
-        err.to_string()
-    })
+    Ok(response)
 }
 
 pub fn unwrap_option_or_default_with_error<T>(option: Option<T>, default: T) -> T {

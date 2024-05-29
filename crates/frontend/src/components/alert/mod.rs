@@ -58,12 +58,13 @@ impl AlertType {
 
 #[component]
 pub fn alert(alert: Alert) -> impl IntoView {
-    let outer_div_class = format!("alert {}", alert.alert_type.to_css_class());
+    let outer_div_class =
+        format!("alert max-w-[90vw] {}", alert.alert_type.to_css_class());
     let content_icon = alert.alert_type.to_icon_class();
     view! {
         <div role="alert" class=outer_div_class>
             <i class=content_icon></i>
-            <span>{alert.text}</span>
+            <span class="w-full text-ellipsis">{alert.text}</span>
         </div>
     }
 }
