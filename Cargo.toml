@@ -2,18 +2,18 @@
 resolver = "2"
 
 members = [
-  "crates/service_utils",
-  "crates/context_aware_config",
-  "crates/experimentation_platform",
-  "crates/service_utils",
-  "crates/experimentation_client",
-  "crates/cac_client",
-  "crates/experimentation_client_integration_example",
-  "crates/frontend",
-  "crates/caclang",
-  "crates/superposition",
-  "crates/superposition_types"
-  ]
+    "crates/service_utils",
+    "crates/context_aware_config",
+    "crates/experimentation_platform",
+    "crates/service_utils",
+    "crates/experimentation_client",
+    "crates/cac_client",
+    "crates/experimentation_client_integration_example",
+    "crates/frontend",
+    "crates/caclang",
+    "crates/superposition",
+    "crates/superposition_types"
+    ]
 
 [[workspace.metadata.leptos]]
 name = "cac"
@@ -41,7 +41,7 @@ chrono = { version = "0.4.26", features = ["serde"] }
 uuid = {version = "1.3.4", features = ["v4", "serde"]}
 reqwest = { version = "0.11.18", features = ["json"]}
 jsonschema = "~0.17"
-jsonlogic = "0.5.1"
+jsonlogic = { git = "https://github.com/juspay/jsonlogic_rs.git", version = "0.5.2" }
 rs-snowflake = "0.6.0"
 rusoto_kms = "0.48.0"
 rusoto_signature = "0.48.0"
