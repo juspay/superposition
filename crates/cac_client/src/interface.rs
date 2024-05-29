@@ -65,7 +65,7 @@ pub fn take_last_error() -> Option<Box<String>> {
 }
 
 #[no_mangle]
-pub extern "C" fn last_error_length() -> c_int {
+pub extern "C" fn cac_last_error_length() -> c_int {
     LAST_ERROR.with(|prev| match *prev.borrow() {
         Some(ref err) => err.to_string().len() as c_int + 1,
         None => 0,
@@ -73,7 +73,7 @@ pub extern "C" fn last_error_length() -> c_int {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn last_error_message() -> *const c_char {
+pub unsafe extern "C" fn cac_last_error_message() -> *const c_char {
     let last_error = unwrap_safe!(
         take_last_error().ok_or("No error found"),
         return std::ptr::null_mut()
@@ -85,7 +85,7 @@ pub unsafe extern "C" fn last_error_message() -> *const c_char {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn free_string(s: *mut c_char) {
+pub unsafe extern "C" fn cac_free_string(s: *mut c_char) {
     if s.is_null() {
         return;
     }
@@ -95,7 +95,7 @@ pub unsafe extern "C" fn free_string(s: *mut c_char) {
 }
 
 #[no_mangle]
-pub extern "C" fn new_client(
+pub extern "C" fn cac_new_client(
     tenant: *const c_char,
     update_frequency: c_ulong,
     hostname: *const c_char,
@@ -122,10 +122,10 @@ pub extern "C" fn new_client(
 }
 
 #[no_mangle]
-pub extern "C" fn start_polling_update(tenant: *const c_char) {
+pub extern "C" fn cac_start_polling_update(tenant: *const c_char) {
     null_check!(tenant, "NULL pointer provided for tenant", return ());
     unsafe {
-        let client = get_client(tenant);
+        let client = cac_get_client(tenant);
         null_check!(client, "CAC client for tenant not found", return ());
         let local = task::LocalSet::new();
         // println!("in FFI polling");
@@ -137,7 +137,7 @@ pub extern "C" fn start_polling_update(tenant: *const c_char) {
 }
 
 #[no_mangle]
-pub extern "C" fn free_client(ptr: *mut Arc<Client>) {
+pub extern "C" fn cac_free_client(ptr: *mut Arc<Client>) {
     if ptr.is_null() {
         return;
     }
@@ -147,7 +147,7 @@ pub extern "C" fn free_client(ptr: *mut Arc<Client>) {
 }
 
 #[no_mangle]
-pub extern "C" fn get_client(tenant: *const c_char) -> *mut Arc<Client> {
+pub extern "C" fn cac_get_client(tenant: *const c_char) -> *mut Arc<Client> {
     let ten = unwrap_safe!(cstring_to_rstring(tenant), return std::ptr::null_mut());
     // println!("fetching cac client thread for tenant {ten}");
     unwrap_safe!(
@@ -159,7 +159,7 @@ pub extern "C" fn get_client(tenant: *const c_char) -> *mut Arc<Client> {
 }
 
 #[no_mangle]
-pub extern "C" fn get_last_modified(client: *mut Arc<Client>) -> *const c_char {
+pub extern "C" fn cac_get_last_modified(client: *mut Arc<Client>) -> *const c_char {
     null_check!(
         client,
         "an invalid null pointer client is being used, please call get_client()",
@@ -176,7 +176,7 @@ pub extern "C" fn get_last_modified(client: *mut Arc<Client>) -> *const c_char {
 }
 
 #[no_mangle]
-pub extern "C" fn get_config(
+pub extern "C" fn cac_get_config(
     client: *mut Arc<Client>,
     query: *const c_char,
 ) -> *const c_char {
@@ -220,7 +220,7 @@ pub extern "C" fn get_config(
 }
 
 #[no_mangle]
-pub extern "C" fn get_resolved_config(
+pub extern "C" fn cac_get_resolved_config(
     client: *mut Arc<Client>,
     query: *const c_char,
     filter_keys: *const c_char,
@@ -275,7 +275,7 @@ pub extern "C" fn get_resolved_config(
 }
 
 #[no_mangle]
-pub extern "C" fn get_default_config(
+pub extern "C" fn cac_get_default_config(
     client: *mut Arc<Client>,
     filter_keys: *const c_char,
 ) -> *const c_char {

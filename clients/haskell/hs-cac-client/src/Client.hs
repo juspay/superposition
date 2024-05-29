@@ -34,34 +34,34 @@ type Tenant = String
 
 type Error = String
 
-foreign import ccall unsafe "new_client"
+foreign import ccall unsafe "cac_new_client"
     c_new_cac_client :: CTenant -> CULong -> CString -> IO CInt
 
-foreign import ccall unsafe "&free_client"
+foreign import ccall unsafe "&cac_free_client"
     c_free_cac_client :: FunPtr (Ptr CacClient -> IO ())
 
-foreign import ccall unsafe "get_client"
+foreign import ccall unsafe "cac_get_client"
     c_get_cac_client :: CTenant -> IO (Ptr CacClient)
 
-foreign import ccall unsafe "last_error_message"
+foreign import ccall unsafe "cac_last_error_message"
     c_last_error_message :: IO CString
 
-foreign import ccall unsafe "get_last_modified"
+foreign import ccall unsafe "cac_get_last_modified"
     c_get_last_modified_time :: Ptr CacClient -> IO CString
 
-foreign import ccall unsafe "get_config"
+foreign import ccall unsafe "cac_get_config"
     c_get_config :: Ptr CacClient -> CString -> IO CString
 
-foreign import ccall unsafe "get_resolved_config"
+foreign import ccall unsafe "cac_get_resolved_config"
     c_cac_get_resolved_config :: Ptr CacClient -> CString -> CString -> CString -> IO CString
 
-foreign import ccall unsafe "get_default_config"
+foreign import ccall unsafe "cac_get_default_config"
     c_cac_get_default_config :: Ptr CacClient -> CString -> IO CString
 
-foreign import ccall safe "start_polling_update"
+foreign import ccall safe "cac_start_polling_update"
     c_cac_poll :: CTenant -> IO ()
 
-foreign import ccall unsafe "&free_string"
+foreign import ccall unsafe "&cac_free_string"
     c_free_string :: FunPtr (CString -> IO ())
 
 data MergeStrategy = MERGE | REPLACE deriving (Show, Eq, Ord, Enum)

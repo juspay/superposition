@@ -31,31 +31,31 @@ type Tenant = String
 
 type Error = String
 
-foreign import ccall unsafe "new_client"
-    c_new_exp_client :: CTenant -> CULong -> CString -> IO CInt
+foreign import ccall unsafe "expt_new_client"
+    c_new_expt_client :: CTenant -> CULong -> CString -> IO CInt
 
-foreign import ccall unsafe "&free_client"
-    c_free_exp_client :: FunPtr (Ptr ExpClient -> IO ())
+foreign import ccall unsafe "&expt_free_client"
+    c_free_expt_client :: FunPtr (Ptr ExpClient -> IO ())
 
-foreign import ccall unsafe "get_client"
-    c_get_exp_client :: CTenant -> IO (Ptr ExpClient)
+foreign import ccall unsafe "expt_get_client"
+    c_get_expt_client :: CTenant -> IO (Ptr ExpClient)
 
-foreign import ccall unsafe "last_error_message"
+foreign import ccall unsafe "expt_last_error_message"
     c_last_error_message :: IO CString
 
-foreign import ccall unsafe "&free_string"
+foreign import ccall unsafe "&expt_free_string"
     c_free_string :: FunPtr (CString -> IO ())
 
-foreign import ccall unsafe "start_polling_update"
+foreign import ccall unsafe "expt_start_polling_update"
     c_start_polling_update :: CTenant -> IO ()
 
-foreign import ccall unsafe "get_applicable_variant"
+foreign import ccall unsafe "expt_get_applicable_variant"
     c_get_applicable_variants :: Ptr ExpClient -> CString -> CShort -> IO CString
 
-foreign import ccall unsafe "get_satisfied_experiments"
+foreign import ccall unsafe "expt_get_satisfied_experiments"
     c_get_satisfied_experiments :: Ptr ExpClient -> CString -> IO CString
 
-foreign import ccall unsafe "get_running_experiments"
+foreign import ccall unsafe "expt_get_running_experiments"
     c_get_running_experiments :: Ptr ExpClient -> IO CString
 
 expStartPolling :: Tenant -> IO ()
@@ -77,7 +77,7 @@ createExpClient tenant frequency hostname = do
     let duration = fromInteger frequency
     cTenant   <- newCAString tenant
     cHostname <- newCAString hostname
-    resp      <- c_new_exp_client cTenant duration cHostname
+    resp      <- c_new_expt_client cTenant duration cHostname
     _         <- cleanup [cTenant, cHostname]
     case resp of
         0 -> pure $ Right ()
@@ -86,11 +86,11 @@ createExpClient tenant frequency hostname = do
 getExpClient :: Tenant -> IO (Either Error (ForeignPtr ExpClient))
 getExpClient tenant = do
     cTenant   <- newCAString tenant
-    cacClient <- c_get_exp_client cTenant
+    cacClient <- c_get_expt_client cTenant
     _         <- cleanup [cTenant]
     if cacClient == nullPtr
         then Left <$> getError
-        else Right <$> newForeignPtr c_free_exp_client cacClient
+        else Right <$> newForeignPtr c_free_expt_client cacClient
 
 getApplicableVariants :: ForeignPtr ExpClient -> String -> Integer -> IO (Either Error String)
 getApplicableVariants client query toss = do

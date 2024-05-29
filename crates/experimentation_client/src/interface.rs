@@ -49,7 +49,7 @@ pub fn take_last_error() -> Option<String> {
 }
 
 #[no_mangle]
-pub extern "C" fn last_error_length() -> c_int {
+pub extern "C" fn expt_last_error_length() -> c_int {
     LAST_ERROR.with(|prev| match *prev.borrow() {
         Some(ref err) => err.to_string().len() as c_int + 1,
         None => 0,
@@ -57,7 +57,7 @@ pub extern "C" fn last_error_length() -> c_int {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn last_error_message() -> *const c_char {
+pub unsafe extern "C" fn expt_last_error_message() -> *const c_char {
     let last_error = match take_last_error() {
         Some(err) => err,
         None => return std::ptr::null_mut(),
@@ -69,7 +69,7 @@ pub unsafe extern "C" fn last_error_message() -> *const c_char {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn free_string(s: *mut c_char) {
+pub unsafe extern "C" fn expt_free_string(s: *mut c_char) {
     if s.is_null() {
         return;
     }
@@ -79,7 +79,7 @@ pub unsafe extern "C" fn free_string(s: *mut c_char) {
 }
 
 #[no_mangle]
-pub extern "C" fn new_client(
+pub extern "C" fn expt_new_client(
     tenant: *const c_char,
     update_frequency: c_ulong,
     hostname: *const c_char,
@@ -117,12 +117,12 @@ pub extern "C" fn new_client(
 }
 
 #[no_mangle]
-pub extern "C" fn start_polling_update(tenant: *const c_char) {
+pub extern "C" fn expt_start_polling_update(tenant: *const c_char) {
     if tenant.is_null() {
         return ();
     }
     unsafe {
-        let client = get_client(tenant);
+        let client = expt_get_client(tenant);
         let local = task::LocalSet::new();
         // println!("in FFI polling");
         local.block_on(
@@ -133,7 +133,7 @@ pub extern "C" fn start_polling_update(tenant: *const c_char) {
 }
 
 #[no_mangle]
-pub extern "C" fn free_client(ptr: *mut Arc<Client>) {
+pub extern "C" fn expt_free_client(ptr: *mut Arc<Client>) {
     if ptr.is_null() {
         return;
     }
@@ -143,7 +143,7 @@ pub extern "C" fn free_client(ptr: *mut Arc<Client>) {
 }
 
 #[no_mangle]
-pub extern "C" fn get_client(tenant: *const c_char) -> *mut Arc<Client> {
+pub extern "C" fn expt_get_client(tenant: *const c_char) -> *mut Arc<Client> {
     let ten = match cstring_to_rstring(tenant) {
         Ok(t) => t,
         Err(err) => {
@@ -170,7 +170,7 @@ pub extern "C" fn get_client(tenant: *const c_char) -> *mut Arc<Client> {
 }
 
 #[no_mangle]
-pub extern "C" fn get_applicable_variant(
+pub extern "C" fn expt_get_applicable_variant(
     client: *mut Arc<Client>,
     c_context: *const c_char,
     toss: c_short,
@@ -196,7 +196,7 @@ pub extern "C" fn get_applicable_variant(
 }
 
 #[no_mangle]
-pub extern "C" fn get_satisfied_experiments(
+pub extern "C" fn expt_get_satisfied_experiments(
     client: *mut Arc<Client>,
     c_context: *const c_char,
 ) -> *mut c_char {
@@ -222,7 +222,7 @@ pub extern "C" fn get_satisfied_experiments(
 }
 
 #[no_mangle]
-pub extern "C" fn get_running_experiments(client: *mut Arc<Client>) -> *mut c_char {
+pub extern "C" fn expt_get_running_experiments(client: *mut Arc<Client>) -> *mut c_char {
     let local = task::LocalSet::new();
     let experiments = local.block_on(&Runtime::new().unwrap(), unsafe {
         (*client).get_running_experiments()
