@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.31.0 - 2024-05-29
+#### Bug Fixes
+- disallow trailing . in key name (#77) - (57807d6) - Natarajan Kannan
+- reject experiment contexts with `variantIds` (#29) - (092e568) - Shubhranshu Sanjeev
+#### Features
+- reducing context tool (#44) - (104f06d) - Sauravcv98
+- added support for update , create and clone of override - (ebf38bd) - Saurav Suman
+- add api for recompute priority (#17) - (b26d0f6) - PRATIK MISHRA
+#### Miscellaneous Chores
+- Add CI check to lint the .sql files based on rules defined in .editorconfig - (16bf460) - Hao
+
+- - -
+
 ## context_aware_config-v0.30.0 - 2024-05-10
 #### Bug Fixes
 - for the first page redirect to default config page - (361054b) - ankit.mahato

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.7.0 - 2024-05-29
+#### Bug Fixes
+- creating experiments for default-config (no context) (#38) - (4f6b92c) - Sauravcv98
+#### Features
+- filter support in experimentation client (#35) - (0c9d070) - Ankit Kumar Mahato
+
+- - -
+
 ## experimentation_client-v0.6.0 - 2024-05-06
 #### Features
 -  client interface improvements - (1453395) - Kartik

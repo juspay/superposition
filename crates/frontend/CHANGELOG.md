@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.9.0 - 2024-05-29
+#### Bug Fixes
+- row numbering in paginated table (#72) - (999581a) - Shubhranshu Sanjeev
+- creating experiments for default-config (no context) (#38) - (4f6b92c) - Sauravcv98
+- reject experiment contexts with `variantIds` (#29) - (092e568) - Shubhranshu Sanjeev
+- fixed condition parsing and display (#37) - (023bc6b) - Shubhranshu Sanjeev
+- fixed override_flow (#49) - (1130f25) - sauraww
+#### Features
+- added support for update , create and clone of override - (ebf38bd) - Saurav Suman
+#### Miscellaneous Chores
+- Add CI check to lint the .sql files based on rules defined in .editorconfig - (16bf460) - Hao
+
+- - -
+
 ## frontend-v0.8.1 - 2024-05-10
 #### Bug Fixes
 - added skeleton loader (#25) - (6d4fb66) - Shubhranshu Sanjeev

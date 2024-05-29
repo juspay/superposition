@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.16.1 - 2024-05-29
+#### Bug Fixes
+- creating experiments for default-config (no context) (#38) - (4f6b92c) - Sauravcv98
+- reject experiment contexts with `variantIds` (#29) - (092e568) - Shubhranshu Sanjeev
+- setup superposition without nix - (ea51bd4) - Kartik
+
+- - -
+
 ## service_utils-v0.16.0 - 2024-05-06
 #### Features
 - improved error communication on frontend, with toast component - (51838eb) - Shubhranshu Sanjeev

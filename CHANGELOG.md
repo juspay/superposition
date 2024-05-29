@@ -2,6 +2,27 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.46.0 - 2024-05-29
+### Package updates
+- service_utils bumped to service_utils-v0.16.1
+- experimentation_platform bumped to experimentation_platform-v0.15.1
+- experimentation_client bumped to experimentation_client-v0.7.0
+- js_client bumped to js_client-v0.2.0
+- frontend bumped to frontend-v0.9.0
+- context_aware_config bumped to context_aware_config-v0.31.0
+### Global changes
+#### Bug Fixes
+- creating experiments for default-config (no context) (#38) - (4f6b92c) - Sauravcv98
+- disallow trailing . in key name (#77) - (57807d6) - Natarajan Kannan
+- Formatting and ECLINT issue (#80) - (1c34dfa) - Ayush Jain
+- Temporarily disable eclint (#81) - (f649fef) - Ayush Jain
+#### Features
+- Add Juspay version and regex operations in jsonlogic (#73) - (eb14280) - Ayush Jain
+#### Miscellaneous Chores
+- Add CI check to lint the .sql files based on rules defined in .editorconfig - (16bf460) - Hao
+
+- - -
+
 ## v0.44.0 - 2024-05-10
 ### Package updates
 - frontend bumped to frontend-v0.8.1

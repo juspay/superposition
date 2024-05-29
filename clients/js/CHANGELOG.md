@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## js_client-v0.2.0 - 2024-05-29
+#### Features
+- Add Juspay version and regex operations in jsonlogic (#73) - (eb14280) - Ayush Jain
+
+- - -
+
 ## js_client-v0.1.0 - 2024-05-06
 #### Bug Fixes
 - js-client bundle update (#30) - (beb3d0b) - Ayush Jain
