@@ -5,27 +5,27 @@
 
 typedef struct Arc_Client Arc_Client;
 
-int last_error_length(void);
+int cac_last_error_length(void);
 
-const char *last_error_message(void);
+const char *cac_last_error_message(void);
 
-void free_string(char *s);
+void cac_free_string(char *s);
 
-int new_client(const char *tenant, unsigned long update_frequency, const char *hostname);
+int cac_new_client(const char *tenant, unsigned long update_frequency, const char *hostname);
 
-void start_polling_update(const char *tenant);
+void cac_start_polling_update(const char *tenant);
 
-void free_client(struct Arc_Client *ptr);
+void cac_free_client(struct Arc_Client *ptr);
 
-struct Arc_Client *get_client(const char *tenant);
+struct Arc_Client *cac_get_client(const char *tenant);
 
-const char *get_last_modified(struct Arc_Client *client);
+const char *cac_get_last_modified(struct Arc_Client *client);
 
-const char *get_config(struct Arc_Client *client, const char *query);
+const char *cac_get_config(struct Arc_Client *client, const char *query);
 
-const char *get_resolved_config(struct Arc_Client *client,
-                                const char *query,
-                                const char *filter_keys,
-                                const char *merge_strategy);
+const char *cac_get_resolved_config(struct Arc_Client *client,
+                                    const char *query,
+                                    const char *filter_keys,
+                                    const char *merge_strategy);
 
-const char *get_default_config(struct Arc_Client *client, const char *filter_keys);
+const char *cac_get_default_config(struct Arc_Client *client, const char *filter_keys);
