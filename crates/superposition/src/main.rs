@@ -128,7 +128,7 @@ async fn main() -> Result<()> {
         return view! { <App app_envs=routes_ui_envs.clone()/> };
     });
 
-    HttpServer::new(move || {
+    let _ = HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
         let site_root = &leptos_options.site_root;
         let leptos_envs = ui_envs.clone();
@@ -239,5 +239,8 @@ async fn main() -> Result<()> {
         get_from_env_unsafe("ACTIX_KEEP_ALIVE").unwrap_or(120),
     ))
     .run()
-    .await
+    .await;
+
+    log::info!("Shutting down!!!!");
+    Ok(())
 }
