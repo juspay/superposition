@@ -35,8 +35,7 @@ use service_utils::{
     service::types::{AppState, DbConnection},
 };
 
-const KEY_NAME_REGEX: &str =
-    "^[a-zA-Z0-9-_]([a-zA-Z0-9-_.]{0,62}[a-zA-Z0-9-_])?$";
+const KEY_NAME_REGEX: &str = "^[a-zA-Z0-9-_]([a-zA-Z0-9-_.]{0,62}[a-zA-Z0-9-_])?$";
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create).service(get).service(delete)
