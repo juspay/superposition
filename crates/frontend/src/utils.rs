@@ -5,11 +5,9 @@ use crate::{
     providers::alert_provider::enqueue_alert,
     types::{DefaultConfig, Dimension, Envs, ErrorResponse},
 };
+use cfg_if::cfg_if;
 use leptos::*;
-use reqwest::{
-    header::{HeaderMap, HeaderName, HeaderValue},
-    StatusCode,
-};
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::de::DeserializeOwned;
 use serde_json::{Number, Value};
 use std::str::FromStr;
@@ -433,4 +431,37 @@ pub fn unwrap_option_or_default_with_error<T>(option: Option<T>, default: T) -> 
         );
         default
     })
+}
+
+pub fn get_local_storage<T>(_key: &str) -> Option<T>
+where
+    T: serde::de::DeserializeOwned,
+{
+    cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            web_sys::window()
+                .and_then(|win| win.local_storage().ok().flatten())
+                .and_then(|storage| {
+                    storage
+                        .get_item(_key)
+                        .ok()
+                        .flatten()
+                        .and_then(|value: String| serde_json::from_str::<T>(value.as_str()).ok())
+                })
+        } else {
+            None
+        }
+    }
+}
+
+pub fn set_local_storage(_key: &str, _value: &str) -> Option<()> {
+    cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            web_sys::window()
+                .and_then(|win| win.local_storage().ok().flatten())
+                .and_then(|storage| storage.set_item(_key, _value).ok())
+        } else {
+            None
+        }
+    }
 }
