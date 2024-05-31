@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.32.0 - 2024-05-31
+#### Bug Fixes
+- stricter validation for key names in default config (#79) - (78a80c0) - Natarajan Kannan
+#### Features
+- Add local storage support (#78) - (9eee7f0) - Ankit Kumar Mahato
+
+- - -
+
 ## context_aware_config-v0.31.0 - 2024-05-29
 #### Bug Fixes
 - disallow trailing . in key name (#77) - (57807d6) - Natarajan Kannan

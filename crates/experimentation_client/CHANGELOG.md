@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.7.1 - 2024-05-31
+#### Bug Fixes
+- Add prefix to client's methods (#84) - (ee2c54f) - Ankit Kumar Mahato
+
+- - -
+
 ## experimentation_client-v0.7.0 - 2024-05-29
 #### Bug Fixes
 - creating experiments for default-config (no context) (#38) - (4f6b92c) - Sauravcv98

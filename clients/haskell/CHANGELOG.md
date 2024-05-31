@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.1.1 - 2024-05-31
+#### Bug Fixes
+- Add prefix to client's methods (#84) - (ee2c54f) - Ankit Kumar Mahato
+
+- - -
+
 ## haskell_client-v0.1.0 - 2024-05-06
 #### Features
 -  Add filter support to client - (378ddf2) - ankit.mahato

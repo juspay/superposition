@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.12.1 - 2024-05-31
+#### Bug Fixes
+- Add prefix to client's methods (#84) - (ee2c54f) - Ankit Kumar Mahato
+
+- - -
+
 ## cac_client-v0.12.0 - 2024-05-06
 #### Bug Fixes
 -  removed audit log middleware and reduced max db connection pool size to 2 - (5f9fdae) - Saurav Suman

@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## caclang-v0.2.1 - 2024-05-31
+#### Bug Fixes
+- stricter validation for key names in default config (#79) - (78a80c0) - Natarajan Kannan
+
+- - -
+
 ## caclang-v0.2.0 - 2024-05-06
 #### Features
 - support more operations - (68afd4a) - Kartik Gajendra

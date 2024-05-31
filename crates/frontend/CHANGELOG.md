@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.10.0 - 2024-05-31
+#### Features
+- Add local storage support (#78) - (9eee7f0) - Ankit Kumar Mahato
+- delete support for default config in UI (#63) - (c94fc57) - Shubhranshu Sanjeev
+
+- - -
+
 ## frontend-v0.9.0 - 2024-05-29
 #### Bug Fixes
 - row numbering in paginated table (#72) - (999581a) - Shubhranshu Sanjeev

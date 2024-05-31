@@ -2,6 +2,23 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.47.0 - 2024-05-31
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.32.0
+- haskell_client bumped to haskell_client-v0.1.1
+- frontend bumped to frontend-v0.10.0
+- experimentation_client bumped to experimentation_client-v0.7.1
+- cac_client bumped to cac_client-v0.12.1
+- caclang bumped to caclang-v0.2.1
+### Global changes
+#### Bug Fixes
+- Add prefix to client's methods (#84) - (ee2c54f) - Ankit Kumar Mahato
+- stricter validation for key names in default config (#79) - (78a80c0) - Natarajan Kannan
+#### Features
+- Add local storage support (#78) - (9eee7f0) - Ankit Kumar Mahato
+
+- - -
+
 ## v0.46.0 - 2024-05-29
 ### Package updates
 - service_utils bumped to service_utils-v0.16.1
