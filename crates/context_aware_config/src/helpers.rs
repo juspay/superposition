@@ -292,48 +292,34 @@ mod tests {
     #[test]
     fn test_get_meta_schema() {
         let x = get_meta_schema();
-        let ok_string_validation = x
-            .validate(&json!({"type": "string", "pattern": ".*"}))
-            .map_err(|e| {
-                let verrors = e.collect::<Vec<ValidationError>>();
-                format!("Bad schema: {:?}", verrors.as_slice())
-            });
-        let error_string_validation =
-            match x.validate(&json!({"type": "string"})).map_err(|e| {
-                let verrors = e.collect::<Vec<ValidationError>>();
-                String::from(format!(
-                    "Error While validating string dataType, Bad schema: {:?}",
-                    verrors.as_slice()
-                ))
-            }) {
-                Ok(()) => false,
-                Err(err_str) => err_str.contains("Bad schema"),
-            };
 
-        let error_object_validation =
-            match x.validate(&json!({"type": "object"})).map_err(|e| {
-                let verrors = e.collect::<Vec<ValidationError>>();
-                String::from(format!(
-                    "Error While validating object dataType, Bad schema: {:?}",
-                    verrors.as_slice()
-                ))
-            }) {
-                Ok(()) => false,
-                Err(err_str) => err_str.contains("Bad schema"),
-            };
-        let ok_enum_validation = x
-            .validate(&json!({"type": "string", "enum": ["ENUMVAL"]}))
-            .map_err(|e| {
-                let verrors = e.collect::<Vec<ValidationError>>();
-                format!(
-                    "Error While validating enum dataType, Bad schema: {:?}",
-                    verrors.as_slice()
-                )
-            });
-        assert_eq!(ok_enum_validation, Ok(()));
-        assert!(error_object_validation);
-        assert_eq!(ok_string_validation, Ok(()));
-        assert!(error_string_validation);
+        let ok_string_schema = json!({"type": "string", "pattern": ".*"});
+        let ok_string_validation = x.validate(&ok_string_schema);
+        assert!(ok_string_validation.is_ok());
+
+        let error_string_schema = json!({"type": "string"});
+        let error_string_validation = x.validate(&error_string_schema).map_err(|e| {
+            let verrors = e.collect::<Vec<ValidationError>>();
+            format!(
+                "Error While validating string dataType, Bad schema: {:?}",
+                verrors.as_slice()
+            )
+        });
+        assert!(error_string_validation.is_err_and(|error| error.contains("Bad schema")));
+
+        let error_object_schema = json!({"type": "object"});
+        let error_object_validation = x.validate(&error_object_schema).map_err(|e| {
+            let verrors = e.collect::<Vec<ValidationError>>();
+            format!(
+                "Error While validating object dataType, Bad schema: {:?}",
+                verrors.as_slice()
+            )
+        });
+        assert!(error_object_validation.is_err_and(|error| error.contains("Bad schema")));
+
+        let ok_enum_schema = json!({"type": "string", "enum": ["ENUMVAL"]});
+        let ok_enum_validation = x.validate(&ok_enum_schema);
+        assert!(ok_enum_validation.is_ok());
     }
 
     #[test]
