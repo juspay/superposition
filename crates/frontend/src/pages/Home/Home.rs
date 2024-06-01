@@ -393,14 +393,15 @@ pub fn home() -> impl IntoView {
                                                                     .override_with_keys
                                                                     .iter()
                                                                     .filter_map(|key| {
-                                                                        let o = config.overrides.get(key);
-                                                                        if o.is_some() { Some((key, o.unwrap())) } else { None }
+                                                                        config.overrides
+                                                                            .get(key)
+                                                                            .map(|o| (key, o))
                                                                     })
                                                                     .map(|(k, v)| { rows(k, v, true) })
                                                                     .collect();
                                                                 let conditions: Vec<Condition> = context
                                                                     .try_into()
-                                                                    .unwrap_or(vec![]);
+                                                                    .unwrap_or_default();
                                                                 view! {
                                                                     <div class="card bg-base-100 shadow m-6">
                                                                         <div class="card-body">

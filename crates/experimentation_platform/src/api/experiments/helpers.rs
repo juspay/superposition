@@ -121,9 +121,9 @@ pub fn check_variants_override_coverage(
 
 pub fn is_valid_experiment(
     context: &Value,
-    override_keys: &Vec<String>,
+    override_keys: &[String],
     flags: &ExperimentationFlags,
-    active_experiments: &Vec<Experiment>,
+    active_experiments: &[Experiment],
 ) -> superposition::Result<(bool, String)> {
     let mut valid_experiment = true;
     let mut invalid_reason = String::new();
@@ -131,8 +131,8 @@ pub fn is_valid_experiment(
         || !flags.allow_diff_keys_overlapping_ctx
         || !flags.allow_same_keys_non_overlapping_ctx
     {
-        let override_keys_set: HashSet<_> = override_keys.iter().collect();
-        for active_experiment in active_experiments.iter() {
+        let override_keys_set = HashSet::<&String>::from_iter(override_keys);
+        for active_experiment in active_experiments {
             let are_overlapping =
                 are_overlapping_contexts(context, &active_experiment.context)
                     .map_err(|e| {
@@ -153,8 +153,7 @@ pub fn is_valid_experiment(
                 .all(|key| override_keys_set.contains(key));
 
             if !flags.allow_diff_keys_overlapping_ctx {
-                valid_experiment =
-                    valid_experiment && !(are_overlapping && !same_key_set);
+                valid_experiment = valid_experiment && (!are_overlapping || same_key_set);
             }
             if !flags.allow_same_keys_overlapping_ctx {
                 valid_experiment =
@@ -162,7 +161,7 @@ pub fn is_valid_experiment(
             }
             if !flags.allow_same_keys_non_overlapping_ctx {
                 valid_experiment =
-                    valid_experiment && !(!are_overlapping && have_intersecting_key_set);
+                    valid_experiment && (are_overlapping || !have_intersecting_key_set);
             }
 
             if !valid_experiment {
@@ -177,7 +176,7 @@ pub fn is_valid_experiment(
 
 pub fn validate_experiment(
     context: &Value,
-    override_keys: &Vec<String>,
+    override_keys: &[String],
     experiment_id: Option<i64>,
     flags: &ExperimentationFlags,
     conn: &mut PgConnection,

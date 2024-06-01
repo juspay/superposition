@@ -252,7 +252,7 @@ pub fn json_to_sorted_string(v: &Value) -> String {
 }
 
 pub fn calculate_context_priority(
-    object_key: &str,
+    _object_key: &str,
     cond: &Value,
     dimension_schema_map: &HashMap<String, (JSONSchema, i32)>,
 ) -> Result<i32, String> {
@@ -277,7 +277,7 @@ pub fn calculate_context_priority(
             get_priority(key, val).map(|res| res + acc)
         }),
         Value::Array(arr) => arr.iter().try_fold(0, |acc, item| {
-            calculate_context_priority(object_key, item, dimension_schema_map)
+            calculate_context_priority(_object_key, item, dimension_schema_map)
                 .map(|res| res + acc)
         }),
         _ => Ok(0),

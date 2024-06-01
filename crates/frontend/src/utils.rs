@@ -104,7 +104,6 @@ pub fn get_tenants() -> Vec<String> {
         .unwrap_or_default()
 }
 
-#[allow(dead_code)]
 pub fn use_env() -> Envs {
     let context = use_context::<Envs>();
     context
@@ -191,9 +190,7 @@ pub fn parse_string_to_json_value_vec(input: &str) -> Vec<Value> {
     }
 }
 
-pub fn get_variable_name_and_value(
-    operands: &Vec<Value>,
-) -> Result<(&str, String), String> {
+pub fn get_variable_name_and_value(operands: &[Value]) -> Result<(&str, String), String> {
     let (obj_pos, variable_obj) = operands
         .iter()
         .enumerate()

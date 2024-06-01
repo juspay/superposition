@@ -1,5 +1,4 @@
 // Primary interface so CAC client can work with other languages like haskell
-#![warn(unused_assignments)]
 use std::{
     ffi::{c_char, c_ulong, CStr},
     sync::Arc,
@@ -15,7 +14,7 @@ use std::{
 use tokio::{runtime::Runtime, task};
 
 thread_local! {
-    static LAST_ERROR: RefCell<Option<Box<String>>> = const { RefCell::new(None) };
+    static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
 macro_rules! null_check {
@@ -56,11 +55,11 @@ fn rstring_to_cstring(s: String) -> CString {
 pub fn update_last_error(err: String) {
     println!("Setting LAST_ERROR: {}", err);
     LAST_ERROR.with(|prev| {
-        *prev.borrow_mut() = Some(Box::new(err));
+        *prev.borrow_mut() = Some(err);
     });
 }
 
-pub fn take_last_error() -> Option<Box<String>> {
+pub fn take_last_error() -> Option<String> {
     LAST_ERROR.with(|prev| prev.borrow_mut().take())
 }
 

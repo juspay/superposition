@@ -8,7 +8,7 @@ use service_utils::{
 };
 
 pub fn filter_context(
-    contexts: &Vec<Context>,
+    contexts: &[Context],
     query_params_map: &Map<String, Value>,
 ) -> superposition::Result<Vec<Context>> {
     let mut filtered_context: Vec<Context> = Vec::new();

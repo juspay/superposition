@@ -35,7 +35,7 @@ impl Client {
             experiments: Arc::new(RwLock::new(HashMap::new())),
             http_client: reqwest::Client::new(),
             last_polled: Arc::new(RwLock::new(
-                Utc.with_ymd_and_hms(2023, 01, 1, 0, 0, 0).unwrap(),
+                Utc.with_ymd_and_hms(2023, 1, 1, 0, 0, 0).unwrap(),
             )),
         }
     }

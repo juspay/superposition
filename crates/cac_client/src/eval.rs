@@ -100,7 +100,7 @@ fn merge_overrides_on_default_config(
 
 pub fn eval_cac(
     mut default_config: Map<String, Value>,
-    contexts: &Vec<Context>,
+    contexts: &[Context],
     overrides: &Map<String, Value>,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
@@ -122,7 +122,7 @@ pub fn eval_cac(
 
 pub fn eval_cac_with_reasoning(
     mut default_config: Map<String, Value>,
-    contexts: &Vec<Context>,
+    contexts: &[Context],
     overrides: &Map<String, Value>,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,

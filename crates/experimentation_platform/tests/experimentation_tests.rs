@@ -45,7 +45,7 @@ fn multiple_dimension_ctx_gen(values: Vec<Dimensions>) -> serde_json::Value {
 }
 
 fn experiment_gen(
-    override_keys: &Vec<String>,
+    override_keys: &[String],
     context: &Value,
     status: ExperimentStatusType,
     variants: &Value,
@@ -189,7 +189,7 @@ fn test_is_valid_experiment_no_restrictions_overlapping_experiment(
     };
 
     let active_experiments = vec![experiment_gen(
-        &vec!["key1".to_string(), "key2".to_string()],
+        &["key1".to_string(), "key2".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
         &json!(""),
@@ -223,7 +223,7 @@ fn test_is_valid_experiment_no_restrictions_non_overlapping_experiment(
     };
 
     let active_experiments = vec![experiment_gen(
-        &vec!["key1".to_string(), "key2".to_string()],
+        &["key1".to_string(), "key2".to_string()],
         &multiple_dimension_ctx_gen(vec![
             Dimensions::OS("os2".to_string()),
             Dimensions::CLIENT("testclient2".to_string()),
@@ -296,7 +296,7 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
     };
 
     let active_experiments = vec![experiment_gen(
-        &vec!["key1".to_string(), "key3".to_string()],
+        &["key1".to_string(), "key3".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
         &json!(""),
@@ -330,7 +330,7 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
     };
 
     let active_experiments = vec![experiment_gen(
-        &vec!["key3".to_string(), "key4".to_string()],
+        &["key3".to_string(), "key4".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
         &json!(""),
@@ -400,7 +400,7 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
     };
 
     let active_experiments = vec![experiment_gen(
-        &vec!["key1".to_string(), "key3".to_string()],
+        &["key1".to_string(), "key3".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
         &json!(""),
@@ -434,7 +434,7 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
     };
 
     let active_experiments = vec![experiment_gen(
-        &vec!["key3".to_string(), "key4".to_string()],
+        &["key3".to_string(), "key4".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
         &json!(""),
@@ -507,7 +507,7 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
     };
 
     let active_experiments = vec![experiment_gen(
-        &vec!["key1".to_string(), "key3".to_string()],
+        &["key1".to_string(), "key3".to_string()],
         &multiple_dimension_ctx_gen(vec![
             Dimensions::OS("os2".to_string()),
             Dimensions::CLIENT("testclient2".to_string()),
@@ -544,7 +544,7 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
     };
 
     let active_experiments = vec![experiment_gen(
-        &vec!["key3".to_string(), "key4".to_string()],
+        &["key3".to_string(), "key4".to_string()],
         &multiple_dimension_ctx_gen(vec![
             Dimensions::OS("os2".to_string()),
             Dimensions::CLIENT("testclient2".to_string()),

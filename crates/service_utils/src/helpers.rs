@@ -166,9 +166,7 @@ pub fn extract_dimensions(context_json: &Value) -> result::Result<Map<String, Va
     Ok(Map::from_iter(dimension_tuples))
 }
 
-pub fn get_variable_name_and_value(
-    operands: &Vec<Value>,
-) -> result::Result<(&str, &Value)> {
+pub fn get_variable_name_and_value(operands: &[Value]) -> result::Result<(&str, &Value)> {
     let (obj_pos, variable_obj) = operands
         .iter()
         .enumerate()

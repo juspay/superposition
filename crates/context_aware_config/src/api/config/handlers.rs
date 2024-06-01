@@ -320,6 +320,7 @@ fn construct_new_payload(req_payload: &Map<String, Value>) -> web::Json<PutReq> 
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn reduce_config_key(
     user: User,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
@@ -340,19 +341,16 @@ async fn reduce_config_key(
     let mut contexts_overrides_values = Vec::new();
 
     for (override_id, override_value) in og_overrides.clone() {
-        match override_value {
-            Value::Object(mut override_obj) => {
-                if let Some(value_of_check_key) = override_obj.remove(check_key) {
-                    let context_arr = get_contextids_from_overrideid(
-                        og_contexts.clone(),
-                        override_obj,
-                        value_of_check_key.clone(),
-                        &override_id,
-                    )?;
-                    contexts_overrides_values.extend(context_arr);
-                }
+        if let Value::Object(mut override_obj) = override_value {
+            if let Some(value_of_check_key) = override_obj.remove(check_key) {
+                let context_arr = get_contextids_from_overrideid(
+                    og_contexts.clone(),
+                    override_obj,
+                    value_of_check_key.clone(),
+                    &override_id,
+                )?;
+                contexts_overrides_values.extend(context_arr);
             }
-            _ => (),
         }
     }
 
@@ -581,7 +579,7 @@ async fn get_resolved_config(
             condition: val.condition,
             override_with_keys: val.override_with_keys,
         })
-        .collect();
+        .collect::<Vec<_>>();
 
     let merge_strategy = req
         .headers()
