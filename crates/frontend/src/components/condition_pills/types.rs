@@ -134,12 +134,3 @@ impl TryFrom<&Context> for Vec<Condition> {
             })
     }
 }
-
-impl From<Condition> for String {
-    fn from(condition: Condition) -> Self {
-        format!(
-            "{} {} {}",
-            condition.left_operand, condition.operator, condition.right_operand
-        )
-    }
-}
