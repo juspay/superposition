@@ -1,13 +1,13 @@
-use crate::helpers::get_from_env_unsafe;
+use crate::{helpers::get_from_env_unsafe, BASE64_ENGINE};
+use base64::Engine;
 use bytes::Bytes;
 use rusoto_kms::{DecryptRequest, DecryptResponse, Kms, KmsClient};
 use rusoto_signature::region::Region;
 
 //TODO refactor below code
-#[allow(deprecated)]
 pub async fn decrypt(client: KmsClient, secret_name: &str) -> String {
     let cypher = get_from_env_unsafe(secret_name)
-        .map(|x: String| base64::decode(x).unwrap())
+        .map(|x: String| BASE64_ENGINE.decode(x).unwrap())
         .unwrap_or_else(|_| panic!("{secret_name} not found in env"));
     let req = DecryptRequest {
         ciphertext_blob: Bytes::from(cypher),
