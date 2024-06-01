@@ -15,7 +15,7 @@ pub struct AppExecutionScopeMiddlewareFactory {
 
 impl AppExecutionScopeMiddlewareFactory {
     pub fn new(scope: AppScope) -> Self {
-        AppExecutionScopeMiddlewareFactory { scope: scope }
+        AppExecutionScopeMiddlewareFactory { scope }
     }
 }
 
@@ -34,7 +34,7 @@ where
     fn new_transform(&self, service: S) -> Self::Future {
         ready(Ok(AppExecutionScopeMiddleware {
             service: Rc::new(service),
-            scope: self.scope.clone(),
+            scope: self.scope,
         }))
     }
 }

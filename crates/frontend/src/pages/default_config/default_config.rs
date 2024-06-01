@@ -68,28 +68,25 @@ pub fn default_config() -> impl IntoView {
 
     let table_columns = create_memo(move |_| {
         let edit_col_formatter = move |_: &str, row: &Map<String, Value>| {
-            let row_key = row["key"].clone().to_string().replace("\"", "");
-            let is_folder = row_key.contains(".");
+            let row_key = row["key"].to_string().replace('"', "");
+            let is_folder = row_key.contains('.');
             let grouping_enabled = enable_grouping.get();
-            let row_value = row["value"].clone().to_string().replace("\"", "");
+            let row_value = row["value"].to_string().replace('"', "");
 
-            let schema = row["schema"].clone().to_string();
+            let schema = row["schema"].to_string();
             let schema_object = serde_json::from_str::<HashMap<String, Value>>(&schema)
-                .unwrap_or(HashMap::new());
+                .unwrap_or_default();
 
-            let function_name = row["function_name"].clone().to_string();
+            let function_name = row["function_name"].to_string();
             let fun_name = match function_name.as_str() {
                 "null" => None,
-                _ => Some(json!(function_name.replace("\"", ""))),
+                _ => Some(json!(function_name.replace('"', ""))),
             };
 
             let pattern_or_enum = schema_object
                 .keys()
-                .find(|key| {
-                    key.to_string() == "pattern".to_string()
-                        || key.to_string() == "enum".to_string()
-                })
-                .and_then(|val| Some(val.clone()))
+                .find(|&key| key == "pattern" || key == "enum")
+                .cloned()
                 .unwrap_or(String::new());
 
             let row_type = match schema_object.get("type") {
@@ -107,9 +104,9 @@ pub fn default_config() -> impl IntoView {
                 {
                     schema_object
                         .get(&pattern_or_enum)
-                        .and_then(|val| Some(val.clone().to_string()))
-                        .unwrap_or(String::new())
-                        .replace("\"", "")
+                        .map(|val| val.to_string())
+                        .unwrap_or_default()
+                        .replace('"', "")
                 }
                 Some(Value::String(type_))
                     if type_ == "string" && pattern_or_enum == "enum" =>
@@ -129,7 +126,7 @@ pub fn default_config() -> impl IntoView {
                             }
                             None
                         })
-                        .unwrap_or(String::new())
+                        .unwrap_or_default()
                 }
                 Some(Value::String(type_)) if type_ == "number" => String::new(),
                 Some(Value::String(_)) => schema,
@@ -165,9 +162,9 @@ pub fn default_config() -> impl IntoView {
         };
 
         let expand = move |_: &str, row: &Map<String, Value>| {
-            let key_name = row["key"].clone().to_string().replace("\"", "");
+            let key_name = row["key"].to_string().replace('"', "");
             let label = key_name.clone();
-            let is_folder = key_name.contains(".");
+            let is_folder = key_name.contains('.');
 
             if is_folder && enable_grouping.get() {
                 view! {
@@ -193,7 +190,7 @@ pub fn default_config() -> impl IntoView {
 
         let delete_col_formatter = move |_: &str, row: &Map<String, Value>| {
             let row_key = row["key"].as_str().map(|v| v.to_owned());
-            let is_folder = row_key.as_ref().is_some_and(|k| k.contains("."));
+            let is_folder = row_key.as_ref().is_some_and(|k| k.contains('.'));
 
             let key_name = StoredValue::new(row_key);
 
@@ -201,7 +198,7 @@ pub fn default_config() -> impl IntoView {
                 match key_name.get_value() {
                     Some(k) => {
                         let tenant = tenant_rs.get();
-                        let prefix = key_prefix.get().unwrap_or(String::new());
+                        let prefix = key_prefix.get().unwrap_or_default();
                         spawn_local({
                             async move {
                                 let _ =
@@ -319,8 +316,7 @@ pub fn default_config() -> impl IntoView {
                     let mut filtered_rows = table_rows.clone();
                     if enable_grouping.get() {
                         let empty_map = Map::new();
-                        let cols = filtered_rows
-                            .get(0)
+                        let cols = filtered_rows.first()
                             .unwrap_or(&empty_map)
                             .keys()
                             .map(|key| key.as_str())
@@ -399,7 +395,7 @@ where
                 .enumerate()
                 .map(|(index, ele)| {
                     let value = ele.value.clone();
-                    let is_link = ele.is_link.clone();
+                    let is_link = ele.is_link;
                     let handler = folder_click_handler.clone();
                     view! {
                         <div class="flex">
@@ -439,7 +435,7 @@ pub fn get_bread_crums(key_prefix: Option<String>) -> Vec<BreadCrums> {
         Some(prefix) => {
             let prefix_arr = prefix
                 .trim_matches('.')
-                .split(".")
+                .split('.')
                 .map(str::to_string)
                 .collect::<Vec<String>>();
             prefix_arr
@@ -486,10 +482,10 @@ pub fn modify_rows(
             // key_arr.get(1) retrieves the remaining part of the key, after removing the prefix.
             if let Some(filtered_key) = key_arr.get(1) {
                 let new_key = filtered_key
-                    .split(".")
+                    .split('.')
                     .map(str::to_string)
                     .collect::<Vec<String>>();
-                let key = new_key.get(0).unwrap().to_owned().replace("\"", "");
+                let key = new_key.first().unwrap().to_owned().replace('"', "");
                 if new_key.len() == 1 {
                     // key
                     ele.insert("key".to_string(), json!(key));

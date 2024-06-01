@@ -60,7 +60,7 @@ fn experiment_gen(
         traffic_percentage: 0,
 
         override_keys: override_keys.to_vec(),
-        status: status,
+        status,
         context: context.clone(),
         variants: variants.clone(),
         chosen_variant: None,
@@ -122,38 +122,22 @@ fn test_are_overlapping_contexts() -> Result<(), AppError> {
     let context_d = single_dimension_ctx_gen(Dimensions::OS("os2".to_string()));
 
     // both contexts with same dimensions
-    assert_eq!(
-        helpers::are_overlapping_contexts(&context_a, &context_a)?,
-        true
-    );
+    assert!(helpers::are_overlapping_contexts(&context_a, &context_a)?);
     // contexts with one different dimension
-    assert_eq!(
-        helpers::are_overlapping_contexts(&context_a, &context_b)?,
-        false
-    );
+    assert!(!(helpers::are_overlapping_contexts(&context_a, &context_b)?));
     // one context dimensions are subset of other
-    assert_eq!(
-        helpers::are_overlapping_contexts(&context_a, &context_c)?,
-        true
-    );
+    assert!(helpers::are_overlapping_contexts(&context_a, &context_c)?);
     // one context dimensions not a subset of other but have less dimensions that other
-    assert_eq!(
-        helpers::are_overlapping_contexts(&context_a, &context_d)?,
-        false
-    );
+    assert!(!(helpers::are_overlapping_contexts(&context_a, &context_d)?));
     // disjoint contexts
-    assert_eq!(
-        helpers::are_overlapping_contexts(&context_c, &context_d)?,
-        false
-    );
+    assert!(!(helpers::are_overlapping_contexts(&context_c, &context_d)?));
     Ok(())
 }
 
 #[test]
 fn test_check_variants_override_coverage() {
     let override_keys = vec!["key1".to_string(), "key2".to_string()];
-    let overrides = vec![
-        // has all mentioned override keys
+    let overrides = [
         Map::from_iter(vec![
             ("key1".to_string(), json!("value1")),
             ("key2".to_string(), json!("value2")),
@@ -170,22 +154,22 @@ fn test_check_variants_override_coverage() {
         ]),
     ];
 
-    assert_eq!(
-        helpers::check_variant_override_coverage(&r#overrides[0], &override_keys),
-        true
-    );
-    assert_eq!(
-        helpers::check_variant_override_coverage(&r#overrides[1], &override_keys),
-        false
-    );
-    assert_eq!(
-        helpers::check_variant_override_coverage(&r#overrides[2], &override_keys),
-        false
-    );
-    assert_eq!(
-        helpers::check_variant_override_coverage(&r#overrides[3], &override_keys),
-        false
-    );
+    assert!(helpers::check_variant_override_coverage(
+        &overrides[0],
+        &override_keys
+    ));
+    assert!(!helpers::check_variant_override_coverage(
+        &overrides[1],
+        &override_keys
+    ));
+    assert!(!helpers::check_variant_override_coverage(
+        &overrides[2],
+        &override_keys
+    ));
+    assert!(!helpers::check_variant_override_coverage(
+        &overrides[3],
+        &override_keys
+    ));
 }
 
 /************************* No Restrictions *****************************************/
@@ -592,7 +576,7 @@ fn test_fail_context_with_variantIds_dimensions() {
     ]);
 
     let result = helpers::validate_context(&experiment_context);
-    assert_eq!(result.is_err(), true);
+    assert!(result.is_err());
 
     let error_msg = result.unwrap_err();
     match error_msg {
@@ -609,5 +593,5 @@ fn test_pass_context_without_variantIds_dimensions() {
         Dimensions::CLIENT("testclient1".to_string()),
     ]);
 
-    assert_eq!(helpers::validate_context(&experiment_context).is_ok(), true);
+    assert!(helpers::validate_context(&experiment_context).is_ok());
 }

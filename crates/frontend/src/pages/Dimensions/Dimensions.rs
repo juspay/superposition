@@ -38,30 +38,24 @@ pub fn Dimensions() -> impl IntoView {
     let table_columns = create_memo(move |_| {
         let edit_col_formatter = move |_: &str, row: &Map<String, Value>| {
             logging::log!("Dimension row: {:?}", row);
-            let row_dimension = row["dimension"].clone().to_string().replace("\"", "");
-            let row_priority_str = row["priority"].clone().to_string().replace("\"", "");
-            let row_priority = match row_priority_str.parse::<u16>() {
-                Ok(val) => val,
-                Err(_) => 0 as u16,
-            };
+            let row_dimension = row["dimension"].to_string().replace('"', "");
+            let row_priority_str = row["priority"].to_string().replace('"', "");
+            let row_priority = row_priority_str.parse::<u16>().unwrap_or(0_u16);
 
-            let schema = row["schema"].clone().to_string();
+            let schema = row["schema"].to_string();
             let schema_object = serde_json::from_str::<HashMap<String, Value>>(&schema)
-                .unwrap_or(HashMap::new());
+                .unwrap_or_default();
 
-            let function_name = row["function_name"].clone().to_string();
+            let function_name = row["function_name"].to_string();
             let fun_name = match function_name.as_str() {
                 "null" => None,
-                _ => Some(json!(function_name.replace("\"", ""))),
+                _ => Some(json!(function_name.replace('"', ""))),
             };
 
             let pattern_or_enum = schema_object
                 .keys()
-                .find(|key| {
-                    key.to_string() == "pattern".to_string()
-                        || key.to_string() == "enum".to_string()
-                })
-                .and_then(|val| Some(val.clone()))
+                .find(|&key| key == "pattern" || key == "enum")
+                .cloned()
                 .unwrap_or(String::new());
 
             let row_type = match schema_object.get("type") {
@@ -79,9 +73,9 @@ pub fn Dimensions() -> impl IntoView {
                 {
                     schema_object
                         .get(&pattern_or_enum)
-                        .and_then(|val| Some(val.clone().to_string()))
-                        .unwrap_or(String::new())
-                        .replace("\"", "")
+                        .map(|val| val.to_string())
+                        .unwrap_or_default()
+                        .replace('"', "")
                 }
                 Some(Value::String(type_))
                     if type_ == "string" && pattern_or_enum == "enum" =>
@@ -101,7 +95,7 @@ pub fn Dimensions() -> impl IntoView {
                             }
                             None
                         })
-                        .unwrap_or(String::new())
+                        .unwrap_or_default()
                 }
                 Some(Value::String(type_)) if type_ == "number" => String::new(),
                 Some(Value::String(_)) => schema,
@@ -111,7 +105,7 @@ pub fn Dimensions() -> impl IntoView {
             let edit_click_handler = move |_| {
                 let row_data = RowData {
                     dimension: row_dimension.clone(),
-                    priority: row_priority.clone(),
+                    priority: row_priority,
                     type_: row_type.clone(),
                     pattern: row_pattern.clone(),
                     function_name: fun_name.clone(),

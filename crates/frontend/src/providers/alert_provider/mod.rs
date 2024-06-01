@@ -12,7 +12,7 @@ pub struct AlertQueue {
 
 fn enqueue(alert: Alert, set_queue: WriteSignal<AlertQueue>) {
     set_queue.update(|v| {
-        v.counter = v.counter + 1;
+        v.counter += 1;
         v.alerts.push(alert.clone());
     });
 

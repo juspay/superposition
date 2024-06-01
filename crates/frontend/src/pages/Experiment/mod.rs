@@ -134,7 +134,7 @@ pub fn experiment_page() -> impl IntoView {
                                     id=experiment.id
                                     name=experiment_ef.name
                                     context=extract_conditions(&experiment_ef.context)
-                                        .unwrap_or(vec![])
+                                        .unwrap_or_default()
                                     variants=experiment_ef.variants
                                     default_config=default_config
                                     dimensions=dimensions

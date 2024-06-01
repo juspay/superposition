@@ -80,7 +80,7 @@ pub fn function_page() -> impl IntoView {
                         let function_ef = function.clone();
                         let function_data = function.clone();
                         publish_error_ws.set("".to_string());
-                        match function.published_at.clone() {
+                        match function.published_at {
                             Some(val) => show_publish_ws.set(val < function.draft_edited_at),
                             None => show_publish_ws.set(true),
                         }
@@ -124,7 +124,7 @@ pub fn function_page() -> impl IntoView {
                                     <div class="stat w-2/12">
                                         <div class="stat-title">Function Description</div>
                                         <div>
-                                            {format!("{}", function.function_description.clone())}
+                                            {function.function_description.clone().to_string()}
                                         </div>
                                     </div>
                                     <div class="stat w-2/12">
@@ -133,7 +133,7 @@ pub fn function_page() -> impl IntoView {
 
                                             {format!(
                                                 "{}",
-                                                function.draft_edited_at.clone().format("%v").to_string(),
+                                                function.draft_edited_at.clone().format("%v"),
                                             )}
 
                                         </div>
@@ -142,7 +142,7 @@ pub fn function_page() -> impl IntoView {
                                         <div class="stat-title">Published At</div>
                                         <div>
 
-                                            {match function.published_at.clone() {
+                                            {match function.published_at {
                                                 Some(val) => val.format("%v").to_string(),
                                                 None => "null".to_string(),
                                             }}
@@ -174,8 +174,7 @@ pub fn function_page() -> impl IntoView {
                                                 publish_error_ws.set("".to_string());
                                                 set_timeout(
                                                     || {
-                                                        get_element_by_id::<HtmlButtonElement>("resolve_btn")
-                                                            .map(|btn| btn.click());
+                                                        if let Some(btn) = get_element_by_id::<HtmlButtonElement>("resolve_btn") { btn.click() }
                                                     },
                                                     Duration::new(1, 0),
                                                 );
@@ -201,8 +200,7 @@ pub fn function_page() -> impl IntoView {
                                                 publish_error_ws.set("".to_string());
                                                 set_timeout(
                                                     || {
-                                                        get_element_by_id::<HtmlButtonElement>("resolve_btn")
-                                                            .map(|btn| btn.click());
+                                                        if let Some(btn) = get_element_by_id::<HtmlButtonElement>("resolve_btn") { btn.click() }
                                                     },
                                                     Duration::new(1, 0),
                                                 );
@@ -220,7 +218,7 @@ pub fn function_page() -> impl IntoView {
                                                         CodeTab::PublishedCode => {
                                                             view! {
                                                                 <div>
-                                                                    <Show when=move || { test_mode_rs.get() == true }>
+                                                                    <Show when=move || { test_mode_rs.get() }>
                                                                         <div class="flex flex-row justify-end join m-5">
                                                                             <button
                                                                                 class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
@@ -234,7 +232,7 @@ pub fn function_page() -> impl IntoView {
 
                                                                     </Show>
 
-                                                                    <Show when=move || { test_mode_rs.get() == false }>
+                                                                    <Show when=move || { !test_mode_rs.get() }>
                                                                         <div class="flex flex-row justify-end join m-5">
 
                                                                             <button
@@ -254,7 +252,7 @@ pub fn function_page() -> impl IntoView {
                                                             let publish_click_ef = publish_click.clone();
                                                             view! {
                                                                 <div>
-                                                                    <Show when=move || { test_mode_rs.get() == true }>
+                                                                    <Show when=move || { test_mode_rs.get() }>
                                                                         <div class="flex flex-row justify-end join m-5">
                                                                             <button
                                                                                 class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
@@ -270,7 +268,7 @@ pub fn function_page() -> impl IntoView {
                                                                         </div>
                                                                     </Show>
 
-                                                                    <Show when=move || { editor_mode_rs.get() == false }>
+                                                                    <Show when=move || { !editor_mode_rs.get() }>
                                                                         <div class="flex flex-row justify-end join m-5">
                                                                             <button
                                                                                 class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
@@ -288,7 +286,7 @@ pub fn function_page() -> impl IntoView {
                                                                     </Show>
                                                                     <div class="flex flex-row justify-end join m-5">
                                                                         <Show when=move || {
-                                                                            editor_mode_rs.get() == true && test_mode_rs.get() == false
+                                                                            editor_mode_rs.get() && !test_mode_rs.get()
                                                                                 && show_publish_rs.get()
                                                                         }>
                                                                             <div class="flex">
@@ -304,7 +302,7 @@ pub fn function_page() -> impl IntoView {
 
                                                                         </Show>
                                                                         <Show when=move || {
-                                                                            editor_mode_rs.get() == true && test_mode_rs.get() == false
+                                                                            editor_mode_rs.get() && !test_mode_rs.get()
                                                                         }>
 
                                                                             <button
@@ -348,8 +346,7 @@ pub fn function_page() -> impl IntoView {
                                 {move || {
                                     let is_edit = editor_mode_rs.get();
                                     let is_test = test_mode_rs.get();
-                                    let should_show = (editor_mode_rs.get() == true)
-                                        && (test_mode_rs.get() == false);
+                                    let should_show = editor_mode_rs.get() && !test_mode_rs.get();
                                     let fun_clone = function_data.clone();
                                     let fun_clone_ = function_data.clone();
                                     let pub_code = fun_clone
@@ -385,13 +382,13 @@ pub fn function_page() -> impl IntoView {
 
                                                                     </script>
 
-                                                                    <Show when=move || { is_test == false }>
+                                                                    <Show when=move || { !is_test }>
 
                                                                         <div class="monaco" style="min-height: 500px"></div>
 
                                                                     </Show>
 
-                                                                    <Show when=move || { test_mode_rs.get() == true }>
+                                                                    <Show when=move || { test_mode_rs.get() }>
                                                                         <div class="flex-row">
 
                                                                             <TestForm
@@ -422,7 +419,7 @@ pub fn function_page() -> impl IntoView {
                                                                 let fun_code = fun_clone_.draft_code.clone();
                                                                 view! {
                                                                     <Show when=move || {
-                                                                        editor_mode_rs.get() == false && test_mode_rs.get() == false
+                                                                        !editor_mode_rs.get() && !test_mode_rs.get()
                                                                     }>
                                                                         <div class="flex-row">
                                                                             <FunctionEditor
@@ -471,7 +468,7 @@ pub fn function_page() -> impl IntoView {
                                                                     </Show>
 
                                                                     <Show when=move || {
-                                                                        test_mode_rs.get() == true && editor_mode_rs.get() == true
+                                                                        test_mode_rs.get() && editor_mode_rs.get()
                                                                     }>
                                                                         <div class="flex-row">
 

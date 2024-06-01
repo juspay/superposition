@@ -56,10 +56,7 @@ fn gen_name_id(s0: &String, s1: &String, s2: &String) -> String {
 #[component]
 pub fn home() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-    let config_data = create_blocking_resource(
-        move || tenant_rs.get(),
-        move |tenant| fetch_config(tenant),
-    );
+    let config_data = create_blocking_resource(move || tenant_rs.get(), fetch_config);
     let dimension_resource = create_resource(
         move || tenant_rs.get(),
         |tenant| async {
@@ -77,14 +74,14 @@ pub fn home() -> impl IntoView {
             let search_field_prefix = if search_field_prefix.is_empty() {
                 dimension
             } else {
-                &search_field_prefix
+                search_field_prefix
             };
             let search_field_prefix = gen_name_id(
                 search_field_prefix,
                 dimension,
                 &value
                     .as_str()
-                    .unwrap_or(&value.to_string().trim_matches('"')[..])
+                    .unwrap_or(value.to_string().trim_matches('"'))
                     .to_string(),
             );
             logging::log!("search field prefix {:#?}", search_field_prefix);
@@ -201,7 +198,7 @@ pub fn home() -> impl IntoView {
             // if metadata field is found, unstrike only that override
             match config.remove("metadata") {
                 Some(Value::Array(metadata)) => {
-                    if metadata.len() == 0 {
+                    if metadata.is_empty() {
                         logging::log!("unstrike default config");
                         unstrike(&String::new(), &config);
                     }
@@ -264,7 +261,7 @@ pub fn home() -> impl IntoView {
                                                 <h2 class="card-title">Resolve Configs</h2>
 
                                                 <ContextForm
-                                                    dimensions=dimension.to_owned().unwrap_or(vec![])
+                                                    dimensions=dimension.to_owned().unwrap_or_default()
                                                     context=vec![]
                                                     heading_sub_text="Query your configs".to_string()
                                                     dropdown_direction=DropdownDirection::Right
@@ -303,8 +300,7 @@ pub fn home() -> impl IntoView {
                         selected_tab_ws.set(ResolveTab::AllConfig);
                         set_timeout(
                             || {
-                                get_element_by_id::<HtmlButtonElement>("resolve_btn")
-                                    .map(|btn| btn.click());
+                                if let Some(btn) = get_element_by_id::<HtmlButtonElement>("resolve_btn") { btn.click() }
                             },
                             Duration::new(1, 0),
                         );
@@ -329,8 +325,7 @@ pub fn home() -> impl IntoView {
                         selected_tab_ws.set(ResolveTab::ResolvedConfig);
                         set_timeout(
                             || {
-                                get_element_by_id::<HtmlButtonElement>("resolve_btn")
-                                    .map(|btn| btn.click());
+                                if let Some(btn) = get_element_by_id::<HtmlButtonElement>("resolve_btn") { btn.click() }
                             },
                             Duration::new(1, 0),
                         );
@@ -365,10 +360,10 @@ pub fn home() -> impl IntoView {
                                                                 .unwrap_or(&Map::from_iter(default_iter))
                                                                 .iter()
                                                             {
-                                                                let key = key.replace("\"", "").trim().to_string();
+                                                                let key = key.replace('"', "").trim().to_string();
                                                                 let value = value
                                                                     .as_str()
-                                                                    .unwrap_or(&value.to_string().trim_matches('"')[..])
+                                                                    .unwrap_or(value.to_string().trim_matches('"'))
                                                                     .into();
                                                                 let unique_name = gen_name_id(k, &key, &value);
                                                                 view_vector
@@ -401,7 +396,7 @@ pub fn home() -> impl IntoView {
                                                                         let o = config.overrides.get(key);
                                                                         if o.is_some() { Some((key, o.unwrap())) } else { None }
                                                                     })
-                                                                    .map(|(k, v)| { rows(&k, &v, true) })
+                                                                    .map(|(k, v)| { rows(k, v, true) })
                                                                     .collect();
                                                                 let conditions: Vec<Condition> = context
                                                                     .try_into()
@@ -434,7 +429,7 @@ pub fn home() -> impl IntoView {
                                                         let default_config: Vec<_> = config
                                                             .default_configs
                                                             .iter()
-                                                            .map(|(k, v)| { rows(&k, &v, false) })
+                                                            .map(|(k, v)| { rows(k, v, false) })
                                                             .collect();
                                                         vec![
                                                             view! {

@@ -12,7 +12,7 @@ use std::{
 use tokio::{runtime::Runtime, task};
 
 thread_local! {
-    static LAST_ERROR: RefCell<Option<String>> = RefCell::new(None);
+    static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
 fn to_string<E>(e: E) -> String
@@ -119,7 +119,7 @@ pub extern "C" fn expt_new_client(
 #[no_mangle]
 pub extern "C" fn expt_start_polling_update(tenant: *const c_char) {
     if tenant.is_null() {
-        return ();
+        return;
     }
     unsafe {
         let client = expt_get_client(tenant);

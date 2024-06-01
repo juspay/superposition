@@ -102,8 +102,8 @@ pub fn side_nav(
                         let original_path_c = original_path.get().replace(&base, "");
                         logging::log!("ORIGINAL_PATH: {:?}", original_path_c);
                         let redirect_url = std::iter::zip(
-                                original_path_c.split("/"),
-                                resolved_path_c.split("/"),
+                                original_path_c.split('/'),
+                                resolved_path_c.split('/'),
                             )
                             .map(|(o_token, r_token)| match o_token {
                                 ":tenant" => selected_tenant.clone(),

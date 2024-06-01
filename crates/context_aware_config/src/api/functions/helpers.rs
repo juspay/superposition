@@ -21,7 +21,7 @@ pub fn fetch_function(
 pub fn decode_function(function: &mut Function) -> superposition::Result<()> {
     function.draft_code = decode_base64_to_string(&function.draft_code)?;
     if let Some(code) = &function.published_code {
-        function.published_code = Some(decode_base64_to_string(&code)?);
+        function.published_code = Some(decode_base64_to_string(code)?);
     }
     Ok(())
 }

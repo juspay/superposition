@@ -13,11 +13,11 @@ pub fn filter_context(
 ) -> superposition::Result<Vec<Context>> {
     let mut filtered_context: Vec<Context> = Vec::new();
     for context in contexts.iter() {
-        if should_add_ctx(&context, query_params_map)? {
+        if should_add_ctx(context, query_params_map)? {
             filtered_context.push(context.clone());
         }
     }
-    return Ok(filtered_context);
+    Ok(filtered_context)
 }
 
 fn should_add_ctx(
@@ -88,7 +88,7 @@ pub fn filter_config_by_dimensions(
     config: &Config,
     query_params_map: &Map<String, Value>,
 ) -> superposition::Result<Config> {
-    let filtered_context = filter_context(&config.contexts, &query_params_map)?;
+    let filtered_context = filter_context(&config.contexts, query_params_map)?;
     let filtered_overrides: Map<String, Value> = filtered_context
         .iter()
         .flat_map(|ele| {

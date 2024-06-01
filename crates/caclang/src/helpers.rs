@@ -24,7 +24,7 @@ pub fn compute_cac_hash(ctx: &String) -> anyhow::Result<String> {
     let tokens = ctx.split(AND_TOKEN).collect::<Vec<&str>>();
     let mut final_tokens: Vec<String> = Vec::new();
     for token in tokens.into_iter() {
-        let mut segments = token.trim().split(" ");
+        let mut segments = token.trim().split(' ');
         let (dimension, op, value) = (
             segments
                 .next()
@@ -38,7 +38,7 @@ pub fn compute_cac_hash(ctx: &String) -> anyhow::Result<String> {
         );
         if op == "IN" {
             let mut list_items =
-                value[1..value.len() - 1].split(",").collect::<Vec<&str>>();
+                value[1..value.len() - 1].split(',').collect::<Vec<&str>>();
             list_items.sort();
             let final_list = list_items.join(",");
             final_tokens.push(format!("{dimension} {op} [{final_list}]"));
@@ -60,8 +60,8 @@ pub(crate) fn parse_and_validate_ctx(
 ) -> anyhow::Result<(Node, u64)> {
     let mut expr_ctx: Vec<String> = Vec::new();
     let mut priority: u64 = 0;
-    for rule in ctx.split(AND_TOKEN).into_iter() {
-        let parts: Vec<&str> = rule.trim().split_whitespace().collect();
+    for rule in ctx.split(AND_TOKEN) {
+        let parts: Vec<&str> = rule.split_whitespace().collect();
         if parts.len() != 3 {
             return Err(anyhow!("Invalid rule {rule} in context {ctx}"));
         }
@@ -134,12 +134,12 @@ pub(crate) fn parse_and_validate_ctx(
             "in" => {
                 let values = &value[1..value.len() - 1];
                 let mut items: Vec<String> = Vec::new();
-                for item in values.split(',').into_iter() {
+                for item in values.split(',') {
                     validator(item)?;
                     if props.data_type == DataType::String {
                         items.push(format!("\"{item}\""));
                     } else {
-                        items.push(format!("{item}"));
+                        items.push(item.to_string());
                     }
                 }
                 gen_expr("IN", dimension, items.join(",").as_str(), &props.data_type)

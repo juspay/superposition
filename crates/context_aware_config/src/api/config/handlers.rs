@@ -259,16 +259,16 @@ fn reduce(
             let mut dimensions_of_c2 = dimensions_in_c2_with_payload.clone();
             dimensions_of_c2.remove("req_payload");
             let override_val_of_key_in_c2 = dimensions_of_c2.remove("key_val");
-            if c2_index != c1_index {
-                if dimensions_subsets_of_c1.contains(&dimensions_of_c2) {
-                    if override_val_of_key_in_c1 == override_val_of_key_in_c2 {
-                        let mut temp_c1 = dimensions_of_c1_with_payload.to_owned();
-                        temp_c1.insert("can_be_reduced".to_string(), Value::Bool(true));
-                        dimensions[c1_index] = temp_c1;
-                        break;
-                    } else if override_val_of_key_in_c2.is_some() {
-                        break;
-                    }
+            if c2_index != c1_index
+                && dimensions_subsets_of_c1.contains(&dimensions_of_c2)
+            {
+                if override_val_of_key_in_c1 == override_val_of_key_in_c2 {
+                    let mut temp_c1 = dimensions_of_c1_with_payload.to_owned();
+                    temp_c1.insert("can_be_reduced".to_string(), Value::Bool(true));
+                    dimensions[c1_index] = temp_c1;
+                    break;
+                } else if override_val_of_key_in_c2.is_some() {
+                    break;
                 }
             }
         }
@@ -522,7 +522,7 @@ async fn get(
                 log::error!("Prefix is not a valid string.");
                 bad_argument!("Prefix is not a valid string")
             })?
-            .split(",")
+            .split(',')
             .collect();
         config = filter_config_by_prefix(&config, &prefix_list)?
     }
@@ -588,7 +588,7 @@ async fn get_resolved_config(
         .get("x-merge-strategy")
         .and_then(|header_value: &HeaderValue| header_value.to_str().ok())
         .and_then(|val| MergeStrategy::from_str(val).ok())
-        .unwrap_or(MergeStrategy::default());
+        .unwrap_or_default();
 
     let response = if let Some(Value::String(_)) = query_params_map.get("show_reasoning")
     {

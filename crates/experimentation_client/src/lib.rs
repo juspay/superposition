@@ -193,7 +193,7 @@ impl Client {
             .position(|x| toss < x)
             .ok_or_else(|| "Unable to fetch variant's index".to_string())
             .map_err_to_string()?;
-        Ok(applicable_variants.get(index).map(Variant::clone))
+        Ok(applicable_variants.get(index).cloned())
     }
 }
 

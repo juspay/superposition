@@ -219,37 +219,37 @@ where
 
                     <option
                         value="number"
-                        selected=move || { config_type.get() == "number".to_string() }
+                        selected=move || { config_type.get() == *"number" }
                     >
                         "Number"
                     </option>
                     <option
                         value="decimal"
-                        selected=move || { config_type.get() == "decimal".to_string() }
+                        selected=move || { config_type.get() == *"decimal" }
                     >
                         "Decimal (16 digits)"
                     </option>
                     <option
                         value="boolean"
-                        selected=move || { config_type.get() == "boolean".to_string() }
+                        selected=move || { config_type.get() == *"boolean" }
                     >
                         "Boolean"
                     </option>
                     <option
                         value="enum"
-                        selected=move || { config_type.get() == "enum".to_string() }
+                        selected=move || { config_type.get() == *"enum" }
                     >
                         "String (Enum)"
                     </option>
                     <option
                         value="pattern"
-                        selected=move || { config_type.get() == "pattern".to_string() }
+                        selected=move || { config_type.get() == *"pattern" }
                     >
                         "String (regex)"
                     </option>
                     <option
                         value="other"
-                        selected=move || { config_type.get() == "other".to_string() }
+                        selected=move || { config_type.get() == *"other" }
                     >
                         "Other"
                     </option>
@@ -334,7 +334,7 @@ where
 
             <Suspense>
                 {move || {
-                    let functions = functions_resource.get().unwrap_or(vec![]);
+                    let functions = functions_resource.get().unwrap_or_default();
                     let mut function_names: Vec<FunctionsName> = vec![];
                     functions
                         .into_iter()

@@ -5,7 +5,6 @@ use context_aware_config::api::*;
 use context_aware_config::helpers::{
     get_default_config_validation_schema, get_meta_schema,
 };
-use dotenv;
 use experimentation_platform::api::*;
 use std::{collections::HashSet, io::Result};
 use superposition_types::User;
@@ -76,13 +75,13 @@ async fn main() -> Result<()> {
         .expect("ENABLE_TENANT_AND_SCOPE is not set");
     let tenants: HashSet<String> = get_from_env_unsafe::<String>("TENANTS")
         .expect("TENANTS is not set")
-        .split(",")
+        .split(',')
         .map(|tenant| tenant.to_string())
         .collect::<HashSet<String>>();
     let tenant_middleware_exclusion_list =
         get_from_env_unsafe::<String>("TENANT_MIDDLEWARE_EXCLUSION_LIST")
             .expect("TENANT_MIDDLEWARE_EXCLUSION_LIST is not set")
-            .split(",")
+            .split(',')
             .map(String::from)
             .collect::<HashSet<String>>();
 
@@ -125,7 +124,7 @@ async fn main() -> Result<()> {
     let conf = get_configuration(Some("Cargo.toml")).await.unwrap();
     // Generate the list of routes in your Leptos App
     let routes = generate_route_list(move || {
-        return view! { <App app_envs=routes_ui_envs.clone()/> };
+        view! { <App app_envs=routes_ui_envs.clone()/> }
     });
 
     HttpServer::new(move || {
@@ -224,7 +223,7 @@ async fn main() -> Result<()> {
                     // serve JS/WASM/CSS from `pkg`
                     .service(Files::new("/pkg", format!("{site_root}/pkg")))
                     // serve other assets from the `assets` directory
-                    .service(Files::new("/assets", format!("{site_root}")))
+                    .service(Files::new("/assets", site_root.to_string()))
                     // serve the favicon from /favicon.ico
             )
             .route(

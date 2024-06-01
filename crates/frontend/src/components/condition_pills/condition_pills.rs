@@ -25,7 +25,7 @@ pub fn condition_pills(#[prop(into)] conditions: Vec<Condition>) -> impl IntoVie
                             ConditionOperator::Between => {
                                 let split_val: Vec<String> = val
                                     .clone()
-                                    .split(",")
+                                    .split(',')
                                     .map(String::from)
                                     .collect();
                                 view! {

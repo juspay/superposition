@@ -22,21 +22,20 @@ fn test_execute_fn() {
         }
     "#;
 
-    let err_execute =
-        match execute_fn(&(execute_code_error.to_owned()), "test", json!(10)) {
-            Ok(_) => false,
-            Err((e, _)) => e.contains("Bad schema"),
-        };
-    let err_compile = match compile_fn(&(compile_code_error.to_owned())) {
+    let err_execute = match execute_fn(execute_code_error, "test", json!(10)) {
+        Ok(_) => false,
+        Err((e, _)) => e.contains("Bad schema"),
+    };
+    let err_compile = match compile_fn(compile_code_error) {
         Ok(()) => false,
         Err(superposition::AppError::ValidationError(_)) => true,
         _ => false,
     };
     assert_eq!(
-        execute_fn(&(code_ok.to_owned()), "test", json!(10)),
+        execute_fn(code_ok, "test", json!(10)),
         Ok("true".to_string())
     );
-    assert_eq!(err_execute, true);
-    assert_eq!(compile_fn(&(code_ok.to_owned())).unwrap(), ());
-    assert_eq!(err_compile, true);
+    assert!(err_execute);
+    assert!(compile_fn(code_ok).is_ok());
+    assert!(err_compile);
 }

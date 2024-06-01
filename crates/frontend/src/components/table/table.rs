@@ -12,7 +12,7 @@ fn generate_table_row_str(row: &Value) -> String {
         Value::Bool(rbool) => rbool.to_string(),
         Value::Array(rarr) => rarr
             .iter()
-            .map(|ele| generate_table_row_str(ele))
+            .map(generate_table_row_str)
             .collect::<Vec<String>>()
             .join(","),
         Value::Object(robj) => json!(robj).to_string(),
@@ -40,7 +40,7 @@ pub fn table(
                             .filter(|column| !column.hidden)
                             .map(|column| {
                                 view! {
-                                    <th class="uppercase">{&column.name.replace("_", " ")}</th>
+                                    <th class="uppercase">{&column.name.replace('_', " ")}</th>
                                 }
                             })
                             .collect_view()}
@@ -80,7 +80,7 @@ pub fn table(
                                             );
                                             view! {
                                                 <td class=cell_style
-                                                    .to_string()>{(column.formatter)(&value, &row)}</td>
+                                                    .to_string()>{(column.formatter)(&value, row)}</td>
                                             }
                                         })
                                         .collect_view()}

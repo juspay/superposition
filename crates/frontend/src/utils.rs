@@ -86,25 +86,22 @@ pub fn get_tenants() -> Vec<String> {
     let context = use_context::<Envs>();
     context
         .map(|ctx: Envs| ctx.tenants)
-        .or_else(|| {
-            let tenant_value = match js_sys::eval("__APP_ENVS?.tenants") {
-                Ok(value) => value
-                    .dyn_into::<js_sys::Array>()
-                    .expect("tenants is not an array")
-                    .to_vec()
-                    .into_iter()
-                    .map(|tenant| {
-                        tenant.dyn_into::<js_sys::JsString>().ok().map(String::from)
-                    })
-                    .collect::<Option<Vec<String>>>(),
-                Err(e) => {
-                    logging::log!("Unable to fetch tenants from __APP_ENVS: {:?}", e);
-                    None
-                }
-            };
-            tenant_value
+        .or_else(|| match js_sys::eval("__APP_ENVS?.tenants") {
+            Ok(value) => value
+                .dyn_into::<js_sys::Array>()
+                .expect("tenants is not an array")
+                .to_vec()
+                .into_iter()
+                .map(|tenant| {
+                    tenant.dyn_into::<js_sys::JsString>().ok().map(String::from)
+                })
+                .collect::<Option<Vec<String>>>(),
+            Err(e) => {
+                logging::log!("Unable to fetch tenants from __APP_ENVS: {:?}", e);
+                None
+            }
         })
-        .unwrap_or(vec![])
+        .unwrap_or_default()
 }
 
 #[allow(dead_code)]
@@ -121,7 +118,7 @@ pub fn use_env() -> Envs {
                         js_sys::JSON::stringify(&env_obj)
                             .ok()
                             .map(String::from)
-                            .unwrap_or(String::new())
+                            .unwrap_or_default()
                             .into_boxed_str(),
                     );
                     let envs = serde_json::from_str::<Envs>(env_str)
@@ -142,20 +139,14 @@ pub fn use_service_prefix() -> String {
     let context = use_context::<Envs>();
     context
         .map(|ctx: Envs| String::from(ctx.service_prefix))
-        .or_else(|| {
-            let service_prefix_value = match js_sys::eval("__APP_ENV?.service_prefix") {
-                Ok(value) => value.dyn_into::<js_sys::JsString>().map(String::from).ok(),
-                Err(e) => {
-                    logging::log!(
-                        "Unable to fetch service_prefix from __APP_ENVS: {:?}",
-                        e
-                    );
-                    None
-                }
-            };
-            service_prefix_value
+        .or_else(|| match js_sys::eval("__APP_ENV?.service_prefix") {
+            Ok(value) => value.dyn_into::<js_sys::JsString>().map(String::from).ok(),
+            Err(e) => {
+                logging::log!("Unable to fetch service_prefix from __APP_ENVS: {:?}", e);
+                None
+            }
         })
-        .unwrap_or(String::new())
+        .unwrap_or_default()
 }
 
 pub fn get_element_by_id<T>(id: &str) -> Option<T>
@@ -181,7 +172,7 @@ pub fn show_modal(id: &str) {
 pub fn close_modal(id: &str) {
     let option_dialog_ele = get_element_by_id::<web_sys::HtmlDialogElement>(id);
     if let Some(dialog_ele) = option_dialog_ele {
-        let _ = dialog_ele.close();
+        dialog_ele.close();
         logging::log!("{:?}", dialog_ele);
     }
 }
@@ -218,15 +209,15 @@ pub fn get_variable_name_and_value(
 
     let variable_name = variable_obj
         .as_object()
-        .map_or(None, |obj| obj.get("var"))
-        .map_or(None, |value| value.as_str())
+        .and_then(|obj| obj.get("var"))
+        .and_then(|value| value.as_str())
         .ok_or(" failed to get variable name from operands list".to_string())?;
 
     let variable_value = operands
-        .into_iter()
+        .iter()
         .enumerate()
         .filter(|(idx, _)| *idx != obj_pos)
-        .map(|(_, val)| val.to_string().replace("\"", ""))
+        .map(|(_, val)| val.to_string().replace('"', ""))
         .collect::<Vec<String>>()
         .join(",");
 
@@ -356,11 +347,11 @@ pub fn get_config_value(
 /********* Request Utils **********/
 
 use once_cell::sync::Lazy;
-static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(|| reqwest::Client::new());
+static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 
 pub fn construct_request_headers(entries: &[(&str, &str)]) -> Result<HeaderMap, String> {
     entries
-        .into_iter()
+        .iter()
         .map(|(name, value)| {
             let h_name = HeaderName::from_str(name);
             let h_value = HeaderValue::from_str(value);

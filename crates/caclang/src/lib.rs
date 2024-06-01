@@ -70,7 +70,7 @@ impl Contexts {
                 let collided_ctx: &Context = items.get(&ctx_hash).ok_or(anyhow!(""))?;
                 return Err(anyhow!(
                     "{ctx} is a logical duplicate of {}",
-                    (*collided_ctx).context
+                    collided_ctx.context
                 ));
             }
             let overrides = overrides

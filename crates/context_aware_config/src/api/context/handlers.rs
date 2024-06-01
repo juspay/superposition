@@ -96,7 +96,7 @@ pub fn validate_dimensions_and_calculate_priority(
                     (&condition, from_value::<DimensionCondition>(json!(i)))
                 {
                     condition = Some(x);
-                } else if val == None {
+                } else if val.is_none() {
                     val = Some(i.clone());
                 }
 
@@ -119,7 +119,7 @@ pub fn validate_dimensions_and_calculate_priority(
                 validate_context_jsonschema(
                     object_key,
                     &dimension_value,
-                    &dimension_value_schema,
+                    dimension_value_schema,
                 )?;
             }
             arr.iter().try_fold(0, |acc, item| {
@@ -307,12 +307,12 @@ async fn put_handler(
     mut db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<Json<PutResp>> {
-    put(req, &mut db_conn, false, &user)
-        .map(|resp| Json(resp))
-        .map_err(|err: superposition::AppError| {
+    put(req, &mut db_conn, false, &user).map(Json).map_err(
+        |err: superposition::AppError| {
             log::info!("context put failed with error: {:?}", err);
             err
-        })
+        },
+    )
 }
 
 fn override_helper(
@@ -437,7 +437,7 @@ async fn move_handler(
     user: User,
 ) -> superposition::Result<Json<PutResp>> {
     r#move(path.into_inner(), req, &mut db_conn, false, &user)
-        .map(|resp| Json(resp))
+        .map(Json)
         .map_err(|err| {
             log::info!("move api failed with error: {:?}", err);
             err
@@ -624,7 +624,7 @@ async fn priority_recompute(
                     response.push(PriorityRecomputeResponse {
                         id: context.id.clone(),
                         condition: context.value.clone(),
-                        old_priority: context.priority.clone(),
+                        old_priority: context.priority,
                         new_priority: val,
                     });
                     Ok(Context {

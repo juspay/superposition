@@ -103,7 +103,7 @@ pub fn check_variant_override_coverage(
             return false;
         }
     }
-    return true;
+    true
 }
 
 pub fn check_variants_override_coverage(
@@ -116,7 +116,7 @@ pub fn check_variants_override_coverage(
         }
     }
 
-    return true;
+    true
 }
 
 pub fn is_valid_experiment(

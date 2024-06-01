@@ -36,14 +36,12 @@ pub fn main() -> anyhow::Result<()> {
                 {
                     context.set_value(dimension.clone(), user_value.into())?;
                 }
-            } else {
-                if let Some(user_value) = CustomType::<bool>::new(
-                    format!("Value for {dimension}, hit Esc key to skip").as_str(),
-                )
-                .prompt_skippable()?
-                {
-                    context.set_value(dimension.clone(), user_value.into())?;
-                }
+            } else if let Some(user_value) = CustomType::<bool>::new(
+                format!("Value for {dimension}, hit Esc key to skip").as_str(),
+            )
+            .prompt_skippable()?
+            {
+                context.set_value(dimension.clone(), user_value.into())?;
             };
         }
         let v = cac.get_config("android_hyperpay_configuration", &context)?;

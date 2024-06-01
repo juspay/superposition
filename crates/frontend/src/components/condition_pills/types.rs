@@ -28,7 +28,7 @@ impl Display for ConditionOperator {
 impl From<(String, &Vec<Value>)> for ConditionOperator {
     fn from(value: (String, &Vec<Value>)) -> Self {
         let (operator, operands) = value;
-        let operand_0 = operands.get(0);
+        let operand_0 = operands.first();
         let operand_1 = operands.get(1);
         let operand_2 = operands.get(2);
         match (operator.as_str(), operand_0, operand_1, operand_2) {
@@ -127,19 +127,19 @@ impl TryFrom<&Context> for Vec<Condition> {
                     .ok_or("failed to parse value of and as array")
                     .and_then(|arr| {
                         arr.iter()
-                            .map(|condition| Condition::try_from(condition))
+                            .map(Condition::try_from)
                             .collect::<Result<Vec<Condition>, &'static str>>()
                     }),
-                None => Condition::try_from(obj).and_then(|v| Ok(vec![v])),
+                None => Condition::try_from(obj).map(|v| vec![v]),
             })
     }
 }
 
-impl Into<String> for Condition {
-    fn into(self) -> String {
+impl From<Condition> for String {
+    fn from(condition: Condition) -> Self {
         format!(
             "{} {} {}",
-            self.left_operand, self.operator, self.right_operand
+            condition.left_operand, condition.operator, condition.right_operand
         )
     }
 }

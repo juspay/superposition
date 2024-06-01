@@ -18,30 +18,28 @@ pub fn create_function_view() -> impl IntoView {
             <div class="mt-20 mb-20">Create Function</div>
 
             <script type="module">
-                {format!(
-                    r#"
+                {r#"
 
                     import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/+esm';
 
-                    window.editor = monaco.editor.create(document.querySelector('.monaco'), {{
+                    window.editor = monaco.editor.create(document.querySelector('.monaco'), {
 
                         value: [
-                            'async function validate(value, key) {{',
+                            'async function validate(value, key) {',
                             '   return true;',
-                            '}}'
+                            '}'
                         ].join('\n'),
                         language: 'javascript',
                         readOnly: false
-                    }});
+                    });
 
                     const form = document.getElementById("MyForm");
                     form.addEventListener("formdata", e =>
-                    {{
+                    {
                         e.formData.set('function', window.editor.getValue());
-                    }});
+                    });
 
-                    "#,
-                )}
+                    "#.to_string()}
 
             </script>
             <FunctionEditor

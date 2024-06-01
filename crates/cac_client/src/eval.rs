@@ -2,7 +2,6 @@
 //TODO refactor, make eval MJOS agnostic
 
 use crate::{utils::core::MapError, Context, MergeStrategy};
-use jsonlogic;
 use serde_json::{json, Map, Value};
 
 pub fn merge(doc: &mut Value, patch: &Value) {
@@ -41,18 +40,19 @@ fn replace_top_level(
 
 fn get_overrides(
     query_data: &Map<String, Value>,
-    contexts: &Vec<Context>,
+    contexts: &[Context],
     overrides: &Map<String, Value>,
     merge_strategy: &MergeStrategy,
     mut on_override_select: Option<&mut dyn FnMut(Context)>,
 ) -> serde_json::Result<Value> {
     let mut required_overrides: Value = json!({});
-    let mut on_override_select = |context: Context| match on_override_select {
-        Some(ref mut func) => func(context),
-        None => (),
+    let mut on_override_select = |context: Context| {
+        if let Some(ref mut func) = on_override_select {
+            func(context)
+        }
     };
 
-    for context in contexts.iter() {
+    for context in contexts {
         // TODO :: Add semantic version comparator in Lib
         if let Ok(Value::Bool(true)) =
             jsonlogic::apply(&context.condition, &json!(query_data))
@@ -61,7 +61,7 @@ fn get_overrides(
                 if let Some(overriden_value) = overrides.get(override_key) {
                     match merge_strategy {
                         MergeStrategy::REPLACE => replace_top_level(
-                            &mut required_overrides.as_object_mut().unwrap(),
+                            required_overrides.as_object_mut().unwrap(),
                             overriden_value,
                             || on_override_select(context.clone()),
                             override_key,
@@ -107,9 +107,9 @@ pub fn eval_cac(
 ) -> Result<Map<String, Value>, String> {
     let on_override_select: Option<&mut dyn FnMut(Context)> = None;
     let overrides: Map<String, Value> = get_overrides(
-        &query_data,
-        &contexts,
-        &overrides,
+        query_data,
+        contexts,
+        overrides,
         &merge_strategy,
         on_override_select,
     )
@@ -130,9 +130,9 @@ pub fn eval_cac_with_reasoning(
     let mut reasoning: Vec<Value> = vec![];
 
     let applied_overrides: Map<String, Value> = get_overrides(
-        &query_data,
-        &contexts,
-        &overrides,
+        query_data,
+        contexts,
+        overrides,
         &merge_strategy,
         Some(&mut |context| {
             reasoning.push(json!({

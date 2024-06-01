@@ -15,21 +15,18 @@ use crate::{
 fn get_override_keys_from_variants(variants: &[(String, Variant)]) -> HashSet<String> {
     variants
         .iter()
-        .map(|(_, variant)| {
+        .flat_map(|(_, variant)| {
             variant
                 .overrides
                 .keys()
                 .map(String::from)
                 .collect::<Vec<String>>()
         })
-        .flatten()
         .collect::<HashSet<String>>()
 }
 
 fn get_init_state(variants: &[(String, Variant)]) -> HashSet<String> {
-    let init_override_keys = get_override_keys_from_variants(variants);
-
-    init_override_keys
+    get_override_keys_from_variants(variants)
 }
 
 #[component]
@@ -70,13 +67,15 @@ where
     };
 
     let handle_override_form_change = move |variant_idx: usize| {
-        let callback = move |updated_overrides: Map<String, Value>| {
+        move |updated_overrides: Map<String, Value>| {
             set_variants.update_untracked(|curr_variants| {
-                curr_variants[variant_idx].1.overrides = updated_overrides.clone();
+                curr_variants[variant_idx]
+                    .1
+                    .overrides
+                    .clone_from(&updated_overrides);
                 handle_change.get_value()(curr_variants.clone());
             });
-        };
-        callback
+        }
     };
 
     create_effect(move |_| {
@@ -133,7 +132,7 @@ where
                                     </span>
                                 </label>
                                 <Show when=move || {
-                                    is_control_variant && override_keys.get().len() > 0
+                                    is_control_variant && !override_keys.get().is_empty()
                                 }>
                                     <Dropdown
                                         dropdown_btn_type=DropdownBtnType::Link
@@ -182,7 +181,7 @@ where
                             </div>
                             <div class="mt-2">
                                 <Show when=move || {
-                                    is_control_variant && override_keys.get().len() == 0
+                                    is_control_variant && override_keys.get().is_empty()
                                 }>
                                     <div class="my-4 flex flex-col justify-between items-center">
                                         <Dropdown
@@ -202,7 +201,7 @@ where
                                 </Show>
 
                                 <Show when=move || {
-                                    !is_control_variant && override_keys.get().len() == 0
+                                    !is_control_variant && override_keys.get().is_empty()
                                 }>
                                     <div class="my-4 flex flex-col justify-between items-center">
                                         <span class="label-text text-slate-400 text-sm">
@@ -212,7 +211,7 @@ where
                                 </Show>
 
                                 <Show when=move || {
-                                    override_keys.get().len() > 0
+                                    !override_keys.get().is_empty()
                                 }>
                                     {move || {
                                         let variant = f_variants.get().get(idx).unwrap().clone();
@@ -273,7 +272,7 @@ where
                                             variant_type: VariantType::EXPERIMENTAL,
                                             context_id: None,
                                             override_id: None,
-                                            overrides: overrides,
+                                            overrides,
                                         },
                                     ))
                             });

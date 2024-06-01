@@ -26,7 +26,7 @@ pub fn validate_condition_with_functions(
     context: &Value,
 ) -> superposition::Result<()> {
     use dimensions::dsl;
-    let context = extract_dimensions(&context)?;
+    let context = extract_dimensions(context)?;
     let dimensions_list: Vec<String> = context.keys().cloned().collect();
     let keys_function_array: Vec<(String, Option<String>)> = dsl::dimensions
         .filter(dsl::dimension.eq_any(dimensions_list))
@@ -122,7 +122,7 @@ pub fn validate_value_with_function(
         log::error!("Failed to parse function code in UTF-8: {}", err);
         unexpected_error!("Failed to parse function code in UTF-8: {}", err)
     })?;
-    if let Err((err, stdout)) = execute_fn(&utf8_decoded, key, value.to_owned()) {
+    if let Err((err, stdout)) = execute_fn(utf8_decoded, key, value.to_owned()) {
         let stdout = stdout.unwrap_or(String::new());
         log::error!("function validation failed for {key} with error: {err}");
         return Err(validation_error!(
