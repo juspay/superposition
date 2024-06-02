@@ -45,3 +45,6 @@ ssr = [
   "leptos_meta/ssr",
   "leptos_router/ssr",
 ]
+
+[lints]
+workspace = true

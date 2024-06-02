@@ -61,3 +61,6 @@ actix-files = { version = "0.6" }
 anyhow = { workspace = true }
 regex = { workspace = true }
 superposition_types = { path = "../superposition_types" }
+
+[lints]
+workspace = true

@@ -59,3 +59,6 @@ leptos_meta = { workspace = true }
 leptos_router = { workspace = true }
 actix-files = { version = "0.6" }
 anyhow = { workspace = true }
+
+[lints]
+workspace = true

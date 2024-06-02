@@ -21,3 +21,6 @@ crate-type = ["cdylib", "lib"]
 
 [build-dependencies]
 cbindgen = "0.26.0"
+
+[lints]
+workspace = true
