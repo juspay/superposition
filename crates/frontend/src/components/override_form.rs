@@ -1,5 +1,5 @@
 use crate::{
-    components::dropdown::dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+    components::dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
     types::DefaultConfig,
     utils::{get_config_value, ConfigType},
 };

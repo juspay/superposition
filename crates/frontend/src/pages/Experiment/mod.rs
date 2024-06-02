@@ -6,18 +6,18 @@ use serde::{Deserialize, Serialize};
 use crate::{
     api::{fetch_default_config, fetch_dimensions, fetch_experiment},
     components::{
-        experiment::experiment::Experiment,
-        experiment_conclude_form::experiment_conclude_form::ExperimentConcludeForm,
-        experiment_form::experiment_form::ExperimentForm,
+        experiment::Experiment,
+        experiment_conclude_form::ExperimentConcludeForm,
+        experiment_form::ExperimentForm,
         experiment_ramp_form::utils::ramp_experiment,
-        modal::modal::Modal,
+        modal::Modal,
         skeleton::{Skeleton, SkeletonVariant},
     },
     types::{DefaultConfig, Dimension, Experiment},
     utils::{close_modal, extract_conditions, show_modal},
 };
 
-use crate::components::experiment_ramp_form::experiment_ramp_form::ExperimentRampForm;
+use crate::components::experiment_ramp_form::ExperimentRampForm;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct CombinedResource {

@@ -1,5 +1,5 @@
 use crate::{
-    components::{side_nav::side_nav::SideNav, toast::Toast},
+    components::{side_nav::SideNav, toast::Toast},
     providers::alert_provider::AlertQueue,
 };
 use leptos::*;

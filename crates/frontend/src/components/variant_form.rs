@@ -6,8 +6,8 @@ use serde_json::{json, Map, Value};
 
 use crate::{
     components::{
-        dropdown::dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-        override_form::override_form::OverrideForm,
+        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        override_form::OverrideForm,
     },
     types::{DefaultConfig, Variant, VariantType},
 };

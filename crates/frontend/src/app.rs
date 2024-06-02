@@ -3,17 +3,15 @@ use leptos_meta::*;
 use leptos_router::*;
 use serde_json::json;
 
-use crate::hoc::layout::layout::Layout;
-use crate::pages::experiment_list::experiment_list::ExperimentList;
+use crate::hoc::layout::Layout;
+use crate::pages::experiment_list::ExperimentList;
 use crate::pages::function::{
-    function::FunctionPage, function_create::CreateFunctionView,
-    function_list::FunctionList,
+    function_create::CreateFunctionView, function_list::FunctionList, FunctionPage,
 };
-use crate::pages::Dimensions::Dimensions::Dimensions;
+use crate::pages::Dimensions::Dimensions;
 use crate::pages::{
-    default_config::default_config::DefaultConfig,
-    ContextOverride::context_override::ContextOverride, Experiment::ExperimentPage,
-    Home::Home::Home,
+    default_config::DefaultConfig, ContextOverride::context_override::ContextOverride,
+    Experiment::ExperimentPage, Home::Home,
 };
 use crate::providers::alert_provider::AlertProvider;
 use crate::types::Envs;

@@ -1,4 +1,4 @@
-use crate::components::nav_item::nav_item::NavItem;
+use crate::components::nav_item::NavItem;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::types::AppRoute;
 use crate::utils::{get_tenants, use_url_base};

@@ -1,4 +1,4 @@
-use crate::components::function_form::function_form::FunctionEditor;
+use crate::components::function_form::FunctionEditor;
 use crate::types::FunctionResponse;
 use leptos::*;
 use leptos_router::use_navigate;

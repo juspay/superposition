@@ -1,9 +1,9 @@
-use crate::components::dimension_form::dimension_form::DimensionForm;
-use crate::components::drawer::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
+use crate::components::dimension_form::DimensionForm;
+use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
 use crate::components::{
-    stat::stat::Stat,
-    table::{table::Table, types::Column},
+    stat::Stat,
+    table::{types::Column, Table},
 };
 use leptos::*;
 use serde_json::{json, Map, Value};

@@ -1,13 +1,12 @@
 use std::time::Duration;
 
-use crate::components::condition_pills::condition_pills::ConditionPills;
 use crate::components::condition_pills::types::Condition;
+use crate::components::condition_pills::ConditionPills;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::{
     api::{fetch_config, fetch_dimensions},
     components::{
-        button::button::Button, context_form::context_form::ContextForm,
-        dropdown::dropdown::DropdownDirection,
+        button::Button, context_form::ContextForm, dropdown::DropdownDirection,
     },
     utils::{check_url_and_return_val, get_element_by_id, get_host},
 };

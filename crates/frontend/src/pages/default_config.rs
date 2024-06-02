@@ -1,10 +1,10 @@
 use crate::api::{delete_default_config, fetch_default_config};
 use crate::components::alert::AlertType;
-use crate::components::default_config_form::default_config_form::DefaultConfigForm;
-use crate::components::drawer::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
+use crate::components::default_config_form::DefaultConfigForm;
+use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
-use crate::components::stat::stat::Stat;
-use crate::components::table::{table::Table, types::Column};
+use crate::components::stat::Stat;
+use crate::components::table::{types::Column, Table};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::types::BreadCrums;
 use crate::utils::{
