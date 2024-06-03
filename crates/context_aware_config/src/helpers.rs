@@ -1,9 +1,29 @@
+use crate::{
+    api::config::types::{Config, Context},
+    db::{
+        models::ConfigVersion,
+        schema::{
+            config_versions, contexts::dsl as ctxt, default_configs::dsl as def_conf,
+        },
+    },
+};
 use actix_web::http::header::{HeaderMap, HeaderName, HeaderValue};
+use actix_web::web::Data;
+use chrono::Utc;
+use diesel::{
+    r2d2::{ConnectionManager, PooledConnection},
+    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
+};
+
 use itertools::{self, Itertools};
 use jsonschema::{Draft, JSONSchema, ValidationError};
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 use service_utils::{
-    helpers::validation_err_to_str, result as superposition, validation_error,
+    db_error,
+    helpers::{generate_snowflake_id, validation_err_to_str},
+    result as superposition,
+    service::types::AppState,
+    validation_error,
 };
 use std::collections::HashMap;
 
@@ -285,6 +305,86 @@ pub fn calculate_context_priority(
         }),
         _ => Ok(0),
     }
+}
+
+pub fn generate_cac(
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> superposition::Result<Config> {
+    let contexts_vec = ctxt::contexts
+        .select((
+            ctxt::id,
+            ctxt::value,
+            ctxt::priority,
+            ctxt::override_id,
+            ctxt::override_,
+        ))
+        .order_by((ctxt::priority.asc(), ctxt::created_at.asc()))
+        .load::<(String, Value, i32, String, Value)>(conn)
+        .map_err(|err| {
+            log::error!("failed to fetch contexts with error: {}", err);
+            db_error!(err)
+        })?;
+
+    let (contexts, overrides) = contexts_vec.into_iter().fold(
+        (Vec::new(), Map::new()),
+        |(mut ctxts, mut overrides),
+         (id, condition, priority_, override_id, override_)| {
+            let ctxt = Context {
+                id,
+                condition,
+                priority: priority_,
+                override_with_keys: [override_id.to_owned()],
+            };
+            ctxts.push(ctxt);
+            overrides.insert(override_id, override_);
+            (ctxts, overrides)
+        },
+    );
+
+    let default_config_vec = def_conf::default_configs
+        .select((def_conf::key, def_conf::value))
+        .load::<(String, Value)>(conn)
+        .map_err(|err| {
+            log::error!("failed to fetch default_configs with error: {}", err);
+            db_error!(err)
+        })?;
+
+    let default_configs =
+        default_config_vec
+            .into_iter()
+            .fold(Map::new(), |mut acc, item| {
+                acc.insert(item.0, item.1);
+                acc
+            });
+
+    Ok(Config {
+        contexts,
+        overrides,
+        default_configs,
+    })
+}
+
+pub fn add_config_version(
+    state: &Data<AppState>,
+    tags: Option<Vec<String>>,
+    db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> superposition::Result<i64> {
+    use config_versions::dsl::config_versions;
+    let version_id = generate_snowflake_id(state)?;
+    let config = generate_cac(db_conn)?;
+    let json_config = json!(config);
+    let config_hash = blake3::hash(json_config.to_string().as_bytes()).to_string();
+    let config_version = ConfigVersion {
+        id: version_id,
+        config: json_config,
+        config_hash,
+        tags: tags,
+        created_at: Utc::now().naive_utc(),
+    };
+    diesel::insert_into(config_versions)
+        .values(&config_version)
+        .execute(db_conn)?;
+    Ok(version_id)
 }
 
 // ************ Tests *************

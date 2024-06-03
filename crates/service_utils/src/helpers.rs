@@ -1,16 +1,20 @@
-use actix_web::{error::ErrorInternalServerError, Error};
+use super::result;
+use crate::service::types::AppState;
+use actix_web::{error::ErrorInternalServerError, web::Data, Error};
+use anyhow::anyhow;
 use jsonschema::{error::ValidationErrorKind, ValidationError};
 use log::info;
+use regex::Regex;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::de::{self, IntoDeserializer};
+use serde_json::{Map, Value};
 use std::{
     env::VarError,
     fmt::{self, Display},
     str::FromStr,
 };
 
-use super::result;
-use serde_json::{Map, Value};
+const CONFIG_TAG_REGEX: &str = "^[a-zA-Z0-9_-]{1,64}$";
 
 //WARN Do NOT use this fxn inside api requests, instead add the required
 //env to AppState and get value from there. As this panics, it should
@@ -368,4 +372,41 @@ where
     let response = request_builder.send().await?;
 
     response.json::<R>().await
+}
+pub fn generate_snowflake_id(state: &Data<AppState>) -> result::Result<i64> {
+    let mut snowflake_generator = state.snowflake_generator.lock().map_err(|e| {
+        log::error!("snowflake_id generation failed {}", e);
+        result::AppError::UnexpectedError(anyhow!("snowflake_id generation failed {}", e))
+    })?;
+    let id = snowflake_generator.real_time_generate();
+    // explicitly dropping snowflake_generator so that lock is released and it can be acquired in bulk-operations handler
+    drop(snowflake_generator);
+    Ok(id)
+}
+
+pub fn parse_config_tags(
+    config_tags: Option<String>,
+) -> result::Result<Option<Vec<String>>> {
+    let regex = Regex::new(CONFIG_TAG_REGEX).map_err(|err| {
+        log::error!("regex match failed for tags {}", err);
+        result::AppError::UnexpectedError(anyhow!("Something went wrong"))
+    })?;
+    match config_tags {
+        None => Ok(None),
+        Some(val) => {
+            let tags = val
+                .split(",")
+                .map(|s| {
+                    if !regex.is_match(s) {
+                        return Err(result::AppError::BadArgument(
+                            "Invalid config_tags value".to_string(),
+                        ));
+                    } else {
+                        Ok(s.to_owned())
+                    }
+                })
+                .collect::<result::Result<Vec<String>>>()?;
+            Ok(Some(tags))
+        }
+    }
 }

@@ -30,7 +30,7 @@ pub struct PaginationParams {
     pub size: Option<u32>,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub enum ContextAction {
     PUT(PutReq),
     DELETE(String),

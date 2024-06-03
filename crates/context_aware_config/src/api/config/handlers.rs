@@ -9,12 +9,12 @@ use crate::api::context::{
     delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
 };
 use crate::api::dimension::get_all_dimension_schema_map;
-use crate::db::schema::{
-    contexts::dsl as ctxt, default_configs::dsl as def_conf, event_log::dsl as event_log,
+use crate::{
+    db::schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
+    helpers::generate_cac,
 };
 use actix_http::header::{HeaderName, HeaderValue};
-use actix_web::web;
-use actix_web::{get, put, web::Query, HttpRequest, HttpResponse, Scope};
+use actix_web::{get, put, web, web::Query, HttpRequest, HttpResponse, Scope};
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
 use diesel::{
@@ -23,21 +23,43 @@ use diesel::{
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 use serde_json::{json, Map, Value};
-use service_utils::service::types::DbConnection;
-use service_utils::{bad_argument, db_error, unexpected_error};
+use service_utils::{
+    bad_argument, db_error, result as superposition, service::types::DbConnection,
+    unexpected_error,
+};
 
 use itertools::Itertools;
 use jsonschema::JSONSchema;
 use service_utils::helpers::extract_dimensions;
-use service_utils::result::{self as superposition, AppError};
+use service_utils::result::AppError;
 use superposition_types::User;
 use uuid::Uuid;
+
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(get)
         .service(get_resolved_config)
         .service(reduce_config)
         .service(get_filtered_config)
+}
+
+fn validate_version_in_params(
+    query_params_map: &mut Map<String, Value>,
+) -> superposition::Result<Option<i64>> {
+    query_params_map
+        .remove("version")
+        .map_or(Ok(None), |version| {
+            version
+                .as_str()
+                .map_or(None, |val| val.to_owned().parse::<i64>().ok())
+                .map_or_else(
+                    || {
+                        log::error!("failed to decode version as integer: {}", version);
+                        Err(bad_argument!("version is not of type integer"))
+                    },
+                    |v| Ok(Some(v)),
+                )
+        })
 }
 
 pub fn add_audit_header(
@@ -106,53 +128,26 @@ fn is_not_modified(max_created_at: Option<NaiveDateTime>, req: &HttpRequest) -> 
     max_created_at.is_some() && parsed_max <= last_modified
 }
 
-async fn generate_cac(
+pub fn generate_config_from_version(
+    version: Option<i64>,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<Config> {
-    let contexts_vec = ctxt::contexts
-        .select((ctxt::id, ctxt::value, ctxt::override_id, ctxt::override_))
-        .order_by((ctxt::priority.asc(), ctxt::created_at.asc()))
-        .load::<(String, Value, String, Value)>(conn)
-        .map_err(|err| {
-            log::error!("failed to fetch contexts with error: {}", err);
-            db_error!(err)
-        })?;
-
-    let (contexts, overrides) = contexts_vec.into_iter().fold(
-        (Vec::new(), Map::new()),
-        |(mut ctxts, mut overrides), (id, condition, override_id, override_)| {
-            let ctxt = super::types::Context {
-                id,
-                condition,
-                override_with_keys: [override_id.to_owned()],
-            };
-            ctxts.push(ctxt);
-            overrides.insert(override_id, override_);
-            (ctxts, overrides)
-        },
-    );
-
-    let default_config_vec = def_conf::default_configs
-        .select((def_conf::key, def_conf::value))
-        .load::<(String, Value)>(conn)
-        .map_err(|err| {
-            log::error!("failed to fetch default_configs with error: {}", err);
-            db_error!(err)
-        })?;
-
-    let default_configs =
-        default_config_vec
-            .into_iter()
-            .fold(Map::new(), |mut acc, item| {
-                acc.insert(item.0, item.1);
-                acc
-            });
-
-    Ok(Config {
-        contexts,
-        overrides,
-        default_configs,
-    })
+    if let Some(val) = version {
+        let config = config_versions::config_versions
+            .select(config_versions::config)
+            .filter(config_versions::id.eq(val))
+            .get_result::<Value>(conn)
+            .map_err(|err| {
+                log::error!("failed to fetch config with error: {}", err);
+                db_error!(err)
+            })?;
+        serde_json::from_value::<Config>(config).map_err(|err| {
+            log::error!("failed to decode config: {}", err);
+            unexpected_error!("failed to decode config")
+        })
+    } else {
+        generate_cac(conn)
+    }
 }
 
 fn generate_subsets(map: &Map<String, Value>) -> Vec<Map<String, Value>> {
@@ -396,12 +391,12 @@ async fn reduce_config_key(
             ) => {
                 if *to_be_deleted {
                     if is_approve {
-                        let _ = delete_context_api(cid.clone(), user.clone(), conn).await;
+                        let _ = delete_context_api(cid.clone(), user.clone(), conn);
                     }
                     og_contexts.retain(|x| x.id != *cid);
                 } else {
                     if is_approve {
-                        let _ = delete_context_api(cid.clone(), user.clone(), conn).await;
+                        let _ = delete_context_api(cid.clone(), user.clone(), conn);
                         let put_req = construct_new_payload(request_payload);
                         let _ = put(put_req, conn, false, &user);
                     }
@@ -454,7 +449,7 @@ async fn reduce_config(
         .unwrap_or(false);
 
     let dimensions_schema_map = get_all_dimension_schema_map(&mut conn)?;
-    let mut config = generate_cac(&mut conn).await?;
+    let mut config = generate_cac(&mut conn)?;
     let default_config = (config.default_configs).clone();
     for (key, _) in default_config {
         let contexts = config.contexts;
@@ -472,7 +467,7 @@ async fn reduce_config(
         )
         .await?;
         if is_approve {
-            config = generate_cac(&mut conn).await?;
+            config = generate_cac(&mut conn)?;
         }
     }
 
@@ -514,7 +509,8 @@ async fn get(
         );
     }
 
-    let mut config = generate_cac(&mut conn).await?;
+    let config_version = validate_version_in_params(&mut query_params_map)?;
+    let mut config = generate_config_from_version(config_version, &mut conn)?;
     if let Some(prefix) = query_params_map.get("prefix") {
         let prefix_list: HashSet<&str> = prefix
             .as_str()
@@ -572,7 +568,8 @@ async fn get_resolved_config(
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    let res = generate_cac(&mut conn).await?;
+    let config_version = validate_version_in_params(&mut query_params_map)?;
+    let res = generate_config_from_version(config_version, &mut conn)?;
 
     let cac_client_contexts = res
         .contexts
@@ -645,7 +642,8 @@ async fn get_filtered_config(
                 .map_or_else(|_| json!(value), |int_val| json!(int_val)),
         );
     }
-    let config = generate_cac(&mut conn).await?;
+    let config_version = validate_version_in_params(&mut query_params_map)?;
+    let config = generate_config_from_version(config_version, &mut conn)?;
     let contexts = config.contexts;
 
     let filtered_context = filter_context(&contexts, &query_params_map)?;
