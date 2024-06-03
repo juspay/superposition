@@ -315,12 +315,12 @@ async fn put_handler(
 ) -> superposition::Result<Json<PutResp>> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        let put_response = put(req, transaction_conn, true, &user)
-            .map(Json)
-            .map_err(|err: superposition::AppError| {
+        let put_response = put(req, transaction_conn, true, &user).map(Json).map_err(
+            |err: superposition::AppError| {
                 log::info!("context put failed with error: {:?}", err);
                 err
-            })?;
+            },
+        )?;
         add_config_version(&state, tags, transaction_conn)?;
         Ok(put_response)
     })
