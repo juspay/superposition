@@ -6,6 +6,7 @@ use context_aware_config::helpers::{
     get_default_config_validation_schema, get_meta_schema,
 };
 use experimentation_platform::api::*;
+use std::sync::Arc;
 use std::{collections::HashSet, io::Result};
 use superposition_types::User;
 
@@ -127,6 +128,8 @@ async fn main() -> Result<()> {
         view! { <App app_envs=routes_ui_envs.clone()/> }
     });
 
+    let snowflake_generator = Arc::new(Mutex::new(SnowflakeIdGenerator::new(1, 1)));
+
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
         let site_root = &leptos_options.site_root;
@@ -154,7 +157,7 @@ async fn main() -> Result<()> {
                         allow_same_keys_non_overlapping_ctx.to_owned(),
                 },
 
-                snowflake_generator: Mutex::new(SnowflakeIdGenerator::new(1,1)),
+                snowflake_generator: snowflake_generator.clone(),
                 meta_schema: get_meta_schema(),
                 app_env: app_env.to_owned(),
                 enable_tenant_and_scope: enable_tenant_and_scope.to_owned(),

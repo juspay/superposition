@@ -59,3 +59,6 @@ leptos_router = { version = "0.5.2" }
 thiserror = { version = "1.0.57" }
 regex = "1.9.1"
 leptos-use = "0.10.3"
+
+[workspace.lints.clippy]
+mod_module_files = "warn"

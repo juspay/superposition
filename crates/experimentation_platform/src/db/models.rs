@@ -1,12 +1,21 @@
 use crate::db::schema::*;
 use chrono::{DateTime, NaiveDateTime, Utc};
 
-use diesel::{Insertable, Queryable, QueryableByName, Selectable};
+use diesel::{
+    query_builder::QueryId, Insertable, Queryable, QueryableByName, Selectable,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 #[derive(
-    Debug, Clone, Copy, PartialEq, Deserialize, Serialize, diesel_derive_enum::DbEnum,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Deserialize,
+    Serialize,
+    diesel_derive_enum::DbEnum,
+    QueryId,
 )]
 #[DbValueStyle = "UPPERCASE"]
 #[ExistingTypePath = "crate::db::schema::sql_types::ExperimentStatusType"]

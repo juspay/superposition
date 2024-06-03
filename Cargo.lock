@@ -1510,6 +1510,7 @@ name = "experimentation_platform"
 version = "0.15.1"
 dependencies = [
  "actix",
+ "actix-http",
  "actix-web",
  "anyhow",
  "chrono",
@@ -3922,6 +3923,7 @@ dependencies = [
  "jsonschema",
  "log",
  "once_cell",
+ "regex",
  "reqwest",
  "rs-snowflake",
  "rusoto_core",

@@ -2,7 +2,8 @@ extern crate base64;
 use std::str;
 
 use crate::helpers::{
-    calculate_context_priority, json_to_sorted_string, validate_context_jsonschema,
+    add_config_version, calculate_context_priority, json_to_sorted_string,
+    validate_context_jsonschema,
 };
 use crate::{
     api::{
@@ -20,6 +21,9 @@ use crate::{
         },
     },
 };
+use actix_web::web::Data;
+use service_utils::service::types::{AppState, CustomHeaders};
+
 use actix_web::{
     delete, get, put,
     web::{Json, Path, Query},
@@ -35,7 +39,7 @@ use diesel::{
 };
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{from_value, json, Map, Value};
-use service_utils::helpers::validation_err_to_str;
+use service_utils::helpers::{parse_config_tags, validation_err_to_str};
 use service_utils::service::types::DbConnection;
 use service_utils::{db_error, not_found, unexpected_error, validation_error};
 use std::collections::HashMap;
@@ -303,31 +307,44 @@ pub fn put(
 
 #[put("")]
 async fn put_handler(
+    state: Data<AppState>,
+    custom_headers: CustomHeaders,
     req: Json<PutReq>,
     mut db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<Json<PutResp>> {
-    put(req, &mut db_conn, false, &user).map(Json).map_err(
-        |err: superposition::AppError| {
-            log::info!("context put failed with error: {:?}", err);
-            err
-        },
-    )
+    let tags = parse_config_tags(custom_headers.config_tags)?;
+    db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        let put_response = put(req, transaction_conn, true, &user)
+            .map(|resp| Json(resp))
+            .map_err(|err: superposition::AppError| {
+                log::info!("context put failed with error: {:?}", err);
+                err
+            })?;
+        add_config_version(&state, tags, transaction_conn)?;
+        Ok(put_response)
+    })
 }
 
 fn override_helper(
     req: Json<PutReq>,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    already_under_txn: bool,
     user: &User,
 ) -> superposition::Result<Json<PutResp>> {
     use contexts::dsl::contexts;
     let new_ctx = create_ctx_from_put_req(req, conn, user)?;
+    if already_under_txn {
+        diesel::sql_query("SAVEPOINT insert_ctx_savepoint").execute(conn)?;
+    }
 
     let insert = diesel::insert_into(contexts).values(&new_ctx).execute(conn);
-
     match insert {
         Ok(_) => Ok(Json(get_put_resp(new_ctx))),
         Err(DatabaseError(UniqueViolation, _)) => {
+            if already_under_txn {
+                diesel::sql_query("ROLLBACK TO insert_ctx_savepoint").execute(conn)?;
+            }
             replace_override_of_existing_ctx(conn, new_ctx) // no need for .map(Json)
         }
         Err(e) => {
@@ -339,13 +356,22 @@ fn override_helper(
 
 #[put("/overrides")]
 async fn update_override_handler(
+    state: Data<AppState>,
+    custom_headers: CustomHeaders,
     req: Json<PutReq>,
     mut db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<Json<PutResp>> {
-    override_helper(req, &mut db_conn, &user).map_err(|err: superposition::AppError| {
-        log::info!("context put failed with error: {:?}", err);
-        err
+    let tags = parse_config_tags(custom_headers.config_tags)?;
+    db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        let override_resp = override_helper(req, transaction_conn, true, &user).map_err(
+            |err: superposition::AppError| {
+                log::info!("context put failed with error: {:?}", err);
+                err
+            },
+        )?;
+        add_config_version(&state, tags, transaction_conn)?;
+        Ok(override_resp)
     })
 }
 
@@ -431,17 +457,24 @@ fn r#move(
 
 #[put("/move/{ctx_id}")]
 async fn move_handler(
+    state: Data<AppState>,
     path: Path<String>,
+    custom_headers: CustomHeaders,
     req: Json<MoveReq>,
     mut db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<Json<PutResp>> {
-    r#move(path.into_inner(), req, &mut db_conn, false, &user)
-        .map(Json)
-        .map_err(|err| {
-            log::info!("move api failed with error: {:?}", err);
-            err
-        })
+    let tags = parse_config_tags(custom_headers.config_tags)?;
+    db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        let move_reponse = r#move(path.into_inner(), req, transaction_conn, true, &user)
+            .map(|resp| Json(resp))
+            .map_err(|err| {
+                log::info!("move api failed with error: {:?}", err);
+                err
+            })?;
+        add_config_version(&state, tags, transaction_conn)?;
+        Ok(move_reponse)
+    })
 }
 
 #[get("/{ctx_id}")]
@@ -493,7 +526,7 @@ async fn list_contexts(
     Ok(Json(result))
 }
 
-pub async fn delete_context_api(
+pub fn delete_context_api(
     ctx_id: String,
     user: User,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
@@ -515,22 +548,32 @@ pub async fn delete_context_api(
 
 #[delete("/{ctx_id}")]
 async fn delete_context(
+    state: Data<AppState>,
     path: Path<String>,
+    custom_headers: CustomHeaders,
     user: User,
     mut db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {
     let ctx_id = path.into_inner();
-    delete_context_api(ctx_id, user, &mut db_conn).await
+    let tags = parse_config_tags(custom_headers.config_tags)?;
+    db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        let delete_resp = delete_context_api(ctx_id, user, transaction_conn)?;
+        add_config_version(&state, tags, transaction_conn)?;
+        Ok(delete_resp)
+    })
 }
 
 #[put("/bulk-operations")]
 async fn bulk_operations(
+    state: Data<AppState>,
+    custom_headers: CustomHeaders,
     reqs: Json<Vec<ContextAction>>,
     db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<Json<Vec<ContextBulkResponse>>> {
     use contexts::dsl::contexts;
     let DbConnection(mut conn) = db_conn;
+    let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let mut response = Vec::<ContextBulkResponse>::new();
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -585,6 +628,7 @@ async fn bulk_operations(
                 }
             }
         }
+        add_config_version(&state, tags, transaction_conn)?;
         Ok(()) // Commit the transaction
     })?;
     Ok(Json(response))
@@ -592,8 +636,11 @@ async fn bulk_operations(
 
 #[put("/priority/recompute")]
 async fn priority_recompute(
+    state: Data<AppState>,
+    custom_headers: CustomHeaders,
     db_conn: DbConnection,
-) -> superposition::Result<HttpResponse> {
+    _user: User,
+) -> superposition::Result<Json<Vec<PriorityRecomputeResponse>>> {
     use crate::db::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
 
@@ -604,6 +651,7 @@ async fn priority_recompute(
 
     let dimension_schema_map = get_all_dimension_schema_map(&mut conn)?;
     let mut response: Vec<PriorityRecomputeResponse> = vec![];
+    let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let update_contexts = result
         .clone()
@@ -637,20 +685,23 @@ async fn priority_recompute(
         })
         .collect::<superposition::Result<Vec<Context>>>()?;
 
-    let insert = diesel::insert_into(contexts)
-        .values(&update_contexts)
-        .on_conflict(id)
-        .do_update()
-        .set(priority.eq(excluded(priority)))
-        .execute(&mut conn);
+    conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        let insert = diesel::insert_into(contexts)
+            .values(&update_contexts)
+            .on_conflict(id)
+            .do_update()
+            .set(priority.eq(excluded(priority)))
+            .execute(transaction_conn);
+        add_config_version(&state, tags, transaction_conn)?;
 
-    match insert {
-        Ok(_) => Ok(HttpResponse::Ok().json(response)),
-        Err(err) => {
-            log::error!(
-                "Failed to execute query while recomputing priority, error: {err}"
-            );
-            Err(db_error!(err))
+        match insert {
+            Ok(_) => Ok(Json(response)),
+            Err(err) => {
+                log::error!(
+                    "Failed to execute query while recomputing priority, error: {err}"
+                );
+                Err(db_error!(err))
+            }
         }
-    }
+    })
 }

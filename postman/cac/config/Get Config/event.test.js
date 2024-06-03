@@ -4,7 +4,7 @@ pm.test("200 check", function() {
     let expected_response = {
         "contexts": [],
         "overrides": {},
-        "default_configs": {}
+        "default_configs": {"key1": "value1"}
     };
     pm.expect(JSON.stringify(response)).to.be.eq(JSON.stringify(expected_response));
 })

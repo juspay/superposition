@@ -1,6 +1,16 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    config_versions (id) {
+        id -> Int8,
+        config -> Json,
+        config_hash -> Text,
+        tags -> Nullable<Array<Varchar>>,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     contexts (id) {
         id -> Varchar,
         value -> Json,
@@ -602,6 +612,7 @@ diesel::joinable!(default_configs -> functions (function_name));
 diesel::joinable!(dimensions -> functions (function_name));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    config_versions,
     contexts,
     default_configs,
     dimensions,

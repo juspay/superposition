@@ -1,5 +1,5 @@
 use crate::components::{
-    condition_pills::{condition_pills::ConditionPills, utils::extract_conditions},
+    condition_pills::{utils::extract_conditions, ConditionPills},
     table::types::Column,
 };
 use core::time::Duration;

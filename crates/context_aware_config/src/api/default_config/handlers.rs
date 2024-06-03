@@ -1,8 +1,11 @@
 extern crate base64;
 use super::types::CreateReq;
-use service_utils::helpers::validation_err_to_str;
 use service_utils::{
-    bad_argument, db_error, not_found, unexpected_error, validation_error,
+    bad_argument, db_error,
+    helpers::{parse_config_tags, validation_err_to_str},
+    not_found, result as superposition,
+    service::types::{AppState, CustomHeaders, DbConnection},
+    unexpected_error, validation_error,
 };
 
 use superposition_types::{SuperpositionUser, User};
@@ -15,7 +18,7 @@ use crate::{
         models::{Context, DefaultConfig},
         schema::{contexts::dsl::contexts, default_configs::dsl::default_configs},
     },
-    helpers::validate_jsonschema,
+    helpers::{add_config_version, validate_jsonschema},
 };
 use actix_web::{
     delete, get, put,
@@ -23,6 +26,7 @@ use actix_web::{
     HttpResponse, Scope,
 };
 use chrono::Utc;
+use diesel::Connection;
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
@@ -30,10 +34,6 @@ use diesel::{
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use regex::Regex;
 use serde_json::{from_value, json, Map, Value};
-use service_utils::{
-    result as superposition,
-    service::types::{AppState, DbConnection},
-};
 
 const KEY_NAME_REGEX: &str = "^[a-zA-Z0-9-_]([a-zA-Z0-9-_.]{0,62}[a-zA-Z0-9-_])?$";
 
@@ -45,6 +45,7 @@ pub fn endpoints() -> Scope {
 async fn create(
     state: Data<AppState>,
     key: web::Path<String>,
+    custom_headers: CustomHeaders,
     request: web::Json<CreateReq>,
     db_conn: DbConnection,
     user: User,
@@ -52,6 +53,7 @@ async fn create(
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
     let key = key.into_inner();
+    let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let regex = Regex::new(KEY_NAME_REGEX).map_err(|err| {
         unexpected_error!("could not parse regex due to: {}", err.to_string())
@@ -164,25 +166,27 @@ async fn create(
             )?;
         }
     }
-
-    let upsert = diesel::insert_into(default_configs)
-        .values(&default_config)
-        .on_conflict(db::schema::default_configs::key)
-        .do_update()
-        .set(&default_config)
-        .execute(&mut conn);
-
-    match upsert {
-        Ok(_) => Ok(HttpResponse::Ok().json(json!({
-            "message": "DefaultConfig created/updated successfully."
-        }))),
-        Err(e) => {
-            log::info!("DefaultConfig creation failed with error: {e}");
-            Err(unexpected_error!(
-                "Something went wrong, failed to create DefaultConfig"
-            ))
-        }
-    }
+    conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        let upsert = diesel::insert_into(default_configs)
+            .values(&default_config)
+            .on_conflict(db::schema::default_configs::key)
+            .do_update()
+            .set(&default_config)
+            .execute(transaction_conn);
+        add_config_version(&state, tags, transaction_conn)?;
+        let ok_resp = match upsert {
+            Ok(_) => Ok(HttpResponse::Ok().json(json!({
+                "message": "DefaultConfig created/updated successfully."
+            }))),
+            Err(e) => {
+                log::info!("DefaultConfig creation failed with error: {e}");
+                Err(unexpected_error!(
+                    "Something went wrong, failed to create DefaultConfig"
+                ))
+            }
+        }?;
+        Ok(ok_resp)
+    })
 }
 
 fn fetch_default_key(
@@ -232,32 +236,41 @@ pub fn get_key_usage_context_ids(
 
 #[delete("/{key}")]
 async fn delete(
+    state: Data<AppState>,
     path: Path<String>,
+    custom_headers: CustomHeaders,
     db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+    let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let key = path.into_inner();
     fetch_default_key(&key, &mut conn)?;
     let context_ids = get_key_usage_context_ids(&key, &mut conn)
         .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
-        let deleted_row = diesel::delete(
-            default_configs.filter(db::schema::default_configs::key.eq(&key)),
-        )
-        .execute(&mut conn);
-        match deleted_row {
-            Ok(0) => Err(not_found!("default config key `{}` doesn't exists", key)),
-            Ok(_) => {
-                log::info!("default config key: {key} deleted by {}", user.get_email());
-                Ok(HttpResponse::NoContent().finish())
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let deleted_row = diesel::delete(
+                default_configs.filter(db::schema::default_configs::key.eq(&key)),
+            )
+            .execute(transaction_conn);
+            match deleted_row {
+                Ok(0) => Err(not_found!("default config key `{}` doesn't exists", key)),
+                Ok(_) => {
+                    add_config_version(&state, tags, transaction_conn)?;
+                    log::info!(
+                        "default config key: {key} deleted by {}",
+                        user.get_email()
+                    );
+                    Ok(HttpResponse::NoContent().finish())
+                }
+                Err(e) => {
+                    log::error!("default config delete query failed with error: {e}");
+                    Err(unexpected_error!("Something went wrong."))
+                }
             }
-            Err(e) => {
-                log::error!("default config delete query failed with error: {e}");
-                Err(unexpected_error!("Something went wrong."))
-            }
-        }
+        })
     } else {
         Err(bad_argument!(
             "Given key already in use in contexts: {}",

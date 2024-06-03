@@ -7,6 +7,7 @@ use std::{
     collections::HashSet,
     future::{ready, Ready},
     str::FromStr,
+    sync::Arc,
 };
 
 use actix_web::{error, web::Data, Error, FromRequest, HttpMessage};
@@ -37,7 +38,7 @@ pub struct AppState {
     pub default_config_validation_schema: JSONSchema,
     pub meta_schema: JSONSchema,
     pub experimentation_flags: ExperimentationFlags,
-    pub snowflake_generator: Mutex<SnowflakeIdGenerator>,
+    pub snowflake_generator: Arc<Mutex<SnowflakeIdGenerator>>,
     pub enable_tenant_and_scope: bool,
     pub tenant_middleware_exclusion_list: HashSet<String>,
     pub service_prefix: String,
@@ -204,5 +205,26 @@ impl FromRequest for DbConnection {
         };
 
         ready(result)
+    }
+}
+
+pub struct CustomHeaders {
+    pub config_tags: Option<String>,
+}
+impl FromRequest for CustomHeaders {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        let header_val = req.headers();
+        let val = CustomHeaders {
+            config_tags: header_val.get("x-config-tags").and_then(|header_val| {
+                header_val.to_str().map_or(None, |v| Some(v.to_string()))
+            }),
+        };
+        ready(Ok(val))
     }
 }
