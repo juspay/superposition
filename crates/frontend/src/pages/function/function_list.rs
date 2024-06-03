@@ -1,4 +1,3 @@
-use leptos::logging::*;
 use leptos::*;
 
 use chrono::{prelude::Utc, TimeZone};
@@ -7,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
-use crate::components::{stat::stat::Stat, table::table::Table};
+use crate::components::{stat::Stat, table::Table};
 
 use crate::types::{FunctionResponse, ListFilters};
 

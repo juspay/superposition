@@ -33,3 +33,6 @@ service_utils = { path = "../service_utils" }
 superposition_types = { path = "../superposition_types" }
 reqwest = { workspace = true }
 anyhow = { workspace = true }
+
+[lints]
+workspace = true
