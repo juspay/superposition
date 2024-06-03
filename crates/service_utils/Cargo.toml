@@ -34,3 +34,4 @@ derive_more = { workspace = true }
 reqwest = { workspace = true }
 thiserror = { workspace = true }
 once_cell = { workspace = true }
+regex = { workspace = true }
