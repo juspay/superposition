@@ -50,8 +50,7 @@ fn validate_version_in_params(
         .remove("version")
         .map_or(Ok(None), |version| {
             version
-                .as_str()
-                .map_or(None, |val| val.to_owned().parse::<i64>().ok())
+                .as_str().and_then(|val| val.to_owned().parse::<i64>().ok())
                 .map_or_else(
                     || {
                         log::error!("failed to decode version as integer: {}", version);

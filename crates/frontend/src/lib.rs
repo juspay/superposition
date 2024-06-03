@@ -1,4 +1,4 @@
-#![allow(clippy::empty_docs)]
+#![allow(unknown_lints, clippy::empty_docs)]
 
 mod api;
 pub mod app;

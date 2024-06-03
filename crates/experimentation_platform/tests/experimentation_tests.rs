@@ -567,7 +567,7 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
 }
 
 #[test]
-fn test_fail_context_with_variantIds_dimensions() {
+fn test_fail_context_with_variant_ids_dimensions() {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
@@ -585,7 +585,7 @@ fn test_fail_context_with_variantIds_dimensions() {
 }
 
 #[test]
-fn test_pass_context_without_variantIds_dimensions() {
+fn test_pass_context_without_variant_ids_dimensions() {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),

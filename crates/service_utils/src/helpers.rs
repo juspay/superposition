@@ -391,12 +391,12 @@ pub fn parse_config_tags(
         None => Ok(None),
         Some(val) => {
             let tags = val
-                .split(",")
+                .split(',')
                 .map(|s| {
                     if !regex.is_match(s) {
-                        return Err(result::AppError::BadArgument(
+                        Err(result::AppError::BadArgument(
                             "Invalid config_tags value".to_string(),
-                        ));
+                        ))
                     } else {
                         Ok(s.to_owned())
                     }

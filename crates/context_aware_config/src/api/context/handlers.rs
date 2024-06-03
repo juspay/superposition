@@ -316,7 +316,7 @@ async fn put_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
         let put_response = put(req, transaction_conn, true, &user)
-            .map(|resp| Json(resp))
+            .map(Json)
             .map_err(|err: superposition::AppError| {
                 log::info!("context put failed with error: {:?}", err);
                 err
@@ -467,7 +467,7 @@ async fn move_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
         let move_reponse = r#move(path.into_inner(), req, transaction_conn, true, &user)
-            .map(|resp| Json(resp))
+            .map(Json)
             .map_err(|err| {
                 log::info!("move api failed with error: {:?}", err);
                 err
