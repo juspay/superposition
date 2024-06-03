@@ -1,4 +1,6 @@
-use crate::db::schema::{contexts, default_configs, dimensions, event_log, functions};
+use crate::db::schema::{
+    config_versions, contexts, default_configs, dimensions, event_log, functions,
+};
 use chrono::{offset::Utc, DateTime, NaiveDateTime};
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
 use serde::Serialize;
@@ -73,4 +75,15 @@ pub struct EventLog {
     pub original_data: Option<Value>,
     pub new_data: Option<Value>,
     pub query: String,
+}
+
+#[derive(Queryable, Selectable, Insertable, Serialize, Clone, Debug)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+#[diesel(primary_key(id))]
+pub struct ConfigVersion {
+    pub id: i64,
+    pub config: Value,
+    pub config_hash: String,
+    pub tags: Option<Vec<String>>,
+    pub created_at: NaiveDateTime,
 }

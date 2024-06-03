@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use actix_http::header::{HeaderMap, HeaderName, HeaderValue};
 use actix_web::{
     get, patch, post, put,
     web::{self, Data, Json, Query},
@@ -14,7 +15,7 @@ use diesel::{
 
 use service_utils::{
     bad_argument,
-    helpers::{construct_request_headers, request},
+    helpers::{construct_request_headers, generate_snowflake_id, request},
     response_error,
     result::{self as superposition, AppError},
     unexpected_error,
@@ -23,7 +24,7 @@ use service_utils::{
 use superposition_types::{SuperpositionUser, User};
 
 use reqwest::{Method, Response, StatusCode};
-use service_utils::service::types::{AppState, DbConnection, Tenant};
+use service_utils::service::types::{AppState, CustomHeaders, DbConnection, Tenant};
 
 use super::{
     helpers::{
@@ -58,6 +59,25 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(update_overrides)
 }
 
+fn construct_header_map(
+    tenant: &str,
+    config_tags: Option<String>,
+) -> superposition::Result<HeaderMap> {
+    let mut headers = HeaderMap::new();
+    let tenant_val = HeaderValue::from_str(tenant).map_err(|err| {
+        log::error!("failed to set header: {}", err);
+        unexpected_error!("Something went wrong")
+    })?;
+    headers.insert(HeaderName::from_static("x-tenant"), tenant_val);
+    if let Some(val) = config_tags {
+        let tag_val = HeaderValue::from_str(val.as_str()).map_err(|err| {
+            log::error!("failed to set header: {}", err);
+            unexpected_error!("Something went wrong")
+        })?;
+        headers.insert(HeaderName::from_static("x-config-tags"), tag_val);
+    }
+    Ok(headers)
+}
 async fn parse_error_response(
     response: reqwest::Response,
 ) -> superposition::Result<(StatusCode, superposition::ErrorResponse)> {
@@ -105,6 +125,7 @@ async fn process_cac_http_response(
 #[post("")]
 async fn create(
     state: Data<AppState>,
+    custom_headers: CustomHeaders,
     req: web::Json<ExperimentCreateRequest>,
     db_conn: DbConnection,
     tenant: Tenant,
@@ -163,8 +184,7 @@ async fn create(
     }
 
     // generating snowflake id for experiment
-    let mut snowflake_generator = state.snowflake_generator.lock().unwrap();
-    let experiment_id = snowflake_generator.real_time_generate();
+    let experiment_id = generate_snowflake_id(&state)?;
 
     //create overrides in CAC, if successfull then create experiment in DB
     let mut cac_operations: Vec<ContextAction> = vec![];
@@ -195,11 +215,12 @@ async fn create(
     // creating variants' context in CAC
     let http_client = reqwest::Client::new();
     let url = state.cac_host.clone() + "/context/bulk-operations";
+    let headers_map = construct_header_map(tenant.as_str(), custom_headers.config_tags)?;
 
     // Step 1: Perform the HTTP request and handle errors
     let response = http_client
         .put(&url)
-        .header("x-tenant", tenant.as_str())
+        .headers(headers_map.into())
         .header(
             "Authorization",
             format!("{} {}", user.get_auth_type(), user.get_auth_token()),
@@ -256,6 +277,7 @@ async fn create(
 async fn conclude_handler(
     state: Data<AppState>,
     path: web::Path<i64>,
+    custom_headers: CustomHeaders,
     req: web::Json<ConcludeExperimentRequest>,
     db_conn: DbConnection,
     tenant: Tenant,
@@ -265,6 +287,7 @@ async fn conclude_handler(
     let response = conclude(
         state,
         path.into_inner(),
+        custom_headers.config_tags,
         req.into_inner(),
         conn,
         tenant,
@@ -277,6 +300,7 @@ async fn conclude_handler(
 pub async fn conclude(
     state: Data<AppState>,
     experiment_id: i64,
+    config_tags: Option<String>,
     req: ConcludeExperimentRequest,
     mut conn: PooledConnection<ConnectionManager<PgConnection>>,
     tenant: Tenant,
@@ -368,9 +392,11 @@ pub async fn conclude(
     // calling CAC bulk api with operations as payload
     let http_client = reqwest::Client::new();
     let url = state.cac_host.clone() + "/context/bulk-operations";
+    let headers_map = construct_header_map(tenant.as_str(), config_tags)?;
+
     let response = http_client
         .put(&url)
-        .header("x-tenant", tenant.as_str())
+        .headers(headers_map.into())
         .header(
             "Authorization",
             format!("{} {}", user.get_auth_type(), user.get_auth_token()),
@@ -541,6 +567,7 @@ async fn ramp(
 async fn update_overrides(
     params: web::Path<i64>,
     state: Data<AppState>,
+    custom_headers: CustomHeaders,
     db_conn: DbConnection,
     req: web::Json<OverrideKeysUpdateRequest>,
     tenant: Tenant,
@@ -684,10 +711,11 @@ async fn update_overrides(
 
     let http_client = reqwest::Client::new();
     let url = state.cac_host.clone() + "/context/bulk-operations";
+    let headers_map = construct_header_map(tenant.as_str(), custom_headers.config_tags)?;
 
     let response = http_client
         .put(&url)
-        .header("x-tenant", tenant.as_str())
+        .headers(headers_map.into())
         .header(
             "Authorization",
             format!("{} {}", user.get_auth_type(), user.get_auth_token()),

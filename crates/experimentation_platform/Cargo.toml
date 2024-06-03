@@ -11,6 +11,7 @@ dotenv = { workspace = true }
 # Https server framework
 actix = { workspace = true }
 actix-web = { workspace = true }
+actix-http = "3.3.1"
 # To help generate snowflake ids
 rs-snowflake = { workspace = true }
 # To help with generating uuids

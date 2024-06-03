@@ -25,7 +25,6 @@ pub struct Variant {
 #[derive(Deserialize)]
 pub struct ExperimentCreateRequest {
     pub name: String,
-
     pub context: Value,
     pub variants: Vec<Variant>,
 }
@@ -106,7 +105,7 @@ pub struct ContextPutReq {
     pub r#override: Value,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub enum ContextAction {
     PUT(ContextPutReq),
     DELETE(String),
