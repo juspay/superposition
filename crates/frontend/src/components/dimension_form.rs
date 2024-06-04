@@ -191,38 +191,38 @@ where
 
                     <option
                         value="number"
-                        selected=move || { dimension_type.get() == *"number" }
+                        selected=move || { dimension_type.get() == "number" }
                     >
 
                         "Number"
                     </option>
                     <option
                         value="decimal"
-                        selected=move || { dimension_type.get() == *"decimal" }
+                        selected=move || { dimension_type.get() == "decimal" }
                     >
                         "Decimal (Max Value : 1.7976931348623157e+308)"
                     </option>
                     <option
                         value="boolean"
-                        selected=move || { dimension_type.get() == *"boolean" }
+                        selected=move || { dimension_type.get() == "boolean" }
                     >
                         "Boolean"
                     </option>
                     <option
                         value="enum"
-                        selected=move || { dimension_type.get() == *"enum" }
+                        selected=move || { dimension_type.get() == "enum" }
                     >
                         "String (Enum)"
                     </option>
                     <option
                         value="pattern"
-                        selected=move || { dimension_type.get() == *"pattern" }
+                        selected=move || { dimension_type.get() == "pattern" }
                     >
                         "String (regex)"
                     </option>
                     <option
                         value="other"
-                        selected=move || { dimension_type.get() == *"other" }
+                        selected=move || { dimension_type.get() == "other" }
                     >
                         "Other"
                     </option>

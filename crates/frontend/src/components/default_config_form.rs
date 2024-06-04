@@ -222,37 +222,37 @@ where
 
                     <option
                         value="number"
-                        selected=move || { config_type.get() == *"number" }
+                        selected=move || { config_type.get() == "number" }
                     >
                         "Number"
                     </option>
                     <option
                         value="decimal"
-                        selected=move || { config_type.get() == *"decimal" }
+                        selected=move || { config_type.get() == "decimal" }
                     >
                         "Decimal (16 digits)"
                     </option>
                     <option
                         value="boolean"
-                        selected=move || { config_type.get() == *"boolean" }
+                        selected=move || { config_type.get() == "boolean" }
                     >
                         "Boolean"
                     </option>
                     <option
                         value="enum"
-                        selected=move || { config_type.get() == *"enum" }
+                        selected=move || { config_type.get() == "enum" }
                     >
                         "String (Enum)"
                     </option>
                     <option
                         value="pattern"
-                        selected=move || { config_type.get() == *"pattern" }
+                        selected=move || { config_type.get() == "pattern" }
                     >
                         "String (regex)"
                     </option>
                     <option
                         value="other"
-                        selected=move || { config_type.get() == *"other" }
+                        selected=move || { config_type.get() == "other" }
                     >
                         "Other"
                     </option>
