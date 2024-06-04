@@ -172,13 +172,8 @@ async fn create(
 
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;
-    let (valid, reason) = validate_experiment(
-        &req.context,
-        &unique_override_keys,
-        None,
-        &flags,
-        &mut conn,
-    )?;
+    let (valid, reason) =
+        validate_experiment(&req.context, &unique_override_keys, None, flags, &mut conn)?;
     if !valid {
         return Err(bad_argument!(reason));
     }
@@ -270,7 +265,7 @@ async fn create(
     let inserted_experiment: Experiment = inserted_experiments.remove(0);
     let response = ExperimentCreateResponse::from(inserted_experiment);
 
-    return Ok(Json(response));
+    Ok(Json(response))
 }
 
 #[patch("/{experiment_id}/conclude")]
@@ -294,7 +289,7 @@ async fn conclude_handler(
         user,
     )
     .await?;
-    return Ok(Json(ExperimentResponse::from(response)));
+    Ok(Json(ExperimentResponse::from(response)))
 }
 
 pub async fn conclude(
@@ -418,7 +413,7 @@ pub async fn conclude(
         ))
         .get_result::<Experiment>(&mut conn)?;
 
-    return Ok(updated_experiment);
+    Ok(updated_experiment)
 }
 
 #[get("")]
@@ -483,7 +478,7 @@ async fn list_experiments(
         total_items: number_of_experiments,
         data: experiment_list
             .into_iter()
-            .map(|entry| ExperimentResponse::from(entry))
+            .map(ExperimentResponse::from)
             .collect(),
     }))
 }
@@ -495,7 +490,7 @@ async fn get_experiment_handler(
 ) -> superposition::Result<Json<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
     let response = get_experiment(params.into_inner(), &mut conn)?;
-    return Ok(Json(ExperimentResponse::from(response)));
+    Ok(Json(ExperimentResponse::from(response)))
 }
 
 pub fn get_experiment(
@@ -507,7 +502,7 @@ pub fn get_experiment(
         .find(experiment_id)
         .get_result::<Experiment>(conn)?;
 
-    return Ok(result);
+    Ok(result)
 }
 
 #[patch("/{id}/ramp")]
@@ -560,7 +555,7 @@ async fn ramp(
         ))
         .get_result(&mut conn)?;
 
-    return Ok(Json(ExperimentResponse::from(updated_experiment)));
+    Ok(Json(ExperimentResponse::from(updated_experiment)))
 }
 
 #[put("/{id}/overrides")]
@@ -579,7 +574,7 @@ async fn update_overrides(
     let payload = req.into_inner();
     let variants = payload.variants;
 
-    let first_variant = variants.get(0).ok_or(bad_argument!(
+    let first_variant = variants.first().ok_or(bad_argument!(
         "Variant not found in request. Provide at least one entry in variant's list",
     ))?;
     let override_keys = extract_override_keys(&first_variant.overrides)
@@ -618,7 +613,7 @@ async fn update_overrides(
     let variant_ids: HashSet<String> = HashSet::from_iter(
         variants
             .iter()
-            .map(|variant| (*variant).id.to_string())
+            .map(|variant| variant.id.to_string())
             .collect::<Vec<String>>(),
     );
     for existing_id in id_to_existing_variant.keys() {
@@ -665,7 +660,7 @@ async fn update_overrides(
         &experiment.context,
         &override_keys,
         Some(experiment_id),
-        &flags,
+        flags,
         &mut conn,
     )?;
     if !valid {
@@ -757,7 +752,7 @@ async fn update_overrides(
         ))
         .get_result::<Experiment>(&mut conn)?;
 
-    return Ok(Json(ExperimentResponse::from(updated_experiment)));
+    Ok(Json(ExperimentResponse::from(updated_experiment)))
 }
 
 #[get("/audit")]

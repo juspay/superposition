@@ -51,7 +51,7 @@ fn validate_version_in_params(
         .map_or(Ok(None), |version| {
             version
                 .as_str()
-                .map_or(None, |val| val.to_owned().parse::<i64>().ok())
+                .and_then(|val| val.to_owned().parse::<i64>().ok())
                 .map_or_else(
                     || {
                         log::error!("failed to decode version as integer: {}", version);
@@ -254,16 +254,16 @@ fn reduce(
             let mut dimensions_of_c2 = dimensions_in_c2_with_payload.clone();
             dimensions_of_c2.remove("req_payload");
             let override_val_of_key_in_c2 = dimensions_of_c2.remove("key_val");
-            if c2_index != c1_index {
-                if dimensions_subsets_of_c1.contains(&dimensions_of_c2) {
-                    if override_val_of_key_in_c1 == override_val_of_key_in_c2 {
-                        let mut temp_c1 = dimensions_of_c1_with_payload.to_owned();
-                        temp_c1.insert("can_be_reduced".to_string(), Value::Bool(true));
-                        dimensions[c1_index] = temp_c1;
-                        break;
-                    } else if override_val_of_key_in_c2.is_some() {
-                        break;
-                    }
+            if c2_index != c1_index
+                && dimensions_subsets_of_c1.contains(&dimensions_of_c2)
+            {
+                if override_val_of_key_in_c1 == override_val_of_key_in_c2 {
+                    let mut temp_c1 = dimensions_of_c1_with_payload.to_owned();
+                    temp_c1.insert("can_be_reduced".to_string(), Value::Bool(true));
+                    dimensions[c1_index] = temp_c1;
+                    break;
+                } else if override_val_of_key_in_c2.is_some() {
+                    break;
                 }
             }
         }
@@ -315,6 +315,7 @@ fn construct_new_payload(req_payload: &Map<String, Value>) -> web::Json<PutReq> 
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn reduce_config_key(
     user: User,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
@@ -335,19 +336,16 @@ async fn reduce_config_key(
     let mut contexts_overrides_values = Vec::new();
 
     for (override_id, override_value) in og_overrides.clone() {
-        match override_value {
-            Value::Object(mut override_obj) => {
-                if let Some(value_of_check_key) = override_obj.remove(check_key) {
-                    let context_arr = get_contextids_from_overrideid(
-                        og_contexts.clone(),
-                        override_obj,
-                        value_of_check_key.clone(),
-                        &override_id,
-                    )?;
-                    contexts_overrides_values.extend(context_arr);
-                }
+        if let Value::Object(mut override_obj) = override_value {
+            if let Some(value_of_check_key) = override_obj.remove(check_key) {
+                let context_arr = get_contextids_from_overrideid(
+                    og_contexts.clone(),
+                    override_obj,
+                    value_of_check_key.clone(),
+                    &override_id,
+                )?;
+                contexts_overrides_values.extend(context_arr);
             }
-            _ => (),
         }
     }
 
@@ -518,7 +516,7 @@ async fn get(
                 log::error!("Prefix is not a valid string.");
                 bad_argument!("Prefix is not a valid string")
             })?
-            .split(",")
+            .split(',')
             .collect();
         config = filter_config_by_prefix(&config, &prefix_list)?
     }
@@ -578,14 +576,14 @@ async fn get_resolved_config(
             condition: val.condition,
             override_with_keys: val.override_with_keys,
         })
-        .collect();
+        .collect::<Vec<_>>();
 
     let merge_strategy = req
         .headers()
         .get("x-merge-strategy")
         .and_then(|header_value: &HeaderValue| header_value.to_str().ok())
         .and_then(|val| MergeStrategy::from_str(val).ok())
-        .unwrap_or(MergeStrategy::default());
+        .unwrap_or_default();
 
     let response = if let Some(Value::String(_)) = query_params_map.get("show_reasoning")
     {

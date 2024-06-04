@@ -66,7 +66,7 @@ where
                         />
                     </Show>
                 </div>
-                <Show when=move || overrides.get().len() == 0>
+                <Show when=move || overrides.get().is_empty()>
                     <div class="p-4 text-gray-400 flex flex-col justify-center items-center">
                         <div>
                             <i class="ri-add-circle-line text-xl"></i>
@@ -82,7 +82,7 @@ where
                     children=move |(config_key, config_value)| {
                         let config_key_label = config_key.to_string();
                         let config_key_value = config_key.to_string();
-                        let config_value = config_value.to_string().replace("\"", "");
+                        let config_value = config_value.to_string().replace('"', "");
                         logging::log!("config value {}", config_value.clone());
                         view! {
                             <div>

@@ -31,7 +31,7 @@ impl ConnectionConfig {
     }
 
     pub fn conn_url(&self) -> String {
-        if self.database_url.contains("?") {
+        if self.database_url.contains('?') {
             format!(
                 "{}&options=-c%20search_path%3D{},$user,public",
                 self.database_url, self.schema
@@ -58,7 +58,9 @@ impl From<Vec<ConnectionConfig>> for PgSchemaManager {
                 Pool::builder()
                     .max_size(config.count)
                     .build(manager)
-                    .expect(format!("Invalid config provided, {}", config.name).as_str()),
+                    .unwrap_or_else(|_| {
+                        panic!("Invalid config provided, {}", config.name)
+                    }),
             );
         }
         schema_manager

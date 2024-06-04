@@ -70,13 +70,11 @@ pub fn construct_context(
             })
             .collect::<Vec<Value>>();
 
-        let context = if condition_schemas.len() == 1 {
+        if condition_schemas.len() == 1 {
             condition_schemas[0].clone()
         } else {
             json!({ "and": condition_schemas })
-        };
-
-        context
+        }
     }
 }
 

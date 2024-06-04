@@ -78,20 +78,18 @@ async fn create(
                 log::error!("Function error: {:?}", e);
                 match kind {
                     diesel::result::DatabaseErrorKind::UniqueViolation => {
-                        return Err(bad_argument!("Function already exists."))
+                        Err(bad_argument!("Function already exists."))
                     }
-                    _ => {
-                        return Err(unexpected_error!(
-                            "Something went wrong, failed to create function"
-                        ))
-                    }
+                    _ => Err(unexpected_error!(
+                        "Something went wrong, failed to create function"
+                    )),
                 }
             }
             _ => {
                 log::error!("Function creation failed with error: {e}");
-                return Err(unexpected_error!(
+                Err(unexpected_error!(
                     "An error occured please contact the admin."
-                ));
+                ))
             }
         },
     }

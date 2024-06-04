@@ -100,7 +100,7 @@ pub fn validate_dimensions_and_calculate_priority(
                     (&condition, from_value::<DimensionCondition>(json!(i)))
                 {
                     condition = Some(x);
-                } else if val == None {
+                } else if val.is_none() {
                     val = Some(i.clone());
                 }
 
@@ -123,7 +123,7 @@ pub fn validate_dimensions_and_calculate_priority(
                 validate_context_jsonschema(
                     object_key,
                     &dimension_value,
-                    &dimension_value_schema,
+                    dimension_value_schema,
                 )?;
             }
             arr.iter().try_fold(0, |acc, item| {
@@ -315,12 +315,12 @@ async fn put_handler(
 ) -> superposition::Result<Json<PutResp>> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        let put_response = put(req, transaction_conn, true, &user)
-            .map(|resp| Json(resp))
-            .map_err(|err: superposition::AppError| {
+        let put_response = put(req, transaction_conn, true, &user).map(Json).map_err(
+            |err: superposition::AppError| {
                 log::info!("context put failed with error: {:?}", err);
                 err
-            })?;
+            },
+        )?;
         add_config_version(&state, tags, transaction_conn)?;
         Ok(put_response)
     })
@@ -467,7 +467,7 @@ async fn move_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
         let move_reponse = r#move(path.into_inner(), req, transaction_conn, true, &user)
-            .map(|resp| Json(resp))
+            .map(Json)
             .map_err(|err| {
                 log::info!("move api failed with error: {:?}", err);
                 err
@@ -672,7 +672,7 @@ async fn priority_recompute(
                     response.push(PriorityRecomputeResponse {
                         id: context.id.clone(),
                         condition: context.value.clone(),
-                        old_priority: context.priority.clone(),
+                        old_priority: context.priority,
                         new_priority: val,
                     });
                     Ok(Context {

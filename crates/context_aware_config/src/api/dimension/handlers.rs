@@ -33,7 +33,7 @@ async fn create(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
-    if req.priority <= 0 {
+    if req.priority == 0 {
         return Err(bad_argument!("Priority should be greater than 0"));
     }
 
@@ -81,24 +81,22 @@ async fn create(
         .get_result::<Dimension>(&mut conn);
 
     match upsert {
-        Ok(upserted_dimension) => {
-            return Ok(HttpResponse::Created().json(upserted_dimension))
-        }
+        Ok(upserted_dimension) => Ok(HttpResponse::Created().json(upserted_dimension)),
         Err(diesel::result::Error::DatabaseError(
             diesel::result::DatabaseErrorKind::ForeignKeyViolation,
             e,
         )) => {
             log::error!("{fun_name:?} function not found with error: {e:?}");
-            return Err(bad_argument!(
+            Err(bad_argument!(
                 "Funtion {} doesn't exists",
                 fun_name.unwrap_or(String::new())
-            ));
+            ))
         }
         Err(e) => {
             log::error!("Dimension upsert failed with error: {e}");
-            return Err(unexpected_error!(
+            Err(unexpected_error!(
                 "Something went wrong, failed to create/update dimension"
-            ));
+            ))
         }
     }
 }

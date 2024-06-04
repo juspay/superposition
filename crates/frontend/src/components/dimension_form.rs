@@ -191,38 +191,38 @@ where
 
                     <option
                         value="number"
-                        selected=move || { dimension_type.get() == "number".to_string() }
+                        selected=move || { dimension_type.get() == "number" }
                     >
 
                         "Number"
                     </option>
                     <option
                         value="decimal"
-                        selected=move || { dimension_type.get() == "decimal".to_string() }
+                        selected=move || { dimension_type.get() == "decimal" }
                     >
                         "Decimal (Max Value : 1.7976931348623157e+308)"
                     </option>
                     <option
                         value="boolean"
-                        selected=move || { dimension_type.get() == "boolean".to_string() }
+                        selected=move || { dimension_type.get() == "boolean" }
                     >
                         "Boolean"
                     </option>
                     <option
                         value="enum"
-                        selected=move || { dimension_type.get() == "enum".to_string() }
+                        selected=move || { dimension_type.get() == "enum" }
                     >
                         "String (Enum)"
                     </option>
                     <option
                         value="pattern"
-                        selected=move || { dimension_type.get() == "pattern".to_string() }
+                        selected=move || { dimension_type.get() == "pattern" }
                     >
                         "String (regex)"
                     </option>
                     <option
                         value="other"
-                        selected=move || { dimension_type.get() == "other".to_string() }
+                        selected=move || { dimension_type.get() == "other" }
                     >
                         "Other"
                     </option>
@@ -286,7 +286,7 @@ where
 
             <Suspense>
                 {move || {
-                    let mut functions = functions_resource.get().unwrap_or(vec![]);
+                    let mut functions = functions_resource.get().unwrap_or_default();
                     let mut function_names: Vec<FunctionsName> = vec!["None".to_string()];
                     functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
                     functions

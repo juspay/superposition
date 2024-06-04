@@ -36,11 +36,11 @@ fn default_variants_for_form() -> Vec<(String, Variant)> {
 }
 
 fn get_init_state(variants: &[Variant]) -> Vec<(String, Variant)> {
-    let init_variants = if variants.len() == 0 {
+    let init_variants = if variants.is_empty() {
         default_variants_for_form()
     } else {
         variants
-            .into_iter()
+            .iter()
             .map(|variant| (variant.id.to_string(), variant.clone()))
             .collect::<Vec<(String, Variant)>>()
     };

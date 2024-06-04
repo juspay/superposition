@@ -163,9 +163,9 @@ pub fn validate_context_jsonschema(
     match dimension_value {
         Value::Array(val_arr) if object_key == "in" => {
             let mut verrors = Vec::new();
-            val_arr.into_iter().for_each(|x| {
+            val_arr.iter().for_each(|x| {
                 dimension_schema
-                    .validate(&x)
+                    .validate(x)
                     .map_err(|e| {
                         verrors.append(&mut e.collect::<Vec<ValidationError>>());
                     })
@@ -175,7 +175,7 @@ pub fn validate_context_jsonschema(
                 Ok(())
             } else {
                 // Check if the array as a whole validates, even with individual errors
-                match dimension_schema.validate(&dimension_value) {
+                match dimension_schema.validate(dimension_value) {
                     Ok(()) => {
                         log::error!(
                             "Validation errors for individual dimensions, but array as a whole validates: {:?}",
@@ -263,10 +263,8 @@ pub fn json_to_sorted_string(v: &Value) -> String {
         Value::Bool(m) => m.to_string(),
         Value::Null => String::from("null"),
         Value::Array(m) => {
-            let mut new_vec: Vec<String> = m
-                .iter()
-                .map(|item| json_to_sorted_string(item))
-                .collect::<Vec<String>>();
+            let mut new_vec =
+                m.iter().map(json_to_sorted_string).collect::<Vec<String>>();
             new_vec.sort();
             new_vec.join(",")
         }
@@ -274,15 +272,14 @@ pub fn json_to_sorted_string(v: &Value) -> String {
 }
 
 pub fn calculate_context_priority(
-    object_key: &str,
+    _object_key: &str,
     cond: &Value,
     dimension_schema_map: &HashMap<String, (JSONSchema, i32)>,
 ) -> Result<i32, String> {
     let get_priority = |key: &str, val: &Value| -> Result<i32, String> {
         if key == "var" {
-            let dimension_name = val
-                .as_str()
-                .ok_or_else(|| "failed to decode dimension as str")?;
+            let dimension_name =
+                val.as_str().ok_or("failed to decode dimension as str")?;
             dimension_schema_map
                 .get(dimension_name)
                 .map(|(_, priority)| priority)
@@ -300,7 +297,7 @@ pub fn calculate_context_priority(
             get_priority(key, val).map(|res| res + acc)
         }),
         Value::Array(arr) => arr.iter().try_fold(0, |acc, item| {
-            calculate_context_priority(object_key, item, dimension_schema_map)
+            calculate_context_priority(_object_key, item, dimension_schema_map)
                 .map(|res| res + acc)
         }),
         _ => Ok(0),
@@ -378,7 +375,7 @@ pub fn add_config_version(
         id: version_id,
         config: json_config,
         config_hash,
-        tags: tags,
+        tags,
         created_at: Utc::now().naive_utc(),
     };
     diesel::insert_into(config_versions)
@@ -395,48 +392,34 @@ mod tests {
     #[test]
     fn test_get_meta_schema() {
         let x = get_meta_schema();
-        let ok_string_validation = x
-            .validate(&json!({"type": "string", "pattern": ".*"}))
-            .map_err(|e| {
-                let verrors = e.collect::<Vec<ValidationError>>();
-                String::from(format!("Bad schema: {:?}", verrors.as_slice()))
-            });
-        let error_string_validation =
-            match x.validate(&json!({"type": "string"})).map_err(|e| {
-                let verrors = e.collect::<Vec<ValidationError>>();
-                String::from(format!(
-                    "Error While validating string dataType, Bad schema: {:?}",
-                    verrors.as_slice()
-                ))
-            }) {
-                Ok(()) => false,
-                Err(err_str) => err_str.contains("Bad schema"),
-            };
 
-        let error_object_validation =
-            match x.validate(&json!({"type": "object"})).map_err(|e| {
-                let verrors = e.collect::<Vec<ValidationError>>();
-                String::from(format!(
-                    "Error While validating object dataType, Bad schema: {:?}",
-                    verrors.as_slice()
-                ))
-            }) {
-                Ok(()) => false,
-                Err(err_str) => err_str.contains("Bad schema"),
-            };
-        let ok_enum_validation = x
-            .validate(&json!({"type": "string", "enum": ["ENUMVAL"]}))
-            .map_err(|e| {
-                let verrors = e.collect::<Vec<ValidationError>>();
-                String::from(format!(
-                    "Error While validating enum dataType, Bad schema: {:?}",
-                    verrors.as_slice()
-                ))
-            });
-        assert_eq!(ok_enum_validation, Ok(()));
-        assert_eq!(error_object_validation, true);
-        assert_eq!(ok_string_validation, Ok(()));
-        assert_eq!(error_string_validation, true);
+        let ok_string_schema = json!({"type": "string", "pattern": ".*"});
+        let ok_string_validation = x.validate(&ok_string_schema);
+        assert!(ok_string_validation.is_ok());
+
+        let error_string_schema = json!({"type": "string"});
+        let error_string_validation = x.validate(&error_string_schema).map_err(|e| {
+            let verrors = e.collect::<Vec<ValidationError>>();
+            format!(
+                "Error While validating string dataType, Bad schema: {:?}",
+                verrors.as_slice()
+            )
+        });
+        assert!(error_string_validation.is_err_and(|error| error.contains("Bad schema")));
+
+        let error_object_schema = json!({"type": "object"});
+        let error_object_validation = x.validate(&error_object_schema).map_err(|e| {
+            let verrors = e.collect::<Vec<ValidationError>>();
+            format!(
+                "Error While validating object dataType, Bad schema: {:?}",
+                verrors.as_slice()
+            )
+        });
+        assert!(error_object_validation.is_err_and(|error| error.contains("Bad schema")));
+
+        let ok_enum_schema = json!({"type": "string", "enum": ["ENUMVAL"]});
+        let ok_enum_validation = x.validate(&ok_enum_schema);
+        assert!(ok_enum_validation.is_ok());
     }
 
     #[test]
@@ -518,8 +501,8 @@ mod tests {
                 _ => false,
             };
 
-        assert_eq!(ok_str_context.unwrap(), ());
-        assert_eq!(err_arr_context, true);
-        assert_eq!(ok_arr_context.unwrap(), ());
+        assert!(ok_str_context.is_ok());
+        assert!(err_arr_context);
+        assert!(ok_arr_context.is_ok());
     }
 }

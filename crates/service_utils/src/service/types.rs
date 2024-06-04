@@ -102,11 +102,9 @@ impl AppExecutionNamespace {
             scope,
         ) {
             (false, _, _, _) => Ok(AppExecutionNamespace("cac_v1".to_string())),
-            (true, _, Some(t), Some(s)) => Ok(AppExecutionNamespace(format!(
-                "{}_{}",
-                t.as_str(),
-                s.to_string()
-            ))),
+            (true, _, Some(t), Some(s)) => {
+                Ok(AppExecutionNamespace(format!("{}_{}", t.as_str(), s)))
+            }
             (true, _, None, _) => {
                 log::error!(
                     "get_app_execution_namespace: Tenant not set in request extensions"

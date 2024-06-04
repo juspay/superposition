@@ -1,3 +1,5 @@
+#![allow(unknown_lints, clippy::empty_docs)]
+
 mod api;
 pub mod app;
 pub mod components;

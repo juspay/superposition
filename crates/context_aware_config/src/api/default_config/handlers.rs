@@ -88,7 +88,7 @@ async fn create(
 
     let (value, schema, function_name) = match result {
         Ok((val, schema, f_name)) => {
-            let val = req.value.unwrap_or_else(|| val);
+            let val = req.value.unwrap_or(val);
             let schema = req.schema.map_or_else(|| schema, Value::Object);
             let f_name = if req.function_name == Some(Value::Null) {
                 None

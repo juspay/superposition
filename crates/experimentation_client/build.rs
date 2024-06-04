@@ -1,10 +1,8 @@
-use std::env;
-
 fn main() {
-    let crate_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let crate_dir = std::env!("CARGO_MANIFEST_DIR");
     let mut config: cbindgen::Config = Default::default();
     config.language = cbindgen::Language::C;
-    cbindgen::generate_with_config(&crate_dir, config)
-        .unwrap()
+    cbindgen::generate_with_config(crate_dir, config)
+        .expect("Failed to generate bindings")
         .write_to_file("../../headers/libexperimentation_client.h");
 }

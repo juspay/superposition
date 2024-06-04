@@ -112,7 +112,7 @@ where
                                         <div class="stat-title">Chosen Variant</div>
                                         <div class="stat-value">
                                             {match exp.chosen_variant {
-                                                Some(ref v) => format!("{}", v),
+                                                Some(ref v) => v.to_string(),
                                                 None => String::new(),
                                             }}
 
@@ -166,7 +166,7 @@ where
                                         <div class="stat w-3/12">
                                             <div class="stat-title">{dimension}</div>
                                             <div class="stat-value text-base">
-                                                {&value.replace("\"", "")}
+                                                {&value.replace('"', "")}
                                             </div>
                                         </div>
                                     },

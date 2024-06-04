@@ -22,7 +22,7 @@ pub fn get_all_dimension_schema_map(
                 .compile(&item.schema)
                 .ok()?;
 
-            Some((item.dimension, (compiled_schema, i32::from(item.priority))))
+            Some((item.dimension, (compiled_schema, item.priority)))
         })
         .collect();
 

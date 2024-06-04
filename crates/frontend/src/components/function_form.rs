@@ -43,7 +43,7 @@ where
 
         spawn_local({
             async move {
-                let result = if edit == true {
+                let result = if edit {
                     update_function(
                         f_function_name,
                         f_function,
@@ -97,7 +97,7 @@ where
 
                     <div class="mx-auto w-auto" style="width: 250px">
 
-                        <Show when=move || { edit == false }>
+                        <Show when=move || { !edit }>
                             <div class="form-control ">
                                 <label class="label">
                                     <span class="label-text">Function Name</span>

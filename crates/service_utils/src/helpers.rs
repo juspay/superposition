@@ -28,7 +28,7 @@ where
         .map(|val| val.parse().unwrap())
         .map_err(|e| {
             log::info!("{name} env not found with error: {e}");
-            return e;
+            e
         })
 }
 
@@ -103,7 +103,7 @@ where
             E: de::Error,
         {
             let mut query_vector = Vec::new();
-            for param in v.split(",") {
+            for param in v.split(',') {
                 let p: I = I::deserialize(param.into_deserializer())?;
                 query_vector.push(p);
             }
@@ -117,7 +117,7 @@ where
 pub fn get_pod_info() -> (String, String) {
     let hostname: String = get_from_env_unsafe("HOSTNAME").expect("HOSTNAME is not set");
     let tokens = hostname
-        .split("-")
+        .split('-')
         .map(str::to_string)
         .collect::<Vec<String>>();
     let mut tokens = tokens.iter().rev();
@@ -170,9 +170,7 @@ pub fn extract_dimensions(context_json: &Value) -> result::Result<Map<String, Va
     Ok(Map::from_iter(dimension_tuples))
 }
 
-pub fn get_variable_name_and_value(
-    operands: &Vec<Value>,
-) -> result::Result<(&str, &Value)> {
+pub fn get_variable_name_and_value(operands: &[Value]) -> result::Result<(&str, &Value)> {
     let (obj_pos, variable_obj) = operands
         .iter()
         .enumerate()
@@ -185,9 +183,7 @@ pub fn get_variable_name_and_value(
         ))?;
 
     let variable_name = variable_obj
-        .as_object()
-        .map_or(None, |obj| obj.get("var"))
-        .map_or(None, |value| value.as_str())
+        .as_object().and_then(|obj| obj.get("var")).and_then(|value| value.as_str())
         .ok_or(result::AppError::BadArgument(
             "Failed to get variable name as string. Ensure the context provided obeys the rules of JSON logic"
                 .into()
@@ -215,16 +211,16 @@ pub fn validation_err_to_str(errors: Vec<ValidationError>) -> Vec<String> {
                 format!("unexpected properties `{}`", unexpected.join(", "))
             }
             ValidationErrorKind::AnyOf => {
-                format!("not valid under any of the schemas listed in the 'anyOf' keyword")
+                "not valid under any of the schemas listed in the 'anyOf' keyword".to_string()
             }
             ValidationErrorKind::BacktrackLimitExceeded { error: _ } => {
-                format!("backtrack limit exceeded while matching regex")
+                "backtrack limit exceeded while matching regex".to_string()
             }
             ValidationErrorKind::Constant { expected_value } => {
                 format!("value doesn't match expected constant `{expected_value}`")
             }
             ValidationErrorKind::Contains => {
-                format!("array doesn't contain items conforming to the specified schema")
+                "array doesn't contain items conforming to the specified schema".to_string()
             }
             ValidationErrorKind::ContentEncoding { content_encoding } => {
                 format!("value doesn't respect the defined contentEncoding `{content_encoding}`")
@@ -233,7 +229,7 @@ pub fn validation_err_to_str(errors: Vec<ValidationError>) -> Vec<String> {
                 format!("value doesn't respect the defined contentMediaType `{content_media_type}`")
             }
             ValidationErrorKind::Enum { options } => {
-                format!("value doesn't match any of specified options {}", options.to_string())
+                format!("value doesn't match any of specified options {}", options)
             }
             ValidationErrorKind::ExclusiveMaximum { limit } => {
                 format!("value is too large, limit is {limit}")
@@ -242,16 +238,16 @@ pub fn validation_err_to_str(errors: Vec<ValidationError>) -> Vec<String> {
                 format!("value is too small, limit is {limit}")
             }
             ValidationErrorKind::FalseSchema => {
-                format!("everything is invalid for `false` schema")
+                "everything is invalid for `false` schema".to_string()
             }
             ValidationErrorKind::FileNotFound { error: _ } => {
-                format!("referenced file not found")
+                "referenced file not found".to_string()
             }
             ValidationErrorKind::Format { format } => {
                 format!("value doesn't match the specified format `{}`", format)
             }
             ValidationErrorKind::FromUtf8 { error: _ } => {
-                format!("invalid UTF-8 data")
+                "invalid UTF-8 data".to_string()
             }
             ValidationErrorKind::InvalidReference { reference } => {
                 format!("`{}` is not a valid reference", reference)
@@ -293,10 +289,10 @@ pub fn validation_err_to_str(errors: Vec<ValidationError>) -> Vec<String> {
                 format!("negated schema `{}` failed validation", schema)
             }
             ValidationErrorKind::OneOfMultipleValid => {
-                format!("value is valid under more than one schema listed in the 'oneOf' keyword")
+                "value is valid under more than one schema listed in the 'oneOf' keyword".to_string()
             }
             ValidationErrorKind::OneOfNotValid => {
-                format!("value is not valid under any of the schemas listed in the 'oneOf' keyword")
+                "value is not valid under any of the schemas listed in the 'oneOf' keyword".to_string()
             }
             ValidationErrorKind::Pattern { pattern } => {
                 format!("value doesn't match the pattern `{}`", pattern)
@@ -311,7 +307,7 @@ pub fn validation_err_to_str(errors: Vec<ValidationError>) -> Vec<String> {
                 format!("error resolving reference `{}`: {}", url, error)
             }
             ValidationErrorKind::Schema => {
-                format!("resolved schema failed to compile")
+                "resolved schema failed to compile".to_string()
             }
             ValidationErrorKind::Type { kind } => {
                 format!("value doesn't match the required type(s) `{:?}`", kind)
@@ -320,7 +316,7 @@ pub fn validation_err_to_str(errors: Vec<ValidationError>) -> Vec<String> {
                 format!("unevaluated properties `{}`", unexpected.join(", "))
             }
             ValidationErrorKind::UniqueItems => {
-                format!("array contains non-unique elements")
+                "array contains non-unique elements".to_string()
             }
             ValidationErrorKind::UnknownReferenceScheme { scheme } => {
                 format!("unknown reference scheme `{}`", scheme)
@@ -333,11 +329,11 @@ pub fn validation_err_to_str(errors: Vec<ValidationError>) -> Vec<String> {
 }
 
 use once_cell::sync::Lazy;
-static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(|| reqwest::Client::new());
+static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 
 pub fn construct_request_headers(entries: &[(&str, &str)]) -> Result<HeaderMap, String> {
     entries
-        .into_iter()
+        .iter()
         .map(|(name, value)| {
             let h_name = HeaderName::from_str(name);
             let h_value = HeaderValue::from_str(value);
@@ -395,12 +391,12 @@ pub fn parse_config_tags(
         None => Ok(None),
         Some(val) => {
             let tags = val
-                .split(",")
+                .split(',')
                 .map(|s| {
                     if !regex.is_match(s) {
-                        return Err(result::AppError::BadArgument(
+                        Err(result::AppError::BadArgument(
                             "Invalid config_tags value".to_string(),
-                        ));
+                        ))
                     } else {
                         Ok(s.to_owned())
                     }

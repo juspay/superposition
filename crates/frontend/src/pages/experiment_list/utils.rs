@@ -81,19 +81,19 @@ pub fn experiment_table_columns() -> Vec<Column> {
                     .map(|val| val.as_u64().unwrap_or(0))
                     .unwrap_or(0);
                 view! {
-                <div class={class}>
-                    <span class="text-white font-semibold text-xs">
-                        {
-                            if value == "INPROGRESS" {
-                                format!("{}: {}%", value.to_string(), traffic_percentage)
-                            } else {
-                                value.to_string()
+                    <div class={class}>
+                        <span class="text-white font-semibold text-xs">
+                            {
+                                if value == "INPROGRESS" {
+                                    format!("{}: {}%", value, traffic_percentage)
+                                } else {
+                                    value.to_string()
+                                }
                             }
-                        }
-                    </span>
-                </div>
-            }
-            .into_view()
+                        </span>
+                    </div>
+                }
+                .into_view()
             },
         ),
         Column::new(

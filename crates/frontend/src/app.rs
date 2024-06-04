@@ -43,7 +43,7 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                         rel="stylesheet"
                     />
                     {move || {
-                        if base == "" {
+                        if base.is_empty() {
                             view! {}.into_view()
                         } else {
                             view! {

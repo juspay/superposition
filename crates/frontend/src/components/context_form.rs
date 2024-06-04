@@ -20,7 +20,7 @@ pub fn context_form<NF>(
 where
     NF: Fn(Vec<(String, String, String)>) + 'static,
 {
-    let _has_dimensions = dimensions.len() > 0;
+    let _has_dimensions = !dimensions.is_empty();
 
     let (context, set_context) = create_signal(context.clone());
     let (used_dimensions, set_used_dimensions) = create_signal(HashSet::new());
@@ -63,7 +63,7 @@ where
                 </div>
                 <div class="card w-full bg-slate-50">
                     <div class="card-body">
-                        <Show when=move || context.get().len() == 0>
+                        <Show when=move || context.get().is_empty()>
                             <div class="flex justify-center">
                                 <Dropdown
                                     dropdown_width="w-80"
@@ -198,7 +198,7 @@ where
                             }
                         />
 
-                        <Show when=move || { context.get().len() != 0 && !disabled }>
+                        <Show when=move || { !context.get().is_empty() && !disabled }>
                             <div class="mt-4">
 
                                 {move || {

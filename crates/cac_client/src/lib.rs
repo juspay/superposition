@@ -14,7 +14,6 @@ use std::{
     sync::{Arc, RwLock},
     time::{Duration, UNIX_EPOCH},
 };
-use strum_macros;
 use utils::core::MapError;
 
 use service_utils::{
@@ -44,7 +43,7 @@ pub enum MergeStrategy {
 
 impl Default for MergeStrategy {
     fn default() -> Self {
-        return Self::MERGE;
+        Self::MERGE
     }
 }
 
@@ -120,10 +119,10 @@ impl Client {
         let resp = reqw.send().await.map_err_to_string()?;
         match resp.status() {
             StatusCode::NOT_MODIFIED => {
-                return Err(String::from(format!(
+                return Err(format!(
                     "{} CAC: skipping update, remote not modified",
                     self.tenant
-                )));
+                ));
             }
             StatusCode::OK => log::info!(
                 "{}",
@@ -166,10 +165,10 @@ impl Client {
                     .as_str()
                     .ok_or_else(|| {
                         log::error!("Prefix is not a valid string.");
-                        format!("Prefix is not a valid string.")
+                        "Prefix is not a valid string.".to_string()
                     })
                     .map_err_to_string()?
-                    .split(",")
+                    .split(',')
                     .collect();
                 config =
                     filter_config_by_prefix(&config, &prefix_list).map_err_to_string()?;
@@ -215,7 +214,7 @@ impl Client {
             cac = filter_keys_by_prefix(cac, &keys.iter().map(|s| s.as_str()).collect())
                 .map_err_to_string()?;
         }
-        return Ok(cac);
+        Ok(cac)
     }
 
     pub fn get_default_config(
@@ -231,7 +230,7 @@ impl Client {
             )
             .map_err_to_string()?;
         }
-        return Ok(default_configs);
+        Ok(default_configs)
     }
 }
 
@@ -259,7 +258,7 @@ impl ClientFactory {
         let client =
             Arc::new(Client::new(tenant.to_string(), polling_interval, hostname).await?);
         factory.insert(tenant.to_string(), client.clone());
-        return Ok(client.clone());
+        Ok(client.clone())
     }
 
     pub fn get_client(&self, tenant: String) -> Result<Arc<Client>, String> {
@@ -363,10 +362,10 @@ pub fn filter_config_by_dimensions(
                 filtered_context.push(context.clone());
             }
         }
-        return Ok(filtered_context);
+        Ok(filtered_context)
     };
 
-    let filtered_context = filter_context(&config.contexts, &query_params_map)?;
+    let filtered_context = filter_context(&config.contexts, query_params_map)?;
     let filtered_overrides: Map<String, Value> = filtered_context
         .iter()
         .flat_map(|ele| {

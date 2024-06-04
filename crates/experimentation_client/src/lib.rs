@@ -35,7 +35,7 @@ impl Client {
             experiments: Arc::new(RwLock::new(HashMap::new())),
             http_client: reqwest::Client::new(),
             last_polled: Arc::new(RwLock::new(
-                Utc.with_ymd_and_hms(2023, 01, 1, 0, 0, 0).unwrap(),
+                Utc.with_ymd_and_hms(2023, 1, 1, 0, 0, 0).unwrap(),
             )),
         }
     }
@@ -193,7 +193,7 @@ impl Client {
             .position(|x| toss < x)
             .ok_or_else(|| "Unable to fetch variant's index".to_string())
             .map_err_to_string()?;
-        Ok(applicable_variants.get(index).map(Variant::clone))
+        Ok(applicable_variants.get(index).cloned())
     }
 }
 

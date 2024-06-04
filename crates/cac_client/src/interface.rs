@@ -1,5 +1,4 @@
 // Primary interface so CAC client can work with other languages like haskell
-#[warn(unused_assignments)]
 use std::{
     ffi::{c_char, c_ulong, CStr},
     sync::Arc,
@@ -15,7 +14,7 @@ use std::{
 use tokio::{runtime::Runtime, task};
 
 thread_local! {
-    static LAST_ERROR: RefCell<Option<Box<String>>> = RefCell::new(None);
+    static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
 macro_rules! null_check {
@@ -56,11 +55,11 @@ fn rstring_to_cstring(s: String) -> CString {
 pub fn update_last_error(err: String) {
     println!("Setting LAST_ERROR: {}", err);
     LAST_ERROR.with(|prev| {
-        *prev.borrow_mut() = Some(Box::new(err));
+        *prev.borrow_mut() = Some(err);
     });
 }
 
-pub fn take_last_error() -> Option<Box<String>> {
+pub fn take_last_error() -> Option<String> {
     LAST_ERROR.with(|prev| prev.borrow_mut().take())
 }
 
@@ -111,22 +110,21 @@ pub extern "C" fn cac_new_client(
             .create_client(tenant.clone(), duration, hostname)
             .await
         {
-            Ok(_) => return 0,
+            Ok(_) => 0,
             Err(err) => {
                 update_last_error(err);
-                return 1;
+                1
             }
         }
-    });
-    return 0;
+    })
 }
 
 #[no_mangle]
 pub extern "C" fn cac_start_polling_update(tenant: *const c_char) {
-    null_check!(tenant, "NULL pointer provided for tenant", return ());
+    null_check!(tenant, "NULL pointer provided for tenant", return);
     unsafe {
         let client = cac_get_client(tenant);
-        null_check!(client, "CAC client for tenant not found", return ());
+        null_check!(client, "CAC client for tenant not found", return);
         let local = task::LocalSet::new();
         // println!("in FFI polling");
         local.block_on(
@@ -215,7 +213,7 @@ pub extern "C" fn cac_get_config(
                         .into_raw()
                 })
         },
-        return std::ptr::null_mut()
+        std::ptr::null_mut()
     )
 }
 
@@ -242,7 +240,7 @@ pub extern "C" fn cac_get_resolved_config(
                 return std::ptr::null();
             }
         };
-        Some(filter_string.split("|").map(str::to_string).collect())
+        Some(filter_string.split('|').map(str::to_string).collect())
     };
 
     let query = unwrap_safe!(cstring_to_rstring(query), return std::ptr::null());
@@ -266,11 +264,11 @@ pub extern "C" fn cac_get_resolved_config(
                     unwrap_safe!(
                         serde_json::to_string::<Map<String, Value>>(&ov)
                             .map(|overrides| rstring_to_cstring(overrides).into_raw()),
-                        return std::ptr::null()
+                        std::ptr::null()
                     )
                 })
         },
-        return std::ptr::null()
+        std::ptr::null()
     )
 }
 
@@ -289,7 +287,7 @@ pub extern "C" fn cac_get_default_config(
                 return std::ptr::null();
             }
         };
-        Some(filter_string.split("|").map(str::to_string).collect())
+        Some(filter_string.split('|').map(str::to_string).collect())
     };
 
     unwrap_safe!(
@@ -298,10 +296,10 @@ pub extern "C" fn cac_get_default_config(
                 unwrap_safe!(
                     serde_json::to_string::<Map<String, Value>>(&ov)
                         .map(|overrides| rstring_to_cstring(overrides).into_raw()),
-                    return std::ptr::null()
+                    std::ptr::null()
                 )
             })
         },
-        return std::ptr::null()
+        std::ptr::null()
     )
 }

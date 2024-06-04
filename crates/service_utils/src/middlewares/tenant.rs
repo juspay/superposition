@@ -39,35 +39,28 @@ pub struct TenantMiddleware<S> {
 fn extract_tenant_from_header(headers: &HeaderMap) -> Option<&str> {
     headers
         .get("x-tenant")
-        .map(|header_value: &HeaderValue| header_value.to_str().ok())
-        .flatten()
+        .and_then(|header_value: &HeaderValue| header_value.to_str().ok())
 }
 
-fn extract_tenant_from_url<'a>(
-    path: &'a str,
-    match_pattern: Option<String>,
-) -> Option<&'a str> {
-    match_pattern
-        .map(move |pattern| {
-            let pattern_segments = pattern.split("/");
-            let path_segments = path.split("/").collect::<Vec<&str>>();
+fn extract_tenant_from_url(path: &str, match_pattern: Option<String>) -> Option<&str> {
+    match_pattern.and_then(move |pattern| {
+        let pattern_segments = pattern.split('/');
+        let path_segments = path.split('/').collect::<Vec<&str>>();
 
-            debug!("PATTERN_SEGMENTS ===> {:?}", pattern_segments);
-            debug!("PATH_SEGMENTS ===> {:?}", path_segments);
+        debug!("PATTERN_SEGMENTS ===> {:?}", pattern_segments);
+        debug!("PATH_SEGMENTS ===> {:?}", path_segments);
 
-            std::iter::zip(path_segments, pattern_segments)
-                .find(|(_, pattern_seg)| pattern_seg == &"{tenant}")
-                .map(|(path_seg, _)| path_seg)
-        })
-        .flatten()
+        std::iter::zip(path_segments, pattern_segments)
+            .find(|(_, pattern_seg)| pattern_seg == &"{tenant}")
+            .map(|(path_seg, _)| path_seg)
+    })
 }
 
 fn extract_tenant_from_query_params(query_str: &str) -> Option<&str> {
     query_str
-        .split("&")
+        .split('&')
         .find(|segment| segment.contains("tenant="))
-        .map(|tenant_query_param| tenant_query_param.split("=").nth(1))
-        .flatten()
+        .and_then(|tenant_query_param| tenant_query_param.split('=').nth(1))
 }
 
 impl<S, B> Service<ServiceRequest> for TenantMiddleware<S>

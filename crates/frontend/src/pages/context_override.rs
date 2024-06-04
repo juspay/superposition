@@ -80,7 +80,7 @@ pub fn context_override() -> impl IntoView {
                 <h2 class="card-title">Overrides</h2>
                 <DrawerBtn
                     drawer_id="context_and_override_drawer".to_string()
-                    on_click=handle_create_click.clone()
+                    on_click=handle_create_click
                 >
                     Create Override
                     <i class="ri-edit-2-line ml-2"></i>
@@ -210,7 +210,7 @@ pub fn context_override() -> impl IntoView {
                                         <Button
                                             class="pl-[70px] pr-[70px]".to_string()
                                             text="Submit".to_string()
-                                            on_click=on_submit.clone()
+                                            on_click=on_submit
                                         />
                                     </div>
                                 </Drawer>
@@ -275,7 +275,7 @@ pub fn context_override() -> impl IntoView {
                                         <Button
                                             class="pl-[70px] pr-[70px]".to_string()
                                             text="Submit".to_string()
-                                            on_click=on_submit.clone()
+                                            on_click=on_submit
                                         />
                                     </div>
                                 </Drawer>
@@ -357,7 +357,7 @@ pub fn context_override() -> impl IntoView {
                                                             let conditions = extract_conditions(
                                                                     &context_data_clone_for_click,
                                                                 )
-                                                                .unwrap_or(vec![]);
+                                                                .unwrap_or_default();
                                                             form_data
                                                                 .set(
                                                                     Some(TableData {
@@ -381,7 +381,7 @@ pub fn context_override() -> impl IntoView {
                                                         on:click=move |_| {
                                                             edit_signal.set(false);
                                                             let conditions = extract_conditions(&context_data_for_edit)
-                                                                .unwrap_or(vec![]);
+                                                                .unwrap_or_default();
                                                             form_data
                                                                 .set(
                                                                     Some(TableData {

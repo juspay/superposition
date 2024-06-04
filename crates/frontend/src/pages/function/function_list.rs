@@ -123,13 +123,13 @@ pub fn function_list() -> impl IntoView {
                                             })
                                             .collect::<Vec<Map<String, Value>>>()
                                             .to_owned();
-                                        let total_pages = (v.functions.len() as f64 / 10 as f64)
+                                        let total_pages = (v.functions.len() as f64 / 10_f64)
                                             .ceil() as i64;
                                         let pagination_props = TablePaginationProps {
                                             enabled: true,
                                             count: filters.count.unwrap_or_default(),
                                             current_page: filters.page.unwrap_or_default(),
-                                            total_pages: total_pages,
+                                            total_pages,
                                             on_next: handle_next_click,
                                             on_prev: handle_prev_click,
                                         };
