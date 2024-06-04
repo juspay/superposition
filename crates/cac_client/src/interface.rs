@@ -116,8 +116,7 @@ pub extern "C" fn cac_new_client(
                 1
             }
         }
-    });
-    0
+    })
 }
 
 #[no_mangle]
