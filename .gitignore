@@ -31,7 +31,7 @@ test_logs
 .keep
 .vscode
 *.session.sql
-
+.cargo
 # pre-commit config
 .pre-commit-config.yaml
 .cargo

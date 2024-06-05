@@ -4,6 +4,7 @@ use std::{
 };
 
 use crate::{Client, CLIENT_FACTORY};
+use once_cell::sync::Lazy;
 use serde_json::Value;
 use std::{
     cell::RefCell,
@@ -13,6 +14,18 @@ use tokio::{runtime::Runtime, task};
 
 thread_local! {
     static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
+}
+
+pub static EXP_RUNTIME: Lazy<Runtime> =
+    Lazy::new(|| Runtime::new().expect("The runtime was not intialized"));
+
+macro_rules! null_check {
+    ($client: ident, $err: literal, $return: stmt) => {
+        if $client.is_null() {
+            update_last_error($err.into());
+            $return
+        }
+    };
 }
 
 macro_rules! unwrap_safe {
@@ -96,24 +109,12 @@ pub extern "C" fn expt_new_client(
     update_frequency: c_ulong,
     hostname: *const c_char,
 ) -> c_int {
-    let tenant = match cstring_to_rstring(tenant) {
-        Ok(value) => value,
-        Err(err) => {
-            update_last_error(err);
-            return 1;
-        }
-    };
-    let hostname = match cstring_to_rstring(hostname) {
-        Ok(value) => value,
-        Err(err) => {
-            update_last_error(err);
-            return 1;
-        }
-    };
+    let tenant = unwrap_safe!(cstring_to_rstring(tenant), return 1);
+    let hostname = unwrap_safe!(cstring_to_rstring(hostname), return 1);
 
     // println!("Creating cac client thread for tenant {tenant}");
     let local = task::LocalSet::new();
-    local.block_on(&Runtime::new().unwrap(), async move {
+    local.block_on(&EXP_RUNTIME, async move {
         match CLIENT_FACTORY
             .create_client(tenant.clone(), update_frequency, hostname)
             .await
@@ -130,25 +131,18 @@ pub extern "C" fn expt_new_client(
 
 #[no_mangle]
 pub extern "C" fn expt_start_polling_update(tenant: *const c_char) {
-    if tenant.is_null() {
-        return;
-    }
+    null_check!(tenant, "Tenant cannot be a null string", return);
     unsafe {
         let client = expt_get_client(tenant);
         let local = task::LocalSet::new();
         // println!("in FFI polling");
-        local.block_on(
-            &Runtime::new().unwrap(),
-            (*client).clone().run_polling_updates(),
-        );
+        local.block_on(&EXP_RUNTIME, (*client).clone().run_polling_updates());
     }
 }
 
 #[no_mangle]
 pub extern "C" fn expt_free_client(ptr: *mut Arc<Client>) {
-    if ptr.is_null() {
-        return;
-    }
+    null_check!(ptr, "cannot free a null pointer", return);
     unsafe {
         let _ = Box::from_raw(ptr);
     }
@@ -156,16 +150,10 @@ pub extern "C" fn expt_free_client(ptr: *mut Arc<Client>) {
 
 #[no_mangle]
 pub extern "C" fn expt_get_client(tenant: *const c_char) -> *mut Arc<Client> {
-    let ten = match cstring_to_rstring(tenant) {
-        Ok(t) => t,
-        Err(err) => {
-            update_last_error(err);
-            return std::ptr::null_mut();
-        }
-    };
+    let ten = unwrap_safe!(cstring_to_rstring(tenant), return std::ptr::null_mut());
     let local = task::LocalSet::new();
     local.block_on(
-        &Runtime::new().unwrap(),
+        &EXP_RUNTIME,
         // println!("fetching exp client thread for tenant {ten}");
         async move {
             match CLIENT_FACTORY.get_client(ten).await {
@@ -195,7 +183,7 @@ pub extern "C" fn expt_get_applicable_variant(
         Err(err) => return error_block(err),
     };
     let local = task::LocalSet::new();
-    let variants_result = local.block_on(&Runtime::new().unwrap(), unsafe {
+    let variants_result = local.block_on(&EXP_RUNTIME, unsafe {
         (*client).get_applicable_variant(&context, toss as i8)
     });
     variants_result
@@ -290,7 +278,7 @@ pub extern "C" fn expt_get_filtered_satisfied_experiments(
 #[no_mangle]
 pub extern "C" fn expt_get_running_experiments(client: *mut Arc<Client>) -> *mut c_char {
     let local = task::LocalSet::new();
-    let experiments = local.block_on(&Runtime::new().unwrap(), unsafe {
+    let experiments = local.block_on(&EXP_RUNTIME, unsafe {
         (*client).get_running_experiments()
     });
     let experiments = match serde_json::to_value(experiments) {

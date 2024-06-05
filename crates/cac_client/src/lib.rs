@@ -11,9 +11,10 @@ use serde_json::{json, Map, Value};
 use std::{
     collections::{HashMap, HashSet},
     convert::identity,
-    sync::{Arc, RwLock},
+    sync::Arc,
     time::{Duration, UNIX_EPOCH},
 };
+use tokio::sync::RwLock;
 use utils::core::MapError;
 
 use service_utils::{result as superposition, unexpected_error};
@@ -112,8 +113,9 @@ impl Client {
     }
 
     async fn fetch(&self) -> Result<reqwest::Response, String> {
-        let last_modified = self.last_modified.read().map_err_to_string()?.to_rfc2822();
-        let reqw = clone_reqw(&self.reqw)?.header("If-Modified-Since", last_modified);
+        let last_modified = self.last_modified.read().await;
+        let reqw = clone_reqw(&self.reqw)?
+            .header("If-Modified-Since", last_modified.to_rfc2822());
         let resp = reqw.send().await.map_err_to_string()?;
         match resp.status() {
             StatusCode::NOT_MODIFIED => {
@@ -133,8 +135,8 @@ impl Client {
 
     async fn update_cac(&self) -> Result<String, String> {
         let fetched_config = self.fetch().await?;
-        let mut config = self.config.write().map_err_to_string()?;
-        let mut last_modified = self.last_modified.write().map_err_to_string()?;
+        let mut config = self.config.write().await;
+        let mut last_modified = self.last_modified.write().await;
         let last_modified_at = get_last_modified(&fetched_config);
         *config = fetched_config.json::<Config>().await.map_err_to_string()?;
         if let Some(val) = last_modified_at {
@@ -152,7 +154,7 @@ impl Client {
         }
     }
 
-    pub fn get_full_config_state_with_filter(
+    pub async fn get_full_config_state_with_filter(
         &self,
         query_data: Option<Map<String, Value>>,
         prefix: Option<Vec<String>>,
@@ -175,16 +177,16 @@ impl Client {
         Ok(config)
     }
 
-    pub fn get_last_modified(&self) -> Result<DateTime<Utc>, String> {
-        self.last_modified.read().map(|t| *t).map_err_to_string()
+    pub async fn get_last_modified(&self) -> DateTime<Utc> {
+        self.last_modified.read().await.clone()
     }
 
-    pub fn eval(
+    pub async fn eval(
         &self,
         query_data: Map<String, Value>,
         merge_strategy: MergeStrategy,
     ) -> Result<Map<String, Value>, String> {
-        let cac = self.config.read().map_err_to_string()?;
+        let cac = self.config.read().await;
         eval::eval_cac(
             cac.default_configs.to_owned(),
             &cac.contexts,
@@ -194,24 +196,24 @@ impl Client {
         )
     }
 
-    pub fn get_resolved_config(
+    pub async fn get_resolved_config(
         &self,
         query_data: Map<String, Value>,
         filter_keys: Option<Vec<String>>,
         merge_strategy: MergeStrategy,
     ) -> Result<Map<String, Value>, String> {
-        let mut cac = self.eval(query_data, merge_strategy)?;
+        let mut cac = self.eval(query_data, merge_strategy).await?;
         if let Some(keys) = filter_keys {
             cac = filter_keys_by_prefix(cac, keys).map_err_to_string()?;
         }
         Ok(cac)
     }
 
-    pub fn get_default_config(
+    pub async fn get_default_config(
         &self,
         filter_keys: Option<Vec<String>>,
     ) -> Result<Map<String, Value>, String> {
-        let configs = self.config.read().map_err(|e| e.to_string())?;
+        let configs = self.config.read().await;
         let mut default_configs = configs.default_configs.clone();
         if let Some(keys) = filter_keys {
             default_configs =
@@ -230,13 +232,7 @@ impl ClientFactory {
         polling_interval: Duration,
         hostname: String,
     ) -> Result<Arc<Client>, String> {
-        let mut factory = match self.write() {
-            Ok(factory) => factory,
-            Err(e) => {
-                log::error!("CAC_CLIENT_FACTORY: failed to acquire write lock {}", e);
-                return Err("CAC_CLIENT_FACTORY: Failed to create client".to_string());
-            }
-        };
+        let mut factory = self.write().await;
 
         if let Some(client) = factory.get(&tenant) {
             return Ok(client.clone());
@@ -248,15 +244,8 @@ impl ClientFactory {
         Ok(client.clone())
     }
 
-    pub fn get_client(&self, tenant: String) -> Result<Arc<Client>, String> {
-        let factory = match self.read() {
-            Ok(factory) => factory,
-            Err(e) => {
-                log::error!("CAC_CLIENT_FACTORY: failed to acquire read lock {}", e);
-                return Err("CAC_CLIENT_FACTORY: Failed to acquire client.".to_string());
-            }
-        };
-
+    pub async fn get_client(&self, tenant: String) -> Result<Arc<Client>, String> {
+        let factory = self.read().await;
         match factory.get(&tenant) {
             Some(client) => Ok(client.clone()),
             None => Err("No such tenant found".to_string()),

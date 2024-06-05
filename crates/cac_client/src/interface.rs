@@ -5,6 +5,7 @@ use std::{
 };
 
 use crate::{utils::core::MapError, Client, MergeStrategy, CLIENT_FACTORY};
+use once_cell::sync::Lazy;
 use serde_json::{Map, Value};
 use std::{
     cell::RefCell,
@@ -16,6 +17,9 @@ use tokio::{runtime::Runtime, task};
 thread_local! {
     static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
 }
+
+pub static CAC_RUNTIME: Lazy<Runtime> =
+    Lazy::new(|| Runtime::new().expect("The runtime was not intialized"));
 
 macro_rules! null_check {
     ($client: ident, $err: literal, $return: stmt) => {
@@ -105,7 +109,7 @@ pub extern "C" fn cac_new_client(
 
     // println!("Creating cac client thread for tenant {tenant}");
     let local = task::LocalSet::new();
-    local.block_on(&Runtime::new().unwrap(), async move {
+    local.block_on(&CAC_RUNTIME, async move {
         match CLIENT_FACTORY
             .create_client(tenant.clone(), duration, hostname)
             .await
@@ -127,10 +131,7 @@ pub extern "C" fn cac_start_polling_update(tenant: *const c_char) {
         null_check!(client, "CAC client for tenant not found", return);
         let local = task::LocalSet::new();
         // println!("in FFI polling");
-        local.block_on(
-            &Runtime::new().unwrap(),
-            (*client).clone().run_polling_updates(),
-        );
+        local.block_on(&CAC_RUNTIME, (*client).clone().run_polling_updates());
     }
 }
 
@@ -148,12 +149,16 @@ pub extern "C" fn cac_free_client(ptr: *mut Arc<Client>) {
 pub extern "C" fn cac_get_client(tenant: *const c_char) -> *mut Arc<Client> {
     let ten = unwrap_safe!(cstring_to_rstring(tenant), return std::ptr::null_mut());
     // println!("fetching cac client thread for tenant {ten}");
-    unwrap_safe!(
-        CLIENT_FACTORY
-            .get_client(ten)
-            .map(|client| Box::into_raw(Box::new(client))),
-        std::ptr::null_mut()
-    )
+    let local = task::LocalSet::new();
+    local.block_on(&CAC_RUNTIME, async move {
+        unwrap_safe!(
+            CLIENT_FACTORY
+                .get_client(ten)
+                .await
+                .map(|client| Box::into_raw(Box::new(client))),
+            std::ptr::null_mut()
+        )
+    })
 }
 
 #[no_mangle]
@@ -163,14 +168,13 @@ pub extern "C" fn cac_get_last_modified(client: *mut Arc<Client>) -> *const c_ch
         "an invalid null pointer client is being used, please call get_client()",
         return std::ptr::null()
     );
-    unwrap_safe!(
+    let local = task::LocalSet::new();
+    local.block_on(&CAC_RUNTIME, async move {
         unsafe {
-            (*client)
-                .get_last_modified()
-                .map(|date| rstring_to_cstring(date.to_string()).into_raw())
-        },
-        std::ptr::null()
-    )
+            let datetime = (*client).get_last_modified().await;
+            rstring_to_cstring(datetime.to_string()).into_raw()
+        }
+    })
 }
 
 #[no_mangle]
@@ -216,9 +220,8 @@ pub extern "C" fn cac_get_config(
                 .map(|config| {
                     rstring_to_cstring(serde_json::to_value(config).unwrap().to_string())
                         .into_raw()
-                })
-        },
-        std::ptr::null_mut()
+                    }) },
+                std::ptr::null_mut()
     )
 }
 
@@ -238,13 +241,8 @@ pub extern "C" fn cac_get_resolved_config(
     let keys: Option<Vec<String>> = if filter_keys.is_null() {
         None
     } else {
-        let filter_string = match cstring_to_rstring(filter_keys) {
-            Ok(s) => s,
-            Err(err) => {
-                update_last_error(err);
-                return std::ptr::null();
-            }
-        };
+        let filter_string =
+            unwrap_safe!(cstring_to_rstring(filter_keys), return std::ptr::null());
         Some(filter_string.split('|').map(str::to_string).collect())
     };
 
@@ -260,21 +258,28 @@ pub extern "C" fn cac_get_resolved_config(
         serde_json::from_str::<Map<String, Value>>(query.as_str()),
         return std::ptr::null()
     );
-
-    unwrap_safe!(
+    let local = task::LocalSet::new();
+    local.block_on(&CAC_RUNTIME, async move {
         unsafe {
-            (*client)
-                .get_resolved_config(context, keys, MergeStrategy::from(merge_strategem))
-                .map(|ov| {
-                    unwrap_safe!(
+            unwrap_safe!(
+                (*client)
+                    .get_resolved_config(
+                        context,
+                        keys,
+                        MergeStrategy::from(merge_strategem),
+                    )
+                    .await
+                    .map(|ov| {
+                        unwrap_safe!(
                         serde_json::to_string::<Map<String, Value>>(&ov)
                             .map(|overrides| rstring_to_cstring(overrides).into_raw()),
                         std::ptr::null()
                     )
-                })
-        },
-        std::ptr::null()
-    )
+                    }),
+                std::ptr::null()
+            )
+        }
+    })
 }
 
 #[no_mangle]
@@ -294,17 +299,19 @@ pub extern "C" fn cac_get_default_config(
         };
         Some(filter_string.split('|').map(str::to_string).collect())
     };
-
-    unwrap_safe!(
-        unsafe {
-            (*client).get_default_config(keys).map(|ov| {
-                unwrap_safe!(
-                    serde_json::to_string::<Map<String, Value>>(&ov)
-                        .map(|overrides| rstring_to_cstring(overrides).into_raw()),
-                    std::ptr::null()
-                )
-            })
-        },
-        std::ptr::null()
-    )
+    let local = task::LocalSet::new();
+    local.block_on(&CAC_RUNTIME, async move {
+        unwrap_safe!(
+            unsafe {
+                (*client).get_default_config(keys).await.map(|ov| {
+                    unwrap_safe!(
+                        serde_json::to_string::<Map<String, Value>>(&ov)
+                            .map(|overrides| rstring_to_cstring(overrides).into_raw()),
+                        return std::ptr::null()
+                    )
+                })
+            },
+            return std::ptr::null()
+        )
+    })
 }
