@@ -1,10 +1,12 @@
 extern crate base64;
+use std::collections::HashMap;
+
 use super::types::CreateReq;
 use service_utils::{
     bad_argument, db_error,
     helpers::{parse_config_tags, validation_err_to_str},
     not_found, result as superposition,
-    service::types::{AppState, CustomHeaders, DbConnection},
+    service::types::{AppHeader, AppState, CustomHeaders, CustomResp, DbConnection},
     unexpected_error, validation_error,
 };
 
@@ -49,7 +51,7 @@ async fn create(
     request: web::Json<CreateReq>,
     db_conn: DbConnection,
     user: User,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<CustomResp<Value>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
     let key = key.into_inner();
@@ -173,11 +175,18 @@ async fn create(
             .do_update()
             .set(&default_config)
             .execute(transaction_conn);
-        add_config_version(&state, tags, transaction_conn)?;
+        let version_id = add_config_version(&state, tags, transaction_conn)?;
+        let headers = HashMap::from([(
+            AppHeader::XConfigVersion.to_string(),
+            version_id.to_string(),
+        )]);
         let ok_resp = match upsert {
-            Ok(_) => Ok(HttpResponse::Ok().json(json!({
-                "message": "DefaultConfig created/updated successfully."
-            }))),
+            Ok(_) => Ok(CustomResp {
+                body: json!({
+                    "message": "DefaultConfig created/updated successfully."
+                }),
+                headers: headers,
+            }),
             Err(e) => {
                 log::info!("DefaultConfig creation failed with error: {e}");
                 Err(unexpected_error!(
@@ -258,12 +267,17 @@ async fn delete(
             match deleted_row {
                 Ok(0) => Err(not_found!("default config key `{}` doesn't exists", key)),
                 Ok(_) => {
-                    add_config_version(&state, tags, transaction_conn)?;
+                    let version_id = add_config_version(&state, tags, transaction_conn)?;
                     log::info!(
                         "default config key: {key} deleted by {}",
                         user.get_email()
                     );
-                    Ok(HttpResponse::NoContent().finish())
+                    Ok(HttpResponse::NoContent()
+                        .insert_header((
+                            AppHeader::XConfigVersion.to_string().as_str(),
+                            version_id.to_string().as_str(),
+                        ))
+                        .finish())
                 }
                 Err(e) => {
                     log::error!("default config delete query failed with error: {e}");

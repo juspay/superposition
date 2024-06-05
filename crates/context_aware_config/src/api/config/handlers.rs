@@ -13,7 +13,7 @@ use crate::{
     db::schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
     helpers::generate_cac,
 };
-use actix_http::header::{HeaderName, HeaderValue};
+use actix_http::header::HeaderValue;
 use actix_web::{get, put, web, web::Query, HttpRequest, HttpResponse, Scope};
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
@@ -24,7 +24,9 @@ use diesel::{
 };
 use serde_json::{json, Map, Value};
 use service_utils::{
-    bad_argument, db_error, result as superposition, service::types::DbConnection,
+    bad_argument, db_error, result as superposition,
+    service::types::CustomResp,
+    service::types::{AppHeader, DbConnection},
     unexpected_error,
 };
 
@@ -62,43 +64,33 @@ fn validate_version_in_params(
         })
 }
 
-pub fn add_audit_header(
+pub fn add_audit_id(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-    mut res: HttpResponse,
-) -> superposition::Result<HttpResponse> {
-    let header_name = HeaderName::from_static("x-audit-id");
+    header_map: &mut HashMap<String, String>,
+) {
     if let Ok(uuid) = event_log::event_log
         .select(event_log::id)
         .filter(event_log::table_name.eq("contexts"))
         .order_by(event_log::timestamp.desc())
         .first::<Uuid>(conn)
     {
-        let uuid_string = uuid.to_string();
-        if let Ok(header_value) = HeaderValue::from_str(&uuid_string) {
-            res.headers_mut().insert(header_name, header_value);
-        } else {
-            log::error!("Failed to convert UUID to string");
-        }
+        header_map.insert(AppHeader::XAuditId.to_string(), uuid.to_string());
     } else {
         log::error!("Failed to fetch contexts from event_log");
     }
-    Ok(res)
 }
 
-fn add_last_modified_header(
+fn add_last_modified(
     max_created_at: Option<NaiveDateTime>,
-    mut res: HttpResponse,
-) -> superposition::Result<HttpResponse> {
-    let header_name = HeaderName::from_static("last-modified");
-
+    header_map: &mut HashMap<String, String>,
+) {
     if let Some(ele) = max_created_at {
         let datetime_utc: DateTime<Utc> = TimeZone::from_utc_datetime(&Utc, &ele);
-        let value = HeaderValue::from_str(&DateTime::to_rfc2822(&datetime_utc));
-        if let Ok(header_value) = value {
-            res.headers_mut().insert(header_name, header_value);
-        }
+        header_map.insert(
+            AppHeader::LastModified.to_string(),
+            datetime_utc.to_string(),
+        );
     }
-    Ok(res)
 }
 
 fn get_max_created_at(
@@ -506,7 +498,6 @@ async fn get(
                 .map_or_else(|_| json!(value), |int_val| json!(int_val)),
         );
     }
-
     let config_version = validate_version_in_params(&mut query_params_map)?;
     let mut config = generate_config_from_version(config_version, &mut conn)?;
     if let Some(prefix) = query_params_map.get("prefix") {
@@ -527,10 +518,18 @@ async fn get(
         config = filter_config_by_dimensions(&config, &query_params_map)?
     }
 
-    let resp = HttpResponse::Ok().json(config);
-    let audit_resp = add_audit_header(&mut conn, resp)?;
+    let mut header_map: HashMap<String, String> = HashMap::new();
+    add_last_modified(max_created_at, &mut header_map);
+    add_audit_id(&mut conn, &mut header_map);
+    config_version.and_then(|v| {
+        header_map.insert(AppHeader::XConfigVersion.to_string(), v.to_string())
+    });
 
-    add_last_modified_header(max_created_at, audit_resp)
+    let mut resp = HttpResponse::Ok();
+    for (key, val) in header_map.iter() {
+        resp.insert_header((key.as_str(), val.as_str()));
+    }
+    Ok(resp.json(config))
 }
 
 #[get("/resolve")]
@@ -567,9 +566,9 @@ async fn get_resolved_config(
     }
 
     let config_version = validate_version_in_params(&mut query_params_map)?;
-    let res = generate_config_from_version(config_version, &mut conn)?;
+    let config = generate_config_from_version(config_version, &mut conn)?;
 
-    let cac_client_contexts = res
+    let cac_client_contexts = config
         .contexts
         .into_iter()
         .map(|val| cac_client::Context {
@@ -587,43 +586,48 @@ async fn get_resolved_config(
 
     let response = if let Some(Value::String(_)) = query_params_map.get("show_reasoning")
     {
-        HttpResponse::Ok().json(
-            eval_cac_with_reasoning(
-                res.default_configs,
-                &cac_client_contexts,
-                &res.overrides,
-                &query_params_map,
-                merge_strategy,
-            )
-            .map_err(|err| {
-                log::error!("failed to eval cac with err: {}", err);
-                unexpected_error!("cac eval failed")
-            })?,
+        eval_cac_with_reasoning(
+            config.default_configs,
+            &cac_client_contexts,
+            &config.overrides,
+            &query_params_map,
+            merge_strategy,
         )
+        .map_err(|err| {
+            log::error!("failed to eval cac with err: {}", err);
+            unexpected_error!("cac eval failed")
+        })?
     } else {
-        HttpResponse::Ok().json(
-            eval_cac(
-                res.default_configs,
-                &cac_client_contexts,
-                &res.overrides,
-                &query_params_map,
-                merge_strategy,
-            )
-            .map_err(|err| {
-                log::error!("failed to eval cac with err: {}", err);
-                unexpected_error!("cac eval failed")
-            })?,
+        eval_cac(
+            config.default_configs,
+            &cac_client_contexts,
+            &config.overrides,
+            &query_params_map,
+            merge_strategy,
         )
+        .map_err(|err| {
+            log::error!("failed to eval cac with err: {}", err);
+            unexpected_error!("cac eval failed")
+        })?
     };
-    let audit_resp = add_audit_header(&mut conn, response)?;
-    add_last_modified_header(max_created_at, audit_resp)
+    let mut header_map: HashMap<String, String> = HashMap::new();
+    add_last_modified(max_created_at, &mut header_map);
+    add_audit_id(&mut conn, &mut header_map);
+    config_version.and_then(|v| {
+        header_map.insert(AppHeader::XConfigVersion.to_string(), v.to_string())
+    });
+    let mut resp = HttpResponse::Ok();
+    for (key, val) in header_map.iter() {
+        resp.insert_header((key.as_str(), val.as_str()));
+    }
+    Ok(resp.json(response))
 }
 
 #[get("/filter")]
 async fn get_filtered_config(
     req: HttpRequest,
     db_conn: DbConnection,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<CustomResp<Config>> {
     let DbConnection(mut conn) = db_conn;
     let params = Query::<HashMap<String, String>>::from_query(req.query_string())
         .map_err(|err| {
@@ -640,6 +644,7 @@ async fn get_filtered_config(
                 .map_or_else(|_| json!(value), |int_val| json!(int_val)),
         );
     }
+
     let config_version = validate_version_in_params(&mut query_params_map)?;
     let config = generate_config_from_version(config_version, &mut conn)?;
     let contexts = config.contexts;
@@ -666,6 +671,14 @@ async fn get_filtered_config(
         overrides: filtered_overrides,
         default_configs: config.default_configs,
     };
+    let mut header_map: HashMap<String, String> = HashMap::new();
+    add_audit_id(&mut conn, &mut header_map);
+    config_version.and_then(|v| {
+        header_map.insert(AppHeader::XConfigVersion.to_string(), v.to_string())
+    });
 
-    add_audit_header(&mut conn, HttpResponse::Ok().json(filtered_config))
+    Ok(CustomResp {
+        body: filtered_config,
+        headers: header_map,
+    })
 }

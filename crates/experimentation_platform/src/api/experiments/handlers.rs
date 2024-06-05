@@ -24,7 +24,9 @@ use service_utils::{
 use superposition_types::{SuperpositionUser, User};
 
 use reqwest::{Method, Response, StatusCode};
-use service_utils::service::types::{AppState, CustomHeaders, DbConnection, Tenant};
+use service_utils::service::types::{
+    AppHeader, AppState, CustomHeaders, CustomResp, DbConnection, Tenant,
+};
 
 use super::{
     helpers::{
@@ -96,14 +98,22 @@ async fn parse_error_response(
 
 async fn process_cac_http_response(
     response: Result<Response, reqwest::Error>,
-) -> superposition::Result<Vec<ContextBulkResponse>> {
+) -> superposition::Result<(Vec<ContextBulkResponse>, Option<String>)> {
     let internal_server_error = unexpected_error!("Something went wrong.");
     match response {
         Ok(res) if res.status().is_success() => {
-            res.json::<Vec<ContextBulkResponse>>().await.map_err(|err| {
-                log::error!("failed to parse JSON response with error: {}", err);
-                internal_server_error
-            })
+            let config_version = res
+                .headers()
+                .get("x-config-tags")
+                .and_then(|val| val.to_str().map_or(None, |v| Some(v.to_string())));
+            let bulk_resp =
+                res.json::<Vec<ContextBulkResponse>>()
+                    .await
+                    .map_err(|err| {
+                        log::error!("failed to parse JSON response with error: {}", err);
+                        internal_server_error
+                    })?;
+            Ok((bulk_resp, config_version))
         }
         Ok(res) => {
             log::error!("http call to CAC failed with status_code {}", res.status());
@@ -130,7 +140,7 @@ async fn create(
     db_conn: DbConnection,
     tenant: Tenant,
     user: User,
-) -> superposition::Result<Json<ExperimentCreateResponse>> {
+) -> superposition::Result<CustomResp<ExperimentCreateResponse>> {
     use crate::db::schema::experiments::dsl::experiments;
     let mut variants = req.variants.to_vec();
     let DbConnection(mut conn) = db_conn;
@@ -225,17 +235,15 @@ async fn create(
         .await;
 
     // directly return an error response if not a 200 response
-    let created_contexts = process_cac_http_response(response).await?.into_iter().fold(
-        Vec::new(),
-        |mut acc, item| {
-            if let ContextBulkResponse::PUT(context) = item {
-                acc.push(context);
-            } else {
-                log::error!("Unexpected response item: {:?}", item);
-            }
-            acc
-        },
-    );
+    let (resp_contexts, config_version_id) = process_cac_http_response(response).await?;
+    let created_contexts = resp_contexts.into_iter().fold(Vec::new(), |mut acc, item| {
+        if let ContextBulkResponse::PUT(context) = item {
+            acc.push(context);
+        } else {
+            log::error!("Unexpected response item: {:?}", item);
+        }
+        acc
+    });
     for i in 0..created_contexts.len() {
         let created_context = &created_contexts[i];
         variants[i].context_id = Some(created_context.context_id.clone());
@@ -264,8 +272,13 @@ async fn create(
 
     let inserted_experiment: Experiment = inserted_experiments.remove(0);
     let response = ExperimentCreateResponse::from(inserted_experiment);
-
-    Ok(Json(response))
+    let headers = config_version_id.map_or(HashMap::new(), |v| {
+        HashMap::from([(AppHeader::XConfigVersion.to_string(), v)])
+    });
+    Ok(CustomResp {
+        body: response,
+        headers: headers,
+    })
 }
 
 #[patch("/{experiment_id}/conclude")]
@@ -277,9 +290,9 @@ async fn conclude_handler(
     db_conn: DbConnection,
     tenant: Tenant,
     user: User,
-) -> superposition::Result<Json<ExperimentResponse>> {
+) -> superposition::Result<CustomResp<ExperimentResponse>> {
     let DbConnection(conn) = db_conn;
-    let response = conclude(
+    let (response, config_version_id) = conclude(
         state,
         path.into_inner(),
         custom_headers.config_tags,
@@ -289,7 +302,13 @@ async fn conclude_handler(
         user,
     )
     .await?;
-    Ok(Json(ExperimentResponse::from(response)))
+    let headers = config_version_id.map_or(HashMap::new(), |v| {
+        HashMap::from([(AppHeader::XConfigVersion.to_string(), v)])
+    });
+    Ok(CustomResp {
+        body: ExperimentResponse::from(response),
+        headers: headers,
+    })
 }
 
 pub async fn conclude(
@@ -300,7 +319,7 @@ pub async fn conclude(
     mut conn: PooledConnection<ConnectionManager<PgConnection>>,
     tenant: Tenant,
     user: User,
-) -> superposition::Result<Experiment> {
+) -> superposition::Result<(Experiment, Option<String>)> {
     use crate::db::schema::experiments::dsl;
 
     let winner_variant_id: String = req.chosen_variant.to_owned();
@@ -400,7 +419,7 @@ pub async fn conclude(
         .send()
         .await;
 
-    let _ = process_cac_http_response(response).await?;
+    let (_, config_version_id) = process_cac_http_response(response).await?;
 
     // updating experiment status in db
     let updated_experiment = diesel::update(dsl::experiments)
@@ -413,7 +432,7 @@ pub async fn conclude(
         ))
         .get_result::<Experiment>(&mut conn)?;
 
-    Ok(updated_experiment)
+    Ok((updated_experiment, config_version_id))
 }
 
 #[get("")]
@@ -567,7 +586,7 @@ async fn update_overrides(
     req: web::Json<OverrideKeysUpdateRequest>,
     tenant: Tenant,
     user: User,
-) -> superposition::Result<Json<ExperimentResponse>> {
+) -> superposition::Result<CustomResp<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
     let experiment_id = params.into_inner();
 
@@ -720,17 +739,15 @@ async fn update_overrides(
         .await;
 
     // directly return an error response if not a 200 response
-    let created_contexts = process_cac_http_response(response).await?.into_iter().fold(
-        Vec::new(),
-        |mut acc, item| {
-            if let ContextBulkResponse::PUT(context) = item {
-                acc.push(context);
-            } else {
-                log::error!("Unexpected response item: {:?}", item);
-            }
-            acc
-        },
-    );
+    let (resp_contexts, config_version_id) = process_cac_http_response(response).await?;
+    let created_contexts = resp_contexts.into_iter().fold(Vec::new(), |mut acc, item| {
+        if let ContextBulkResponse::PUT(context) = item {
+            acc.push(context);
+        } else {
+            log::error!("Unexpected response item: {:?}", item);
+        }
+        acc
+    });
     for i in 0..created_contexts.len() {
         let created_context = &created_contexts[i];
 
@@ -752,7 +769,13 @@ async fn update_overrides(
         ))
         .get_result::<Experiment>(&mut conn)?;
 
-    Ok(Json(ExperimentResponse::from(updated_experiment)))
+    let headers = config_version_id.map_or(HashMap::new(), |v| {
+        HashMap::from([(AppHeader::XConfigVersion.to_string(), v)])
+    });
+    Ok(CustomResp {
+        body: ExperimentResponse::from(updated_experiment),
+        headers: headers,
+    })
 }
 
 #[get("/audit")]
