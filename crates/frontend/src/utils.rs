@@ -77,7 +77,14 @@ pub fn get_host() -> String {
                 None
             }
         })
-        .unwrap_or(String::from("http://localhost:xxxx"));
+        .map_or(String::from("http://localhost:xxxx"), |host_from_env| {
+            let opt_host_origin =
+                web_sys::window().and_then(|window| window.location().origin().ok());
+            match (host_from_env.as_str(), opt_host_origin) {
+                ("" | "/", Some(host_origin)) => host_origin,
+                _ => host_from_env,
+            }
+        });
 
     add_prefix(&host, &service_prefix)
 }
@@ -112,7 +119,7 @@ pub fn use_env() -> Envs {
                 Ok(value) => {
                     let env_obj = value
                         .dyn_into::<js_sys::Object>()
-                        .expect("__APP_ENV is not an object");
+                        .expect("__APP_ENVS is not an object");
                     let env_str: &'static str = Box::leak(
                         js_sys::JSON::stringify(&env_obj)
                             .ok()
@@ -138,7 +145,7 @@ pub fn use_service_prefix() -> String {
     let context = use_context::<Envs>();
     context
         .map(|ctx: Envs| String::from(ctx.service_prefix))
-        .or_else(|| match js_sys::eval("__APP_ENV?.service_prefix") {
+        .or_else(|| match js_sys::eval("__APP_ENVS?.service_prefix") {
             Ok(value) => value.dyn_into::<js_sys::JsString>().map(String::from).ok(),
             Err(e) => {
                 logging::log!("Unable to fetch service_prefix from __APP_ENVS: {:?}", e);
