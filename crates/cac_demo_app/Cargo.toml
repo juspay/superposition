@@ -11,3 +11,11 @@ actix-files = "0.6"
 awc = "3"
 serde = { workspace = true }
 serde_json = { workspace = true }
+
+[[bin]]
+name = "cac-demo-app"
+path = "src/main.rs"
+
+[[bin]]
+name = "cac-demo-app-surge-pricing"
+path = "src/main_surge_pricing.rs"
