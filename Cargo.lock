@@ -666,6 +666,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "cac_client_integration_example"
+version = "0.1.0"
+dependencies = [
+ "actix",
+ "actix-web",
+ "cac_client",
+ "chrono",
+ "serde_json",
+]
+
+[[package]]
 name = "cached"
 version = "0.45.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1480,17 +1491,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e757e796a66b54d19fa26de38e75c3351eb7a3755c85d7d181a8c61437ff60c"
 
 [[package]]
-name = "example"
-version = "0.1.0"
-dependencies = [
- "actix",
- "actix-web",
- "chrono",
- "experimentation_client",
- "serde_json",
-]
-
-[[package]]
 name = "experimentation_client"
 version = "0.7.2"
 dependencies = [
@@ -1505,6 +1505,17 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+]
+
+[[package]]
+name = "experimentation_example"
+version = "0.1.0"
+dependencies = [
+ "actix",
+ "actix-web",
+ "chrono",
+ "experimentation_client",
+ "serde_json",
 ]
 
 [[package]]

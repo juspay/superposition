@@ -159,7 +159,8 @@ impl Client {
         query_data: Option<Map<String, Value>>,
         prefix: Option<Vec<String>>,
     ) -> Result<Config, String> {
-        let mut config = self.config.read().map(|c| c.clone()).map_err_to_string()?;
+        let cac = self.config.read().await;
+        let mut config = cac.to_owned();
         if let Some(prefix_list) = prefix {
             config = filter_config_by_prefix(&config, prefix_list).map_err_to_string()?;
         }

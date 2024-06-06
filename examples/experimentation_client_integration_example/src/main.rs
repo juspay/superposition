@@ -10,7 +10,7 @@ use serde_json::json;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let client_configuration = exp::Config {
-        tenant: "tenant".to_string(),
+        tenant: "dev".to_string(),
         hostname: "http://localhost:8080".to_string(),
         poll_frequency: 10,
     };

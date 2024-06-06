@@ -12,13 +12,13 @@ use std::{
     ffi::{c_int, CString},
     time::Duration,
 };
-use tokio::{runtime::Runtime, task};
+use tokio::runtime::Runtime;
 
 thread_local! {
     static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
-pub static CAC_RUNTIME: Lazy<Runtime> =
+static CAC_RUNTIME: Lazy<Runtime> =
     Lazy::new(|| Runtime::new().expect("The runtime was not intialized"));
 
 macro_rules! null_check {
@@ -108,8 +108,7 @@ pub extern "C" fn cac_new_client(
     let hostname = unwrap_safe!(cstring_to_rstring(hostname), return 1);
 
     // println!("Creating cac client thread for tenant {tenant}");
-    let local = task::LocalSet::new();
-    local.block_on(&CAC_RUNTIME, async move {
+    CAC_RUNTIME.block_on(async move {
         match CLIENT_FACTORY
             .create_client(tenant.clone(), duration, hostname)
             .await
@@ -129,9 +128,8 @@ pub extern "C" fn cac_start_polling_update(tenant: *const c_char) {
     unsafe {
         let client = cac_get_client(tenant);
         null_check!(client, "CAC client for tenant not found", return);
-        let local = task::LocalSet::new();
         // println!("in FFI polling");
-        local.block_on(&CAC_RUNTIME, (*client).clone().run_polling_updates());
+        let _handle = CAC_RUNTIME.spawn((*client).clone().run_polling_updates());
     }
 }
 
@@ -149,8 +147,7 @@ pub extern "C" fn cac_free_client(ptr: *mut Arc<Client>) {
 pub extern "C" fn cac_get_client(tenant: *const c_char) -> *mut Arc<Client> {
     let ten = unwrap_safe!(cstring_to_rstring(tenant), return std::ptr::null_mut());
     // println!("fetching cac client thread for tenant {ten}");
-    let local = task::LocalSet::new();
-    local.block_on(&CAC_RUNTIME, async move {
+    CAC_RUNTIME.block_on(async move {
         unwrap_safe!(
             CLIENT_FACTORY
                 .get_client(ten)
@@ -168,8 +165,7 @@ pub extern "C" fn cac_get_last_modified(client: *mut Arc<Client>) -> *const c_ch
         "an invalid null pointer client is being used, please call get_client()",
         return std::ptr::null()
     );
-    let local = task::LocalSet::new();
-    local.block_on(&CAC_RUNTIME, async move {
+    CAC_RUNTIME.block_on(async move {
         unsafe {
             let datetime = (*client).get_last_modified().await;
             rstring_to_cstring(datetime.to_string()).into_raw()
@@ -212,17 +208,22 @@ pub extern "C" fn cac_get_config(
 
         Some(prefix_list).filter(|list| !list.is_empty())
     };
-
-    unwrap_safe!(
+    CAC_RUNTIME.block_on(async move {
         unsafe {
-            (*client)
-                .get_full_config_state_with_filter(filters, prefix_list)
-                .map(|config| {
-                    rstring_to_cstring(serde_json::to_value(config).unwrap().to_string())
+            unwrap_safe!(
+                (*client)
+                    .get_full_config_state_with_filter(filters, prefix_list)
+                    .await
+                    .map(|config| {
+                        rstring_to_cstring(
+                            serde_json::to_value(config).unwrap().to_string(),
+                        )
                         .into_raw()
-                    }) },
+                    }),
                 std::ptr::null_mut()
-    )
+            )
+        }
+    })
 }
 
 #[no_mangle]
@@ -258,8 +259,7 @@ pub extern "C" fn cac_get_resolved_config(
         serde_json::from_str::<Map<String, Value>>(query.as_str()),
         return std::ptr::null()
     );
-    let local = task::LocalSet::new();
-    local.block_on(&CAC_RUNTIME, async move {
+    CAC_RUNTIME.block_on(async move {
         unsafe {
             unwrap_safe!(
                 (*client)
@@ -299,8 +299,7 @@ pub extern "C" fn cac_get_default_config(
         };
         Some(filter_string.split('|').map(str::to_string).collect())
     };
-    let local = task::LocalSet::new();
-    local.block_on(&CAC_RUNTIME, async move {
+    CAC_RUNTIME.block_on(async move {
         unwrap_safe!(
             unsafe {
                 (*client).get_default_config(keys).await.map(|ov| {
