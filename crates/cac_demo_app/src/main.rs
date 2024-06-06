@@ -1,10 +1,10 @@
 // use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use actix_web::{get, App, HttpServer, HttpResponse, Responder, web};
 use actix_files as fs;
+use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use awc::Client;
 use serde::Deserialize;
-use std::str;
 use std::fmt;
+use std::str;
 
 #[derive(Debug, Deserialize)]
 pub enum Currency {
@@ -80,10 +80,15 @@ async fn app(ctx: web::Query<Context>) -> impl Responder {
     let req = client.get(format!("http://localhost:8080/config/resolve?city={city}&vehicle_type={vehicle_type}"))
         .insert_header(("x-tenant", "dev"));
     let mut res = req.send().await.expect("Failed to send request");
-    let res_string = res.body().await.expect("Failed to read response body").to_vec();
+    let res_string = res
+        .body()
+        .await
+        .expect("Failed to read response body")
+        .to_vec();
     let config: Config = serde_json::from_slice(&res_string).unwrap();
 
-    let table = format!(r#"
+    let table = format!(
+        r#"
     <style>
       .blink {{
         animation: blinker 2s linear infinite;
@@ -128,7 +133,16 @@ async fn app(ctx: web::Query<Context>) -> impl Responder {
       </tbody>
       <tfoot>
       </tfoot>
-    </table>"#, currency = config.currency, base_rate = config.base_rate, per_distance_unit_rate = config.per_distance_unit_rate, total_fare = (config.base_rate + 10.0 * config.per_distance_unit_rate), distance_unit = config.distance_unit, message = config.hello_message, color = config.hello_message_color, logo = config.logo);
+    </table>"#,
+        currency = config.currency,
+        base_rate = config.base_rate,
+        per_distance_unit_rate = config.per_distance_unit_rate,
+        total_fare = (config.base_rate + 10.0 * config.per_distance_unit_rate),
+        distance_unit = config.distance_unit,
+        message = config.hello_message,
+        color = config.hello_message_color,
+        logo = config.logo
+    );
 
     // HttpResponse::Ok().body()
     HttpResponse::Ok().body(table)
@@ -137,7 +151,8 @@ async fn app(ctx: web::Query<Context>) -> impl Responder {
 #[get("/")]
 async fn home(ctx: web::Query<Context>) -> impl Responder {
     let city = ctx.city.clone().unwrap_or("Bangalore".to_string());
-    let html = format!(r##"
+    let html = format!(
+        r##"
 <!DOCTYPE html>
 <html
   <head>
@@ -164,7 +179,8 @@ async fn home(ctx: web::Query<Context>) -> impl Responder {
     <div class="mx-20 content-stretch grid grid-cols-1" id="fare-table" hx-get="/fragments/app.html?city={city}" hx-trigger="load">
     </div>
   </body>
-</html>"##);
+</html>"##
+    );
 
     HttpResponse::Ok().body(html)
 }
@@ -172,10 +188,11 @@ async fn home(ctx: web::Query<Context>) -> impl Responder {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
-        App::new()
-            .service(app)
-            .service(home)
-            .service(fs::Files::new("/static", "./web/").show_files_listing().index_file("index.html"))
+        App::new().service(app).service(home).service(
+            fs::Files::new("/static", "./web/")
+                .show_files_listing()
+                .index_file("index.html"),
+        )
     })
     .bind(("127.0.0.1", 9090))?
     .run()
