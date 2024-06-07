@@ -34,17 +34,19 @@ pub struct PaginationParams {
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
 #[derive(serde::Deserialize, Clone)]
+#[serde(rename_all = "UPPERCASE")]
 pub enum ContextAction {
-    PUT(PutReq),
-    DELETE(String),
-    MOVE((String, MoveReq)),
+    Put(PutReq),
+    Delete(String),
+    Move((String, MoveReq)),
 }
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "UPPERCASE")]
 pub enum ContextBulkResponse {
-    PUT(PutResp),
-    DELETE(String),
-    MOVE(PutResp),
+    Put(PutResp),
+    Delete(String),
+    Move(PutResp),
 }
 
 #[derive(Deserialize, Clone)]
@@ -92,7 +94,7 @@ mod tests {
         let mut expected_override = Map::new();
         expected_override.insert("foo".to_string(), json!("baz"));
 
-        let expected_action = ContextAction::PUT(PutReq {
+        let expected_action = ContextAction::Put(PutReq {
             context: expected_context,
             r#override: expected_override,
         });

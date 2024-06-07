@@ -62,7 +62,7 @@ impl Client {
                 let mut exp_store = self.experiments.write().await;
                 for (exp_id, experiment) in experiments.into_iter() {
                     match experiment.status {
-                        types::ExperimentStatusType::CONCLUDED => {
+                        types::ExperimentStatusType::Concluded => {
                             exp_store.remove(&exp_id)
                         }
                         _ => exp_store.insert(exp_id, experiment),
@@ -175,7 +175,7 @@ impl Client {
     ) -> Result<Option<Variant>, String> {
         if toss < 0 {
             for variant in applicable_variants.iter() {
-                if variant.variant_type == VariantType::EXPERIMENTAL {
+                if variant.variant_type == VariantType::Experimental {
                     return Ok(Some(variant.clone()));
                 }
             }
