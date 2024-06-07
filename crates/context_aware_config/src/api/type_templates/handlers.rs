@@ -1,5 +1,5 @@
-use crate::db::models::JsonSchemaTypes;
-use crate::db::schema::jsonschema_types::{self, dsl};
+use crate::db::models::TypeTemplates;
+use crate::db::schema::type_templates::{self, dsl};
 use actix_web::web::{Json, Path, Query};
 use actix_web::{delete, get, post, put, HttpResponse, Scope};
 use chrono::Utc;
@@ -15,7 +15,7 @@ use service_utils::{
 };
 use superposition_types::User;
 
-use crate::api::custom_types::types::{QueryFilters, TypeTemplateRequest};
+use crate::api::type_templates::types::{QueryFilters, TypeTemplateRequest};
 
 const TYPE_NAME_REGEX: &str = "^[a-zA-Z0-9-_]{1,64}$";
 
@@ -56,13 +56,13 @@ async fn create_type(
             TYPE_NAME_REGEX
         ));
     }
-    let type_template = diesel::insert_into(jsonschema_types::table)
+    let type_template = diesel::insert_into(type_templates::table)
         .values((
-            jsonschema_types::type_schema.eq(request.type_schema.clone()),
-            jsonschema_types::type_name.eq(request.type_name.clone()),
-            jsonschema_types::created_by.eq(user.email.clone()),
+            type_templates::type_schema.eq(request.type_schema.clone()),
+            type_templates::type_name.eq(type_name),
+            type_templates::created_by.eq(user.email.clone()),
         ))
-        .get_result::<JsonSchemaTypes>(&mut conn)
+        .get_result::<TypeTemplates>(&mut conn)
         .map_err(|err| {
             log::error!("failed to insert custom type with error: {}", err);
             db_error!(err)
@@ -101,14 +101,14 @@ async fn update_type(
         ));
     }
     let timestamp = Utc::now().naive_utc();
-    let updated_type = diesel::update(jsonschema_types::table)
-        .filter(jsonschema_types::type_name.eq(type_name.clone()))
+    let updated_type = diesel::update(type_templates::table)
+        .filter(type_templates::type_name.eq(type_name))
         .set((
-            jsonschema_types::type_schema.eq(request.clone()),
-            jsonschema_types::created_by.eq(user.email),
-            jsonschema_types::last_modified.eq(timestamp),
+            type_templates::type_schema.eq(request.clone()),
+            type_templates::created_by.eq(user.email),
+            type_templates::last_modified.eq(timestamp),
         ))
-        .get_result::<JsonSchemaTypes>(&mut conn)
+        .get_result::<TypeTemplates>(&mut conn)
         .map_err(|err| {
             log::error!("failed to insert custom type with error: {}", err);
             db_error!(err)
@@ -124,8 +124,8 @@ async fn delete_type(
     let DbConnection(mut conn) = db_conn;
     let type_name = path.into_inner();
     let deleted_type =
-        diesel::delete(dsl::jsonschema_types.filter(dsl::type_name.eq(type_name)))
-            .get_result::<JsonSchemaTypes>(&mut conn)?;
+        diesel::delete(dsl::type_templates.filter(dsl::type_name.eq(type_name)))
+            .get_result::<TypeTemplates>(&mut conn)?;
     Ok(HttpResponse::Ok().json(deleted_type))
 }
 
@@ -136,12 +136,12 @@ async fn list_types(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
-    let n_types: i64 = jsonschema_types::dsl::jsonschema_types
+    let n_types: i64 = type_templates::dsl::type_templates
         .count()
         .get_result(&mut conn)?;
-    let mut builder = jsonschema_types::dsl::jsonschema_types
+    let mut builder = type_templates::dsl::type_templates
         .into_boxed()
-        .order(jsonschema_types::dsl::created_at.desc());
+        .order(type_templates::dsl::created_at.desc());
     if let Some(limit) = filters.count {
         builder = builder.limit(limit);
     }
@@ -150,7 +150,7 @@ async fn list_types(
         builder = builder.offset(offset);
     }
     let limit = filters.count.unwrap_or(10);
-    let custom_types: Vec<JsonSchemaTypes> = builder.load(&mut conn)?;
+    let custom_types: Vec<TypeTemplates> = builder.load(&mut conn)?;
     let total_pages = (n_types as f64 / limit as f64).ceil() as u64;
     Ok(HttpResponse::Ok().json(json!({
     "total_pages": total_pages,

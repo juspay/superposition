@@ -12,7 +12,7 @@ use crate::{
         button::Button,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
     },
-    types::{CustomType, FunctionsName},
+    types::{FunctionsName, TypeTemplate},
 };
 
 use self::{types::DefaultConfigCreateReq, utils::create_default_config};
@@ -154,6 +154,7 @@ where
                     } else {
                         config_type_rs.get()
                     };
+                    let config_textarea = format!("{}", config_schema_rs.get());
                     view! {
                         <div class="form-control">
                             <label class="label">
@@ -166,7 +167,7 @@ where
                                 dropdown_direction=DropdownDirection::Down
                                 dropdown_btn_type=DropdownBtnType::Select
                                 dropdown_options=options
-                                on_select=Box::new(move |selected_item: CustomType| {
+                                on_select=Box::new(move |selected_item: TypeTemplate| {
                                     logging::log!("selected item {:?}", selected_item);
                                     config_type_ws.set(selected_item.type_name);
                                     config_schema_ws.set(selected_item.type_schema);
@@ -184,7 +185,7 @@ where
                                 }
                             >
 
-                                {format!("{}", config_schema_rs.get())}
+                                {config_textarea}
                             </textarea>
 
                         </div>

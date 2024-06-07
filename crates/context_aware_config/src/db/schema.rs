@@ -609,7 +609,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    jsonschema_types (type_name) {
+    type_templates (type_name) {
         type_name -> Text,
         type_schema -> Json,
         created_by -> Text,
@@ -669,5 +669,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     event_log_y2026m11,
     event_log_y2026m12,
     functions,
-    jsonschema_types,
+    type_templates,
 );
