@@ -5,7 +5,7 @@ use self::types::DimensionCreateReq;
 use self::utils::create_dimension;
 use crate::api::fetch_types;
 use crate::components::dropdown::{Dropdown, DropdownBtnType, DropdownDirection};
-use crate::types::{CustomType, FunctionsName};
+use crate::types::{FunctionsName, TypeTemplate};
 use crate::{api::fetch_functions, components::button::Button};
 use leptos::*;
 use serde_json::{json, Value};
@@ -141,6 +141,7 @@ where
                     } else {
                         dimension_type_rs.get()
                     };
+                    let dimension_textarea = format!("{}", dimension_schema_rs.get());
                     view! {
                         <div class="form-control">
                             <label class="label">
@@ -153,7 +154,7 @@ where
                                 dropdown_direction=DropdownDirection::Down
                                 dropdown_btn_type=DropdownBtnType::Select
                                 dropdown_options=options
-                                on_select=Box::new(move |selected_item: CustomType| {
+                                on_select=Box::new(move |selected_item: TypeTemplate| {
                                     logging::log!("selected item {:?}", selected_item);
                                     dimension_type_ws.set(selected_item.type_name);
                                     dimension_schema_ws.set(selected_item.type_schema);
@@ -171,7 +172,7 @@ where
                                 }
                             >
 
-                                {format!("{}", dimension_schema_rs.get())}
+                                {dimension_textarea}
                             </textarea>
 
                         </div>

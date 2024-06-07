@@ -8,7 +8,7 @@ pub struct TypeTemplateRequest {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct CustomTypeResponse {
+pub struct TypeTemplateResponse {
     pub type_schema: Value,
     pub type_name: String,
     pub created_at: String,

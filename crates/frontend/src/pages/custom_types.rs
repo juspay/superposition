@@ -19,7 +19,7 @@ struct TypeFilter {
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
-struct CustomTypeRow {
+struct TypeTemplateRow {
     pub type_name: String,
     pub type_schema: Value,
 }
@@ -42,7 +42,7 @@ pub fn types_page() -> impl IntoView {
             }
         },
     );
-    let selected_type = create_rw_signal::<Option<CustomTypeRow>>(None);
+    let selected_type = create_rw_signal::<Option<TypeTemplateRow>>(None);
     let table_columns = create_memo(move |_| {
         vec![
             Column::default("type_name".to_string()),
@@ -57,7 +57,7 @@ pub fn types_page() -> impl IntoView {
                     let edit_row_json = json!(row);
                     let delete_row_json = edit_row_json.clone();
                     let edit_click = move |_| {
-                        let row_data = serde_json::from_value::<CustomTypeRow>(
+                        let row_data = serde_json::from_value::<TypeTemplateRow>(
                             edit_row_json.clone(),
                         )
                         .unwrap();
@@ -65,7 +65,7 @@ pub fn types_page() -> impl IntoView {
                         open_drawer(TYPE_DRAWER_ID);
                     };
                     let delete_click = move |_| {
-                        let row_data = serde_json::from_value::<CustomTypeRow>(
+                        let row_data = serde_json::from_value::<TypeTemplateRow>(
                             delete_row_json.clone(),
                         )
                         .unwrap();
@@ -163,8 +163,6 @@ pub fn types_page() -> impl IntoView {
                             .collect::<Vec<Map<String, Value>>>()
                             .to_owned();
                         view! {
-                            // let types: Vec<CustomType> = vec![];
-
                             <div class="pb-4">
                                 <Stat
                                     heading="Type Templates"

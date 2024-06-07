@@ -10,7 +10,7 @@ pm.test('expect response be 200', function () {
             "created_by": "user@superposition.io",
             "type_name": "Number",
             "type_schema": {
-                "type": "number"
+                "type": "integer"
             }
         },
         {
@@ -31,7 +31,7 @@ pm.test('expect response be 200', function () {
             "created_by": "user@superposition.io",
             "type_name": "Enum",
             "type_schema": {
-                "enum": "$replacement",
+                "enum": ["android", "ios"],
                 "type": "string"
             }
         },
@@ -40,7 +40,7 @@ pm.test('expect response be 200', function () {
             "created_by": "user@superposition.io",
             "type_name": "Pattern",
             "type_schema": {
-                "pattern": "$replacement",
+                "pattern": ".*",
                 "type": "string"
             }
         }

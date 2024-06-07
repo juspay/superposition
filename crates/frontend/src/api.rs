@@ -3,7 +3,7 @@ use leptos::ServerFnError;
 use crate::{
     types::{
         Config, DefaultConfig, Dimension, Experiment, ExperimentsResponse,
-        FetchCustomTypeResponse, FunctionResponse, ListFilters,
+        FetchTypeTemplateResponse, FunctionResponse, ListFilters,
     },
     utils::{
         construct_request_headers, get_host, parse_json_response, request,
@@ -217,7 +217,7 @@ pub async fn fetch_types(
     tenant: String,
     page: i64,
     count: i64,
-) -> Result<FetchCustomTypeResponse, ServerFnError> {
+) -> Result<FetchTypeTemplateResponse, ServerFnError> {
     let host = use_host_server();
     let url = format!("{host}/types?page={page}&count={count}");
     let err_handler = |e: String| ServerFnError::ServerError(e.to_string());
@@ -229,7 +229,7 @@ pub async fn fetch_types(
     )
     .await
     .map_err(err_handler)?;
-    parse_json_response::<FetchCustomTypeResponse>(response)
+    parse_json_response::<FetchTypeTemplateResponse>(response)
         .await
         .map_err(err_handler)
 }

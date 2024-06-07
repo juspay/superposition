@@ -227,7 +227,7 @@ pub struct ErrorResponse {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct CustomType {
+pub struct TypeTemplate {
     pub type_name: String,
     pub type_schema: Value,
     pub created_by: String,
@@ -235,7 +235,7 @@ pub struct CustomType {
     pub last_modified: NaiveDateTime,
 }
 
-impl DropdownOption for CustomType {
+impl DropdownOption for TypeTemplate {
     fn key(&self) -> String {
         self.type_name.clone()
     }
@@ -245,8 +245,8 @@ impl DropdownOption for CustomType {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct FetchCustomTypeResponse {
+pub struct FetchTypeTemplateResponse {
     pub total_items: i64,
     pub total_pages: i64,
-    pub data: Vec<CustomType>,
+    pub data: Vec<TypeTemplate>,
 }
