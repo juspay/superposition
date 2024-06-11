@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.33.0 - 2024-06-11
+#### Bug Fixes
+- unify actions column for default_config and custom_types - (bdcc902) - Kartik
+- add patch_file in diesel.toml - (5ec9835) - Pratik Mishra
+#### Features
+- integrate type templates in forms - (3954d21) - Kartik
+- add type templates UI - (c8f2e3a) - Kartik
+- add custom types API endpoints - (c63192d) - Kartik
+- snapshot changes - apis - (69588f6) - Pratik Mishra
+#### Miscellaneous Chores
+- rename upper case enum variants to use `PascalCase` names (#94) - (6d3f4ca) - Sanchith Hegde
+- address some clippy lints (#85) - (001b8d4) - Sanchith Hegde
+- simplify module structure and follow Rust 2018 edition module naming convention (#86) - (403ea59) - Sanchith Hegde
+
+- - -
+
 ## context_aware_config-v0.32.0 - 2024-05-31
 #### Bug Fixes
 - stricter validation for key names in default config (#79) - (78a80c0) - Natarajan Kannan

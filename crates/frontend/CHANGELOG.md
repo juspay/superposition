@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.11.0 - 2024-06-11
+#### Bug Fixes
+- unify actions column for default_config and custom_types - (bdcc902) - Kartik
+#### Features
+- Support relative path for frontend - (5ed0e46) - ayush.jain@juspay.in
+- integrate type templates in forms - (3954d21) - Kartik
+- add type templates UI - (c8f2e3a) - Kartik
+#### Miscellaneous Chores
+- address some clippy lints (#85) - (001b8d4) - Sanchith Hegde
+- simplify module structure and follow Rust 2018 edition module naming convention (#86) - (403ea59) - Sanchith Hegde
+
+- - -
+
 ## frontend-v0.10.0 - 2024-05-31
 #### Features
 - Add local storage support (#78) - (9eee7f0) - Ankit Kumar Mahato

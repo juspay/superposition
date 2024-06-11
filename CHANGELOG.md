@@ -2,6 +2,26 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.48.0 - 2024-06-11
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.16.0
+- context_aware_config bumped to context_aware_config-v0.33.0
+- frontend bumped to frontend-v0.11.0
+- service_utils bumped to service_utils-v0.17.0
+### Global changes
+#### Bug Fixes
+- unify actions column for default_config and custom_types - (bdcc902) - Kartik
+#### Features
+- snapshot changes - apis - (69588f6) - Pratik Mishra
+- add custom types API endpoints - (c63192d) - Kartik
+- add type templates UI - (c8f2e3a) - Kartik
+- integrate type templates in forms - (3954d21) - Kartik
+#### Miscellaneous Chores
+- simplify module structure and follow Rust 2018 edition module naming convention (#86) - (403ea59) - Sanchith Hegde
+- address some clippy lints (#85) - (001b8d4) - Sanchith Hegde
+
+- - -
+
 ## v0.47.0 - 2024-05-31
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.32.0

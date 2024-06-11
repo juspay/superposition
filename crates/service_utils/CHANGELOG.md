@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.17.0 - 2024-06-11
+#### Features
+- snapshot changes - apis - (69588f6) - Pratik Mishra
+#### Miscellaneous Chores
+- address some clippy lints (#85) - (001b8d4) - Sanchith Hegde
+- simplify module structure and follow Rust 2018 edition module naming convention (#86) - (403ea59) - Sanchith Hegde
+
+- - -
+
 ## service_utils-v0.16.1 - 2024-05-29
 #### Bug Fixes
 - creating experiments for default-config (no context) (#38) - (4f6b92c) - Sauravcv98
