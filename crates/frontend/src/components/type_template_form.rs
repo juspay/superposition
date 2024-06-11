@@ -109,7 +109,7 @@ where
 
             </div>
 
-            <div class="form-control grid w-full justify-end">
+            <div class="form-control grid w-full mt-5 justify-start">
                 <Button
                     class="pl-[70px] pr-[70px]".to_string()
                     text="Submit".to_string()

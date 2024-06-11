@@ -175,7 +175,7 @@ where
                 }
             }}
 
-            <div class="flex justify-end mt-8">
+            <div class="flex justify-start mt-8">
                 <Button text="Submit".to_string() on_click=on_submit/>
             </div>
         </div>
