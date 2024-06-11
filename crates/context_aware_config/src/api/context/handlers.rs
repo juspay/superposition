@@ -579,7 +579,7 @@ async fn bulk_operations(
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
         for action in reqs.into_inner().into_iter() {
             match action {
-                ContextAction::PUT(put_req) => {
+                ContextAction::Put(put_req) => {
                     let put_resp = put(Json(put_req), transaction_conn, true, &user)
                         .map_err(|err| {
                             log::error!(
@@ -588,9 +588,9 @@ async fn bulk_operations(
                             );
                             err
                         })?;
-                    response.push(ContextBulkResponse::PUT(put_resp));
+                    response.push(ContextBulkResponse::Put(put_resp));
                 }
-                ContextAction::DELETE(ctx_id) => {
+                ContextAction::Delete(ctx_id) => {
                     let deleted_row =
                         delete(contexts.filter(id.eq(&ctx_id))).execute(transaction_conn);
                     let email: String = user.get_email();
@@ -604,7 +604,7 @@ async fn bulk_operations(
                         }
                         Ok(_) => {
                             log::info!("{ctx_id} context deleted by {email}");
-                            response.push(ContextBulkResponse::DELETE(format!(
+                            response.push(ContextBulkResponse::Delete(format!(
                                 "{ctx_id} deleted succesfully"
                             )))
                         }
@@ -614,7 +614,7 @@ async fn bulk_operations(
                         }
                     };
                 }
-                ContextAction::MOVE((old_ctx_id, move_req)) => {
+                ContextAction::Move((old_ctx_id, move_req)) => {
                     let move_context_resp =
                         r#move(old_ctx_id, Json(move_req), transaction_conn, true, &user)
                             .map_err(|err| {
@@ -624,7 +624,7 @@ async fn bulk_operations(
                                 );
                                 err
                             })?;
-                    response.push(ContextBulkResponse::MOVE(move_context_resp));
+                    response.push(ContextBulkResponse::Move(move_context_resp));
                 }
             }
         }

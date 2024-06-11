@@ -227,8 +227,8 @@ async fn test(
 
     decode_function(&mut function)?;
     let result = match path_params.stage {
-        Stage::DRAFT => execute_fn(&function.draft_code, &req.key, req.value),
-        Stage::PUBLISHED => match function.published_code {
+        Stage::Draft => execute_fn(&function.draft_code, &req.key, req.value),
+        Stage::Published => match function.published_code {
             Some(code) => execute_fn(&code, &req.key, req.value),
             None => {
                 log::error!("Function test failed: function not published yet");

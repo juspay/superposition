@@ -28,10 +28,11 @@ pub struct FunctionResponse {
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, strum_macros::Display)]
+#[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "lowercase")]
 pub enum Stage {
-    DRAFT,
-    PUBLISHED,
+    Draft,
+    Published,
 }
 
 #[derive(Deserialize)]

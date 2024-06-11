@@ -11,16 +11,18 @@ pub struct Config {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "UPPERCASE")]
 pub(crate) enum ExperimentStatusType {
-    CREATED,
-    INPROGRESS,
-    CONCLUDED,
+    Created,
+    InProgress,
+    Concluded,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
+#[serde(rename_all = "UPPERCASE")]
 pub(crate) enum VariantType {
-    CONTROL,
-    EXPERIMENTAL,
+    Control,
+    Experimental,
 }
 
 #[repr(C)]
