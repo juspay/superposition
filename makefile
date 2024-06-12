@@ -60,7 +60,6 @@ env-setup:
 	npm ci
 	-docker-compose up -d postgres localstack
 	cp .env.example .env
-	sed -i 's/dockerdns/$(DOCKER_DNS)/g' ./.env
 	while ! make validate-psql-connection validate-aws-connection; \
 		do echo "waiting for postgres, localstack bootup"; \
 		sleep 0.5; \
