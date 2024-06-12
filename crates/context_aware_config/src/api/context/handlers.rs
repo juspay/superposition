@@ -22,7 +22,7 @@ use crate::{
     },
 };
 use actix_web::web::Data;
-use service_utils::service::types::{AppHeader, AppState, CustomHeaders, CustomResp};
+use service_utils::service::types::{AppHeader, AppState, CustomHeaders};
 
 use actix_web::{
     delete, get, put,
@@ -312,7 +312,7 @@ async fn put_handler(
     req: Json<PutReq>,
     mut db_conn: DbConnection,
     user: User,
-) -> superposition::Result<CustomResp<PutResp>> {
+) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
         let put_response = put(req, transaction_conn, true, &user).map_err(
@@ -322,14 +322,13 @@ async fn put_handler(
             },
         )?;
         let version_id = add_config_version(&state, tags, transaction_conn)?;
-        let headers = HashMap::from([(
+        let mut http_resp = HttpResponse::Ok();
+
+        http_resp.insert_header((
             AppHeader::XConfigVersion.to_string(),
             version_id.to_string(),
-        )]);
-        Ok(CustomResp {
-            body: put_response,
-            headers: headers,
-        })
+        ));
+        Ok(http_resp.json(put_response))
     })
 }
 
@@ -368,7 +367,7 @@ async fn update_override_handler(
     req: Json<PutReq>,
     mut db_conn: DbConnection,
     user: User,
-) -> superposition::Result<CustomResp<PutResp>> {
+) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
         let override_resp = override_helper(req, transaction_conn, true, &user).map_err(
@@ -378,14 +377,13 @@ async fn update_override_handler(
             },
         )?;
         let version_id = add_config_version(&state, tags, transaction_conn)?;
-        let headers = HashMap::from([(
+        let mut http_resp = HttpResponse::Ok();
+
+        http_resp.insert_header((
             AppHeader::XConfigVersion.to_string(),
             version_id.to_string(),
-        )]);
-        Ok(CustomResp {
-            body: override_resp,
-            headers: headers,
-        })
+        ));
+        Ok(http_resp.json(override_resp))
     })
 }
 
@@ -477,7 +475,7 @@ async fn move_handler(
     req: Json<MoveReq>,
     mut db_conn: DbConnection,
     user: User,
-) -> superposition::Result<CustomResp<PutResp>> {
+) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
         let move_reponse = r#move(path.into_inner(), req, transaction_conn, true, &user)
@@ -486,14 +484,13 @@ async fn move_handler(
                 err
             })?;
         let version_id = add_config_version(&state, tags, transaction_conn)?;
-        let headers = HashMap::from([(
+        let mut http_resp = HttpResponse::Ok();
+
+        http_resp.insert_header((
             AppHeader::XConfigVersion.to_string(),
             version_id.to_string(),
-        )]);
-        Ok(CustomResp {
-            body: move_reponse,
-            headers: headers,
-        })
+        ));
+        Ok(http_resp.json(move_reponse))
     })
 }
 
@@ -595,7 +592,7 @@ async fn bulk_operations(
     reqs: Json<Vec<ContextAction>>,
     db_conn: DbConnection,
     user: User,
-) -> superposition::Result<CustomResp<Vec<ContextBulkResponse>>> {
+) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
     let DbConnection(mut conn) = db_conn;
     let tags = parse_config_tags(custom_headers.config_tags)?;
@@ -653,16 +650,17 @@ async fn bulk_operations(
                 }
             }
         }
+
         let version_id = add_config_version(&state, tags, transaction_conn)?;
-        let headers = HashMap::from([(
+
+        let mut http_resp = HttpResponse::Ok();
+        http_resp.insert_header((
             AppHeader::XConfigVersion.to_string(),
             version_id.to_string(),
-        )]);
+        ));
+
         // Commit the transaction
-        Ok(CustomResp {
-            body: response,
-            headers: headers,
-        })
+        Ok(http_resp.json(response))
     })
 }
 
@@ -672,7 +670,7 @@ async fn priority_recompute(
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
     _user: User,
-) -> superposition::Result<CustomResp<Vec<PriorityRecomputeResponse>>> {
+) -> superposition::Result<HttpResponse> {
     use crate::db::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
 
@@ -717,29 +715,30 @@ async fn priority_recompute(
         })
         .collect::<superposition::Result<Vec<Context>>>()?;
 
-    conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        let insert = diesel::insert_into(contexts)
-            .values(&update_contexts)
-            .on_conflict(id)
-            .do_update()
-            .set(priority.eq(excluded(priority)))
-            .execute(transaction_conn);
-        let version_id = add_config_version(&state, tags, transaction_conn)?;
-        let headers = HashMap::from([(
-            AppHeader::XConfigVersion.to_string(),
-            version_id.to_string(),
-        )]);
-        match insert {
-            Ok(_) => Ok(CustomResp {
-                body: response,
-                headers: headers,
-            }),
-            Err(err) => {
-                log::error!(
+    let config_versin_id =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let insert = diesel::insert_into(contexts)
+                .values(&update_contexts)
+                .on_conflict(id)
+                .do_update()
+                .set(priority.eq(excluded(priority)))
+                .execute(transaction_conn);
+            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            match insert {
+                Ok(_) => Ok(version_id),
+                Err(err) => {
+                    log::error!(
                     "Failed to execute query while recomputing priority, error: {err}"
                 );
-                Err(db_error!(err))
+                    Err(db_error!(err))
+                }
             }
-        }
-    })
+        })?;
+
+    let mut http_resp = HttpResponse::Ok();
+    http_resp.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        config_versin_id.to_string(),
+    ));
+    Ok(http_resp.json(response))
 }

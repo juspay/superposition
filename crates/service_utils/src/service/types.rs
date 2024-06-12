@@ -1,20 +1,16 @@
 use crate::db::pgschema_manager::{PgSchemaConnection, PgSchemaManager};
 use derive_more::{Deref, DerefMut};
 use jsonschema::JSONSchema;
-use serde::Serialize;
 use serde_json::json;
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     future::{ready, Ready},
     str::FromStr,
     sync::Arc,
 };
 
-use actix_web::{
-    body::EitherBody, error, web::Data, Error, FromRequest, HttpMessage, HttpRequest,
-    HttpResponse, Responder,
-};
+use actix_web::{error, web::Data, Error, FromRequest, HttpMessage};
 
 use snowflake::SnowflakeIdGenerator;
 use std::sync::Mutex;
@@ -238,33 +234,5 @@ impl FromRequest for CustomHeaders {
             }),
         };
         ready(Ok(val))
-    }
-}
-
-pub struct CustomResp<T> {
-    pub body: T,
-    pub headers: HashMap<String, String>,
-}
-impl<T: Serialize> Responder for CustomResp<T> {
-    type Body = EitherBody<String>;
-
-    fn respond_to(self, _: &HttpRequest) -> HttpResponse<Self::Body> {
-        match (serde_json::to_string(&self.body), self.headers) {
-            (Ok(body), headers) => {
-                let mut resp = HttpResponse::Ok();
-                for (key, val) in headers.iter() {
-                    resp.insert_header((key.as_str(), val.as_str()));
-                }
-                match resp.content_type(mime::APPLICATION_JSON).message_body(body) {
-                    Ok(res) => res.map_into_left_body(),
-                    Err(err) => HttpResponse::from_error(err).map_into_right_body(),
-                }
-            }
-
-            (Err(err), _) => {
-                HttpResponse::from_error(error::JsonPayloadError::Serialize(err))
-                    .map_into_right_body()
-            }
-        }
     }
 }

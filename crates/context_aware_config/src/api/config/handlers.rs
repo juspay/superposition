@@ -14,7 +14,9 @@ use crate::{
     helpers::generate_cac,
 };
 use actix_http::header::HeaderValue;
-use actix_web::{get, put, web, web::Query, HttpRequest, HttpResponse, Scope};
+use actix_web::{
+    get, put, web, web::Query, HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
+};
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
 use diesel::{
@@ -25,7 +27,6 @@ use diesel::{
 use serde_json::{json, Map, Value};
 use service_utils::{
     bad_argument, db_error, result as superposition,
-    service::types::CustomResp,
     service::types::{AppHeader, DbConnection},
     unexpected_error,
 };
@@ -64,9 +65,9 @@ fn validate_version_in_params(
         })
 }
 
-pub fn add_audit_id(
+pub fn add_audit_id_to_header(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-    header_map: &mut HashMap<String, String>,
+    resp_builder: &mut HttpResponseBuilder,
 ) {
     if let Ok(uuid) = event_log::event_log
         .select(event_log::id)
@@ -74,22 +75,34 @@ pub fn add_audit_id(
         .order_by(event_log::timestamp.desc())
         .first::<Uuid>(conn)
     {
-        header_map.insert(AppHeader::XAuditId.to_string(), uuid.to_string());
+        resp_builder.insert_header((AppHeader::XAuditId.to_string(), uuid.to_string()));
     } else {
         log::error!("Failed to fetch contexts from event_log");
     }
 }
 
-fn add_last_modified(
+fn add_last_modified_to_header(
     max_created_at: Option<NaiveDateTime>,
-    header_map: &mut HashMap<String, String>,
+    resp_builder: &mut HttpResponseBuilder,
 ) {
     if let Some(ele) = max_created_at {
         let datetime_utc: DateTime<Utc> = TimeZone::from_utc_datetime(&Utc, &ele);
-        header_map.insert(
+        resp_builder.insert_header((
             AppHeader::LastModified.to_string(),
             datetime_utc.to_string(),
-        );
+        ));
+    }
+}
+
+fn add_config_version_to_header(
+    config_version: &Option<i64>,
+    resp_builder: &mut HttpResponseBuilder,
+) {
+    if let Some(val) = config_version {
+        resp_builder.insert_header((
+            AppHeader::XConfigVersion.to_string(),
+            val.clone().to_string(),
+        ));
     }
 }
 
@@ -518,18 +531,11 @@ async fn get(
         config = filter_config_by_dimensions(&config, &query_params_map)?
     }
 
-    let mut header_map: HashMap<String, String> = HashMap::new();
-    add_last_modified(max_created_at, &mut header_map);
-    add_audit_id(&mut conn, &mut header_map);
-    config_version.and_then(|v| {
-        header_map.insert(AppHeader::XConfigVersion.to_string(), v.to_string())
-    });
-
-    let mut resp = HttpResponse::Ok();
-    for (key, val) in header_map.iter() {
-        resp.insert_header((key.as_str(), val.as_str()));
-    }
-    Ok(resp.json(config))
+    let mut response = HttpResponse::Ok();
+    add_last_modified_to_header(max_created_at, &mut response);
+    add_audit_id_to_header(&mut conn, &mut response);
+    add_config_version_to_header(&config_version, &mut response);
+    Ok(response.json(config))
 }
 
 #[get("/resolve")]
@@ -610,16 +616,11 @@ async fn get_resolved_config(
             unexpected_error!("cac eval failed")
         })?
     };
-    let mut header_map: HashMap<String, String> = HashMap::new();
-    add_last_modified(max_created_at, &mut header_map);
-    add_audit_id(&mut conn, &mut header_map);
-    config_version.and_then(|v| {
-        header_map.insert(AppHeader::XConfigVersion.to_string(), v.to_string())
-    });
     let mut resp = HttpResponse::Ok();
-    for (key, val) in header_map.iter() {
-        resp.insert_header((key.as_str(), val.as_str()));
-    }
+    add_last_modified_to_header(max_created_at, &mut resp);
+    add_audit_id_to_header(&mut conn, &mut resp);
+    add_config_version_to_header(&config_version, &mut resp);
+
     Ok(resp.json(response))
 }
 
@@ -627,7 +628,7 @@ async fn get_resolved_config(
 async fn get_filtered_config(
     req: HttpRequest,
     db_conn: DbConnection,
-) -> superposition::Result<CustomResp<Config>> {
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let params = Query::<HashMap<String, String>>::from_query(req.query_string())
         .map_err(|err| {
@@ -671,14 +672,9 @@ async fn get_filtered_config(
         overrides: filtered_overrides,
         default_configs: config.default_configs,
     };
-    let mut header_map: HashMap<String, String> = HashMap::new();
-    add_audit_id(&mut conn, &mut header_map);
-    config_version.and_then(|v| {
-        header_map.insert(AppHeader::XConfigVersion.to_string(), v.to_string())
-    });
 
-    Ok(CustomResp {
-        body: filtered_config,
-        headers: header_map,
-    })
+    let mut response = HttpResponse::Ok();
+    add_audit_id_to_header(&mut conn, &mut response);
+    add_config_version_to_header(&config_version, &mut response);
+    Ok(response.json(filtered_config))
 }

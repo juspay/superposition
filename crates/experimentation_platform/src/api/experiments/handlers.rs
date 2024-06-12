@@ -4,7 +4,7 @@ use actix_http::header::{HeaderMap, HeaderName, HeaderValue};
 use actix_web::{
     get, patch, post, put,
     web::{self, Data, Json, Query},
-    HttpRequest, HttpResponse, Scope,
+    HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 use anyhow::anyhow;
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
@@ -25,7 +25,7 @@ use superposition_types::{SuperpositionUser, User};
 
 use reqwest::{Method, Response, StatusCode};
 use service_utils::service::types::{
-    AppHeader, AppState, CustomHeaders, CustomResp, DbConnection, Tenant,
+    AppHeader, AppState, CustomHeaders, DbConnection, Tenant,
 };
 
 use super::{
@@ -80,6 +80,16 @@ fn construct_header_map(
     }
     Ok(headers)
 }
+
+fn add_config_version_to_header(
+    config_version: &Option<String>,
+    resp_builder: &mut HttpResponseBuilder,
+) {
+    if let Some(val) = config_version {
+        resp_builder.insert_header((AppHeader::XConfigVersion.to_string(), val.clone()));
+    }
+}
+
 async fn parse_error_response(
     response: reqwest::Response,
 ) -> superposition::Result<(StatusCode, superposition::ErrorResponse)> {
@@ -140,7 +150,7 @@ async fn create(
     db_conn: DbConnection,
     tenant: Tenant,
     user: User,
-) -> superposition::Result<CustomResp<ExperimentCreateResponse>> {
+) -> superposition::Result<HttpResponse> {
     use crate::db::schema::experiments::dsl::experiments;
     let mut variants = req.variants.to_vec();
     let DbConnection(mut conn) = db_conn;
@@ -272,13 +282,10 @@ async fn create(
 
     let inserted_experiment: Experiment = inserted_experiments.remove(0);
     let response = ExperimentCreateResponse::from(inserted_experiment);
-    let headers = config_version_id.map_or(HashMap::new(), |v| {
-        HashMap::from([(AppHeader::XConfigVersion.to_string(), v)])
-    });
-    Ok(CustomResp {
-        body: response,
-        headers: headers,
-    })
+
+    let mut http_resp = HttpResponse::Ok();
+    add_config_version_to_header(&config_version_id, &mut http_resp);
+    Ok(http_resp.json(response))
 }
 
 #[patch("/{experiment_id}/conclude")]
@@ -290,7 +297,7 @@ async fn conclude_handler(
     db_conn: DbConnection,
     tenant: Tenant,
     user: User,
-) -> superposition::Result<CustomResp<ExperimentResponse>> {
+) -> superposition::Result<HttpResponse> {
     let DbConnection(conn) = db_conn;
     let (response, config_version_id) = conclude(
         state,
@@ -302,13 +309,9 @@ async fn conclude_handler(
         user,
     )
     .await?;
-    let headers = config_version_id.map_or(HashMap::new(), |v| {
-        HashMap::from([(AppHeader::XConfigVersion.to_string(), v)])
-    });
-    Ok(CustomResp {
-        body: ExperimentResponse::from(response),
-        headers: headers,
-    })
+    let mut http_resp = HttpResponse::Ok();
+    add_config_version_to_header(&config_version_id, &mut http_resp);
+    Ok(http_resp.json(ExperimentResponse::from(response)))
 }
 
 pub async fn conclude(
@@ -586,7 +589,7 @@ async fn update_overrides(
     req: web::Json<OverrideKeysUpdateRequest>,
     tenant: Tenant,
     user: User,
-) -> superposition::Result<CustomResp<ExperimentResponse>> {
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let experiment_id = params.into_inner();
 
@@ -769,13 +772,9 @@ async fn update_overrides(
         ))
         .get_result::<Experiment>(&mut conn)?;
 
-    let headers = config_version_id.map_or(HashMap::new(), |v| {
-        HashMap::from([(AppHeader::XConfigVersion.to_string(), v)])
-    });
-    Ok(CustomResp {
-        body: ExperimentResponse::from(updated_experiment),
-        headers: headers,
-    })
+    let mut http_resp = HttpResponse::Ok();
+    add_config_version_to_header(&config_version_id, &mut http_resp);
+    Ok(http_resp.json(ExperimentResponse::from(updated_experiment)))
 }
 
 #[get("/audit")]
