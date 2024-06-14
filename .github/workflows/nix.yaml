@@ -1,4 +1,4 @@
-name: "CI"
+name: "CI Nix"
 on:
   push:
     branches:
