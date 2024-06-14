@@ -4,7 +4,7 @@ use service_utils::{
     bad_argument, db_error,
     helpers::{parse_config_tags, validation_err_to_str},
     not_found, result as superposition,
-    service::types::{AppState, CustomHeaders, DbConnection},
+    service::types::{AppHeader, AppState, CustomHeaders, DbConnection},
     unexpected_error, validation_error,
 };
 
@@ -166,27 +166,35 @@ async fn create(
             )?;
         }
     }
-    conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        let upsert = diesel::insert_into(default_configs)
-            .values(&default_config)
-            .on_conflict(db::schema::default_configs::key)
-            .do_update()
-            .set(&default_config)
-            .execute(transaction_conn);
-        add_config_version(&state, tags, transaction_conn)?;
-        let ok_resp = match upsert {
-            Ok(_) => Ok(HttpResponse::Ok().json(json!({
-                "message": "DefaultConfig created/updated successfully."
-            }))),
-            Err(e) => {
-                log::info!("DefaultConfig creation failed with error: {e}");
-                Err(unexpected_error!(
-                    "Something went wrong, failed to create DefaultConfig"
-                ))
+    let version_id =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let upsert = diesel::insert_into(default_configs)
+                .values(&default_config)
+                .on_conflict(db::schema::default_configs::key)
+                .do_update()
+                .set(&default_config)
+                .execute(transaction_conn);
+            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            match upsert {
+                Ok(_) => Ok(version_id),
+                Err(e) => {
+                    log::info!("DefaultConfig creation failed with error: {e}");
+                    Err(unexpected_error!(
+                        "Something went wrong, failed to create DefaultConfig"
+                    ))
+                }
             }
-        }?;
-        Ok(ok_resp)
-    })
+        })?;
+
+    let mut http_resp = HttpResponse::Ok();
+
+    http_resp.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        version_id.to_string(),
+    ));
+    Ok(http_resp.json(json!({
+        "message": "DefaultConfig created/updated successfully."
+    })))
 }
 
 fn fetch_default_key(
@@ -258,12 +266,17 @@ async fn delete(
             match deleted_row {
                 Ok(0) => Err(not_found!("default config key `{}` doesn't exists", key)),
                 Ok(_) => {
-                    add_config_version(&state, tags, transaction_conn)?;
+                    let version_id = add_config_version(&state, tags, transaction_conn)?;
                     log::info!(
                         "default config key: {key} deleted by {}",
                         user.get_email()
                     );
-                    Ok(HttpResponse::NoContent().finish())
+                    Ok(HttpResponse::NoContent()
+                        .insert_header((
+                            AppHeader::XConfigVersion.to_string(),
+                            version_id.to_string(),
+                        ))
+                        .finish())
                 }
                 Err(e) => {
                     log::error!("default config delete query failed with error: {e}");

@@ -35,6 +35,7 @@ reqwest = { workspace = true }
 thiserror = { workspace = true }
 once_cell = { workspace = true }
 regex = { workspace = true }
+mime = { workspace = true }
 
 [lints]
 workspace = true

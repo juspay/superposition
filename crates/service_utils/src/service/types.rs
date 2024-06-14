@@ -29,6 +29,14 @@ pub enum AppEnv {
     DEV,
 }
 
+#[derive(Copy, Clone, Debug, strum_macros::Display)]
+#[strum(serialize_all = "kebab-case")]
+pub enum AppHeader {
+    XConfigVersion,
+    XAuditId,
+    LastModified,
+}
+
 pub struct AppState {
     pub cac_host: String,
     pub app_env: AppEnv,

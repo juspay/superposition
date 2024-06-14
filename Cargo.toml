@@ -59,6 +59,7 @@ leptos_meta = { version = "0.5.2" }
 leptos_router = { version = "0.5.2" }
 thiserror = { version = "1.0.57" }
 leptos-use = "0.10.3"
+mime = "0.3.17"
 
 [workspace.lints.clippy]
 mod_module_files = "warn"
