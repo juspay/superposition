@@ -4,6 +4,7 @@ resolver = "2"
 members = [
     "crates/service_utils",
     "crates/context_aware_config",
+    "crates/cac_demo_app",
     "crates/experimentation_platform",
     "crates/service_utils",
     "crates/experimentation_client",
