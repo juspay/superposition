@@ -220,6 +220,7 @@ pub fn experiment_list() -> impl IntoView {
                             header="Create New Experiment"
                             handle_close=move || {
                                 close_drawer("create_exp_drawer");
+                                set_exp_form.update(|i| *i += 1);
                             }
                         >
 
