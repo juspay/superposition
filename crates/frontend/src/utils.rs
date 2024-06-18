@@ -9,7 +9,7 @@ use cfg_if::cfg_if;
 use leptos::*;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::de::DeserializeOwned;
-use serde_json::{Number, Value};
+use serde_json::{Map, Number, Value};
 use std::str::FromStr;
 use url::Url;
 use wasm_bindgen::JsCast;
@@ -446,6 +446,17 @@ pub fn set_local_storage(_key: &str, _value: &str) -> Option<()> {
                 .and_then(|storage| storage.set_item(_key, _value).ok())
         } else {
             None
+        }
+    }
+}
+
+pub fn get_key_type(schema: &Map<String, Value>) -> String {
+    if schema.contains_key("enum") {
+        String::from("ENUM")
+    } else {
+        match schema.get("type").unwrap_or(&Value::Null) {
+            Value::String(str_) => str_.to_ascii_uppercase(),
+            _ => String::from("STRING"),
         }
     }
 }

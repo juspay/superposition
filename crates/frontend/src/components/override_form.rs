@@ -1,12 +1,15 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use crate::{
-    components::dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+    components::{
+        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        input_components::{BooleanToggle, EnumDropdown},
+    },
     types::DefaultConfig,
-    utils::{get_config_value, ConfigType},
+    utils::{get_config_value, get_key_type, ConfigType},
 };
 use leptos::*;
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 use web_sys::MouseEvent;
 
 #[component]
@@ -27,6 +30,11 @@ where
     let override_keys = Signal::derive(move || {
         HashSet::<String>::from_iter(overrides.get().iter().map(|(k, _)| String::from(k)))
     });
+    let default_config_map: HashMap<String, DefaultConfig> = default_config
+        .get_value()
+        .into_iter()
+        .map(|ele| (ele.clone().key, ele))
+        .collect();
 
     let on_submit = move |event: MouseEvent| {
         event.prevent_default();
@@ -39,6 +47,44 @@ where
             value.push((config_key, json!("")));
         });
     });
+
+    let get_default_config_val = move |config_key_value: String, value: String| {
+        get_config_value(
+            &config_key_value,
+            &value,
+            &default_config
+                .get_value()
+                .into_iter()
+                .map(ConfigType::DefaultConfig)
+                .collect::<Vec<_>>(),
+        )
+        .expect("can't parse default config key")
+    };
+
+    let update_overrides = move |curr_overrides: &mut Vec<(String, Value)>,
+                                 config_key_value: String,
+                                 default_config_val: Value| {
+        let position = curr_overrides
+            .iter()
+            .position(|(k, _)| k.to_owned() == config_key_value);
+        if let Some(idx) = position {
+            curr_overrides[idx].1 = json!(default_config_val);
+        }
+    };
+
+    let update_overrides_untracked = move |config_key_value: String, value: String| {
+        let default_config_val = get_default_config_val(config_key_value.clone(), value);
+        set_overrides.update_untracked(|curr_overrides| {
+            update_overrides(curr_overrides, config_key_value, default_config_val);
+        });
+    };
+
+    let update_overrides_tracked = move |config_key_value: String, value: String| {
+        let default_config_val = get_default_config_val(config_key_value.clone(), value);
+        set_overrides.update(|curr_overrides| {
+            update_overrides(curr_overrides, config_key_value, default_config_val);
+        });
+    };
 
     create_effect(move |_| {
         let f_override = overrides.get();
@@ -84,95 +130,126 @@ where
                         </div>
                     </div>
                 </Show>
-                <For
-                    each=move || { overrides.get().into_iter().collect::<Vec<(String, Value)>>() }
-                    key=|(config_key, _)| config_key.to_string()
-                    children=move |(config_key, config_value)| {
-                        let config_key_label = config_key.to_string();
-                        let config_key_value = config_key.to_string();
-                        let config_value = config_value.to_string().replace('"', "");
-                        logging::log!("config value {}", config_value.clone());
-                        view! {
-                            <div>
-                                <div class="flex items-center gap-4">
-                                    <div class="form-control">
-                                        <label class="label font-medium font-mono text-sm">
-                                            <span class="label-text">{config_key_label} ":"</span>
-                                        </label>
-                                    </div>
-                                    <div class="form-control w-2/5">
-                                        <textarea
-                                            type="text"
-                                            placeholder="Enter override here"
-                                            name="override"
-                                            class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                                            on:input=move |event| {
-                                                let input_value = event_target_value(&event);
-                                                let default_config_val = get_config_value(
-                                                        &config_key_value,
-                                                        &input_value,
-                                                        &default_config
-                                                            .get_value()
-                                                            .into_iter()
-                                                            .map(ConfigType::DefaultConfig)
-                                                            .collect::<Vec<_>>(),
-                                                    )
-                                                    .expect("can't parse default config key");
-                                                set_overrides
-                                                    .update(|curr_overrides| {
-                                                        let position = curr_overrides
-                                                            .iter()
-                                                            .position(|(k, _)| k.to_owned() == config_key_value);
-                                                        if let Some(idx) = position {
-                                                            curr_overrides[idx].1 = json!(default_config_val);
-                                                        }
-                                                    });
-                                            }
-                                        >
-
-                                            {config_value}
-                                        </textarea>
-
-                                    </div>
-                                    <div class="w-1/5">
-
-                                        {if !disable_remove {
-                                            view! {
-                                                <button
-                                                    class="btn btn-ghost btn-circle btn-sm"
-                                                    on:click=move |ev| {
-                                                        ev.prevent_default();
-                                                        match handle_key_remove {
-                                                            Some(f) => f.call(config_key.clone()),
-                                                            None => {
-                                                                set_overrides
-                                                                    .update(|value| {
-                                                                        let position = value
-                                                                            .iter()
-                                                                            .position(|(k, _)| k.to_owned() == config_key);
-                                                                        if let Some(idx) = position {
-                                                                            value.remove(idx);
-                                                                        }
-                                                                    })
-                                                            }
-                                                        };
+                {move || {
+                    overrides
+                        .get()
+                        .into_iter()
+                        .map(|(config_key, config_value)| {
+                            let config_key_label = config_key.to_string();
+                            let config_key_value = config_key.to_string();
+                            let config_value = config_value.to_string().replace('"', "");
+                            let schema: Map<String, Value> = serde_json::from_value(
+                                    default_config_map
+                                        .get(&config_key_label)
+                                        .unwrap()
+                                        .schema
+                                        .clone(),
+                                )
+                                .unwrap();
+                            let key_type = get_key_type(&schema);
+                            view! {
+                                <div>
+                                    <div class="flex items-center gap-4">
+                                        <div class="form-control">
+                                            <label class="label font-medium font-mono text-sm">
+                                                <span class="label-text">{config_key_label} ":"</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-control">
+                                            {match key_type.as_str() {
+                                                "ENUM" => {
+                                                    view! {
+                                                        <EnumDropdown
+                                                            schema
+                                                            config_value
+                                                            handle_change=Callback::new(move |selected_enum: String| {
+                                                                update_overrides_tracked(
+                                                                    config_key_value.clone(),
+                                                                    selected_enum,
+                                                                )
+                                                            })
+                                                        />
                                                     }
-                                                >
+                                                        .into_view()
+                                                }
+                                                "BOOLEAN" => {
+                                                    view! {
+                                                        <BooleanToggle
+                                                            config_value
+                                                            update_value=Callback::new(move |flag: String| {
+                                                                update_overrides_untracked(config_key_value.clone(), flag);
+                                                            })
+                                                        />
+                                                    }
+                                                        .into_view()
+                                                }
+                                                _ => {
+                                                    view! {
+                                                        <div class="w-2/5">
+                                                            <textarea
+                                                                type="text"
+                                                                placeholder="Enter override here"
+                                                                name="override"
+                                                                class="input input-bordered w-[450px] flex items-center bg-white text-gray-700 shadow-md pt-3"
+                                                                on:change=move |event| {
+                                                                    event.prevent_default();
+                                                                    let input_value = event_target_value(&event);
+                                                                    update_overrides_untracked(
+                                                                        config_key_value.clone(),
+                                                                        input_value,
+                                                                    );
+                                                                }
+                                                            >
 
-                                                    <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
-                                                </button>
-                                            }
-                                                .into_view()
-                                        } else {
-                                            view! {}.into_view()
-                                        }}
+                                                                {config_value}
+                                                            </textarea>
+                                                        </div>
+                                                    }
+                                                        .into_view()
+                                                }
+                                            }}
 
+                                        </div>
+                                        <div class="w-1/5">
+
+                                            {if !disable_remove {
+                                                view! {
+                                                    <button
+                                                        class="btn btn-ghost btn-circle btn-sm"
+                                                        on:click=move |ev| {
+                                                            ev.prevent_default();
+                                                            match handle_key_remove {
+                                                                Some(f) => f.call(config_key.clone()),
+                                                                None => {
+                                                                    set_overrides
+                                                                        .update(|value| {
+                                                                            let position = value
+                                                                                .iter()
+                                                                                .position(|(k, _)| k.to_owned() == config_key);
+                                                                            if let Some(idx) = position {
+                                                                                value.remove(idx);
+                                                                            }
+                                                                        })
+                                                                }
+                                                            };
+                                                        }
+                                                    >
+
+                                                        <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
+                                                    </button>
+                                                }
+                                                    .into_view()
+                                            } else {
+                                                view! {}.into_view()
+                                            }}
+
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        }
-                    }
-                />
+                            }
+                        })
+                        .collect_view()
+                }}
 
             </div>
             <Show when=move || is_standalone>
