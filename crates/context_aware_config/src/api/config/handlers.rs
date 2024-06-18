@@ -1,9 +1,6 @@
-use std::collections::HashSet;
 use std::{collections::HashMap, str::FromStr};
 
-use super::helpers::{
-    filter_config_by_dimensions, filter_config_by_prefix, filter_context,
-};
+use super::helpers::{filter_config_by_dimensions, filter_config_by_prefix};
 use super::types::{Config, Context};
 use crate::api::context::{
     delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
@@ -43,7 +40,6 @@ pub fn endpoints() -> Scope {
         .service(get)
         .service(get_resolved_config)
         .service(reduce_config)
-        .service(get_filtered_config)
 }
 
 fn validate_version_in_params(
@@ -513,16 +509,15 @@ async fn get(
     }
     let config_version = validate_version_in_params(&mut query_params_map)?;
     let mut config = generate_config_from_version(config_version, &mut conn)?;
-    if let Some(prefix) = query_params_map.get("prefix") {
-        let prefix_list: HashSet<&str> = prefix
-            .as_str()
-            .ok_or_else(|| {
-                log::error!("Prefix is not a valid string.");
-                bad_argument!("Prefix is not a valid string")
-            })?
-            .split(',')
-            .collect();
-        config = filter_config_by_prefix(&config, &prefix_list)?
+
+    if let Some(prefix) = query_params_map
+        .get("prefix")
+        .and_then(|prefix| prefix.as_str())
+    {
+        config = filter_config_by_prefix(
+            &config,
+            &prefix.split(',').map(String::from).collect(),
+        )?
     }
 
     query_params_map.remove("prefix");
@@ -622,59 +617,4 @@ async fn get_resolved_config(
     add_config_version_to_header(&config_version, &mut resp);
 
     Ok(resp.json(response))
-}
-
-#[get("/filter")]
-async fn get_filtered_config(
-    req: HttpRequest,
-    db_conn: DbConnection,
-) -> superposition::Result<HttpResponse> {
-    let DbConnection(mut conn) = db_conn;
-    let params = Query::<HashMap<String, String>>::from_query(req.query_string())
-        .map_err(|err| {
-            log::error!("failed to parse query params with err: {}", err);
-            bad_argument!("Error getting query params.")
-        })?;
-    let mut query_params_map: serde_json::Map<String, Value> = Map::new();
-
-    for (key, value) in params.0.into_iter() {
-        query_params_map.insert(
-            key,
-            value
-                .parse::<i32>()
-                .map_or_else(|_| json!(value), |int_val| json!(int_val)),
-        );
-    }
-
-    let config_version = validate_version_in_params(&mut query_params_map)?;
-    let config = generate_config_from_version(config_version, &mut conn)?;
-    let contexts = config.contexts;
-
-    let filtered_context = filter_context(&contexts, &query_params_map)?;
-    let mut filtered_overrides: Map<String, Value> = Map::new();
-    for ele in filtered_context.iter() {
-        let override_with_key = &ele.override_with_keys[0];
-        filtered_overrides.insert(
-            override_with_key.to_string(),
-            config
-                .overrides
-                .get(override_with_key)
-                .ok_or_else(|| {
-                    log::error!("Could not fetch override_with_key");
-                    unexpected_error!("Something went wrong")
-                })?
-                .to_owned(),
-        );
-    }
-
-    let filtered_config = Config {
-        contexts: filtered_context,
-        overrides: filtered_overrides,
-        default_configs: config.default_configs,
-    };
-
-    let mut response = HttpResponse::Ok();
-    add_audit_id_to_header(&mut conn, &mut response);
-    add_config_version_to_header(&config_version, &mut response);
-    Ok(response.json(filtered_config))
 }

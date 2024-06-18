@@ -975,6 +975,7 @@ dependencies = [
  "futures",
  "futures-util",
  "itertools 0.10.5",
+ "jsonlogic",
  "jsonschema",
  "leptos 0.5.7",
  "leptos_actix",
@@ -2216,8 +2217,8 @@ dependencies = [
 
 [[package]]
 name = "jsonlogic"
-version = "0.5.2"
-source = "git+https://github.com/juspay/jsonlogic_rs.git#bbae9a833aed0f48c97bac1e2d88b353d330e66e"
+version = "0.5.3"
+source = "git+https://github.com/juspay/jsonlogic_rs.git#9e9daf93185996ce4285591cdb415dcdad71d282"
 dependencies = [
  "regex",
  "serde_json",

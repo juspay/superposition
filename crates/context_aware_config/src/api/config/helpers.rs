@@ -1,40 +1,27 @@
-use std::collections::HashSet;
-
 use super::types::{Config, Context};
 
-use serde_json::{Map, Value};
-use service_utils::{
-    helpers::extract_dimensions, result as superposition, unexpected_error,
-};
+use serde_json::{json, Map, Value};
+use service_utils::{result as superposition, unexpected_error};
 
 pub fn filter_context(
     contexts: &[Context],
-    query_params_map: &Map<String, Value>,
-) -> superposition::Result<Vec<Context>> {
-    let mut filtered_context: Vec<Context> = Vec::new();
-    for context in contexts.iter() {
-        if should_add_ctx(context, query_params_map)? {
-            filtered_context.push(context.clone());
-        }
-    }
-    Ok(filtered_context)
-}
-
-fn should_add_ctx(
-    context: &Context,
-    query_params_map: &Map<String, Value>,
-) -> superposition::Result<bool> {
-    let dimension = extract_dimensions(&context.condition)?;
-    Ok(dimension.iter().all(|(key, value)| {
-        query_params_map.get(key).map_or(true, |val| {
-            val == value || val.as_array().unwrap_or(&vec![]).contains(value)
+    dimension_data: &Map<String, Value>,
+) -> Vec<Context> {
+    contexts
+        .iter()
+        .filter_map(|context| {
+            match jsonlogic::partial_apply(&context.condition, &json!(dimension_data)) {
+                Ok(jsonlogic::PartialApplyOutcome::Resolved(Value::Bool(true)))
+                | Ok(jsonlogic::PartialApplyOutcome::Ambiguous) => Some(context.clone()),
+                _ => None,
+            }
         })
-    }))
+        .collect()
 }
 
 pub fn filter_config_by_prefix(
     config: &Config,
-    prefix_list: &HashSet<&str>,
+    prefix_list: &Vec<String>,
 ) -> superposition::Result<Config> {
     let mut filtered_overrides: Map<String, Value> = Map::new();
 
@@ -86,9 +73,9 @@ pub fn filter_config_by_prefix(
 
 pub fn filter_config_by_dimensions(
     config: &Config,
-    query_params_map: &Map<String, Value>,
+    dimension_data: &Map<String, Value>,
 ) -> superposition::Result<Config> {
-    let filtered_context = filter_context(&config.contexts, query_params_map)?;
+    let filtered_context = filter_context(&config.contexts, dimension_data);
     let filtered_overrides: Map<String, Value> = filtered_context
         .iter()
         .flat_map(|ele| {

@@ -97,8 +97,10 @@ impl Client {
         context: &Value,
         prefix: Option<Vec<String>>,
     ) -> Result<Experiments, String> {
-        let running_experiments = self.experiments.read().await;
-        let filtered_running_experiments = running_experiments
+        let running_experiments = self
+            .experiments
+            .read()
+            .await
             .iter()
             .filter(|(_, exp)| {
                 let is_empty = exp
@@ -111,50 +113,51 @@ impl Client {
             .map(|(_, exp)| exp.clone())
             .collect::<Experiments>();
 
-        if let Some(prefix) = prefix {
-            let prefix_list: HashSet<&str> = prefix.iter().map(|s| s.as_str()).collect();
+        if let Some(prefix_list) = prefix {
+            return Ok(Self::filter_experiments_by_prefix(
+                running_experiments,
+                prefix_list,
+            ));
+        }
 
-            let prefix_filtered_running_experiments: Vec<Experiment> =
-                filtered_running_experiments
-                    .into_iter()
-                    .filter_map(|experiment| {
-                        let variants: Vec<Variant> = experiment
-                            .variants
-                            .into_iter()
-                            .filter_map(|mut variant| {
-                                let overrides_map: Map<String, Value> =
-                                    serde_json::from_value(variant.overrides.clone())
-                                        .ok()?;
-                                let filtered_override: Map<String, Value> = overrides_map
-                                    .into_iter()
-                                    .filter(|(key, _)| {
-                                        prefix_list
-                                            .iter()
-                                            .any(|prefix_str| key.starts_with(prefix_str))
-                                    })
-                                    .collect();
-                                if filtered_override.is_empty() {
-                                    return None; // Skip this variant
-                                }
+        Ok(running_experiments)
+    }
 
-                                variant.overrides =
-                                    serde_json::to_value(filtered_override).ok()?;
-                                Some(variant)
-                            })
-                            .collect();
+    pub async fn get_filtered_satisfied_experiments(
+        &self,
+        context: &Value,
+        prefix: Option<Vec<String>>,
+    ) -> Result<Experiments, String> {
+        let experiments = self.experiments.read().await;
 
-                        if !variants.is_empty() {
-                            Some(Experiment {
-                                variants,
-                                ..experiment
-                            })
-                        } else {
-                            None // Skip this experiment
+        let filtered_running_experiments = experiments
+            .iter()
+            .filter_map(|(_, exp)| {
+                let is_empty = exp
+                    .context
+                    .as_object()
+                    .map_or(false, |context| context.is_empty());
+                if is_empty {
+                    Some(exp.clone())
+                } else {
+                    match jsonlogic::partial_apply(&exp.context, context) {
+                        Ok(jsonlogic::PartialApplyOutcome::Resolved(Value::Bool(
+                            true,
+                        )))
+                        | Ok(jsonlogic::PartialApplyOutcome::Ambiguous) => {
+                            Some(exp.clone())
                         }
-                    })
-                    .collect();
+                        _ => None,
+                    }
+                }
+            })
+            .collect::<Vec<Experiment>>();
 
-            return Ok(prefix_filtered_running_experiments);
+        if let Some(prefix_list) = prefix {
+            return Ok(Self::filter_experiments_by_prefix(
+                filtered_running_experiments,
+                prefix_list,
+            ));
         }
 
         Ok(filtered_running_experiments)
@@ -164,6 +167,50 @@ impl Client {
         let running_experiments = self.experiments.read().await;
         let experiments: Experiments = running_experiments.values().cloned().collect();
         Ok(experiments)
+    }
+
+    fn filter_experiments_by_prefix(
+        experiments: Vec<Experiment>,
+        prefix_list: Vec<String>,
+    ) -> Vec<Experiment> {
+        let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
+        experiments
+            .into_iter()
+            .filter_map(|experiment| {
+                let variants: Vec<Variant> = experiment
+                    .variants
+                    .into_iter()
+                    .filter_map(|mut variant| {
+                        let overrides_map: Map<String, Value> =
+                            serde_json::from_value(variant.overrides.clone()).ok()?;
+                        let filtered_override: Map<String, Value> = overrides_map
+                            .into_iter()
+                            .filter(|(key, _)| {
+                                prefix_list
+                                    .iter()
+                                    .any(|prefix_str| key.starts_with(prefix_str))
+                            })
+                            .collect();
+                        if filtered_override.is_empty() {
+                            return None; // Skip this variant
+                        }
+
+                        variant.overrides =
+                            serde_json::to_value(filtered_override).ok()?;
+                        Some(variant)
+                    })
+                    .collect();
+
+                if !variants.is_empty() {
+                    Some(Experiment {
+                        variants,
+                        ..experiment
+                    })
+                } else {
+                    None // Skip this experiment
+                }
+            })
+            .collect()
     }
 
     // decide which variant to return among all applicable experiments

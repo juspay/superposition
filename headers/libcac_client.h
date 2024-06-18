@@ -21,7 +21,9 @@ struct Arc_Client *cac_get_client(const char *tenant);
 
 const char *cac_get_last_modified(struct Arc_Client *client);
 
-const char *cac_get_config(struct Arc_Client *client, const char *query);
+const char *cac_get_config(struct Arc_Client *client,
+                           const char *filter_query,
+                           const char *filter_prefix);
 
 const char *cac_get_resolved_config(struct Arc_Client *client,
                                     const char *query,

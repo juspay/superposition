@@ -7,7 +7,7 @@ use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
 use reqwest::{RequestBuilder, Response, StatusCode};
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 use std::{
     collections::{HashMap, HashSet},
     convert::identity,
@@ -16,9 +16,7 @@ use std::{
 };
 use utils::core::MapError;
 
-use service_utils::{
-    helpers::extract_dimensions, result as superposition, unexpected_error,
-};
+use service_utils::{result as superposition, unexpected_error};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Context {
@@ -157,30 +155,23 @@ impl Client {
     pub fn get_full_config_state_with_filter(
         &self,
         query_data: Option<Map<String, Value>>,
+        prefix: Option<Vec<String>>,
     ) -> Result<Config, String> {
         let mut config = self.config.read().map(|c| c.clone()).map_err_to_string()?;
-        if let Some(mut query_map) = query_data {
-            if let Some(prefix) = query_map.get("prefix") {
-                let prefix_list: HashSet<&str> = prefix
-                    .as_str()
-                    .ok_or_else(|| {
-                        log::error!("Prefix is not a valid string.");
-                        "Prefix is not a valid string.".to_string()
-                    })
-                    .map_err_to_string()?
-                    .split(',')
-                    .collect();
-                config =
-                    filter_config_by_prefix(&config, &prefix_list).map_err_to_string()?;
-            }
-
-            query_map.remove("prefix");
-
-            if !query_map.is_empty() {
-                config = filter_config_by_dimensions(&config, &query_map)
-                    .map_err_to_string()?;
-            }
+        if let Some(prefix_list) = prefix {
+            config = filter_config_by_prefix(&config, prefix_list).map_err_to_string()?;
         }
+
+        let dimension_filtered_config = query_data
+            .filter(|query_map| !query_map.is_empty())
+            .map(|query_map| filter_config_by_dimensions(&config, &query_map))
+            .transpose()
+            .map_err_to_string()?;
+
+        if let Some(filtered_config) = dimension_filtered_config {
+            config = filtered_config;
+        };
+
         Ok(config)
     }
 
@@ -211,8 +202,7 @@ impl Client {
     ) -> Result<Map<String, Value>, String> {
         let mut cac = self.eval(query_data, merge_strategy)?;
         if let Some(keys) = filter_keys {
-            cac = filter_keys_by_prefix(cac, &keys.iter().map(|s| s.as_str()).collect())
-                .map_err_to_string()?;
+            cac = filter_keys_by_prefix(cac, keys).map_err_to_string()?;
         }
         Ok(cac)
     }
@@ -224,11 +214,8 @@ impl Client {
         let configs = self.config.read().map_err(|e| e.to_string())?;
         let mut default_configs = configs.default_configs.clone();
         if let Some(keys) = filter_keys {
-            default_configs = filter_keys_by_prefix(
-                default_configs,
-                &keys.iter().map(|s| s.as_str()).collect(),
-            )
-            .map_err_to_string()?;
+            default_configs =
+                filter_keys_by_prefix(default_configs, keys).map_err_to_string()?;
         }
         Ok(default_configs)
     }
@@ -287,8 +274,9 @@ pub use eval::merge;
 
 pub fn filter_keys_by_prefix(
     keys: Map<String, Value>,
-    prefix_list: &HashSet<&str>,
+    prefix_list: Vec<String>,
 ) -> superposition::Result<Map<String, Value>> {
+    let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
     Ok(keys
         .into_iter()
         .filter(|(key, _)| {
@@ -301,7 +289,7 @@ pub fn filter_keys_by_prefix(
 
 pub fn filter_config_by_prefix(
     config: &Config,
-    prefix_list: &HashSet<&str>,
+    prefix_list: Vec<String>,
 ) -> superposition::Result<Config> {
     let mut filtered_overrides: Map<String, Value> = Map::new();
 
@@ -345,27 +333,20 @@ pub fn filter_config_by_prefix(
 
 pub fn filter_config_by_dimensions(
     config: &Config,
-    query_params_map: &Map<String, Value>,
+    dimension_data: &Map<String, Value>,
 ) -> superposition::Result<Config> {
-    let filter_context = |contexts: &Vec<Context>,
-                          query_params_map: &Map<String, Value>|
-     -> superposition::Result<Vec<Context>> {
-        let mut filtered_context: Vec<Context> = Vec::new();
-        for context in contexts.iter() {
-            let dimension = extract_dimensions(&context.condition)?;
-            let should_add_ctx = dimension.iter().all(|(key, value)| {
-                query_params_map.get(key).map_or(true, |val| {
-                    val == value || val.as_array().unwrap_or(&vec![]).contains(value)
-                })
-            });
-            if should_add_ctx {
-                filtered_context.push(context.clone());
+    let filtered_context = config
+        .contexts
+        .iter()
+        .filter_map(|context| {
+            match jsonlogic::partial_apply(&context.condition, &json!(dimension_data)) {
+                Ok(jsonlogic::PartialApplyOutcome::Resolved(Value::Bool(true)))
+                | Ok(jsonlogic::PartialApplyOutcome::Ambiguous) => Some(context.clone()),
+                _ => None,
             }
-        }
-        Ok(filtered_context)
-    };
+        })
+        .collect::<Vec<Context>>();
 
-    let filtered_context = filter_context(&config.contexts, query_params_map)?;
     let filtered_overrides: Map<String, Value> = filtered_context
         .iter()
         .flat_map(|ele| {

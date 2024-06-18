@@ -9,6 +9,7 @@ module Client
 , createExpClient
 , getApplicableVariants
 , getSatisfiedExperiments
+, getFilteredSatisfiedExperiments
 , getRunningExperiments
 ) where
 
@@ -53,7 +54,10 @@ foreign import ccall unsafe "expt_get_applicable_variant"
     c_get_applicable_variants :: Ptr ExpClient -> CString -> CShort -> IO CString
 
 foreign import ccall unsafe "expt_get_satisfied_experiments"
-    c_get_satisfied_experiments :: Ptr ExpClient -> CString -> IO CString
+    c_get_satisfied_experiments :: Ptr ExpClient -> CString -> CString -> IO CString
+
+foreign import ccall unsafe "expt_get_filtered_satisfied_experiments"
+    c_get_filtered_satisfied_experiments :: Ptr ExpClient -> CString -> CString -> IO CString
 
 foreign import ccall unsafe "expt_get_running_experiments"
     c_get_running_experiments :: Ptr ExpClient -> IO CString
@@ -107,11 +111,30 @@ getApplicableVariants client query toss = do
                     -- Error s     -> Left s
                     -- Success vec -> Right vec
 
-getSatisfiedExperiments :: ForeignPtr ExpClient -> String -> IO (Either Error Value)
-getSatisfiedExperiments client query = do
+getSatisfiedExperiments :: ForeignPtr ExpClient -> String -> Maybe String -> IO (Either Error Value)
+getSatisfiedExperiments client query mbPrefix = do
     context     <- newCAString query
-    experiments <- withForeignPtr client (`c_get_satisfied_experiments` context)
+    prefix <- case mbPrefix of
+        Just prefix -> newCAString prefix
+        Nothing     -> return nullPtr
+    experiments <- withForeignPtr client $ \client -> c_get_satisfied_experiments client context prefix
     _           <- cleanup [context]
+    if experiments == nullPtr
+        then Left <$> getError
+        else do
+            fptrExperiments  <- newForeignPtr c_free_string experiments
+            Right . toJSON <$> withForeignPtr fptrExperiments peekCAString
+
+getFilteredSatisfiedExperiments :: ForeignPtr ExpClient -> Maybe String -> Maybe String -> IO (Either Error Value)
+getFilteredSatisfiedExperiments client mbFilters mbPrefix = do
+    filters <- case mbFilters of
+        Just filters' -> newCAString filters'
+        Nothing       -> return nullPtr
+    prefix <- case mbPrefix of
+        Just prefix' -> newCAString prefix'
+        Nothing      -> return nullPtr
+    experiments <- withForeignPtr client $ \client -> c_get_filtered_satisfied_experiments client filters prefix
+    _           <- cleanup [filters]
     if experiments == nullPtr
         then Left <$> getError
         else do
