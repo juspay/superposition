@@ -125,13 +125,15 @@ where
                 }
 
                 key=|(_, (key, _))| key.to_string()
-                children=move |(idx, (_, variant))| {
+                children=move |(idx, (key, variant))| {
                     let is_control_variant = variant.variant_type == VariantType::CONTROL;
                     let handle_change = handle_override_form_change(idx);
                     let variant_type_label = match variant.variant_type {
                         VariantType::CONTROL => "Control".to_string(),
                         VariantType::EXPERIMENTAL => format!("Variant {idx}"),
                     };
+                    let show_remove_btn = key != "control-variant" && key != "experimental-variant";
+                    let key = StoredValue::new(key);
                     view! {
                         <div class="my-2 p-4 rounded bg-gray-50">
                             <div class="flex items-center justify-between">
@@ -151,6 +153,24 @@ where
                                         dropdown_options=unused_config_keys.get()
                                         on_select=handle_config_key_select
                                     />
+                                </Show>
+                                <Show when=move || show_remove_btn>
+                                    <button
+                                        class="btn btn-sm btn-circle btn-ghost"
+                                        on:click=move |_| {
+                                            set_variants
+                                                .update(|cvariants| {
+                                                    let position = cvariants
+                                                        .iter()
+                                                        .position(|(k, _)| k.as_str() == key.get_value().as_str());
+                                                    if let Some(idx) = position {
+                                                        cvariants.remove(idx);
+                                                    }
+                                                })
+                                        }
+                                    >
+                                        <i class="ri-close-line"></i>
+                                    </button>
                                 </Show>
                             </div>
                             <div class="flex items-center gap-4 my-4">
@@ -270,7 +290,6 @@ where
                         leptos::logging::log!("add new variant");
                         set_variants
                             .update(|curr_variants| {
-                                let total_variants = curr_variants.len();
                                 let key = Local::now().timestamp().to_string();
                                 let overrides = override_keys
                                     .get()
@@ -281,7 +300,7 @@ where
                                     .push((
                                         key,
                                         VariantFormT {
-                                            id: format!("variant-{}", total_variants),
+                                            id: String::new(),
                                             variant_type: VariantType::EXPERIMENTAL,
                                             overrides,
                                         },
