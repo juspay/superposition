@@ -125,6 +125,8 @@ pub fn context_override() -> impl IntoView {
 
     let (selected_data, set_selected_data) = create_signal::<Option<Data>>(None);
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
+    let (modal_visible, set_modal_visible) = create_signal(false);
+    let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
 
     let page_resource: Resource<String, PageResource> = create_blocking_resource(
         move || tenant_rs.get().clone(),
@@ -188,20 +190,34 @@ pub fn context_override() -> impl IntoView {
         });
 
     let handle_context_delete = Callback::new(move |id: String| {
-        spawn_local(async move {
-            let result = delete_context(tenant_rs.get(), id).await;
-
-            match result {
-                Ok(_) => {
-                    logging::log!("Context and overrides deleted successfully");
-                    page_resource.refetch();
-                }
-                Err(e) => {
-                    logging::log!("Error deleting context and overrides: {:?}", e);
-                }
-            }
-        });
+        set_delete_id.set(Some(id.clone()));
+        set_modal_visible.set(true);
     });
+
+    let confirm_delete = {
+        move |_| {
+            if let Some(id) = delete_id.get().clone() {
+                spawn_local(async move {
+                    let result = delete_context(tenant_rs.get(), id).await;
+
+                    match result {
+                        Ok(_) => {
+                            logging::log!("Context and overrides deleted successfully");
+                            page_resource.refetch();
+                        }
+                        Err(e) => {
+                            logging::log!(
+                                "Error deleting context and overrides: {:?}",
+                                e
+                            );
+                        }
+                    }
+                });
+            }
+            set_delete_id.set(None);
+            set_modal_visible.set(false);
+        }
+    };
 
     view! {
         <div class="p-8">
@@ -326,6 +342,22 @@ pub fn context_override() -> impl IntoView {
                     }}
 
                 </div>
+
+                <Show when=move || modal_visible.get()>
+                <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center">
+                    <dialog id="my_modal_2" class="modal" open={modal_visible.get()}>
+                        <div class="modal-box bg-white rounded-lg p-6 shadow-xl border-2 border-lightgray">
+                            <h4 class="text-xl font-semibold text-gray-800 mb-4">Confirm Deletion</h4>
+                            <p class="text-sm text-gray-600 mb-6">Are you sure you want to delete this context? This action cannot be undone.</p>
+                            <div class="flex justify-end space-x-4">
+                                <button class="btn bg-purple-500 text-white px-4 py-2 rounded hover:opacity-75 hover:bg-purple-500" on:click=confirm_delete>Yes, Delete</button>
+                                <button class="btn bg-gray-300 text-black px-4 py-2 rounded hover:opacity-75 hover:bg-gray-300" on:click=move |_| set_modal_visible.set(false)>No</button>
+                            </div>
+                        </div>
+                    </dialog>
+                </div>
+            </Show>
+
             </Suspense>
         </div>
     }
