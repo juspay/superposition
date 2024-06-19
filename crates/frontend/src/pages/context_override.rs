@@ -5,6 +5,7 @@ use crate::components::button::Button;
 use crate::components::context_card::ContextCard;
 use crate::components::context_form::utils::{create_context, update_context};
 use crate::components::context_form::ContextForm;
+use crate::components::delete_modal::DeleteModal;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::override_form::OverrideForm;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
@@ -125,6 +126,8 @@ pub fn context_override() -> impl IntoView {
 
     let (selected_data, set_selected_data) = create_signal::<Option<Data>>(None);
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
+    let (modal_visible, set_modal_visible) = create_signal(false);
+    let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
 
     let page_resource: Resource<String, PageResource> = create_blocking_resource(
         move || tenant_rs.get().clone(),
@@ -188,19 +191,28 @@ pub fn context_override() -> impl IntoView {
         });
 
     let handle_context_delete = Callback::new(move |id: String| {
-        spawn_local(async move {
-            let result = delete_context(tenant_rs.get(), id).await;
+        set_delete_id.set(Some(id.clone()));
+        set_modal_visible.set(true);
+    });
 
-            match result {
-                Ok(_) => {
-                    logging::log!("Context and overrides deleted successfully");
-                    page_resource.refetch();
+    let confirm_delete = Callback::new(move |_| {
+        if let Some(id) = delete_id.get().clone() {
+            spawn_local(async move {
+                let result = delete_context(tenant_rs.get(), id).await;
+
+                match result {
+                    Ok(_) => {
+                        logging::log!("Context and overrides deleted successfully");
+                        page_resource.refetch();
+                    }
+                    Err(e) => {
+                        logging::log!("Error deleting context and overrides: {:?}", e);
+                    }
                 }
-                Err(e) => {
-                    logging::log!("Error deleting context and overrides: {:?}", e);
-                }
-            }
-        });
+            });
+        }
+        set_delete_id.set(None);
+        set_modal_visible.set(false);
     });
 
     view! {
@@ -326,6 +338,14 @@ pub fn context_override() -> impl IntoView {
                     }}
 
                 </div>
+
+                <DeleteModal
+                modal_visible = modal_visible
+                confirm_delete = confirm_delete
+                set_modal_visible = set_modal_visible
+                header_text = "Are you sure you want to delete this context? Action is irreversible.".to_string()
+                />
+
             </Suspense>
         </div>
     }
