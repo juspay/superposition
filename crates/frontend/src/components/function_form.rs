@@ -2,7 +2,7 @@ pub mod types;
 pub mod utils;
 
 use self::utils::{create_function, test_function, update_function};
-use crate::{components::button::Button, types::FunctionTestResponse};
+use crate::{components::button::Button, pages::function, types::FunctionTestResponse};
 use leptos::*;
 use serde_json::{from_str, json, Value};
 use web_sys::MouseEvent;
@@ -39,7 +39,8 @@ where
         let f_description = description.get();
         let handle_submit_clone = handle_submit.clone();
 
-        logging::log!("Function Name in editor: {:?}", function_name);
+        logging::log!("Function Name in editor: {:?}", f_function_name);
+        logging::log!("Function in editor: {:?}", f_function);
 
         spawn_local({
             async move {
