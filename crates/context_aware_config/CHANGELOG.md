@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.34.0 - 2024-06-20
+#### Features
+- add config version header in api response (#87) - (213a21e) - PRATIK MISHRA
+
+- - -
+
 ## context_aware_config-v0.33.0 - 2024-06-11
 #### Bug Fixes
 - unify actions column for default_config and custom_types - (bdcc902) - Kartik

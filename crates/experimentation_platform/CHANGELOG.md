@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.17.0 - 2024-06-20
+#### Features
+- add config version header in api response (#87) - (213a21e) - PRATIK MISHRA
+
+- - -
+
 ## experimentation_platform-v0.16.0 - 2024-06-11
 #### Bug Fixes
 - add patch_file in diesel.toml - (5ec9835) - Pratik Mishra

@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.49.0 - 2024-06-20
+### Package updates
+- service_utils bumped to service_utils-v0.18.0
+- experimentation_platform bumped to experimentation_platform-v0.17.0
+- context_aware_config bumped to context_aware_config-v0.34.0
+- frontend bumped to frontend-v0.11.1
+### Global changes
+#### Bug Fixes
+- updated instruction for local setup in mac OS (#76) - (95205ae) - Subhash Chandra
+#### Features
+- add config version header in api response (#87) - (213a21e) - PRATIK MISHRA
+
+- - -
+
 ## v0.48.0 - 2024-06-11
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.16.0

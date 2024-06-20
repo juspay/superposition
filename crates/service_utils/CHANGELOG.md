@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.18.0 - 2024-06-20
+#### Features
+- add config version header in api response (#87) - (213a21e) - PRATIK MISHRA
+
+- - -
+
 ## service_utils-v0.17.0 - 2024-06-11
 #### Features
 - snapshot changes - apis - (69588f6) - Pratik Mishra

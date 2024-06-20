@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.11.1 - 2024-06-20
+#### Bug Fixes
+- reset experiment form after closing drawer (#125) - (5b091a9) - Shubhranshu Sanjeev
+- display order of override keys - (1745d63) - Shubhranshu Sanjeev
+
+- - -
+
 ## frontend-v0.11.0 - 2024-06-11
 #### Bug Fixes
 - unify actions column for default_config and custom_types - (bdcc902) - Kartik
