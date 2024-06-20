@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.49.1 - 2024-06-20
+### Package updates
+- experimentation_client bumped to experimentation_client-v0.7.2
+- context_aware_config bumped to context_aware_config-v0.34.1
+- cac_client bumped to cac_client-v0.12.2
+- haskell_client bumped to haskell_client-v0.1.2
+### Global changes
+#### Bug Fixes
+- Use jsonlogc's partial_apply for config and experiment filtering (#127) - (97bf39b) - Ayush Jain
+
+- - -
+
 ## v0.49.0 - 2024-06-20
 ### Package updates
 - service_utils bumped to service_utils-v0.18.0

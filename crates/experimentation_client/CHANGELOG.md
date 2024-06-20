@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.7.2 - 2024-06-20
+#### Bug Fixes
+- Use jsonlogc's partial_apply for config and experiment filtering (#127) - (97bf39b) - Ayush Jain
+#### Miscellaneous Chores
+- rename upper case enum variants to use `PascalCase` names (#94) - (6d3f4ca) - Sanchith Hegde
+- address some clippy lints (#85) - (001b8d4) - Sanchith Hegde
+- simplify module structure and follow Rust 2018 edition module naming convention (#86) - (403ea59) - Sanchith Hegde
+
+- - -
+
 ## experimentation_client-v0.7.1 - 2024-05-31
 #### Bug Fixes
 - Add prefix to client's methods (#84) - (ee2c54f) - Ankit Kumar Mahato

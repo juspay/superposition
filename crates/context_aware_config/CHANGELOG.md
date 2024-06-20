@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.34.1 - 2024-06-20
+#### Bug Fixes
+- Use jsonlogc's partial_apply for config and experiment filtering (#127) - (97bf39b) - Ayush Jain
+
+- - -
+
 ## context_aware_config-v0.34.0 - 2024-06-20
 #### Features
 - add config version header in api response (#87) - (213a21e) - PRATIK MISHRA
