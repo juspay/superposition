@@ -1,8 +1,11 @@
 {-# LANGUAGE LambdaCase #-}
 module Main (main) where
 
-import           Client             (getResolvedConfig, createCacClient, getCacClient,
-                                     getFullConfigStateWithFilter, getCacLastModified, cacStartPolling, getDefaultConfig)
+import           Client             (cacStartPolling, createCacClient,
+                                     getCacClient, getCacLastModified,
+                                     getDefaultConfig,
+                                     getFullConfigStateWithFilter,
+                                     getResolvedConfig)
 import           Control.Concurrent
 import           Prelude
 
@@ -16,11 +19,11 @@ main = do
     getCacClient "dev" >>= \case
         Left err     -> putStrLn err
         Right client -> do
-            config          <- getFullConfigStateWithFilter client Nothing
+            config          <- getFullConfigStateWithFilter client Nothing Nothing
             lastModified    <- getCacLastModified client
             overrides       <- getResolvedConfig client "{\"country\": \"India\"}" $ Just ["country_image_url", "hyperpay_version"]
             defaults        <- getDefaultConfig client $ Just ["country_image_url", "hyperpay_version"]
-            filteredConfig  <- getFullConfigStateWithFilter client $ Just "{\"prefix\": \"hyperpay\", \"os\": \"android\"}"
+            filteredConfig  <- getFullConfigStateWithFilter client (Just "{\"os\": \"android\"}") (Just "hyperpay")
             print config
             print lastModified
             print overrides

@@ -21,6 +21,12 @@ struct Arc_Client *expt_get_client(const char *tenant);
 
 char *expt_get_applicable_variant(struct Arc_Client *client, const char *c_context, short toss);
 
-char *expt_get_satisfied_experiments(struct Arc_Client *client, const char *c_context);
+char *expt_get_satisfied_experiments(struct Arc_Client *client,
+                                     const char *c_context,
+                                     const char *filter_prefix);
+
+char *expt_get_filtered_satisfied_experiments(struct Arc_Client *client,
+                                              const char *c_context,
+                                              const char *filter_prefix);
 
 char *expt_get_running_experiments(struct Arc_Client *client);

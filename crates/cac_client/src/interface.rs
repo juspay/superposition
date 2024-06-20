@@ -176,38 +176,43 @@ pub extern "C" fn cac_get_last_modified(client: *mut Arc<Client>) -> *const c_ch
 #[no_mangle]
 pub extern "C" fn cac_get_config(
     client: *mut Arc<Client>,
-    query: *const c_char,
+    filter_query: *const c_char,
+    filter_prefix: *const c_char,
 ) -> *const c_char {
-    let filter = if query.is_null() {
-        None
-    } else {
-        let filter_string = match cstring_to_rstring(query) {
-            Ok(s) => s,
-            Err(err) => {
-                update_last_error(err);
-                return std::ptr::null();
-            }
-        };
-        let filters: Map<String, Value> =
-            match serde_json::from_str::<Map<String, Value>>(filter_string.as_str()) {
-                Ok(json) => json,
-                Err(err) => {
-                    update_last_error(err.to_string());
-                    return std::ptr::null();
-                }
-            };
-        Some(filters)
-    };
-
     null_check!(
         client,
         "an invalid null pointer client is being used, please call get_client()",
         return std::ptr::null()
     );
+
+    let filters = if filter_query.is_null() {
+        None
+    } else {
+        let filter_string =
+            unwrap_safe!(cstring_to_rstring(filter_query), return std::ptr::null());
+        let filters: Map<String, Value> = unwrap_safe!(
+            serde_json::from_str::<Map<String, Value>>(filter_string.as_str()),
+            return std::ptr::null()
+        );
+
+        Some(filters).filter(|filters| !filters.is_empty())
+    };
+
+    let prefix_list = if filter_prefix.is_null() {
+        None
+    } else {
+        let filter_string =
+            unwrap_safe!(cstring_to_rstring(filter_prefix), return std::ptr::null());
+        let prefix_list: Vec<String> =
+            filter_string.split(',').map(String::from).collect();
+
+        Some(prefix_list).filter(|list| !list.is_empty())
+    };
+
     unwrap_safe!(
         unsafe {
             (*client)
-                .get_full_config_state_with_filter(filter)
+                .get_full_config_state_with_filter(filters, prefix_list)
                 .map(|config| {
                     rstring_to_cstring(serde_json::to_value(config).unwrap().to_string())
                         .into_raw()

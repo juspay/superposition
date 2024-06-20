@@ -62,6 +62,7 @@ anyhow = { workspace = true }
 superposition_types = { path = "../superposition_types" }
 regex = { workspace = true }
 mime = { workspace = true }
+jsonlogic = { workspace = true }
 
 [lints]
 workspace = true

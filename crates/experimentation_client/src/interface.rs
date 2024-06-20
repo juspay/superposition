@@ -15,6 +15,18 @@ thread_local! {
     static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
+macro_rules! unwrap_safe {
+    ($result: expr, $return: stmt) => {
+        match $result {
+            Ok(value) => value,
+            Err(err) => {
+                update_last_error(err.to_string());
+                $return
+            }
+        }
+    };
+}
+
 fn to_string<E>(e: E) -> String
 where
     E: ToString,
@@ -199,6 +211,7 @@ pub extern "C" fn expt_get_applicable_variant(
 pub extern "C" fn expt_get_satisfied_experiments(
     client: *mut Arc<Client>,
     c_context: *const c_char,
+    filter_prefix: *const c_char,
 ) -> *mut c_char {
     let context = match cstring_to_rstring(c_context) {
         Ok(c) => match serde_json::from_str::<Value>(c.as_str()) {
@@ -208,9 +221,62 @@ pub extern "C" fn expt_get_satisfied_experiments(
         Err(err) => return error_block(err),
     };
 
+    let prefix_list = if filter_prefix.is_null() {
+        None
+    } else {
+        let prefix_list = match cstring_to_rstring(filter_prefix) {
+            Ok(filter_string) => filter_string.split(',').map(String::from).collect(),
+            Err(err) => {
+                update_last_error(err);
+                return std::ptr::null_mut();
+            }
+        };
+        Some(prefix_list)
+    };
+
     let local = task::LocalSet::new();
     let experiments = local.block_on(&Runtime::new().unwrap(), unsafe {
-        (*client).get_satisfied_experiments(&context, None)
+        (*client).get_satisfied_experiments(&context, prefix_list)
+    });
+    let experiments = match serde_json::to_value(experiments) {
+        Ok(value) => value,
+        Err(err) => return error_block(err.to_string()),
+    };
+    serde_json::to_string(&experiments)
+        .map(|exp| rstring_to_cstring(exp).into_raw())
+        .unwrap_or_else(|err| error_block(err.to_string()))
+}
+
+#[no_mangle]
+pub extern "C" fn expt_get_filtered_satisfied_experiments(
+    client: *mut Arc<Client>,
+    c_context: *const c_char,
+    filter_prefix: *const c_char,
+) -> *mut c_char {
+    let context = match cstring_to_rstring(c_context) {
+        Ok(c) => match serde_json::from_str::<Value>(c.as_str()) {
+            Ok(con) => con,
+            Err(err) => return error_block(err.to_string()),
+        },
+        Err(err) => return error_block(err),
+    };
+
+    let prefix_list = if filter_prefix.is_null() {
+        None
+    } else {
+        let filter_string = unwrap_safe!(
+            cstring_to_rstring(filter_prefix),
+            return std::ptr::null_mut()
+        );
+        let prefix_list: Vec<String> =
+            filter_string.split(',').map(String::from).collect();
+
+        Some(prefix_list).filter(|list| !list.is_empty())
+    };
+
+    let local = task::LocalSet::new();
+    let experiments = local.block_on(&Runtime::new().unwrap(), unsafe {
+        (*client).get_filtered_satisfied_experiments(&context, prefix_list)
     });
     let experiments = match serde_json::to_value(experiments) {
         Ok(value) => value,

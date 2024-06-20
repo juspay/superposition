@@ -12,8 +12,8 @@ members = [
     "crates/frontend",
     "crates/caclang",
     "crates/superposition",
-    "crates/superposition_types"
-    ]
+    "crates/superposition_types",
+]
 
 [[workspace.metadata.leptos]]
 name = "cac"
@@ -29,20 +29,27 @@ assets-dir = "crates/frontend/assets"
 dotenv = "0.15.0"
 actix = "0.13.0"
 actix-web = "4.5.0"
-diesel = { version = "2.1.0", features = ["postgres", "r2d2", "serde_json", "chrono", "uuid", "postgres_backend"] }
+diesel = { version = "2.1.0", features = [
+    "postgres",
+    "r2d2",
+    "serde_json",
+    "chrono",
+    "uuid",
+    "postgres_backend",
+] }
 env_logger = "0.8"
-log = { version="0.4.20", features = ["kv_unstable_serde"] }
-serde = {version = "^1", features = ["derive"]}
-serde_json = {version = "1.0"}
+log = { version = "0.4.20", features = ["kv_unstable_serde"] }
+serde = { version = "^1", features = ["derive"] }
+serde_json = { version = "1.0" }
 derive_more = "^0.99"
 base64 = "0.21.2"
 urlencoding = "~2.1.2"
 regex = "1.9.1"
 chrono = { version = "0.4.26", features = ["serde"] }
-uuid = {version = "1.3.4", features = ["v4", "serde"]}
-reqwest = { version = "0.11.18", features = ["json"]}
+uuid = { version = "1.3.4", features = ["v4", "serde"] }
+reqwest = { version = "0.11.18", features = ["json"] }
 jsonschema = "~0.17"
-jsonlogic = { git = "https://github.com/juspay/jsonlogic_rs.git", version = "0.5.2" }
+jsonlogic = { git = "https://github.com/juspay/jsonlogic_rs.git", version = "0.5.3" }
 rs-snowflake = "0.6.0"
 rusoto_kms = "0.48.0"
 rusoto_signature = "0.48.0"
