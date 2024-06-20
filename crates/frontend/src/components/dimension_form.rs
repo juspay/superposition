@@ -142,7 +142,11 @@ where
                     } else {
                         dimension_type_rs.get()
                     };
-                    let dimension_textarea = format!("{}", dimension_schema_rs.get());
+                    let dimension_textarea = if dimension_schema_rs.get().is_null() {
+                        String::from("")
+                    } else {
+                        format!("{}", dimension_schema_rs.get())
+                    };
                     view! {
                         <div class="form-control">
                             <label class="label">
@@ -164,7 +168,7 @@ where
 
                             <textarea
                                 type="text"
-                                placeholder="JSON schema"
+                                placeholder="Enter a JSON schema"
                                 class="input input-bordered mt-5 rounded-md resize-y w-full max-w-md"
                                 rows=8
                                 on:change=move |ev| {
