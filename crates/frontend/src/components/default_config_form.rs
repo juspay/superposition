@@ -150,7 +150,9 @@ where
             <Suspense>
                 {move || {
                     let options = type_template_resource.get().unwrap_or(vec![]);
-                    let config_t = if config_type_rs.get().is_empty() {
+                    let config_t = if config_type_rs.get().is_empty() && edit {
+                        "change current type template".into()
+                    } else if config_type_rs.get().is_empty() && !edit {
                         "Choose a type template".into()
                     } else {
                         config_type_rs.get()

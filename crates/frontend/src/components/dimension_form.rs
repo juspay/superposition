@@ -137,7 +137,9 @@ where
             <Suspense>
                 {move || {
                     let options = type_template_resource.get().unwrap_or(vec![]);
-                    let dimension_t = if dimension_type_rs.get().is_empty() {
+                    let dimension_t = if dimension_type_rs.get().is_empty() && edit {
+                        "change current type template".into()
+                    } else if dimension_type_rs.get().is_empty() && !edit {
                         "choose a type template".into()
                     } else {
                         dimension_type_rs.get()
