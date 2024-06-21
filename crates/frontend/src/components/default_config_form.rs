@@ -211,16 +211,23 @@ where
                                 handle_change=Callback::new(move |selected_enum: String| {
                                     set_config_value.set(selected_enum);
                                 })
+
+                                class=String::from("mt-2")
                             />
                         }
                             .into_view()
                     }
                     "BOOLEAN" => {
+                        let value = config_value.get();
+                        if value.is_empty() {
+                            set_config_value
+                                .set(value.parse::<bool>().unwrap_or(false).to_string());
+                        }
                         view! {
                             <BooleanToggle
-                                config_value=config_value.get()
+                                config_value=value
                                 update_value=Callback::new(move |flag: String| {
-                                    set_config_value.set_untracked(flag);
+                                    set_config_value.set(flag);
                                 })
                             />
                         }

@@ -61,28 +61,16 @@ where
         .expect("can't parse default config key")
     };
 
-    let update_overrides = move |curr_overrides: &mut Vec<(String, Value)>,
-                                 config_key_value: String,
-                                 default_config_val: Value| {
-        let position = curr_overrides
-            .iter()
-            .position(|(k, _)| k.to_owned() == config_key_value);
-        if let Some(idx) = position {
-            curr_overrides[idx].1 = json!(default_config_val);
-        }
-    };
-
-    let update_overrides_untracked = move |config_key_value: String, value: String| {
-        let default_config_val = get_default_config_val(config_key_value.clone(), value);
-        set_overrides.update_untracked(|curr_overrides| {
-            update_overrides(curr_overrides, config_key_value, default_config_val);
-        });
-    };
-
-    let update_overrides_tracked = move |config_key_value: String, value: String| {
-        let default_config_val = get_default_config_val(config_key_value.clone(), value);
+    let update_overrides = move |config_key_value: &str, value: String| {
+        let default_config_val =
+            get_default_config_val(config_key_value.to_owned(), value);
         set_overrides.update(|curr_overrides| {
-            update_overrides(curr_overrides, config_key_value, default_config_val);
+            let position = curr_overrides
+                .iter()
+                .position(|(k, _)| k.to_owned() == config_key_value);
+            if let Some(idx) = position {
+                curr_overrides[idx].1 = json!(default_config_val);
+            }
         });
     };
 
@@ -163,21 +151,26 @@ where
                                                             schema
                                                             config_value
                                                             handle_change=Callback::new(move |selected_enum: String| {
-                                                                update_overrides_tracked(
-                                                                    config_key_value.clone(),
-                                                                    selected_enum,
-                                                                )
+                                                                update_overrides(&config_key_value, selected_enum)
                                                             })
+
+                                                            class=String::from("mt-2")
                                                         />
                                                     }
                                                         .into_view()
                                                 }
                                                 "BOOLEAN" => {
+                                                    if config_value.is_empty() {
+                                                        update_overrides(
+                                                            &config_key_value,
+                                                            config_value.parse::<bool>().unwrap_or(false).to_string(),
+                                                        );
+                                                    }
                                                     view! {
                                                         <BooleanToggle
                                                             config_value
                                                             update_value=Callback::new(move |flag: String| {
-                                                                update_overrides_untracked(config_key_value.clone(), flag);
+                                                                update_overrides(&config_key_value, flag);
                                                             })
                                                         />
                                                     }
@@ -191,13 +184,10 @@ where
                                                                 placeholder="Enter override here"
                                                                 name="override"
                                                                 class="input input-bordered w-[450px] flex items-center bg-white text-gray-700 shadow-md pt-3"
-                                                                on:change=move |event| {
+                                                                on:mouseleave=move |event| {
                                                                     event.prevent_default();
                                                                     let input_value = event_target_value(&event);
-                                                                    update_overrides_untracked(
-                                                                        config_key_value.clone(),
-                                                                        input_value,
-                                                                    );
+                                                                    update_overrides(&config_key_value, input_value);
                                                                 }
                                                             >
 
