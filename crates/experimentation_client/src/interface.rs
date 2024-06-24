@@ -4,6 +4,7 @@ use std::{
 };
 
 use crate::{Client, CLIENT_FACTORY};
+use once_cell::sync::Lazy;
 use serde_json::Value;
 use std::{
     cell::RefCell,
@@ -13,6 +14,18 @@ use tokio::{runtime::Runtime, task};
 
 thread_local! {
     static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
+}
+
+static EXP_RUNTIME: Lazy<Runtime> =
+    Lazy::new(|| Runtime::new().expect("The runtime was not intialized"));
+
+macro_rules! null_check {
+    ($client: ident, $err: literal, $return: stmt) => {
+        if $client.is_null() {
+            update_last_error($err.into());
+            $return
+        }
+    };
 }
 
 macro_rules! unwrap_safe {
@@ -96,24 +109,11 @@ pub extern "C" fn expt_new_client(
     update_frequency: c_ulong,
     hostname: *const c_char,
 ) -> c_int {
-    let tenant = match cstring_to_rstring(tenant) {
-        Ok(value) => value,
-        Err(err) => {
-            update_last_error(err);
-            return 1;
-        }
-    };
-    let hostname = match cstring_to_rstring(hostname) {
-        Ok(value) => value,
-        Err(err) => {
-            update_last_error(err);
-            return 1;
-        }
-    };
+    let tenant = unwrap_safe!(cstring_to_rstring(tenant), return 1);
+    let hostname = unwrap_safe!(cstring_to_rstring(hostname), return 1);
 
     // println!("Creating cac client thread for tenant {tenant}");
-    let local = task::LocalSet::new();
-    local.block_on(&Runtime::new().unwrap(), async move {
+    EXP_RUNTIME.block_on(async move {
         match CLIENT_FACTORY
             .create_client(tenant.clone(), update_frequency, hostname)
             .await
@@ -130,25 +130,18 @@ pub extern "C" fn expt_new_client(
 
 #[no_mangle]
 pub extern "C" fn expt_start_polling_update(tenant: *const c_char) {
-    if tenant.is_null() {
-        return;
-    }
+    null_check!(tenant, "Tenant cannot be a null string", return);
     unsafe {
         let client = expt_get_client(tenant);
         let local = task::LocalSet::new();
         // println!("in FFI polling");
-        local.block_on(
-            &Runtime::new().unwrap(),
-            (*client).clone().run_polling_updates(),
-        );
+        local.block_on(&EXP_RUNTIME, (*client).clone().run_polling_updates());
     }
 }
 
 #[no_mangle]
 pub extern "C" fn expt_free_client(ptr: *mut Arc<Client>) {
-    if ptr.is_null() {
-        return;
-    }
+    null_check!(ptr, "cannot free a null pointer", return);
     unsafe {
         let _ = Box::from_raw(ptr);
     }
@@ -156,29 +149,18 @@ pub extern "C" fn expt_free_client(ptr: *mut Arc<Client>) {
 
 #[no_mangle]
 pub extern "C" fn expt_get_client(tenant: *const c_char) -> *mut Arc<Client> {
-    let ten = match cstring_to_rstring(tenant) {
-        Ok(t) => t,
-        Err(err) => {
-            update_last_error(err);
-            return std::ptr::null_mut();
-        }
-    };
-    let local = task::LocalSet::new();
-    local.block_on(
-        &Runtime::new().unwrap(),
-        // println!("fetching exp client thread for tenant {ten}");
-        async move {
-            match CLIENT_FACTORY.get_client(ten).await {
-                Ok(client) => Box::into_raw(Box::new(client)),
-                Err(err) => {
-                    // println!("error occurred {err}");
-                    update_last_error(err);
-                    // println!("error set");
-                    std::ptr::null_mut()
-                }
+    let ten = unwrap_safe!(cstring_to_rstring(tenant), return std::ptr::null_mut());
+    EXP_RUNTIME.block_on(async move {
+        match CLIENT_FACTORY.get_client(ten).await {
+            Ok(client) => Box::into_raw(Box::new(client)),
+            Err(err) => {
+                // println!("error occurred {err}");
+                update_last_error(err);
+                // println!("error set");
+                std::ptr::null_mut()
             }
-        },
-    )
+        }
+    })
 }
 
 #[no_mangle]
@@ -187,17 +169,14 @@ pub extern "C" fn expt_get_applicable_variant(
     c_context: *const c_char,
     toss: c_short,
 ) -> *mut c_char {
-    let context = match cstring_to_rstring(c_context) {
-        Ok(c) => match serde_json::from_str::<Value>(c.as_str()) {
-            Ok(con) => con,
-            Err(err) => return error_block(err.to_string()),
-        },
-        Err(err) => return error_block(err),
-    };
-    let local = task::LocalSet::new();
-    let variants_result = local.block_on(&Runtime::new().unwrap(), unsafe {
-        (*client).get_applicable_variant(&context, toss as i8)
-    });
+    let context =
+        unwrap_safe!(cstring_to_rstring(c_context), return std::ptr::null_mut());
+    let context = unwrap_safe!(
+        serde_json::from_str::<Value>(context.as_str()),
+        return std::ptr::null_mut()
+    );
+    let variants_result = EXP_RUNTIME
+        .block_on(unsafe { (*client).get_applicable_variant(&context, toss as i8) });
     variants_result
         .map(|result| {
             serde_json::to_string(&result)
@@ -213,24 +192,22 @@ pub extern "C" fn expt_get_satisfied_experiments(
     c_context: *const c_char,
     filter_prefix: *const c_char,
 ) -> *mut c_char {
-    let context = match cstring_to_rstring(c_context) {
-        Ok(c) => match serde_json::from_str::<Value>(c.as_str()) {
-            Ok(con) => con,
-            Err(err) => return error_block(err.to_string()),
-        },
-        Err(err) => return error_block(err),
-    };
+    let context =
+        unwrap_safe!(cstring_to_rstring(c_context), return std::ptr::null_mut());
+
+    let context = unwrap_safe!(
+        serde_json::from_str::<Value>(context.as_str()),
+        return std::ptr::null_mut()
+    );
 
     let prefix_list = if filter_prefix.is_null() {
         None
     } else {
-        let prefix_list = match cstring_to_rstring(filter_prefix) {
-            Ok(filter_string) => filter_string.split(',').map(String::from).collect(),
-            Err(err) => {
-                update_last_error(err);
-                return std::ptr::null_mut();
-            }
-        };
+        let filter_string = unwrap_safe!(
+            cstring_to_rstring(filter_prefix),
+            return std::ptr::null_mut()
+        );
+        let prefix_list = filter_string.split(',').map(String::from).collect();
         Some(prefix_list)
     };
 
@@ -238,10 +215,10 @@ pub extern "C" fn expt_get_satisfied_experiments(
     let experiments = local.block_on(&Runtime::new().unwrap(), unsafe {
         (*client).get_satisfied_experiments(&context, prefix_list)
     });
-    let experiments = match serde_json::to_value(experiments) {
-        Ok(value) => value,
-        Err(err) => return error_block(err.to_string()),
-    };
+    let experiments = unwrap_safe!(
+        serde_json::to_value(experiments),
+        return std::ptr::null_mut()
+    );
     serde_json::to_string(&experiments)
         .map(|exp| rstring_to_cstring(exp).into_raw())
         .unwrap_or_else(|err| error_block(err.to_string()))
@@ -253,14 +230,13 @@ pub extern "C" fn expt_get_filtered_satisfied_experiments(
     c_context: *const c_char,
     filter_prefix: *const c_char,
 ) -> *mut c_char {
-    let context = match cstring_to_rstring(c_context) {
-        Ok(c) => match serde_json::from_str::<Value>(c.as_str()) {
-            Ok(con) => con,
-            Err(err) => return error_block(err.to_string()),
-        },
-        Err(err) => return error_block(err),
-    };
+    let context =
+        unwrap_safe!(cstring_to_rstring(c_context), return std::ptr::null_mut());
 
+    let context = unwrap_safe!(
+        serde_json::from_str::<Value>(context.as_str()),
+        return std::ptr::null_mut()
+    );
     let prefix_list = if filter_prefix.is_null() {
         None
     } else {
@@ -278,10 +254,10 @@ pub extern "C" fn expt_get_filtered_satisfied_experiments(
     let experiments = local.block_on(&Runtime::new().unwrap(), unsafe {
         (*client).get_filtered_satisfied_experiments(&context, prefix_list)
     });
-    let experiments = match serde_json::to_value(experiments) {
-        Ok(value) => value,
-        Err(err) => return error_block(err.to_string()),
-    };
+    let experiments = unwrap_safe!(
+        serde_json::to_value(experiments),
+        return std::ptr::null_mut()
+    );
     serde_json::to_string(&experiments)
         .map(|exp| rstring_to_cstring(exp).into_raw())
         .unwrap_or_else(|err| error_block(err.to_string()))
@@ -289,16 +265,15 @@ pub extern "C" fn expt_get_filtered_satisfied_experiments(
 
 #[no_mangle]
 pub extern "C" fn expt_get_running_experiments(client: *mut Arc<Client>) -> *mut c_char {
-    let local = task::LocalSet::new();
-    let experiments = local.block_on(&Runtime::new().unwrap(), unsafe {
-        (*client).get_running_experiments()
-    });
-    let experiments = match serde_json::to_value(experiments) {
-        Ok(value) => value,
-        Err(err) => return error_block(err.to_string()),
-    };
-    match serde_json::to_string(&experiments) {
-        Ok(result) => rstring_to_cstring(result).into_raw(),
-        Err(err) => error_block(err.to_string()),
-    }
+    let experiments =
+        EXP_RUNTIME.block_on(unsafe { (*client).get_running_experiments() });
+    let experiments = unwrap_safe!(
+        serde_json::to_value(experiments),
+        return std::ptr::null_mut()
+    );
+    let result = unwrap_safe!(
+        serde_json::to_string(&experiments),
+        return std::ptr::null_mut()
+    );
+    rstring_to_cstring(result).into_raw()
 }

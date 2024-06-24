@@ -8,11 +8,12 @@ members = [
     "crates/service_utils",
     "crates/experimentation_client",
     "crates/cac_client",
-    "crates/experimentation_client_integration_example",
     "crates/frontend",
     "crates/caclang",
     "crates/superposition",
     "crates/superposition_types",
+    "examples/experimentation_client_integration_example",
+    "examples/cac_client_integration_example"
 ]
 
 [[workspace.metadata.leptos]]
