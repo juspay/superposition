@@ -319,17 +319,22 @@ pub fn get_config_value(
         Some(ConfigValueType::Boolean) => bool::from_str(val)
             .map(Value::Bool)
             .map_err(|_| "Invalid boolean".to_string()),
-        Some(ConfigValueType::Number) => val
-            .parse::<i64>()
-            .map(|number| Value::Number(number.into()))
-            .or_else(|_| {
-                f64::from_str(val)
-                    .ok()
-                    .and_then(|num| Number::from_f64(num).map(Value::Number))
-                    .ok_or_else(|| {
-                        "Invalid decimal format or precision issue".to_string()
-                    })
-            }),
+        Some(ConfigValueType::Number) => {
+            let parsed_value: Value = serde_json::from_str(val)
+                .map_err(|_| "Invalid number or number array format".to_string())?;
+            match parsed_value {
+                Value::Number(num) => Ok(Value::Number(num)),
+                Value::Array(arr) => {
+                    for item in &arr {
+                        if !item.is_number() {
+                            return Err("Array contains non-number value".to_string());
+                        }
+                    }
+                    Ok(Value::Array(arr))
+                }
+                _ => Err("Invalid number or number array format".to_string()),
+            }
+        }
         Some(ConfigValueType::String) => Ok(Value::String(val.to_string())),
         Some(ConfigValueType::Other) | None => {
             Value::from_str(val).map_err(|err| format!("Error parsing JSON: {}", err))
