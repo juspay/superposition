@@ -278,48 +278,71 @@ pub enum ConfigValueType {
     Boolean,
     Number,
     String,
+    Null,
+    Integer,
     Other,
+}
+
+impl FromStr for ConfigValueType {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "boolean" => Ok(ConfigValueType::Boolean),
+            "number" => Ok(ConfigValueType::Number),
+            "string" => Ok(ConfigValueType::String),
+            "null" => Ok(ConfigValueType::Null),
+            "integer" => Ok(ConfigValueType::Integer),
+            _ => Ok(ConfigValueType::Other),
+        }
+    }
 }
 
 pub fn get_config_type(
     configs: &[ConfigType],
     key_name: &str,
-) -> Option<ConfigValueType> {
+) -> Option<Vec<ConfigValueType>> {
     let config = configs.iter().find(|conf| match conf {
         ConfigType::DefaultConfig(default_conf) => default_conf.key == key_name,
         ConfigType::Dimension(dimension) => dimension.dimension == key_name,
     });
 
-    let types_mapping = |type_str: Option<&str>| match type_str {
-        Some("boolean") => ConfigValueType::Boolean,
-        Some("number") => ConfigValueType::Number,
-        Some("string") => ConfigValueType::String,
-        _ => ConfigValueType::Other,
+    let type_from_str = |type_str: Option<&str>| {
+        type_str
+            .map(|t| ConfigValueType::from_str(t).ok())
+            .flatten()
+            .unwrap_or(ConfigValueType::Other)
+    };
+
+    let types_mapping = |schema_type: &Value| match schema_type {
+        Value::Array(types) => types
+            .iter()
+            .map(|item: &Value| type_from_str(item.as_str()))
+            .collect::<Vec<ConfigValueType>>(),
+        Value::String(type_str) => vec![type_from_str(Some(type_str.as_str()))],
+        _ => vec![ConfigValueType::Other],
     };
 
     config.and_then(|config| match config {
-        ConfigType::DefaultConfig(default_conf) => default_conf
-            .schema
-            .get("type")
-            .map(|t| types_mapping(t.as_str())),
-        ConfigType::Dimension(dimension) => dimension
-            .schema
-            .get("type")
-            .map(|t| types_mapping(t.as_str())),
+        ConfigType::DefaultConfig(default_conf) => {
+            default_conf.schema.get("type").map(|t| types_mapping(t))
+        }
+
+        ConfigType::Dimension(dimension) => {
+            dimension.schema.get("type").map(|t| types_mapping(t))
+        }
     })
 }
 
-pub fn get_config_value(
-    name: &str,
-    val: &str,
-    configs: &[ConfigType],
-) -> Result<Value, String> {
-    let config_value_type = get_config_type(configs, name);
-    match config_value_type {
-        Some(ConfigValueType::Boolean) => bool::from_str(val)
+pub fn parse_value(val: &str, config_type: ConfigValueType) -> Result<Value, String> {
+    match config_type {
+        ConfigValueType::Boolean => bool::from_str(val)
             .map(Value::Bool)
             .map_err(|_| "Invalid boolean".to_string()),
-        Some(ConfigValueType::Number) => val
+        ConfigValueType::Integer => val
+            .parse::<i64>()
+            .map(|number| Value::Number(number.into()))
+            .map_err(|_| "Invalid integer".to_string()),
+        ConfigValueType::Number => val
             .parse::<i64>()
             .map(|number| Value::Number(number.into()))
             .or_else(|_| {
@@ -330,8 +353,29 @@ pub fn get_config_value(
                         "Invalid decimal format or precision issue".to_string()
                     })
             }),
-        Some(ConfigValueType::String) => Ok(Value::String(val.to_string())),
-        Some(ConfigValueType::Other) | None => {
+        ConfigValueType::String => Ok(Value::String(val.to_string())),
+        ConfigValueType::Null if val == "null" => Ok(Value::Null),
+        _ => Value::from_str(val).map_err(|err| format!("Error parsing JSON: {}", err)),
+    }
+}
+
+pub fn get_config_value(
+    name: &str,
+    val: &str,
+    configs: &[ConfigType],
+) -> Result<Value, String> {
+    let config_type = get_config_type(configs, name);
+
+    match config_type {
+        Some(possible_types) => {
+            for possible_type in possible_types {
+                if let Ok(parsed_value) = parse_value(val, possible_type) {
+                    return Ok(parsed_value);
+                }
+            }
+            Err("Error parsing config value".to_string())
+        }
+        None => {
             Value::from_str(val).map_err(|err| format!("Error parsing JSON: {}", err))
         }
     }
