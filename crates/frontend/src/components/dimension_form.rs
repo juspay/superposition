@@ -15,7 +15,7 @@ use web_sys::MouseEvent;
 #[component]
 pub fn dimension_form<NF>(
     #[prop(default = false)] edit: bool,
-    #[prop(default = 0)] priority: u16,
+    #[prop(default = 0)] priority: u32,
     #[prop(default = String::new())] dimension_name: String,
     #[prop(default = String::new())] dimension_type: String,
     #[prop(default = Value::Null)] dimension_schema: Value,
@@ -191,14 +191,26 @@ where
                         </label>
                         <input
                             type="Number"
+                            min=0
                             placeholder="Priority"
                             class="input input-bordered w-full max-w-md"
                             value=priority.get()
+                            on:keypress=move |ev| {
+                                let char_code = ev.char_code();
+                                if char_code != 0 && char_code != 8 && char_code != 13
+                                    && !(char_code >= 48 && char_code <= 57)
+                                {
+                                    ev.prevent_default();
+                                }
+                            }
                             on:change=move |ev| {
-                                logging::log!("{:?}", event_target_value(& ev).parse::< u16 > ());
-                                match event_target_value(&ev).parse::<u16>() {
+                                logging::log!("{:?}", event_target_value(&ev).parse::<u32>());
+                                match event_target_value(&ev).parse::<u32>() {
                                     Ok(i_prio) => set_priority.set(i_prio),
-                                    Err(e) => logging::log!("{e}"),
+                                    Err(e) => {
+                                        set_priority.set(0);
+                                        logging::log!("{e}");
+                                    }
                                 };
                             }
                         />

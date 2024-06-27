@@ -4,7 +4,7 @@ use serde_json::Value;
 #[derive(Debug, Deserialize)]
 pub struct CreateReq {
     pub dimension: String,
-    pub priority: u16,
+    pub priority: i32,
     pub schema: Value,
     #[serde(default, deserialize_with = "deserialize_option")]
     pub function_name: Option<Value>,

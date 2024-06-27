@@ -13,7 +13,7 @@ use crate::api::fetch_dimensions;
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
     pub dimension: String,
-    pub priority: u16,
+    pub priority: u32,
     pub schema: Value,
     pub function_name: Option<Value>,
 }
@@ -38,7 +38,7 @@ pub fn Dimensions() -> impl IntoView {
             logging::log!("Dimension row: {:?}", row);
             let row_dimension = row["dimension"].to_string().replace('"', "");
             let row_priority_str = row["priority"].to_string().replace('"', "");
-            let row_priority = row_priority_str.parse::<u16>().unwrap_or(0_u16);
+            let row_priority = row_priority_str.parse::<u32>().unwrap_or(0_u32);
 
             let schema = row["schema"].clone().to_string();
             let schema = serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
