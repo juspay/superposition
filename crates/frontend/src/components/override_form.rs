@@ -95,12 +95,10 @@ where
                         view! {
                             <div>
                                 <div class="flex items-center gap-4">
-                                    <div class="form-control">
+                                    <div class="form-control w-3/5">
                                         <label class="label font-medium font-mono text-sm">
-                                            <span class="label-text">{config_key_label} ":"</span>
+                                            <span class="label-text">{config_key_label}</span>
                                         </label>
-                                    </div>
-                                    <div class="form-control w-2/5">
                                         <textarea
                                             type="text"
                                             placeholder="Enter override here"
@@ -130,12 +128,11 @@ where
                                                     });
                                             }
                                         >
-
                                             {config_value}
                                         </textarea>
 
                                     </div>
-                                    <div class="w-1/5">
+                                    <div class="mt-10 w-1/5 items-end">
 
                                         {if !disable_remove {
                                             view! {
@@ -177,7 +174,7 @@ where
 
             </div>
             <Show when=move || is_standalone>
-                <div class="flex justify-end">
+                <div class="flex justify-end mt-4">
                     <button class="btn" on:click:undelegated=on_submit>
                         Save
                     </button>
