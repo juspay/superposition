@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.50.0 - 2024-06-27
+### Package updates
+- cac_client bumped to cac_client-v0.13.0
+- experimentation_client bumped to experimentation_client-v0.8.0
+- frontend bumped to frontend-v0.11.2
+- context_aware_config bumped to context_aware_config-v0.34.2
+### Global changes
+#### Features
+- Rework async library in CAC client (#88) - (5610b93) - Datron
+
+- - -
+
 ## v0.49.1 - 2024-06-20
 ### Package updates
 - experimentation_client bumped to experimentation_client-v0.7.2

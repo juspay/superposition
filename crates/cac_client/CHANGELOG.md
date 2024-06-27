@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.13.0 - 2024-06-27
+#### Features
+- Rework async library in CAC client (#88) - (5610b93) - Datron
+
+- - -
+
 ## cac_client-v0.12.2 - 2024-06-20
 #### Bug Fixes
 - Use jsonlogc's partial_apply for config and experiment filtering (#127) - (97bf39b) - Ayush Jain

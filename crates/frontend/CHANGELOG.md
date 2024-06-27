@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.11.2 - 2024-06-27
+#### Bug Fixes
+- allow positive i32 number for dimension priority in dimension create (#135) - (5e79ad8) - Ayush Jain
+- align inputs in override form (#100) - (3a40973) - Datron
+- display order of override keys (#99) - (7db3437) - Datron
+
+- - -
+
 ## frontend-v0.11.1 - 2024-06-20
 #### Bug Fixes
 - reset experiment form after closing drawer (#125) - (5b091a9) - Shubhranshu Sanjeev

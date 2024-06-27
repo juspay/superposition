@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.34.2 - 2024-06-27
+#### Bug Fixes
+- allow positive i32 number for dimension priority in dimension create (#135) - (5e79ad8) - Ayush Jain
+
+- - -
+
 ## context_aware_config-v0.34.1 - 2024-06-20
 #### Bug Fixes
 - Use jsonlogc's partial_apply for config and experiment filtering (#127) - (97bf39b) - Ayush Jain
