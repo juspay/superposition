@@ -2,7 +2,7 @@ pub mod types;
 pub mod utils;
 
 use leptos::*;
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 use std::str::FromStr;
 use web_sys::MouseEvent;
 
@@ -11,8 +11,10 @@ use crate::{
     components::{
         button::Button,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        input_components::{BooleanToggle, EnumDropdown},
     },
     types::{FunctionsName, TypeTemplate},
+    utils::get_key_type,
 };
 
 use self::{types::DefaultConfigCreateReq, utils::create_default_config};
@@ -178,7 +180,7 @@ where
                             <textarea
                                 type="text"
                                 placeholder="JSON schema"
-                                class="input input-bordered mt-5 rounded-md resize-y w-full max-w-md"
+                                class="input input-bordered mt-5 rounded-md resize-y w-full max-w-md pt-3"
                                 rows=8
                                 on:change=move |ev| {
                                     config_schema_ws
@@ -197,52 +199,82 @@ where
             <div class="divider"></div>
 
             {move || {
-                config_type_rs
-                    .with(|c_type| {
-                        let input_format = match c_type.as_str() {
-                            "Number" | "Decimal" => {
-                                view! {
-                                    <input
-                                        type="number"
-                                        placeholder="Value"
-                                        class="input input-bordered w-full max-w-md"
-                                        value=config_value.get()
-                                        on:change=move |ev| {
-                                            logging::log!("{:?}", event_target_value(& ev));
-                                            set_config_value.set(event_target_value(&ev));
-                                        }
-                                    />
-                                }
-                                    .into_view()
-                            }
-                            _ => {
-                                view! {
-                                    <textarea
-                                        type="text"
-                                        placeholder="Value"
-                                        class="input input-bordered w-full max-w-md"
-                                        on:change=move |ev| {
-                                            logging::log!("{:?}", event_target_value(& ev));
-                                            set_config_value.set(event_target_value(&ev));
-                                        }
-                                    >
-
-                                        {config_value.get()}
-                                    </textarea>
-                                }
-                                    .into_view()
-                            }
-                        };
+                let schema: Map<String, Value> = serde_json::from_value(config_schema_rs.get())
+                    .unwrap_or(Map::new());
+                let key_type = get_key_type(&schema);
+                let input_format = match key_type.as_str() {
+                    "ENUM" => {
                         view! {
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Default Value</span>
-                                </label>
-                                {input_format}
-                            </div>
-                            <div class="divider"></div>
+                            <EnumDropdown
+                                schema
+                                config_value=config_value.get()
+                                handle_change=Callback::new(move |selected_enum: String| {
+                                    set_config_value.set(selected_enum);
+                                })
+
+                                class=String::from("mt-2")
+                            />
                         }
-                    })
+                            .into_view()
+                    }
+                    "BOOLEAN" => {
+                        let value = config_value.get();
+                        if value.is_empty() {
+                            set_config_value
+                                .set(value.parse::<bool>().unwrap_or(false).to_string());
+                        }
+                        view! {
+                            <BooleanToggle
+                                config_value=value
+                                update_value=Callback::new(move |flag: String| {
+                                    set_config_value.set(flag);
+                                })
+                            />
+                        }
+                            .into_view()
+                    }
+                    "NUMBER" | "INTEGER" => {
+                        view! {
+                            <input
+                                type="number"
+                                placeholder="Value"
+                                class="input input-bordered w-full max-w-md"
+                                value=config_value.get()
+                                on:change=move |ev| {
+                                    logging::log!("{:?}", event_target_value(& ev));
+                                    set_config_value.set(event_target_value(&ev));
+                                }
+                            />
+                        }
+                            .into_view()
+                    }
+                    _ => {
+                        view! {
+                            <textarea
+                                type="text"
+                                placeholder="Value"
+                                class="input input-bordered w-full max-w-md pt-3"
+                                on:change=move |ev| {
+                                    logging::log!("{:?}", event_target_value(& ev));
+                                    set_config_value.set(event_target_value(&ev));
+                                }
+                            >
+
+                                {config_value.get()}
+                            </textarea>
+                        }
+                            .into_view()
+                    }
+                };
+                view! {
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Default Value</span>
+                        </label>
+                        {input_format}
+                    </div>
+                    <div class="divider"></div>
+                }
             }}
 
             <Suspense>
