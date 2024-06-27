@@ -33,7 +33,7 @@ async fn create(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
-    if req.priority == 0 {
+    if req.priority <= 0 {
         return Err(bad_argument!("Priority should be greater than 0"));
     }
 
@@ -66,7 +66,7 @@ async fn create(
 
     let new_dimension = Dimension {
         dimension: create_req.dimension,
-        priority: i32::from(create_req.priority),
+        priority: create_req.priority,
         schema: schema_value,
         created_by: user.get_email(),
         created_at: Utc::now(),
