@@ -106,8 +106,9 @@ where
                                             placeholder="Enter override here"
                                             name="override"
                                             class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                                            on:input=move |event| {
+                                            on:change=move |event| {
                                                 let input_value = event_target_value(&event);
+                                                logging::log!("Changed the override");
                                                 let default_config_val = get_config_value(
                                                         &config_key_value,
                                                         &input_value,
@@ -117,7 +118,7 @@ where
                                                             .map(ConfigType::DefaultConfig)
                                                             .collect::<Vec<_>>(),
                                                     )
-                                                    .expect("can't parse default config key");
+                                                    .unwrap_or(json!(input_value));
                                                 set_overrides
                                                     .update(|curr_overrides| {
                                                         let position = curr_overrides
