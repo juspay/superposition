@@ -990,10 +990,10 @@ dependencies = [
  "itertools 0.10.5",
  "jsonlogic",
  "jsonschema",
- "leptos 0.5.7",
- "leptos_actix",
- "leptos_meta",
- "leptos_router",
+ "leptos 0.6.11",
+ "leptos_actix 0.5.7",
+ "leptos_meta 0.6.11",
+ "leptos_router 0.6.11",
  "log",
  "mime",
  "rand",
@@ -1630,11 +1630,12 @@ dependencies = [
  "futures",
  "http 0.2.9",
  "js-sys",
- "leptos 0.5.7",
+ "leptos 0.6.11",
  "leptos-use",
- "leptos_actix",
- "leptos_meta",
- "leptos_router",
+ "leptos_actix 0.6.11",
+ "leptos_meta 0.6.11",
+ "leptos_router 0.6.11",
+ "monaco",
  "once_cell",
  "reqwest",
  "serde",
@@ -2298,7 +2299,6 @@ dependencies = [
  "tracing",
  "typed-builder",
  "typed-builder-macro",
- "wasm-bindgen",
  "web-sys",
 ]
 
@@ -2318,6 +2318,7 @@ dependencies = [
  "tracing",
  "typed-builder",
  "typed-builder-macro",
+ "wasm-bindgen",
  "web-sys",
 ]
 
@@ -2354,12 +2355,34 @@ dependencies = [
  "actix-web",
  "futures",
  "leptos 0.5.7",
- "leptos_integration_utils",
- "leptos_meta",
- "leptos_router",
+ "leptos_integration_utils 0.5.7",
+ "leptos_meta 0.5.7",
+ "leptos_router 0.5.7",
  "parking_lot",
  "regex",
  "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "leptos_actix"
+version = "0.6.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5be151f99f7fb3a220152d976d23f815da93ae5879cfe8e6fa921455d1ed597c"
+dependencies = [
+ "actix-http",
+ "actix-web",
+ "futures",
+ "leptos 0.6.11",
+ "leptos_integration_utils 0.6.11",
+ "leptos_macro 0.6.11",
+ "leptos_meta 0.6.11",
+ "leptos_router 0.6.11",
+ "parking_lot",
+ "regex",
+ "serde_json",
+ "server_fn 0.6.11",
  "tokio",
  "tracing",
 ]
@@ -2496,7 +2519,21 @@ dependencies = [
  "leptos 0.5.7",
  "leptos_config 0.5.7",
  "leptos_hot_reload 0.5.7",
- "leptos_meta",
+ "leptos_meta 0.5.7",
+ "tracing",
+]
+
+[[package]]
+name = "leptos_integration_utils"
+version = "0.6.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1f504afe3e2ac30ca15ba9b74d27243e8919e93d1f78bad32e5e8ec23eaca4b"
+dependencies = [
+ "futures",
+ "leptos 0.6.11",
+ "leptos_config 0.6.11",
+ "leptos_hot_reload 0.6.11",
+ "leptos_meta 0.6.11",
  "tracing",
 ]
 
@@ -2561,6 +2598,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "leptos_meta"
+version = "0.6.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a00900e82a4ca892828db93fce1d4c009480ff3959406e6965aa937c8bab7403"
+dependencies = [
+ "cfg-if",
+ "indexmap 2.0.2",
+ "leptos 0.6.11",
+ "tracing",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "leptos_reactive"
 version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2570,7 +2621,6 @@ dependencies = [
  "cfg-if",
  "futures",
  "indexmap 2.0.2",
- "js-sys",
  "paste",
  "pin-project",
  "rustc-hash",
@@ -2582,9 +2632,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tracing",
- "wasm-bindgen",
  "wasm-bindgen-futures",
- "web-sys",
 ]
 
 [[package]]
@@ -2597,6 +2645,7 @@ dependencies = [
  "cfg-if",
  "futures",
  "indexmap 2.0.2",
+ "js-sys",
  "paste",
  "pin-project",
  "rustc-hash",
@@ -2606,8 +2655,11 @@ dependencies = [
  "serde_json",
  "slotmap",
  "thiserror",
+ "tokio",
  "tracing",
+ "wasm-bindgen",
  "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]
@@ -2623,13 +2675,45 @@ dependencies = [
  "js-sys",
  "lazy_static",
  "leptos 0.5.7",
- "leptos_integration_utils",
- "leptos_meta",
+ "leptos_integration_utils 0.5.7",
+ "leptos_meta 0.5.7",
  "linear-map",
  "lru",
  "once_cell",
  "percent-encoding",
  "regex",
+ "serde",
+ "serde_json",
+ "serde_qs",
+ "thiserror",
+ "tracing",
+ "url",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "leptos_router"
+version = "0.6.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7fcc2a95a20c8f41adb39770e65c48ffe33cd9503b83669c54edd9b33ba8aa8"
+dependencies = [
+ "cached",
+ "cfg-if",
+ "gloo-net 0.5.0",
+ "itertools 0.12.1",
+ "js-sys",
+ "lazy_static",
+ "leptos 0.6.11",
+ "leptos_integration_utils 0.6.11",
+ "leptos_meta 0.6.11",
+ "linear-map",
+ "lru",
+ "once_cell",
+ "percent-encoding",
+ "regex",
+ "send_wrapper",
  "serde",
  "serde_json",
  "serde_qs",
@@ -2864,6 +2948,17 @@ dependencies = [
  "log",
  "wasi",
  "windows-sys 0.45.0",
+]
+
+[[package]]
+name = "monaco"
+version = "0.5.0"
+source = "git+https://github.com/datron/rust-monaco.git#177672e133d75adce866f0775739b47d21b5c077"
+dependencies = [
+ "js-sys",
+ "paste",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
@@ -3851,6 +3946,7 @@ version = "0.6.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "536a5b959673643ee01e59ae41bf01425482c8070dee95d7061ee2d45296b59c"
 dependencies = [
+ "actix-web",
  "bytes",
  "ciborium",
  "const_format",
@@ -3858,6 +3954,7 @@ dependencies = [
  "futures",
  "gloo-net 0.5.0",
  "http 1.1.0",
+ "inventory",
  "js-sys",
  "once_cell",
  "send_wrapper",
@@ -4131,10 +4228,10 @@ dependencies = [
  "futures-util",
  "itertools 0.10.5",
  "jsonschema",
- "leptos 0.5.7",
- "leptos_actix",
- "leptos_meta",
- "leptos_router",
+ "leptos 0.6.11",
+ "leptos_actix 0.6.11",
+ "leptos_meta 0.6.11",
+ "leptos_router 0.6.11",
  "log",
  "rand",
  "reqwest",

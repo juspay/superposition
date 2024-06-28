@@ -2,16 +2,24 @@ pub mod types;
 pub mod utils;
 
 use self::utils::{create_function, test_function, update_function};
-use crate::{components::button::Button, types::FunctionTestResponse};
+use crate::{
+    components::{button::Button, monaco_editor::MonacoEditor},
+    types::FunctionTestResponse,
+};
 use leptos::*;
 use serde_json::{from_str, json, Value};
 use web_sys::MouseEvent;
+
+const TEMPLATE_FN: &str = r#"async function validate(key, value) {
+    return true;
+}
+"#;
 
 #[component]
 pub fn function_editor<NF>(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] function_name: String,
-    #[prop(default = String::new())] function: String,
+    #[prop(default = String::from(TEMPLATE_FN))] function: String,
     #[prop(default = String::new())] runtime_version: String,
     #[prop(default = String::new())] description: String,
     handle_submit: NF,
@@ -82,17 +90,12 @@ where
                 <div class="flex flex-row w-full justify-between">
                     <div class="form-group">
 
-                        <div
-                            class="monaco"
-                            id="function"
-                            style="min-height: 500px; min-width: 1000px"
-                            on:change=move |ev| {
-                                let value = event_target_value(&ev);
-                                logging::log!("Function editor - Function Name: {:?}", value);
-                                set_function.set(value);
-                            }
-                        >
-                        </div>
+                        <MonacoEditor
+                            node_id="code_editor_fn"
+                            data_rs=function
+                            data_ws=set_function
+                            classes=vec!["min-w-[1000px]", "min-h-[500px]"]
+                        />
                     </div>
 
                     <div class="mx-auto w-auto" style="width: 250px">
@@ -173,11 +176,11 @@ where
 #[component]
 pub fn test_form(function_name: String, stage: String) -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-    let (error_message, set_error_message) = create_signal("".to_string());
+    let (error_message, set_error_message) = create_signal(String::new());
     let (output_message, set_output_message) =
         create_signal::<Option<FunctionTestResponse>>(None);
     let (val, set_val) = create_signal(json!({}));
-    let (key, set_key) = create_signal("".to_string());
+    let (key, set_key) = create_signal(String::new());
 
     let on_submit = move |event: MouseEvent| {
         event.prevent_default();
@@ -213,10 +216,6 @@ pub fn test_form(function_name: String, stage: String) -> impl IntoView {
     };
 
     view! {
-        <div class="flex flex-row  justify-between">
-
-            <div class="monaco" style="min-height: 500px; min-width: 1000px"></div>
-
             <div class="mx-auto w-auto" style="width: 250px">
 
                 <form id="MyForm">
@@ -294,6 +293,5 @@ pub fn test_form(function_name: String, stage: String) -> impl IntoView {
 
                 </form>
             </div>
-        </div>
     }
 }

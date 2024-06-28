@@ -22,10 +22,10 @@ pub async fn fetch_dimensions(tenant: String) -> Result<Vec<Dimension>, ServerFn
         .header("x-tenant", &tenant)
         .send()
         .await
-        .map_err(|e| ServerFnError::ServerError(e.to_string()))?
+        .map_err(|e| ServerFnError::new(e.to_string()))?
         .json()
         .await
-        .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(response)
 }
@@ -43,10 +43,10 @@ pub async fn fetch_default_config(
         .header("x-tenant", tenant)
         .send()
         .await
-        .map_err(|e| ServerFnError::ServerError(e.to_string()))?
+        .map_err(|e| ServerFnError::new(e.to_string()))?
         .json()
         .await
-        .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(response)
 }
@@ -66,12 +66,12 @@ pub async fn delete_context(
         .header("x-tenant", tenant)
         .send()
         .await
-        .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     if response.status().is_success() {
         Ok(())
     } else {
-        Err(ServerFnError::ServerError(format!(
+        Err(ServerFnError::new(format!(
             "Failed to delete context with status: {}",
             response.status()
         )))
@@ -110,10 +110,10 @@ pub async fn fetch_experiments(
         .header("x-tenant", tenant)
         .send()
         .await
-        .map_err(|e| ServerFnError::ServerError(e.to_string()))?
+        .map_err(|e| ServerFnError::new(e.to_string()))?
         .json()
         .await
-        .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(response)
 }
@@ -130,10 +130,10 @@ pub async fn fetch_functions(
         .header("x-tenant", tenant)
         .send()
         .await
-        .map_err(|e| ServerFnError::ServerError(e.to_string()))?
+        .map_err(|e| ServerFnError::new(e.to_string()))?
         .json()
         .await
-        .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(response)
 }
@@ -151,10 +151,10 @@ pub async fn fetch_function(
         .header("x-tenant", tenant)
         .send()
         .await
-        .map_err(|e| ServerFnError::ServerError(e.to_string()))?
+        .map_err(|e| ServerFnError::new(e.to_string()))?
         .json()
         .await
-        .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(response)
 }
@@ -170,10 +170,10 @@ pub async fn fetch_config(tenant: String) -> Result<Config, ServerFnError> {
             let config: Config = response
                 .json()
                 .await
-                .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
+                .map_err(|e| ServerFnError::new(e.to_string()))?;
             Ok(config)
         }
-        Err(e) => Err(ServerFnError::ServerError(e.to_string())),
+        Err(e) => Err(ServerFnError::new(e.to_string())),
     }
 }
 
@@ -191,10 +191,10 @@ pub async fn fetch_experiment(
             let experiment = experiment
                 .json()
                 .await
-                .map_err(|err| ServerFnError::ServerError(err.to_string()))?;
+                .map_err(|err| ServerFnError::new(err.to_string()))?;
             Ok(experiment)
         }
-        Err(e) => Err(ServerFnError::ServerError(e.to_string())),
+        Err(e) => Err(ServerFnError::new(e.to_string())),
     }
 }
 
@@ -220,7 +220,7 @@ pub async fn fetch_types(
 ) -> Result<FetchTypeTemplateResponse, ServerFnError> {
     let host = use_host_server();
     let url = format!("{host}/types?page={page}&count={count}");
-    let err_handler = |e: String| ServerFnError::ServerError(e.to_string());
+    let err_handler = |e: String| ServerFnError::new(e.to_string());
     let response = request::<()>(
         url,
         reqwest::Method::GET,

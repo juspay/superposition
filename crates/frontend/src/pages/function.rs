@@ -21,7 +21,10 @@ use web_sys::MouseEvent;
 use crate::utils::get_element_by_id;
 use web_sys::HtmlButtonElement;
 
-use crate::components::function_form::{FunctionEditor, TestForm};
+use crate::components::{
+    function_form::{FunctionEditor, TestForm},
+    monaco_editor::MonacoEditor,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -81,18 +84,17 @@ pub fn function_page() -> impl IntoView {
                 let function = resource.function;
                 match function {
                     Some(function) => {
-                        let function_ef = function.clone();
-                        let function_data = function.clone();
+                        let (function_rs, _) = create_signal(function);
                         publish_error_ws.set("".to_string());
-                        match function.published_at {
-                            Some(val) => show_publish_ws.set(val < function.draft_edited_at),
+                        match function_rs.get().published_at {
+                            Some(val) => show_publish_ws.set(val < function_rs.get().draft_edited_at),
                             None => show_publish_ws.set(true),
                         }
                         let publish_click = move |event: MouseEvent| {
                             event.prevent_default();
                             logging::log!("Submitting function form");
                             let tenant = tenant_rs.get();
-                            let f_function_name = function_ef.function_name.clone();
+                            let f_function_name = function_rs.get().function_name;
                             spawn_local({
                                 async move {
                                     let result = publish_function(f_function_name, tenant).await;
@@ -114,21 +116,20 @@ pub fn function_page() -> impl IntoView {
                                 <div class="flex bg-base-100 flex-row gap-3 justify-between flex-wrap shadow m-5">
                                     <div class="stat w-2/12">
                                         <div class="stat-title">Function Name</div>
-                                        <div>{function.function_name.clone()}</div>
+                                        <div>{function_rs.get().function_name}</div>
                                     </div>
                                     <div class="stat w-2/12">
                                         <div class="stat-title">Published Runtime Version</div>
                                         <div>
-                                            {function
+                                            {function_rs.get()
                                                 .published_runtime_version
-                                                .clone()
                                                 .unwrap_or("null".to_string())}
                                         </div>
                                     </div>
                                     <div class="stat w-2/12">
                                         <div class="stat-title">Function Description</div>
                                         <div>
-                                            {function.function_description.clone().to_string()}
+                                            {function_rs.get().function_description.to_string()}
                                         </div>
                                     </div>
                                     <div class="stat w-2/12">
@@ -137,7 +138,7 @@ pub fn function_page() -> impl IntoView {
 
                                             {format!(
                                                 "{}",
-                                                function.draft_edited_at.clone().format("%v"),
+                                                function_rs.get().draft_edited_at.format("%v"),
                                             )}
 
                                         </div>
@@ -146,7 +147,7 @@ pub fn function_page() -> impl IntoView {
                                         <div class="stat-title">Published At</div>
                                         <div>
 
-                                            {match function.published_at {
+                                            {match function_rs.get().published_at {
                                                 Some(val) => val.format("%v").to_string(),
                                                 None => "null".to_string(),
                                             }}
@@ -359,12 +360,6 @@ pub fn function_page() -> impl IntoView {
                                     let is_edit = editor_mode_rs.get();
                                     let is_test = test_mode_rs.get();
                                     let should_show = editor_mode_rs.get() && !test_mode_rs.get();
-                                    let fun_clone = function_data.clone();
-                                    let fun_clone_ = function_data.clone();
-                                    let pub_code = fun_clone
-                                        .published_code
-                                        .clone()
-                                        .unwrap_or("//Code not published yet".to_string());
                                     selected_tab_rs
                                         .with(|tab| {
                                             match tab {
@@ -375,36 +370,25 @@ pub fn function_page() -> impl IntoView {
                                                         }>
 
                                                             {
-                                                                let fun_pub = fun_clone.clone();
+                                                                let (fun_code_rs, fun_code_ws) = create_signal(
+                                                                        function_rs.get()
+                                                                        .published_code
+                                                                        .unwrap_or("// Code not published yet, publish function to see it here!".to_string()));
                                                                 view! {
-                                                                    <script type="module">
-                                                                        {format!(
-                                                                            r#"
-
-                                                              import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/+esm';
-
-                                                              monaco.editor.create(document.querySelector('.monaco'), {{
-
-                                                                  value: `{pub_code}`,
-                                                                  language: 'javascript',
-                                                                  readOnly: true
-                                                              }});
-                                                              "#,
-                                                                        )}
-
-                                                                    </script>
-
                                                                     <Show when=move || { !is_test }>
-
-                                                                        <div class="monaco" style="min-height: 500px"></div>
-
+                                                                        <MonacoEditor
+                                                                        node_id="pub_editor_fn"
+                                                                        data_rs=fun_code_rs
+                                                                        data_ws=fun_code_ws
+                                                                        read_only=is_edit
+                                                                        classes=vec!["min-h-[500px]"]/>
                                                                     </Show>
 
                                                                     <Show when=move || { test_mode_rs.get() }>
                                                                         <div class="flex-row">
 
                                                                             <TestForm
-                                                                                function_name=fun_pub.function_name.clone()
+                                                                                function_name=function_rs.get().function_name
                                                                                 stage="PUBLISHED".to_string()
                                                                             />
 
@@ -426,9 +410,7 @@ pub fn function_page() -> impl IntoView {
                                                         }>
 
                                                             {
-                                                                let function_edit = fun_clone_.clone();
-                                                                let function_test = fun_clone_.clone();
-                                                                let fun_code = fun_clone_.draft_code.clone();
+                                                                let (fun_code_rs, fun_code_ws) = create_signal(function_rs.get().draft_code);
                                                                 view! {
                                                                     <Show when=move || {
                                                                         !editor_mode_rs.get() && !test_mode_rs.get()
@@ -436,10 +418,10 @@ pub fn function_page() -> impl IntoView {
                                                                         <div class="flex-row">
                                                                             <FunctionEditor
                                                                                 edit=true
-                                                                                function_name=function_edit.function_name.clone()
-                                                                                function=function_edit.draft_code.clone()
-                                                                                runtime_version=function_edit.draft_runtime_version.clone()
-                                                                                description=function_edit.function_description.clone()
+                                                                                function_name=function_rs.get().function_name
+                                                                                function=function_rs.get().draft_code
+                                                                                runtime_version=function_rs.get().draft_runtime_version
+                                                                                description=function_rs.get().function_description
                                                                                 handle_submit=move || {
                                                                                     combined_resource.refetch();
                                                                                     editor_mode_ws.set(true)
@@ -449,48 +431,34 @@ pub fn function_page() -> impl IntoView {
                                                                         </div>
                                                                     </Show>
 
-                                                                    <script type="module">
-                                                                        {format!(
-                                                                            r#"
-
-                                                            import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/+esm';
-
-                                                            window.editor = monaco.editor.create(document.querySelector('.monaco'), {{
-
-                                                                value: `{fun_code}`,
-                                                                language: 'javascript',
-                                                                readOnly: {is_edit}
-                                                            }});
-
-                                                            const form = document.getElementById("MyForm");
-                                                            form.addEventListener("formdata", e =>
-                                                            {{
-                                                                e.formData.set('function', window.editor.getValue());
-                                                            }});
-
-                                                            "#,
-                                                                        )}
-
-                                                                    </script>
-
                                                                     <Show when=move || { should_show }>
-
-                                                                        <div class="monaco" style="min-height: 500px"></div>
+                                                                        <MonacoEditor
+                                                                        node_id="code_editor_fn"
+                                                                        data_rs=fun_code_rs
+                                                                        data_ws=fun_code_ws
+                                                                        read_only=is_edit
+                                                                        classes=vec!["min-h-[500px]"]/>
 
                                                                     </Show>
 
                                                                     <Show when=move || {
                                                                         test_mode_rs.get() && editor_mode_rs.get()
                                                                     }>
-                                                                        <div class="flex-row">
-
+                                                                    <div class="flex">
+                                                                        <div class="flex flex-row justify-between">
+                                                                                <MonacoEditor
+                                                                                    node_id="test_editor_fn"
+                                                                                    data_rs=fun_code_rs
+                                                                                    data_ws=fun_code_ws
+                                                                                    read_only=true
+                                                                                    classes=vec!["min-w-[1000px]", "min-h-[500px]", "mr-5"]
+                                                                                />
                                                                             <TestForm
-                                                                                function_name=function_test.function_name.clone()
+                                                                                function_name=function_rs.get().function_name
                                                                                 stage="DRAFT".to_string()
                                                                             />
-
                                                                         </div>
-
+                                                                    </div>
                                                                     </Show>
                                                                 }
                                                                     .into_view()

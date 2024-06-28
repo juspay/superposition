@@ -3,13 +3,14 @@ use std::future::{ready, Ready};
 use crate::service::types::{AppState, Tenant};
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    error,
+    error::{self},
     http::header::{HeaderMap, HeaderValue},
     web::Data,
     Error, HttpMessage,
 };
 use futures_util::future::LocalBoxFuture;
 use log::debug;
+use regex::Regex;
 use std::rc::Rc;
 
 pub struct TenantMiddlewareFactory;
@@ -93,9 +94,15 @@ where
             };
 
             let request_path = req.uri().path().replace(&base, "");
+            let pkg_regex = Regex::new(".*/pkg/.+")
+                .map_err(|err| error::ErrorInternalServerError(err.to_string()))?;
+            let assets_regex = Regex::new(".*/assets/.+")
+                .map_err(|err| error::ErrorInternalServerError(err.to_string()))?;
             let is_excluded: bool = app_state
                 .tenant_middleware_exclusion_list
-                .contains(&request_path);
+                .contains(&request_path)
+                || pkg_regex.is_match(&request_path)
+                || assets_regex.is_match(&request_path);
 
             if !is_excluded && app_state.enable_tenant_and_scope {
                 debug!(

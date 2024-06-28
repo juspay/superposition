@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+    font-family: "codicon";
+    font-display: block;
+    src: url("/assets/codicon.ttf") format("truetype");
+}
+
 .h-sidenav {
   height: calc(100vh - 370px);
 }
