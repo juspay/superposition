@@ -17,32 +17,32 @@ pub fn create_function_view() -> impl IntoView {
 
             <div class="mt-20 mb-20">Create Function</div>
 
-            <script type="module">
-                {r#"
+            // <script type="module">
+            //     {r#"
 
-                    import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/+esm';
+            //         import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/+esm';
 
-                    window.editor = monaco.editor.create(document.querySelector('.monaco'), {
+            //         window.editor = monaco.editor.create(document.querySelector('.monaco'), {
 
-                        value: [
-                            'async function validate(value, key) {',
-                            '   return true;',
-                            '}'
-                        ].join('\n'),
-                        language: 'javascript',
-                        readOnly: false
-                    });
+            //             value: [
+            //                 'async function validate(value, key) {',
+            //                 '   return true;',
+            //                 '}'
+            //             ].join('\n'),
+            //             language: 'javascript',
+            //             readOnly: false
+            //         });
 
-                    const form = document.getElementById("MyForm");
-                    form.addEventListener("formdata", e =>
-                    {
-                        e.formData.set('function', window.editor.getValue());
-                    });
+            //         const form = document.getElementById("MyForm");
+            //         form.addEventListener("formdata", e =>
+            //         {
+            //             e.formData.set('function', window.editor.getValue());
+            //         });
 
-                    "#
-                    .to_string()}
+            //         "#
+            //         .to_string()}
 
-            </script>
+            // </script>
             <FunctionEditor
                 edit=false
                 handle_submit=move || {

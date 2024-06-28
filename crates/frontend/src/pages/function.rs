@@ -21,7 +21,10 @@ use web_sys::MouseEvent;
 use crate::utils::get_element_by_id;
 use web_sys::HtmlButtonElement;
 
-use crate::components::function_form::{FunctionEditor, TestForm};
+use crate::components::{
+    function_form::{FunctionEditor, TestForm},
+    monaco_editor::MonacoEditor,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -449,33 +452,33 @@ pub fn function_page() -> impl IntoView {
                                                                         </div>
                                                                     </Show>
 
-                                                                    <script type="module">
-                                                                        {format!(
-                                                                            r#"
+                                                            //         <script type="module">
+                                                            //             {format!(
+                                                            //                 r#"
 
-                                                            import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/+esm';
+                                                            // import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/+esm';
 
-                                                            window.editor = monaco.editor.create(document.querySelector('.monaco'), {{
+                                                            // window.editor = monaco.editor.create(document.querySelector('.monaco'), {{
 
-                                                                value: `{fun_code}`,
-                                                                language: 'javascript',
-                                                                readOnly: {is_edit}
-                                                            }});
+                                                            //     value: `{fun_code}`,
+                                                            //     language: 'javascript',
+                                                            //     readOnly: {is_edit}
+                                                            // }});
 
-                                                            const form = document.getElementById("MyForm");
-                                                            form.addEventListener("formdata", e =>
-                                                            {{
-                                                                e.formData.set('function', window.editor.getValue());
-                                                            }});
+                                                            // const form = document.getElementById("MyForm");
+                                                            // form.addEventListener("formdata", e =>
+                                                            // {{
+                                                            //     e.formData.set('function', window.editor.getValue());
+                                                            // }});
 
-                                                            "#,
-                                                                        )}
+                                                            // "#,
+                                                            //             )}
 
-                                                                    </script>
+                                                            //         </script>
 
                                                                     <Show when=move || { should_show }>
-
-                                                                        <div class="monaco" style="min-height: 500px"></div>
+                                                                        <MonacoEditor node_id="monaco" />
+                                                                        // <div class="monaco" style="min-height: 500px"></div>
 
                                                                     </Show>
 

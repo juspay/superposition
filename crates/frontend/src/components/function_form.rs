@@ -2,7 +2,10 @@ pub mod types;
 pub mod utils;
 
 use self::utils::{create_function, test_function, update_function};
-use crate::{components::button::Button, types::FunctionTestResponse};
+use crate::{
+    components::{button::Button, monaco_editor::MonacoEditor},
+    types::FunctionTestResponse,
+};
 use leptos::*;
 use serde_json::{from_str, json, Value};
 use web_sys::MouseEvent;
@@ -82,17 +85,7 @@ where
                 <div class="flex flex-row w-full justify-between">
                     <div class="form-group">
 
-                        <div
-                            class="monaco"
-                            id="function"
-                            style="min-height: 500px; min-width: 1000px"
-                            on:change=move |ev| {
-                                let value = event_target_value(&ev);
-                                logging::log!("Function editor - Function Name: {:?}", value);
-                                set_function.set(value);
-                            }
-                        >
-                        </div>
+                        <MonacoEditor node_id="monaco" initial_data=function.get() />
                     </div>
 
                     <div class="mx-auto w-auto" style="width: 250px">
@@ -215,7 +208,8 @@ pub fn test_form(function_name: String, stage: String) -> impl IntoView {
     view! {
         <div class="flex flex-row  justify-between">
 
-            <div class="monaco" style="min-height: 500px; min-width: 1000px"></div>
+            <MonacoEditor node_id="monaco" />
+            // <div class="monaco" style="min-height: 500px; min-width: 1000px"></div>
 
             <div class="mx-auto w-auto" style="width: 250px">
 
