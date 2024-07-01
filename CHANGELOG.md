@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.50.1 - 1970-01-01
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.34.3
+- frontend bumped to frontend-v0.11.3
+### Global changes
+
+- - -
+
 ## v0.50.0 - 2024-06-27
 ### Package updates
 - cac_client bumped to cac_client-v0.13.0

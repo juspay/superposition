@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.11.3 - 2024-07-01
+#### Bug Fixes
+- handled parsing for multiple possible types (#134) - (9518737) - Shubhranshu Sanjeev
+
+- - -
+
 ## frontend-v0.11.2 - 2024-06-27
 #### Bug Fixes
 - allow positive i32 number for dimension priority in dimension create (#135) - (5e79ad8) - Ayush Jain

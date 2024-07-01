@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.34.3 - 2024-07-01
+#### Bug Fixes
+- default config regex validation (#141) - (29d3f1a) - Ankit Kumar Mahato
+
+- - -
+
 ## context_aware_config-v0.34.2 - 2024-06-27
 #### Bug Fixes
 - allow positive i32 number for dimension priority in dimension create (#135) - (5e79ad8) - Ayush Jain
