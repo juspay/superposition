@@ -35,7 +35,7 @@ use jsonschema::{Draft, JSONSchema, ValidationError};
 use regex::Regex;
 use serde_json::{from_value, json, Map, Value};
 
-const KEY_NAME_REGEX: &str = "^[a-zA-Z0-9-_]([a-zA-Z0-9-_.]{0,62}[a-zA-Z0-9-_])?$";
+const KEY_NAME_REGEX: &str = "^[a-zA-Z0-9-_]([a-zA-Z0-9-_.]{0,254}[a-zA-Z0-9-_])?$";
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create).service(get).service(delete)
