@@ -97,6 +97,14 @@ where
                     }
                 }}
 
+                <Show when=move || dropdown_options.get().is_empty()>
+                    <li class="w-full disabled">
+                        <a class="w-full word-break-break disabled pointer-events-none">
+                            "No items to select"
+                        </a>
+                    </li>
+                </Show>
+
                 <For
                     each=move || dropdown_options.get()
                     key=|option: &T| option.key()

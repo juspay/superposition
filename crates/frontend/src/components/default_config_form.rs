@@ -255,7 +255,6 @@ where
                             function_names.push(ele.function_name);
                         });
                     function_names.sort();
-                    function_names.insert(0, "None".to_string());
                     view! {
                         <div class="form-control">
                             <div class="gap-1">
