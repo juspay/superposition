@@ -9,7 +9,7 @@ use cfg_if::cfg_if;
 use leptos::*;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::de::DeserializeOwned;
-use serde_json::{Number, Value};
+use serde_json::Value;
 use std::str::FromStr;
 use url::Url;
 use wasm_bindgen::JsCast;
@@ -274,6 +274,7 @@ pub enum ConfigType {
     Dimension(Dimension),
 }
 
+#[derive(Clone, Debug)]
 pub enum ConfigValueType {
     Boolean,
     Number,
@@ -338,22 +339,44 @@ pub fn parse_value(val: &str, config_type: ConfigValueType) -> Result<Value, Str
         ConfigValueType::Boolean => bool::from_str(val)
             .map(Value::Bool)
             .map_err(|_| "Invalid boolean".to_string()),
-        ConfigValueType::Integer => val
-            .parse::<i64>()
-            .map(|number| Value::Number(number.into()))
-            .map_err(|_| "Invalid integer".to_string()),
-        ConfigValueType::Number => val
-            .parse::<i64>()
-            .map(|number| Value::Number(number.into()))
-            .or_else(|_| {
-                f64::from_str(val)
-                    .ok()
-                    .and_then(|num| Number::from_f64(num).map(Value::Number))
-                    .ok_or_else(|| {
-                        "Invalid decimal format or precision issue".to_string()
-                    })
-            }),
-        ConfigValueType::String => Ok(Value::String(val.to_string())),
+        ConfigValueType::Number | ConfigValueType::Integer => {
+            let parsed_value: Value = serde_json::from_str(val)
+                .map_err(|_| "Invalid number or number array format".to_string())?;
+            match parsed_value {
+                Value::Number(num) => Ok(Value::Number(num)),
+                Value::Array(arr) => {
+                    for item in &arr {
+                        if !item.is_number() {
+                            return Err("Array contains non-number value".to_string());
+                        }
+                    }
+                    Ok(Value::Array(arr))
+                }
+                _ => Err(format!(
+                    "{:?} is either an invalid number or a invalid number array.",
+                    val
+                )),
+            }
+        }
+        ConfigValueType::String => {
+            let parsed_value: Result<Value, _> = serde_json::from_str(&val);
+            match parsed_value {
+                Ok(Value::String(s)) => Ok(Value::String(s)),
+                Ok(Value::Array(arr)) => {
+                    for item in &arr {
+                        if !item.is_string() {
+                            return Err("Array contains non-string value".to_string());
+                        }
+                    }
+                    Ok(Value::Array(arr))
+                }
+                Ok(_) => Err(format!(
+                    "{:?} is either an invalid string or a invalid string array.",
+                    val
+                )),
+                Err(_) => Ok(Value::String(val.to_string())),
+            }
+        }
         ConfigValueType::Null if val == "null" => Ok(Value::Null),
         _ => Value::from_str(val).map_err(|err| format!("Error parsing JSON: {}", err)),
     }
