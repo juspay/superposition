@@ -6,7 +6,7 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use derive_more::{Deref, DerefMut};
 use serde_json::{Map, Value};
 
-use crate::components::dropdown::utils::DropdownOption;
+use crate::{components::dropdown::utils::DropdownOption, form_types::FormParseSource};
 
 #[derive(Clone, Debug)]
 pub struct AppRoute {
@@ -201,6 +201,12 @@ pub struct Dimension {
     pub created_by: String,
     pub schema: Value,
     pub function_name: Option<String>,
+}
+
+impl FormParseSource for Dimension {
+    fn get_schema(&self) -> Option<serde_json::Value> {
+        Some(self.schema.clone())
+    }
 }
 
 impl DropdownOption for Dimension {
