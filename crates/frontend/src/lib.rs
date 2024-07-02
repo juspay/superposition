@@ -3,6 +3,7 @@
 mod api;
 pub mod app;
 pub mod components;
+pub mod form_types;
 pub mod hoc;
 pub mod pages;
 pub mod providers;
