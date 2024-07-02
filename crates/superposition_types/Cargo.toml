@@ -18,6 +18,7 @@ derive_more = { workspace = true }
 thiserror = { workspace = true }
 diesel = { workspace = true }
 anyhow = { workspace = true }
+jsonlogic = { workspace = true }
 
 [lints]
 workspace = true

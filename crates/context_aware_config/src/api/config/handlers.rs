@@ -23,7 +23,9 @@ use diesel::{
 };
 use serde_json::{json, Map, Value};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
-use superposition_types::{result as superposition, User};
+use superposition_types::{
+    result as superposition, Condition, Overrides, User, ValidationType,
+};
 
 use itertools::Itertools;
 use jsonschema::JSONSchema;
@@ -316,23 +318,40 @@ fn get_contextids_from_overrideid(
     Ok(res)
 }
 
-fn construct_new_payload(req_payload: &Map<String, Value>) -> web::Json<PutReq> {
+fn construct_new_payload(
+    req_payload: &Map<String, Value>,
+) -> superposition::Result<web::Json<PutReq>> {
     let mut res = req_payload.clone();
     res.remove("to_be_deleted");
     res.remove("override_id");
     res.remove("id");
-    if let Some(Value::Object(res_context)) = res.get("context") {
-        if let Some(Value::Object(res_override)) = res.get("override") {
-            return web::Json(PutReq {
-                context: res_context.to_owned(),
-                r#override: res_override.to_owned(),
-            });
-        }
-    }
-    web::Json(PutReq {
-        context: Map::new(),
-        r#override: Map::new(),
-    })
+
+    let context = res
+        .get("context")
+        .and_then(|val| val.as_object())
+        .map_or_else(
+            || {
+                log::error!("construct new payload Context not present");
+                Err(bad_argument!("Context not present"))
+            },
+            |val| Condition::new(val.to_owned(), ValidationType::DEFAULT),
+        )?;
+
+    let override_ = res
+        .get("override")
+        .and_then(|val| val.as_object())
+        .map_or_else(
+            || {
+                log::error!("construct new payload Override not present");
+                Err(bad_argument!("Override not present"))
+            },
+            |val| Overrides::new(val.to_owned(), ValidationType::DEFAULT),
+        )?;
+
+    return Ok(web::Json(PutReq {
+        context: context,
+        r#override: override_,
+    }));
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -415,8 +434,9 @@ async fn reduce_config_key(
                 } else {
                     if is_approve {
                         let _ = delete_context_api(cid.clone(), user.clone(), conn);
-                        let put_req = construct_new_payload(request_payload);
-                        let _ = put(put_req, conn, false, &user);
+                        if let Ok(put_req) = construct_new_payload(request_payload) {
+                            let _ = put(put_req, conn, false, &user);
+                        }
                     }
 
                     let new_id = hash(override_val);

@@ -3,7 +3,7 @@ use base64::prelude::*;
 use service_utils::helpers::extract_dimensions;
 use std::str;
 use superposition_macros::{unexpected_error, validation_error};
-use superposition_types::result as superposition;
+use superposition_types::{result as superposition, Condition};
 
 use crate::api::functions::helpers::get_published_functions_by_names;
 use crate::validation_functions::execute_fn;
@@ -18,16 +18,16 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 use std::collections::HashMap;
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
 pub fn validate_condition_with_functions(
     conn: &mut DBConnection,
-    context: &Value,
+    condition: &Condition,
 ) -> superposition::Result<()> {
     use dimensions::dsl;
-    let context = extract_dimensions(context)?;
+    let context = extract_dimensions(&json!(condition))?;
     let dimensions_list: Vec<String> = context.keys().cloned().collect();
     let keys_function_array: Vec<(String, Option<String>)> = dsl::dimensions
         .filter(dsl::dimension.eq_any(dimensions_list))
