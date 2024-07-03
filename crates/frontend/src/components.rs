@@ -4,6 +4,7 @@ pub mod condition_pills;
 pub mod context_card;
 pub mod context_form;
 pub mod default_config_form;
+pub mod delete_modal;
 pub mod dimension_form;
 pub mod drawer;
 pub mod dropdown;
