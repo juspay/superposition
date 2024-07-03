@@ -204,8 +204,8 @@ Add the following to your inputs
 ```
 crane.url = "github:ipetkov/crane/54b63c8eae4c50172cb50b612946ff1d2bc1c75c";
 crane.inputs.nixpkgs.follows = "common/nixpkgs";
-context-aware-config = {
-    url = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/context-aware-config";
+superposition = {
+    url = "github:juspay/superposition";
     inputs.nixpkgs.follows = "common/nixpkgs";
     inputs.crane.follows = "crane";
 };
@@ -216,7 +216,7 @@ then, add the following to your imports section in outputs:
 ```
 imports = [
     ......
-    inputs.context-aware-config.haskellFlakeProjectModules.output
+    inputs.superposition.haskellFlakeProjectModules.output
 ]
 ```
 
