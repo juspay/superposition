@@ -1,14 +1,14 @@
 extern crate base64;
 use super::types::CreateReq;
 use service_utils::{
-    bad_argument, db_error,
     helpers::{parse_config_tags, validation_err_to_str},
-    not_found, result as superposition,
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection},
-    unexpected_error, validation_error,
 };
 
-use superposition_types::{SuperpositionUser, User};
+use superposition_macros::{
+    bad_argument, db_error, not_found, unexpected_error, validation_error,
+};
+use superposition_types::{result as superposition, SuperpositionUser, User};
 
 use crate::api::context::helpers::validate_value_with_function;
 use crate::{

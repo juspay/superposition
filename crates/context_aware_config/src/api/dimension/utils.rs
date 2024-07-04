@@ -7,7 +7,7 @@ use diesel::{
     PgConnection,
 };
 use jsonschema::{Draft, JSONSchema};
-use service_utils::result as superposition;
+use superposition_types::result as superposition;
 
 pub fn get_all_dimension_schema_map(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,

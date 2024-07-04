@@ -6,8 +6,8 @@ use serde_json::{Map, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::ExperimentationFlags;
 use std::collections::HashSet;
-
-use service_utils::{bad_argument, result as superposition};
+use superposition_macros::bad_argument;
+use superposition_types::result as superposition;
 
 pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()> {
     let mut experimental_variant_cnt = 0;

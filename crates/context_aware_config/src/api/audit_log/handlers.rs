@@ -1,10 +1,10 @@
+use crate::{api::audit_log::types::AuditQueryFilters, db::models::EventLog};
 use actix_web::{get, web::Query, HttpResponse, Scope};
 use chrono::{Duration, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::json;
-use service_utils::{result as superposition, service::types::DbConnection};
-
-use crate::{api::audit_log::types::AuditQueryFilters, db::models::EventLog};
+use service_utils::service::types::DbConnection;
+use superposition_types::result as superposition;
 
 use crate::db::schema::event_log::dsl as event_log;
 

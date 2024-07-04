@@ -1,8 +1,9 @@
 extern crate base64;
 use base64::prelude::*;
 use service_utils::helpers::extract_dimensions;
-use service_utils::{result as superposition, unexpected_error, validation_error};
 use std::str;
+use superposition_macros::{unexpected_error, validation_error};
+use superposition_types::result as superposition;
 
 use crate::api::functions::helpers::get_published_functions_by_names;
 use crate::validation_functions::execute_fn;

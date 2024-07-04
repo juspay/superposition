@@ -19,12 +19,13 @@ use itertools::{self, Itertools};
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{json, Map, Value};
 use service_utils::{
-    db_error,
     helpers::{generate_snowflake_id, validation_err_to_str},
-    result as superposition,
     service::types::AppState,
-    validation_error,
 };
+
+use superposition_macros::{db_error, validation_error};
+use superposition_types::result as superposition;
+
 use std::collections::HashMap;
 
 pub fn get_default_config_validation_schema() -> JSONSchema {

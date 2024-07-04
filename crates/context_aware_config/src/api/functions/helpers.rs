@@ -4,8 +4,9 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
-use service_utils::{result as superposition, unexpected_error};
 use std::str;
+use superposition_macros::unexpected_error;
+use superposition_types::result as superposition;
 
 use crate::db::{self, models::Function, schema::functions::dsl::functions};
 

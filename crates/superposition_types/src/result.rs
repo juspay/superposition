@@ -50,6 +50,28 @@ impl AppError {
             .insert_header(ContentType::json())
             .json(response)
     }
+    pub fn message(&self) -> String {
+        use diesel::result::DatabaseErrorKind as diesel_error_kind;
+        use diesel::result::Error as diesel_error;
+        match self {
+            AppError::ValidationError(msg)
+            | AppError::BadArgument(msg)
+            | AppError::NotFound(msg) => msg.to_owned(),
+            AppError::UnexpectedError(_) => String::from("Something went wrong"),
+            AppError::ResponseError(error) => error.message.clone(),
+            AppError::DbError(diesel_error::InvalidCString(_)) => {
+                String::from("Something went wrong")
+            }
+            AppError::DbError(diesel_error::DatabaseError(
+                diesel_error_kind::UniqueViolation
+                | diesel_error_kind::CheckViolation
+                | diesel_error_kind::NotNullViolation
+                | diesel_error_kind::ForeignKeyViolation,
+                error,
+            )) => error.message().to_owned(),
+            AppError::DbError(_) => String::from("Something went wrong"),
+        }
+    }
 }
 
 impl error::ResponseError for AppError {

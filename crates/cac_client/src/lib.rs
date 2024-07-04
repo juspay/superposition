@@ -17,7 +17,8 @@ use std::{
 use tokio::sync::RwLock;
 use utils::core::MapError;
 
-use service_utils::{result as superposition, unexpected_error};
+use superposition_macros::unexpected_error;
+use superposition_types::result as superposition;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Context {

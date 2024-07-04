@@ -13,20 +13,14 @@ use diesel::{
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 
-use service_utils::{
-    bad_argument,
-    helpers::{construct_request_headers, generate_snowflake_id, request},
-    response_error,
-    result::{self as superposition, AppError},
-    unexpected_error,
-};
-
-use superposition_types::{SuperpositionUser, User};
+use service_utils::helpers::{construct_request_headers, generate_snowflake_id, request};
 
 use reqwest::{Method, Response, StatusCode};
 use service_utils::service::types::{
     AppHeader, AppState, CustomHeaders, DbConnection, Tenant,
 };
+use superposition_macros::{bad_argument, response_error, unexpected_error};
+use superposition_types::{result as superposition, SuperpositionUser, User};
 
 use super::{
     helpers::{
@@ -383,12 +377,16 @@ pub async fn conclude(
                             ),
                         ),
                     ])
-                    .map_err(|err| AppError::UnexpectedError(anyhow!(err)))?;
+                    .map_err(|err| {
+                        superposition::AppError::UnexpectedError(anyhow!(err))
+                    })?;
 
                     let _ =
                         request::<_, Value>(url, Method::PUT, Some(create_req), headers)
                             .await
-                            .map_err(|err| AppError::UnexpectedError(anyhow!(err)))?;
+                            .map_err(|err| {
+                                superposition::AppError::UnexpectedError(anyhow!(err))
+                            })?;
                 }
                 operations.push(ContextAction::DELETE(context_id));
             }
