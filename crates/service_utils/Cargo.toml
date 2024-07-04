@@ -36,6 +36,7 @@ thiserror = { workspace = true }
 once_cell = { workspace = true }
 regex = { workspace = true }
 mime = { workspace = true }
+superposition_types = { path="../superposition_types" }
 
 [lints]
 workspace = true

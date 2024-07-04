@@ -20,11 +20,11 @@ use actix_web::{
 use chrono::Utc;
 use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::json;
-use service_utils::{bad_argument, not_found, service::types::DbConnection};
+use service_utils::service::types::DbConnection;
 
-use superposition_types::{SuperpositionUser, User};
+use superposition_macros::{bad_argument, not_found, unexpected_error};
+use superposition_types::{result as superposition, SuperpositionUser, User};
 
-use service_utils::{result as superposition, unexpected_error};
 use validation_functions::{compile_fn, execute_fn};
 
 use super::types::{CreateFunctionRequest, UpdateFunctionRequest};

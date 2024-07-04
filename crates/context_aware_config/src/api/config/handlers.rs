@@ -22,17 +22,15 @@ use diesel::{
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 use serde_json::{json, Map, Value};
-use service_utils::{
-    bad_argument, db_error, result as superposition,
-    service::types::{AppHeader, DbConnection},
-    unexpected_error,
-};
+use superposition_macros::{bad_argument, db_error, unexpected_error};
+use superposition_types::{result as superposition, User};
 
 use itertools::Itertools;
 use jsonschema::JSONSchema;
-use service_utils::helpers::extract_dimensions;
-use service_utils::result::AppError;
-use superposition_types::User;
+use service_utils::{
+    helpers::extract_dimensions,
+    service::types::{AppHeader, DbConnection},
+};
 use uuid::Uuid;
 
 pub fn endpoints() -> Scope {
@@ -330,7 +328,7 @@ async fn reduce_config_key(
     let default_config_val =
         default_config
             .get(check_key)
-            .ok_or(AppError::BadArgument(format!(
+            .ok_or(superposition::AppError::BadArgument(format!(
                 "{} not found in default config",
                 check_key
             )))?;

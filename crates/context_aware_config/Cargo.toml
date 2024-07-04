@@ -59,10 +59,11 @@ leptos_meta = { workspace = true }
 leptos_router = { workspace = true }
 actix-files = { version = "0.6" }
 anyhow = { workspace = true }
-superposition_types = { path = "../superposition_types" }
 regex = { workspace = true }
 mime = { workspace = true }
 jsonlogic = { workspace = true }
+superposition_types = { path = "../superposition_types" }
+superposition_macros = { path = "../superposition_macros" }
 
 [lints]
 workspace = true

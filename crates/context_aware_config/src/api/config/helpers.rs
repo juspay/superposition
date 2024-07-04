@@ -1,7 +1,8 @@
 use super::types::{Config, Context};
 
 use serde_json::{json, Map, Value};
-use service_utils::{result as superposition, unexpected_error};
+use superposition_macros::unexpected_error;
+use superposition_types::result as superposition;
 
 pub fn filter_context(
     contexts: &[Context],

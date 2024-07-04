@@ -662,6 +662,8 @@ dependencies = [
  "service_utils",
  "strum",
  "strum_macros",
+ "superposition_macros",
+ "superposition_types",
  "tokio",
 ]
 
@@ -1006,6 +1008,7 @@ dependencies = [
  "service_utils",
  "strum",
  "strum_macros",
+ "superposition_macros",
  "superposition_types",
  "tracing-log",
  "urlencoding",
@@ -1538,6 +1541,7 @@ dependencies = [
  "serde",
  "serde_json",
  "service_utils",
+ "superposition_macros",
  "superposition_types",
  "uuid",
 ]
@@ -3947,6 +3951,7 @@ dependencies = [
  "serde_json",
  "strum",
  "strum_macros",
+ "superposition_types",
  "thiserror",
  "urlencoding",
 ]
@@ -4150,12 +4155,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "superposition_macros"
+version = "0.1.0"
+dependencies = [
+ "superposition_types",
+]
+
+[[package]]
 name = "superposition_types"
 version = "0.2.1"
 dependencies = [
  "actix",
  "actix-web",
+ "anyhow",
  "derive_more",
+ "diesel",
  "log",
  "serde",
  "serde_json",

@@ -1,3 +1,4 @@
+pub mod result;
 use actix::fut::{ready, Ready};
 use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
 use log::error;

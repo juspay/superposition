@@ -3,8 +3,8 @@ use experimentation_platform::api::experiments::helpers;
 use experimentation_platform::db::models::{Experiment, ExperimentStatusType};
 use serde_json::{json, Map, Value};
 use service_utils::helpers::extract_dimensions;
-use service_utils::result::AppError;
 use service_utils::service::types::ExperimentationFlags;
+use superposition_types::result::AppError;
 
 enum Dimensions {
     Os(String),

@@ -12,13 +12,10 @@ use chrono::Utc;
 use diesel::RunQueryDsl;
 use jsonschema::{Draft, JSONSchema};
 use serde_json::Value;
-use service_utils::{
-    bad_argument, result as superposition,
-    service::types::{AppState, DbConnection},
-    unexpected_error,
-};
+use superposition_macros::{bad_argument, unexpected_error};
+use superposition_types::{result as superposition, SuperpositionUser, User};
 
-use superposition_types::{SuperpositionUser, User};
+use service_utils::service::types::{AppState, DbConnection};
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create).service(get)

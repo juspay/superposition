@@ -41,7 +41,6 @@ use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{from_value, json, Map, Value};
 use service_utils::helpers::{parse_config_tags, validation_err_to_str};
 use service_utils::service::types::DbConnection;
-use service_utils::{db_error, not_found, unexpected_error, validation_error};
 use std::collections::HashMap;
 use superposition_types::{SuperpositionUser, User};
 
@@ -49,7 +48,10 @@ use super::helpers::{
     validate_condition_with_functions, validate_override_with_functions,
 };
 
-use service_utils::{bad_argument, result as superposition};
+use superposition_macros::{
+    bad_argument, db_error, not_found, unexpected_error, validation_error,
+};
+use superposition_types::result as superposition;
 
 pub fn endpoints() -> Scope {
     Scope::new("")

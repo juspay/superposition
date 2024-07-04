@@ -1,9 +1,8 @@
 use serde_json::Value;
-use service_utils::result as superposition;
-use service_utils::unexpected_error;
-use service_utils::validation_error;
 use std::process::Command;
 use std::str;
+use superposition_macros::{unexpected_error, validation_error};
+use superposition_types::result as superposition;
 
 fn type_check_validate(code_str: &str) -> String {
     format!(

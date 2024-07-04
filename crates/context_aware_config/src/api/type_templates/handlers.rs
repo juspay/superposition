@@ -9,11 +9,9 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use jsonschema::JSONSchema;
 use regex::Regex;
 use serde_json::{json, Value};
-use service_utils::{
-    bad_argument, db_error, result as superposition, service::types::DbConnection,
-    unexpected_error,
-};
-use superposition_types::User;
+use service_utils::service::types::DbConnection;
+use superposition_macros::{bad_argument, db_error, unexpected_error};
+use superposition_types::{result as superposition, User};
 
 use crate::api::type_templates::types::{QueryFilters, TypeTemplateRequest};
 

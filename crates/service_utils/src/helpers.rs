@@ -1,4 +1,3 @@
-use super::result;
 use crate::service::types::AppState;
 use actix_web::{error::ErrorInternalServerError, web::Data, Error};
 use anyhow::anyhow;
@@ -13,6 +12,7 @@ use std::{
     fmt::{self, Display},
     str::FromStr,
 };
+use superposition_types::result;
 
 const CONFIG_TAG_REGEX: &str = "^[a-zA-Z0-9_-]{1,64}$";
 
