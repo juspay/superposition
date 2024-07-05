@@ -109,11 +109,21 @@ impl Condition {
                     })?;
             }
             ValidationType::EXPERIMENTAL => {
-                jsonlogic::expression::Expression::from_json(&json!(condition_map))
+                let condition_val = json!(condition_map);
+                let ast = jsonlogic::expression::Expression::from_json(&condition_val)
                     .map_err(|msg| {
                         log::error!("Condition validation error: {}", msg);
                         superposition::AppError::BadArgument(msg)
                     })?;
+                let dimensions = ast.get_variable_names().map_err(|msg| {
+                    log::error!("Error while parsing variable names : {}", msg);
+                    superposition::AppError::BadArgument(msg)
+
+                })?;
+                if dimensions.contains("variantIds") {
+                    log::error!("experiment's context should not contain variantIds dimension");
+                    return Err(superposition::AppError::BadArgument("experiment's context should not contain variantIds dimension".to_string()))
+                }
             }
             ValidationType::DB => (),
         };

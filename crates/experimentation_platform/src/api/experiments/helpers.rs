@@ -2,12 +2,12 @@ use super::types::{Variant, VariantType};
 use crate::db::models::{Experiment, ExperimentStatusType};
 use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
-use serde_json::{Map, Value};
+use serde_json::{Map, json, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::ExperimentationFlags;
 use std::collections::HashSet;
 use superposition_macros::bad_argument;
-use superposition_types::result as superposition;
+use superposition_types::{result as superposition, Condition, Overrides, ValidationType};
 
 pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()> {
     let mut experimental_variant_cnt = 0;
@@ -37,15 +37,6 @@ pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()>
     Ok(())
 }
 
-pub fn validate_context(context: &Value) -> superposition::Result<()> {
-    let dimensions = extract_dimensions(context)?;
-    if dimensions.contains_key("variantIds") {
-        return Err(bad_argument!(
-            "experiment's context should not contain variantIds dimension"
-        ));
-    }
-    Ok(())
-}
 
 pub fn validate_override_keys(override_keys: &Vec<String>) -> superposition::Result<()> {
     let mut key_set: HashSet<&str> = HashSet::new();
@@ -61,8 +52,8 @@ pub fn validate_override_keys(override_keys: &Vec<String>) -> superposition::Res
 }
 
 pub fn are_overlapping_contexts(
-    context_a: &Value,
-    context_b: &Value,
+    context_a: &Condition,
+    context_b: &Condition,
 ) -> superposition::Result<bool> {
     let dimensions_a = extract_dimensions(context_a)?;
     let dimensions_b = extract_dimensions(context_b)?;
@@ -91,7 +82,7 @@ pub fn are_overlapping_contexts(
 }
 
 pub fn check_variant_override_coverage(
-    variant_override: &Map<String, Value>,
+    variant_override: &Overrides,
     override_keys: &Vec<String>,
 ) -> bool {
     if variant_override.keys().len() != override_keys.len() {
@@ -107,7 +98,7 @@ pub fn check_variant_override_coverage(
 }
 
 pub fn check_variants_override_coverage(
-    variant_overrides: &Vec<&Map<String, Value>>,
+    variant_overrides: &Vec<Overrides>,
     override_keys: &Vec<String>,
 ) -> bool {
     for variant_override in variant_overrides {
@@ -120,7 +111,7 @@ pub fn check_variants_override_coverage(
 }
 
 pub fn is_valid_experiment(
-    context: &Value,
+    context: &Condition,
     override_keys: &[String],
     flags: &ExperimentationFlags,
     active_experiments: &[Experiment],
@@ -133,8 +124,9 @@ pub fn is_valid_experiment(
     {
         let override_keys_set = HashSet::<&String>::from_iter(override_keys);
         for active_experiment in active_experiments {
+            let active_exp_context = Condition::new(active_experiment.context.as_object().unwrap_or(&Map::new()).to_owned(), ValidationType::DB)?;
             let are_overlapping =
-                are_overlapping_contexts(context, &active_experiment.context)
+                are_overlapping_contexts(context, &active_exp_context)
                     .map_err(|e| {
                         log::info!("experiment validation failed with error: {e}");
                         bad_argument!(
@@ -175,7 +167,7 @@ pub fn is_valid_experiment(
 }
 
 pub fn validate_experiment(
-    context: &Value,
+    context: &Condition,
     override_keys: &[String],
     experiment_id: Option<i64>,
     flags: &ExperimentationFlags,
@@ -198,7 +190,7 @@ pub fn validate_experiment(
 }
 
 pub fn add_variant_dimension_to_ctx(
-    context_json: &Value,
+    context_json: &Condition,
     variant: String,
 ) -> superposition::Result<Value> {
     let variant_condition = serde_json::json!({
@@ -207,10 +199,7 @@ pub fn add_variant_dimension_to_ctx(
             { "var": "variantIds" }
         ]
     });
-
-    let context = context_json.as_object().ok_or(bad_argument!(
-        "Context not an object. Ensure the context provided obeys the rules of JSON logic"
-    ))?;
+    let context: Map<String, Value> = context_json.to_owned().into();
 
     if context.is_empty() {
         Ok(variant_condition)
@@ -222,7 +211,7 @@ pub fn add_variant_dimension_to_ctx(
                     "Failed parsing conditions as an array. Ensure the context provided obeys the rules of JSON logic"
                 ))?
                 .clone(),
-            None => vec![context_json.clone()],
+            None => vec![json!(context.clone())],
         };
 
         conditions.push(variant_condition);
