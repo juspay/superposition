@@ -20,7 +20,10 @@ use service_utils::service::types::{
     AppHeader, AppState, CustomHeaders, DbConnection, Tenant,
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
-use superposition_types::{result as superposition, SuperpositionUser, User, Overrides, ValidationType, Condition};
+use superposition_types::{
+    result as superposition, Condition, Overrides, SuperpositionUser, User,
+    ValidationType,
+};
 
 use super::{
     helpers::{
@@ -41,7 +44,7 @@ use crate::{
     db::schema::{event_log::dsl as event_log, experiments::dsl as experiments},
 };
 
-use serde_json::{json, Value, Map};
+use serde_json::{json, Map, Value};
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
@@ -168,7 +171,9 @@ async fn create(
     // Checking if all the variants are overriding the mentioned keys
     let variant_overrides = variants
         .iter()
-        .map(|variant| Overrides::new(variant.overrides.clone(), ValidationType::EXPERIMENTAL))
+        .map(|variant| {
+            Overrides::new(variant.overrides.clone(), ValidationType::EXPERIMENTAL)
+        })
         .collect::<superposition::Result<Vec<Overrides>>>()?;
     let are_valid_variants =
         check_variants_override_coverage(&variant_overrides, &unique_override_keys);
@@ -660,7 +665,9 @@ async fn update_overrides(
 
     let variant_overrides = new_variants
         .iter()
-        .map(|variant| Overrides::new(variant.overrides.clone(), ValidationType::EXPERIMENTAL))
+        .map(|variant| {
+            Overrides::new(variant.overrides.clone(), ValidationType::EXPERIMENTAL)
+        })
         .collect::<superposition::Result<Vec<Overrides>>>()?;
     let are_valid_variants =
         check_variants_override_coverage(&variant_overrides, &override_keys);
@@ -672,7 +679,14 @@ async fn update_overrides(
             )
         )?;
     }
-    let experiment_condition = Condition::new(experiment.context.as_object().unwrap_or(&Map::new()).clone(), ValidationType::DB)?;
+    let experiment_condition = Condition::new(
+        experiment
+            .context
+            .as_object()
+            .unwrap_or(&Map::new())
+            .clone(),
+        ValidationType::DB,
+    )?;
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;
     let (valid, reason) = validate_experiment(
@@ -706,9 +720,9 @@ async fn update_overrides(
         let updated_cacccontext =
             add_variant_dimension_to_ctx(&experiment_condition, variant.id.to_string())
                 .map_err(|e| {
-                    log::error!("failed to add `variantIds` dimension to context: {e}");
-                    unexpected_error!("Something went wrong, failed to update experiment")
-                })?;
+                log::error!("failed to add `variantIds` dimension to context: {e}");
+                unexpected_error!("Something went wrong, failed to update experiment")
+            })?;
 
         let payload = ContextPutReq {
             context: updated_cacccontext

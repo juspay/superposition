@@ -2,7 +2,7 @@ pub mod result;
 use crate::result as superposition;
 use actix::fut::{ready, Ready};
 use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
-use derive_more::{AsRef, Deref, Into};
+use derive_more::{AsRef, Deref, DerefMut, Into};
 use log::error;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
@@ -118,11 +118,15 @@ impl Condition {
                 let dimensions = ast.get_variable_names().map_err(|msg| {
                     log::error!("Error while parsing variable names : {}", msg);
                     superposition::AppError::BadArgument(msg)
-
                 })?;
                 if dimensions.contains("variantIds") {
-                    log::error!("experiment's context should not contain variantIds dimension");
-                    return Err(superposition::AppError::BadArgument("experiment's context should not contain variantIds dimension".to_string()))
+                    log::error!(
+                        "experiment's context should not contain variantIds dimension"
+                    );
+                    return Err(superposition::AppError::BadArgument(
+                        "experiment's context should not contain variantIds dimension"
+                            .to_string(),
+                    ));
                 }
             }
             ValidationType::DB => (),
@@ -138,7 +142,9 @@ impl TryFrom<Map<String, Value>> for Condition {
     }
 }
 
-#[derive(Deserialize, Serialize, Clone, AsRef, Deref, Debug, Eq, PartialEq, Into)]
+#[derive(
+    Deserialize, Serialize, Clone, AsRef, Deref, DerefMut, Debug, Eq, PartialEq, Into,
+)]
 #[serde(try_from = "Map<String,Value>")]
 pub struct Overrides(Map<String, Value>);
 

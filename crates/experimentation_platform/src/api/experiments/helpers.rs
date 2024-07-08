@@ -2,12 +2,14 @@ use super::types::{Variant, VariantType};
 use crate::db::models::{Experiment, ExperimentStatusType};
 use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
-use serde_json::{Map, json, Value};
+use serde_json::{json, Map, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::ExperimentationFlags;
 use std::collections::HashSet;
 use superposition_macros::bad_argument;
-use superposition_types::{result as superposition, Condition, Overrides, ValidationType};
+use superposition_types::{
+    result as superposition, Condition, Overrides, ValidationType,
+};
 
 pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()> {
     let mut experimental_variant_cnt = 0;
@@ -36,7 +38,6 @@ pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()>
 
     Ok(())
 }
-
 
 pub fn validate_override_keys(override_keys: &Vec<String>) -> superposition::Result<()> {
     let mut key_set: HashSet<&str> = HashSet::new();
@@ -124,7 +125,14 @@ pub fn is_valid_experiment(
     {
         let override_keys_set = HashSet::<&String>::from_iter(override_keys);
         for active_experiment in active_experiments {
-            let active_exp_context = Condition::new(active_experiment.context.as_object().unwrap_or(&Map::new()).to_owned(), ValidationType::DB)?;
+            let active_exp_context = Condition::new(
+                active_experiment
+                    .context
+                    .as_object()
+                    .unwrap_or(&Map::new())
+                    .to_owned(),
+                ValidationType::DB,
+            )?;
             let are_overlapping =
                 are_overlapping_contexts(context, &active_exp_context)
                     .map_err(|e| {

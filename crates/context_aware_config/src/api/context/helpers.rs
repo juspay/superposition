@@ -18,7 +18,7 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use std::collections::HashMap;
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
@@ -27,7 +27,7 @@ pub fn validate_condition_with_functions(
     condition: &Condition,
 ) -> superposition::Result<()> {
     use dimensions::dsl;
-    let context = extract_dimensions(&json!(condition))?;
+    let context = extract_dimensions(&condition)?;
     let dimensions_list: Vec<String> = context.keys().cloned().collect();
     let keys_function_array: Vec<(String, Option<String>)> = dsl::dimensions
         .filter(dsl::dimension.eq_any(dimensions_list))

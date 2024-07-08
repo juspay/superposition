@@ -6,7 +6,7 @@ use log::info;
 use regex::Regex;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::de::{self, IntoDeserializer};
-use serde_json::{Map, json, Value};
+use serde_json::{json, Map, Value};
 use std::{
     env::VarError,
     fmt::{self, Display},

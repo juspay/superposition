@@ -25,7 +25,7 @@ pub struct Variant {
 #[derive(Deserialize)]
 pub struct ExperimentCreateRequest {
     pub name: String,
-    pub context: Map<String,Value>,
+    pub context: Map<String, Value>,
     pub variants: Vec<Variant>,
 }
 
