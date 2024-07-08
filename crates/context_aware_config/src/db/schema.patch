@@ -9,8 +9,8 @@ index 15c2eee..25c8088 100644
          id -> Int8,
          config -> Json,
          config_hash -> Text,
--        tags -> Nullable<Array<Nullable<Varchar>>>,
-+        tags -> Nullable<Array<Varchar>>,
+-        tags -> Nullable<Array<Nullable<Text>>>,
++        tags -> Nullable<Array<Text>>,
          created_at -> Timestamp,
      }
  }
