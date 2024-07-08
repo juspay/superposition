@@ -606,32 +606,3 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
 
     Ok(())
 }
-
-// #[test]
-// fn test_fail_context_with_variant_ids_dimensions() {
-//     let experiment_context = multiple_dimension_ctx_gen(vec![
-//         Dimensions::Os("os1".to_string()),
-//         Dimensions::Client("testclient1".to_string()),
-//         Dimensions::VariantIds("123456789-variant1".to_string()),
-//     ]);
-//     let experiment_context = Condition::new(experiment_context, ValidationType::DEFAULT)?;
-//     let result = helpers::validate_context(&experiment_context);
-//     assert!(result.is_err());
-
-//     let error_msg = result.unwrap_err();
-//     match error_msg {
-//         superposition::AppError::BadArgument(msg) => assert_eq!(msg, "experiment's context should not contain variantIds dimension"),
-//         _ => panic!("Not a AppError::BadArgument('experiment's context should not contain variantIds dimension')")
-//     }
-// }
-
-// #[test]
-// fn test_pass_context_without_variant_ids_dimensions() {
-//     let experiment_context = multiple_dimension_ctx_gen(vec![
-//         Dimensions::Os("os1".to_string()),
-//         Dimensions::Client("testclient1".to_string()),
-//     ]);
-//     let experiment_context = Condition::new(experiment_context, ValidationType::DEFAULT)?;
-
-//     assert!(helpers::validate_context(&experiment_context).is_ok());
-// }

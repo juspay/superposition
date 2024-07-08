@@ -166,7 +166,6 @@ async fn create(
             "Variant ids are expected to be unique. Provide unqiue variant IDs"
         ));
     }
-    // validate_override_keys(&unique_override_keys)?;
 
     // Checking if all the variants are overriding the mentioned keys
     let variant_overrides = variants

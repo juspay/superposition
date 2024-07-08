@@ -175,3 +175,178 @@ impl TryFrom<Map<String, Value>> for Overrides {
         Overrides::new(s, ValidationType::DEFAULT).map_err(|err| err.message())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn ok_test_deserialize_condition() -> superposition::Result<()> {
+        let db_request_condition_map: Map<String, Value> = Map::from_iter(vec![(
+            "and".to_string(),
+            json!([
+                {
+                "==": [
+                    {
+                        "var": "clientId"
+                    },
+                    "meesho"
+                ]
+                }
+            ]),
+        )]);
+
+        let default_request_condition_map: Map<String, Value> = Map::from_iter(vec![(
+            "and".to_string(),
+            json!([
+                {
+                "==": [
+                    {
+                        "var": "os"
+                    },
+                    "ios"
+                ]
+                }
+            ]),
+        )]);
+
+        let exp_request_condition_map: Map<String, Value> = Map::from_iter(vec![(
+            "and".to_string(),
+            json!([
+                {
+                "==": [
+                    {
+                        "var": "clientId"
+                    },
+                    "meesho"
+                ]
+                }
+            ]),
+        )]);
+
+        let db_condition = serde_json::from_str::<Condition>(
+            &json!(db_request_condition_map).to_string(),
+        )
+        .unwrap();
+        let db_expected_condition =
+            Condition::new(db_request_condition_map, ValidationType::DB)?;
+        assert_eq!(db_condition, db_expected_condition);
+
+        let default_condition = serde_json::from_str::<Condition>(
+            &json!(default_request_condition_map).to_string(),
+        )
+        .unwrap();
+        let default_expected_condition =
+            Condition::new(default_request_condition_map, ValidationType::DEFAULT)?;
+        assert_eq!(default_condition, default_expected_condition);
+
+        let exp_condition = serde_json::from_str::<Condition>(
+            &json!(exp_request_condition_map).to_string(),
+        )
+        .unwrap();
+        let exp_expected_condition =
+            Condition::new(exp_request_condition_map, ValidationType::EXPERIMENTAL)?;
+        assert_eq!(exp_condition, exp_expected_condition);
+
+        Ok(())
+    }
+
+    #[test]
+    fn fail_test_deserialize_condition() -> superposition::Result<()> {
+        let request_condition_map: Map<String, Value> = Map::from_iter(vec![(
+            "and".to_string(),
+            json!([
+                {
+                ".": [
+                    {
+                        "var": "clientId"
+                    },
+                    "meesho"
+                ]
+                }
+            ]),
+        )]);
+
+        let exp_condition_map: Map<String, Value> = Map::from_iter(vec![(
+            "and".to_string(),
+            json!([
+                {
+                "in": [
+                    "variant-id",
+                    {
+                        "var": "variantIds"
+                    }
+                ]
+                }
+            ]),
+        )]);
+
+        let fail_condition =
+            serde_json::from_str::<Condition>(&json!(request_condition_map).to_string())
+                .map_err(|_| "Invalid operation".to_owned());
+
+        let fail_exp_condition =
+            Condition::new(exp_condition_map, ValidationType::EXPERIMENTAL)
+                .map_err(|_| "variantIds should not be present".to_owned());
+
+        assert_eq!(
+            json!(fail_condition)
+                .to_string()
+                .contains("Invalid operation"),
+            true
+        );
+
+        assert_eq!(
+            json!(fail_exp_condition)
+                .to_string()
+                .contains("variantIds should not be present"),
+            true
+        );
+
+        let db_expected_condition =
+            Condition::new(request_condition_map.clone(), ValidationType::DB)
+                .map(|_| true)?;
+        assert_eq!(db_expected_condition, true);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_deserialize_override() -> superposition::Result<()> {
+        let override_map = Map::from_iter(vec![
+            ("key1".to_string(), json!("val1")),
+            ("key2".to_string(), json!(5)),
+        ]);
+
+        let empty_override_map = Map::new();
+
+        let deserialize_overrides =
+            serde_json::from_str::<Overrides>(&json!(override_map).to_string()).unwrap();
+        let db_expected_overrides =
+            Overrides::new(override_map.clone(), ValidationType::DB)?;
+        assert_eq!(deserialize_overrides, db_expected_overrides);
+
+        let exp_expected_overrides =
+            Overrides::new(override_map.clone(), ValidationType::EXPERIMENTAL)?;
+        assert_eq!(deserialize_overrides, exp_expected_overrides);
+
+        let default_expected_overrides =
+            Overrides::new(override_map.clone(), ValidationType::DEFAULT)?;
+        assert_eq!(deserialize_overrides, default_expected_overrides);
+
+        let empty_overrides = serde_json::from_str::<Overrides>(
+            &json!(empty_override_map.clone()).to_string(),
+        )
+        .map_err(|_| "override should not be empty".to_string());
+
+        assert_eq!(
+            json!(empty_overrides)
+                .to_string()
+                .contains("override should not be empty"),
+            true
+        );
+
+        Ok(())
+    }
+}
