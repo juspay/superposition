@@ -108,7 +108,7 @@ async fn process_cac_http_response(
         Ok(res) if res.status().is_success() => {
             let config_version = res
                 .headers()
-                .get("x-config-tags")
+                .get("x-config-version")
                 .and_then(|val| val.to_str().map_or(None, |v| Some(v.to_string())));
             let bulk_resp =
                 res.json::<Vec<ContextBulkResponse>>()
