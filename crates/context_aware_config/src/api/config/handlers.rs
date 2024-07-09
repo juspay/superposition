@@ -128,10 +128,11 @@ fn is_not_modified(max_created_at: Option<NaiveDateTime>, req: &HttpRequest) -> 
 }
 
 pub fn generate_config_from_version(
-    version: Option<i64>,
+    version: &mut Option<i64>,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<Config> {
     if let Some(val) = version {
+        let val = val.clone();
         let config = config_versions::config_versions
             .select(config_versions::config)
             .filter(config_versions::id.eq(val))
@@ -145,7 +146,24 @@ pub fn generate_config_from_version(
             unexpected_error!("failed to decode config")
         })
     } else {
-        generate_cac(conn)
+        match config_versions::config_versions
+            .select((config_versions::id, config_versions::config))
+            .order(config_versions::created_at.desc())
+            .first::<(i64, Value)>(conn)
+        {
+            Ok((latest_version, config)) => {
+                *version = Some(latest_version);
+
+                serde_json::from_value::<Config>(config).map_err(|err| {
+                    log::error!("failed to decode config: {}", err);
+                    unexpected_error!("failed to decode config")
+                })
+            }
+            Err(err) => {
+                log::error!("failed to find latest config: {err}");
+                generate_cac(conn)
+            }
+        }
     }
 }
 
@@ -505,8 +523,8 @@ async fn get(
                 .map_or_else(|_| json!(value), |int_val| json!(int_val)),
         );
     }
-    let config_version = validate_version_in_params(&mut query_params_map)?;
-    let mut config = generate_config_from_version(config_version, &mut conn)?;
+    let mut config_version = validate_version_in_params(&mut query_params_map)?;
+    let mut config = generate_config_from_version(&mut config_version, &mut conn)?;
 
     if let Some(prefix) = query_params_map
         .get("prefix")
@@ -564,8 +582,8 @@ async fn get_resolved_config(
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    let config_version = validate_version_in_params(&mut query_params_map)?;
-    let config = generate_config_from_version(config_version, &mut conn)?;
+    let mut config_version = validate_version_in_params(&mut query_params_map)?;
+    let config = generate_config_from_version(&mut config_version, &mut conn)?;
 
     let cac_client_contexts = config
         .contexts
