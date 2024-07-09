@@ -7,6 +7,14 @@ The Superposition platform comes with three components:
 * **Experimentation** - a experimentation management system that allows supplying different configuration values to equal-sized cohorts (facilitating A/B testing)
 * **Metrics** - a metrics sub-system that interacts with analytics backends to provide supporting metrics that enable conclusions to be drawn from experiments (TBD)
 
+## Immediately get started with Superposition and a demo app
+
+```
+docker run -d -p 8081:9090 -p 8080:8080 datron1/superposition-demo-app:latest
+```
+
+Once you run this command, you'll find the demo app at `localhost:8081` and Superposition at `localhost:8080`. Play around to understand Superposition better, then dive into the documentation below!
+
 ## Detailed documentation
 1. [Context-Aware-Configuration](docs/context-aware-config.md)
 2. [Experimentation](docs/experimentation.md)
@@ -16,6 +24,7 @@ The Superposition platform comes with three components:
 5. [Local setup](docs/setup.md)
 6. [Context-Aware-Configuration API Ref - Postman Collection](postman/cac.postman_collection.json)
 7. [Experimentation API Ref - Postman Collection](postman/experimentation-platform.postman_collection.json)
+8. [Hitchiker's Guide to Create a New Client](docs/creating-client.md)
 
 ## Key highlights
 * **Admin UI** - Out of the box administration (and tools) UI for configurations and experiments
