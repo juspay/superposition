@@ -253,6 +253,7 @@ pub fn home() -> impl IntoView {
                     {move || {
                         dimension_resource
                             .with(|dimension| {
+                                let (context, set_context) = create_signal(vec![]);
                                 view! {
                                     <div class="card h-4/5 shadow bg-base-100">
                                         <div class="card flex flex-row m-2 bg-base-100">
@@ -261,12 +262,12 @@ pub fn home() -> impl IntoView {
 
                                                 <ContextForm
                                                     dimensions=dimension.to_owned().unwrap_or_default()
-                                                    context=vec![]
+                                                    context
+                                                    set_context
                                                     heading_sub_text="Query your configs".to_string()
                                                     dropdown_direction=DropdownDirection::Right
                                                     is_standalone=false
                                                     resolve_mode=true
-                                                    handle_change=|_| ()
                                                 />
                                                 <div class="card-actions mt-6 justify-end">
                                                     <Button

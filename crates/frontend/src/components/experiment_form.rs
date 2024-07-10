@@ -5,7 +5,7 @@ use self::utils::{create_experiment, update_experiment};
 use crate::components::button::Button;
 use crate::components::context_form::ContextForm;
 use crate::components::variant_form::VariantForm;
-use crate::types::{DefaultConfig, Dimension, VariantFormT, VariantType};
+use crate::types::{ContextCondition, DefaultConfig, Dimension, VariantFormT, VariantFormTSignal, VariantType};
 use leptos::*;
 use web_sys::MouseEvent;
 
@@ -62,16 +62,20 @@ where
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
 
     let (experiment_name, set_experiment_name) = create_signal(name);
-    let (f_context, set_context) = create_signal(context.clone());
-    let (f_variants, set_variants) = create_signal(init_variants);
+    let (f_context, set_context) = create_signal(context.clone().into_iter().map(|(dimension, operator, value)| {
+        ContextCondition::new(dimension, operator, value)
+    }).collect::<Vec<ContextCondition>>());
+    let (f_variants, set_variants) = create_signal(init_variants.into_iter().map(|(key, context)| {
+        (key, VariantFormTSignal::new(context.id, context.variant_type, context.overrides))
+    }).collect::<Vec<(String, VariantFormTSignal)>>());
 
-    let handle_context_form_change = move |updated_ctx: Vec<(String, String, String)>| {
-        set_context.set_untracked(updated_ctx);
-    };
+    // let handle_context_form_change = move |updated_ctx: Vec<(String, String, String)>| {
+    //     set_context.set_untracked(updated_ctx);
+    // };
 
     let handle_variant_form_change =
         move |updated_varaints: Vec<(String, VariantFormT)>| {
-            set_variants.set_untracked(updated_varaints);
+            // set_variants.set_untracked(updated_varaints);
         };
 
     let dimensions = StoredValue::new(dimensions);
@@ -81,11 +85,11 @@ where
         logging::log!("{:?}", f_variants.get());
 
         let f_experiment_name = experiment_name.get();
-        let f_context = f_context.get();
+        let f_context = f_context.get().into_iter().map(|ele| (ele.dimension.get(), ele.operator.get(), ele.value.get())).collect();
         let f_variants = f_variants
             .get()
             .into_iter()
-            .map(|(_, variant)| variant)
+            .map(|(_, variant)| variant.to_variant_form_t())
             .collect::<Vec<VariantFormT>>();
         let tenant = tenant_rs.get();
         let experiment_id = id.clone();
@@ -148,8 +152,8 @@ where
                     view! {
                         <ContextForm
                             dimensions=dimensions.get_value()
-                            context=context
-                            handle_change=handle_context_form_change
+                            context=f_context
+                            set_context=set_context
                             is_standalone=false
                             disabled=edit
                             heading_sub_text=String::from(
@@ -164,11 +168,12 @@ where
             <div class="divider"></div>
 
             {move || {
-                let variants = f_variants.get();
+                // let variants = f_variants.get();
                 view! {
                     <VariantForm
                         edit=edit
-                        variants=variants
+                        f_variants
+                        set_variants
                         default_config=default_config.get_value()
                         handle_change=handle_variant_form_change
                     />

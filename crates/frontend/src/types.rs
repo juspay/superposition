@@ -1,4 +1,4 @@
-use leptos::{ReadSignal, WriteSignal};
+use leptos::*;
 use serde::{Deserialize, Serialize};
 use std::{str::FromStr, vec::Vec};
 
@@ -290,4 +290,78 @@ pub struct FetchTypeTemplateResponse {
     pub total_items: i64,
     pub total_pages: i64,
     pub data: Vec<TypeTemplate>,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct Override {
+    pub key: RwSignal<String>,
+    pub value: RwSignal<Value>,
+}
+
+impl Override {
+    pub fn new(key: String, value: Value) -> Self {
+        Self {
+            key: create_rw_signal(key),
+            value: create_rw_signal(value),
+        }
+    }
+    pub fn to_tuple(&self) -> (String, Value) {
+        (self.key.get().clone(), self.value.get().clone())
+    }
+
+    pub fn from_vec(vec: Vec<(String, Value)>) -> Vec<Self> {
+        vec.into_iter()
+            .map(|(key, value)| Override::new(key, value))
+            .collect()
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct ContextCondition {
+    pub dimension: RwSignal<String>,
+    pub operator: RwSignal<String>,
+    pub value: RwSignal<String>
+}
+
+impl ContextCondition {
+    pub fn new(dimension: String, operator: String, value: String) -> Self {
+        Self {
+            dimension: create_rw_signal(dimension),
+            operator: create_rw_signal(operator),
+            value: create_rw_signal(value)
+        }
+    }
+
+    
+}
+
+#[derive(Clone, Debug)]
+pub struct VariantFormTSignal {
+    pub id: String,
+    pub variant_type: VariantType,
+    pub overrides: ReadSignal<Vec<Override>>,
+    pub set_overrides: WriteSignal<Vec<Override>>,
+}
+
+impl VariantFormTSignal {
+    pub fn new(id: String, variant_type: VariantType, overrides: Vec<(String, Value)>) -> Self {
+        let (overrides_signal, set_overrides) = create_signal(
+            overrides.into_iter().map(|(key, value)| Override::new(key, value)).collect(),
+        );
+        
+        Self {
+            id,
+            variant_type,
+            overrides: overrides_signal,
+            set_overrides,
+        }
+    }
+
+    pub fn to_variant_form_t(&self) -> VariantFormT {
+        VariantFormT {
+            id: self.id.clone(),
+            variant_type: self.variant_type.clone(),
+            overrides: self.overrides.get().iter().map(|ov| ov.to_tuple()).collect(),
+        }
+    }
 }

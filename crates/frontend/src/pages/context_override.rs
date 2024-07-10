@@ -9,7 +9,7 @@ use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::override_form::OverrideForm;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::alert_provider::enqueue_alert;
-use crate::types::{Config, Context, DefaultConfig, Dimension};
+use crate::types::{Config, Context, DefaultConfig, Dimension, Override, ContextCondition};
 use crate::utils::extract_conditions;
 use futures::join;
 use leptos::*;
@@ -45,14 +45,25 @@ fn form(
     handle_submit: Callback<(), ()>,
 ) -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-    let (context, set_context) = create_signal(context);
-    let (overrides, set_overrides) = create_signal(overrides);
+    let (context, set_context) = create_signal(
+        context.into_iter().map(|(dimension, operator, value)| {
+            ContextCondition::new(dimension, operator, value)
+        }).collect::<Vec<ContextCondition>>()
+    );
+    let (overrides, set_overrides) = create_signal(
+        overrides.into_iter().map(|(k, v)| {
+        Override::new(k, v)
+    }).collect::<Vec<Override>>());
     let dimensions = StoredValue::new(dimensions);
 
     let on_submit = move |_| {
         spawn_local(async move {
-            let f_context = context.get();
-            let f_overrides = overrides.get();
+            let f_context: Vec<(String, String, String)> = context.get().into_iter().map(|ele| {
+                (ele.dimension.get(), ele.operator.get(), ele.value.get())
+            }).collect();
+            let f_overrides: Vec<(String, Value)> = overrides.get().into_iter().map(|ele| {
+                (ele.key.get(), ele.value.get())
+            }).collect();
             let dimensions = dimensions.get_value();
             let result = if edit {
                 update_context(
@@ -86,27 +97,17 @@ fn form(
     view! {
         <ContextForm
             dimensions=dimensions.get_value()
-            context=context.get_untracked()
+            context
+            set_context
             is_standalone=false
-            handle_change=move |new_context| {
-                set_context
-                    .update(|value| {
-                        *value = new_context;
-                    });
-            }
 
             disabled=edit
         />
         <OverrideForm
-            overrides=overrides.get_untracked()
+            overrides
+            set_overrides
             default_config=default_config
             is_standalone=false
-            handle_change=move |new_overrides| {
-                set_overrides
-                    .update(|value| {
-                        *value = new_overrides;
-                    });
-            }
         />
 
         <div class="form-control grid w-full justify-end">

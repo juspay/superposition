@@ -9,7 +9,7 @@ use crate::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         override_form::OverrideForm,
     },
-    types::{DefaultConfig, VariantFormT, VariantType},
+    types::{DefaultConfig, VariantFormT, VariantFormTSignal, VariantType, Override},
 };
 
 fn get_override_keys_from_variants(
@@ -34,15 +34,21 @@ fn get_init_state(variants: &[(String, VariantFormT)]) -> HashSet<String> {
 #[component]
 pub fn variant_form<HC>(
     edit: bool,
-    variants: Vec<(String, VariantFormT)>,
+    f_variants: ReadSignal<Vec<(String, VariantFormTSignal)>>,
+    set_variants: WriteSignal<Vec<(String, VariantFormTSignal)>>,
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
 ) -> impl IntoView
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
 {
-    let init_override_keys = get_init_state(&variants);
-    let (f_variants, set_variants) = create_signal(variants);
+    let init_override_keys = get_init_state(
+        &(f_variants.get()
+        .into_iter()
+        .map(|(key, ele)| {
+        (key, ele.to_variant_form_t())
+    }).collect::<Vec<(String,VariantFormT)>>()));
+    // let (f_variants, set_variants) = create_signal(variants);
     let (override_keys, set_override_keys) = create_signal(init_override_keys);
 
     let default_config = StoredValue::new(default_config);
@@ -66,10 +72,11 @@ where
                 let position = variant
                     .1
                     .overrides
+                    .get()
                     .iter()
-                    .position(|(k, _)| k.to_owned() == removed_key);
+                    .position(|ele| ele.key.get().to_owned() == removed_key);
                 if let Some(idx) = position {
-                    variant.1.overrides.remove(idx);
+                    variant.1.overrides.get().remove(idx);
                 }
             }
         });
@@ -80,23 +87,27 @@ where
             set_variants.update_untracked(|curr_variants| {
                 curr_variants[variant_idx]
                     .1
-                    .overrides
-                    .clone_from(&updated_overrides);
-                handle_change.get_value()(curr_variants.clone());
+                    .overrides.get()
+                    .clone_from(&Override::from_vec(updated_overrides));
+                handle_change.get_value()(curr_variants.clone().into_iter().map(|(key, ele)| {
+                    (key, VariantFormTSignal::to_variant_form_t(&ele))
+                }).collect());
             });
         }
     };
 
     create_effect(move |_| {
         let f_variants = f_variants.get();
-        handle_change.get_value()(f_variants.clone());
+        handle_change.get_value()(f_variants.clone().into_iter().map(|(key, ele)| {
+            (key, ele.to_variant_form_t())
+        }).collect());
     });
 
     let handle_config_key_select = Callback::new(move |default_config: DefaultConfig| {
         let config_key = default_config.key;
-        set_variants.update(|current_variants: &mut Vec<(String, VariantFormT)>| {
+        set_variants.update(|current_variants: &mut Vec<(String, VariantFormTSignal)>| {
             for (_, variant) in current_variants.iter_mut() {
-                variant.overrides.push((config_key.clone(), json!("")));
+                variant.set_overrides.update(|overrides| overrides.push(Override::new(config_key.clone(), json!(""))));
             }
         });
         set_override_keys.update(|value: &mut HashSet<String>| {
@@ -121,11 +132,12 @@ where
                         .get()
                         .into_iter()
                         .enumerate()
-                        .collect::<Vec<(usize, (String, VariantFormT))>>()
+                        .collect::<Vec<(usize, (String, VariantFormTSignal))>>()
                 }
 
                 key=|(_, (key, _))| key.to_string()
                 children=move |(idx, (_, variant))| {
+                    logging::log!("<<>> variant {:?}", variant);
                     let is_control_variant = variant.variant_type == VariantType::CONTROL;
                     let handle_change = handle_override_form_change(idx);
                     let variant_type_label = match variant.variant_type {
@@ -171,7 +183,7 @@ where
                                             let variant_id = event_target_value(&event);
                                             set_variants
                                                 .update(|
-                                                    current_variants: &mut Vec<(String, VariantFormT)>|
+                                                    current_variants: &mut Vec<(String, VariantFormTSignal)>|
                                                 {
                                                     let variant_to_be_updated = current_variants.get_mut(idx);
                                                     match variant_to_be_updated {
@@ -227,12 +239,14 @@ where
                                     {move || {
                                         let variant = f_variants.get().get(idx).unwrap().clone();
                                         let overrides = variant.1.overrides;
+                                        let set_overrides = variant.1.set_overrides;
                                         if is_control_variant {
                                             view! {
                                                 <OverrideForm
                                                     overrides=overrides
+                                                    set_overrides
                                                     default_config=default_config.get_value()
-                                                    handle_change=handle_change
+                                                    // handle_change=handle_change
                                                     is_standalone=false
                                                     show_add_override=false
                                                     handle_key_remove=Some(
@@ -244,8 +258,9 @@ where
                                             view! {
                                                 <OverrideForm
                                                     overrides=overrides
+                                                    set_overrides
                                                     default_config=default_config.get_value()
-                                                    handle_change=handle_change
+                                                    // handle_change=handle_change
                                                     is_standalone=false
                                                     show_add_override=false
                                                     disable_remove=true
@@ -280,11 +295,11 @@ where
                                 curr_variants
                                     .push((
                                         key,
-                                        VariantFormT {
-                                            id: format!("variant-{}", total_variants),
-                                            variant_type: VariantType::EXPERIMENTAL,
+                                        VariantFormTSignal::new( 
+                                            format!("variant-{}", total_variants),
+                                            VariantType::EXPERIMENTAL,
                                             overrides,
-                                        },
+                                        ),
                                     ))
                             });
                     }
