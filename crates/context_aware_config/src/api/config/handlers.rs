@@ -81,10 +81,13 @@ fn add_last_modified_to_header(
 ) {
     if let Some(ele) = max_created_at {
         let datetime_utc: DateTime<Utc> = TimeZone::from_utc_datetime(&Utc, &ele);
-        resp_builder.insert_header((
-            AppHeader::LastModified.to_string(),
-            datetime_utc.to_string(),
-        ));
+        let value = HeaderValue::from_str(&DateTime::to_rfc2822(&datetime_utc));
+        if let Ok(header_value) = value {
+            resp_builder
+                .insert_header((AppHeader::LastModified.to_string(), header_value));
+        } else {
+            log::error!("failed parsing datetime_utc {:?}", value);
+        }
     }
 }
 
