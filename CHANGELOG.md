@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.51.0 - 2024-07-11
+### Package updates
+- superposition_types bumped to superposition_types-v0.3.0
+- frontend bumped to frontend-v0.12.0
+- experimentation_platform bumped to experimentation_platform-v0.18.0
+- context_aware_config bumped to context_aware_config-v0.35.0
+- service_utils bumped to service_utils-v0.19.0
+- cac_client bumped to cac_client-v0.14.0
+### Global changes
+#### Documentation
+- updated nix package addition docs (#147) - (3bdc59d) - Shivam Ashtikar
+#### Features
+- move apperror to superposition_types - (f1c8395) - Pratik Mishra
+#### Miscellaneous Chores
+- add more docs on integration with C libraries (#153) - (7d32720) - Datron
+
+- - -
+
 ## v0.50.1 - 1970-01-01
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.34.3

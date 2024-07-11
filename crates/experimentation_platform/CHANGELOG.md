@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.18.0 - 2024-07-11
+#### Bug Fixes
+- x-config-version in get config and experiments response (#152) - (1a429a9) - Ayush Jain
+#### Features
+- move apperror to superposition_types - (f1c8395) - Pratik Mishra
+
+- - -
+
 ## experimentation_platform-v0.17.0 - 2024-06-20
 #### Features
 - add config version header in api response (#87) - (213a21e) - PRATIK MISHRA

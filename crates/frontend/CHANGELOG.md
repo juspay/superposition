@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.12.0 - 2024-07-11
+#### Bug Fixes
+- modify the default dropdown message for types during edits - (08b4de5) - Kartik
+- remove null from type template form when no input is provided - (f0d2990) - Kartik
+- Fix context parsing (#145) - (cdd6607) - Ankit Kumar Mahato
+#### Features
+- added delete override modal (#130) - (a3d498e) - sauraww
+
+- - -
+
 ## frontend-v0.11.3 - 2024-07-01
 #### Bug Fixes
 - handled parsing for multiple possible types (#134) - (9518737) - Shubhranshu Sanjeev

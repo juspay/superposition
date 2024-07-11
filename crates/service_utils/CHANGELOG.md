@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.19.0 - 2024-07-11
+#### Features
+- move apperror to superposition_types - (f1c8395) - Pratik Mishra
+
+- - -
+
 ## service_utils-v0.18.0 - 2024-06-20
 #### Features
 - add config version header in api response (#87) - (213a21e) - PRATIK MISHRA
