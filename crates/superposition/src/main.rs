@@ -1,6 +1,8 @@
 use actix_web::dev::Service;
 use actix_web::HttpMessage;
 use actix_web::{web, web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::{SwaggerUi, Url};
 use context_aware_config::api::*;
 use context_aware_config::helpers::{
     get_default_config_validation_schema, get_meta_schema,
@@ -38,6 +40,20 @@ async fn favicon(
         "{site_root}/favicon.ico"
     ))?)
 }
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+
+    ),
+    components(
+        // schemas()
+    ),
+    tags(
+        (name = "API Project", description = "This is sample project")
+    )
+)]
+struct ApiDoc;
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -239,6 +255,10 @@ async fn main() -> Result<()> {
                 get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
             )
             .app_data(Data::new(leptos_options.to_owned()))
+            .service(SwaggerUi::new("/swagger-ui/{_:.*}").urls(vec![(
+                Url::new("api", "/api-docs.json"),
+                ApiDoc::openapi(),
+            )]))
     })
     .bind(("0.0.0.0", cac_port))?
     .workers(5)

@@ -212,6 +212,13 @@ fn fetch_default_key(
     Ok(res)
 }
 
+#[utoipa::path(
+    get,
+    path = "/apis/posts",
+    responses(
+        (status = 200, description = "List current posts", body = [DefaultConfig]),
+    )
+)]
 #[get("")]
 async fn get(db_conn: DbConnection) -> superposition::Result<Json<Vec<DefaultConfig>>> {
     let DbConnection(mut conn) = db_conn;

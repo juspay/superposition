@@ -60,5 +60,11 @@ leptos_router = { workspace = true }
 actix-files = { version = "0.6" }
 anyhow = { workspace = true }
 
+<<<<<<< Updated upstream
 [lints]
 workspace = true
+=======
+
+utoipa = { version = "4", features = ["actix_extras"] }
+utoipa-swagger-ui = { version = "7", features = ["actix-web"] }
+>>>>>>> Stashed changes
