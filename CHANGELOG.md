@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.52.0 - 2024-07-11
+### Package updates
+- superposition_macros bumped to superposition_macros-v0.1.0
+### Global changes
+#### Bug Fixes
+- add superposition_macros in cog.toml to upgrade versions (#155) - (1644bf8) - PRATIK MISHRA
+
+- - -
+
 ## v0.51.0 - 2024-07-11
 ### Package updates
 - superposition_types bumped to superposition_types-v0.3.0
