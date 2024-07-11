@@ -4,6 +4,7 @@ const std = @import("std");
 // declaratively construct a build graph that will be executed by an external
 // runner.
 pub fn build(b: *std.Build) void {
+
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
@@ -26,7 +27,7 @@ pub fn build(b: *std.Build) void {
 
     // Mention the include directory for the c_bindings header files
 
-    linkBindings(b, lib);
+    linkBindingsDebug(lib);
 
     // This declares intent for the library to be installed into the standard
     // location when the user invokes the "install" step (the default step when
@@ -45,27 +46,30 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    linkBindings(b, lib_unit_tests);
+    linkBindingsDebug(lib_unit_tests);
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
     test_step.dependOn(&run_lib_unit_tests.step);
 
-    // CAC Tests
+    // // CAC Tests
 
-    const cac_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    // const cac_unit_tests = b.addTest(.{
+    //     .name = "cac_unit_tests",
+    //     .root_source_file = b.path("src/root.zig"),
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
 
-    linkBindings(b, lib_unit_tests);
+    // linkBindingsDebug(lib_unit_tests);
 
-    const run_cac_unit_tests = b.addRunArtifact(cac_unit_tests);
-    test_step.dependOn(&run_cac_unit_tests.step);
+    // const run_cac_unit_tests = b.addRunArtifact(cac_unit_tests);
+    // test_step.dependOn(&run_cac_unit_tests.step);
 }
 
-fn linkBindings(b: *std.Build, c: *std.Build.Step.Compile) void {
+fn linkBindingsDebug(c: *std.Build.Step.Compile) void {
+    c.addIncludePath(.{ .cwd_relative = "../../headers" });
+    c.addLibraryPath(.{ .cwd_relative = "../../target/debug" });
+
     c.linkLibC();
-    c.addIncludePath(.{ .src_path = .{ .owner = b, .sub_path = "../../headers" } });
-    c.addLibraryPath(.{ .src_path = .{ .owner = b, .sub_path = "../../target/debug" } });
+    c.linkSystemLibrary("cac_client");
 }
