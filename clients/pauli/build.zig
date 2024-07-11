@@ -50,20 +50,6 @@ pub fn build(b: *std.Build) void {
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
     test_step.dependOn(&run_lib_unit_tests.step);
-
-    // // CAC Tests
-
-    // const cac_unit_tests = b.addTest(.{
-    //     .name = "cac_unit_tests",
-    //     .root_source_file = b.path("src/root.zig"),
-    //     .target = target,
-    //     .optimize = optimize,
-    // });
-
-    // linkBindingsDebug(lib_unit_tests);
-
-    // const run_cac_unit_tests = b.addRunArtifact(cac_unit_tests);
-    // test_step.dependOn(&run_cac_unit_tests.step);
 }
 
 fn linkBindingsDebug(c: *std.Build.Step.Compile) void {
