@@ -13,6 +13,7 @@ pub mod experiment_conclude_form;
 pub mod experiment_form;
 pub mod experiment_ramp_form;
 pub mod function_form;
+pub mod input_components;
 pub mod modal;
 pub mod nav_item;
 pub mod override_form;

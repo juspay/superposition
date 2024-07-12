@@ -1,9 +1,14 @@
 pub mod utils;
+use std::collections::{HashMap, HashSet};
 
-use crate::components::dropdown::{Dropdown, DropdownDirection};
+use crate::components::{
+    dropdown::{Dropdown, DropdownDirection},
+    input_components::{BooleanToggle, EnumDropdown},
+};
 use crate::types::Dimension;
+use crate::utils::get_key_type;
 use leptos::*;
-use std::collections::HashSet;
+use serde_json::{Map, Value};
 use web_sys::MouseEvent;
 
 #[component]
@@ -49,11 +54,11 @@ where
     let handle_select_dropdown_option =
         Callback::new(move |selected_dimension: Dimension| {
             let dimension_name = selected_dimension.dimension;
+            set_used_dimensions.update(|value: &mut HashSet<String>| {
+                value.insert(dimension_name.clone());
+            });
             set_context.update(|value| {
                 value.push((dimension_name.clone(), "".to_string(), "".to_string()))
-            });
-            set_used_dimensions.update(|value: &mut HashSet<String>| {
-                value.insert(dimension_name);
             });
         });
 
@@ -81,127 +86,208 @@ where
                                 />
                             </div>
                         </Show>
-                        <For
-                            each=move || {
-                                context
-                                    .get()
-                                    .into_iter()
-                                    .enumerate()
-                                    .collect::<Vec<(usize, (String, String, String))>>()
-                            }
+                        {move || {
+                            let dimensions_map = dimensions
+                                .get_value()
+                                .into_iter()
+                                .map(|ele| (ele.dimension.clone(), ele))
+                                .collect::<HashMap<String, Dimension>>();
+                            view! {
+                                <For
+                                    each=move || {
+                                        context
+                                            .get()
+                                            .into_iter()
+                                            .enumerate()
+                                            .collect::<Vec<(usize, (String, String, String))>>()
+                                    }
 
-                            key=|(idx, (dimension, _, _))| format!("{}-{}", dimension, idx)
-                            children=move |(idx, (dimension, operator, value))| {
-                                let dimension_label = dimension.to_string();
-                                let dimension_name = StoredValue::new(dimension.to_string());
-                                view! {
-                                    <div class="flex gap-x-6">
-                                        <div class="form-control">
-                                            <label class="label font-mono text-sm">
-                                                <span class="label-text">Dimension</span>
-                                            </label>
-                                            <input
-                                                value=dimension_label
-                                                class="input w-full max-w-xs"
-                                                name="context-dimension-name"
-                                                disabled=true
-                                            />
-                                        </div>
-                                        <div class="form-control w-20">
-                                            <label class="label font-medium font-mono text-sm">
-                                                <span class="label-text">Operator</span>
-                                            </label>
+                                    key=|(idx, (dimension, op, _))| {
+                                        format!("{}-{}-{}", dimension, idx, op)
+                                    }
 
-                                            <select
-                                                disabled=disabled || resolve_mode
-                                                value=operator.clone()
-                                                on:input=move |event| {
-                                                    let input_value = event_target_value(&event);
-                                                    set_context
-                                                        .update(|curr_context| {
-                                                            curr_context[idx].1 = input_value;
-                                                        });
-                                                }
-
-                                                name="context-dimension-operator"
-                                                class="select select-bordered w-full max-w-xs text-sm rounded-lg h-10 px-4 appearance-none leading-tight focus:outline-none focus:shadow-outline"
-                                            >
-                                                <option disabled selected=!resolve_mode>
-                                                    Pick one
-                                                </option>
-                                                <option
-                                                    value="=="
-                                                    selected=operator.clone() == "==" || resolve_mode
-                                                >
-                                                    "IS"
-                                                </option>
-                                                <option value="in" selected=operator.clone() == "in">
-                                                    "HAS"
-                                                </option>
-                                                <option value="<=" selected=operator.clone() == "<=">
-                                                    "BETWEEN (inclusive)"
-                                                </option>
-                                            </select>
-
-                                        </div>
-                                        <div class="form-control">
-                                            <label class="label font-mono text-sm">
-                                                <span class="label-text">Value</span>
-                                            </label>
-                                            <div class="flex gap-x-6 items-center">
-                                                <input
-                                                    disabled=disabled
-                                                    value=value
-                                                    on:input=move |event| {
-                                                        let input_value = event_target_value(&event);
-                                                        set_context
-                                                            .update(|curr_context| {
-                                                                curr_context[idx].2 = input_value;
-                                                            });
-                                                    }
-
-                                                    name="context-dimension-value"
-                                                    type="text"
-                                                    placeholder="Type here"
-                                                    class="input input-bordered w-full bg-white text-gray-700 shadow-md"
-                                                />
-                                                <Show when=move || !disabled>
-                                                    <button
-                                                        class="btn btn-ghost btn-circle btn-sm"
-                                                        disabled=disabled
-                                                        on:click=move |_| {
-                                                            let mut current_context = context.get();
-                                                            current_context.remove(idx);
-                                                            set_used_dimensions
-                                                                .update(|value| {
-                                                                    value.remove(&dimension_name.get_value());
-                                                                });
-                                                            set_context.set(current_context);
-                                                        }
-                                                    >
-
-                                                        <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
-                                                    </button>
-                                                </Show>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {move || {
-                                        if last_idx.get() != idx {
-                                            view! {
-                                                <div class="my-3 ml-5 ml-6 ml-7">
-                                                    <span class="font-mono text-xs">"&&"</span>
-                                                </div>
-                                            }
-                                                .into_view()
-                                        } else {
-                                            view! {}.into_view()
+                                    children=move |(idx, (dimension, mut operator, value))| {
+                                        let dimension_label = dimension.to_string();
+                                        let dimension_name = StoredValue::new(
+                                            dimension.to_string(),
+                                        );
+                                        let schema: Map<String, Value> = serde_json::from_value(
+                                                dimensions_map.get(&dimension_label).unwrap().schema.clone(),
+                                            )
+                                            .unwrap();
+                                        let dimension_type = get_key_type(&schema);
+                                        if operator.is_empty() {
+                                            set_context
+                                                .update_untracked(|curr_context| {
+                                                    curr_context[idx].1 = String::from("==");
+                                                });
+                                            operator = String::from("==");
                                         }
-                                    }}
-                                }
+                                        view! {
+                                            //
+
+                                            <div class="flex gap-x-6">
+                                                <div class="form-control">
+                                                    <label class="label font-mono text-sm">
+                                                        <span class="label-text">Dimension</span>
+                                                    </label>
+                                                    <input
+                                                        value=dimension_label
+                                                        class="input w-full max-w-xs"
+                                                        name="context-dimension-name"
+                                                        disabled=true
+                                                    />
+                                                </div>
+                                                <div class="form-control w-20">
+                                                    <label class="label font-medium font-mono text-sm">
+                                                        <span class="label-text">Operator</span>
+                                                    </label>
+
+                                                    <select
+                                                        disabled=disabled || resolve_mode
+                                                        value=operator.clone()
+                                                        on:input=move |event| {
+                                                            let input_value = event_target_value(&event);
+                                                            set_context
+                                                                .update(|curr_context| {
+                                                                    curr_context[idx].1 = input_value;
+                                                                    curr_context[idx].2 = String::from("");
+                                                                });
+                                                        }
+
+                                                        name="context-dimension-operator"
+                                                        class="select select-bordered w-full max-w-xs text-sm rounded-lg h-10 px-4 appearance-none leading-tight focus:outline-none focus:shadow-outline"
+                                                    >
+                                                        <option
+                                                            value="=="
+                                                            selected=operator == "==" || resolve_mode
+                                                        >
+                                                            "IS"
+                                                        </option>
+                                                        <option value="in" selected=operator == "in">
+                                                            "HAS"
+                                                        </option>
+                                                        <option value="<=" selected=operator == "<=">
+                                                            "BETWEEN (inclusive)"
+                                                        </option>
+                                                    </select>
+
+                                                </div>
+                                                <div class="form-control">
+                                                    <label class="label font-mono text-sm">
+                                                        <span class="label-text">Value</span>
+                                                    </label>
+                                                    <div class="flex gap-x-6 items-center">
+
+                                                        {
+                                                            let string_input = view! {
+                                                                <input
+                                                                    disabled=disabled
+                                                                    value=value.clone()
+                                                                    on:change=move |event| {
+                                                                        let input_value = event_target_value(&event);
+                                                                        set_context
+                                                                            .update(|curr_context| {
+                                                                                curr_context[idx].2 = input_value;
+                                                                            });
+                                                                    }
+
+                                                                    name="context-dimension-value"
+                                                                    type="text"
+                                                                    placeholder="Type here"
+                                                                    class="input input-bordered w-full bg-white text-gray-700 shadow-md"
+                                                                />
+                                                            }
+                                                                .into_view();
+                                                            match operator.as_str() {
+                                                                "==" => {
+                                                                    match dimension_type.as_str() {
+                                                                        "ENUM" => {
+                                                                            view! {
+                                                                                <EnumDropdown
+                                                                                    schema
+                                                                                    config_value=value
+                                                                                    handle_change=Callback::new(move |selected_enum: String| {
+                                                                                        set_context
+                                                                                            .update(|curr_context| {
+                                                                                                curr_context[idx].2 = selected_enum;
+                                                                                            });
+                                                                                    })
+
+                                                                                    disabled=disabled
+                                                                                />
+                                                                            }
+                                                                                .into_view()
+                                                                        }
+                                                                        "BOOLEAN" => {
+                                                                            if value.is_empty() {
+                                                                                set_context
+                                                                                    .update_untracked(|curr_context| {
+                                                                                        curr_context[idx]
+                                                                                            .2 = value.parse::<bool>().unwrap_or(false).to_string();
+                                                                                    });
+                                                                            }
+                                                                            view! {
+                                                                                <BooleanToggle
+                                                                                    config_value=value
+                                                                                    update_value=Callback::new(move |flag: String| {
+                                                                                        set_context
+                                                                                            .update(|curr_context| {
+                                                                                                curr_context[idx].2 = flag;
+                                                                                            });
+                                                                                    })
+
+                                                                                    class=String::from("mt-2")
+                                                                                    disabled=disabled
+                                                                                />
+                                                                            }
+                                                                                .into_view()
+                                                                        }
+                                                                        _ => string_input,
+                                                                    }
+                                                                }
+                                                                _ => string_input,
+                                                            }
+                                                        }
+                                                        <Show when=move || !disabled>
+                                                            <button
+                                                                class="btn btn-ghost btn-circle btn-sm mt-1"
+                                                                disabled=disabled
+                                                                on:click=move |_| {
+                                                                    let mut current_context = context.get();
+                                                                    current_context.remove(idx);
+                                                                    set_used_dimensions
+                                                                        .update(|value| {
+                                                                            value.remove(&dimension_name.get_value());
+                                                                        });
+                                                                    set_context.set(current_context);
+                                                                }
+                                                            >
+
+                                                                <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
+                                                            </button>
+                                                        </Show>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {move || {
+                                                if last_idx.get() != idx {
+                                                    view! {
+                                                        <div class="my-3 ml-5 ml-6 ml-7">
+                                                            <span class="font-mono text-xs">"&&"</span>
+                                                        </div>
+                                                    }
+                                                        .into_view()
+                                                } else {
+                                                    view! {}.into_view()
+                                                }
+                                            }}
+                                        }
+                                    }
+                                />
                             }
-                        />
+                        }}
 
                         <Show when=move || { !context.get().is_empty() && !disabled }>
                             <div class="mt-4">
