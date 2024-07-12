@@ -171,7 +171,7 @@ where
                             <textarea
                                 type="text"
                                 placeholder="Enter a JSON schema"
-                                class="input input-bordered mt-5 rounded-md resize-y w-full max-w-md"
+                                class="input input-bordered mt-5 rounded-md resize-y w-full max-w-md pt-3"
                                 rows=8
                                 on:change=move |ev| {
                                     dimension_schema_ws
@@ -209,8 +209,9 @@ where
                                     ev.prevent_default();
                                 }
                             }
+
                             on:change=move |ev| {
-                                logging::log!("{:?}", event_target_value(&ev).parse::<u32>());
+                                logging::log!("{:?}", event_target_value(& ev).parse::< u32 > ());
                                 match event_target_value(&ev).parse::<u32>() {
                                     Ok(i_prio) => set_priority.set(i_prio),
                                     Err(e) => {

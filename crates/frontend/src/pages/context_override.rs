@@ -340,10 +340,11 @@ pub fn context_override() -> impl IntoView {
                 </div>
 
                 <DeleteModal
-                modal_visible = modal_visible
-                confirm_delete = confirm_delete
-                set_modal_visible = set_modal_visible
-                header_text = "Are you sure you want to delete this context? Action is irreversible.".to_string()
+                    modal_visible=modal_visible
+                    confirm_delete=confirm_delete
+                    set_modal_visible=set_modal_visible
+                    header_text="Are you sure you want to delete this context? Action is irreversible."
+                        .to_string()
                 />
 
             </Suspense>
