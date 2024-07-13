@@ -2,17 +2,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    haskell-flake.url = "github:srid/haskell-flake";
     systems.url = "github:nix-systems/default";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    crane = {
-      url = "github:ipetkov/crane";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    haskell-flake.url = "github:srid/haskell-flake";
+    rust-flake.url = "github:juspay/rust-flake";
   };
 
   outputs = inputs:
@@ -22,19 +15,23 @@
 
       imports = [
         inputs.haskell-flake.flakeModule
+        inputs.rust-flake.flakeModules.default
+        inputs.rust-flake.flakeModules.nixpkgs
         inputs.pre-commit-hooks.flakeModule
         ./nix/pre-commit.nix
         ./clients/haskell
-        ./rust.nix
+        ./nix/rust.nix
       ];
 
       perSystem = { pkgs, self', config, ... }: {
+        formatter = pkgs.nixpkgs-fmt;
         devShells.default = pkgs.mkShell {
           inputsFrom = [
             self'.devShells.rust
             self'.devShells.haskell
             config.pre-commit.devShell
           ];
+          # Add your devShell tools here
           packages = with pkgs; [
             docker-compose
             gnumake
@@ -44,6 +41,11 @@
             jq
             nodejs_18
             nixpkgs-fmt
+            bacon
+            cargo-watch
+            diesel-cli
+            leptosfmt
+            wasm-pack
           ];
         };
       };
