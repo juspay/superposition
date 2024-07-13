@@ -4,8 +4,8 @@
       projectRoot = ./.;
       autoWire = [ "packages" "checks" "apps" ];
       settings = {
-        cac_client.custom = _: self'.packages.superposition;
-        experimentation_client.custom = _: self'.packages.superposition;
+        cac_client.custom = _: self'.packages.cac_client;
+        experimentation_client.custom = _: self'.packages.experimentation_client;
       };
     };
 
