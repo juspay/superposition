@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.3.0 - 2024-07-11
+#### Features
+- move apperror to superposition_types - (f1c8395) - Pratik Mishra
+#### Miscellaneous Chores
+- simplify module structure and follow Rust 2018 edition module naming convention (#86) - (403ea59) - Sanchith Hegde
+
+- - -
+
 ## superposition_types-v0.2.1 - 2024-05-10
 #### Bug Fixes
 - remove juspay email address for anon user - (f174428) - Kartik

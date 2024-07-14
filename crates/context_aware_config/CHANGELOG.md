@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.35.0 - 2024-07-11
+#### Bug Fixes
+- undo stringify of last_modified timestamp (#154) - (8334925) - PRATIK MISHRA
+- x-config-version in get config and experiments response (#152) - (1a429a9) - Ayush Jain
+#### Features
+- move apperror to superposition_types - (f1c8395) - Pratik Mishra
+
+- - -
+
 ## context_aware_config-v0.34.3 - 2024-07-01
 #### Bug Fixes
 - default config regex validation (#141) - (29d3f1a) - Ankit Kumar Mahato
