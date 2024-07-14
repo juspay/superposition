@@ -35,6 +35,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    lib_unit_tests.step.dependOn(&superposition.step);
+
     linkBindingsDebug(b, lib_unit_tests);
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
@@ -42,6 +44,7 @@ pub fn build(b: *std.Build) void {
 
     const example_1 = b.addExecutable(.{ .name = "cli", .root_source_file = b.path("src/example_cli.zig"), .target = target, .optimize = optimize });
 
+    example_1.step.dependOn(&superposition.step);
     linkBindingsDebug(b, example_1);
 
     b.installArtifact(example_1);
@@ -52,8 +55,13 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    module.addIncludePath(b.path("../../headers"));
-    module.addLibraryPath(b.path("../../target/debug"));
+    module.linkLibrary(lib);
+
+    module.addIncludePath(b.path("superposition/headers"));
+    module.addLibraryPath(b.path("superposition/target/release"));
+    //
+    // module.addIncludePath(b.path("../../headers"));
+    // module.addLibraryPath(b.path("../../target/debug"));
 
     module.linkSystemLibrary("c", .{});
 
@@ -62,8 +70,8 @@ pub fn build(b: *std.Build) void {
 }
 
 fn linkBindingsDebug(b: *std.Build, c: *std.Build.Step.Compile) void {
-    c.addIncludePath(b.path("../../headers"));
-    c.addLibraryPath(b.path("../../target/debug"));
+    c.addIncludePath(b.path("superposition/headers"));
+    c.addLibraryPath(b.path("superposition/target/release"));
 
     c.linkLibC();
     c.linkSystemLibrary("cac_client");
@@ -71,13 +79,17 @@ fn linkBindingsDebug(b: *std.Build, c: *std.Build.Step.Compile) void {
 }
 
 fn buildSuperpositionClient(b: *std.Build) *std.Build.Step.Run {
-    const repository = b.addSystemCommand(&.{ "git", "clone", "https://github.com/juspay/superposition.git" });
+    const repository = b.addSystemCommand(&.{
+        "sh", "-c", std.fmt.comptimePrint(
+            \\if [ ! -d superposition ]; then
+            \\   git clone https://github.com/juspay/superposition.git
+            \\fi
+        , .{}),
+    });
 
     const rust_build = b.addSystemCommand(&.{ "cargo", "build", "--release" });
 
     rust_build.setCwd(b.path("superposition"));
-
-    rust_build.addDirectoryArg(b.path("superposition"));
 
     rust_build.step.dependOn(&repository.step);
 
