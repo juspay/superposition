@@ -42,13 +42,6 @@ pub fn build(b: *std.Build) void {
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
     test_step.dependOn(&run_lib_unit_tests.step);
 
-    const example_1 = b.addExecutable(.{ .name = "cli", .root_source_file = b.path("src/example_cli.zig"), .target = target, .optimize = optimize });
-
-    example_1.step.dependOn(&superposition.step);
-    linkBindingsDebug(b, example_1);
-
-    b.installArtifact(example_1);
-
     const module = b.addModule("pauli", .{
         .root_source_file = b.path("src/root.zig"),
         .target = target,
@@ -59,9 +52,6 @@ pub fn build(b: *std.Build) void {
 
     module.addIncludePath(b.path("superposition/headers"));
     module.addLibraryPath(b.path("superposition/target/release"));
-    //
-    // module.addIncludePath(b.path("../../headers"));
-    // module.addLibraryPath(b.path("../../target/debug"));
 
     module.linkSystemLibrary("c", .{});
 
