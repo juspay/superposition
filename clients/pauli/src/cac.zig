@@ -10,13 +10,21 @@ const cac_bindings = @cImport({
     @cInclude("libcac_client.h");
 });
 
+const parse_json = @import("utils.zig").parse_json;
+const parse_filter_keys = @import("utils.zig").parse_filter_keys;
+
 const ClientError = @import("type.zig").ClientError;
-const SetupConfig = @import("type.zig").SetupConfig;
+pub const SetupConfig = @import("type.zig").SetupConfig;
+
+pub const MergeStrategy = enum {
+    MERGE,
+    REPLACE,
+};
 
 // Types
 // ---------------------------------------------------------------------------
 
-const Client = struct {
+pub const Client = struct {
     config: *const SetupConfig,
     ///
     /// [`client`] is a pointer to the CAC client instance.
@@ -114,7 +122,7 @@ const Client = struct {
         return string;
     }
 
-    pub fn getDefaultConfigRaw(self: *const Client, filter_keys: []const u8) ClientError![]const u8 {
+    fn getDefaultConfigRaw(self: *const Client, filter_keys: []const u8) ClientError![]const u8 {
         const c_string = cac_bindings.cac_get_default_config(self.client, filter_keys.ptr);
 
         if (c_string == null) {
@@ -126,31 +134,73 @@ const Client = struct {
         return string;
     }
 
-    ///
-    ///
-    /// [`freeFfiStringRaw`] frees the memory allocated by the CAC client.
-    ///
-    /// As the memory allocations are done by the CAC client, it is important to free the memory allocated by the client.
-    ///
-    /// Used to construct safe abstractions around the raw functions. (This can be used to copy over data to a memory space allocated by the provided allocator)
-    ///
-    fn freeFfiStringRaw(s_ptr: []const u8) void {
-        cac_bindings.cac_free_string(s_ptr.ptr);
+    // Allocation Based Functions
+
+    pub fn getDefaultConfig(self: *const Client, comptime T: type, alloc: std.mem.Allocator, keys: []const []const u8) !T {
+        const output = try self.getDefaultConfigRaw(try parse_filter_keys(alloc, keys, "|"));
+
+        const config = try parse_json(T, alloc, output);
+
+        freeFfiStringRaw(output);
+
+        return config;
+    }
+
+    pub fn getResolvedConfig(self: *const Client, comptime O: type, alloc: std.mem.Allocator, query: anytype, filter_keys: []const []const u8, merge_strategy: MergeStrategy) !O {
+        const query_ptr = try std.json.stringifyAlloc(alloc, query, .{});
+
+        const output = try self.getResolvedConfigRaw(query_ptr, try parse_filter_keys(alloc, filter_keys, "|"), merge_strategy);
+
+        const config = try parse_json(O, alloc, output);
+
+        freeFfiStringRaw(output);
+
+        return config;
+    }
+
+    pub fn getConfig(self: *const Client, comptime O: type, alloc: std.mem.Allocator, query: anytype, prefix: []const []const u8) !O {
+        const prefix_ptr = try parse_filter_keys(alloc, prefix, ",");
+
+        const query_ptr = try std.json.stringifyAlloc(alloc, query, .{});
+
+        std.debug.print("Query: {s}\n", .{query_ptr});
+
+        const output = try self.getConfigRaw(query_ptr, prefix_ptr);
+
+        const config = try parse_json(O, alloc, output);
+
+        freeFfiStringRaw(output);
+
+        return config;
     }
 };
+
+///
+///
+/// [`freeFfiStringRaw`] frees the memory allocated by the CAC client.
+///
+/// As the memory allocations are done by the CAC client, it is important to free the memory allocated by the client.
+///
+/// Used to construct safe abstractions around the raw functions. (This can be used to copy over data to a memory space allocated by the provided allocator)
+///
+fn freeFfiStringRaw(_: []const u8) void {
+
+    // BUG: The current implementation of `cac_free_string` accepts `char *` but a significant other functions defined return `const char *`. This makes it impossible to free the memory allocated by the CAC client.
+    // cac_bindings.cac_free_string(s_ptr.ptr);
+}
 
 // Functions
 // ---------------------------------------------------------------------------
 
 test "test init" {
-    const config = SetupConfig{ .tenant = "public", .update_frequency = 10, .hostname = "http://localhost:8081" };
+    const config = SetupConfig{ .tenant = "public", .update_frequency = 10, .hostname = "http://localhost:8080" };
 
     const client = try Client.init(config);
     defer client.deinit();
 }
 
 test "test lastModifiedRaw" {
-    const config = SetupConfig{ .tenant = "public", .update_frequency = 10, .hostname = "http://localhost:8081" };
+    const config = SetupConfig{ .tenant = "public", .update_frequency = 10, .hostname = "http://localhost:8080" };
 
     const client = try Client.init(config);
     defer client.deinit();

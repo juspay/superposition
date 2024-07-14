@@ -4,34 +4,23 @@ const std = @import("std");
 // declaratively construct a build graph that will be executed by an external
 // runner.
 pub fn build(b: *std.Build) void {
-
-    // Standard target options allows the person running `zig build` to choose
-    // what target to build for. Here we do not override the defaults, which
-    // means any target is allowed, and the default is native. Other options
-    // for restricting supported target set are available.
     const target = b.standardTargetOptions(.{});
 
-    // Standard optimization options allow the person running `zig build` to select
-    // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
-    // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
+
+    const superposition = buildSuperpositionClient(b);
 
     const lib = b.addStaticLibrary(.{
         .name = "pauli",
-        // In this case the main source file is merely a path, however, in more
-        // complicated build scripts, this could be a generated file.
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
     });
 
-    // Mention the include directory for the c_bindings header files
+    lib.step.dependOn(&superposition.step);
 
-    linkBindingsDebug(lib);
+    linkBindingsDebug(b, lib);
 
-    // This declares intent for the library to be installed into the standard
-    // location when the user invokes the "install" step (the default step when
-    // running `zig build`).
     b.installArtifact(lib);
 
     // Tests section
@@ -46,16 +35,51 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    linkBindingsDebug(lib_unit_tests);
+    linkBindingsDebug(b, lib_unit_tests);
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
     test_step.dependOn(&run_lib_unit_tests.step);
+
+    const example_1 = b.addExecutable(.{ .name = "cli", .root_source_file = b.path("src/example_cli.zig"), .target = target, .optimize = optimize });
+
+    linkBindingsDebug(b, example_1);
+
+    b.installArtifact(example_1);
+
+    const module = b.addModule("pauli", .{
+        .root_source_file = b.path("src/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    module.addIncludePath(b.path("../../headers"));
+    module.addLibraryPath(b.path("../../target/debug"));
+
+    module.linkSystemLibrary("c", .{});
+
+    module.linkSystemLibrary("cac_client", .{});
+    module.linkSystemLibrary("experimentation_client", .{});
 }
 
-fn linkBindingsDebug(c: *std.Build.Step.Compile) void {
-    c.addIncludePath(.{ .cwd_relative = "../../headers" });
-    c.addLibraryPath(.{ .cwd_relative = "../../target/debug" });
+fn linkBindingsDebug(b: *std.Build, c: *std.Build.Step.Compile) void {
+    c.addIncludePath(b.path("../../headers"));
+    c.addLibraryPath(b.path("../../target/debug"));
 
     c.linkLibC();
     c.linkSystemLibrary("cac_client");
+    c.linkSystemLibrary("experimentation_client");
+}
+
+fn buildSuperpositionClient(b: *std.Build) *std.Build.Step.Run {
+    const repository = b.addSystemCommand(&.{ "git", "clone", "https://github.com/juspay/superposition.git" });
+
+    const rust_build = b.addSystemCommand(&.{ "cargo", "build", "--release" });
+
+    rust_build.setCwd(b.path("superposition"));
+
+    rust_build.addDirectoryArg(b.path("superposition"));
+
+    rust_build.step.dependOn(&repository.step);
+
+    return rust_build;
 }

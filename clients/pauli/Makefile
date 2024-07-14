@@ -1,6 +1,6 @@
 
 
-.PHONY: test coverage run
+.PHONY: test coverage run run-ex build-ex
 
 
 test: test-cac test-expt
@@ -10,3 +10,11 @@ test-cac:
 
 test-expt:
 	zig test -I../../headers -lc  src/expt.zig ../../target/debug/libexperimentation_client.so
+
+
+run-ex: build-ex
+	./zig-out/bin/cli
+
+build-ex:
+	zig build
+
