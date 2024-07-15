@@ -1,5 +1,15 @@
 // @generated automatically by Diesel CLI.
 
+pub mod sql_types {
+    #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "experiment_status_type"))]
+    pub struct ExperimentStatusType;
+
+    #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "not_null_text"))]
+    pub struct NotNullText;
+}
+
 diesel::table! {
     config_versions (id) {
         id -> Int8,
@@ -592,6 +602,27 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::NotNullText;
+    use super::sql_types::ExperimentStatusType;
+
+    experiments (id) {
+        id -> Int8,
+        created_at -> Timestamptz,
+        created_by -> Text,
+        last_modified -> Timestamptz,
+        name -> Text,
+        override_keys -> Array<Nullable<NotNullText>>,
+        status -> ExperimentStatusType,
+        traffic_percentage -> Int4,
+        context -> Json,
+        variants -> Json,
+        last_modified_by -> Text,
+        chosen_variant -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
     functions (function_name) {
         function_name -> Text,
         published_code -> Nullable<Text>,
@@ -668,6 +699,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     event_log_y2026m10,
     event_log_y2026m11,
     event_log_y2026m12,
+    experiments,
     functions,
     type_templates,
 );
