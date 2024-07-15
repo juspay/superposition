@@ -75,9 +75,6 @@ class CacClient {
   late ffi.Pointer<ffi.Void> _clientPtr;
 
   CacClient(String tenant, int updateFrequency, String hostname) {
-    print(
-        "Creating client with: Tenant: $tenant, UpdateFrequency: $updateFrequency, Hostname: $hostname");
-
     final tenantPtr = tenant.toNativeUtf8();
     final hostnamePtr = hostname.toNativeUtf8();
 
@@ -94,8 +91,6 @@ class CacClient {
       _cacFreeString(errorPtr);
       throw Exception("Failed to create CAC client: $errorMessage");
     }
-
-    print("Client created successfully, attempting to get client pointer");
 
     _clientPtr = _cacGetClient(tenant.toNativeUtf8());
     if (_clientPtr == ffi.nullptr) {
