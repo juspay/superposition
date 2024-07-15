@@ -15,11 +15,11 @@ class DartCacClient {
   ///
   /// Example:
   /// ```dart
-  /// final client = CacClient('dev', 60, 'http://localhost:8080');
+  /// final client = DartCacClient('dev', 60, 'http://localhost:8080');
   /// ```
 
-  DartCacClient(String s, int i, String t) {
-    client = CacClient('dev', 1, 'http://localhost:8080');
+  DartCacClient(String tenant, int updateFrequency, String hostUrl) {
+    client = CacClient(tenant, updateFrequency, hostUrl);
   }
 
   /// Retrieves configurations based on the provided query and filter prefix.

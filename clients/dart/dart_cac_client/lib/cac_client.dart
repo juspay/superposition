@@ -10,18 +10,13 @@ final ffi.DynamicLibrary _lib = ffi.DynamicLibrary.open(_libName);
 // Helper to get the correct library name based on the platform
 String get _libName {
   if (Platform.isWindows) {
-    return path.join(
-        '/Users/subhash/working-repos/github/superposition/target/debug/',
-        'cac_client.dll');
+    return path.join(path.current, '/../../../target/debug/', 'cac_client.dll');
   }
   if (Platform.isMacOS) {
     return path.join(
-        '/Users/subhash/working-repos/github/superposition/target/debug/',
-        'libcac_client.dylib');
+        path.current, '/../../../target/debug/', 'libcac_client.dylib');
   }
-  return path.join(
-      '/Users/subhash/working-repos/github/superposition/target/debug/',
-      'libcac_client.so');
+  return path.join(path.current, '/../../../target/debug/', 'libcac_client.so');
 }
 
 // Bind the C functions
