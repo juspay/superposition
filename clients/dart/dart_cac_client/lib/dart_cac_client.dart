@@ -2,7 +2,11 @@ library dart_cac_client;
 
 import 'package:dart_cac_client/cac_client.dart';
 
+enum MergeStrategy { REPLACE, MERGE }
+
 class DartCacClient {
+  late CacClient client;
+
   /// Creates a new CacClient instance.
   ///
   /// [tenant] is the name of the tenant.
@@ -13,7 +17,10 @@ class DartCacClient {
   /// ```dart
   /// final client = CacClient('dev', 60, 'http://localhost:8080');
   /// ```
-  final client = CacClient('dev', 1, 'http://localhost:8080');
+
+  DartCacClient(String s, int i, String t) {
+    client = CacClient('dev', 1, 'http://localhost:8080');
+  }
 
   /// Retrieves configurations based on the provided query and filter prefix.
   ///
@@ -34,9 +41,10 @@ class DartCacClient {
       var configs = client.getConfig(filterQuery, filterPrefix);
       print('Configs: $configs');
       return configs;
-    } finally {
-      client.dispose();
+    } catch (e) {
+      print("Something went wrong ${e}");
     }
+    return "{}";
   }
 
   /// Retrieves the last modified timestamp of the configurations.
@@ -88,7 +96,7 @@ class DartCacClient {
   /// Retrieves resolved configurations based on the provided query, keys, and merge strategy.
   ///
   /// [query] is a JSON string representing the query parameters.
-  /// [keys] is a comma-separated string of configuration keys to retrieve.
+  /// [filterKeys] is a comma-separated string of configuration keys to retrieve.
   /// [mergeStrategy] is either "MERGE" or "REPLACE", determining how configs are combined.
   ///
   /// Returns a JSON string containing the resolved configurations.
@@ -102,10 +110,22 @@ class DartCacClient {
   /// print("Resolved Config: $resolvedConfigs");
   /// ```
   String getResolvedConfig(
-      String query, String filterKeys, String mergeStrategy) {
+      String query, String filterKeys, MergeStrategy mergeStrategy) {
     try {
-      var resolvedConfigs =
-          client.getResolvedConfigs(query, filterKeys, mergeStrategy);
+      var resolvedConfigs = "{}";
+      switch (mergeStrategy) {
+        case MergeStrategy.REPLACE:
+          resolvedConfigs =
+              client.getResolvedConfigs(query, filterKeys, "REPLACE");
+          break;
+        case MergeStrategy.MERGE:
+          resolvedConfigs =
+              client.getResolvedConfigs(query, filterKeys, "MERGE");
+          break;
+        default:
+          throw Exception(
+              "Invalid merge strategy! Please pass merge strategy of MergeStrategy");
+      }
       print("Resolved Config: $resolvedConfigs");
       return resolvedConfigs;
     } catch (e) {
@@ -124,12 +144,16 @@ class DartCacClient {
   /// ```dart
   /// client.startPollingUpdate("dev");
   /// ```
-  void cacStartPolling(String tenant) {
+  void cacStartPolling(String tenant) async {
     try {
       client.startPollingUpdate(tenant);
-      print("Started polling update successfully");
+      print("Started polling update for tenant: $tenant");
     } catch (e) {
-      print("Something went wrong while starting polling update $e");
+      print("Something went wrong while starting polling update: $e");
     }
+  }
+
+  void dispose() {
+    client.dispose();
   }
 }
