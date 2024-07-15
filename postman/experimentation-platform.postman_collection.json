@@ -37,10 +37,11 @@
               "        method: 'GET',",
               "        header: {",
               "            'Content-Type': 'application/json',",
+              "            'x-tenant': 'test',",
               "        }",
               "    };",
               "",
-              "    ",
+              "",
               "    pm.sendRequest(getRequest, (error, response) => {",
               "        if(error) {",
               "            console.log(\"Failed to fetch context\");",
@@ -50,7 +51,7 @@
               "        const context = response.json();",
               "",
               "        /*********** checking contexts created in CAC **********/;",
-              "        ",
+              "",
               "",
               "        const variant_override_id = context.override_id;",
               "        const varaint_context = context.value;",
@@ -79,7 +80,8 @@
               "        'url': `${host}/experiments/${experiment_id}`,",
               "        \"header\": {",
               "            'Authorization': `Bearer ${token}`,",
-              "            'Content-Type': 'application/json'",
+              "            'Content-Type': 'application/json',",
+              "            'x-tenant': 'test',",
               "        }",
               "    };",
               "",
@@ -88,7 +90,7 @@
               "            console.log(\"Failed to fetch experiment\");",
               "            throw error;",
               "        }",
-              "        ",
+              "",
               "        const experiment = response.json();",
               "",
               "        const context = experiment.context;",
@@ -119,7 +121,7 @@
               "            const expected_override_id = variant.override_id;",
               "            const expected_override = variant.overrides;",
               "            const expected_variant_context = expected_variant_contexts.find(evc => evc.vid === variant_id)?.context;",
-              "            ",
+              "",
               "            fetch_context_n_test(expected_context_id, expected_override_id, expected_override, expected_variant_context);",
               "        }",
               "    });",
@@ -129,7 +131,7 @@
               "pm.test(\"200 OK\", function () {",
               "    const response = pm.response.json();",
               "    const experiment_id = response.experiment_id;",
-              "    ",
+              "",
               "    pm.environment.set(\"experiment_id\", experiment_id);",
               "    pm.response.to.have.status(200);",
               "});",
@@ -269,7 +271,7 @@
               "            'url': `${host}/default-config/${key}`,",
               "            \"header\": {",
               "                'Authorization': `Bearer ${token}`,",
-              "                'x-tenant': 'mjos',",
+              "                'x-tenant': 'test',",
               "                'Content-Type': 'application/json'",
               "            },",
               "            \"body\": {",
@@ -308,7 +310,7 @@
               "            'url': `${host}/dimension`,",
               "            'header': {",
               "                'Authorization': `Bearer ${token}`,",
-              "                'x-tenant': 'mjos',",
+              "                'x-tenant': 'test',",
               "                'Content-Type': 'application/json'",
               "            },",
               "            \"body\": {",
@@ -348,7 +350,7 @@
           },
           {
             "key": "x-tenant",
-            "value": "mjos",
+            "value": "test",
             "type": "default"
           },
           {
@@ -395,7 +397,13 @@
       ],
       "request": {
         "method": "GET",
-        "header": [],
+        "header": [
+          {
+            "key": "x-tenant",
+            "value": "test",
+            "type": "default"
+          }
+        ],
         "url": {
           "raw": "{{host}}/experiments/{{experiment_id}}",
           "host": [
@@ -425,7 +433,8 @@
               "        'url': `${host}/experiments/${experiment_id}`,",
               "        \"header\": {",
               "            'Authorization': `Bearer ${token}`,",
-              "            'Content-Type': 'application/json'",
+              "            'Content-Type': 'application/json',",
+              "            'x-tenant': 'test',",
               "        }",
               "    };",
               "",
@@ -434,7 +443,7 @@
               "            console.log(\"Failed to fetch experiment\");",
               "            throw error;",
               "        }",
-              "        ",
+              "",
               "        const experiment = response.json();",
               "        console.log(`Expected: ${expected_traffic_percentage}, Actual: ${experiment.traffic_percentage}`);",
               "        pm.expect(experiment.traffic_percentage).to.be.eq(expected_traffic_percentage);",
@@ -469,6 +478,11 @@
           {
             "key": "Content-Type",
             "value": "application/json",
+            "type": "default"
+          },
+          {
+            "key": "x-tenant",
+            "value": "test",
             "type": "default"
           }
         ],
@@ -513,7 +527,8 @@
               "        'url': `${host}/config`,",
               "        'header': {",
               "            'Authorization': `Bearer ${token}`,",
-              "            'Contet-Type': 'application/json'",
+              "            'Contet-Type': 'application/json',",
+              "            'x-tenant': 'test',",
               "        }",
               "    };",
               "",
@@ -529,7 +544,7 @@
               "",
               "        const winner_variant = variants.find(variant => variant.id === winner_variant_id);",
               "        const winner_variant_override_id = winner_variant.override_id;",
-              "        ",
+              "",
               "        // there should be only one context with the winner variant override id",
               "        const contexts_with_winner_variant_override = contexts.filter((context) => context.override_with_keys.includes(winner_variant_override_id));",
               "        console.log(\"Context with winner variant override\");",
@@ -539,10 +554,10 @@
               "        // there should be 0 contexts with variant as a dimension",
               "        const contexts_with_variant_dim = contexts",
               "            .filter(",
-              "                (context) => ",
+              "                (context) =>",
               "                    context.condition.and",
               "                        ?.map(",
-              "                            (condition) => ",
+              "                            (condition) =>",
               "                                Object.keys(condition)",
               "                                    .map((k) => condition[k][0].var === \"variant\")",
               "                                    .reduce((p, c) => p || c, false))",
@@ -551,7 +566,7 @@
               "        pm.expect(contexts_with_variant_dim.length).to.be.eq(0);",
               "",
               "        // checking if winner override exists and is same as the expected override",
-              "        const winner_variant_context = contexts_with_winner_variant_override[0]; ",
+              "        const winner_variant_context = contexts_with_winner_variant_override[0];",
               "        pm.expect(winner_variant_context.override_with_keys.length).to.be.eq(1);",
               "        pm.expect(JSON.stringify(winner_variant_context.override_with_keys[0])).to.be.eq(JSON.stringify(winner_variant_override_id));",
               "",
@@ -571,7 +586,8 @@
               "        'url': `${host}/experiments/${experiment_id}`,",
               "        \"header\": {",
               "            'Authorization': `Bearer ${token}`,",
-              "            'Content-Type': 'application/json'",
+              "            'Content-Type': 'application/json',",
+              "            'x-tenant': 'test',",
               "        }",
               "    };",
               "",
@@ -580,7 +596,7 @@
               "            console.log(\"Failed to fetch experiment\");",
               "            throw error;",
               "        }",
-              "        ",
+              "",
               "        const experiment = response.json();",
               "",
               "        const status = experiment.status;",
@@ -619,7 +635,7 @@
           },
           {
             "key": "x-tenant",
-            "value": "mjos",
+            "value": "test",
             "type": "default"
           }
         ],
@@ -668,7 +684,7 @@
               "            'url': `${host}/default-config/${key}`,",
               "            \"header\": {",
               "                'Authorization': `Bearer ${token}`,",
-              "                'x-tenant': 'mjos',",
+              "                'x-tenant': 'test',",
               "                'Content-Type': 'application/json'",
               "            },",
               "            \"body\": {",
@@ -707,7 +723,7 @@
               "            'url': `${host}/dimension`,",
               "            'header': {",
               "                'Authorization': `Bearer ${token}`,",
-              "                'x-tenant': 'mjos',",
+              "                'x-tenant': 'test',",
               "                'Content-Type': 'application/json'",
               "            },",
               "            \"body\": {",
@@ -750,10 +766,11 @@
               "        method: 'GET',",
               "        header: {",
               "            'Content-Type': 'application/json',",
+              "            'x-tenant': 'test',",
               "        }",
               "    };",
               "",
-              "    ",
+              "",
               "    pm.sendRequest(getRequest, (error, response) => {",
               "        if(error) {",
               "            console.log(\"Failed to fetch context\");",
@@ -763,7 +780,7 @@
               "        const context = response.json();",
               "",
               "        /*********** checking contexts created in CAC **********/;",
-              "        ",
+              "",
               "",
               "        const variant_override_id = context.override_id;",
               "        const varaint_context = context.value;",
@@ -792,7 +809,8 @@
               "        'url': `${host}/experiments/${experiment_id}`,",
               "        \"header\": {",
               "            'Authorization': `Bearer ${token}`,",
-              "            'Content-Type': 'application/json'",
+              "            'Content-Type': 'application/json',",
+              "            'x-tenant': 'test',",
               "        }",
               "    };",
               "",
@@ -801,7 +819,7 @@
               "            console.log(\"Failed to fetch experiment\");",
               "            throw error;",
               "        }",
-              "        ",
+              "",
               "        const experiment = response.json();",
               "",
               "        const context = experiment.context;",
@@ -832,7 +850,7 @@
               "            const expected_override_id = variant.override_id;",
               "            const expected_override = variant.overrides;",
               "            const expected_variant_context = expected_variant_contexts.find(evc => evc.vid === variant_id)?.context;",
-              "            ",
+              "",
               "            fetch_context_n_test(expected_context_id, expected_override_id, expected_override, expected_variant_context);",
               "        }",
               "    });",
@@ -842,7 +860,7 @@
               "pm.test(\"200 OK\", function () {",
               "    const response = pm.response.json();",
               "    const experiment_id = response.experiment_id;",
-              "    ",
+              "",
               "    pm.environment.set(\"experiment_id\", experiment_id);",
               "    pm.response.to.have.status(200);",
               "});",
@@ -974,7 +992,7 @@
           },
           {
             "key": "x-tenant",
-            "value": "mjos",
+            "value": "test",
             "type": "default"
           }
         ],
@@ -1021,7 +1039,7 @@
               "            'url': `${host}/default-config/${key}`,",
               "            \"header\": {",
               "                'Authorization': `Bearer ${token}`,",
-              "                'x-tenant': 'mjos',",
+              "                'x-tenant': 'test',",
               "                'Content-Type': 'application/json'",
               "            },",
               "            \"body\": {",
@@ -1066,10 +1084,11 @@
               "        method: 'GET',",
               "        header: {",
               "            'Content-Type': 'application/json',",
+              "            'x-tenant': 'test',",
               "        }",
               "    };",
               "",
-              "    ",
+              "",
               "    pm.sendRequest(getRequest, (error, response) => {",
               "        if(error) {",
               "            console.log(\"Failed to fetch context\");",
@@ -1079,7 +1098,7 @@
               "        const context = response.json();",
               "",
               "        /*********** checking contexts created in CAC **********/;",
-              "        ",
+              "",
               "",
               "        const variant_override_id = context.override_id;",
               "        const varaint_context = context.value;",
@@ -1108,7 +1127,8 @@
               "        'url': `${host}/experiments/${experiment_id}`,",
               "        \"header\": {",
               "            'Authorization': `Bearer ${token}`,",
-              "            'Content-Type': 'application/json'",
+              "            'Content-Type': 'application/json',",
+              "            'x-tenant': 'test',",
               "        }",
               "    };",
               "",
@@ -1117,7 +1137,7 @@
               "            console.log(\"Failed to fetch experiment\");",
               "            throw error;",
               "        }",
-              "        ",
+              "",
               "        const experiment = response.json();",
               "",
               "        const variants = experiment.variants;",
@@ -1142,7 +1162,7 @@
               "            const expected_override_id = variant.override_id;",
               "            const expected_override = variant.overrides;",
               "            const expected_variant_context = expected_variant_contexts.find(evc => evc.vid === variant_id)?.context;",
-              "            ",
+              "",
               "            fetch_context_n_test(expected_context_id, expected_override_id, expected_override, expected_variant_context);",
               "        }",
               "    });",
@@ -1152,7 +1172,7 @@
               "pm.test(\"200 OK\", function () {",
               "    const response = pm.response.json();",
               "    const experiment_id = response.experiment_id;",
-              "    ",
+              "",
               "    pm.environment.set(\"experiment_id\", experiment_id);",
               "    pm.response.to.have.status(200);",
               "});",
@@ -1260,6 +1280,11 @@
             "key": "Authorization",
             "value": "Bearer {{token}}",
             "type": "default"
+          },
+          {
+            "key": "x-tenant",
+            "value": "test",
+            "type": "default"
           }
         ],
         "body": {
@@ -1286,13 +1311,18 @@
       "response": []
     },
     {
-      "name": "List experiments [No If-Modified-Since]",
+      "name": "List experiments No If-Modified-Since",
       "request": {
         "method": "GET",
         "header": [
           {
             "key": "Authorization",
             "value": "Bearer {{token}}"
+          },
+          {
+            "key": "x-tenant",
+            "value": "test",
+            "type": "default"
           }
         ],
         "url": {
@@ -1330,7 +1360,7 @@
       "response": []
     },
     {
-      "name": "List experiments [If-Modified-Since = Thu, 01 Jan 1970 00:00:00 +0000]",
+      "name": "List experiments If-Modified-Since Thu 01 Jan 1970 00_00_00 0000",
       "event": [
         {
           "listen": "test",
@@ -1354,6 +1384,11 @@
           {
             "key": "If-Modified-Since",
             "value": "Thu, 01 Jan 1970 00:00:00 +0000",
+            "type": "default"
+          },
+          {
+            "key": "x-tenant",
+            "value": "test",
             "type": "default"
           }
         ],
@@ -1384,7 +1419,7 @@
       "response": []
     },
     {
-      "name": "List experiments [If-Modified-Since = Wed, 01 Dec 2070 00:00:00 +0000]",
+      "name": "List experiments If-Modified-Since Wed 01 Dec 2070 00_00_00 0000",
       "event": [
         {
           "listen": "test",
@@ -1408,6 +1443,11 @@
           {
             "key": "If-Modified-Since",
             "value": "Wed, 01 Jan 2070 00:00:00 +0000",
+            "type": "default"
+          },
+          {
+            "key": "x-tenant",
+            "value": "test",
             "type": "default"
           }
         ],
