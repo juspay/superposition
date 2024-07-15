@@ -7,7 +7,7 @@ use superposition_types::result as superposition;
 fn type_check_validate(code_str: &str) -> String {
     format!(
         r#"const vm = require("node:vm")
-        const axios = require("./target/node_modules/axios")
+        const axios = require("./target/node_modules/axios/dist/node/axios.cjs")
         const script = new vm.Script(\`
 
         {}
@@ -27,7 +27,7 @@ fn execute_validate_fun(code_str: &str, value: Value, key: String) -> String {
     format!(
         r#"
         const vm = require("node:vm")
-        const axios = require("./target/node_modules/axios")
+        const axios = require("./target/node_modules/axios/dist/node/axios.cjs")
         const script = new vm.Script(\`
 
         {}
