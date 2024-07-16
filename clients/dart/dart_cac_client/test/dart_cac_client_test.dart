@@ -1,5 +1,3 @@
-import 'dart:isolate';
-
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:dart_cac_client/dart_cac_client.dart';
