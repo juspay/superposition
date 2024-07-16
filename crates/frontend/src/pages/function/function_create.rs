@@ -25,7 +25,7 @@ pub fn create_function_view() -> impl IntoView {
                     window.editor = monaco.editor.create(document.querySelector('.monaco'), {
 
                         value: [
-                            'async function validate(value, key) {',
+                            'async function validate(key, value) {',
                             '   return true;',
                             '}'
                         ].join('\n'),
