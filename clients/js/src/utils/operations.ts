@@ -27,7 +27,6 @@ export const isJPVersionLesserEqual = function (version_a: string, version_b: st
 }
 
 export const matchRegex = function (text: string, pattern: string, flag?: string): boolean {
-    const flagStr = flag !== undefined && flag !== "" ? `/${flag}` : "";
-    const re = new RegExp(pattern + flagStr);
+    const re = new RegExp(pattern, flag);
     return re.test(text);
 }
