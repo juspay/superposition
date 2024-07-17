@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.36.0 - 2024-07-17
+#### Bug Fixes
+- update axios version in cac crate (#162) - (ff1cde6) - PRATIK MISHRA
+- rename experiment test folders in postman to work on linux machines - (6526fa2) - Kartik
+#### Features
+- Add fetch context from context condition (#168) - (6dd17f8) - Ayush Jain
+
+- - -
+
 ## context_aware_config-v0.35.0 - 2024-07-11
 #### Bug Fixes
 - undo stringify of last_modified timestamp (#154) - (8334925) - PRATIK MISHRA

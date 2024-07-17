@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.53.0 - 2024-07-17
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.36.0
+- js_client bumped to js_client-v0.2.1
+- frontend bumped to frontend-v0.12.1
+### Global changes
+#### Bug Fixes
+- update axios version for function (#158) - (c52def4) - PRATIK MISHRA
+- rename experiment test folders in postman to work on linux machines - (6526fa2) - Kartik
+#### Miscellaneous Chores
+- **(nix)** Build *all* binary crates - (502abdf) - Sridhar Ratnakumar
+
+- - -
+
 ## v0.52.0 - 2024-07-11
 ### Package updates
 - superposition_macros bumped to superposition_macros-v0.1.0

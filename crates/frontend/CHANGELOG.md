@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.12.1 - 2024-07-17
+#### Bug Fixes
+- Improve form inputs - (ebd2f57) - Ankit Mahato
+
+- - -
+
 ## frontend-v0.12.0 - 2024-07-11
 #### Bug Fixes
 - modify the default dropdown message for types during edits - (08b4de5) - Kartik
