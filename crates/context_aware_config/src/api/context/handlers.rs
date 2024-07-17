@@ -25,7 +25,7 @@ use actix_web::web::Data;
 use service_utils::service::types::{AppHeader, AppState, CustomHeaders};
 
 use actix_web::{
-    delete, get, put,
+    delete, get, post, put,
     web::{Json, Path, Query},
     HttpResponse, Responder, Scope,
 };
@@ -61,6 +61,7 @@ pub fn endpoints() -> Scope {
         .service(delete_context)
         .service(bulk_operations)
         .service(list_contexts)
+        .service(get_context_from_condition)
         .service(get_context)
         .service(priority_recompute)
 }
@@ -494,6 +495,23 @@ async fn move_handler(
         ));
         Ok(http_resp.json(move_reponse))
     })
+}
+
+#[post("/get")]
+async fn get_context_from_condition(
+    db_conn: DbConnection,
+    req: Json<Map<String, Value>>,
+) -> superposition::Result<impl Responder> {
+    use crate::db::schema::contexts::dsl::*;
+
+    let context_id = hash(&Value::Object(req.into_inner()));
+    let DbConnection(mut conn) = db_conn;
+
+    let ctx: Context = contexts
+        .filter(id.eq(context_id))
+        .get_result::<Context>(&mut conn)?;
+
+    Ok(Json(ctx))
 }
 
 #[get("/{ctx_id}")]
