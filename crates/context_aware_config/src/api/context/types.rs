@@ -91,12 +91,12 @@ mod tests {
         let mut expected_condition = Map::new();
         expected_condition.insert("foo".to_string(), json!("bar"));
         expected_condition.insert("bar".to_string(), json!({ "baz": "baz"}));
-        let condition = Condition::new(expected_condition, ValidationType::DEFAULT)
+        let condition = Condition::new(expected_condition, ValidationType::CAC)
             .expect("Invalid context condition");
 
         let mut expected_override = Map::new();
         expected_override.insert("foo".to_string(), json!("baz"));
-        let override_ = Overrides::new(expected_override, ValidationType::DEFAULT)
+        let override_ = Overrides::new(expected_override, ValidationType::CAC)
             .expect("Invalid context override");
 
         let expected_action = ContextAction::Put(PutReq {

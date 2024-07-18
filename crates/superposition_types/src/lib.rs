@@ -80,9 +80,24 @@ impl FromRequest for User {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ValidationType {
-    DEFAULT,
+    CAC,
     EXPERIMENTAL,
+    #[cfg(feature = "disable_db_data_validation")]
     DB,
+}
+
+pub fn get_db_experiment_validation_type() -> ValidationType {
+    #[cfg(feature = "disable_db_data_validation")]
+    return ValidationType::DB;
+    #[cfg(not(feature = "disable_db_data_validation"))]
+    return ValidationType::EXPERIMENTAL;
+}
+
+pub fn get_db_cac_validation_type() -> ValidationType {
+    #[cfg(feature = "disable_db_data_validation")]
+    return ValidationType::DB;
+    #[cfg(not(feature = "disable_db_data_validation"))]
+    return ValidationType::CAC;
 }
 
 #[derive(Deserialize, Clone, AsRef, Deref, Debug, Eq, PartialEq, Serialize, Into)]
@@ -95,7 +110,7 @@ impl Condition {
         validation_type: ValidationType,
     ) -> superposition::Result<Self> {
         match validation_type {
-            ValidationType::DEFAULT => {
+            ValidationType::CAC => {
                 if condition_map.is_empty() {
                     log::error!("Condition validation error: Context is empty");
                     return Err(superposition::AppError::BadArgument(
@@ -129,6 +144,7 @@ impl Condition {
                     ));
                 }
             }
+            #[cfg(feature = "disable_db_data_validation")]
             ValidationType::DB => (),
         };
         Ok(Self(condition_map))
@@ -138,7 +154,7 @@ impl Condition {
 impl TryFrom<Map<String, Value>> for Condition {
     type Error = String;
     fn try_from(s: Map<String, Value>) -> Result<Self, Self::Error> {
-        Condition::new(s, ValidationType::DEFAULT).map_err(|err| err.message())
+        Condition::new(s, ValidationType::CAC).map_err(|err| err.message())
     }
 }
 
@@ -154,7 +170,7 @@ impl Overrides {
         validation_type: ValidationType,
     ) -> superposition::Result<Self> {
         match validation_type {
-            ValidationType::DEFAULT | ValidationType::EXPERIMENTAL => {
+            ValidationType::CAC | ValidationType::EXPERIMENTAL => {
                 if override_map.is_empty() {
                     log::error!("Override validation error: Override is empty");
                     return Err(superposition::AppError::BadArgument(
@@ -162,6 +178,7 @@ impl Overrides {
                     ));
                 }
             }
+            #[cfg(feature = "disable_db_data_validation")]
             ValidationType::DB => (),
         };
 
@@ -172,7 +189,7 @@ impl Overrides {
 impl TryFrom<Map<String, Value>> for Overrides {
     type Error = String;
     fn try_from(s: Map<String, Value>) -> Result<Self, Self::Error> {
-        Overrides::new(s, ValidationType::DEFAULT).map_err(|err| err.message())
+        Overrides::new(s, ValidationType::CAC).map_err(|err| err.message())
     }
 }
 
@@ -230,7 +247,7 @@ mod tests {
         )
         .unwrap();
         let db_expected_condition =
-            Condition::new(db_request_condition_map, ValidationType::DB)?;
+            Condition::new(db_request_condition_map, get_db_cac_validation_type())?;
         assert_eq!(db_condition, db_expected_condition);
 
         let default_condition = serde_json::from_str::<Condition>(
@@ -238,7 +255,7 @@ mod tests {
         )
         .unwrap();
         let default_expected_condition =
-            Condition::new(default_request_condition_map, ValidationType::DEFAULT)?;
+            Condition::new(default_request_condition_map, ValidationType::CAC)?;
         assert_eq!(default_condition, default_expected_condition);
 
         let exp_condition = serde_json::from_str::<Condition>(
@@ -305,7 +322,7 @@ mod tests {
         );
 
         let db_expected_condition =
-            Condition::new(request_condition_map.clone(), ValidationType::DB)
+            Condition::new(request_condition_map.clone(), get_db_cac_validation_type())
                 .map(|_| true)?;
         assert_eq!(db_expected_condition, true);
 
@@ -324,7 +341,7 @@ mod tests {
         let deserialize_overrides =
             serde_json::from_str::<Overrides>(&json!(override_map).to_string()).unwrap();
         let db_expected_overrides =
-            Overrides::new(override_map.clone(), ValidationType::DB)?;
+            Overrides::new(override_map.clone(), get_db_cac_validation_type())?;
         assert_eq!(deserialize_overrides, db_expected_overrides);
 
         let exp_expected_overrides =
@@ -332,7 +349,7 @@ mod tests {
         assert_eq!(deserialize_overrides, exp_expected_overrides);
 
         let default_expected_overrides =
-            Overrides::new(override_map.clone(), ValidationType::DEFAULT)?;
+            Overrides::new(override_map.clone(), ValidationType::CAC)?;
         assert_eq!(deserialize_overrides, default_expected_overrides);
 
         let empty_overrides = serde_json::from_str::<Overrides>(

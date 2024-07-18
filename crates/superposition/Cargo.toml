@@ -9,9 +9,9 @@ edition = "2021"
 cac_client = { path = "../cac_client" }
 frontend = { path = "../frontend" }
 service_utils = { path = "../service_utils" }
-experimentation_platform = { path = "../experimentation_platform" }
-context_aware_config = { path = "../context_aware_config" }
-superposition_types = { path = "../superposition_types" }
+experimentation_platform = { path = "../experimentation_platform", features = ["disable_db_data_validation"] }
+context_aware_config = { path = "../context_aware_config", features = ["disable_db_data_validation"] }
+superposition_types = { path = "../superposition_types", features = ["disable_db_data_validation"] }
 # env
 dotenv = { workspace = true }
 # Https server framework

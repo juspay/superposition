@@ -24,7 +24,8 @@ use diesel::{
 use serde_json::{json, Map, Value};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    result as superposition, Condition, Overrides, User, ValidationType,
+    get_db_cac_validation_type, result as superposition, Condition, Overrides, User,
+    ValidationType,
 };
 
 use itertools::Itertools;
@@ -334,7 +335,7 @@ fn construct_new_payload(
                 log::error!("construct new payload Context not present");
                 Err(bad_argument!("Context not present"))
             },
-            |val| Condition::new(val.to_owned(), ValidationType::DEFAULT),
+            |val| Condition::new(val.to_owned(), ValidationType::CAC),
         )?;
 
     let override_ = res
@@ -345,7 +346,7 @@ fn construct_new_payload(
                 log::error!("construct new payload Override not present");
                 Err(bad_argument!("Override not present"))
             },
-            |val| Overrides::new(val.to_owned(), ValidationType::DEFAULT),
+            |val| Overrides::new(val.to_owned(), ValidationType::CAC),
         )?;
 
     return Ok(web::Json(PutReq {
@@ -426,7 +427,7 @@ async fn reduce_config_key(
             ) => {
                 let override_val = Overrides::new(
                     override_val.as_object().unwrap_or(&Map::new()).clone(),
-                    ValidationType::DB,
+                    get_db_cac_validation_type(),
                 )?;
                 if *to_be_deleted {
                     if is_approve {

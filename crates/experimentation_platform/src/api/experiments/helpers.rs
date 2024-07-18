@@ -8,7 +8,7 @@ use service_utils::service::types::ExperimentationFlags;
 use std::collections::HashSet;
 use superposition_macros::bad_argument;
 use superposition_types::{
-    result as superposition, Condition, Overrides, ValidationType,
+    get_db_experiment_validation_type, result as superposition, Condition, Overrides,
 };
 
 pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()> {
@@ -131,7 +131,7 @@ pub fn is_valid_experiment(
                     .as_object()
                     .unwrap_or(&Map::new())
                     .to_owned(),
-                ValidationType::DB,
+                get_db_experiment_validation_type(),
             )?;
             let are_overlapping =
                 are_overlapping_contexts(context, &active_exp_context)

@@ -97,11 +97,11 @@ fn test_extract_dimensions() -> Result<(), superposition::AppError> {
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
-    let context_a = Condition::new(context_a.clone(), ValidationType::DEFAULT)?;
+    let context_a = Condition::new(context_a.clone(), ValidationType::CAC)?;
 
     let context_b =
         single_dimension_ctx_gen(Dimensions::Client("testclient1".to_string()));
-    let context_b = Condition::new(context_b.clone(), ValidationType::DEFAULT)?;
+    let context_b = Condition::new(context_b.clone(), ValidationType::CAC)?;
 
     let expected_dimensions_1 = serde_json::Map::from_iter(vec![
         ("os".to_string(), json!("os1")),
@@ -123,18 +123,18 @@ fn test_are_overlapping_contexts() -> Result<(), superposition::AppError> {
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
-    let context_a = Condition::new(context_a.clone(), ValidationType::DEFAULT)?;
+    let context_a = Condition::new(context_a.clone(), ValidationType::EXPERIMENTAL)?;
 
     let context_b = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient2".to_string()),
     ]);
-    let context_b = Condition::new(context_b.clone(), ValidationType::DEFAULT)?;
+    let context_b = Condition::new(context_b.clone(), ValidationType::EXPERIMENTAL)?;
 
     let context_c = single_dimension_ctx_gen(Dimensions::Os("os1".to_string()));
     let context_d = single_dimension_ctx_gen(Dimensions::Os("os2".to_string()));
-    let context_c = Condition::new(context_c.clone(), ValidationType::DEFAULT)?;
-    let context_d = Condition::new(context_d.clone(), ValidationType::DEFAULT)?;
+    let context_c = Condition::new(context_c.clone(), ValidationType::EXPERIMENTAL)?;
+    let context_d = Condition::new(context_d.clone(), ValidationType::EXPERIMENTAL)?;
 
     // both contexts with same dimensions
     assert!(helpers::are_overlapping_contexts(&context_a, &context_a)?);
@@ -211,7 +211,8 @@ fn test_is_valid_experiment_no_restrictions_overlapping_experiment(
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
-    let experiment_context = Condition::new(experiment_context, ValidationType::DEFAULT)?;
+    let experiment_context =
+        Condition::new(experiment_context, ValidationType::EXPERIMENTAL)?;
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -246,7 +247,8 @@ fn test_is_valid_experiment_no_restrictions_non_overlapping_experiment(
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
-    let experiment_context = Condition::new(experiment_context, ValidationType::DEFAULT)?;
+    let experiment_context =
+        Condition::new(experiment_context, ValidationType::EXPERIMENTAL)?;
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -286,7 +288,8 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
-    let experiment_context = Condition::new(experiment_context, ValidationType::DEFAULT)?;
+    let experiment_context =
+        Condition::new(experiment_context, ValidationType::EXPERIMENTAL)?;
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: false,
@@ -321,7 +324,8 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
-    let experiment_context = Condition::new(experiment_context, ValidationType::DEFAULT)?;
+    let experiment_context =
+        Condition::new(experiment_context, ValidationType::EXPERIMENTAL)?;
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: false,
@@ -356,7 +360,8 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
-    let experiment_context = Condition::new(experiment_context, ValidationType::DEFAULT)?;
+    let experiment_context =
+        Condition::new(experiment_context, ValidationType::EXPERIMENTAL)?;
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: false,
@@ -393,7 +398,8 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
-    let experiment_context = Condition::new(experiment_context, ValidationType::DEFAULT)?;
+    let experiment_context =
+        Condition::new(experiment_context, ValidationType::EXPERIMENTAL)?;
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -428,7 +434,8 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
-    let experiment_context = Condition::new(experiment_context, ValidationType::DEFAULT)?;
+    let experiment_context =
+        Condition::new(experiment_context, ValidationType::EXPERIMENTAL)?;
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -463,7 +470,8 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
-    let experiment_context = Condition::new(experiment_context, ValidationType::DEFAULT)?;
+    let experiment_context =
+        Condition::new(experiment_context, ValidationType::EXPERIMENTAL)?;
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -500,7 +508,8 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
-    let experiment_context = Condition::new(experiment_context, ValidationType::DEFAULT)?;
+    let experiment_context =
+        Condition::new(experiment_context, ValidationType::EXPERIMENTAL)?;
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -538,7 +547,8 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
-    let experiment_context = Condition::new(experiment_context, ValidationType::DEFAULT)?;
+    let experiment_context =
+        Condition::new(experiment_context, ValidationType::EXPERIMENTAL)?;
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -576,7 +586,8 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
-    let experiment_context = Condition::new(experiment_context, ValidationType::DEFAULT)?;
+    let experiment_context =
+        Condition::new(experiment_context, ValidationType::EXPERIMENTAL)?;
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,

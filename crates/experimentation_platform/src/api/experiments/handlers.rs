@@ -21,8 +21,8 @@ use service_utils::service::types::{
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
-    result as superposition, Condition, Overrides, SuperpositionUser, User,
-    ValidationType,
+    get_db_experiment_validation_type, result as superposition, Condition, Overrides,
+    SuperpositionUser, User, ValidationType,
 };
 
 use super::{
@@ -684,7 +684,7 @@ async fn update_overrides(
             .as_object()
             .unwrap_or(&Map::new())
             .clone(),
-        ValidationType::DB,
+        get_db_experiment_validation_type(),
     )?;
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;

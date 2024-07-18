@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use super::types::{Config, Context};
 use serde_json::{json, Map, Value};
-use superposition_types::{result as superposition, Overrides, ValidationType};
+use superposition_types::{
+    get_db_cac_validation_type, result as superposition, Overrides,
+};
 
 pub fn filter_context(
     contexts: &[Context],
@@ -50,7 +52,7 @@ pub fn filter_config_by_prefix(
         if !filtered_overrides_map.is_empty() {
             filtered_overrides.insert(
                 key.clone(),
-                Overrides::new(filtered_overrides_map, ValidationType::DB)?,
+                Overrides::new(filtered_overrides_map, get_db_cac_validation_type())?,
             );
         }
     }
