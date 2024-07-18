@@ -4,6 +4,9 @@ use std::str;
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::result as superposition;
 
+static FUNCTION_ENV_VARIABLES: &str =
+    "HTTP_PROXY,HTTPS_PROXY,HTTP_PROXY_HOST,HTTP_PROXY_PORT,NO_PROXY";
+
 fn type_check_validate(code_str: &str) -> String {
     format!(
         r#"const vm = require("node:vm")
@@ -23,7 +26,7 @@ fn type_check_validate(code_str: &str) -> String {
     )
 }
 
-fn execute_validate_fun(code_str: &str, value: Value, key: String) -> String {
+fn execute_validate_fun(code_str: &str, key: String, value: Value) -> String {
     format!(
         r#"
         const vm = require("node:vm")
@@ -41,9 +44,9 @@ fn execute_validate_fun(code_str: &str, value: Value, key: String) -> String {
             throw new Error(err)
         }});\`);
 
-        script.runInNewContext({{axios,console,process}}, {{ timeout: 1500}});
+        script.runInNewContext({{axios,console}}, {{ timeout: 1500}});
         "#,
-        code_str, value, key
+        code_str, key, value
     )
 }
 
@@ -51,8 +54,16 @@ fn generate_code(code_str: &str) -> String {
     format!(
         r#"
     const {{ Worker, isMainThread, threadId }} =  require("node:worker_threads");
-
     if (isMainThread) {{
+        let function_env_variables = "{}"
+        let variablesToKeep = []
+        variablesToKeep = function_env_variables.split(',').map(variable => variable.trim());
+        for (const key in process.env) {{
+            if (!variablesToKeep.includes(key)) {{
+                delete process.env[key];
+            }}
+        }}
+        
 
     // starting worker thread , making separated from the main thread
     function runService() {{
@@ -97,7 +108,7 @@ fn generate_code(code_str: &str) -> String {
     }}
 
     "#,
-        code_str
+        FUNCTION_ENV_VARIABLES, code_str
     )
 }
 
@@ -106,7 +117,7 @@ pub fn execute_fn(
     key: &str,
     value: Value,
 ) -> Result<String, (String, Option<String>)> {
-    let exec_code = execute_validate_fun(code_str, value, format!(r#""{key}""#));
+    let exec_code = execute_validate_fun(code_str, format!(r#""{key}""#), value);
     let output = Command::new("node")
         .arg("-e")
         .arg(generate_code(&exec_code))
