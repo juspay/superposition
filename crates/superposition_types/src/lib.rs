@@ -1,10 +1,9 @@
 pub mod result;
-use crate::result as superposition;
 use actix::fut::{ready, Ready};
 use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
 use derive_more::{AsRef, Deref, DerefMut, Into};
 use log::error;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{json, Map, Value};
 
 pub trait SuperpositionUser {
@@ -78,124 +77,118 @@ impl FromRequest for User {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum ValidationType {
-    CAC,
-    EXPERIMENTAL,
-    #[cfg(feature = "disable_db_data_validation")]
-    DB,
-}
-
-pub fn get_db_experiment_validation_type() -> ValidationType {
-    #[cfg(feature = "disable_db_data_validation")]
-    return ValidationType::DB;
-    #[cfg(not(feature = "disable_db_data_validation"))]
-    return ValidationType::EXPERIMENTAL;
-}
-
-pub fn get_db_cac_validation_type() -> ValidationType {
-    #[cfg(feature = "disable_db_data_validation")]
-    return ValidationType::DB;
-    #[cfg(not(feature = "disable_db_data_validation"))]
-    return ValidationType::CAC;
-}
-
-#[derive(Deserialize, Clone, AsRef, Deref, Debug, Eq, PartialEq, Serialize, Into)]
-#[serde(try_from = "Map<String,Value>")]
-pub struct Condition(Map<String, Value>);
-
-impl Condition {
-    pub fn new(
-        condition_map: Map<String, Value>,
-        validation_type: ValidationType,
-    ) -> superposition::Result<Self> {
-        match validation_type {
-            ValidationType::CAC => {
-                if condition_map.is_empty() {
-                    log::error!("Condition validation error: Context is empty");
-                    return Err(superposition::AppError::BadArgument(
-                        "Context should not be empty".to_owned(),
-                    ));
-                }
-                jsonlogic::expression::Expression::from_json(&json!(condition_map))
-                    .map_err(|msg| {
-                        log::error!("Condition validation error: {}", msg);
-                        superposition::AppError::BadArgument(msg)
-                    })?;
-            }
-            ValidationType::EXPERIMENTAL => {
-                let condition_val = json!(condition_map);
-                let ast = jsonlogic::expression::Expression::from_json(&condition_val)
-                    .map_err(|msg| {
-                        log::error!("Condition validation error: {}", msg);
-                        superposition::AppError::BadArgument(msg)
-                    })?;
-                let dimensions = ast.get_variable_names().map_err(|msg| {
-                    log::error!("Error while parsing variable names : {}", msg);
-                    superposition::AppError::BadArgument(msg)
-                })?;
-                if dimensions.contains("variantIds") {
-                    log::error!(
-                        "experiment's context should not contain variantIds dimension"
-                    );
-                    return Err(superposition::AppError::BadArgument(
-                        "experiment's context should not contain variantIds dimension"
-                            .to_string(),
-                    ));
-                }
-            }
-            #[cfg(feature = "disable_db_data_validation")]
-            ValidationType::DB => (),
-        };
-        Ok(Self(condition_map))
+#[derive(Clone, Debug, PartialEq, Copy)]
+pub struct Cac<T>(T);
+impl<T> Cac<T> {
+    pub fn into_inner(self) -> T {
+        self.0
     }
 }
 
-impl TryFrom<Map<String, Value>> for Condition {
-    type Error = String;
-    fn try_from(s: Map<String, Value>) -> Result<Self, Self::Error> {
-        Condition::new(s, ValidationType::CAC).map_err(|err| err.message())
+#[derive(Clone, Debug, PartialEq, Copy)]
+pub struct Exp<T>(T);
+impl<T> Exp<T> {
+    pub fn into_inner(self) -> T {
+        self.0
     }
+}
+
+macro_rules! impl_try_from_map {
+    ($wrapper:ident, $type:ident, $validate:expr) => {
+        impl TryFrom<Map<String, Value>> for $wrapper<$type> {
+            type Error = String;
+
+            fn try_from(map: Map<String, Value>) -> Result<Self, Self::Error> {
+                Ok(Self($validate(map)?))
+            }
+        }
+
+        impl<'de> Deserialize<'de> for $wrapper<$type> {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: Deserializer<'de>,
+            {
+                let map = Map::<String, Value>::deserialize(deserializer)?;
+                Self::try_from(map).map_err(serde::de::Error::custom)
+            }
+        }
+
+        impl $wrapper<$type> {
+            pub fn try_from_db(map: Map<String, Value>) -> Result<Self, String> {
+                #[cfg(feature = "disable_db_data_validation")]
+                return Ok(Self($type(map)));
+                #[cfg(not(feature = "disable_db_data_validation"))]
+                return Self::try_from(map);
+            }
+        }
+    };
 }
 
 #[derive(
     Deserialize, Serialize, Clone, AsRef, Deref, DerefMut, Debug, Eq, PartialEq, Into,
 )]
-#[serde(try_from = "Map<String,Value>")]
 pub struct Overrides(Map<String, Value>);
 
 impl Overrides {
-    pub fn new(
-        override_map: Map<String, Value>,
-        validation_type: ValidationType,
-    ) -> superposition::Result<Self> {
-        match validation_type {
-            ValidationType::CAC | ValidationType::EXPERIMENTAL => {
-                if override_map.is_empty() {
-                    log::error!("Override validation error: Override is empty");
-                    return Err(superposition::AppError::BadArgument(
-                        "Override should not be empty".to_owned(),
-                    ));
-                }
-            }
-            #[cfg(feature = "disable_db_data_validation")]
-            ValidationType::DB => (),
-        };
-
+    fn validate_data(override_map: Map<String, Value>) -> Result<Self, String> {
+        if override_map.is_empty() {
+            log::error!("Override validation error: Override is empty");
+            return Err("Override should not be empty".to_owned());
+        }
         Ok(Self(override_map))
     }
 }
 
-impl TryFrom<Map<String, Value>> for Overrides {
-    type Error = String;
-    fn try_from(s: Map<String, Value>) -> Result<Self, Self::Error> {
-        Overrides::new(s, ValidationType::CAC).map_err(|err| err.message())
+impl_try_from_map!(Cac, Overrides, Overrides::validate_data);
+impl_try_from_map!(Exp, Overrides, Overrides::validate_data);
+
+#[derive(Deserialize, Serialize, Clone, AsRef, Deref, Debug, Eq, PartialEq, Into)]
+pub struct Condition(Map<String, Value>);
+impl Condition {
+    fn validate_data_for_cac(condition_map: Map<String, Value>) -> Result<Self, String> {
+        if condition_map.is_empty() {
+            log::error!("Condition validation error: Context is empty");
+            return Err("Context should not be empty".to_owned());
+        }
+        jsonlogic::expression::Expression::from_json(&json!(condition_map)).map_err(
+            |msg| {
+                log::error!("Condition validation error: {}", msg);
+                msg
+            },
+        )?;
+        Ok(Self(condition_map))
+    }
+
+    fn validate_data_for_exp(condition_map: Map<String, Value>) -> Result<Self, String> {
+        let condition_val = json!(condition_map);
+        let ast = jsonlogic::expression::Expression::from_json(&condition_val).map_err(
+            |msg| {
+                log::error!("Condition validation error: {}", msg);
+                msg
+            },
+        )?;
+        let dimensions = ast.get_variable_names().map_err(|msg| {
+            log::error!("Error while parsing variable names : {}", msg);
+            msg
+        })?;
+        if dimensions.contains("variantIds") {
+            log::error!("experiment's context should not contain variantIds dimension");
+            return Err(
+                "experiment's context should not contain variantIds dimension"
+                    .to_string(),
+            );
+        }
+        Ok(Self(condition_map))
     }
 }
+
+impl_try_from_map!(Cac, Condition, Condition::validate_data_for_cac);
+impl_try_from_map!(Exp, Condition, Condition::validate_data_for_exp);
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use result as superposition;
     use serde_json::json;
 
     #[test]
@@ -247,7 +240,9 @@ mod tests {
         )
         .unwrap();
         let db_expected_condition =
-            Condition::new(db_request_condition_map, get_db_cac_validation_type())?;
+            Cac::<Condition>::try_from_db(db_request_condition_map)
+                .map_err(superposition::AppError::BadArgument)?
+                .into_inner();
         assert_eq!(db_condition, db_expected_condition);
 
         let default_condition = serde_json::from_str::<Condition>(
@@ -255,7 +250,9 @@ mod tests {
         )
         .unwrap();
         let default_expected_condition =
-            Condition::new(default_request_condition_map, ValidationType::CAC)?;
+            Cac::<Condition>::try_from(default_request_condition_map)
+                .map_err(superposition::AppError::BadArgument)?
+                .into_inner();
         assert_eq!(default_condition, default_expected_condition);
 
         let exp_condition = serde_json::from_str::<Condition>(
@@ -263,7 +260,9 @@ mod tests {
         )
         .unwrap();
         let exp_expected_condition =
-            Condition::new(exp_request_condition_map, ValidationType::EXPERIMENTAL)?;
+            Exp::<Condition>::try_from(exp_request_condition_map)
+                .map_err(superposition::AppError::BadArgument)?
+                .into_inner();
         assert_eq!(exp_condition, exp_expected_condition);
 
         Ok(())
@@ -303,9 +302,9 @@ mod tests {
             serde_json::from_str::<Condition>(&json!(request_condition_map).to_string())
                 .map_err(|_| "Invalid operation".to_owned());
 
-        let fail_exp_condition =
-            Condition::new(exp_condition_map, ValidationType::EXPERIMENTAL)
-                .map_err(|_| "variantIds should not be present".to_owned());
+        let fail_exp_condition = Exp::<Condition>::try_from(exp_condition_map.clone())
+            .map(|a| a.into_inner())
+            .map_err(|_| "variantIds should not be present".to_owned());
 
         assert_eq!(
             json!(fail_condition)
@@ -321,9 +320,10 @@ mod tests {
             true
         );
 
-        let db_expected_condition =
-            Condition::new(request_condition_map.clone(), get_db_cac_validation_type())
-                .map(|_| true)?;
+        let db_expected_condition = Exp::<Condition>::try_from_db(exp_condition_map)
+            .map(|_| true)
+            .map_err(superposition::AppError::BadArgument)?;
+
         assert_eq!(db_expected_condition, true);
 
         Ok(())
@@ -340,16 +340,19 @@ mod tests {
 
         let deserialize_overrides =
             serde_json::from_str::<Overrides>(&json!(override_map).to_string()).unwrap();
-        let db_expected_overrides =
-            Overrides::new(override_map.clone(), get_db_cac_validation_type())?;
+        let db_expected_overrides = Cac::<Overrides>::try_from_db(override_map.clone())
+            .map_err(superposition::AppError::BadArgument)?
+            .into_inner();
         assert_eq!(deserialize_overrides, db_expected_overrides);
 
-        let exp_expected_overrides =
-            Overrides::new(override_map.clone(), ValidationType::EXPERIMENTAL)?;
+        let exp_expected_overrides = Exp::<Overrides>::try_from(override_map.clone())
+            .map_err(superposition::AppError::BadArgument)?
+            .into_inner();
         assert_eq!(deserialize_overrides, exp_expected_overrides);
 
-        let default_expected_overrides =
-            Overrides::new(override_map.clone(), ValidationType::CAC)?;
+        let default_expected_overrides = Cac::<Overrides>::try_from(override_map.clone())
+            .map_err(superposition::AppError::BadArgument)?
+            .into_inner();
         assert_eq!(deserialize_overrides, default_expected_overrides);
 
         let empty_overrides = serde_json::from_str::<Overrides>(

@@ -26,9 +26,7 @@ use service_utils::{
 };
 
 use superposition_macros::{db_error, validation_error};
-use superposition_types::{
-    get_db_cac_validation_type, result as superposition, Condition, Overrides,
-};
+use superposition_types::{result as superposition, Cac, Condition, Overrides};
 
 use std::collections::HashMap;
 
@@ -331,14 +329,17 @@ pub fn generate_cac(
     let mut overrides: HashMap<String, Overrides> = HashMap::new();
 
     for (id, condition, priority_, override_id, override_) in contexts_vec.iter() {
-        let condition = Condition::new(
+        let condition = Cac::<Condition>::try_from_db(
             condition.as_object().unwrap_or(&Map::new()).clone(),
-            get_db_cac_validation_type(),
-        )?;
-        let override_ = Overrides::new(
+        )
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
+
+        let override_ = Cac::<Overrides>::try_from_db(
             override_.as_object().unwrap_or(&Map::new()).clone(),
-            get_db_cac_validation_type(),
-        )?;
+        )
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
         let ctxt = Context {
             id: id.to_owned(),
             condition,

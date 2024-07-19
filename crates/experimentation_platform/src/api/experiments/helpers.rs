@@ -7,9 +7,7 @@ use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::ExperimentationFlags;
 use std::collections::HashSet;
 use superposition_macros::bad_argument;
-use superposition_types::{
-    get_db_experiment_validation_type, result as superposition, Condition, Overrides,
-};
+use superposition_types::{result as superposition, Condition, Exp, Overrides};
 
 pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()> {
     let mut experimental_variant_cnt = 0;
@@ -125,14 +123,15 @@ pub fn is_valid_experiment(
     {
         let override_keys_set = HashSet::<&String>::from_iter(override_keys);
         for active_experiment in active_experiments {
-            let active_exp_context = Condition::new(
+            let active_exp_context = Exp::<Condition>::try_from_db(
                 active_experiment
                     .context
                     .as_object()
                     .unwrap_or(&Map::new())
                     .to_owned(),
-                get_db_experiment_validation_type(),
-            )?;
+            )
+            .map_err(superposition::AppError::BadArgument)?
+            .into_inner();
             let are_overlapping =
                 are_overlapping_contexts(context, &active_exp_context)
                     .map_err(|e| {

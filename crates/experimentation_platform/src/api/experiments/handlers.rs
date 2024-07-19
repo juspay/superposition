@@ -21,8 +21,7 @@ use service_utils::service::types::{
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
-    get_db_experiment_validation_type, result as superposition, Condition, Overrides,
-    SuperpositionUser, User, ValidationType,
+    result as superposition, Condition, Exp, Overrides, SuperpositionUser, User,
 };
 
 use super::{
@@ -171,9 +170,10 @@ async fn create(
     let variant_overrides = variants
         .iter()
         .map(|variant| {
-            Overrides::new(variant.overrides.clone(), ValidationType::EXPERIMENTAL)
+            Exp::<Overrides>::try_from(variant.overrides.clone()).map(|a| a.into_inner())
         })
-        .collect::<superposition::Result<Vec<Overrides>>>()?;
+        .collect::<Result<Vec<Overrides>, String>>()
+        .map_err(superposition::AppError::BadArgument)?;
     let are_valid_variants =
         check_variants_override_coverage(&variant_overrides, &unique_override_keys);
     if !are_valid_variants {
@@ -185,7 +185,9 @@ async fn create(
     }
 
     // validating context
-    let exp_context = Condition::new(req.context.clone(), ValidationType::EXPERIMENTAL)?;
+    let exp_context = Exp::<Condition>::try_from(req.context.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
 
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;
@@ -665,9 +667,10 @@ async fn update_overrides(
     let variant_overrides = new_variants
         .iter()
         .map(|variant| {
-            Overrides::new(variant.overrides.clone(), ValidationType::EXPERIMENTAL)
+            Exp::<Overrides>::try_from(variant.overrides.clone()).map(|a| a.into_inner())
         })
-        .collect::<superposition::Result<Vec<Overrides>>>()?;
+        .collect::<Result<Vec<Overrides>, String>>()
+        .map_err(superposition::AppError::BadArgument)?;
     let are_valid_variants =
         check_variants_override_coverage(&variant_overrides, &override_keys);
     if !are_valid_variants {
@@ -678,14 +681,16 @@ async fn update_overrides(
             )
         )?;
     }
-    let experiment_condition = Condition::new(
+    let experiment_condition = Exp::<Condition>::try_from_db(
         experiment
             .context
             .as_object()
             .unwrap_or(&Map::new())
             .clone(),
-        get_db_experiment_validation_type(),
-    )?;
+    )
+    .map_err(superposition::AppError::BadArgument)?
+    .into_inner();
+
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;
     let (valid, reason) = validate_experiment(

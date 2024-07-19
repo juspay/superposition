@@ -1,18 +1,18 @@
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
-use superposition_types::{Condition, Overrides, ValidationType};
+use serde_json::Value;
+use superposition_types::{Cac, Condition, Overrides};
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
 #[derive(Deserialize, Clone)]
 pub struct PutReq {
-    pub context: Condition,
-    pub r#override: Overrides,
+    pub context: Cac<Condition>,
+    pub r#override: Cac<Overrides>,
 }
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
 #[derive(Deserialize, Clone)]
 pub struct MoveReq {
-    pub context: Map<String, Value>,
+    pub context: Cac<Condition>,
 }
 
 #[derive(Deserialize, Clone)]
@@ -67,7 +67,8 @@ pub struct PriorityRecomputeResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
+    use serde_json::{json, Map};
+    use superposition_types::Cac;
 
     #[test]
     fn test_deserialize_context_action() {
@@ -91,12 +92,12 @@ mod tests {
         let mut expected_condition = Map::new();
         expected_condition.insert("foo".to_string(), json!("bar"));
         expected_condition.insert("bar".to_string(), json!({ "baz": "baz"}));
-        let condition = Condition::new(expected_condition, ValidationType::CAC)
+        let condition = Cac::<Condition>::try_from(expected_condition)
             .expect("Invalid context condition");
 
         let mut expected_override = Map::new();
         expected_override.insert("foo".to_string(), json!("baz"));
-        let override_ = Overrides::new(expected_override, ValidationType::CAC)
+        let override_ = Cac::<Overrides>::try_from(expected_override)
             .expect("Invalid context override");
 
         let expected_action = ContextAction::Put(PutReq {

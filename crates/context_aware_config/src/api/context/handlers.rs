@@ -192,12 +192,13 @@ fn create_ctx_from_put_req(
     conn: &mut DBConnection,
     user: &User,
 ) -> superposition::Result<Context> {
-    let ctx_condition = req.context.to_owned();
+    let ctx_condition = req.context.to_owned().into_inner();
     let condition_val = json!(ctx_condition);
-    let ctx_override = json!(req.r#override.to_owned());
-    validate_override_with_default_configs(conn, &req.r#override)?;
+    let r_override = req.r#override.clone().into_inner();
+    let ctx_override = json!(r_override.to_owned());
+    validate_override_with_default_configs(conn, &r_override)?;
     validate_condition_with_functions(conn, &ctx_condition)?;
-    validate_override_with_functions(conn, &req.r#override)?;
+    validate_override_with_functions(conn, &r_override)?;
 
     let dimension_schema_map = get_all_dimension_schema_map(conn)?;
 
@@ -399,7 +400,7 @@ fn r#move(
 ) -> superposition::Result<PutResp> {
     use contexts::dsl;
     let req = req.into_inner();
-    let ctx_condition = Value::Object(req.context);
+    let ctx_condition = json!(req.context.into_inner());
     let new_ctx_id = hash(&ctx_condition);
     let dimension_schema_map = get_all_dimension_schema_map(conn)?;
     let priority = validate_dimensions_and_calculate_priority(

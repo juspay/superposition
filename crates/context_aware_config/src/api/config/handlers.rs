@@ -23,10 +23,7 @@ use diesel::{
 };
 use serde_json::{json, Map, Value};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
-use superposition_types::{
-    get_db_cac_validation_type, result as superposition, Condition, Overrides, User,
-    ValidationType,
-};
+use superposition_types::{result as superposition, Cac, Condition, Overrides, User};
 
 use itertools::Itertools;
 use jsonschema::JSONSchema;
@@ -335,7 +332,10 @@ fn construct_new_payload(
                 log::error!("construct new payload Context not present");
                 Err(bad_argument!("Context not present"))
             },
-            |val| Condition::new(val.to_owned(), ValidationType::CAC),
+            |val| {
+                Cac::<Condition>::try_from(val.to_owned())
+                    .map_err(superposition::AppError::BadArgument)
+            },
         )?;
 
     let override_ = res
@@ -346,7 +346,10 @@ fn construct_new_payload(
                 log::error!("construct new payload Override not present");
                 Err(bad_argument!("Override not present"))
             },
-            |val| Overrides::new(val.to_owned(), ValidationType::CAC),
+            |val| {
+                Cac::<Overrides>::try_from(val.to_owned())
+                    .map_err(superposition::AppError::BadArgument)
+            },
         )?;
 
     return Ok(web::Json(PutReq {
@@ -425,10 +428,12 @@ async fn reduce_config_key(
                 Some(Value::Bool(to_be_deleted)),
                 Some(override_val),
             ) => {
-                let override_val = Overrides::new(
+                let override_val = Cac::<Overrides>::try_from_db(
                     override_val.as_object().unwrap_or(&Map::new()).clone(),
-                    get_db_cac_validation_type(),
-                )?;
+                )
+                .map_err(superposition::AppError::BadArgument)?
+                .into_inner();
+
                 if *to_be_deleted {
                     if is_approve {
                         let _ = delete_context_api(cid.clone(), user.clone(), conn);
