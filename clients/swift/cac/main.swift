@@ -57,7 +57,6 @@ func parseJson(jsonString: String) -> Value? {
     return nil
 }
 
-// TODO: fix
 func getResolvedConfig(client: UnknownClientPointer, context: String, filterKeys: [String]? = nil) -> Value? {
     let keys = filterKeys.map { $0.joined(separator: "|") }
 

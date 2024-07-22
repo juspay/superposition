@@ -38,7 +38,6 @@ func parseJson(jsonString: String) -> Value? {
     return nil
 }
 
-// TODO: fix
 func getApplicableVariant(client: UnknownClientPointer, context: String, toss: Int16) -> Value? {
     return context.withCString { c -> Value? in
         let rawData = expt_get_applicable_variant(client, c, toss)
