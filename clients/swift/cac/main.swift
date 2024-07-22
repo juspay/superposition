@@ -1,6 +1,8 @@
 import Foundation
 
 typealias UnknownClientPointer = OpaquePointer
+typealias Value = [String: Any]
+
 enum MergeStrategy {
     case MERGE
     case REPLACE
@@ -44,10 +46,10 @@ func getCacLastModified(client: UnknownClientPointer) -> String? {
     return resp.map { String(cString: $0) }
 }
 
-func parseJson(jsonString: String) -> Any? {
+func parseJson(jsonString: String) -> Value? {
     if let jsonData = jsonString.data(using: .utf8) {
         do {
-            return try JSONSerialization.jsonObject(with: jsonData, options: [])
+            return try JSONSerialization.jsonObject(with: jsonData, options: []) as? Value
         } catch {
             return nil
         }
@@ -56,14 +58,16 @@ func parseJson(jsonString: String) -> Any? {
 }
 
 // TODO: fix
-func getResolvedConfig(client: UnknownClientPointer, context: String, filterKeys: [String]? = nil) -> Any? {
+func getResolvedConfig(client: UnknownClientPointer, context: String, filterKeys: [String]? = nil) -> Value? {
     let keys = filterKeys.map { $0.joined(separator: "|") }
 
-    return context.withCString { c -> Any? in
-        return MergeStrategy.MERGE.show.withCString { m -> Any? in
+    return context.withCString { c -> Value? in
+        return MergeStrategy.MERGE.show.withCString { m -> Value? in
             let rawData : UnsafePointer<CChar>?
             if let k = keys {
-                rawData = cac_get_resolved_config(client, c, k, m)
+                rawData = k.withCString { ck -> UnsafePointer<CChar>? in
+                    return cac_get_resolved_config(client, c, ck, m)
+                }
             } else {
                 rawData = cac_get_resolved_config(client, c, nil, m)
             }
@@ -72,10 +76,10 @@ func getResolvedConfig(client: UnknownClientPointer, context: String, filterKeys
     }
 }
 
-func getDefaultConfig(client: UnknownClientPointer, filterKeys: [String]) -> Any? {
+func getDefaultConfig(client: UnknownClientPointer, filterKeys: [String]) -> Value? {
     let keys = filterKeys.joined(separator: "|")
 
-    return keys.withCString { k -> Any? in
+    return keys.withCString { k -> Value? in
         let rawData = cac_get_default_config(client, keys)
         return rawData.map { String(cString: $0) }.flatMap { parseJson(jsonString: $0) }
     }
@@ -88,44 +92,3 @@ func cacFreeClient(client: UnknownClientPointer) {
 func cacLastErrorMessage() -> String? {
     return cac_last_error_message().map { String(cString: $0) }
 }
-
-
-let t = "test"
-let f : UInt = 300
-let h = "http://localhost:8080"
-
-if (createCacClient(tenant: t, frequency: f, hostname: h)) {
-    if let client = getCacClient(tenant: t) {
-        // cacStartPolling(tenant: t)
-        // print("cacStartPolling started!")
-
-        // let m = getCacLastModified(client: client)
-        let r = getResolvedConfig(client: client, context: "")
-        // let d = getDefaultConfig(client: client, filterKeys: [])
-
-        if let val = r {
-            print("resolved: \(r)")
-        } else {
-            print("err-msg: \(cacLastErrorMessage())")
-        }
-
-        // print("modified: \(m)")
-
-        // print("default: \(d)")
-
-        cacFreeClient(client: client)
-    } else {
-        print("getCacClient failed!")
-    }
-} else {
-    print("createCacClient failed!")
-}
-
-// func getFullConfigStateWithFilter(client: UnknownClientPointer, )
-
-// let result = createCacClient(tenant: "naman", frequency: 3, hostname: "http://localhost:8080")
-// let result = getCacClient(tenant: "naman")
-// let result = cacStartPolling(tenant: "naman")
-// let r4 = getCacLastModified(client: "naman")
-
-// print("Result from C function: \(r4)")
