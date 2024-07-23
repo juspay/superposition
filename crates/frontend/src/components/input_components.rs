@@ -10,6 +10,7 @@ pub fn enum_dropdown(
     handle_change: Callback<String, ()>,
     #[prop(default = String::new())] class: String,
     #[prop(default = false)] disabled: bool,
+    #[prop(default = "")] name: &'static str,
 ) -> impl IntoView {
     let (value, set_value) = create_signal(config_value.replace("\\", ""));
     let (selected_enum, set_selected_enum) = create_signal(String::from("Choose Enum"));
@@ -49,6 +50,7 @@ pub fn enum_dropdown(
                         dropdown_direction=DropdownDirection::Down
                         dropdown_btn_type=DropdownBtnType::Select
                         dropdown_options=enum_array.clone()
+                        name
                         on_select=Callback::new(move |selected: String| {
                             handle_change.call(selected.clone());
                             set_value.set(selected.clone());
@@ -68,6 +70,7 @@ pub fn boolean_toggle(
     update_value: Callback<String, ()>,
     #[prop(default = String::new())] class: String,
     #[prop(default = false)] disabled: bool,
+    #[prop(default = "")] name: &'static str,
 ) -> impl IntoView {
     let (flag, set_flag) = create_signal(config_value.parse::<bool>().unwrap_or(false));
     view! {
@@ -79,6 +82,7 @@ pub fn boolean_toggle(
             }
 
             type="checkbox"
+            name=name
             class=format!("toggle toggle-[#ffffff] flex items-center {class}")
             checked=flag
         />

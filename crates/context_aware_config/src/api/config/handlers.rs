@@ -1,6 +1,8 @@
 use std::{collections::HashMap, str::FromStr};
 
-use super::helpers::{filter_config_by_dimensions, filter_config_by_prefix};
+use super::helpers::{
+    filter_config_by_dimensions, filter_config_by_prefix, get_query_params_map,
+};
 use super::types::{Config, Context};
 use crate::api::context::{
     delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
@@ -11,9 +13,7 @@ use crate::{
     helpers::generate_cac,
 };
 use actix_http::header::HeaderValue;
-use actix_web::{
-    get, put, web, web::Query, HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
-};
+use actix_web::{get, put, web, HttpRequest, HttpResponse, HttpResponseBuilder, Scope};
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
 use diesel::{
@@ -511,21 +511,7 @@ async fn get(
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    let params = Query::<HashMap<String, String>>::from_query(req.query_string())
-        .map_err(|err| {
-            log::error!("Failed to parse query params with err: {}", err);
-            bad_argument!("Unable to retrieve query parameters.")
-        })?;
-    let mut query_params_map: serde_json::Map<String, Value> = Map::new();
-
-    for (key, value) in params.0.into_iter() {
-        query_params_map.insert(
-            key,
-            value
-                .parse::<i32>()
-                .map_or_else(|_| json!(value), |int_val| json!(int_val)),
-        );
-    }
+    let mut query_params_map = get_query_params_map(req.query_string())?;
     let mut config_version = validate_version_in_params(&mut query_params_map)?;
     let mut config = generate_config_from_version(&mut config_version, &mut conn)?;
 
@@ -558,22 +544,7 @@ async fn get_resolved_config(
     db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let params = Query::<HashMap<String, String>>::from_query(req.query_string())
-        .map_err(|err| {
-            log::error!("failed to parse query params with err: {}", err);
-            bad_argument!("error getting query params")
-        })?;
-
-    let mut query_params_map: serde_json::Map<String, Value> = Map::new();
-
-    for item in params.0.into_iter() {
-        query_params_map.insert(
-            item.0,
-            item.1
-                .parse::<i32>()
-                .map_or_else(|_| json!(item.1), |int_val| json!(int_val)),
-        );
-    }
+    let mut query_params_map = get_query_params_map(req.query_string())?;
 
     let max_created_at = get_max_created_at(&mut conn)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log : {e}"))

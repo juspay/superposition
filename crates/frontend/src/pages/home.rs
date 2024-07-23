@@ -15,9 +15,7 @@ use serde_json::{Map, Value};
 use strum::EnumProperty;
 use strum_macros::Display;
 use wasm_bindgen::JsCast;
-use web_sys::{
-    HtmlButtonElement, HtmlInputElement, HtmlSelectElement, HtmlSpanElement, MouseEvent,
-};
+use web_sys::{HtmlButtonElement, HtmlSpanElement, MouseEvent};
 
 #[derive(Clone, Debug, Copy, Display, strum_macros::EnumProperty, PartialEq)]
 enum ResolveTab {
@@ -66,6 +64,7 @@ pub fn home() -> impl IntoView {
         },
     );
 
+    let (context_rs, context_ws) = create_signal::<Vec<(String, String, String)>>(vec![]);
     let (selected_tab_rs, selected_tab_ws) = create_signal(ResolveTab::AllConfig);
 
     let unstrike = |search_field_prefix: &String, config: &Map<String, Value>| {
@@ -136,32 +135,6 @@ pub fn home() -> impl IntoView {
 
     let resolve_click = move |ev: MouseEvent| {
         ev.prevent_default();
-        let dimension_labels = document().get_elements_by_name("context-dimension-name");
-        let dimension_ops = document().get_elements_by_name("context-dimension-operator");
-        let dimension_values = document().get_elements_by_name("context-dimension-value");
-        let mut query_vector: Vec<(String, String, String)> = vec![];
-        for i in 0..dimension_labels.length() {
-            query_vector.push((
-                dimension_labels
-                    .item(i)
-                    .expect("missing input")
-                    .dyn_ref::<HtmlInputElement>()
-                    .unwrap()
-                    .value(),
-                dimension_ops
-                    .item(i)
-                    .expect("missing input")
-                    .dyn_ref::<HtmlSelectElement>()
-                    .unwrap()
-                    .value(),
-                dimension_values
-                    .item(i)
-                    .expect("missing input")
-                    .dyn_ref::<HtmlInputElement>()
-                    .unwrap()
-                    .value(),
-            ))
-        }
         // strike out all config elements on the page
         let config_name_elements = document().get_elements_by_class_name("config-name");
         let config_value_elements = document().get_elements_by_class_name("config-value");
@@ -183,10 +156,9 @@ pub fn home() -> impl IntoView {
                 .class_list()
                 .add_2("text-gray-300", "line-through");
         }
-        logging::log!("query vector {:#?}", query_vector);
         // resolve the context and get the config that would apply
         spawn_local(async move {
-            let context = gen_query_context(query_vector);
+            let context = gen_query_context(context_rs.get());
             let mut config = match resolve_config(tenant_rs.get(), context).await.unwrap()
             {
                 Value::Object(m) => m,
@@ -266,8 +238,14 @@ pub fn home() -> impl IntoView {
                                                     dropdown_direction=DropdownDirection::Right
                                                     is_standalone=false
                                                     resolve_mode=true
-                                                    handle_change=|_| ()
+                                                    handle_change=move |new_context| {
+                                                        context_ws
+                                                            .update(|value| {
+                                                                *value = new_context;
+                                                            });
+                                                    }
                                                 />
+
                                                 <div class="card-actions mt-6 justify-end">
                                                     <Button
                                                         id="resolve_btn".to_string()
@@ -372,7 +350,7 @@ pub fn home() -> impl IntoView {
                                                                     .as_str()
                                                                     .unwrap_or(value.to_string().trim_matches('"'))
                                                                     .into();
-                                                                let unique_name = gen_name_id(k, &key, &value);
+                                                                let unique_name = gen_name_id(&key, &key, &value);
                                                                 view_vector
                                                                     .push(
                                                                         view! {
@@ -463,16 +441,14 @@ pub fn home() -> impl IntoView {
                                                         vec![
                                                             view! {
                                                                 <div class="error">
-                                                                    {"Failed to fetch config data: "} {error.to_string()}
+                                                                    Failed to fetch config data: {error.to_string()}
                                                                 </div>
                                                             },
                                                         ]
                                                     }
                                                     None => {
                                                         vec![
-                                                            view! {
-                                                                <div class="error">{"No config data fetched"}</div>
-                                                            },
+                                                            view! { <div class="error">No config data fetched</div> },
                                                         ]
                                                     }
                                                 }
