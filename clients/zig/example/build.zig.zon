@@ -23,9 +23,9 @@
     // Once all dependencies are fetched, `zig build` no longer requires
     // internet connectivity.
     .dependencies = .{
-        .pauli = .{
+        .@"superposition-client" = .{
             .url = "../",
-            .hash = "12206eb33ebbd1b0936dcb84d44460da9a863150e60e2432cef3ddf3fb6fd75a2f09",
+            .hash = "1220c89682bac3ca4efa3c6bdf1fb2472b66a2d5659f2508c8ebd21609ffa68646c4",
         },
     },
     .paths = .{

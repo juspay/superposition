@@ -11,7 +11,7 @@ pub fn build(b: *std.Build) void {
     const superposition = buildSuperpositionClient(b);
 
     const lib = b.addStaticLibrary(.{
-        .name = "pauli",
+        .name = "superposition-client",
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
@@ -42,7 +42,7 @@ pub fn build(b: *std.Build) void {
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
     test_step.dependOn(&run_lib_unit_tests.step);
 
-    const module = b.addModule("pauli", .{
+    const module = b.addModule("superposition-client", .{
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,

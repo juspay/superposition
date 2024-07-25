@@ -193,14 +193,14 @@ fn freeFfiStringRaw(_: []const u8) void {
 // ---------------------------------------------------------------------------
 
 test "test init" {
-    const config = SetupConfig{ .tenant = "public", .update_frequency = 10, .hostname = "http://localhost:8080" };
+    const config = SetupConfig{ .tenant = "dev", .update_frequency = 10, .hostname = "http://localhost:8080" };
 
     const client = try Client.init(config);
     defer client.deinit();
 }
 
 test "test lastModifiedRaw" {
-    const config = SetupConfig{ .tenant = "public", .update_frequency = 10, .hostname = "http://localhost:8080" };
+    const config = SetupConfig{ .tenant = "dev", .update_frequency = 10, .hostname = "http://localhost:8080" };
 
     const client = try Client.init(config);
     defer client.deinit();

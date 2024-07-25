@@ -5,7 +5,7 @@ pub fn main() !void {
     var logging_alloc = std.heap.loggingAllocator(std.heap.page_allocator);
     const alloc = logging_alloc.allocator();
 
-    const setup_config = cac_client.SetupConfig{ .tenant = "public", .update_frequency = 10, .hostname = "http://localhost:8080" };
+    const setup_config = cac_client.SetupConfig{ .tenant = "dev", .update_frequency = 10, .hostname = "http://localhost:8080" };
 
     const client = try cac_client.Client.init(setup_config);
 

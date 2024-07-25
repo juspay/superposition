@@ -15,12 +15,12 @@ pub fn build(b: *std.Build) void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
-    const package = b.dependency("pauli", .{
+    const package = b.dependency("superposition-client", .{
         .target = target,
         .optimize = optimize,
     });
 
-    const module = package.module("pauli");
+    const module = package.module("superposition-client");
 
     const exe = b.addExecutable(.{
         .name = "example",
@@ -29,7 +29,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    exe.root_module.addImport("pauli", module);
+    exe.root_module.addImport("superposition-client", module);
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
