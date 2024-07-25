@@ -206,6 +206,7 @@ where
                                                                             view! {
                                                                                 <EnumDropdown
                                                                                     schema
+                                                                                    name="context-dimension-value"
                                                                                     config_value=value
                                                                                     handle_change=Callback::new(move |selected_enum: String| {
                                                                                         set_context
@@ -229,6 +230,7 @@ where
                                                                             }
                                                                             view! {
                                                                                 <BooleanToggle
+                                                                                    name="context-dimension-value"
                                                                                     config_value=value
                                                                                     update_value=Callback::new(move |flag: String| {
                                                                                         set_context

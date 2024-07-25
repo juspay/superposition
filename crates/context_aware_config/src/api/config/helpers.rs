@@ -1,7 +1,10 @@
+use std::collections::HashMap;
+
 use super::types::{Config, Context};
 
+use actix_web::web::Query;
 use serde_json::{json, Map, Value};
-use superposition_macros::unexpected_error;
+use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::result as superposition;
 
 pub fn filter_context(
@@ -95,4 +98,27 @@ pub fn filter_config_by_dimensions(
     };
 
     Ok(filtered_config)
+}
+
+pub fn get_query_params_map(
+    query_string: &str,
+) -> superposition::Result<Map<String, Value>> {
+    let params =
+        Query::<HashMap<String, String>>::from_query(query_string).map_err(|err| {
+            log::error!("failed to parse query params with err: {}", err);
+            bad_argument!("error getting query params")
+        })?;
+
+    let query_params_map = params
+        .0
+        .into_iter()
+        .map(|(key, value)| {
+            let parsed_value = value
+                .parse::<serde_json::Value>()
+                .unwrap_or_else(|_| json!(value));
+            (key, parsed_value)
+        })
+        .collect::<Map<String, Value>>();
+
+    Ok(query_params_map)
 }

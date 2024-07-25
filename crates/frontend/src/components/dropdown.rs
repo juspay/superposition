@@ -31,6 +31,7 @@ pub fn dropdown<T>(
     #[prop(default = "w-96")] dropdown_width: &'static str,
     #[prop(default = false)] disabled: bool,
     #[prop(default = true)] searchable: bool,
+    #[prop(default = "")] name: &'static str,
 ) -> impl IntoView
 where
     T: DropdownOption + Clone + 'static,
@@ -83,6 +84,8 @@ where
                                         type="text"
                                         class="grow"
                                         placeholder="Search"
+                                        name=name
+                                        value=search_term.get()
                                         on:input=move |event| {
                                             set_search_term.set(event_target_value(&event));
                                         }
