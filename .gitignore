@@ -24,6 +24,7 @@ backend/.env
 /result-*
 clients/haskell/result
 clients/haskell/dist-newstyle
+clients/swift/*.out
 # dev
 bacon.toml
 docker-compose/localstack/export_cyphers.sh

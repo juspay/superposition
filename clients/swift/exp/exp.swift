@@ -45,15 +45,18 @@ func getApplicableVariant(client: UnknownClientPointer, context: String, toss: I
     }
 }
 
-func getSatisfiedExperiments(client: UnknownClientPointer, context: String, filterPrefix: [String]) -> Value? {
-    let keys = filterPrefix.joined(separator: "|")
-
-    return keys.withCString { k -> Value? in
-        return context.withCString { c -> Value? in
-            let rawData = expt_get_satisfied_experiments(client, c, k)
-            return rawData.map { String(cString: $0) }.flatMap { parseJson(jsonString: $0) }
+func getSatisfiedExperiments(client: UnknownClientPointer, context: String, filterPrefix: [String]? = nil) -> Value? {
+    let keys = filterPrefix.map { $0.joined(separator: "|") }
+    let rawData = context.withCString { c -> UnsafeMutablePointer<CChar>? in
+        if let k = keys {
+            return k.withCString { kc -> UnsafeMutablePointer<CChar>? in
+                return expt_get_satisfied_experiments(client, c, kc)
+            }
+        } else {
+            return expt_get_satisfied_experiments(client, c, nil)
         }
     }
+    return rawData.map { String(cString: $0) }.flatMap { parseJson(jsonString: $0) }
 }
 
 func getRunningExperiments(client: UnknownClientPointer) -> Value? {

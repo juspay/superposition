@@ -31,7 +31,7 @@ func createCacClient(tenant: String, frequency: UInt, hostname: String) -> Bool 
 
 func getCacClient(tenant: String) -> UnknownClientPointer? {
     return tenant.withCString { t -> UnknownClientPointer? in
-        return cac_get_client(tenant)
+        return cac_get_client(t)
     }
 }
 
@@ -75,13 +75,45 @@ func getResolvedConfig(client: UnknownClientPointer, context: String, filterKeys
     }
 }
 
-func getDefaultConfig(client: UnknownClientPointer, filterKeys: [String]) -> Value? {
-    let keys = filterKeys.joined(separator: "|")
-
-    return keys.withCString { k -> Value? in
-        let rawData = cac_get_default_config(client, keys)
-        return rawData.map { String(cString: $0) }.flatMap { parseJson(jsonString: $0) }
+func getDefaultConfig(client: UnknownClientPointer, filterKeys: [String]? = nil) -> Value? {
+    let keys = filterKeys.map { $0.joined(separator: "|") }
+    let rawData : UnsafePointer<CChar>?
+    if let k = keys {
+        rawData = k.withCString { ck -> UnsafePointer<CChar>? in
+            return cac_get_default_config(client, ck)
+        }
+    } else {
+        rawData = cac_get_default_config(client, nil)
     }
+    return rawData.map { String(cString: $0) }.flatMap { parseJson(jsonString: $0) }
+}
+
+func getConfig(client: UnknownClientPointer, filterQuery: [String]?, filterPrefix: [String]?) -> Value? {
+    let query = filterQuery.map { $0.joined(separator: "|") }
+    let prefix = filterPrefix.map { $0.joined(separator: "|") }
+    let rawData : UnsafePointer<CChar>?
+
+    if let q = query {
+        rawData =
+            q.withCString { qs -> UnsafePointer<CChar>? in
+                if let p = prefix {
+                    return p.withCString { ps -> UnsafePointer<CChar>? in
+                        return cac_get_config(client, qs, ps)
+                    }
+                } else {
+                    return cac_get_config(client, qs, nil)
+                }
+            }
+    } else {
+        if let p = prefix {
+            rawData = p.withCString { ps -> UnsafePointer<CChar>? in
+                return cac_get_config(client, nil, ps)
+            }
+        } else {
+            rawData = cac_get_config(client, nil, nil)
+        }
+    }
+    return rawData.map { String(cString: $0) }.flatMap { parseJson(jsonString: $0) }
 }
 
 func cacFreeClient(client: UnknownClientPointer) {
