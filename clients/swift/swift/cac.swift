@@ -1,7 +1,11 @@
-import Foundation
+//
+//  cac.swift
+//  swift
+//
+//  Created by naman agarwal on 27/07/24.
+//
 
-typealias UnknownClientPointer = OpaquePointer
-typealias Value = [String: Any]
+import Foundation
 
 enum MergeStrategy {
     case MERGE
@@ -44,17 +48,6 @@ func cacStartPolling(tenant: String) {
 func getCacLastModified(client: UnknownClientPointer) -> String? {
     let resp = cac_get_last_modified(client)
     return resp.map { String(cString: $0) }
-}
-
-func parseJson(jsonString: String) -> Value? {
-    if let jsonData = jsonString.data(using: .utf8) {
-        do {
-            return try JSONSerialization.jsonObject(with: jsonData, options: []) as? Value
-        } catch {
-            return nil
-        }
-    }
-    return nil
 }
 
 func getResolvedConfig(client: UnknownClientPointer, context: String, filterKeys: [String]? = nil) -> Value? {

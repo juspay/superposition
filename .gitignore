@@ -25,6 +25,7 @@ backend/.env
 clients/haskell/result
 clients/haskell/dist-newstyle
 clients/swift/*.out
+clients/swift/**/*/xcuserdata
 # dev
 bacon.toml
 docker-compose/localstack/export_cyphers.sh

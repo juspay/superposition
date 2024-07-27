@@ -1,7 +1,12 @@
+//
+//  exp.swift
+//  swift
+//
+//  Created by naman agarwal on 27/07/24.
+//
+
 import Foundation
 
-typealias UnknownClientPointer = OpaquePointer
-typealias Value = [String: Any]
 
 func createExptClient(tenant: String, frequency: UInt, hostname: String) -> Bool {
     return tenant.withCString { t -> Bool in
@@ -25,17 +30,6 @@ func exptStartPolling(tenant: String) {
     tenant.withCString { t in
         expt_start_polling_update(t)
     }
-}
-
-func parseJson(jsonString: String) -> Value? {
-    if let jsonData = jsonString.data(using: .utf8) {
-        do {
-            return try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any]
-        } catch {
-            return nil
-        }
-    }
-    return nil
 }
 
 func getApplicableVariant(client: UnknownClientPointer, context: String, toss: Int16) -> Value? {
@@ -82,3 +76,4 @@ func exptFreeClient(client: UnknownClientPointer) {
 func exptLastErrorMessage() -> String? {
     return expt_last_error_message().map { String(cString: $0) }
 }
+
