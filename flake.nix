@@ -5,6 +5,10 @@
     haskell-flake.url = "github:srid/haskell-flake";
     systems.url = "github:nix-systems/default";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    zig = {
+        url = "github:ziglang/zig";
+        inputs.nixpkgs.follows = "nixpkgs";
+        };
     crane = {
       url = "github:ipetkov/crane";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -44,6 +48,8 @@
             jq
             nodejs_18
             nixpkgs-fmt
+            zig_0_12
+            zls
           ];
         };
       };
