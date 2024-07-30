@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use crate::{
     types::{Context, Dimension, VariantType},
-    utils::get_variable_name_and_value,
+    utils::{get_variable_name_and_value, get_variable_name_and_value_2},
 };
 use derive_more::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
@@ -100,14 +100,26 @@ impl TryFrom<Context> for ContextForm {
                     .as_array()
                     .ok_or("failed to parse operands as an arrays".to_string())?;
 
-                let (variable_name, variable_value) =
-                    get_variable_name_and_value(operands)?;
+                let (vname, vvalue) = get_variable_name_and_value_2(operands)?;
 
-                condition_tuples.push((
-                    String::from(variable_name),
-                    operator.to_owned(),
-                    variable_value.to_owned(),
-                ));
+                let value = match operator.as_str() {
+                    "==" => vvalue
+                        .get(0)
+                        .map(|v| format!("{v}"))
+                        .unwrap_or(String::new()),
+                    "<=" => vvalue
+                        .iter()
+                        .map(|v| format!("{v}"))
+                        .collect::<Vec<String>>()
+                        .join(","),
+                    "in" => vvalue
+                        .get(0)
+                        .map(|v| format!("{v}"))
+                        .unwrap_or(String::new()),
+                    _ => String::new(),
+                };
+
+                condition_tuples.push((String::from(vname), operator.to_owned(), value));
             }
         }
         Ok(ContextForm(condition_tuples))
@@ -120,21 +132,34 @@ impl Form for ContextForm {
     type ParseOutput = Vec<(String, String, serde_json::Value)>;
 
     fn parse(&self, source: &[Self::Source]) -> Result<Self::ParseOutput, Self::Error> {
+        use serde_json::Value;
         // TODO: implement this function
-        // self.iter().map(|(dimension_name, opeator, value)| {
-        //     let dimension_type = source.iter().find_map(|d| {
-        //         if d.dimension.as_str() == dimension_name {
-        //             return d.get_possible_type();
-        //         }
-        //         None
-        //     });
-        //     match (dimension_type, dimension_name, opeator.as_str(), value) {
-        //         (None, _, _, _) => None,
-        //         (Some(possible_type), n, "==", v) => None,
-        //         (Some(possible_type), n, "<=", v) => None,
-        //         (Some(possible_type), n, "in", v) => None,
-        //     }
-        // });
+        for (dname, operator, value) in self {
+            let possible_types = source
+                .iter()
+                .find_map(|d| {
+                    if d.dimension.as_str() == dname {
+                        return d.get_possible_type();
+                    }
+                    None
+                })
+                .ok_or(format!(
+                    "failed to get parse context, missing type for dimesion {}",
+                    dname
+                ))?;
+
+            for dtype in possible_types {
+                match (dtype, dname, opeator.as_str(), value) {
+                    (SchemaType::String, n, "==", v) => {
+                        Value::String(v)
+                    }
+                    (_, n, "<=", v) => {
+
+                    },
+                    (Some(possible_type), n, "in", v) => None,
+                }
+            }
+        }
         Ok(vec![(
             String::new(),
             String::new(),
