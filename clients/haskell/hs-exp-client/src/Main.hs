@@ -14,14 +14,15 @@ main = do
     createExpClient "dev" 10 "http://localhost:8080" >>= \case
         Left err -> putStrLn err
         Right _  -> pure ()
-    threadId <- forkIO (expStartPolling "dev")
-    print threadId
+    -- threadId <- forkIO (expStartPolling "dev")
+    -- print threadId
     getExpClient "dev" >>= \case
         Left err     -> putStrLn err
-        Right client -> loop client
+        Right client -> loopNTimes 10 client
     pure ()
     where
-        loop client = do
+        loopNTimes 0 _ = return ()
+        loopNTimes n client = do
             runningExperiments   <- getRunningExperiments client
             satisfiedExperiments <- getSatisfiedExperiments client "{\"os\": \"android\", \"client\": \"1mg\"}" Nothing
             filteredExperiments <- getFilteredSatisfiedExperiments client (Just "{\"os\": \"android\"}") (Just "hyperpay")
@@ -35,4 +36,4 @@ main = do
             print "variant ID applied"
             print variants
             -- threadDelay 10000000
-            loop client
+            loopNTimes (n-1) client
