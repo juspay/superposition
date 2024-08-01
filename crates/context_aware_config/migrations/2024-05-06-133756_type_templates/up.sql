@@ -1,5 +1,5 @@
 -- Your SQL goes here
-CREATE TABLE type_templates (
+CREATE TABLE IF NOT EXISTS public.type_templates (
     type_name TEXT PRIMARY KEY,
     type_schema JSON NOT NULL,
     created_by TEXT NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE type_templates (
 CREATE INDEX IF NOT EXISTS type_templates_index ON public.type_templates(type_name);
 CREATE INDEX IF NOT EXISTS type_templates_created_at_index ON public.type_templates(created_at);
 CREATE INDEX IF NOT EXISTS type_templates_last_modifed_index ON public.type_templates(last_modified);
-INSERT INTO type_templates(type_name, type_schema, created_by, created_at)
+INSERT INTO public.type_templates(type_name, type_schema, created_by, created_at)
 VALUES (
         'Number',
         '{"type": "integer"}',

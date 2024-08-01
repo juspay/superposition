@@ -62,6 +62,8 @@ async fn create(
         published_by: None,
         published_runtime_version: None,
         function_description: req.description,
+        last_modified_at: Utc::now().naive_utc(),
+        last_modified_by: user.get_email(),
     };
 
     let insert: Result<Function, diesel::result::Error> = diesel::insert_into(functions)
@@ -139,6 +141,8 @@ async fn update(
         published_at: result.published_at,
         published_by: result.published_by,
         published_runtime_version: result.published_runtime_version,
+        last_modified_at: Utc::now().naive_utc(),
+        last_modified_by: user.get_email(),
     };
 
     let mut updated_function = diesel::update(functions)
@@ -184,6 +188,13 @@ async fn delete_function(
     let DbConnection(mut conn) = db_conn;
     let f_name = params.into_inner();
 
+    diesel::update(functions)
+        .filter(function_name.eq(&f_name))
+        .set((
+            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_by.eq(user.get_email()),
+        ))
+        .execute(&mut conn)?;
     let deleted_row =
         delete(functions.filter(function_name.eq(&f_name))).execute(&mut conn);
     match deleted_row {
