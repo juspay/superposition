@@ -223,6 +223,8 @@ fn create_ctx_from_put_req(
         override_: ctx_override.to_owned(),
         created_at: Utc::now(),
         created_by: user.get_email(),
+        last_modified_at: Utc::now().naive_utc(),
+        last_modified_by: user.get_email(),
     })
 }
 
@@ -234,6 +236,7 @@ pub fn hash(val: &Value) -> String {
 fn update_override_of_existing_ctx(
     conn: &mut PgConnection,
     ctx: Context,
+    user: &User,
 ) -> superposition::Result<PutResp> {
     use contexts::dsl;
     let mut new_override: Value = dsl::contexts
@@ -247,18 +250,14 @@ fn update_override_of_existing_ctx(
         override_id: new_override_id,
         ..ctx
     };
-    diesel::update(dsl::contexts)
-        .filter(dsl::id.eq(&new_ctx.id))
-        .set(&new_ctx)
-        .execute(conn)?;
-    Ok(get_put_resp(new_ctx))
+    db_update_override(conn, new_ctx, user)
 }
 
 fn replace_override_of_existing_ctx(
     conn: &mut PgConnection,
     ctx: Context,
+    user: &User,
 ) -> superposition::Result<PutResp> {
-    use contexts::dsl;
     let new_override = ctx.override_;
     let new_override_id = hash(&new_override);
     let new_ctx = Context {
@@ -266,11 +265,25 @@ fn replace_override_of_existing_ctx(
         override_id: new_override_id,
         ..ctx
     };
-    diesel::update(dsl::contexts)
-        .filter(dsl::id.eq(&new_ctx.id))
-        .set(&new_ctx)
-        .execute(conn)?;
-    Ok(get_put_resp(new_ctx))
+    db_update_override(conn, new_ctx, user)
+}
+
+fn db_update_override(
+    conn: &mut PgConnection,
+    ctx: Context,
+    user: &User,
+) -> superposition::Result<PutResp> {
+    use contexts::dsl;
+    let update_resp = diesel::update(dsl::contexts)
+        .filter(dsl::id.eq(&ctx.id))
+        .set((
+            dsl::override_.eq(ctx.override_),
+            dsl::override_id.eq(ctx.override_id),
+            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_by.eq(user.get_email()),
+        ))
+        .get_result::<Context>(conn)?;
+    Ok(get_put_resp(update_resp))
 }
 
 fn get_put_resp(ctx: Context) -> PutResp {
@@ -301,7 +314,7 @@ pub fn put(
             if already_under_txn {
                 diesel::sql_query("ROLLBACK TO put_ctx_savepoint").execute(conn)?;
             }
-            update_override_of_existing_ctx(conn, new_ctx)
+            update_override_of_existing_ctx(conn, new_ctx, user)
         }
         Err(e) => {
             log::error!("failed to update context with db error: {:?}", e);
@@ -356,7 +369,7 @@ fn override_helper(
             if already_under_txn {
                 diesel::sql_query("ROLLBACK TO insert_ctx_savepoint").execute(conn)?;
             }
-            replace_override_of_existing_ctx(conn, new_ctx) // no need for .map(Json)
+            replace_override_of_existing_ctx(conn, new_ctx, user) // no need for .map(Json)
         }
         Err(e) => {
             log::error!("failed to update context with db error: {:?}", e);
@@ -424,6 +437,8 @@ fn r#move(
             dsl::id.eq(&new_ctx_id),
             dsl::value.eq(&ctx_condition),
             dsl::priority.eq(priority),
+            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_by.eq(user.get_email()),
         ))
         .get_result(conn);
 
@@ -435,6 +450,8 @@ fn r#move(
         created_by: user.get_email(),
         override_id: ctx.override_id,
         override_: ctx.override_,
+        last_modified_at: Utc::now().naive_utc(),
+        last_modified_by: user.get_email(),
     };
 
     let handle_unique_violation =
@@ -445,14 +462,14 @@ fn r#move(
                     .get_result(db_conn)?;
 
                 let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
-                update_override_of_existing_ctx(db_conn, ctx)
+                update_override_of_existing_ctx(db_conn, ctx, user)
             } else {
                 db_conn.build_transaction().read_write().run(|conn| {
                     let deleted_ctxt = diesel::delete(dsl::contexts)
                         .filter(dsl::id.eq(&old_ctx_id))
                         .get_result(conn)?;
                     let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
-                    update_override_of_existing_ctx(conn, ctx)
+                    update_override_of_existing_ctx(conn, ctx, user)
                 })
             }
         };
@@ -571,6 +588,13 @@ pub fn delete_context_api(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<()> {
     use contexts::dsl;
+    diesel::update(dsl::contexts)
+        .filter(dsl::id.eq(&ctx_id))
+        .set((
+            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_by.eq(user.get_email()),
+        ))
+        .execute(conn)?;
     let deleted_row = delete(dsl::contexts.filter(dsl::id.eq(&ctx_id))).execute(conn);
     match deleted_row {
         Ok(0) => Err(not_found!("Context Id `{}` doesn't exists", ctx_id)),

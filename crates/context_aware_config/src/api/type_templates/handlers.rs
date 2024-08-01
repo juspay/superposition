@@ -59,6 +59,7 @@ async fn create_type(
             type_templates::type_schema.eq(request.type_schema.clone()),
             type_templates::type_name.eq(type_name),
             type_templates::created_by.eq(user.email.clone()),
+            type_templates::last_modified_by.eq(user.email.clone()),
         ))
         .get_result::<TypeTemplates>(&mut conn)
         .map_err(|err| {
@@ -103,8 +104,8 @@ async fn update_type(
         .filter(type_templates::type_name.eq(type_name))
         .set((
             type_templates::type_schema.eq(request.clone()),
-            type_templates::created_by.eq(user.email),
-            type_templates::last_modified.eq(timestamp),
+            type_templates::last_modified_at.eq(timestamp),
+            type_templates::last_modified_by.eq(user.email),
         ))
         .get_result::<TypeTemplates>(&mut conn)
         .map_err(|err| {
@@ -118,9 +119,17 @@ async fn update_type(
 async fn delete_type(
     path: Path<String>,
     db_conn: DbConnection,
+    user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let type_name = path.into_inner();
+    diesel::update(dsl::type_templates)
+        .filter(dsl::type_name.eq(type_name.clone()))
+        .set((
+            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_by.eq(user.email),
+        ))
+        .execute(&mut conn)?;
     let deleted_type =
         diesel::delete(dsl::type_templates.filter(dsl::type_name.eq(type_name)))
             .get_result::<TypeTemplates>(&mut conn)?;

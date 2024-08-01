@@ -68,6 +68,8 @@ async fn create(
         created_by: user.get_email(),
         created_at: Utc::now(),
         function_name: fun_name.clone(),
+        last_modified_at: Utc::now().naive_utc(),
+        last_modified_by: user.get_email(),
     };
 
     let upsert = diesel::insert_into(dimensions)
