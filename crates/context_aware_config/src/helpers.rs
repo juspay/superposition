@@ -3,7 +3,9 @@ use crate::{
     db::{
         models::ConfigVersion,
         schema::{
-            config_versions, contexts::dsl as ctxt, default_configs::dsl as def_conf,
+            config_versions,
+            contexts::dsl::{self as ctxt},
+            default_configs::dsl as def_conf,
         },
     },
 };
@@ -23,8 +25,8 @@ use service_utils::{
     service::types::AppState,
 };
 
-use superposition_macros::{db_error, validation_error};
-use superposition_types::result as superposition;
+use superposition_macros::{db_error, unexpected_error, validation_error};
+use superposition_types::{result as superposition, Cac, Condition, Overrides};
 
 use std::collections::HashMap;
 
@@ -323,21 +325,36 @@ pub fn generate_cac(
             db_error!(err)
         })?;
 
-    let (contexts, overrides) = contexts_vec.into_iter().fold(
-        (Vec::new(), Map::new()),
-        |(mut ctxts, mut overrides),
-         (id, condition, priority_, override_id, override_)| {
-            let ctxt = Context {
-                id,
-                condition,
-                priority: priority_,
-                override_with_keys: [override_id.to_owned()],
-            };
-            ctxts.push(ctxt);
-            overrides.insert(override_id, override_);
-            (ctxts, overrides)
-        },
-    );
+    let mut contexts = Vec::new();
+    let mut overrides: HashMap<String, Overrides> = HashMap::new();
+
+    for (id, condition, priority_, override_id, override_) in contexts_vec.iter() {
+        let condition = Cac::<Condition>::try_from_db(
+            condition.as_object().unwrap_or(&Map::new()).clone(),
+        )
+        .map_err(|err| {
+            log::error!("generate_cac : failed to decode context from db {}", err);
+            unexpected_error!(err)
+        })?
+        .into_inner();
+
+        let override_ = Cac::<Overrides>::try_from_db(
+            override_.as_object().unwrap_or(&Map::new()).clone(),
+        )
+        .map_err(|err| {
+            log::error!("generate_cac : failed to decode overrides from db {}", err);
+            unexpected_error!(err)
+        })?
+        .into_inner();
+        let ctxt = Context {
+            id: id.to_owned(),
+            condition,
+            priority: priority_.to_owned(),
+            override_with_keys: [override_id.to_owned()],
+        };
+        contexts.push(ctxt);
+        overrides.insert(override_id.to_owned(), override_);
+    }
 
     let default_config_vec = def_conf::default_configs
         .select((def_conf::key, def_conf::value))

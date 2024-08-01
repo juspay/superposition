@@ -3,7 +3,7 @@ use base64::prelude::*;
 use service_utils::helpers::extract_dimensions;
 use std::str;
 use superposition_macros::{unexpected_error, validation_error};
-use superposition_types::result as superposition;
+use superposition_types::{result as superposition, Condition};
 
 use crate::api::functions::helpers::get_published_functions_by_names;
 use crate::validation_functions::execute_fn;
@@ -24,7 +24,7 @@ type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
 pub fn validate_condition_with_functions(
     conn: &mut DBConnection,
-    context: &Value,
+    context: &Condition,
 ) -> superposition::Result<()> {
     use dimensions::dsl;
     let context = extract_dimensions(context)?;
