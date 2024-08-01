@@ -46,6 +46,8 @@
             diesel-cli
             leptosfmt
             wasm-pack
+            # go client
+            # go
           ];
         };
       };
