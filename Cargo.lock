@@ -4170,6 +4170,7 @@ dependencies = [
  "anyhow",
  "derive_more",
  "diesel",
+ "jsonlogic",
  "log",
  "serde",
  "serde_json",

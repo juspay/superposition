@@ -65,5 +65,9 @@ jsonlogic = { workspace = true }
 superposition_types = { path = "../superposition_types" }
 superposition_macros = { path = "../superposition_macros" }
 
+
+[features]
+disable_db_data_validation = ["superposition_types/disable_db_data_validation"]
+
 [lints]
 workspace = true

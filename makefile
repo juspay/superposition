@@ -96,6 +96,9 @@ get-password:
 superposition:
 	cargo run --color always --bin superposition --no-default-features --features=ssr
 
+superposition_legacy:
+	cargo run --color always --bin superposition --no-default-features --features='ssr superposition_types/disable_db_data_validation context_aware_config/disable_db_data_validation experimentation_platform/disable_db_data_validation'
+
 superposition_dev:
 	# export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`
 	cargo watch -x 'run --color always --bin superposition --no-default-features --features=ssr'
@@ -125,6 +128,14 @@ run: kill build
 		sleep 0.5; \
 		done
 	make superposition -e DOCKER_DNS=$(DOCKER_DNS)
+
+
+run_legacy: kill build
+	while ! make validate-psql-connection validate-aws-connection; \
+		do echo "waiting for postgres, localstack bootup"; \
+		sleep 0.5; \
+		done
+	make superposition_legacy -e DOCKER_DNS=$(DOCKER_DNS)
 
 ci-test: ci-setup
 	cargo test

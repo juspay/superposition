@@ -12,7 +12,7 @@ use std::{
     fmt::{self, Display},
     str::FromStr,
 };
-use superposition_types::result;
+use superposition_types::{result, Condition};
 
 const CONFIG_TAG_REGEX: &str = "^[a-zA-Z0-9_-]{1,64}$";
 
@@ -129,20 +129,15 @@ pub fn get_pod_info() -> (String, String) {
     (pod_id, deployment_id)
 }
 
-pub fn extract_dimensions(context_json: &Value) -> result::Result<Map<String, Value>> {
+pub fn extract_dimensions(context: &Condition) -> result::Result<Map<String, Value>> {
     // Assuming max 2-level nesting in context json logic
-    let context = context_json
-        .as_object()
-        .ok_or(
-            result::AppError::BadArgument("Error extracting dimensions, context not a valid JSON object. Provide a valid JSON context".into())
-            )?;
 
-    let conditions = match context.get("and") {
+    let conditions: Vec<Value> = match (*context).get("and") {
         Some(conditions_json) => conditions_json
             .as_array()
             .ok_or(result::AppError::BadArgument("Error extracting dimensions, failed parsing conditions as an array. Ensure the context provided obeys the rules of JSON logic".into()))?
             .clone(),
-        None => vec![context_json.clone()],
+        None => vec![Value::Object(context.to_owned().into())],
     };
 
     let mut dimension_tuples = Vec::new();

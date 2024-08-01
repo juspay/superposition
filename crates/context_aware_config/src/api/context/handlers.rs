@@ -193,17 +193,19 @@ fn create_ctx_from_put_req(
     conn: &mut DBConnection,
     user: &User,
 ) -> superposition::Result<Context> {
-    let ctx_condition = Value::Object(req.context.to_owned());
-    let ctx_override: Value = req.r#override.to_owned().into();
-    validate_override_with_default_configs(conn, &req.r#override)?;
+    let ctx_condition = req.context.to_owned().into_inner();
+    let condition_val = json!(ctx_condition);
+    let r_override = req.r#override.clone().into_inner();
+    let ctx_override = json!(r_override.to_owned());
+    validate_override_with_default_configs(conn, &r_override)?;
     validate_condition_with_functions(conn, &ctx_condition)?;
-    validate_override_with_functions(conn, &req.r#override)?;
+    validate_override_with_functions(conn, &r_override)?;
 
     let dimension_schema_map = get_all_dimension_schema_map(conn)?;
 
     let priority = validate_dimensions_and_calculate_priority(
         "context",
-        &ctx_condition,
+        &condition_val,
         &dimension_schema_map,
     )?;
 
@@ -211,11 +213,11 @@ fn create_ctx_from_put_req(
         return Err(bad_argument!("No dimension found in context"));
     }
 
-    let context_id = hash(&ctx_condition);
+    let context_id = hash(&condition_val);
     let override_id = hash(&ctx_override);
     Ok(Context {
         id: context_id.clone(),
-        value: ctx_condition,
+        value: condition_val,
         priority,
         override_id: override_id.to_owned(),
         override_: ctx_override.to_owned(),
@@ -399,7 +401,7 @@ fn r#move(
 ) -> superposition::Result<PutResp> {
     use contexts::dsl;
     let req = req.into_inner();
-    let ctx_condition = Value::Object(req.context);
+    let ctx_condition = Value::Object(req.context.into_inner().into());
     let new_ctx_id = hash(&ctx_condition);
     let dimension_schema_map = get_all_dimension_schema_map(conn)?;
     let priority = validate_dimensions_and_calculate_priority(

@@ -23,7 +23,7 @@ use diesel::{
 };
 use serde_json::{json, Map, Value};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
-use superposition_types::{result as superposition, User};
+use superposition_types::{result as superposition, Cac, Condition, Overrides, User};
 
 use itertools::Itertools;
 use jsonschema::JSONSchema;
@@ -313,23 +313,50 @@ fn get_contextids_from_overrideid(
     Ok(res)
 }
 
-fn construct_new_payload(req_payload: &Map<String, Value>) -> web::Json<PutReq> {
+fn construct_new_payload(
+    req_payload: &Map<String, Value>,
+) -> superposition::Result<web::Json<PutReq>> {
     let mut res = req_payload.clone();
     res.remove("to_be_deleted");
     res.remove("override_id");
     res.remove("id");
-    if let Some(Value::Object(res_context)) = res.get("context") {
-        if let Some(Value::Object(res_override)) = res.get("override") {
-            return web::Json(PutReq {
-                context: res_context.to_owned(),
-                r#override: res_override.to_owned(),
-            });
-        }
-    }
-    web::Json(PutReq {
-        context: Map::new(),
-        r#override: Map::new(),
-    })
+
+    let context = res
+        .get("context")
+        .and_then(|val| val.as_object())
+        .map_or_else(
+            || {
+                log::error!("construct new payload: Context not present");
+                Err(bad_argument!("Context not present"))
+            },
+            |val| {
+                Cac::<Condition>::try_from(val.to_owned()).map_err(|err| {
+                    log::error!("failed to decode condition with error : {}", err);
+                    bad_argument!(err)
+                })
+            },
+        )?;
+
+    let override_ = res
+        .get("override")
+        .and_then(|val| val.as_object())
+        .map_or_else(
+            || {
+                log::error!("construct new payload Override not present");
+                Err(bad_argument!("Override not present"))
+            },
+            |val| {
+                Cac::<Overrides>::try_from(val.to_owned()).map_err(|err| {
+                    log::error!("failed to decode override with error : {}", err);
+                    bad_argument!(err)
+                })
+            },
+        )?;
+
+    return Ok(web::Json(PutReq {
+        context: context,
+        r#override: override_,
+    }));
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -337,7 +364,7 @@ async fn reduce_config_key(
     user: User,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     mut og_contexts: Vec<Context>,
-    mut og_overrides: Map<String, Value>,
+    mut og_overrides: HashMap<String, Overrides>,
     check_key: &str,
     dimension_schema_map: &HashMap<String, (JSONSchema, i32)>,
     default_config: Map<String, Value>,
@@ -352,17 +379,15 @@ async fn reduce_config_key(
             )))?;
     let mut contexts_overrides_values = Vec::new();
 
-    for (override_id, override_value) in og_overrides.clone() {
-        if let Value::Object(mut override_obj) = override_value {
-            if let Some(value_of_check_key) = override_obj.remove(check_key) {
-                let context_arr = get_contextids_from_overrideid(
-                    og_contexts.clone(),
-                    override_obj,
-                    value_of_check_key.clone(),
-                    &override_id,
-                )?;
-                contexts_overrides_values.extend(context_arr);
-            }
+    for (override_id, mut override_value) in og_overrides.clone() {
+        if let Some(value_of_check_key) = override_value.remove(check_key) {
+            let context_arr = get_contextids_from_overrideid(
+                og_contexts.clone(),
+                override_value.into(),
+                value_of_check_key.clone(),
+                &override_id,
+            )?;
+            contexts_overrides_values.extend(context_arr);
         }
     }
 
@@ -371,7 +396,7 @@ async fn reduce_config_key(
     for (index, ctx) in contexts_overrides_values.iter().enumerate() {
         let priority = validate_dimensions_and_calculate_priority(
             "context",
-            &(ctx.0).condition,
+            &json!((ctx.0).condition),
             dimension_schema_map,
         )?;
         priorities.push((index, priority))
@@ -404,6 +429,18 @@ async fn reduce_config_key(
                 Some(Value::Bool(to_be_deleted)),
                 Some(override_val),
             ) => {
+                let override_val = Cac::<Overrides>::try_from_db(
+                    override_val.as_object().unwrap_or(&Map::new()).clone(),
+                )
+                .map_err(|err| {
+                    log::error!(
+                        "reduce_config_key: failed to decode overrides from db {}",
+                        err
+                    );
+                    unexpected_error!(err)
+                })?
+                .into_inner();
+
                 if *to_be_deleted {
                     if is_approve {
                         let _ = delete_context_api(cid.clone(), user.clone(), conn);
@@ -412,11 +449,12 @@ async fn reduce_config_key(
                 } else {
                     if is_approve {
                         let _ = delete_context_api(cid.clone(), user.clone(), conn);
-                        let put_req = construct_new_payload(request_payload);
-                        let _ = put(put_req, conn, false, &user);
+                        if let Ok(put_req) = construct_new_payload(request_payload) {
+                            let _ = put(put_req, conn, false, &user);
+                        }
                     }
 
-                    let new_id = hash(override_val);
+                    let new_id = hash(&json!(override_val));
                     og_overrides.insert(new_id.clone(), override_val.clone());
 
                     let mut ctx_index = 0;
@@ -560,7 +598,7 @@ async fn get_resolved_config(
         .contexts
         .into_iter()
         .map(|val| cac_client::Context {
-            condition: val.condition,
+            condition: json!(val.condition),
             override_with_keys: val.override_with_keys,
         })
         .collect::<Vec<_>>();
@@ -572,12 +610,17 @@ async fn get_resolved_config(
         .and_then(|val| MergeStrategy::from_str(val).ok())
         .unwrap_or_default();
 
+    let mut override_map = Map::new();
+    for (key, val) in config.overrides.iter() {
+        override_map.insert(key.to_owned(), json!(val));
+    }
+
     let response = if let Some(Value::String(_)) = query_params_map.get("show_reasoning")
     {
         eval_cac_with_reasoning(
             config.default_configs,
             &cac_client_contexts,
-            &config.overrides,
+            &override_map,
             &query_params_map,
             merge_strategy,
         )
@@ -589,7 +632,7 @@ async fn get_resolved_config(
         eval_cac(
             config.default_configs,
             &cac_client_contexts,
-            &config.overrides,
+            &override_map,
             &query_params_map,
             merge_strategy,
         )
