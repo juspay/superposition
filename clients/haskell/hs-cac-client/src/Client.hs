@@ -100,13 +100,13 @@ getCacClient tenant = do
         then Left <$> getError
         else Right <$> newForeignPtr c_free_cac_client cacClient
 
-getFullConfigStateWithFilter :: ForeignPtr CacClient -> Maybe String -> Maybe String -> IO (Either Error Value)
+getFullConfigStateWithFilter :: ForeignPtr CacClient -> Maybe String -> Maybe [String] -> IO (Either Error Value)
 getFullConfigStateWithFilter client mbFilters mbPrefix = do
     cFilters <- case mbFilters of
         Just filters -> newCAString filters
         Nothing      -> return nullPtr
     cPrefix <- case mbPrefix of
-        Just prefix -> newCAString prefix
+        Just prefix -> newCAString (intercalate "," prefix)
         Nothing     -> return nullPtr
     config <- withForeignPtr client $ \client -> c_get_config client cFilters cPrefix
     _ <- cleanup [cFilters]

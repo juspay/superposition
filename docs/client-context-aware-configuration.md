@@ -295,8 +295,14 @@ Get the full config definition of your tenants configuration from superposition.
 ##### Funtion Definition
 
 ```
-getFullConfigStateWithFilter :: ForeignPtr CacClient -> Maybe String -> IO (Either Error Value)
+getFullConfigStateWithFilter :: ForeignPtr CacClient -> Maybe String -> Maybe [String] -> IO (Either Error Value)
 ``` 
+##### Params
+
+| Param             | type               | description                                                                                      | Example value                                  |
+| ---------         | ------------------ | -----------------------------------------------------------------------------------------------  | ---------------------------------------------  |
+| `context`         | Maybe (String)     | Specifies the context for which you want the configurations, If empty, all contexts are returned | Just `{"os": "android", "merchant": "juspay"}` |
+| `prefix`          | Maybe([String])    | The keys for which you want the values. If empty, all configuration keys are returned            | `Just ([payment, network, color])`             |
 
 #### Get the last modified Time
 
@@ -358,11 +364,11 @@ main = do
     getCacClient "dev" >>= \case
         Left err     -> putStrLn err
         Right client -> do
-            config          <- getFullConfigStateWithFilter client Nothing
+            config          <- getFullConfigStateWithFilter client Nothing Nothing
             lastModified    <- getCacLastModified client
             overrides       <- getResolvedConfig client "{\"country\": \"India\"}" $ Just ["country_image_url", "hyperpay_version"]
             defaults        <- getDefaultConfig client $ Just ["country_image_url", "hyperpay_version"]
-            filteredConfig  <- getFullConfigStateWithFilter client $ Just "{\"prefix\": \"hyperpay\"}"
+            filteredConfig  <- getFullConfigStateWithFilter client (Just "{\"os\": \"android\"}") $ Just ["hyperpay"]
             print config
             print lastModified
             print overrides
