@@ -93,7 +93,11 @@ where
                         <MonacoEditor
                             node_id="code_editor_fn"
                             data_rs=function
-                            data_ws=set_function
+                            update_fn=move |event| {
+                                let new_data = event_target_value(&event);
+                                logging::log!("Updating code");
+                                set_function.set_untracked(new_data);
+                            }
                             classes=vec!["min-w-[1000px]", "min-h-[500px]"]
                         />
                     </div>

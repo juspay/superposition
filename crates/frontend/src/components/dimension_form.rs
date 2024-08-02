@@ -6,7 +6,15 @@ use self::utils::create_dimension;
 use crate::api::fetch_types;
 use crate::components::dropdown::{Dropdown, DropdownBtnType, DropdownDirection};
 use crate::types::{FunctionsName, TypeTemplate};
-use crate::{api::fetch_functions, components::button::Button};
+use crate::{
+    api::fetch_functions,
+    components::{
+        button::Button,
+        monaco_editor::{
+            generate_uri_name, MonacoEditor, TextContentType, METASCHEMA_JSON_SCHEMA_URI,
+        },
+    },
+};
 use leptos::*;
 use serde_json::{json, Value};
 use std::str::FromStr;
@@ -149,6 +157,8 @@ where
                     } else {
                         format!("{}", dimension_schema_rs.get())
                     };
+                    let (dimension_textarea_rs, _) = create_signal(dimension_textarea);
+                    let uri_name = generate_uri_name();
                     view! {
                         <div class="form-control">
                             <label class="label">
@@ -168,19 +178,36 @@ where
                                 })
                             />
 
-                            <textarea
-                                type="text"
-                                placeholder="Enter a JSON schema"
-                                class="input input-bordered mt-5 rounded-md resize-y w-full max-w-md pt-3"
-                                rows=8
-                                on:change=move |ev| {
+                            <MonacoEditor
+                                node_id="json_schema_editor"
+                                data_rs=dimension_textarea_rs
+                                language=TextContentType::Json
+                                uri_name=uri_name.clone()
+                                schemas=json!(
+                                    [{
+                                        "uri": METASCHEMA_JSON_SCHEMA_URI,
+                                        "fileMatch": [uri_name]
+                                    }]
+                                )
+                                validation=true
+                                classes=vec![
+                                    "min-h-[400px]",
+                                    "min-w-[300px]",
+                                    "border-2",
+                                    "border-purple-500",
+                                    "rounded-lg",
+                                    "mt-5",
+                                    "w-full",
+                                    "max-w-md",
+                                    "pt-3",
+                                    "pb-2",
+                                ]
+                                update_fn=move |event| {
+                                    let new_data = event_target_value(&event);
                                     dimension_schema_ws
-                                        .set(string_to_value_closure(event_target_value(&ev)))
+                                        .set_untracked(string_to_value_closure(new_data))
                                 }
-                            >
-
-                                {dimension_textarea}
-                            </textarea>
+                            />
 
                         </div>
                     }

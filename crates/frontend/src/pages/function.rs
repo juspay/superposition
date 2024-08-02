@@ -379,7 +379,11 @@ pub fn function_page() -> impl IntoView {
                                                                         <MonacoEditor
                                                                         node_id="pub_editor_fn"
                                                                         data_rs=fun_code_rs
-                                                                        data_ws=fun_code_ws
+                                                                        update_fn=move |event| {
+                                                                            let new_data = event_target_value(&event);
+                                                                            logging::log!("Updating code");
+                                                                            fun_code_ws.set_untracked(new_data);
+                                                                        }
                                                                         read_only=is_edit
                                                                         classes=vec!["min-h-[500px]"]/>
                                                                     </Show>
@@ -435,7 +439,11 @@ pub fn function_page() -> impl IntoView {
                                                                         <MonacoEditor
                                                                         node_id="code_editor_fn"
                                                                         data_rs=fun_code_rs
-                                                                        data_ws=fun_code_ws
+                                                                        update_fn=move |event| {
+                                                                            let new_data = event_target_value(&event);
+                                                                            logging::log!("Updating code");
+                                                                            fun_code_ws.set_untracked(new_data);
+                                                                        }
                                                                         read_only=is_edit
                                                                         classes=vec!["min-h-[500px]"]/>
 
@@ -449,7 +457,11 @@ pub fn function_page() -> impl IntoView {
                                                                                 <MonacoEditor
                                                                                     node_id="test_editor_fn"
                                                                                     data_rs=fun_code_rs
-                                                                                    data_ws=fun_code_ws
+                                                                                    update_fn=move |event| {
+                                                                                        let new_data = event_target_value(&event);
+                                                                                        logging::log!("Updating code");
+                                                                                        fun_code_ws.set_untracked(new_data);
+                                                                                    }
                                                                                     read_only=true
                                                                                     classes=vec!["min-w-[1000px]", "min-h-[500px]", "mr-5"]
                                                                                 />

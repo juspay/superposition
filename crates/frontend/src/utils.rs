@@ -527,3 +527,11 @@ pub fn get_key_type(schema: &Map<String, Value>) -> String {
         }
     }
 }
+
+pub fn string_to_value_closure(val: String) -> Value {
+    Value::from_str(&val).unwrap_or_else(|_| {
+        // do this for Value::String, since for some reason from_str
+        // cannot convert unquoted rust strings to Value::String
+        Value::from_str(format!("\"{}\"", val).as_str()).unwrap_or_default()
+    })
+}

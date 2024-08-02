@@ -3,7 +3,6 @@ pub mod utils;
 
 use leptos::*;
 use serde_json::{json, Map, Value};
-use std::str::FromStr;
 use web_sys::MouseEvent;
 
 use crate::{
@@ -12,9 +11,10 @@ use crate::{
         button::Button,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         input_components::{BooleanToggle, EnumDropdown},
+        monaco_editor::{MonacoEditor, TextContentType, generate_uri_name, METASCHEMA_JSON_SCHEMA_URI},
     },
     types::{FunctionsName, TypeTemplate},
-    utils::get_key_type,
+    utils::{get_key_type, string_to_value_closure},
 };
 
 use self::{types::DefaultConfigCreateReq, utils::create_default_config};
@@ -40,16 +40,6 @@ where
     let (config_schema_rs, config_schema_ws) = create_signal(type_schema);
     let (config_value, set_config_value) = create_signal(config_value);
     let (function_name, set_function_name) = create_signal(function_name);
-
-    let string_to_value_closure = |val: String| {
-        Value::from_str(&val).unwrap_or_else(|_| {
-            // do this for Value::String, since for some reason from_str
-            // cannot convert unquoted rust strings to Value::String
-            Value::from_str(format!("\"{}\"", val).as_str())
-                .expect("Invalid default config value")
-        })
-    };
-
     let functions_resource: Resource<String, Vec<crate::types::FunctionResponse>> =
         create_blocking_resource(
             move || tenant_rs.get(),
@@ -159,11 +149,14 @@ where
                     } else {
                         config_type_rs.get()
                     };
-                    let config_textarea = if config_schema_rs.get().is_null() {
+                    let schema = move || config_schema_rs.get();
+                    let config_textarea = if schema().is_null() {
                         String::from("")
                     } else {
                         format!("{}", config_schema_rs.get())
                     };
+                    let (config_textarea_rs, _) = create_signal(config_textarea);
+                    let uri_name = generate_uri_name();
                     view! {
                         <div class="form-control">
                             <label class="label">
@@ -182,20 +175,37 @@ where
                                     config_schema_ws.set(selected_item.type_schema);
                                 })
                             />
+                            <MonacoEditor
+                                node_id="json_schema_editor"
+                                data_rs=config_textarea_rs
+                                language=TextContentType::Json
+                                uri_name=uri_name.clone()
+                                schemas=json!(
+                                    [{
+                                        "uri": METASCHEMA_JSON_SCHEMA_URI,
+                                        "fileMatch": [uri_name]
+                                    }]
+                                )
 
-                            <textarea
-                                type="text"
-                                placeholder="JSON schema"
-                                class="input input-bordered mt-5 rounded-md resize-y w-full max-w-md pt-3"
-                                rows=8
-                                on:change=move |ev| {
+                                validation=true
+                                classes=vec![
+                                    "min-h-[400px]",
+                                    "min-w-[300px]",
+                                    "border-2",
+                                    "border-purple-500",
+                                    "rounded-lg",
+                                    "mt-5",
+                                    "w-full",
+                                    "max-w-md",
+                                    "pt-3",
+                                    "pb-2",
+                                ]
+                                update_fn=move |event| {
+                                    let new_data = event_target_value(&event);
                                     config_schema_ws
-                                        .set(string_to_value_closure(event_target_value(&ev)))
+                                        .set_untracked(string_to_value_closure(new_data))
                                 }
-                            >
-
-                                {config_textarea}
-                            </textarea>
+                            />
 
                         </div>
                     }
@@ -208,6 +218,7 @@ where
                 let schema: Map<String, Value> = serde_json::from_value(config_schema_rs.get())
                     .unwrap_or(Map::new());
                 let key_type = get_key_type(&schema);
+                let object_editor_uri_name = generate_uri_name();
                 let input_format = match key_type.as_str() {
                     "ENUM" => {
                         view! {
@@ -254,6 +265,41 @@ where
                         }
                             .into_view()
                     }
+                    "OBJECT" => {
+                        view! {
+                            <MonacoEditor
+                                node_id="object_editor"
+                                data_rs=config_value
+                                language=TextContentType::Json
+                                uri_name=object_editor_uri_name.clone()
+                                schemas=json!(
+                                    [{
+                                        "uri": "http://myserver/foo.json",
+                                        "fileMatch": [object_editor_uri_name],
+                                        "schema": schema
+                                    }]
+                                )
+                                validation=true
+                                classes=vec![
+                                    "min-h-[400px]",
+                                    "min-w-[300px]",
+                                    "border-2",
+                                    "border-purple-500",
+                                    "rounded-lg",
+                                    "w-full",
+                                    "max-w-md",
+                                    "pt-3",
+                                    "pb-2",
+                                ]
+                                update_fn=move |event| {
+                                    let new_data = event_target_value(&event);
+                                    set_config_value
+                                        .set_untracked(new_data);
+                                }
+                            />
+                        }
+                            .into_view()
+                    }
                     _ => {
                         view! {
                             <textarea
@@ -264,10 +310,7 @@ where
                                     logging::log!("{:?}", event_target_value(& ev));
                                     set_config_value.set(event_target_value(&ev));
                                 }
-                            >
-
-                                {config_value.get()}
-                            </textarea>
+                            />
                         }
                             .into_view()
                     }
