@@ -62,9 +62,10 @@ anyhow = "1.0.75"
 strum_macros = "0.25"
 strum = "0.25"
 blake3 = "1.3.3"
-leptos = { version = "0.5.2" }
-leptos_meta = { version = "0.5.2" }
-leptos_router = { version = "0.5.2" }
+leptos = { version = "0.6.11" }
+leptos_meta = { version = "0.6.11" }
+leptos_router = { version = "0.6.11" }
+leptos_actix = { version = "0.6.11" }
 thiserror = { version = "1.0.57" }
 leptos-use = "0.10.3"
 mime = "0.3.17"
