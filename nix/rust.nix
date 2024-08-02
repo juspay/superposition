@@ -43,10 +43,17 @@
                 buildInputs = lib.optionals isDarwin
                   ([
                     apple_sdk.frameworks.Security
+                    pkgs.fixDarwinDylibNames
                   ]) ++ [
                   pkgs.postgresql_12
                   pkgs.openssl
                 ];
+              };
+              extraBuildArgs = {
+                # https://discourse.nixos.org/t/how-to-use-install-name-tool-on-darwin/9931/2
+                postInstall = ''
+                  ${if isDarwin then "fixDarwinDylibNames" else ""}
+                '';
               };
             };
           };
