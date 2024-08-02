@@ -1983,13 +1983,16 @@ dependencies = [
  "leptos_router 0.6.11",
  "monaco",
  "once_cell",
+ "rand",
  "reqwest",
  "serde",
+ "serde-wasm-bindgen 0.6.5",
  "serde_json",
  "strum",
  "strum_macros",
  "url",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "web-sys",
 ]
 
@@ -3333,7 +3336,7 @@ dependencies = [
 [[package]]
 name = "monaco"
 version = "0.5.0"
-source = "git+https://github.com/datron/rust-monaco.git#177672e133d75adce866f0775739b47d21b5c077"
+source = "git+https://github.com/datron/rust-monaco.git#fe215d9b4e891b1dce4f57b15874954e453a3c54"
 dependencies = [
  "js-sys",
  "paste",

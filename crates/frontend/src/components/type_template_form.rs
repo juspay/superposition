@@ -1,9 +1,17 @@
 pub mod utils;
 
+use std::str::FromStr;
+
 use crate::components::type_template_form::utils::create_type;
-use crate::components::{button::Button, type_template_form::utils::update_type};
+use crate::components::{
+    button::Button,
+    monaco_editor::{
+        generate_uri_name, MonacoEditor, TextContentType, METASCHEMA_JSON_SCHEMA_URI,
+    },
+    type_template_form::utils::update_type,
+};
 use leptos::*;
-use serde_json::{from_str, json, Value};
+use serde_json::{json, Value};
 use web_sys::MouseEvent;
 
 #[component]
@@ -79,31 +87,51 @@ where
                     <span class="label-text">Type Schema</span>
                 </label>
                 {move || {
-                    let schem = type_schema_rs.get();
+                    let schem = if type_schema_rs.get_untracked().is_null() {
+                        String::from("")
+                    } else {
+                        format!("{}", type_schema_rs.get())
+                    };
+                    let (schem_rs, _) = create_signal(schem);
+                    let uri_name = generate_uri_name();
                     view! {
-                        <textarea
-                            type="text"
-                            class="input input-bordered shadow-md"
-                            name="type_schema"
-                            id="type_schema"
-                            style="min-height: 150px"
-                            placeholder="type schema"
-                            on:change=move |ev| {
+
+                        <MonacoEditor
+                            node_id="json_schema_editor"
+                            data_rs=schem_rs
+                            language=TextContentType::Json
+                            uri_name=uri_name.clone()
+                            schemas=json!(
+                                [{
+                                    "uri": METASCHEMA_JSON_SCHEMA_URI,
+                                    "fileMatch": [uri_name]
+                                }]
+                            )
+                            validation=true
+                            classes=vec![
+                                "min-h-[400px]",
+                                "min-w-[300px]",
+                                "border-2",
+                                "border-purple-500",
+                                "rounded-lg",
+                                "mt-5",
+                                "w-full",
+                                "max-w-md",
+                                "pt-3",
+                                "pb-2",
+                            ]
+                            update_fn=move |ev| {
                                 let value = event_target_value(&ev);
-                                match from_str::<Value>(&value) {
+                                logging::log!("value is: {}", value);
+                                match Value::from_str(&value) {
                                     Ok(test_val) => {
-                                        type_schema_ws.set(test_val);
+                                        type_schema_ws.set_untracked(test_val);
                                         set_error_message.set("".to_string());
                                     }
-                                    Err(err) => {
-                                        set_error_message.set(err.to_string());
-                                    }
+                                    Err(err) => set_error_message.set(err.to_string())
                                 };
                             }
-                        >
-
-                            {format!("{}", schem)}
-                        </textarea>
+                        />
                     }
                 }}
 
