@@ -9,8 +9,8 @@
 #define Bridging_Header_h
 
 // cac
-#include "../../../headers/libcac_client.h"
+#include "libcac_client.h"
 // exp
-#include "../../../headers/libexperimentation_client.h"
+#include "libexperimentation_client.h"
 
 #endif /* Bridging_Header_h */

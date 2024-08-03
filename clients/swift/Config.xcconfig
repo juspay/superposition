@@ -8,10 +8,15 @@
 // Configuration settings file format documentation can be found at:
 // https://help.apple.com/xcode/#/dev745c5c974
 
-SWIFT_FLAGS = $(inherited) -DSUPERPOSITION_LIB_PATH="/Users/naman.agarwal/dev2/superposition/target/debugs"
+// Change env manually
+// SUPERPOSITION_LIB_PATH=$(SRCROOT)/../../target/debug
+// SUPERPOSITION_INCLUDE_PATH=$(SRCROOT)/../../headers
 
 // Library Search Paths
 LIBRARY_SEARCH_PATHS = $(inherited) $(SUPERPOSITION_LIB_PATH)
+
+// Add your header search paths
+HEADER_SEARCH_PATHS = $(inherited) $(SUPERPOSITION_INCLUDE_PATH)
 
 // Linker Flags
 OTHER_LDFLAGS = $(inherited) -lcac_client -lexperimentation_client
