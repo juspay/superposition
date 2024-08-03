@@ -257,7 +257,7 @@ impl DropdownOption for FunctionsName {
 }
 
 #[derive(Debug, Clone)]
-pub struct BreadCrums {
+pub struct BreadCrumbs {
     pub key: String,
     pub value: Option<String>,
     pub is_link: bool,
