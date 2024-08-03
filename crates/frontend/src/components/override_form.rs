@@ -187,9 +187,9 @@ where
                                                         }
                                                         view! {
                                                             <BooleanToggle
-                                                                config_value
-                                                                update_value=Callback::new(move |flag: String| {
-                                                                    update_overrides(&config_key_value, flag);
+                                                                config_value={config_value.parse::<bool>().unwrap_or(false)}
+                                                                update_value=Callback::new(move |flag: bool| {
+                                                                    update_overrides(&config_key_value, flag.to_string());
                                                                 })
                                                             />
                                                         }
