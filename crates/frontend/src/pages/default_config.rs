@@ -6,7 +6,7 @@ use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
 use crate::components::table::{types::Column, Table};
 
-use crate::types::BreadCrums;
+use crate::types::BreadCrumbs;
 use crate::utils::{
     get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
 };
@@ -19,6 +19,7 @@ use std::collections::HashSet;
 pub struct RowData {
     pub key: String,
     pub value: String,
+    pub json_value: String,
     pub schema: Value,
     pub function_name: Option<Value>,
 }
@@ -41,7 +42,7 @@ pub fn default_config() -> impl IntoView {
     let enable_grouping =
         create_rw_signal(get_local_storage::<bool>("enable_grouping").unwrap_or(false));
     let query_params = use_query_map();
-    let bread_crums = Signal::derive(move || get_bread_crums(key_prefix.get()));
+    let bread_crumbs = Signal::derive(move || get_bread_crums(key_prefix.get()));
 
     create_effect(move |_| {
         let query_params_map = query_params.try_get();
@@ -70,7 +71,8 @@ pub fn default_config() -> impl IntoView {
             let row_key = row["key"].to_string().replace('"', "");
             let is_folder = row_key.contains('.');
             let grouping_enabled = enable_grouping.get();
-            let row_value = row["value"].to_string().replace('"', "");
+            let json_row_value = row["value"].to_string();
+            let row_value = json_row_value.replace('"', "");
 
             let schema = row["schema"].clone().to_string();
             let schema_object =
@@ -88,10 +90,11 @@ pub fn default_config() -> impl IntoView {
                 let row_data = RowData {
                     key: row_key.clone(),
                     value: row_value.clone(),
+                    json_value: json_row_value.clone(),
                     schema: schema_object.clone(),
                     function_name: fun_name.clone(),
                 };
-                logging::log!("{:?}", row_data);
+                logging::log!("editing this default config {:?}", row_data);
                 selected_config.set(Some(row_data));
                 open_drawer("default_config_drawer");
             };
@@ -190,6 +193,7 @@ pub fn default_config() -> impl IntoView {
                                     edit=true
                                     config_key=selected_config_data.key
                                     config_value=selected_config_data.value
+                                    json_config_value=selected_config_data.json_value
                                     type_schema=selected_config_data.schema
                                     function_name=selected_config_data.function_name
                                     prefix
@@ -259,7 +263,7 @@ pub fn default_config() -> impl IntoView {
                         <div class="card rounded-lg w-full bg-base-100 shadow">
                             <div class="card-body">
                                 <div class="flex justify-between pb-2">
-                                    <BreadCrums bread_crums=bread_crums.get() folder_click_handler/>
+                                    <BreadCrumbs bread_crumbs=bread_crumbs.get() folder_click_handler/>
                                     <div class="flex">
                                         <label
                                             on:click=move |_| {
@@ -303,18 +307,18 @@ pub fn default_config() -> impl IntoView {
 }
 
 #[component]
-pub fn bread_crums<NF>(
-    bread_crums: Vec<BreadCrums>,
+pub fn bread_crumbs<NF>(
+    bread_crumbs: Vec<BreadCrumbs>,
     folder_click_handler: NF,
 ) -> impl IntoView
 where
     NF: Fn(Option<String>) + 'static + Clone,
 {
-    let last_index = bread_crums.len() - 1;
+    let last_index = bread_crumbs.len() - 1;
     view! {
         <div class="flex justify-between pt-3">
 
-            {bread_crums
+            {bread_crumbs
                 .iter()
                 .enumerate()
                 .map(|(index, ele)| {
@@ -348,8 +352,8 @@ where
     }
 }
 
-pub fn get_bread_crums(key_prefix: Option<String>) -> Vec<BreadCrums> {
-    let mut default_bread_crums = vec![BreadCrums {
+pub fn get_bread_crums(key_prefix: Option<String>) -> Vec<BreadCrumbs> {
+    let mut default_bread_crums = vec![BreadCrumbs {
         key: "Default Config".to_string(),
         value: None,
         is_link: true,
@@ -367,7 +371,7 @@ pub fn get_bread_crums(key_prefix: Option<String>) -> Vec<BreadCrums> {
                 .fold(String::new(), |mut prefix, ele| {
                     prefix.push_str(&ele);
                     prefix.push('.');
-                    default_bread_crums.push(BreadCrums {
+                    default_bread_crums.push(BreadCrumbs {
                         key: ele.clone(),
                         value: Some(prefix.clone()),
                         is_link: true,

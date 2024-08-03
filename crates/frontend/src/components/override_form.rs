@@ -4,6 +4,9 @@ use crate::{
     components::{
         dropdown::{Dropdown, DropdownDirection},
         input_components::{BooleanToggle, EnumDropdown},
+        monaco_editor::{
+            generate_uri_name, MonacoEditor, TextContentType,
+        },
     },
     types::DefaultConfig,
     utils::{get_config_value, get_key_type, ConfigType},
@@ -194,6 +197,41 @@ where
                                                             />
                                                         }
                                                             .into_view()
+                                                    }
+                                                    "OBJECT" => {
+                                                        let (config_value_rs, _) = create_signal(config_value);
+                                                        let uri = generate_uri_name();
+                                                        view! {
+                                                            <MonacoEditor
+                                                                node_id="object_editor"
+                                                                data_rs=config_value_rs
+                                                                language=TextContentType::Json
+                                                                uri_name=uri.clone()
+                                                                schemas=json!(
+                                                                    [{
+                                                                        "uri": "http://myserver/foo.json",
+                                                                        "fileMatch": [uri],
+                                                                        "schema": schema
+                                                                    }]
+                                                                )
+                                                                validation=true
+                                                                classes=vec![
+                                                                    "min-h-[400px]",
+                                                                    "min-w-[300px]",
+                                                                    "border-2",
+                                                                    "border-purple-500",
+                                                                    "rounded-lg",
+                                                                    "w-full",
+                                                                    "max-w-md",
+                                                                    "pt-3",
+                                                                    "pb-2",
+                                                                ]
+                                                                update_fn=move |event| {
+                                                                    let new_data = event_target_value(&event);
+                                                                    update_overrides(&config_key_value, new_data);
+                                                                }
+                                                            />
+                                                        }
                                                     }
                                                     _ => {
                                                         view! {

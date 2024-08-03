@@ -29,6 +29,7 @@ pub fn default_config_form<NF>(
     #[prop(default = None)] function_name: Option<Value>,
     #[prop(default = None)] prefix: Option<String>,
     handle_submit: NF,
+    #[prop(default = String::new())] json_config_value: String,
 ) -> impl IntoView
 where
     NF: Fn() + 'static + Clone,
@@ -39,6 +40,7 @@ where
     let (config_type_rs, config_type_ws) = create_signal(config_type);
     let (config_schema_rs, config_schema_ws) = create_signal(type_schema);
     let (config_value, set_config_value) = create_signal(config_value);
+    let (json_config_value, _) = create_signal(json_config_value);
     let (function_name, set_function_name) = create_signal(function_name);
     let functions_resource: Resource<String, Vec<crate::types::FunctionResponse>> =
         create_blocking_resource(
@@ -258,7 +260,7 @@ where
                                 class="input input-bordered w-full max-w-md"
                                 value=config_value.get()
                                 on:change=move |ev| {
-                                    logging::log!("{:?}", event_target_value(& ev));
+                                    logging::log!("{:?}", event_target_value(&ev));
                                     set_config_value.set(event_target_value(&ev));
                                 }
                             />
@@ -269,12 +271,12 @@ where
                         view! {
                             <MonacoEditor
                                 node_id="object_editor"
-                                data_rs=config_value
+                                data_rs=json_config_value
                                 language=TextContentType::Json
                                 uri_name=object_editor_uri_name.clone()
                                 schemas=json!(
                                     [{
-                                        "uri": "http://myserver/foo.json",
+                                        "uri": object_editor_uri_name,
                                         "fileMatch": [object_editor_uri_name],
                                         "schema": schema
                                     }]

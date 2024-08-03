@@ -26,8 +26,7 @@ pub enum TextContentType {
 
 pub const METASCHEMA_JSON_SCHEMA_URI: &str = "http://json-schema.org/draft-07/schema";
 
-const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-                            abcdefghijklmnopqrstuvwxyz";
+const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
 
 pub type EditorModelCell = Rc<RefCell<Option<CodeEditor>>>;
 
