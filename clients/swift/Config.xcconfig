@@ -1,0 +1,20 @@
+//
+//  Config.xcconfig
+//  swift
+//
+//  Created by naman agarwal on 03/08/24.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+SWIFT_FLAGS = $(inherited) -DSUPERPOSITION_LIB_PATH="/Users/naman.agarwal/dev2/superposition/target/debugs"
+
+// Library Search Paths
+LIBRARY_SEARCH_PATHS = $(inherited) $(SUPERPOSITION_LIB_PATH)
+
+// Linker Flags
+OTHER_LDFLAGS = $(inherited) -lcac_client -lexperimentation_client
+
+// Bridging Header
+SWIFT_OBJC_BRIDGING_HEADER = $(SRCROOT)/swift/Bridging-Header.h

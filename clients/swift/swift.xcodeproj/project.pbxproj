@@ -28,6 +28,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		29C786A02C5E54C400354E13 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		29FE37442C54DD7B00F7BE64 /* swift */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = swift; sourceTree = BUILT_PRODUCTS_DIR; };
 		29FE37472C54DD7B00F7BE64 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		29FE374E2C54DD8C00F7BE64 /* cac.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cac.swift; sourceTree = "<group>"; };
@@ -55,6 +56,7 @@
 		29FE373B2C54DD7B00F7BE64 = {
 			isa = PBXGroup;
 			children = (
+				29C786A02C5E54C400354E13 /* Config.xcconfig */,
 				29FE375B2C54E7FD00F7BE64 /* README.md */,
 				29FE375A2C54E48800F7BE64 /* default.nix */,
 				29FE37462C54DD7B00F7BE64 /* swift */,
@@ -157,6 +159,7 @@
 /* Begin XCBuildConfiguration section */
 		29FE37492C54DD7B00F7BE64 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 29C786A02C5E54C400354E13 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -207,19 +210,25 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				"LIBRARY_SEARCH_PATHS[arch=*]" = "$(inherited)";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "$(inherited)";
+				"OTHER_SWIFT_FLAGS[arch=*]" = "";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OBJC_BRIDGING_HEADER = "$(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
 		29FE374A2C54DD7B00F7BE64 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 29C786A02C5E54C400354E13 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -264,24 +273,29 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				"LIBRARY_SEARCH_PATHS[arch=*]" = "$(inherited)";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = "$(inherited)";
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(inherited)";
 			};
 			name = Release;
 		};
 		29FE374C2C54DD7B00F7BE64 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 29C786A02C5E54C400354E13 /* Config.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = swift/swift.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 32XH2DF5HY;
 				ENABLE_HARDENED_RUNTIME = YES;
-				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/../../target/debug";
-				"LIBRARY_SEARCH_PATHS[arch=*]" = "$(SRCROOT)/../../target/debug";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				"LIBRARY_SEARCH_PATHS[arch=*]" = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-v",
 					"-lexperimentation_client",
@@ -300,11 +314,13 @@
 		};
 		29FE374D2C54DD7B00F7BE64 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 29C786A02C5E54C400354E13 /* Config.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = swift/swift.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 32XH2DF5HY;
 				ENABLE_HARDENED_RUNTIME = YES;
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-lexperimentation_client",
 					"-lcac_client",
@@ -324,7 +340,7 @@
 				29FE374A2C54DD7B00F7BE64 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		29FE374B2C54DD7B00F7BE64 /* Build configuration list for PBXNativeTarget "swift" */ = {
 			isa = XCConfigurationList;
@@ -333,7 +349,7 @@
 				29FE374D2C54DD7B00F7BE64 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
