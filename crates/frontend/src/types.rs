@@ -201,6 +201,7 @@ pub struct Dimension {
     pub created_by: String,
     pub schema: Value,
     pub function_name: Option<String>,
+    pub mandatory: bool,
 }
 
 impl DropdownOption for Dimension {

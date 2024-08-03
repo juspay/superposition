@@ -36,6 +36,19 @@ where
     let (context, set_context) = create_signal(context.clone());
 
     let dimensions = StoredValue::new(dimensions);
+    let mandatory_dimensions = StoredValue::new(
+        dimensions
+            .get_value()
+            .into_iter()
+            .filter_map(|dim| {
+                if dim.mandatory {
+                    Some(dim.dimension)
+                } else {
+                    None
+                }
+            })
+            .collect::<HashSet<String>>(),
+    );
 
     let last_idx = create_memo(move |_| context.get().len().max(1) - 1);
 
@@ -231,11 +244,11 @@ where
                                                                             view! {
                                                                                 <BooleanToggle
                                                                                     name="context-dimension-value"
-                                                                                    config_value=value
-                                                                                    update_value=Callback::new(move |flag: String| {
+                                                                                    config_value={value.parse::<bool>().unwrap_or(false)}
+                                                                                    update_value=Callback::new(move |flag: bool| {
                                                                                         set_context
                                                                                             .update(|curr_context| {
-                                                                                                curr_context[idx].2 = flag;
+                                                                                                curr_context[idx].2 = flag.to_string();
                                                                                             });
                                                                                     })
 
@@ -251,7 +264,12 @@ where
                                                                 _ => string_input,
                                                             }
                                                         }
-                                                        <Show when=move || !disabled>
+                                                        <Show when=move || {
+                                                            !disabled
+                                                                && !mandatory_dimensions
+                                                                    .get_value()
+                                                                    .contains(&dimension_name.get_value())
+                                                        }>
                                                             <button
                                                                 class="btn btn-ghost btn-circle btn-sm mt-1"
                                                                 disabled=disabled
