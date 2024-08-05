@@ -13,6 +13,6 @@ dependencies {
 }
 
 application {
-    mainClassName = 'CAC.CacClient'
+    mainClassName = 'CAC.Client'
 }
 
