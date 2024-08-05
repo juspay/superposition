@@ -13,6 +13,6 @@ dependencies {
 }
 
 application {
-    mainClassName = 'helloworld.JavaRustFFI'
+    mainClassName = 'CAC.CacClient'
 }
 

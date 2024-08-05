@@ -1,11 +1,11 @@
-package helloworld;
+package CAC;
 
 import java.io.IOException;
 
 import jnr.ffi.LibraryLoader;
 import jnr.ffi.Pointer;
 
-public class RustLibraryWrapper {
+public class CacClientWrapper {
 
     public interface RustLib {
         String cac_last_error_message();
@@ -31,11 +31,11 @@ public class RustLibraryWrapper {
 
     private static RustLib rustLib;
 
-    public RustLibraryWrapper(String libraryPath, String libraryName) {
+    public CacClientWrapper(String libraryPath, String libraryName) {
         System.setProperty("jnr.ffi.library.path", libraryPath);
 
         // Load the Rust library
-        RustLibraryWrapper.rustLib = LibraryLoader.create(RustLib.class).load(libraryName);
+        CacClientWrapper.rustLib = LibraryLoader.create(RustLib.class).load(libraryName);
     }
 
     public int wrappedCacNewClient(String tenant, long updateFrequency, String hostname) throws IOException {

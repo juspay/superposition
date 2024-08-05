@@ -11,4 +11,3 @@ plugins {
 }
 
 rootProject.name = "ffi"
-include("app")
