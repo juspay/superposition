@@ -2,9 +2,7 @@ use actix_web::dev::Service;
 use actix_web::HttpMessage;
 use actix_web::{web, web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
 use context_aware_config::api::*;
-use context_aware_config::helpers::{
-    get_default_config_validation_schema, get_meta_schema,
-};
+use context_aware_config::helpers::get_meta_schema;
 use experimentation_platform::api::*;
 use std::sync::Arc;
 use std::{collections::HashSet, io::Result};
@@ -144,7 +142,6 @@ async fn main() -> Result<()> {
             .wrap(TenantMiddlewareFactory)
             .app_data(Data::new(AppState {
                 db_pool: schema_manager.clone(),
-                default_config_validation_schema: get_default_config_validation_schema(),
                 cac_host: cac_host.to_owned(),
                 cac_version: cac_version.to_owned(),
 

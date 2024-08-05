@@ -43,7 +43,6 @@ pub struct AppState {
     pub tenants: HashSet<String>,
     pub cac_version: String,
     pub db_pool: PgSchemaManager,
-    pub default_config_validation_schema: JSONSchema,
     pub meta_schema: JSONSchema,
     pub experimentation_flags: ExperimentationFlags,
     pub snowflake_generator: Arc<Mutex<SnowflakeIdGenerator>>,

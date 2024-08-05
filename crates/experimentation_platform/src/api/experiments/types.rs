@@ -102,7 +102,7 @@ pub struct ConcludeExperimentRequest {
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct ContextPutReq {
-    pub context: serde_json::Map<String, Value>,
+    pub context: Map<String, Value>,
     pub r#override: Value,
 }
 
@@ -165,7 +165,7 @@ pub struct OverrideKeysUpdateRequest {
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct ContextMoveReq {
-    pub context: serde_json::Map<String, Value>,
+    pub context: Map<String, Value>,
 }
 
 /*********** List Audit API Filter Type **************/
