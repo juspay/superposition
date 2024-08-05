@@ -1,9 +1,9 @@
-package helloworld;
+package CAC;
 
 import java.io.File;
 import java.io.IOException;
 
-public class JavaRustFFI {
+public class CacClient {
 
     public static void main(String[] args) {
         String dylib = "cac_client";
@@ -14,7 +14,7 @@ public class JavaRustFFI {
         System.out.println("---------------------");
 
         // Create an instance of the wrapper class
-        RustLibraryWrapper wrapper = new RustLibraryWrapper(libraryPath, dylib);
+        CacClientWrapper wrapper = new CacClientWrapper(libraryPath, dylib);
 
         int newClient;
         try {
