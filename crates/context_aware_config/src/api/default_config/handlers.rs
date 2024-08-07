@@ -18,7 +18,7 @@ use crate::{
         models::{Context, DefaultConfig},
         schema::{contexts::dsl::contexts, default_configs::dsl},
     },
-    helpers::{add_config_version, validate_jsonschema},
+    helpers::add_config_version,
 };
 use actix_web::{
     delete, get, put,
@@ -136,11 +136,6 @@ async fn create(
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
     };
-
-    validate_jsonschema(
-        &state.default_config_validation_schema,
-        &default_config.schema,
-    )?;
 
     let schema_compile_result = JSONSchema::options()
         .with_draft(Draft::Draft7)

@@ -30,75 +30,6 @@ use superposition_types::{result as superposition, Cac, Condition, Overrides};
 
 use std::collections::HashMap;
 
-pub fn get_default_config_validation_schema() -> JSONSchema {
-    let my_schema = json!(
-    {
-        "type": "object",
-        "properties": {
-          "type": {
-            "anyOf": [
-              {
-                "type": "null"
-              },
-              {
-                "type": "string"
-              },
-              {
-                "type": "object"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "array"
-              }
-            ]
-          }
-        },
-        "required": [
-          "type"
-        ],
-        "allOf": [
-          {
-            "if": {
-              "properties": {
-                "type": {
-                  "const": "string"
-                }
-              }
-            },
-            "then": {
-                "oneOf": [
-                    {
-                        "required": ["pattern"],
-                        "properties": { "pattern": { "type": "string" } }
-                    },
-                    {
-                        "required": ["enum"],
-                        "properties": {
-                            "enum": {
-                                "type": "array",
-                                "contains": { "type": "string" },
-                                "minContains": 1
-                            },
-                        }
-                    }
-                ]
-            }
-          }
-          // TODO: Add validations for Array types.
-        ]
-      });
-
-    JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(&my_schema)
-        .expect("THE IMPOSSIBLE HAPPENED, failed to compile the schema for the schema!")
-}
-
 pub fn parse_headermap_safe(headermap: &HeaderMap) -> HashMap<String, String> {
     let mut req_headers = HashMap::new();
     let record_header = |(header_name, header_val): (&HeaderName, &HeaderValue)| {
@@ -123,33 +54,10 @@ pub fn get_meta_schema() -> JSONSchema {
         "type": "object",
         "properties": {
             "type": {
-                "enum": ["boolean", "number", "string"]
+                "enum": ["boolean", "number", "integer", "string", "array", "null"]
             },
         },
         "required": ["type"],
-
-        // # Add extra validation if needed for other primitive data types
-        "if": {
-            "properties": { "type": { "const": "string" } }
-        }
-        , "then": {
-            "oneOf": [
-                {
-                    "required": ["pattern"],
-                    "properties": { "pattern": { "type": "string" } }
-                },
-                {
-                    "required": ["enum"],
-                    "properties": {
-                        "enum": {
-                            "type": "array",
-                            "contains": { "type": "string" },
-                            "minContains": 1
-                        },
-                    }
-                }
-            ]
-        }
     });
 
     JSONSchema::options()
@@ -414,16 +322,6 @@ mod tests {
         let ok_string_schema = json!({"type": "string", "pattern": ".*"});
         let ok_string_validation = x.validate(&ok_string_schema);
         assert!(ok_string_validation.is_ok());
-
-        let error_string_schema = json!({"type": "string"});
-        let error_string_validation = x.validate(&error_string_schema).map_err(|e| {
-            let verrors = e.collect::<Vec<ValidationError>>();
-            format!(
-                "Error While validating string dataType, Bad schema: {:?}",
-                verrors.as_slice()
-            )
-        });
-        assert!(error_string_validation.is_err_and(|error| error.contains("Bad schema")));
 
         let error_object_schema = json!({"type": "object"});
         let error_object_validation = x.validate(&error_object_schema).map_err(|e| {
