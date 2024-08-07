@@ -10,26 +10,26 @@ public class CacClient {
     public interface RustLib {
         String cac_last_error_message();
 
-        int cac_new_client(String tenant, long updateFrequency, String hostname);
+        int cac_new_client(String tenant, long updateFrequency, String hostName);
 
-        void cac_free_client(long ptr);
+        void cac_free_client(Pointer ptr);
 
-        long cac_get_client(String tenant);
+        Pointer cac_get_client(String tenant);
 
-        Pointer cac_get_config(long clientPtr, String filterQuery, String filterPrefix);
+        Pointer cac_get_config(Pointer clientPtr, String filterQuery, String filterPrefix);
 
-        Pointer cac_get_default_config(long clientPtr, String filterKeys);
+        Pointer cac_get_default_config(Pointer clientPtr, String filterKeys);
 
         void cac_start_polling_update(String tenant);
 
-        Pointer cac_get_last_modified(long clientPtr);
+        Pointer cac_get_last_modified(Pointer clientPtr);
 
-        Pointer cac_get_resolved_config(long clientPtr, String filterQuery, String filterPrefix, String merge_strategy);
+        Pointer cac_get_resolved_config(Pointer clientPtr, String filterQuery, String filterPrefix, String merge_strategy);
 
         void cac_free_string(Pointer s);
     }
 
-    private static RustLib rustLib;
+    public static RustLib rustLib;
 
     public CacClient(String libraryPath, String libraryName) {
         System.setProperty("jnr.ffi.library.path", libraryPath);
@@ -38,25 +38,21 @@ public class CacClient {
         CacClient.rustLib = LibraryLoader.create(RustLib.class).load(libraryName);
     }
 
-    public int cacNewClient(String tenant, long updateFrequency, String hostname) throws IOException {
-        int result = rustLib.cac_new_client(tenant, updateFrequency, hostname);
+    public int cacNewClient(String tenant, long updateFrequency, String hostName) throws IOException {
+        int result = rustLib.cac_new_client(tenant, updateFrequency, hostName);
         if (result > 0) {
             String errorMessage = rustLib.cac_last_error_message();
-            throw new IOException("Failed to create new client: " + errorMessage);
+            throw new IOException("Failed to create new CAC client: " + errorMessage);
         }
         return result;
     }
 
-    public long getCacClient(String tenant) throws IOException {
-        long clientPtr = rustLib.cac_get_client(tenant);
-        if (clientPtr == 0) {
-            String errorMessage = rustLib.cac_last_error_message();
-            throw new IOException("Failed to get CAC client: " + errorMessage);
-        }
+    public Pointer getCacClient(String tenant) throws IOException {
+        Pointer clientPtr = rustLib.cac_get_client(tenant);
         return clientPtr;
     }
 
-    public String getConfig(long clientPtr, String filterQuery, String filterPrefix) throws IOException {
+    public String getConfig(Pointer clientPtr, String filterQuery, String filterPrefix) throws IOException {
         Pointer result = rustLib.cac_get_config(clientPtr, filterQuery, filterPrefix);
         if (result == null) {
             String errorMessage = rustLib.cac_last_error_message();
@@ -66,7 +62,7 @@ public class CacClient {
         return config;
     }
 
-    public String getDefaultConfig(long clientPtr, String filterKeys) throws IOException {
+    public String getDefaultConfig(Pointer clientPtr, String filterKeys) throws IOException {
         Pointer result = rustLib.cac_get_default_config(clientPtr, filterKeys);
         if (result == null) {
             String errorMessage = rustLib.cac_last_error_message();
@@ -80,7 +76,7 @@ public class CacClient {
         rustLib.cac_start_polling_update(tenant);
     }
 
-    public String getLastModified(long clientPtr) throws IOException {
+    public String getLastModified(Pointer clientPtr) throws IOException {
         Pointer result = rustLib.cac_get_last_modified(clientPtr);
         if (result == null) {
             String errorMessage = rustLib.cac_last_error_message();
@@ -90,7 +86,7 @@ public class CacClient {
         return lastModified;
     }
 
-    public String getResolvedConfig(long clientPtr, String filterQuery, String filterPrefix, String mergeStrategy)
+    public String getResolvedConfig(Pointer clientPtr, String filterQuery, String filterPrefix, String mergeStrategy)
             throws IOException {
         Pointer result = rustLib.cac_get_resolved_config(clientPtr, filterQuery, filterPrefix, mergeStrategy);
         if (result == null) {
@@ -101,7 +97,11 @@ public class CacClient {
         return resolvedConfig;
     }
 
-    public String wrappedLastError() throws IOException {
+    public void cacFreeClient(Pointer clientPtr) throws IOException{
+        rustLib.cac_free_client(clientPtr);
+    }
+
+    public String getLastError() throws IOException {
         String errorMessage = rustLib.cac_last_error_message();
         if (errorMessage != null) {
             return errorMessage;
