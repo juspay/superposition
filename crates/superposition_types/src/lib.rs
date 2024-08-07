@@ -1,9 +1,11 @@
 pub mod result;
+use std::fmt::Display;
+
 use actix::fut::{ready, Ready};
 use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
-use anyhow::anyhow;
 use derive_more::{AsRef, Deref, DerefMut, Into};
 use log::error;
+use regex::Regex;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{json, Map, Value};
 
@@ -195,9 +197,70 @@ impl Condition {
 impl_try_from_map!(Cac, Condition, Condition::validate_data_for_cac);
 impl_try_from_map!(Exp, Condition, Condition::validate_data_for_exp);
 
+const ALPHANUMERIC_WITH_DOT: &str =
+    "^[a-zA-Z0-9-_]([a-zA-Z0-9-_.]{0,254}[a-zA-Z0-9-_])?$";
+const ALPHANUMERIC_WITH_DOT_WORDS: &str =
+    "It can contain the following characters only [a-zA-Z0-9-_.] \
+                                    and it should not start or end with a '.' character.";
+
+const ALPHANUMERIC_WITHOUT_DOT: &str = "^[a-zA-Z0-9-_]{1,64}$";
+const ALPHANUMERIC_WITHOUT_DOT_WORDS: &str =
+    "It can contain the following characters only [a-zA-Z0-9-_]";
+
+pub enum RegexEnum {
+    DefaultConfigKey,
+    DimensionName,
+    FunctionName,
+    TypeTemplateName,
+}
+
+impl RegexEnum {
+    pub fn match_regex(&self, val: &str) -> Result<(), String> {
+        let regex_str = self.to_string();
+        let regex = Regex::new(regex_str.as_str()).map_err(|err| {
+            log::error!("error while validating with regex : {err}");
+            "Something went wrong".to_string()
+        })?;
+
+        if !regex.is_match(val) {
+            return Err(format!(
+                "{val} is invalid, it should obey the regex {regex_str}. \
+                {}",
+                self.get_error_message()
+            ));
+        } else {
+            Ok(())
+        }
+    }
+
+    fn get_error_message(&self) -> String {
+        match self {
+            Self::DefaultConfigKey => ALPHANUMERIC_WITH_DOT_WORDS,
+            Self::DimensionName => ALPHANUMERIC_WITH_DOT_WORDS,
+            Self::FunctionName => ALPHANUMERIC_WITHOUT_DOT_WORDS,
+            Self::TypeTemplateName => ALPHANUMERIC_WITHOUT_DOT_WORDS,
+        }
+        .to_string()
+    }
+}
+
+impl Display for RegexEnum {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let regex = match self {
+            Self::DefaultConfigKey => ALPHANUMERIC_WITH_DOT,
+            Self::DimensionName => ALPHANUMERIC_WITH_DOT,
+            Self::FunctionName => ALPHANUMERIC_WITHOUT_DOT,
+            Self::TypeTemplateName => ALPHANUMERIC_WITHOUT_DOT,
+        }
+        .to_string();
+        write!(f, "{regex}")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use anyhow::anyhow;
     use result as superposition;
     use serde_json::json;
 

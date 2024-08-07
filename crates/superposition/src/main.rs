@@ -1,4 +1,5 @@
 use actix_web::dev::Service;
+use actix_web::web::PathConfig;
 use actix_web::HttpMessage;
 use actix_web::{web, web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
 use context_aware_config::api::*;
@@ -183,6 +184,9 @@ async fn main() -> Result<()> {
                     .to_owned(),
                 service_prefix: service_prefix_str.to_owned(),
                 mandatory_dimensions: mandatory_dimensions.to_owned(),
+            }))
+            .app_data(PathConfig::default().error_handler(|err, _| {
+                actix_web::error::ErrorBadRequest(err)
             }))
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()

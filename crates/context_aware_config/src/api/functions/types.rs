@@ -1,5 +1,7 @@
+use derive_more::{AsRef, Deref, DerefMut, Into};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use superposition_types::RegexEnum;
 
 #[derive(Debug, Deserialize)]
 pub struct UpdateFunctionRequest {
@@ -10,10 +12,29 @@ pub struct UpdateFunctionRequest {
 
 #[derive(Debug, Deserialize)]
 pub struct CreateFunctionRequest {
-    pub function_name: String,
+    pub function_name: FunctionName,
     pub function: String,
     pub runtime_version: String,
     pub description: String,
+}
+
+#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
+#[serde(try_from = "String")]
+pub struct FunctionName(String);
+impl FunctionName {
+    pub fn validate_data(name: String) -> Result<Self, String> {
+        let name = name.trim();
+        RegexEnum::FunctionName
+            .match_regex(name)
+            .map(|_| Self(name.to_string()))
+    }
+}
+
+impl TryFrom<String> for FunctionName {
+    type Error = String;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Ok(Self::validate_data(value)?)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -37,7 +58,7 @@ pub enum Stage {
 
 #[derive(Deserialize)]
 pub struct TestParam {
-    pub function_name: String,
+    pub function_name: FunctionName,
     pub stage: Stage,
 }
 

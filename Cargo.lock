@@ -4269,6 +4269,7 @@ dependencies = [
  "diesel",
  "jsonlogic",
  "log",
+ "regex",
  "serde",
  "serde_json",
  "strum",

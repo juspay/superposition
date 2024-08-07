@@ -7,15 +7,14 @@ use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 
 use jsonschema::JSONSchema;
-use regex::Regex;
 use serde_json::{json, Value};
 use service_utils::service::types::DbConnection;
-use superposition_macros::{bad_argument, db_error, unexpected_error};
+use superposition_macros::{bad_argument, db_error};
 use superposition_types::{result as superposition, User};
 
-use crate::api::type_templates::types::{QueryFilters, TypeTemplateRequest};
-
-const TYPE_NAME_REGEX: &str = "^[a-zA-Z0-9-_]{1,64}$";
+use crate::api::type_templates::types::{
+    QueryFilters, TypeTemplateName, TypeTemplateRequest,
+};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -43,17 +42,7 @@ async fn create_type(
             err.to_string()
         )
     })?;
-    let type_name = request.type_name.clone();
-    let regex = Regex::new(TYPE_NAME_REGEX).map_err(|err| {
-        unexpected_error!("could not parse regex due to: {}", err.to_string())
-    })?;
-    if !regex.is_match(type_name.as_str()) {
-        return Err(bad_argument!(
-            "The type name {} is invalid, it should obey the regex {}",
-            type_name,
-            TYPE_NAME_REGEX
-        ));
-    }
+    let type_name: String = request.type_name.clone().into();
     let type_template = diesel::insert_into(type_templates::table)
         .values((
             type_templates::type_schema.eq(request.type_schema.clone()),
@@ -72,7 +61,7 @@ async fn create_type(
 #[put("/{type_name}")]
 async fn update_type(
     request: Json<Value>,
-    path: Path<String>,
+    path: Path<TypeTemplateName>,
     db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<HttpResponse> {
@@ -88,17 +77,8 @@ async fn update_type(
             err.to_string()
         )
     })?;
-    let type_name = path.into_inner();
-    let regex = Regex::new(TYPE_NAME_REGEX).map_err(|err| {
-        unexpected_error!("could not parse regex due to: {}", err.to_string())
-    })?;
-    if !regex.is_match(type_name.as_str()) {
-        return Err(bad_argument!(
-            "The type name {} is invalid, it should obey the regex {}",
-            type_name,
-            TYPE_NAME_REGEX
-        ));
-    }
+    let type_name: String = path.into_inner().into();
+
     let timestamp = Utc::now().naive_utc();
     let updated_type = diesel::update(type_templates::table)
         .filter(type_templates::type_name.eq(type_name))
@@ -117,12 +97,12 @@ async fn update_type(
 
 #[delete("/{type_name}")]
 async fn delete_type(
-    path: Path<String>,
+    path: Path<TypeTemplateName>,
     db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let type_name = path.into_inner();
+    let type_name: String = path.into_inner().into();
     diesel::update(dsl::type_templates)
         .filter(dsl::type_name.eq(type_name.clone()))
         .set((

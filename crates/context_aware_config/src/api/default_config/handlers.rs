@@ -10,12 +10,15 @@ use superposition_macros::{
 };
 use superposition_types::{result as superposition, SuperpositionUser, User};
 
-use crate::{api::context::helpers::validate_value_with_function, db::models};
 use crate::{
-    api::functions::helpers::get_published_function_code,
+    api::{
+        context::helpers::validate_value_with_function,
+        default_config::types::DefaultConfigKey,
+        functions::helpers::get_published_function_code,
+    },
     db::{
         self,
-        models::{Context, DefaultConfig},
+        models::{self, Context, DefaultConfig},
         schema::{contexts::dsl::contexts, default_configs::dsl},
     },
     helpers::add_config_version,
@@ -32,10 +35,7 @@ use diesel::{
 };
 use diesel::{Connection, SelectableHelper};
 use jsonschema::{Draft, JSONSchema, ValidationError};
-use regex::Regex;
 use serde_json::{from_value, json, Map, Value};
-
-const KEY_NAME_REGEX: &str = "^[a-zA-Z0-9-_]([a-zA-Z0-9-_.]{0,254}[a-zA-Z0-9-_])?$";
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create).service(get).service(delete)
@@ -44,7 +44,7 @@ pub fn endpoints() -> Scope {
 #[put("/{key}")]
 async fn create(
     state: Data<AppState>,
-    key: web::Path<String>,
+    key: web::Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
     request: web::Json<CreateReq>,
     db_conn: DbConnection,
@@ -52,22 +52,8 @@ async fn create(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
-    let key = key.into_inner();
+    let key = key.into_inner().into();
     let tags = parse_config_tags(custom_headers.config_tags)?;
-
-    let regex = Regex::new(KEY_NAME_REGEX).map_err(|err| {
-        unexpected_error!("could not parse regex due to: {}", err.to_string())
-    })?;
-
-    if !regex.is_match(&key) {
-        return Err(bad_argument!(
-            "The key name {} is invalid, it should obey the regex {}. \
-            It can contain the following characters only [a-zA-Z0-9-_.] \
-            and it should not start or end with a '.' character.",
-            key,
-            KEY_NAME_REGEX
-        ));
-    }
 
     if req.value.is_none() && req.schema.is_none() && req.function_name.is_none() {
         log::error!("No data provided in the request body for {key}");
@@ -252,7 +238,7 @@ pub fn get_key_usage_context_ids(
 #[delete("/{key}")]
 async fn delete(
     state: Data<AppState>,
-    path: Path<String>,
+    path: Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
     user: User,
@@ -260,7 +246,7 @@ async fn delete(
     let DbConnection(mut conn) = db_conn;
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    let key = path.into_inner();
+    let key: String = path.into_inner().into();
     fetch_default_key(&key, &mut conn)?;
     let context_ids = get_key_usage_context_ids(&key, &mut conn)
         .map_err(|_| unexpected_error!("Something went wrong"))?;
