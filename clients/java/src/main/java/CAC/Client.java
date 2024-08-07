@@ -2,6 +2,7 @@ package CAC;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 
 import jnr.ffi.Pointer;
 
@@ -150,7 +151,8 @@ public class Client {
 
             String satisfiedVariants;
             try {
-                satisfiedVariants = wrapper.getSatisfiedVariants(clientPtr, "{\"os\": \"android\", \"client\": \"1mg\"}", null);
+                satisfiedVariants = wrapper.getSatisfiedVariants(clientPtr,
+                        "{\"os\": \"android\", \"client\": \"1mg\"}", null);
                 System.out.println("Satisfied Variants: " + satisfiedVariants);
             } catch (IOException e) {
                 System.err.println(e.getMessage());
@@ -160,7 +162,8 @@ public class Client {
 
             String filteredSatisfiedVariants;
             try {
-                filteredSatisfiedVariants = wrapper.getFilteredSatisfiedVariants(clientPtr, "{\"os\": \"android\", \"client\": \"1mg\"}", "hyperpay");
+                filteredSatisfiedVariants = wrapper.getFilteredSatisfiedVariants(clientPtr,
+                        "{\"os\": \"android\", \"client\": \"1mg\"}", "hyperpay");
                 System.out.println("Filtered Satisfied Variants: " + filteredSatisfiedVariants);
             } catch (IOException e) {
                 System.err.println(e.getMessage());
@@ -170,7 +173,8 @@ public class Client {
 
             String applicableVariants;
             try {
-                applicableVariants = wrapper.getApplicableVariants(clientPtr, "{\"os\": \"android\", \"client\": \"1mg\"}", (short) 9);
+                applicableVariants = wrapper.getApplicableVariants(clientPtr,
+                        "{\"os\": \"android\", \"client\": \"1mg\"}", (short) 9);
                 System.out.println("Applicable Variants: " + applicableVariants);
             } catch (IOException e) {
                 System.err.println(e.getMessage());
@@ -184,12 +188,16 @@ public class Client {
     }
 
     public static void main(String[] args) {
-        callCacClient();
-        callExperimentationClient();
+        CountDownLatch latch = new CountDownLatch(1);
+
+        try {
+            callCacClient();
+            callExperimentationClient();
+            latch.await(); // This will keep the main thread alive
+        } catch (InterruptedException e) {
+            System.err.println("Main thread interrupted: " + e.getMessage());
+        } finally {
+            System.out.println("Application stopped.");
+        }
     }
 }
-
-// rm -rf .gradle
-// export PATH=$JAVA_HOME/bin:$PATH  
-// export JAVA_HOME=/opt/homebrew/opt/openjdk
-// arch -arm64 ./gradlew run

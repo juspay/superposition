@@ -16,8 +16,7 @@ application {
     mainClassName = 'CAC.Client'
 }
 
-task runApp(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = application.mainClass
+run {
+    standardInput = System.in
 }
 
