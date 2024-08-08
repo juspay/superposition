@@ -27,6 +27,7 @@
 
 .context_condition{
     font-size: 0.9rem;
+    text-wrap: nowrap;
 }
 
 .value_link {
@@ -86,3 +87,12 @@
 .min-w-48 {
     min-width: 12rem;
 }
+
+span.and-badge {
+    margin: 0;
+}
+
+/* .table-zebra tbody tr:nth-child(2n-1) {
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-b2,oklch(var(--b2)/var(--tw-bg-opacity)));
+}*/
