@@ -85,7 +85,7 @@ where
                                         class="grow"
                                         placeholder="Search"
                                         name=name
-                                        value=search_term.get()
+                                        value=String::new()
                                         on:input=move |event| {
                                             set_search_term.set(event_target_value(&event));
                                         }
