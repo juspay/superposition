@@ -36,7 +36,7 @@ pub fn Layout(children: Children) -> impl IntoView {
         <div>
             <SideNav resolved_path=path original_path=original_path.to_string()/>
             // params_map=params_map
-            <main class="ease-soft-in-out xl:ml-96 relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto">
+            <main class="ease-soft-in-out xl:ml-[350px] relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto">
                 {children()}
             </main>
 
