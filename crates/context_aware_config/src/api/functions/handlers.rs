@@ -52,7 +52,7 @@ async fn create(
     compile_fn(&req.function)?;
 
     let function = Function {
-        function_name: req.function_name,
+        function_name: req.function_name.into(),
         draft_code: BASE64_STANDARD.encode(req.function),
         draft_runtime_version: req.runtime_version,
         draft_edited_by: user.get_email(),
