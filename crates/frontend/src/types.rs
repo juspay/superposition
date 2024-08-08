@@ -273,7 +273,8 @@ pub struct TypeTemplate {
     pub type_schema: Value,
     pub created_by: String,
     pub created_at: NaiveDateTime,
-    pub last_modified: NaiveDateTime,
+    pub last_modified_at: NaiveDateTime,
+    pub last_modified_by: String,
 }
 
 impl DropdownOption for TypeTemplate {
