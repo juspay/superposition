@@ -1,8 +1,9 @@
 use std::time::Duration;
 
 use crate::components::condition_pills::types::Condition;
-use crate::components::condition_pills::ConditionPills;
+use crate::components::condition_pills::Condition as ConditionComponent;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
+use crate::types::Config;
 use crate::{
     api::{fetch_config, fetch_dimensions},
     components::{
@@ -48,6 +49,115 @@ async fn resolve_config(tenant: String, context: String) -> Result<Value, String
 
 fn gen_name_id(s0: &String, s1: &String, s2: &String) -> String {
     format!("{s0}::{s1}::{s2}")
+}
+
+#[component]
+fn all_context_view(config: Config) -> impl IntoView {
+    let Config {
+        contexts,
+        overrides,
+        default_configs,
+    } = config;
+    let rows = |k: &String, v: &Value, striked: bool| {
+        let default_iter = vec![(k.clone(), v.clone())];
+        v
+            .as_object()
+            .unwrap_or(&Map::from_iter(default_iter))
+            .iter()
+            .map(|(key, value)| {
+                let key = key.replace('"', "").trim().to_string();
+                let value = value
+                    .as_str()
+                    .unwrap_or(value.to_string().trim_matches('"'))
+                    .into();
+                let unique_name = gen_name_id(&key, &key, &value);
+                view! {
+                    <tr>
+                        <td class="min-w-48 max-w-72 font-mono">
+                            <span
+                                name=format!("{unique_name}-1") class="config-name"
+                                class:text-black={!striked}
+                                class:font-bold={!striked}
+                                class:text-gray-300={striked}
+                            >{key}</span>
+                        </td>
+                        <td class="min-w-48 max-w-72 font-mono" style="word-break: break-word;">
+                            <span
+                                name=format!("{unique_name}-2")
+                                class="config-value"
+                                class:text-black={ !striked }
+                                class:font-bold={ !striked }
+                                class:text-gray-300 = { striked }
+                            >
+                                {check_url_and_return_val(value) }
+                            </span>
+                        </td>
+                    </tr>
+                }
+            }).collect_view()
+    };
+
+    view! {
+        <div class="flex flex-col w-full gap-y-6 p-6">
+            {contexts
+                .iter()
+                .map(|context| {
+                    let rows: Vec<_> = context
+                        .override_with_keys
+                        .iter()
+                        .filter_map(|key| overrides.get(key).map(|o| rows(key, o, true)))
+                        .collect();
+                    let conditions: Vec<Condition> = context.try_into().unwrap_or_default();
+                    view! {
+                        <div class="card bg-base-100 shadow gap-3 p-6">
+                            <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
+                                "Condition"
+                            </h3>
+                            <div class="xl:flex xl:gap-x-4 xl:justify-between pl-5">
+                                <ConditionComponent
+                                    conditions=conditions
+                                    id=context.id.clone()
+                                    class="xl:w-[400px] h-fit"
+                                />
+                                <div class="xl:w-2/3 overflow-auto">
+                                    <table class="table table-zebra">
+                                        <thead>
+                                            <tr>
+                                                <th>Key</th>
+                                                <th>Value</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>{rows}</tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                })
+                .rev()
+                .collect::<Vec<_>>()} <div class="card bg-base-100 shadow m-6">
+                <div class="card-body">
+                    <h2 class="card-title">Default Configuration</h2>
+                    <table class="table table-zebra">
+                        <thead>
+                            <tr>
+                                <th>Key</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            {default_configs
+                                .iter()
+                                .map(|(k, v)| rows(k, v, false))
+                                .collect::<Vec<_>>()}
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 #[component]
@@ -217,7 +327,7 @@ pub fn home() -> impl IntoView {
         });
     };
     view! {
-        <div class="flex w-full flex-col flex-wrap mt-5 justify-evenly">
+        <div class="w-full mt-5">
             <div class="mr-5 ml-5 mt-6">
                 <Suspense fallback=move || {
                     view! { <Skeleton variant=SkeletonVariant::Block/> }
@@ -337,104 +447,9 @@ pub fn home() -> impl IntoView {
                                             .with(move |result| {
                                                 match result {
                                                     Some(Ok(config)) => {
-                                                        let rows = |k: &String, v: &Value, striked: bool| {
-                                                            let mut view_vector = vec![];
-                                                            let default_iter = vec![(k.clone(), v.clone())];
-                                                            for (key, value) in v
-                                                                .as_object()
-                                                                .unwrap_or(&Map::from_iter(default_iter))
-                                                                .iter()
-                                                            {
-                                                                let key = key.replace('"', "").trim().to_string();
-                                                                let value = value
-                                                                    .as_str()
-                                                                    .unwrap_or(value.to_string().trim_matches('"'))
-                                                                    .into();
-                                                                let unique_name = gen_name_id(&key, &key, &value);
-                                                                view_vector
-                                                                    .push(
-                                                                        view! {
-                                                                            < tr > < td class = "min-w-48 max-w-72 font-mono" > < span
-                                                                            name = format!("{unique_name}-1") class = "config-name"
-                                                                            class : text - black = { ! striked } class : font - bold = {
-                                                                            ! striked } class : text - gray - 300 = { striked } > { key
-                                                                            } </ span > </ td > < td class =
-                                                                            "min-w-48 max-w-72 font-mono" style =
-                                                                            "word-break: break-word;" > < span name =
-                                                                            format!("{unique_name}-2") class = "config-value" class :
-                                                                            text - black = { ! striked } class : font - bold = { !
-                                                                            striked } class : text - gray - 300 = { striked } > {
-                                                                            check_url_and_return_val(value) } </ span > </ td > </ tr >
-                                                                        },
-                                                                    )
-                                                            }
-                                                            view_vector
-                                                        };
-                                                        let contexts_views: Vec<_> = config
-                                                            .contexts
-                                                            .iter()
-                                                            .map(|context| {
-                                                                let rows: Vec<_> = context
-                                                                    .override_with_keys
-                                                                    .iter()
-                                                                    .filter_map(|key| {
-                                                                        config.overrides.get(key).map(|o| (key, o))
-                                                                    })
-                                                                    .map(|(k, v)| { rows(k, v, true) })
-                                                                    .collect();
-                                                                let conditions: Vec<Condition> = context
-                                                                    .try_into()
-                                                                    .unwrap_or_default();
-                                                                view! {
-                                                                    <div class="card bg-base-100 shadow m-6">
-                                                                        <div class="card-body">
-                                                                            <h2 class="card-title">
-                                                                                <ConditionPills conditions=conditions/>
-                                                                            </h2>
-                                                                            <table class="table table-zebra mt-10">
-                                                                                <thead>
-                                                                                    <tr>
-                                                                                        <th>Key</th>
-                                                                                        <th>Value</th>
-                                                                                    </tr>
-                                                                                </thead>
-                                                                                <tbody>{rows}</tbody>
-                                                                            </table>
-
-                                                                        </div>
-                                                                    </div>
-                                                                }
-                                                            })
-                                                            .collect::<Vec<_>>();
-                                                        let new_context_views = contexts_views
-                                                            .into_iter()
-                                                            .rev()
-                                                            .collect::<Vec<_>>();
-                                                        let default_config: Vec<_> = config
-                                                            .default_configs
-                                                            .iter()
-                                                            .map(|(k, v)| { rows(k, v, false) })
-                                                            .collect();
                                                         vec![
-                                                            view! {
-                                                                <div class="mb-4 overflow-y-scroll">
-                                                                    {new_context_views}
-                                                                    <div class="card bg-base-100 shadow m-6">
-                                                                        <div class="card-body">
-                                                                            <h2 class="card-title">Default Configuration</h2>
-                                                                            <table class="table table-zebra">
-                                                                                <thead>
-                                                                                    <tr>
-                                                                                        <th>Key</th>
-                                                                                        <th>Value</th>
-                                                                                    </tr>
-                                                                                </thead>
-                                                                                <tbody>{default_config}</tbody>
-                                                                            </table>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            },
+                                                            view! { <AllContextView config=config.clone()/> }
+                                                                .into_view(),
                                                         ]
                                                     }
                                                     Some(Err(error)) => {
@@ -443,12 +458,14 @@ pub fn home() -> impl IntoView {
                                                                 <div class="error">
                                                                     Failed to fetch config data: {error.to_string()}
                                                                 </div>
-                                                            },
+                                                            }
+                                                                .into_view(),
                                                         ]
                                                     }
                                                     None => {
                                                         vec![
-                                                            view! { <div class="error">No config data fetched</div> },
+                                                            view! { <div class="error">No config data fetched</div> }
+                                                                .into_view(),
                                                         ]
                                                     }
                                                 }
