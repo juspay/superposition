@@ -2,6 +2,27 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.54.0 - 2024-08-08
+### Package updates
+- service_utils bumped to service_utils-v0.20.0
+- experimentation_platform bumped to experimentation_platform-v0.18.1
+- frontend bumped to frontend-v0.13.0
+- cac_client bumped to cac_client-v0.14.1
+- haskell_client bumped to haskell_client-v0.1.3
+- superposition_types bumped to superposition_types-v0.3.1
+- context_aware_config bumped to context_aware_config-v0.36.1
+### Global changes
+#### Bug Fixes
+- **(cac_client)** Run `fixDarwinDylibNames` during `postInstall` - (bf33e15) - shivaraj-bh
+- api validation with new types (#146) - (66ad741) - PRATIK MISHRA
+- add last modified to all tables (#192) - (d41195c) - PRATIK MISHRA
+- haskell-client-doc - (291df89) - Ankit Mahato
+- jsonschema for dimension and remove default_config's jsonsschema check (#197) - (89a23af) - PRATIK MISHRA
+#### Features
+- monaco as a component (#184) - (5233f1a) - Datron
+
+- - -
+
 ## v0.53.0 - 2024-07-17
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.36.0

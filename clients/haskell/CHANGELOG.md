@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.1.3 - 2024-08-08
+#### Bug Fixes
+- haskell-client-doc - (291df89) - Ankit Mahato
+#### Miscellaneous Chores
+- **(nix)** Build *all* binary crates - (502abdf) - Sridhar Ratnakumar
+
+- - -
+
 ## haskell_client-v0.1.2 - 2024-06-20
 #### Bug Fixes
 - Use jsonlogc's partial_apply for config and experiment filtering (#127) - (97bf39b) - Ayush Jain
