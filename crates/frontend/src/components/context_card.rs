@@ -3,7 +3,7 @@ use serde_json::{Map, Value};
 
 use crate::{
     components::{
-        condition_pills::{types::Condition, ConditionPills},
+        condition_pills::{types::Condition, Condition as ConditionComponent},
         table::{types::Column, Table},
     },
     types::Context,
@@ -13,9 +13,16 @@ use crate::{
 pub fn context_card(
     context: Context,
     overrides: Map<String, Value>,
-    handle_edit: Callback<(Context, Map<String, Value>), ()>,
-    handle_clone: Callback<(Context, Map<String, Value>), ()>,
-    handle_delete: Callback<String, ()>,
+    #[prop(default = true)] show_actions: bool,
+    #[prop(default=Callback::new(|_| {}))] handle_edit: Callback<
+        (Context, Map<String, Value>),
+        (),
+    >,
+    #[prop(default=Callback::new(|_| {}))] handle_clone: Callback<
+        (Context, Map<String, Value>),
+        (),
+    >,
+    #[prop(default=Callback::new(|_| {}))] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
     let conditions: Vec<Condition> = (&context).try_into().unwrap_or(vec![]);
     let override_table_rows = overrides
@@ -28,6 +35,7 @@ pub fn context_card(
         })
         .collect::<Vec<Map<String, Value>>>();
 
+    let context_id = StoredValue::new(context.id.clone());
     let context = StoredValue::new(context);
     let overrides = StoredValue::new(overrides);
 
@@ -37,43 +45,49 @@ pub fn context_card(
     ];
 
     view! {
-        <div class="rounded-lg shadow bg-base-100 p-6 shadow">
+        <div class="rounded-lg shadow bg-base-100 p-6 shadow flex flex-col gap-3">
             <div class="flex justify-between">
-                <div class="flex items-center space-x-4">
-                    <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono">
-                        "Condition"
-                    </h3>
-                    <i class="ri-arrow-right-fill ri-xl text-blue-500"></i>
-                    <ConditionPills conditions=conditions/>
-                </div>
-                <div class="flex space-x-4">
-                    <i
-                        class="ri-pencil-line ri-xl text-blue-500 cursor-pointer"
-                        on:click=move |_| {
-                            handle_edit.call((context.get_value(), overrides.get_value()))
-                        }
-                    >
-                    </i>
-                    <i
-                        class="ri-file-copy-line ri-xl text-blue-500 cursor-pointer"
-                        on:click=move |_| {
-                            handle_clone.call((context.get_value(), overrides.get_value()))
-                        }
-                    >
-                    </i>
-                    <i
-                        class="ri-delete-bin-5-line ri-xl text-blue-500 cursor-pointer"
-                        on:click=move |_| { handle_delete.call(context.get_value().id) }
-                    ></i>
-                </div>
+                <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
+                    "Condition"
+                </h3>
+                <Show when=move || show_actions>
+                    <div class="h-fit text-right space-x-4">
+                        <i
+                            class="ri-pencil-line ri-lg text-blue-500 cursor-pointer"
+                            on:click=move |_| {
+                                handle_edit.call((context.get_value(), overrides.get_value()))
+                            }
+                        >
+                        </i>
+                        <i
+                            class="ri-file-copy-line ri-lg text-blue-500 cursor-pointer"
+                            on:click=move |_| {
+                                handle_clone.call((context.get_value(), overrides.get_value()))
+                            }
+                        >
+                        </i>
+                        <i
+                            class="ri-delete-bin-5-line ri-lg text-red-500 cursor-pointer"
+                            on:click=move |_| { handle_delete.call(context.get_value().id) }
+                        ></i>
+                    </div>
+                </Show>
             </div>
-            <div class="space-x-4">
-                <Table
-                    cell_style="min-w-48 font-mono".to_string()
-                    rows=override_table_rows
-                    key_column="id".to_string()
-                    columns=table_columns
+
+            <div class="xl:flex xl:gap-x-4 xl:justify-between pl-5">
+                <ConditionComponent
+                    conditions=conditions
+                    id=context_id.get_value()
+                    class="xl:w-[400px] h-fit"
                 />
+                <div class="xl:w-2/3 overflow-auto">
+                    <Table
+                        cell_style="min-w-48 font-mono".to_string()
+                        rows=override_table_rows
+                        key_column="id".to_string()
+                        columns=table_columns
+                    />
+                </div>
             </div>
         </div>
     }
