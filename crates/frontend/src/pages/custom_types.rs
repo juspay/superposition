@@ -49,7 +49,7 @@ pub fn types_page() -> impl IntoView {
             Column::default("type_schema".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
-            Column::default("last_modified".to_string()),
+            Column::default("last_modified_at".to_string()),
             Column::new(
                 "actions".into(),
                 None,
@@ -158,8 +158,8 @@ pub fn types_page() -> impl IntoView {
                                     );
                                 ele_map
                                     .insert(
-                                        "last_modified".to_string(),
-                                        json!(ele.last_modified.format("%v").to_string()),
+                                        "last_modified_at".to_string(),
+                                        json!(ele.last_modified_at.format("%v").to_string()),
                                     );
                                 ele_map
                             })
