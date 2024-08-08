@@ -217,7 +217,7 @@ pub fn home() -> impl IntoView {
         });
     };
     view! {
-        <div class="flex w-full flex-col flex-wrap mt-5 justify-evenly">
+        <div class="w-full mt-5">
             <div class="mr-5 ml-5 mt-6">
                 <Suspense fallback=move || {
                     view! { <Skeleton variant=SkeletonVariant::Block/> }

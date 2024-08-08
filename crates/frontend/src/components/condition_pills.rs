@@ -6,6 +6,41 @@ use crate::components::condition_pills::types::ConditionOperator;
 use self::types::Condition;
 use leptos::*;
 
+
+#[component]
+pub fn condition(#[prop(into)] conditions: Vec<Condition>) -> impl IntoView {
+    view! {
+        <div class="flex flex-wrap w-full space-x-3">
+            {conditions
+                .into_iter()
+                .map(|condition| {
+                    let dimension = condition.left_operand;
+                    let op = condition.operator;
+                    let val = condition.right_operand;
+                    view! {
+                        <div class="card min-w-48 max-w-sm border">
+                            <div class="card-body grid grid-cols-3 p-0">
+                                // add spacing between these elements
+                                <div class="col-span-2 border-r pl-4 py-1">
+                                    <span class="col-span-2 text-ellipsis overflow-hidden font-mono font-medium context_condition">
+                                        {dimension}
+                                    </span>
+                                </div>
+                                <div class="pr-4 py-1 text-center">
+                                    <span class="badge badge-ghost">{op.to_string()}</span>
+                                </div>
+                            </div>
+                            <div class="card-action max-w-full px-4 py-1 border-t text-ellipsis overflow-hidden">
+                                <span class="">{val}</span>
+                            </div>
+                        </div>
+                    }
+                })
+                .collect::<Vec<_>>()}
+        </div>
+    }
+}
+
 #[component]
 pub fn condition_pills(#[prop(into)] conditions: Vec<Condition>) -> impl IntoView {
     view! {
