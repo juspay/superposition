@@ -37,5 +37,7 @@ test_logs
 .cargo
 
 #java client
-clients/java/.gradle
-clients/java/build
+clients/java/cac-client/.gradle
+clients/java/cac-client/build
+clients/java/exp-client/.gradle
+clients/java/exp-client/build
