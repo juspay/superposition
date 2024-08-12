@@ -13,6 +13,7 @@ use crate::{
     helpers::generate_cac,
 };
 use actix_http::header::HeaderValue;
+use actix_web::web::Data;
 use actix_web::{get, put, web, HttpRequest, HttpResponse, HttpResponseBuilder, Scope};
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
@@ -22,6 +23,7 @@ use diesel::{
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 use serde_json::{json, Map, Value};
+use service_utils::service::types::{AppState, Tenant};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{result as superposition, Cac, Condition, Overrides, User};
 
@@ -363,6 +365,8 @@ fn construct_new_payload(
 async fn reduce_config_key(
     user: User,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    state: &Data<AppState>,
+    tenant: &Tenant,
     mut og_contexts: Vec<Context>,
     mut og_overrides: HashMap<String, Overrides>,
     check_key: &str,
@@ -450,7 +454,7 @@ async fn reduce_config_key(
                     if is_approve {
                         let _ = delete_context_api(cid.clone(), user.clone(), conn);
                         if let Ok(put_req) = construct_new_payload(request_payload) {
-                            let _ = put(put_req, conn, false, &user);
+                            let _ = put(put_req, conn, false, &user, state, tenant);
                         }
                     }
 
@@ -493,6 +497,8 @@ async fn reduce_config(
     req: HttpRequest,
     user: User,
     db_conn: DbConnection,
+    state: Data<AppState>,
+    tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let is_approve = req
@@ -511,6 +517,8 @@ async fn reduce_config(
         config = reduce_config_key(
             user.clone(),
             &mut conn,
+            &state,
+            &tenant,
             contexts.clone(),
             overrides.clone(),
             key.as_str(),

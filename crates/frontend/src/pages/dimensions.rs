@@ -16,10 +16,11 @@ pub struct RowData {
     pub priority: u32,
     pub schema: Value,
     pub function_name: Option<Value>,
+    pub mandatory: bool,
 }
 
 #[component]
-pub fn Dimensions() -> impl IntoView {
+pub fn dimensions() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let dimensions_resource = create_blocking_resource(
         move || tenant_rs.get(),
@@ -48,6 +49,7 @@ pub fn Dimensions() -> impl IntoView {
                 "null" => None,
                 _ => Some(json!(function_name.replace('"', ""))),
             };
+            let mandatory = row["mandatory"].as_bool().unwrap_or(false);
 
             let edit_click_handler = move |_| {
                 let row_data = RowData {
@@ -55,6 +57,7 @@ pub fn Dimensions() -> impl IntoView {
                     priority: row_priority.clone(),
                     schema: schema.clone(),
                     function_name: fun_name.clone(),
+                    mandatory: mandatory.clone(),
                 };
                 logging::log!("{:?}", row_data);
                 selected_dimension.set(Some(row_data));
@@ -75,6 +78,7 @@ pub fn Dimensions() -> impl IntoView {
             Column::default("dimension".to_string()),
             Column::default("priority".to_string()),
             Column::default("schema".to_string()),
+            Column::default("mandatory".to_string()),
             Column::default("function_name".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),

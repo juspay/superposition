@@ -151,7 +151,21 @@ pub fn context_override() -> impl IntoView {
 
     let handle_context_create = Callback::new(move |_| {
         set_form_mode.set(Some(FormMode::Create));
-        set_selected_data.set(None);
+        let PageResource { dimensions, .. } = page_resource.get().unwrap_or_default();
+        let context_with_mandatory_dimensions = dimensions
+            .into_iter()
+            .filter_map(|dim| {
+                if dim.mandatory {
+                    Some((dim.dimension, String::from(""), String::from("")))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<(String, String, String)>>();
+        set_selected_data.set(Some(Data {
+            context: context_with_mandatory_dimensions,
+            overrides: vec![],
+        }));
         open_drawer("context_and_override_drawer");
     });
 

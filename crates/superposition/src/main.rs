@@ -4,6 +4,7 @@ use actix_web::{web, web::get, web::scope, web::Data, App, HttpResponse, HttpSer
 use context_aware_config::api::*;
 use context_aware_config::helpers::get_meta_schema;
 use experimentation_platform::api::*;
+use serde_json::{Map, Value};
 use std::sync::Arc;
 use std::{collections::HashSet, io::Result};
 use superposition_types::User;
@@ -83,6 +84,25 @@ async fn main() -> Result<()> {
             .split(',')
             .map(String::from)
             .collect::<HashSet<String>>();
+    let mandatory_dimensions: Map<String, Value> =
+        get_from_env_unsafe::<String>("MANDATORY_DIMENSIONS")
+            .expect("MANDATORY_DIMENSIONS is not set")
+            .split(';')
+            .filter_map(|ele| {
+                let arr: Vec<&str> = ele.split(':').collect();
+                if arr.len() == 2 {
+                    let key = arr[0].to_string();
+                    let values = arr[1]
+                        .split(',')
+                        .map(String::from)
+                        .map(Value::String)
+                        .collect();
+                    Some((key.trim().to_string(), Value::Array(values)))
+                } else {
+                    None
+                }
+            })
+            .collect();
 
     let schema_manager: PgSchemaManager = init_pool_manager(
         tenants.clone(),
@@ -162,6 +182,7 @@ async fn main() -> Result<()> {
                 tenant_middleware_exclusion_list: tenant_middleware_exclusion_list
                     .to_owned(),
                 service_prefix: service_prefix_str.to_owned(),
+                mandatory_dimensions: mandatory_dimensions.to_owned(),
             }))
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()
