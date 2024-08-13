@@ -19,6 +19,7 @@ thiserror = { workspace = true }
 diesel = { workspace = true }
 anyhow = { workspace = true }
 jsonlogic = { workspace = true }
+regex = { workspace = true }
 
 [features]
 disable_db_data_validation = []

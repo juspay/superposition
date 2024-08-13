@@ -33,10 +33,6 @@ async fn create(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
-    if req.priority <= 0 {
-        return Err(bad_argument!("Priority should be greater than 0"));
-    }
-
     let create_req = req.into_inner();
     let schema_value = create_req.schema;
 
@@ -65,8 +61,8 @@ async fn create(
     };
 
     let new_dimension = Dimension {
-        dimension: create_req.dimension,
-        priority: create_req.priority,
+        dimension: create_req.dimension.into(),
+        priority: create_req.priority.into(),
         schema: schema_value,
         created_by: user.get_email(),
         created_at: Utc::now(),
