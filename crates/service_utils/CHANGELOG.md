@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.21.0 - 2024-08-14
+#### Bug Fixes
+- changing aws kms library to aws-sdk-kms to rusto (#203) - (a455f93) - namit goel
+#### Features
+- Mandatory dimensions feature (#173) - (8d95a30) - Ankit Kumar Mahato
+
+- - -
+
 ## service_utils-v0.20.0 - 2024-08-08
 #### Bug Fixes
 - jsonschema for dimension and remove default_config's jsonsschema check (#197) - (89a23af) - PRATIK MISHRA

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.14.0 - 2024-08-14
+#### Bug Fixes
+- dropdown search (#202) - (f78ddbc) - Ankit Kumar Mahato
+#### Features
+- Mandatory dimensions feature (#173) - (8d95a30) - Ankit Kumar Mahato
+
+- - -
+
 ## frontend-v0.13.0 - 2024-08-08
 #### Bug Fixes
 - out-of-sync TemplateType struct (#201) - (68d9204) - Shubhranshu Sanjeev

@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.55.0 - 2024-08-14
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.37.0
+- service_utils bumped to service_utils-v0.21.0
+- superposition_types bumped to superposition_types-v0.3.2
+- frontend bumped to frontend-v0.14.0
+### Global changes
+#### Bug Fixes
+- newtypes for entity fields (#199) - (49562b7) - PRATIK MISHRA
+- changing aws kms library to aws-sdk-kms to rusto (#203) - (a455f93) - namit goel
+#### Features
+- adding python cac and experimentation client wrapper - (46b7342) - namit goel
+- Mandatory dimensions feature (#173) - (8d95a30) - Ankit Kumar Mahato
+
+- - -
+
 ## v0.54.0 - 2024-08-08
 ### Package updates
 - service_utils bumped to service_utils-v0.20.0
