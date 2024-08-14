@@ -52,8 +52,6 @@ reqwest = { version = "0.11.18", features = ["json"] }
 jsonschema = "~0.17"
 jsonlogic = { git = "https://github.com/juspay/jsonlogic_rs.git", version = "0.5.3" }
 rs-snowflake = "0.6.0"
-rusoto_kms = "0.48.0"
-rusoto_signature = "0.48.0"
 bytes = "1.4.0"
 rusoto_core = "0.48.0"
 rand = "0.8.5"
@@ -69,6 +67,8 @@ leptos_actix = { version = "0.6.11" }
 thiserror = { version = "1.0.57" }
 leptos-use = "0.10.3"
 mime = "0.3.17"
+aws-sdk-kms = {version = "1.38.0"}
+aws-config = { version = "1.1.7", features = ["behavior-version-latest"] }
 
 [workspace.lints.clippy]
 mod_module_files = "warn"

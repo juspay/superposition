@@ -15,7 +15,7 @@ pub async fn get_database_url() -> String {
     let db_password: String = if app_env.as_str() == "DEV" || app_env.as_str() == "TEST" {
         get_from_env_or_default("DB_PASSWORD", "docker".into())
     } else {
-        let kms_client = kms::new_client();
+        let kms_client = kms::new_client().await;
         let db_password_raw = kms::decrypt(kms_client, "DB_PASSWORD").await;
         encode(db_password_raw.as_str()).to_string()
     };
