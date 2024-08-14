@@ -4,7 +4,7 @@
   "private": true,
   "description": "dependencies for CAC function validators",
   "dependencies": {
-    "axios": "^1.7.2",
+    "axios": "^1.7.4",
     "eslint": "^8.56.0"
 
   }
