@@ -1,46 +1,33 @@
-use crate::{helpers::get_from_env_unsafe, BASE64_ENGINE};
-use base64::Engine;
-use bytes::Bytes;
-use rusoto_kms::{DecryptRequest, DecryptResponse, Kms, KmsClient};
-use rusoto_signature::region::Region;
+use crate::helpers::get_from_env_unsafe;
+use aws_sdk_kms::{primitives::Blob, Client};
+use base64::{engine::general_purpose, Engine};
 
-//TODO refactor below code
-pub async fn decrypt(client: KmsClient, secret_name: &str) -> String {
-    let cypher = get_from_env_unsafe(secret_name)
-        .map(|x: String| BASE64_ENGINE.decode(x).unwrap())
-        .unwrap_or_else(|_| panic!("{secret_name} not found in env"));
-    let req = DecryptRequest {
-        ciphertext_blob: Bytes::from(cypher),
-        encryption_algorithm: None,
-        encryption_context: None,
-        grant_tokens: None,
-        //NOTE we use symmetric key encryption therefore key_id is optional
-        key_id: None,
-    };
-    let decrypt_resp = Kms::decrypt(&client, req).await;
-    match decrypt_resp {
-        Ok(DecryptResponse {
-            plaintext: Some(data),
-            ..
-        }) => String::from_utf8(data.to_vec()).unwrap_or_else(|_| {
-            panic!("Could not convert kms val for {secret_name} to utf8")
-        }),
-        e => panic!("KMS decryption failed for {secret_name} with error {e:?}"),
-    }
+pub async fn decrypt(aws_kms_cli: Client, key: &str) -> String {
+    let key_value_env: String =
+        get_from_env_unsafe(key).expect(&format!("{key} not present in env"));
+    let key_value_enc = general_purpose::STANDARD
+        .decode(key_value_env)
+        .expect("Input string does not contain valid base 64 characters.");
+
+    let key_value_bytes_result = aws_kms_cli
+        .decrypt()
+        .ciphertext_blob(Blob::new(key_value_enc))
+        .send()
+        .await;
+    let key_value: String = String::from_utf8(
+        key_value_bytes_result
+            .expect(&format!("Failed to decrypt {key}"))
+            .plaintext()
+            .expect(&format!("Failed to get plaintext value for {key}"))
+            .as_ref()
+            .to_vec(),
+    )
+    .expect("Could not convert to UTF-8");
+    key_value
 }
 
-pub fn new_client() -> KmsClient {
-    //TODO make this an enum and add to appstate
-    let app_env: String = get_from_env_unsafe("APP_ENV").unwrap_or(String::from("PROD"));
-
-    let kms_region = match app_env.as_str() {
-        "DEV" => Region::Custom {
-            name: get_from_env_unsafe("AWS_REGION").unwrap_or(String::from("ap-south-1")),
-            endpoint: get_from_env_unsafe("AWS_REGION_ENDPOINT")
-                .unwrap_or(String::from("http://localhost:4566")),
-        },
-        _ => get_from_env_unsafe("AWS_REGION").unwrap_or(Region::ApSouth1),
-    };
-
-    KmsClient::new(kms_region)
+pub async fn new_client() -> Client {
+    let config = aws_config::load_from_env().await;
+    let aws_kms_cli = aws_sdk_kms::Client::new(&config);
+    aws_kms_cli
 }

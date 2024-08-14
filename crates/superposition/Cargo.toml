@@ -36,8 +36,6 @@ chrono = { workspace = true }
 # ORM
 diesel = { workspace = true }
 blake3 = { workspace = true }
-rusoto_kms = { workspace = true }
-rusoto_signature = { workspace = true }
 bytes = { workspace = true }
 rusoto_core = { workspace = true }
 base64 = { workspace = true }
