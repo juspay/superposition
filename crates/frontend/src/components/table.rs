@@ -24,16 +24,19 @@ fn generate_table_row_str(row: &Value) -> String {
 #[component]
 pub fn table(
     key_column: String,
-    cell_style: String,
     columns: Vec<Column>,
     rows: Vec<Map<String, Value>>,
+    #[prop(into, default = String::new())] cell_style: String,
+    #[prop(into, default = String::new())] style: String,
+    #[prop(into, default = String::new())] head_style: String,
     #[prop(default = TablePaginationProps::default())] pagination: TablePaginationProps,
 ) -> impl IntoView {
     let pagination_props = StoredValue::new(pagination);
+    let container_style = format!("{} overflow-x-auto", style);
     view! {
-        <div class="overflow-x-auto">
+        <div class=container_style>
             <table class="table table-zebra">
-                <thead>
+                <thead class=head_style>
                     <tr>
                         <th></th>
 
@@ -94,26 +97,26 @@ pub fn table(
 
                 </tbody>
             </table>
-            <Show when=move || {
-                pagination_props.get_value().enabled
-            }>
-
-                {move || {
-                    let TablePaginationProps { current_page, total_pages, on_prev, on_next, .. } = pagination_props
-                        .get_value();
-                    view! {
-                        <div class="mt-2 flex justify-end">
-                            <Pagination
-                                current_page=current_page
-                                total_pages=total_pages
-                                next=on_next
-                                previous=on_prev
-                            />
-                        </div>
-                    }
-                }}
-
-            </Show>
         </div>
+        <Show when=move || {
+            pagination_props.get_value().enabled
+        }>
+
+            {move || {
+                let TablePaginationProps { current_page, total_pages, on_prev, on_next, .. } = pagination_props
+                    .get_value();
+                view! {
+                    <div class="mt-2 flex justify-end">
+                        <Pagination
+                            current_page=current_page
+                            total_pages=total_pages
+                            next=on_next
+                            previous=on_prev
+                        />
+                    </div>
+                }
+            }}
+
+        </Show>
     }
 }
