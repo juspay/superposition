@@ -3,6 +3,7 @@ use std::time::Duration;
 use crate::components::condition_pills::types::Condition;
 use crate::components::condition_pills::Condition as ConditionComponent;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
+use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::Config;
 use crate::{
     api::{fetch_config, fetch_dimensions},
@@ -99,43 +100,48 @@ fn all_context_view(config: Config) -> impl IntoView {
 
     view! {
         <div class="flex flex-col w-full gap-y-6 p-6">
-            {contexts
-                .iter()
-                .map(|context| {
-                    let rows: Vec<_> = context
-                        .override_with_keys
+            <ConditionCollapseProvider>
+                {
+                    contexts
                         .iter()
-                        .filter_map(|key| overrides.get(key).map(|o| rows(key, o, true)))
-                        .collect();
-                    let conditions: Vec<Condition> = context.try_into().unwrap_or_default();
-                    view! {
-                        <div class="card bg-base-100 shadow gap-3 p-6">
-                            <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
-                                "Condition"
-                            </h3>
-                            <div class="xl:flex xl:gap-x-4 xl:justify-between pl-5">
-                                <ConditionComponent
-                                    conditions=conditions
-                                    id=context.id.clone()
-                                    class="xl:w-[400px] h-fit"
-                                />
-                                <div class="xl:w-2/3 overflow-auto">
-                                    <table class="table table-zebra">
-                                        <thead>
-                                            <tr>
-                                                <th>Key</th>
-                                                <th>Value</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>{rows}</tbody>
-                                    </table>
+                        .map(|context| {
+                            let rows: Vec<_> = context
+                                .override_with_keys
+                                .iter()
+                                .filter_map(|key| overrides.get(key).map(|o| rows(key, o, true)))
+                                .collect();
+                            let conditions: Vec<Condition> = context.try_into().unwrap_or_default();
+                            view! {
+                                <div class="card bg-base-100 shadow gap-3 p-6">
+                                    <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
+                                        "Condition"
+                                    </h3>
+                                    <div class="xl:flex xl:gap-x-4 xl:justify-between pl-5">
+                                        <ConditionComponent
+                                            conditions=conditions
+                                            id=context.id.clone()
+                                            class="xl:w-[400px] h-fit"
+                                        />
+                                        <div class="xl:w-2/3 overflow-auto">
+                                            <table class="table table-zebra">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Key</th>
+                                                        <th>Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>{rows}</tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    }
-                })
-                .rev()
-                .collect::<Vec<_>>()} <div class="card bg-base-100 shadow m-6">
+                            }
+                        })
+                        .rev()
+                        .collect::<Vec<_>>()
+                }
+            </ConditionCollapseProvider>
+            <div class="card bg-base-100 shadow m-6">
                 <div class="card-body">
                     <h2 class="card-title">Default Configuration</h2>
                     <table class="table table-zebra">
