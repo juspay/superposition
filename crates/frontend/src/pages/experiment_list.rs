@@ -11,6 +11,7 @@ use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{experiment_form::ExperimentForm, stat::Stat, table::Table};
 
+use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::{ExperimentsResponse, ListFilters};
 
 use self::utils::experiment_table_columns;
@@ -133,7 +134,6 @@ pub fn experiment_list() -> impl IntoView {
                                 </DrawerBtn>
                             </div>
                         </div>
-                        <div>
                             {move || {
                                 let value = combined_resource.get();
                                 let filters = filters.get();
@@ -171,20 +171,20 @@ pub fn experiment_list() -> impl IntoView {
                                             on_prev: handle_prev_click,
                                         };
                                         view! {
-                                            <Table
-                                                cell_style="min-w-48 font-mono".to_string()
-                                                rows=data
-                                                key_column="id".to_string()
-                                                columns=table_columns.get()
-                                                pagination=pagination_props
-                                            />
+                                            <ConditionCollapseProvider>
+                                                <Table
+                                                    cell_style="min-w-48 font-mono".to_string()
+                                                    rows=data
+                                                    key_column="id".to_string()
+                                                    columns=table_columns.get()
+                                                    pagination=pagination_props
+                                                />
+                                            </ConditionCollapseProvider>
                                         }
                                     }
                                     None => view! { <div>Loading....</div> }.into_view(),
                                 }
                             }}
-
-                        </div>
                     </div>
                 </div>
 

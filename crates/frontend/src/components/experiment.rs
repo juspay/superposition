@@ -4,8 +4,9 @@ use std::rc::Rc;
 
 use leptos::*;
 
-use crate::components::condition_pills::utils::extract_conditions;
+use crate::components::condition_pills::{utils::extract_conditions, Condition as ConditionComponent};
 use crate::components::table::Table;
+use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 
 use self::utils::gen_variant_table;
 use crate::types::{Experiment, ExperimentStatusType};
@@ -129,7 +130,7 @@ where
             <div class="flex bg-base-100 flex-row gap-2 justify-between flex-wrap shadow m-5">
                 <div class="stat w-2/12">
                     <div class="stat-title">Experiment ID</div>
-                    <div class="stat-value text-sm">{experiment.id}</div>
+                    <div class="stat-value text-sm">{experiment.id.clone()}</div>
                 </div>
                 <div class="stat w-2/12">
                     <div class="stat-title">Current Traffic Percentage</div>
@@ -156,26 +157,9 @@ where
             </div> <div class="card bg-base-100 max-w-screen shadow m-5">
                 <div class="card-body">
                     <h2 class="card-title">Context</h2>
-                    <div class="flex flex-row flex-wrap gap-2">
-                        {move || {
-                            let mut view = Vec::new();
-                            for token in contexts.clone() {
-                                let (dimension, value) = (token.left_operand, token.right_operand);
-                                view.push(
-                                    view! {
-                                        <div class="stat w-3/12">
-                                            <div class="stat-title">{dimension}</div>
-                                            <div class="stat-value text-base">
-                                                {&value.replace('"', "")}
-                                            </div>
-                                        </div>
-                                    },
-                                );
-                            }
-                            view
-                        }}
-
-                    </div>
+                    <ConditionCollapseProvider>
+                        <ConditionComponent conditions=contexts id=experiment.id/>
+                    </ConditionCollapseProvider>
                 </div>
             </div> <div class="card bg-base-100 max-w-screen shadow m-5">
                 <div class="card-body">
