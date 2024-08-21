@@ -45,7 +45,7 @@ pub fn context_card(
     ];
 
     view! {
-        <div class="rounded-lg shadow bg-base-100 p-6 shadow flex flex-col gap-3">
+        <div class="rounded-lg shadow bg-base-100 p-6 shadow flex flex-col gap-4">
             <div class="flex justify-between">
                 <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
                     "Condition"
@@ -80,14 +80,13 @@ pub fn context_card(
                     id=context_id.get_value()
                     class="xl:w-[400px] h-fit"
                 />
-                <div class="xl:w-2/3 overflow-auto">
-                    <Table
-                        cell_style="min-w-48 font-mono".to_string()
-                        rows=override_table_rows
-                        key_column="id".to_string()
-                        columns=table_columns
-                    />
-                </div>
+                <Table
+                    style="xl:flex-1"
+                    cell_style="min-w-48 font-mono".to_string()
+                    rows=override_table_rows
+                    key_column="id".to_string()
+                    columns=table_columns
+                />
             </div>
         </div>
     }

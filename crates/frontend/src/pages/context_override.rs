@@ -10,6 +10,7 @@ use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::override_form::OverrideForm;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::alert_provider::enqueue_alert;
+use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::{Config, Context, DefaultConfig, Dimension};
 use crate::utils::extract_conditions;
 use futures::join;
@@ -335,8 +336,11 @@ pub fn context_override() -> impl IntoView {
                                 (context.clone(), overrides)
                             })
                             .collect::<Vec<(Context, Map<String, Value>)>>();
-                        if ctx_n_overrides.is_empty() {
-                            view! {
+                        let is_empty = ctx_n_overrides.is_empty();
+
+
+                        view! {
+                            <Show when=move || is_empty>
                                 <div class="flex-row" style="margin-top:20rem;">
                                     <div class="flex justify-center text-gray-400">
                                     <i class="ri-file-add-line ri-xl"></i>
@@ -345,25 +349,28 @@ pub fn context_override() -> impl IntoView {
                                     "Start with creating an override"
                                     </div>
                                 </div>
+                            </Show>
+                            <ConditionCollapseProvider>
 
-                            }.into_view()
-                        } else {
-                            ctx_n_overrides
-                                .into_iter()
-                                .map(|(context, overrides)| {
-                                    view! {
-                                        <ContextCard
-                                            context=context
-                                            overrides=overrides
-                                            handle_edit=handle_context_edit
-                                            handle_clone=handle_context_clone
-                                            handle_delete=handle_context_delete
-                                        />
-                                    }
-                                })
-                                .collect_view()
+                                {
+                                    ctx_n_overrides
+                                        .into_iter()
+                                        .map(|(context, overrides)| {
+                                            view! {
+                                                <ContextCard
+                                                    context=context
+                                                    overrides=overrides
+                                                    handle_edit=handle_context_edit
+                                                    handle_clone=handle_context_clone
+                                                    handle_delete=handle_context_delete
+                                                />
+                                            }
+                                        })
+                                        .collect_view()
+                                }
+
+                            </ConditionCollapseProvider>
                         }
-
                     }}
 
                 </div>
