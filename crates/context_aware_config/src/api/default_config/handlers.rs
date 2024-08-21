@@ -35,7 +35,7 @@ use diesel::{
 };
 use diesel::{Connection, SelectableHelper};
 use jsonschema::{Draft, JSONSchema, ValidationError};
-use serde_json::{from_value, json, Map, Value};
+use serde_json::{from_value, Map, Value};
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create).service(get).service(delete)
@@ -189,9 +189,7 @@ async fn create(
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
-    Ok(http_resp.json(json!({
-        "message": "DefaultConfig created/updated successfully."
-    })))
+    Ok(http_resp.json(default_config))
 }
 
 fn fetch_default_key(
