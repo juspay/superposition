@@ -90,3 +90,19 @@ impl DimensionWithMandatory {
         }
     }
 }
+
+#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
+#[serde(try_from = "String")]
+pub struct DeleteReq(String);
+
+impl TryFrom<String> for DeleteReq {
+    type Error = String;
+    fn try_from(name: String) -> Result<Self, Self::Error> {
+        let name = name.trim();
+        if name == "variantIds" {
+            Err("variantIds cannot be deleted".to_string())
+        } else {
+            Ok(Self(name.to_owned()))
+        }
+    }
+}

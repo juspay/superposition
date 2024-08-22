@@ -1,0 +1,30 @@
+{
+  "method": "DELETE",
+  "header": [
+    {
+      "key": "Authorization",
+      "value": "Bearer {{token}}",
+      "type": "text"
+    },
+    {
+      "key": "Content-Type",
+      "value": "application/json",
+      "type": "text"
+    },
+    {
+        "key": "x-tenant",
+        "value": "test",
+        "type": "default"
+    }
+  ],
+  "url": {
+    "raw": "{{host}}/dimension/dim1",
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "dimension",
+      "dim1"
+    ]
+  }
+}

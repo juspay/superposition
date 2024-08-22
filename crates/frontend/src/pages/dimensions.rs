@@ -2,13 +2,14 @@ use crate::components::dimension_form::DimensionForm;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
 use crate::components::{
+    delete_modal::DeleteModal,
     stat::Stat,
     table::{types::Column, Table},
 };
 use leptos::*;
 use serde_json::{json, Map, Value};
 
-use crate::api::fetch_dimensions;
+use crate::api::{delete_dimension, fetch_dimensions};
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -22,6 +23,8 @@ pub struct RowData {
 #[component]
 pub fn dimensions() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
+    let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
     let dimensions_resource = create_blocking_resource(
         move || tenant_rs.get(),
         |current_tenant| async move {
@@ -32,10 +35,30 @@ pub fn dimensions() -> impl IntoView {
         },
     );
 
+    let confirm_delete = Callback::new(move |_| {
+        if let Some(id) = delete_id_rs.get().clone() {
+            spawn_local(async move {
+                let result = delete_dimension(id, tenant_rs.get()).await;
+
+                match result {
+                    Ok(_) => {
+                        logging::log!("Dimension deleted successfully");
+                        dimensions_resource.refetch();
+                    }
+                    Err(e) => {
+                        logging::log!("Error deleting Dimension: {:?}", e);
+                    }
+                }
+            });
+        }
+        delete_id_ws.set(None);
+        delete_modal_visible_ws.set(false);
+    });
+
     let selected_dimension = create_rw_signal::<Option<RowData>>(None);
 
     let table_columns = create_memo(move |_| {
-        let edit_col_formatter = move |_: &str, row: &Map<String, Value>| {
+        let action_col_formatter = move |_: &str, row: &Map<String, Value>| {
             logging::log!("Dimension row: {:?}", row);
             let row_dimension = row["dimension"].to_string().replace('"', "");
             let row_priority_str = row["priority"].to_string().replace('"', "");
@@ -50,6 +73,7 @@ pub fn dimensions() -> impl IntoView {
                 _ => Some(json!(function_name.replace('"', ""))),
             };
             let mandatory = row["mandatory"].as_bool().unwrap_or(false);
+            let dimension_name = row_dimension.clone();
 
             let edit_click_handler = move |_| {
                 let row_data = RowData {
@@ -64,15 +88,32 @@ pub fn dimensions() -> impl IntoView {
                 open_drawer("dimension_drawer");
             };
 
-            let edit_icon: HtmlElement<html::I> =
-                view! { <i class="ri-pencil-line ri-xl text-blue-500"></i> };
-
-            view! {
-                <span class="cursor-pointer" on:click=edit_click_handler>
-                    {edit_icon}
-                </span>
+            if dimension_name.clone() == String::from("variantIds") {
+                view! {
+                    <div class="join">
+                        <span class="cursor-pointer" on:click=edit_click_handler>
+                            <i class="ri-pencil-line ri-xl text-blue-500"></i>
+                        </span>
+                    </div>
+                }
+                .into_view()
+            } else {
+                let handle_dimension_delete = move |_| {
+                    delete_id_ws.set(Some(dimension_name.clone()));
+                    delete_modal_visible_ws.set(true);
+                };
+                view! {
+                    <div class="join">
+                        <span class="cursor-pointer" on:click=edit_click_handler>
+                            <i class="ri-pencil-line ri-xl text-blue-500"></i>
+                        </span>
+                        <span class="cursor-pointer text-red-500" on:click=handle_dimension_delete>
+                            <i class="ri-delete-bin-5-line ri-xl text-red-500"></i>
+                        </span>
+                    </div>
+                }
+                .into_view()
             }
-            .into_view()
         };
         vec![
             Column::default("dimension".to_string()),
@@ -82,7 +123,7 @@ pub fn dimensions() -> impl IntoView {
             Column::default("function_name".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
-            Column::new("EDIT".to_string(), None, edit_col_formatter),
+            Column::new("actions".to_string(), None, action_col_formatter),
         ]
     });
 
@@ -173,7 +214,13 @@ pub fn dimensions() -> impl IntoView {
                         </div>
                     }
                 }}
-
+            <DeleteModal
+                modal_visible=delete_modal_visible_rs
+                confirm_delete=confirm_delete
+                set_modal_visible=delete_modal_visible_ws
+                header_text="Are you sure you want to delete this dimension? Action is irreversible."
+                    .to_string()
+            />
             </Suspense>
         </div>
     }
