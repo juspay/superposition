@@ -74,14 +74,13 @@ pub fn context_card(
                 </Show>
             </div>
 
-            <div class="xl:flex xl:gap-x-4 xl:justify-between pl-5">
+            <div class="pl-5">
                 <ConditionComponent
                     conditions=conditions
                     id=context_id.get_value()
                     class="xl:w-[400px] h-fit"
                 />
                 <Table
-                    style="xl:flex-1"
                     cell_style="min-w-48 font-mono".to_string()
                     rows=override_table_rows
                     key_column="id".to_string()
