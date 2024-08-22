@@ -112,17 +112,17 @@ fn all_context_view(config: Config) -> impl IntoView {
                                 .collect();
                             let conditions: Vec<Condition> = context.try_into().unwrap_or_default();
                             view! {
-                                <div class="card bg-base-100 shadow gap-3 p-6">
+                                <div class="card bg-base-100 shadow gap-4 p-6">
                                     <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
                                         "Condition"
                                     </h3>
-                                    <div class="xl:flex xl:gap-x-4 xl:justify-between pl-5">
+                                    <div class="pl-5">
                                         <ConditionComponent
                                             conditions=conditions
                                             id=context.id.clone()
                                             class="xl:w-[400px] h-fit"
                                         />
-                                        <div class="xl:w-2/3 overflow-auto">
+                                        <div class="overflow-auto pt-5">
                                             <table class="table table-zebra">
                                                 <thead>
                                                     <tr>
