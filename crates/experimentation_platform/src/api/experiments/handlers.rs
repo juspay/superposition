@@ -27,8 +27,8 @@ use superposition_types::{
 use super::{
     helpers::{
         add_variant_dimension_to_ctx, check_variant_types,
-        check_variants_override_coverage, extract_override_keys, validate_experiment,
-        validate_override_keys,
+        check_variants_override_coverage, decide_variant, extract_override_keys,
+        validate_experiment, validate_override_keys,
     },
     types::{
         AuditQueryFilters, ConcludeExperimentRequest, ContextAction, ContextBulkResponse,
@@ -39,8 +39,11 @@ use super::{
 };
 
 use crate::{
-    db::models::{EventLog, Experiment, ExperimentStatusType},
-    db::schema::{event_log::dsl as event_log, experiments::dsl as experiments},
+    api::experiments::types::ApplicableVariantsQuery,
+    db::{
+        models::{EventLog, Experiment, ExperimentStatusType},
+        schema::{event_log::dsl as event_log, experiments::dsl as experiments},
+    },
 };
 
 use serde_json::{json, Map, Value};
@@ -51,6 +54,7 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(create)
         .service(conclude_handler)
         .service(list_experiments)
+        .service(get_applicable_variants)
         .service(get_experiment_handler)
         .service(ramp)
         .service(update_overrides)
@@ -440,6 +444,49 @@ pub async fn conclude(
         .get_result::<Experiment>(&mut conn)?;
 
     Ok((updated_experiment, config_version_id))
+}
+
+#[get("/applicable-variants")]
+async fn get_applicable_variants(
+    db_conn: DbConnection,
+    query_data: Query<ApplicableVariantsQuery>,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let query_data = query_data.into_inner();
+
+    let experiments = experiments::experiments
+        .filter(experiments::status.ne(ExperimentStatusType::CONCLUDED))
+        .load::<Experiment>(&mut conn)?;
+
+    let experiments = experiments.into_iter().filter(|exp| {
+        let is_empty = exp
+            .context
+            .as_object()
+            .map_or(false, |context| context.is_empty());
+        is_empty
+            || jsonlogic::apply(&exp.context, &Value::Object(query_data.context.clone()))
+                == Ok(Value::Bool(true))
+    });
+
+    let mut variants = Vec::new();
+    for exp in experiments {
+        if let Some(v) = decide_variant(
+            exp.traffic_percentage as u8,
+            serde_json::from_value(exp.variants).map_err(|e| {
+                log::error!("Unable to parse variants from DB {e}");
+                unexpected_error!("Something went wrong.")
+            })?,
+            query_data.toss,
+        )
+        .map_err(|e| {
+            log::error!("Unable to decide variant {e}");
+            unexpected_error!("Something went wrong.")
+        })? {
+            variants.push(v)
+        }
+    }
+
+    Ok(HttpResponse::Ok().json(variants))
 }
 
 #[get("")]

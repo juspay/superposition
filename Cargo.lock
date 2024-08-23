@@ -1928,6 +1928,7 @@ dependencies = [
  "diesel-derive-enum",
  "dotenv",
  "env_logger",
+ "jsonlogic",
  "log",
  "reqwest",
  "rs-snowflake",
