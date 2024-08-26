@@ -22,10 +22,10 @@ pub enum DropdownDirection {
 
 #[component]
 pub fn dropdown<T>(
-    dropdown_text: String,
     dropdown_options: Vec<T>,
     on_select: Callback<T, ()>,
-    #[prop(default = "".to_string())] dropdown_icon: String,
+    #[prop(into)]dropdown_text: String,
+    #[prop(into, default = "".to_string())] dropdown_icon: String,
     #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
     #[prop(default = DropdownBtnType::Outline)] dropdown_btn_type: DropdownBtnType,
     #[prop(default = "w-96")] dropdown_width: &'static str,

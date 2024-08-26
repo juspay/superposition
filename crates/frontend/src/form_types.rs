@@ -5,12 +5,13 @@ use crate::{
 use derive_more::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, strum_macros::EnumString)]
+#[derive(Debug, Clone, strum_macros::EnumString, PartialEq)]
 #[strum(serialize_all = "lowercase")]
 pub enum SchemaType {
     Boolean,
     Number,
-    String,
+    Pattern,
+    Enum(Vec<String>),
     Integer,
     Array,
     Object,

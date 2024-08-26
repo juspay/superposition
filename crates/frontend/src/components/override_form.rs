@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use crate::{
     components::{
         dropdown::{Dropdown, DropdownDirection},
-        input_components::{BooleanToggle, EnumDropdown},
+        input_components::{Toggle, EnumDropdown},
     },
     types::DefaultConfig,
     utils::{get_config_value, get_key_type, ConfigType},
@@ -186,9 +186,9 @@ where
                                                             );
                                                         }
                                                         view! {
-                                                            <BooleanToggle
-                                                                config_value={config_value.parse::<bool>().unwrap_or(false)}
-                                                                update_value=Callback::new(move |flag: bool| {
+                                                            <Toggle
+                                                                value={config_value.parse::<bool>().unwrap_or(false)}
+                                                                on_change=Callback::new(move |flag: bool| {
                                                                     update_overrides(&config_key_value, flag.to_string());
                                                                 })
                                                             />

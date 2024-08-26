@@ -11,7 +11,7 @@ use crate::{
     components::{
         button::Button,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-        input_components::{BooleanToggle, EnumDropdown},
+        input_components::{EnumDropdown, Toggle},
     },
     types::{FunctionsName, TypeTemplate},
     utils::get_key_type,
@@ -230,9 +230,9 @@ where
                                 .set(value.parse::<bool>().unwrap_or(false).to_string());
                         }
                         view! {
-                            <BooleanToggle
-                                config_value={value.parse::<bool>().unwrap_or(false)}
-                                update_value=Callback::new(move |flag: bool| {
+                            <Toggle
+                                value={value.parse::<bool>().unwrap_or(false)}
+                                on_change=Callback::new(move |flag: bool| {
                                     set_config_value.set(flag.to_string());
                                 })
                             />

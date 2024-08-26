@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::components::{
     dropdown::{Dropdown, DropdownDirection},
-    input_components::{BooleanToggle, EnumDropdown},
+    input_components::{BooleanToggle, EnumDropdown, Toggle},
 };
 use crate::types::Dimension;
 use crate::utils::get_key_type;
@@ -242,10 +242,10 @@ where
                                                                                     });
                                                                             }
                                                                             view! {
-                                                                                <BooleanToggle
+                                                                                <Toggle
                                                                                     name="context-dimension-value"
-                                                                                    config_value={value.parse::<bool>().unwrap_or(false)}
-                                                                                    update_value=Callback::new(move |flag: bool| {
+                                                                                    value={value.parse::<bool>().unwrap_or(false)}
+                                                                                    on_change=Callback::new(move |flag: bool| {
                                                                                         set_context
                                                                                             .update(|curr_context| {
                                                                                                 curr_context[idx].2 = flag.to_string();
