@@ -1,20 +1,9 @@
-use std::str::FromStr;
-
 use crate::{
-    types::{Context, Dimension, VariantType},
-    utils::{get_variable_name_and_value, get_variable_name_and_value_2},
+    types::{Context, VariantType},
+    utils::get_variable_name_and_value_2,
 };
 use derive_more::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
-
-trait Form {
-    type Error;
-    type SchemaSpec;
-    type ParseOutput;
-
-    fn parse(&self, source: &[Self::SchemaSpec]) -> Result<Self::ParseOutput, Self::Error>;
-    fn validate(&self) -> bool;
-}
 
 #[derive(Debug, Clone, strum_macros::EnumString)]
 #[strum(serialize_all = "lowercase")]
@@ -45,33 +34,6 @@ pub struct ExperimentForm {
     pub name: String,
     pub context: ContextForm,
     pub variants: Vec<VariantForm>,
-}
-
-pub trait FormParseSource {
-    fn get_schema(&self) -> Option<serde_json::Value>;
-    fn get_possible_type(&self) -> Option<Vec<SchemaType>> {
-        // TODO: give a default implementation for the function
-        use serde_json::Value;
-
-        let t = self
-            .get_schema()
-            .map(|s| s.get("type").cloned())
-            .flatten()?;
-        match t {
-            Value::Array(types) => types
-                .iter()
-                .map(|item: &Value| {
-                    item.as_str()
-                        .map(|s| SchemaType::from_str(s).ok())
-                        .flatten()
-                })
-                .collect::<Option<Vec<SchemaType>>>(),
-            Value::String(type_str) => SchemaType::from_str(type_str.as_str())
-                .ok()
-                .map(|v| vec![v]),
-            _ => None,
-        }
-    }
 }
 
 impl TryFrom<Context> for ContextForm {
@@ -123,51 +85,5 @@ impl TryFrom<Context> for ContextForm {
             }
         }
         Ok(ContextForm(condition_tuples))
-    }
-}
-
-impl Form for ContextForm {
-    type Error = String;
-    type SchemaSpec = Dimension;
-    type ParseOutput = Vec<(String, String, serde_json::Value)>;
-
-    fn parse(&self, source: &[Self::Source]) -> Result<Self::ParseOutput, Self::Error> {
-        use serde_json::Value;
-        // TODO: implement this function
-        for (dname, operator, value) in self {
-            let possible_types = source
-                .iter()
-                .find_map(|d| {
-                    if d.dimension.as_str() == dname {
-                        return d.get_possible_type();
-                    }
-                    None
-                })
-                .ok_or(format!(
-                    "failed to get parse context, missing type for dimesion {}",
-                    dname
-                ))?;
-
-            for dtype in possible_types {
-                match (dtype, dname, opeator.as_str(), value) {
-                    (SchemaType::String, n, "==", v) => {
-                        Value::String(v)
-                    }
-                    (_, n, "<=", v) => {
-
-                    },
-                    (Some(possible_type), n, "in", v) => None,
-                }
-            }
-        }
-        Ok(vec![(
-            String::new(),
-            String::new(),
-            serde_json::json!("{}"),
-        )])
-    }
-    fn validate(&self) -> bool {
-        // TODO: implement this function
-        true
     }
 }

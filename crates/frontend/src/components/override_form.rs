@@ -62,7 +62,7 @@ where
                 .map(ConfigType::DefaultConfig)
                 .collect::<Vec<_>>(),
         )
-        .expect("can't parse default config key")
+        .expect(format!("can't parse default config key {} {}", config_key_value, value).as_str())
     };
 
     let update_overrides = move |config_key_value: &str, value: String| {

@@ -124,7 +124,7 @@ where
                         .collect::<Vec<(usize, (String, VariantFormT))>>()
                 }
 
-                key=|(_, (key, _))| key.to_string()
+                key=|(idx, (key, _))| format!("{}-{}", key, idx)
                 children=move |(idx, (key, variant))| {
                     let is_control_variant = variant.variant_type == VariantType::CONTROL;
                     let handle_change = handle_override_form_change(idx);
