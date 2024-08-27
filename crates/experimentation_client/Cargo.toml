@@ -10,7 +10,7 @@ jsonlogic = { workspace = true }
 reqwest = { workspace = true , features = ["json"]}
 serde = { workspace = true }
 serde_json = { workspace = true }
-tokio = {version = "1.29.1", features = ["full"]}
+tokio = { workspace = true }
 dotenv = { workspace = true }
 derive_more = { workspace = true }
 log = { workspace = true }

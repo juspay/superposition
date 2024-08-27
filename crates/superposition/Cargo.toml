@@ -57,6 +57,8 @@ leptos_meta = { workspace = true }
 leptos_router = { workspace = true }
 actix-files = { version = "0.6" }
 anyhow = { workspace = true }
+fang = { version = "0.10.4" , features = ["asynk", "derive-error" ], default-features = false }
+tokio = { workspace = true }
 
 [lints]
 workspace = true

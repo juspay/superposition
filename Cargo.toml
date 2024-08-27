@@ -69,6 +69,7 @@ leptos-use = "0.10.3"
 mime = "0.3.17"
 aws-sdk-kms = {version = "1.38.0"}
 aws-config = { version = "1.1.7", features = ["behavior-version-latest"] }
+tokio = {version = "1.29.1", features = ["full"]}
 
 [workspace.lints.clippy]
 mod_module_files = "warn"

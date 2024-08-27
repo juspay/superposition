@@ -1,3 +1,4 @@
+mod job;
 use actix_web::dev::Service;
 use actix_web::web::PathConfig;
 use actix_web::HttpMessage;
@@ -5,6 +6,7 @@ use actix_web::{web, web::get, web::scope, web::Data, App, HttpResponse, HttpSer
 use context_aware_config::api::*;
 use context_aware_config::helpers::get_meta_schema;
 use experimentation_platform::api::*;
+use fang::{AsyncQueue, AsyncQueueable, AsyncWorkerPool};
 use serde_json::{Map, Value};
 use std::sync::Arc;
 use std::{collections::HashSet, io::Result};
@@ -112,6 +114,25 @@ async fn main() -> Result<()> {
         max_pool_size,
     )
     .await;
+
+    let mut queue = AsyncQueue::builder()
+        .uri("postgres://postgres:docker@localhost:5432/config")
+        .max_pool_size(3 as u32)
+        .build();
+    queue.connect(fang::NoTls).await.unwrap();
+
+    let mut pool: AsyncWorkerPool<AsyncQueue<fang::NoTls>> = AsyncWorkerPool::builder()
+        .number_of_workers(max_pool_size)
+        .queue(queue.clone())
+        .build();
+
+    pool.start().await;
+
+    let task = job::MyTask { number: 8 };
+    let _ = queue
+        .insert_task(&task as &dyn fang::AsyncRunnable)
+        .await
+        .unwrap();
 
     /****** EXPERIMENTATION PLATFORM ENVs *********/
 

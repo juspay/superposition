@@ -18,7 +18,7 @@ serde_json = { workspace = true }
 log = { workspace = true }
 strum_macros = { workspace = true }
 strum = { workspace = true }
-tokio = {version = "1.29.1", features = ["full"]}
+tokio = { workspace = true }
 service_utils = { path = "../service_utils" }
 superposition_types = {path = "../superposition_types" }
 anyhow = { workspace = true }
