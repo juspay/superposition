@@ -1,21 +1,89 @@
+use std::str::FromStr;
+
 use crate::{
     types::{Context, VariantType},
     utils::get_variable_name_and_value_2,
 };
 use derive_more::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
-#[derive(Debug, Clone, strum_macros::EnumString, PartialEq)]
+#[derive(Debug, Clone, PartialEq, strum_macros::Display, strum_macros::EnumString)]
 #[strum(serialize_all = "lowercase")]
-pub enum SchemaType {
+pub enum JsonSchemaType {
     Boolean,
     Number,
-    Pattern,
-    Enum(Vec<String>),
+    String,
     Integer,
     Array,
     Object,
     Null,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum SchemaType {
+    Multiple(Vec<JsonSchemaType>),
+    Single(JsonSchemaType),
+}
+
+impl SchemaType {
+    fn parse_from_array(arr: &[Value]) -> Result<Self, String> {
+        arr.iter()
+            .map(|v| match v {
+                Value::String(s) => JsonSchemaType::from_str(s),
+                _ => Err(strum::ParseError::VariantNotFound),
+            })
+            .collect::<Result<Vec<JsonSchemaType>, _>>()
+            .map_err(|_| "not a valid JsonSchema type".to_string())
+            .map(SchemaType::Multiple)
+    }
+
+    fn parse_from_string(s: &str) -> Result<Self, String> {
+        JsonSchemaType::from_str(s)
+            .map_err(|_| "not a valid JsonSchema type".to_string())
+            .map(SchemaType::Single)
+    }
+}
+
+impl TryFrom<Value> for SchemaType {
+    type Error = String;
+    fn try_from(schema: Value) -> Result<Self, Self::Error> {
+        schema
+            .as_object()
+            .ok_or("schema is not an object".to_string())
+            .and_then(|obj| {
+                let type_ = obj
+                    .get("type")
+                    .ok_or("type not defined in schema".to_string())?;
+
+                match type_ {
+                    Value::Array(arr) => SchemaType::parse_from_array(arr),
+                    Value::String(s) => SchemaType::parse_from_string(s),
+                    _ => Err("type should be either a string or an array of strings"
+                        .to_string()),
+                }
+            })
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Deref, DerefMut)]
+pub struct EnumVariants(pub Vec<Value>);
+
+impl TryFrom<Value> for EnumVariants {
+    type Error = String;
+    fn try_from(schema: Value) -> Result<Self, Self::Error> {
+        schema
+            .as_object()
+            .ok_or("schema is not an object".to_string())
+            .and_then(|obj| {
+                let type_ = obj.get("enum").cloned().unwrap_or(Value::Array(vec![]));
+
+                match type_ {
+                    Value::Array(arr) => Ok(EnumVariants(arr)),
+                    _ => Err("enum should be an array of options".to_string()),
+                }
+            })
+    }
 }
 
 #[derive(Debug, Clone, Deref, DerefMut, Deserialize, Serialize)]

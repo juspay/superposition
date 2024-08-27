@@ -3,7 +3,7 @@ use serde_json::{Map, Value};
 
 use crate::{
     components::dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-    form_types::SchemaType,
+    form_types::{EnumVariants, JsonSchemaType, SchemaType},
 };
 
 #[component]
@@ -146,46 +146,36 @@ Rule:
 
 #[derive(Debug, Clone, PartialEq)]
 enum InputType {
-    Toggle,
-    Dropdown(Vec<String>),
     Text,
-    Integer,
+    Toggle,
     Number,
     Monaco,
+    Integer,
+    Disabled,
+    Select(EnumVariants),
 }
 
-impl From<Vec<SchemaType>> for InputType {
-    fn from(schema_type: Vec<SchemaType>) -> Self {
-        if schema_type.contains(&SchemaType::Object)
-            || schema_type.contains(&SchemaType::Array)
-        {
-            InputType::Monaco
-        } else if schema_type.contains(&SchemaType::Pattern) {
-            InputType::Text
-        } else if schema_type.len() == 1 {
-            match schema_type[0] {
-                SchemaType::Number => InputType::Number,
-                SchemaType::Integer => InputType::Integer,
-                SchemaType::Boolean => InputType::Toggle,
-                SchemaType::Enum(options) => InputType::Dropdown(options),
-                SchemaType::Pattern => InputType::Text,
-                _ => InputType::Monaco,
-            }
-        } else {
-            InputType::Text
+impl From<(SchemaType, EnumVariants)> for InputType {
+    fn from((schema_type, enum_variants): (SchemaType, EnumVariants)) -> Self {
+        if !enum_variants.is_empty() {
+            return InputType::Select(enum_variants);
         }
-    }
-}
 
-impl InputType {
-    fn html(&self, class: String, id: String, value: Signal<Value>) -> impl IntoView {
-        match self {
-            InputType::Toggle => {}
-            InputType::Integer => {}
-            InputType::Number => {}
-            InputType::Dropdown(options) => {}
-            InputType::Monaco => {}
-            InputType::Text => {}
+        match schema_type {
+            SchemaType::Single(JsonSchemaType::Number) => InputType::Number,
+            SchemaType::Single(JsonSchemaType::Integer) => InputType::Integer,
+            SchemaType::Single(JsonSchemaType::Boolean) => InputType::Toggle,
+            SchemaType::Single(JsonSchemaType::String) => InputType::Text,
+            SchemaType::Single(JsonSchemaType::Array) => InputType::Text,
+            SchemaType::Single(JsonSchemaType::Object) => InputType::Text,
+            SchemaType::Single(JsonSchemaType::Null) => InputType::Disabled,
+            SchemaType::Multiple(types)
+                if types.contains(&JsonSchemaType::Object)
+                    || types.contains(&JsonSchemaType::Array) =>
+            {
+                InputType::Monaco
+            }
+            SchemaType::Multiple(_) => InputType::Text,
         }
     }
 }
@@ -200,36 +190,63 @@ pub fn input(
     #[prop(into, default = String::new())] class: String,
     #[prop(into, default = String::new())] name: String,
 ) -> impl IntoView {
-
     match r#type {
-        InputType::Text => {
-            view! {
-                <input type="text" />
-            }.into_view()
+        InputType::Text => match value.as_str() {
+            Some(v) => view! {
+                <input type="text" value={v.to_string()} />
+            }
+            .into_view(),
+            None => view! {
+                <input type="text" value={value.to_string()} />
+            }
+            .into_view(),
         },
         InputType::Toggle => {
-            view! {
-                <Toggle value on_change />
-            }.into_view()
-        },
+            let on_change = Callback::new(move |value: bool| {
+                on_change.call(Value::Bool(value));
+            });
+            match value.as_bool() {
+                Some(v) => view! {
+                    <Toggle value={v} on_change />
+                }
+                .into_view(),
+                None => view! {
+                    <span>An error occured</span>
+                }
+                .into_view(),
+            }
+        }
         InputType::Number => {
-            view! {
-                <input type="number" />
-            }.into_view()
+            match value.as_f64() {
+                Some(v) => view! {
+                    <input type="number" value=v />
+                }
+                .into_view(),
+                None => view! {
+                    <span>An error occured</span>
+                }
+                .into_view(),
+            }
+        }
+        .into_view(),
+        InputType::Integer => match value.as_i64() {
+            Some(v) => view! {
+                <input type="number" value=v />
+            }
+            .into_view(),
+            None => view! {
+                <span>An error occured</span>
+            }
+            .into_view(),
         },
-        InputType::Integer => {
-            view! {
-                <input type="number" />
-            }.into_view()
-        },
-        InputType::Dropdown(options) => {
+        InputType::Select(options) => {
             view! {
                 <Dropdown
                         disabled
                         dropdown_width="w-100"
-                        dropdown_icon="".to_string()
+                        dropdown_icon=""
                         // add the singal
-                        dropdown_text=""
+                        dropdown_text=value.as_str().map(String::from).unwrap_or(value.to_string())
                         dropdown_direction=DropdownDirection::Down
                         dropdown_btn_type=DropdownBtnType::Select
                         dropdown_options=options
@@ -240,12 +257,14 @@ pub fn input(
                             // set_selected_enum.set(selected.clone());
                         })
                     />
-            }.into_view()
-        },
-        InputType::Monaco => {
-            view! {
-                <input type="text" />
-            }.into_view()
-        },
+            }
+            .into_view()
+        }
+        InputType::Monaco => view! {
+            <div>
+                {format!("{}", value)}
+            </div>
+        }
+        .into_view(),
     }
 }

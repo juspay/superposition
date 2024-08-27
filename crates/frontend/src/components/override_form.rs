@@ -3,8 +3,9 @@ use std::collections::{HashMap, HashSet};
 use crate::{
     components::{
         dropdown::{Dropdown, DropdownDirection},
-        input_components::{Toggle, EnumDropdown},
+        input_components::{EnumDropdown, Toggle},
     },
+    form_types::{EnumVariants, SchemaType},
     types::DefaultConfig,
     utils::{get_config_value, get_key_type, ConfigType},
 };
@@ -62,7 +63,13 @@ where
                 .map(ConfigType::DefaultConfig)
                 .collect::<Vec<_>>(),
         )
-        .expect(format!("can't parse default config key {} {}", config_key_value, value).as_str())
+        .expect(
+            format!(
+                "can't parse default config key {} {}",
+                config_key_value, value
+            )
+            .as_str(),
+        )
     };
 
     let update_overrides = move |config_key_value: &str, value: String| {
@@ -147,6 +154,18 @@ where
                                     )
                                     .unwrap();
                                 let key_type = get_key_type(&schema);
+
+                                let schema_type = SchemaType::try_from(default_config_map
+                                            .get(&config_key_label)
+                                            .unwrap()
+                                            .schema
+                                            .clone());
+                                let enum_variants = EnumVariants::try_from(default_config_map
+                                            .get(&config_key_label)
+                                            .unwrap()
+                                            .schema
+                                            .clone());
+
                                 logging::log!("config value {}", config_value.clone());
                                 view! {
                                     <div>
