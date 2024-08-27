@@ -65,8 +65,8 @@ async fn main() -> Result<()> {
 
     let cac_host: String = get_from_env_unsafe("CAC_HOST").expect("CAC host is not set");
     let cac_port: u16 = get_from_env_unsafe("PORT").unwrap_or(8080);
-    let cac_version: String = get_from_env_unsafe("CONTEXT_AWARE_CONFIG_VERSION")
-        .expect("CONTEXT_AWARE_CONFIG_VERSION is not set");
+    let cac_version: String = get_from_env_unsafe("SUPERPOSITION_VERSION")
+        .expect("SUPERPOSITION_VERSION is not set");
     let max_pool_size = get_from_env_or_default("MAX_DB_CONNECTION_POOL_SIZE", 2);
 
     let api_host: String =
