@@ -14,7 +14,9 @@ members = [
     "crates/superposition_types",
     "examples/experimentation_client_integration_example",
     "examples/cac_client_integration_example",
-    "crates/superposition_macros"]
+    "examples/superposition-demo-app",
+    "crates/superposition_macros"
+]
 
 [[workspace.metadata.leptos]]
 name = "cac"
