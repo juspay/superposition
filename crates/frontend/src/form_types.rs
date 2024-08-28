@@ -8,7 +8,7 @@ use derive_more::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Debug, Clone, PartialEq, strum_macros::Display, strum_macros::EnumString)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, strum_macros::Display, strum_macros::EnumString)]
 #[strum(serialize_all = "lowercase")]
 pub enum JsonSchemaType {
     Boolean,
@@ -18,6 +18,16 @@ pub enum JsonSchemaType {
     Array,
     Object,
     Null,
+}
+
+impl JsonSchemaType {
+    pub fn precedence(&self) -> u8 {
+        match self {
+            JsonSchemaType::Null | JsonSchemaType::Boolean | JsonSchemaType::Integer => 1,
+            JsonSchemaType::Number | JsonSchemaType::Array | JsonSchemaType::Object => 2,
+            JsonSchemaType::String => 3,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
