@@ -1,9 +1,10 @@
 plugins {
-    id 'java'
-    id 'application'
+    id 'java-library'
+    id 'maven-publish'
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -12,11 +13,30 @@ dependencies {
     implementation 'com.github.jnr:jffi:1.3.13'
 }
 
-application {
-    mainClassName = 'CAC.Client'
+// Task to create a fat JAR
+tasks.register('fatJar', Jar) {
+    archiveClassifier.set('fat')
+    from sourceSets.main.output
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
+    manifest {
+        attributes 'Main-Class': 'CAC.Client'
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-run {
-    standardInput = System.in
-}
+// Make the fatJar task run as part of the build
+build.dependsOn fatJar
 
+group = 'com.yourdomain'
+version = '1.0-SNAPSHOT'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
