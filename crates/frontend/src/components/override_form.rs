@@ -3,14 +3,13 @@ use std::collections::{HashMap, HashSet};
 use crate::{
     components::{
         dropdown::{Dropdown, DropdownDirection},
-        input_components::{EnumDropdown, Toggle},
+        input_components::{Input, InputType},
     },
     form_types::{EnumVariants, SchemaType},
     types::DefaultConfig,
-    utils::{get_config_value, get_key_type, ConfigType},
 };
 use leptos::*;
-use serde_json::{json, Map, Value};
+use serde_json::Value;
 use web_sys::MouseEvent;
 
 #[component]
@@ -45,55 +44,25 @@ where
 
     let handle_config_key_select = Callback::new(move |default_config: DefaultConfig| {
         let config_key = default_config.key;
-        set_overrides.update(|value| {
-            value.push((config_key.clone(), json!("")));
-        });
-        set_override_keys.update(|keys| {
-            keys.insert(config_key);
-        })
+
+        if let Ok(config_type) = SchemaType::try_from(default_config.schema) {
+            let def_value = config_type.default_value();
+            set_overrides.update(|value| {
+                value.push((config_key.clone(), def_value));
+            });
+            set_override_keys.update(|keys| {
+                keys.insert(config_key);
+            })
+        }
     });
 
-    let get_default_config_val = move |config_key_value: String, value: String| {
-        get_config_value(
-            &config_key_value,
-            &value,
-            &default_config
-                .get_value()
-                .into_iter()
-                .map(ConfigType::DefaultConfig)
-                .collect::<Vec<_>>(),
-        )
-        .expect(
-            format!(
-                "can't parse default config key {} {}",
-                config_key_value, value
-            )
-            .as_str(),
-        )
-    };
-
-    let update_overrides = move |config_key_value: &str, value: String| {
-        let default_config_val =
-            get_default_config_val(config_key_value.to_owned(), value);
+    let update_overrides = move |config_key_value: &str, value: Value| {
         set_overrides.update(|curr_overrides| {
             let position = curr_overrides
                 .iter()
                 .position(|(k, _)| k.to_owned() == config_key_value);
             if let Some(idx) = position {
-                curr_overrides[idx].1 = json!(default_config_val);
-            }
-        });
-    };
-
-    let update_overrides_untracked = move |config_key_value: &str, value: String| {
-        let default_config_val =
-            get_default_config_val(config_key_value.to_owned(), value);
-        set_overrides.update_untracked(|curr_overrides| {
-            let position = curr_overrides
-                .iter()
-                .position(|(k, _)| k.to_owned() == config_key_value);
-            if let Some(idx) = position {
-                curr_overrides[idx].1 = json!(default_config_val);
+                curr_overrides[idx].1 = value;
             }
         });
     };
@@ -112,7 +81,7 @@ where
                     </label>
                 </div>
                 <div class="card w-full bg-slate-50">
-                    <div class="card-body">
+                    <div class="card-body gap-4">
                         <Show when=move || { overrides.get().is_empty() && show_add_override }>
                             <div class="flex justify-center">
                                 <Dropdown
@@ -144,99 +113,59 @@ where
                             children=move |(config_key, config_value)| {
                                 let config_key_label = config_key.to_string();
                                 let config_key_value = config_key.to_string();
-                                let config_value = config_value.to_string().replace('"', "");
-                                let schema: Map<String, Value> = serde_json::from_value(
-                                        default_config_map
-                                            .get(&config_key_label)
-                                            .unwrap()
-                                            .schema
-                                            .clone(),
-                                    )
-                                    .unwrap();
-                                let key_type = get_key_type(&schema);
-
-                                let schema_type = SchemaType::try_from(default_config_map
-                                            .get(&config_key_label)
-                                            .unwrap()
-                                            .schema
-                                            .clone());
-                                let enum_variants = EnumVariants::try_from(default_config_map
-                                            .get(&config_key_label)
-                                            .unwrap()
-                                            .schema
-                                            .clone());
-
-                                logging::log!("config value {}", config_value.clone());
+                                let config_value_raw = config_value.clone();
+                                let schema_type = SchemaType::try_from(
+                                    default_config_map
+                                        .get(&config_key_label)
+                                        .unwrap()
+                                        .schema
+                                        .clone(),
+                                );
+                                let enum_variants = EnumVariants::try_from(
+                                    default_config_map
+                                        .get(&config_key_label)
+                                        .unwrap()
+                                        .schema
+                                        .clone(),
+                                );
                                 view! {
-                                    <div>
-                                        <div class="flex items-center gap-4">
-                                            <div class="form-control">
-                                                <label class="label font-medium font-mono text-sm">
-                                                    <span class="label-text">
-                                                        {config_key_label.clone()} ":"
-                                                    </span>
-                                                </label>
-                                            </div>
-                                            <div class="form-control">
-                                                {match key_type.as_str() {
-                                                    "ENUM" => {
-                                                        view! {
-                                                            <EnumDropdown
-                                                                schema
-                                                                config_value=config_value
-                                                                handle_change=Callback::new(move |selected_enum: String| {
-                                                                    update_overrides(&config_key_value, selected_enum)
-                                                                })
+                                    <div class="flex flex-col">
+                                        <div class="form-control">
+                                            <label class="label font-medium font-mono text-sm">
+                                                <span class="label-text">
+                                                    {config_key_label.clone()} ":"
+                                                </span>
+                                            </label>
+                                        </div>
 
-                                                                class=String::from("mt-2")
-                                                            />
-                                                        }
-                                                            .into_view()
-                                                    }
-                                                    "BOOLEAN" => {
-                                                        if config_value.is_empty() {
-                                                            update_overrides_untracked(
-                                                                &config_key_value,
-                                                                config_value
-                                                                    .clone()
-                                                                    .parse::<bool>()
-                                                                    .unwrap_or(false)
-                                                                    .to_string(),
-                                                            );
-                                                        }
-                                                        view! {
-                                                            <Toggle
-                                                                value={config_value.parse::<bool>().unwrap_or(false)}
-                                                                on_change=Callback::new(move |flag: bool| {
-                                                                    update_overrides(&config_key_value, flag.to_string());
-                                                                })
-                                                            />
-                                                        }
-                                                            .into_view()
-                                                    }
-                                                    _ => {
-                                                        view! {
-                                                            <div class="w-2/5">
-                                                                <textarea
-                                                                    type="text"
-                                                                    placeholder="Enter override here"
-                                                                    name="override"
-                                                                    class="input input-bordered w-[450px] flex items-center bg-white text-gray-700 shadow-md pt-3"
-                                                                    on:change=move |event| {
-                                                                        let input_value = event_target_value(&event);
-                                                                        update_overrides(&config_key_value, input_value);
-                                                                    }
-                                                                >
-
-                                                                    {config_value}
-                                                                </textarea>
-                                                            </div>
-                                                        }
-                                                            .into_view()
-                                                    }
-                                                }}
-
-                                            </div>
+                                        <div class="flex gap-4">
+                                            {if schema_type.is_ok() && enum_variants.is_ok() {
+                                                let schema_type = schema_type.unwrap();
+                                                let enum_variants = enum_variants.unwrap();
+                                                let input_type = InputType::from((
+                                                    schema_type.clone(),
+                                                    enum_variants,
+                                                ));
+                                                let input_class = if input_type == InputType::Toggle {
+                                                    ""
+                                                } else {
+                                                    "w-[450px] text-gray-700 shadow-md"
+                                                };
+                                                view! {
+                                                    <Input
+                                                        class=input_class
+                                                        r#type=input_type
+                                                        value=config_value_raw
+                                                        schema_type=schema_type
+                                                        on_change=Callback::new(move |value| {
+                                                            update_overrides(&config_key_value, value);
+                                                        })
+                                                    />
+                                                }
+                                                    .into_view()
+                                            } else {
+                                                view! { <p>"An Error Occured"</p> }.into_view()
+                                            }}
                                             <div class="w-1/5">
 
                                                 {if !disable_remove {
@@ -276,6 +205,7 @@ where
 
                                             </div>
                                         </div>
+
                                     </div>
                                 }
                             }

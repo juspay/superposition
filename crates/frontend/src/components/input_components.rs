@@ -6,6 +6,90 @@ use crate::{
     form_types::{EnumVariants, JsonSchemaType, SchemaType},
 };
 
+// fn trim_quotes(s: &str) -> String {
+//     if s.len() >= 2
+//         && (s.starts_with('"') && s.ends_with('"')
+//             || s.starts_with('\'') && s.ends_with('\''))
+//     {
+//         s[1..s.len() - 1].to_string()
+//     } else {
+//         s.to_string()
+//     }
+// }
+//
+// fn remove_espaces(s: &str) -> String {}
+//
+// trait FormDisplay: ToString {
+//     fn form_display(&self, r#type: JsonSchemaType) -> String;
+// }
+//
+// impl FormDisplay for String {
+//     fn form_display(&self, r#type: JsonSchemaType) -> String {
+//         match r#type {
+//             JsonSchemaType::Boolean => self.clone(),
+//             JsonSchemaType::Null => String::from("null"),
+//             JsonSchemaType::Array => (),
+//             JsonSchemaType::Number => (),
+//             JsonSchemaType::String => (),
+//             JsonSchemaType::Object => (),
+//             JsonSchemaType::Integer => (),
+//         }
+//         String::new()
+//     }
+// }
+
+/***
+
+pub enum SchemaType {
+    Boolean,
+    Number,
+    String,
+    Integer,
+    Array,
+    Object,
+    Null,
+}
+
+Indicate just the type name for each override in the form
+
+Boolean - toggle
+Number - number field
+Integer - number field with pattern and setp as 1
+String - text
+Array - monaco
+Object - monaco
+
+now when there are multiple types for an override
+
+- Boolean, Number: Text
+- Boolean, String: Text
+- Boolean, Integer: Text
+- Boolean, Array: Monaco
+- Boolean, Object: Monaco
+- Number, Integer: Text
+- Number, String: Text
+- Number, Array: Monaco
+- Number, Object: Monaco
+- String, Integer: Text
+- String, Array: Monaco
+- String, Object: Monaco
+- Integer, Array: Monaco
+- Integer, Object: Monaco
+- Array, Object: Monaco
+
+Rule:
+    - is Object or has Object -> Monaco
+    - is Array or has Array -> Monaco
+    - is String or has String -> Text
+
+    - is Number -> Number
+    - is Integer -> Integer
+    - is Boolean -> Boolean toggle
+    - any mixture -> Text
+
+
+  */
+
 #[component]
 pub fn enum_dropdown(
     schema: Map<String, Value>,
@@ -68,7 +152,7 @@ pub fn enum_dropdown(
 }
 
 #[component]
-pub fn toggle(
+pub fn boolean_toggle(
     value: bool,
     on_change: Callback<bool, ()>,
     #[prop(default = String::new())] class: String,
@@ -92,60 +176,8 @@ pub fn toggle(
     }
 }
 
-/***
-
-pub enum SchemaType {
-    Boolean,
-    Number,
-    String,
-    Integer,
-    Array,
-    Object,
-    Null,
-}
-
-Indicate just the type name for each override in the form
-
-Boolean - toggle
-Number - number field
-Integer - number field with pattern and setp as 1
-String - text
-Array - monaco
-Object - monaco
-
-now when there are multiple types for an override
-
-- Boolean, Number: Text
-- Boolean, String: Text
-- Boolean, Integer: Text
-- Boolean, Array: Monaco
-- Boolean, Object: Monaco
-- Number, Integer: Text
-- Number, String: Text
-- Number, Array: Monaco
-- Number, Object: Monaco
-- String, Integer: Text
-- String, Array: Monaco
-- String, Object: Monaco
-- Integer, Array: Monaco
-- Integer, Object: Monaco
-- Array, Object: Monaco
-
-Rule:
-    - is Object or has Object -> Monaco
-    - is Array or has Array -> Monaco
-    - is String or has String -> Text
-
-    - is Number -> Number
-    - is Integer -> Integer
-    - is Boolean -> Boolean toggle
-    - any mixture -> Text
-
-
-  */
-
 #[derive(Debug, Clone, PartialEq)]
-enum InputType {
+pub enum InputType {
     Text,
     Number,
     Integer,
@@ -202,11 +234,11 @@ fn str_to_value(s: &str, type_: &JsonSchemaType) -> Result<Value, String> {
     match type_ {
         JsonSchemaType::String => Ok(Value::String(s.to_string())),
         JsonSchemaType::Number => s
-            .parse::<i64>()
+            .parse::<f64>()
             .map(|v| json!(v))
             .map_err(|_| "not a valid number".to_string()),
         JsonSchemaType::Integer => s
-            .parse::<f64>()
+            .parse::<i64>()
             .map(|v| json!(v))
             .map_err(|_| "not a valid integer".to_string()),
         JsonSchemaType::Boolean => s
@@ -241,6 +273,66 @@ fn parse_input_value(value: String, schema_type: SchemaType) -> Result<Value, St
 }
 
 #[component]
+pub fn toggle(
+    value: bool,
+    on_change: Callback<Value, ()>,
+    #[prop(into, default = String::new())] class: String,
+    #[prop(default = false)] disabled: bool,
+    #[prop(into, default = String::new())] name: String,
+) -> impl IntoView {
+    view! {
+        <input
+            disabled=disabled
+            on:click=move |e| {
+                on_change.call(Value::Bool(event_target_checked(&e)));
+            }
+
+            type="checkbox"
+            name=name
+            class=format!("toggle toggle-primary {class}")
+            checked=value
+        />
+    }
+}
+
+#[component]
+pub fn select(
+    id: String,
+    name: String,
+    class: String,
+    disabled: bool,
+    required: bool,
+    value: Value,
+    options: Vec<Value>,
+    schema_type: SchemaType,
+    on_change: Callback<Value, ()>,
+) -> impl IntoView {
+    let (selected_value_rs, selected_value_ws) = create_signal(value);
+    view! {
+        {move || {
+            let selected_value = selected_value_rs.get();
+            view! {
+                <Dropdown
+                    name={name.clone()}
+                    class={class.clone()}
+                    disabled=disabled
+                    dropdown_width="w-100"
+                    dropdown_icon="".to_string()
+                    dropdown_text=format!("{}", selected_value)
+                    dropdown_direction=DropdownDirection::Down
+                    dropdown_btn_type=DropdownBtnType::Select
+                    dropdown_options=options.clone()
+                    on_select=Callback::new(move |selected: Value| {
+                        selected_value_ws.set(selected.clone());
+                        on_change.call(selected);
+                    })
+                />
+            }
+        }}
+    }
+}
+
+#[component]
 fn basic_input(
     id: String,
     name: String,
@@ -263,21 +355,23 @@ fn basic_input(
         error_ws.set(Some(format!("{} is not a valid integer", value)));
     }
 
+    let strigified_value = serde_json::to_string(&value).unwrap();
+
     view! {
         <input
             id=id
             name=name
-            class=class
+            class={format!("input input-bordered  {}", class)}
             required=required
             disabled=disabled
-            type={r#type.to_html_input_type()}
+            type=r#type.to_html_input_type()
 
-            value=format!("{}", value)
+            value=strigified_value
             on:change=move |e| {
                 let v = event_target_value(&e);
                 match parse_input_value(v, schema_type.get_value()) {
                     Ok(v) => on_change.call(v),
-                    Err(e) => error_ws.set(Some(e))
+                    Err(e) => error_ws.set(Some(e)),
                 }
             }
         />
@@ -294,152 +388,51 @@ fn basic_input(
 
 #[component]
 pub fn input(
-    #[prop(into)] r#type: InputType,
-    schema_type: SchemaType,
     value: Value,
+    schema_type: SchemaType,
     on_change: Callback<Value, ()>,
+    #[prop(into)] r#type: InputType,
     #[prop(default = false)] disabled: bool,
     #[prop(into, default = String::new())] id: String,
     #[prop(into, default = String::new())] class: String,
     #[prop(into, default = String::new())] name: String,
 ) -> impl IntoView {
     match r#type {
-        InputType::Toggle => {
-            let on_change = Callback::new(move |value: bool| {
-                on_change.call(Value::Bool(value));
-            });
-            match value.as_bool() {
-                Some(v) => view! {
-                    <Toggle value={v} on_change />
-                }
-                .into_view(),
-                None => view! {
-                    <span>An error occured</span>
-                }
-                .into_view(),
+        InputType::Toggle => match value.as_bool() {
+            Some(ref v) => {
+                view! { <Toggle value=v.clone() on_change class name/> }.into_view()
             }
-        }
-        InputType::Select(options) => {
-            view! {
-                // <Dropdown
-                //         disabled
-                //         dropdown_width="w-100"
-                //         dropdown_icon=""
-                //         // add the singal
-                //         dropdown_text=value.as_str().map(String::from).unwrap_or(value.to_string())
-                //         dropdown_direction=DropdownDirection::Down
-                //         dropdown_btn_type=DropdownBtnType::Select
-                //         dropdown_options=options
-                //         name=""
-                //         on_select=Callback::new(move |selected: String| {
-                //             // handle_change.call(selected.clone());
-                //             // set_value.set(selected.clone());
-                //             // set_selected_enum.set(selected.clone());
-                //         })
-                //     />
-            }
-            .into_view()
-        }
-        InputType::Monaco => view! {
-            <div>
-                {format!("{}", value)}
-            </div>
-        }
-        .into_view(),
-        _ => view! {
-            <BasicInput
+            None => view! { <span>An error occured</span> }.into_view(),
+        },
+        InputType::Select(ref options) => view! {
+            <Select
                 id
                 name
                 class
+                value
+                on_change
+                schema_type
                 disabled
                 required=true
-                r#type
-                value
-                schema_type
-                on_change
+                options=options.0.clone()
             />
-        },
+        }
+        .into_view(),
+        InputType::Monaco => view! { <div>{format!("{}", value)}</div> }.into_view(),
+        _ => {
+            view! {
+                <BasicInput
+                    id=id
+                    name=name
+                    class=class
+                    disabled=disabled
+                    required=true
+                    r#type=r#type
+                    value=value
+                    schema_type=schema_type
+                    on_change=on_change
+                />
+            }
+        }
     }
 }
-
-
-// #[component]
-// fn number_input(
-//     value: f64,
-//     on_change: Callback<f64, ()>,
-//     disabled: bool,
-//     id: String,
-//     class: String,
-//     name: String,
-//     required: bool,
-// ) -> impl IntoView {
-//     let (error_rs, error_ws) = create_signal::<Option<String>>(None);
-//
-//     view! {
-//         <input
-//             id=id
-//             name=name
-//             class=class
-//             required=required
-//             disabled=disabled
-//
-//             value=value
-//             on:change=move |e| {
-//                 let v = event_target_value(&e).parse::<f64>();
-//                 match v {
-//                     Ok(v) => on_change.call(v),
-//                     Err(_) => error_ws.set(Some(format!("not a valid number"))),
-//                 }
-//             }
-//         />
-//
-//         {move || {
-//             let error = error_rs.get();
-//             match error {
-//                 Some(msg) => view! { <span>{msg}</span> }.into_view(),
-//                 None => ().into_view(),
-//             }
-//         }}
-//     }
-// }
-//
-// #[component]
-// fn integer_input(
-//     value: i64,
-//     on_change: Callback<i64, ()>,
-//     disabled: bool,
-//     id: String,
-//     class: String,
-//     name: String,
-//     required: bool,
-// ) -> impl IntoView {
-//     let (error_rs, error_ws) = create_signal::<Option<String>>(None);
-//
-//     view! {
-//         <input
-//             id=id
-//             name=name
-//             class=class
-//             required=required
-//             disabled=disabled
-//
-//             value=value
-//             on:change=move |e| {
-//                 let v = event_target_value(&e).parse::<i64>();
-//                 match v {
-//                     Ok(v) => on_change.call(v),
-//                     Err(_) => error_ws.set(Some(format!("not a valid integer"))),
-//                 }
-//             }
-//         />
-//
-//         {move || {
-//             let error = error_rs.get();
-//             match error {
-//                 Some(msg) => view! { <span>{msg}</span> }.into_view(),
-//                 None => ().into_view(),
-//             }
-//         }}
-//     }
-// }
-

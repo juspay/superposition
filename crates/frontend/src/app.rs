@@ -49,11 +49,11 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 <link
                                     rel="preload"
                                     href=wasm_href.clone()
-                                    _as="fetch"
-                                    _type="application/wasm"
+                                    as_="fetch"
+                                    type_="application/wasm"
                                     crossorigin=""
                                 />
-                                <link _as="script" rel="modulepreload" href=js_href.clone()/>
+                                <link as_="script" rel="modulepreload" href=js_href.clone()/>
                                 <script type_="module">
                                     {format!(
                                         r#"

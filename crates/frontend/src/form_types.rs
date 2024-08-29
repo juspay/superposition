@@ -6,9 +6,11 @@ use crate::{
 };
 use derive_more::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Value, json};
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, strum_macros::Display, strum_macros::EnumString)]
+#[derive(
+    Debug, Clone, PartialEq, PartialOrd, strum_macros::Display, strum_macros::EnumString,
+)]
 #[strum(serialize_all = "lowercase")]
 pub enum JsonSchemaType {
     Boolean,
@@ -18,6 +20,20 @@ pub enum JsonSchemaType {
     Array,
     Object,
     Null,
+}
+
+impl From<&Value> for JsonSchemaType {
+    fn from(value: &Value) -> Self {
+        match value {
+            Value::String(_) => JsonSchemaType::String,
+            Value::Number(_) => JsonSchemaType::Number,
+            Value::Array(_) => JsonSchemaType::Array,
+            Value::Object(_) => JsonSchemaType::Object,
+            Value::Null => JsonSchemaType::Null,
+            Value::Bool(_) => JsonSchemaType::Boolean
+
+        }
+    }
 }
 
 impl JsonSchemaType {
@@ -37,6 +53,18 @@ pub enum SchemaType {
 }
 
 impl SchemaType {
+    pub fn default_value(&self) -> Value {
+        match self {
+            SchemaType::Multiple(_) => json!(""),
+            SchemaType::Single(JsonSchemaType::String) => json!(""),
+            SchemaType::Single(JsonSchemaType::Number) => json!(0),
+            SchemaType::Single(JsonSchemaType::Integer) => json!(0),
+            SchemaType::Single(JsonSchemaType::Boolean) => json!(false),
+            SchemaType::Single(JsonSchemaType::Object) => json!("{}"),
+            SchemaType::Single(JsonSchemaType::Array) => json!("[]"),
+            SchemaType::Single(JsonSchemaType::Null) => json!("null"),
+        }
+    }
     fn parse_from_array(arr: &[Value]) -> Result<Self, String> {
         arr.iter()
             .map(|v| match v {
