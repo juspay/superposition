@@ -1,37 +1,37 @@
 {
-    "name": "cac-client",
-    "version": "0.0.1",
-    "description": "",
-    "main": "index.js",
-    "scripts": {
-        "test": "node ./tests/index.js",
-        "compile": "npx tsc",
-        "dev": "tsc --project tsconfig.json",
-        "buildLib": "webpack --mode=production",
-        "build": "run-s secure dev buildLib",
-        "start": "nodemon ./dist/app.js",
-        "lint": "eslint . --ext .ts"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "dependencies": {
-        "json-logic-js": "^2.0.2"
-    },
-    "devDependencies": {
-        "@babel/core": "^7.22.10",
-        "@babel/preset-env": "^7.22.10",
-        "@types/json-logic-js": "^2.0.1",
-        "@types/node": "^18.11.9",
-        "babel-core": "^6.26.3",
-        "babel-loader": "^9.1.3",
-        "babel-polyfill": "^6.26.0",
-        "babel-preset-es2015": "^6.24.1",
-        "babel-preset-stage-0": "^6.24.1",
-        "eslint": "^8.47.0",
-        "ts-loader": "^9.4.4",
-        "typescript": "^4.9.5",
-        "webpack": "^5.88.2",
-        "webpack-cli": "^5.1.4"
-    }
+  "name": "cac-client",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./tests/index.js",
+    "compile": "npx tsc",
+    "dev": "tsc --project tsconfig.json",
+    "buildLib": "webpack --mode=production",
+    "build": "run-s secure dev buildLib",
+    "start": "nodemon ./dist/app.js",
+    "lint": "eslint . --ext .ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "json-logic-js": "^2.0.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.10",
+    "@babel/preset-env": "^7.22.10",
+    "@types/json-logic-js": "^2.0.1",
+    "@types/node": "^18.11.9",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^9.1.3",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "eslint": "^8.47.0",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.5.4",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  }
 }
