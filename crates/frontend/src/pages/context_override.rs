@@ -11,6 +11,7 @@ use crate::components::override_form::OverrideForm;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
+use crate::providers::monaco_provider::{use_monaco, MonacoProvider};
 use crate::types::{Config, Context, DefaultConfig, Dimension};
 use crate::utils::extract_conditions;
 use futures::join;
@@ -248,6 +249,7 @@ pub fn context_override() -> impl IntoView {
             }>
                 <div class="space-y-6">
 
+                    <MonacoProvider id="context_override_page">
                     {move || {
                         let PageResource { config: _, dimensions, default_config } = page_resource
                             .get()
@@ -258,6 +260,7 @@ pub fn context_override() -> impl IntoView {
                             Some(FormMode::Create) => "Create Overrides",
                             None => "",
                         };
+                        let monaco_state = use_monaco();
                         view! {
                             <Drawer
                                 id="context_and_override_drawer".to_string()
@@ -268,6 +271,7 @@ pub fn context_override() -> impl IntoView {
                                     set_selected_data.set(None);
                                 }
                             >
+
 
                                 {match (form_mode.get(), data) {
                                     (Some(FormMode::Edit), Some(data)) => {
@@ -311,6 +315,7 @@ pub fn context_override() -> impl IntoView {
                             </Drawer>
                         }
                     }}
+                                </ MonacoProvider>
                     {move || {
                         let config = page_resource.get().map(|v| v.config).unwrap_or_default();
                         let ctx_n_overrides = config

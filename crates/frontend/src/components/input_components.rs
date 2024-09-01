@@ -6,89 +6,31 @@ use crate::{
     form_types::{EnumVariants, JsonSchemaType, SchemaType},
 };
 
-// fn trim_quotes(s: &str) -> String {
-//     if s.len() >= 2
-//         && (s.starts_with('"') && s.ends_with('"')
-//             || s.starts_with('\'') && s.ends_with('\''))
-//     {
-//         s[1..s.len() - 1].to_string()
-//     } else {
-//         s.to_string()
-//     }
-// }
-//
-// fn remove_espaces(s: &str) -> String {}
-//
-// trait FormDisplay: ToString {
-//     fn form_display(&self, r#type: JsonSchemaType) -> String;
-// }
-//
-// impl FormDisplay for String {
-//     fn form_display(&self, r#type: JsonSchemaType) -> String {
-//         match r#type {
-//             JsonSchemaType::Boolean => self.clone(),
-//             JsonSchemaType::Null => String::from("null"),
-//             JsonSchemaType::Array => (),
-//             JsonSchemaType::Number => (),
-//             JsonSchemaType::String => (),
-//             JsonSchemaType::Object => (),
-//             JsonSchemaType::Integer => (),
-//         }
-//         String::new()
-//     }
-// }
-
-/***
-
-pub enum SchemaType {
-    Boolean,
-    Number,
-    String,
-    Integer,
-    Array,
-    Object,
-    Null,
+trait FormDisplay: ToString {
+    fn form_display(&self) -> String;
 }
 
-Indicate just the type name for each override in the form
-
-Boolean - toggle
-Number - number field
-Integer - number field with pattern and setp as 1
-String - text
-Array - monaco
-Object - monaco
-
-now when there are multiple types for an override
-
-- Boolean, Number: Text
-- Boolean, String: Text
-- Boolean, Integer: Text
-- Boolean, Array: Monaco
-- Boolean, Object: Monaco
-- Number, Integer: Text
-- Number, String: Text
-- Number, Array: Monaco
-- Number, Object: Monaco
-- String, Integer: Text
-- String, Array: Monaco
-- String, Object: Monaco
-- Integer, Array: Monaco
-- Integer, Object: Monaco
-- Array, Object: Monaco
-
-Rule:
-    - is Object or has Object -> Monaco
-    - is Array or has Array -> Monaco
-    - is String or has String -> Text
-
-    - is Number -> Number
-    - is Integer -> Integer
-    - is Boolean -> Boolean toggle
-    - any mixture -> Text
-
-
-  */
+impl FormDisplay for Value {
+    fn form_display(&self) -> String {
+        match self {
+            Value::Bool(v) => v.to_string(),
+            Value::Number(v) => v.to_string(),
+            Value::String(v) => v.to_string(),
+            Value::Null => String::from("null"),
+            Value::Array(arr) => {
+                let items: Vec<String> = arr.iter().map(|v| v.to_string()).collect();
+                format!("[{}]", items.join(","))
+            }
+            Value::Object(obj) => {
+                let items: Vec<String> = obj
+                    .iter()
+                    .map(|(k, v)| format!("{}: {}", k, v.to_string()))
+                    .collect();
+                format!("{{{}}}", items.join(", "))
+            }
+        }
+    }
+}
 
 #[component]
 pub fn enum_dropdown(
@@ -217,7 +159,7 @@ impl From<(SchemaType, EnumVariants)> for InputType {
             SchemaType::Single(JsonSchemaType::Boolean) => InputType::Toggle,
             SchemaType::Single(JsonSchemaType::String) => InputType::Text,
             SchemaType::Single(JsonSchemaType::Null) => InputType::Disabled,
-            SchemaType::Single(JsonSchemaType::Array) => InputType::Monaco,
+            SchemaType::Single(JsonSchemaType::Array) => InputType::Text,
             SchemaType::Single(JsonSchemaType::Object) => InputType::Monaco,
             SchemaType::Multiple(types)
                 if types.contains(&JsonSchemaType::Object)
@@ -355,8 +297,6 @@ fn basic_input(
         error_ws.set(Some(format!("{} is not a valid integer", value)));
     }
 
-    let strigified_value = serde_json::to_string(&value).unwrap();
-
     view! {
         <input
             id=id
@@ -366,7 +306,7 @@ fn basic_input(
             disabled=disabled
             type=r#type.to_html_input_type()
 
-            value=strigified_value
+            value=value.form_display()
             on:change=move |e| {
                 let v = event_target_value(&e);
                 match parse_input_value(v, schema_type.get_value()) {
@@ -383,6 +323,27 @@ fn basic_input(
                 None => ().into_view(),
             }
         }}
+    }
+}
+
+#[component]
+pub fn monaco_input(value: Value) -> impl IntoView {
+    view! {
+        <div class="card border rounded">
+            <div class="card-body p-0">
+                <andypf-json-viewer
+                    indent="2"
+                    expanded="true"
+                    theme="default-light"
+                    show-data-types="false"
+                    show-toolbar="false"
+                    expand-icon-type="arrow"
+                    show-copy="true"
+                    show-size="false"
+                    data=value.form_display()
+                ></andypf-json-viewer>
+            </div>
+        </div>
     }
 }
 
@@ -418,7 +379,7 @@ pub fn input(
             />
         }
         .into_view(),
-        InputType::Monaco => view! { <div>{format!("{}", value)}</div> }.into_view(),
+        InputType::Monaco => view! { <MonacoInput value /> }.into_view(),
         _ => {
             view! {
                 <BasicInput
@@ -436,3 +397,55 @@ pub fn input(
         }
     }
 }
+
+/***
+
+pub enum SchemaType {
+    Boolean,
+    Number,
+    String,
+    Integer,
+    Array,
+    Object,
+    Null,
+}
+
+Indicate just the type name for each override in the form
+
+Boolean - toggle
+Number - number field
+Integer - number field with pattern and setp as 1
+String - text
+Array - monaco
+Object - monaco
+
+now when there are multiple types for an override
+
+- Boolean, Number: Text
+- Boolean, String: Text
+- Boolean, Integer: Text
+- Boolean, Array: Monaco
+- Boolean, Object: Monaco
+- Number, Integer: Text
+- Number, String: Text
+- Number, Array: Monaco
+- Number, Object: Monaco
+- String, Integer: Text
+- String, Array: Monaco
+- String, Object: Monaco
+- Integer, Array: Monaco
+- Integer, Object: Monaco
+- Array, Object: Monaco
+
+Rule:
+    - is Object or has Object -> Monaco
+    - is Array or has Array -> Monaco
+    - is String or has String -> Text
+
+    - is Number -> Number
+    - is Integer -> Integer
+    - is Boolean -> Boolean toggle
+    - any mixture -> Text
+
+
+  */
