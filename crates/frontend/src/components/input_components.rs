@@ -4,6 +4,7 @@ use serde_json::{json, Map, Value};
 use crate::{
     components::dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
     form_types::{EnumVariants, JsonSchemaType, SchemaType},
+    providers::monaco_provider::use_monaco,
 };
 
 trait FormDisplay: ToString {
@@ -327,10 +328,42 @@ fn basic_input(
 }
 
 #[component]
-pub fn monaco_input(value: Value) -> impl IntoView {
+pub fn monaco_input(
+    value: Value,
+    on_change: Callback<Value, ()>,
+    schema_type: SchemaType,
+) -> impl IntoView {
+    let schema_type = store_value(schema_type);
+    let (_, monaco_state_ws) = use_monaco();
+    let (display_value_rs, display_value_ws) = create_signal(value.form_display());
+
     view! {
         <div class="card border rounded">
             <div class="card-body p-0">
+                <button on:click=move |_| {
+                    let value = display_value_rs.get();
+                    monaco_state_ws.update(|v| {
+                        v.show=true;
+                        v.data=value;
+                        v.id="asdasd";
+                        v.on_change = Callback::new(move |s: String| {
+                            logging::log!("{}", s);
+                            match parse_input_value(s.clone(), schema_type.get_value()) {
+                                Ok(v) => {
+                                    display_value_ws.set(s);
+                                    on_change.call(v);
+                                },
+                                Err(e) => logging::log!("{}", e)
+                            }
+                        })
+                    });
+                }>
+                    Edit
+                </button>
+                {
+                    move || {
+                        let display_value = display_value_rs.get();
+                        view! {
                 <andypf-json-viewer
                     indent="2"
                     expanded="true"
@@ -340,8 +373,11 @@ pub fn monaco_input(value: Value) -> impl IntoView {
                     expand-icon-type="arrow"
                     show-copy="true"
                     show-size="false"
-                    data=value.form_display()
+                    data=display_value
                 ></andypf-json-viewer>
+                        }
+                    }
+                }
             </div>
         </div>
     }
@@ -379,7 +415,9 @@ pub fn input(
             />
         }
         .into_view(),
-        InputType::Monaco => view! { <MonacoInput value /> }.into_view(),
+        InputType::Monaco => {
+            view! { <MonacoInput value on_change schema_type /> }.into_view()
+        }
         _ => {
             view! {
                 <BasicInput

@@ -49,7 +49,7 @@ pub fn drawer_btn(
 pub fn drawer<NF>(
     id: String,
     children: Children,
-    #[prop(default = "")] header: &'static str,
+    #[prop(into, default = String::new())] header: String,
     #[prop(default = "w-[60vw]")] drawer_width: &'static str,
     handle_close: NF,
 ) -> impl IntoView

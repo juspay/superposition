@@ -3,6 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use leptos::*;
 use monaco::api::CodeEditor;
 use monaco::sys::editor::{IEditorMinimapOptions, IStandaloneEditorConstructionOptions};
+use web_sys::KeyboardEvent;
 #[derive(Debug, Clone, strum_macros::Display)]
 #[strum(serialize_all = "lowercase")]
 pub enum Languages {
@@ -15,6 +16,8 @@ pub type EditorModelCell = Rc<RefCell<Option<CodeEditor>>>;
 #[component]
 pub fn monaco_editor(
     node_id: &'static str,
+    #[prop(into, default = String::new())] data: String,
+    #[prop(into, default = Callback::new(move |_| {}))] on_change: Callback<String, ()>,
     data_rs: ReadSignal<String>,
     data_ws: WriteSignal<String>,
     #[prop(default = Languages::Javascript)] language: Languages,
@@ -37,7 +40,9 @@ pub fn monaco_editor(
             minimap_settings.set_enabled(Some(false));
             editor_settings.set_language(Some(language.to_string().as_str()));
             editor_settings.set_automatic_layout(Some(true));
-            editor_settings.set_value(Some(data_rs.get().as_str()));
+            logging::log!("Monaco Init value {}", data);
+            editor_settings.set_value(Some(data.as_str()));
+            // editor_settings.set_value(Some(data_rs.get().as_str()));
             editor_settings.set_render_final_newline(Some(true));
             editor_settings.set_read_only(Some(read_only));
             editor_settings.set_minimap(Some(&minimap_settings));
@@ -45,13 +50,17 @@ pub fn monaco_editor(
             editor_ws.update(|prev| {
                 prev.replace(Some(editor));
             });
+            if let Ok(e) = KeyboardEvent::new("keyup") {
+                node.dispatch_event(&e);
+            }
         }
     });
     view! {
         <div id={node_id} class={styling} node_ref=editor_ref on:keyup=move |event| {
             let new_data = event_target_value(&event);
             logging::log!("Updating code");
-            data_ws.set_untracked(new_data);
+            on_change.call(new_data.clone());
+            // data_ws.set_untracked(new_data);
         }>
         </div>
     }
