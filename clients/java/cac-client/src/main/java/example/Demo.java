@@ -1,32 +1,26 @@
-package CAC;
-
-import java.io.File;
+package example;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
+import cac_client.CacClient;
 import jnr.ffi.Pointer;
 
-public class Client {
+public class Demo {
 
     private static void callCacClient() {
-        String dylib = "cac_client";
-        File currentDir = new File(System.getProperty("user.dir"));
-        String libraryPath = currentDir.getParentFile().getParentFile().getParentFile() + "/target/debug";
         String tenant = "dev";
-
-        System.out.println("------------------------------------------");
 
         System.out.println("CAC Client");
 
         System.out.println("---------------------");
 
-        CacClient wrapper = new CacClient(libraryPath, dylib);
+        CacClient wrapper = new CacClient();
 
         int newClient;
         try {
             newClient = wrapper.cacNewClient(tenant, 1, "http://localhost:8080");
             System.out.println("New client created successfully. Client ID: " + newClient);
-        } catch (IOException e) {
+        } catch (cac_client.CACClientException e) {
             System.err.println(e.getMessage());
         }
 

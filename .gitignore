@@ -36,8 +36,7 @@ test_logs
 .pre-commit-config.yaml
 .cargo
 
-#java client
-clients/java/cac-client/.gradle
-clients/java/cac-client/build
-clients/java/exp-client/.gradle
-clients/java/exp-client/build
+#gradle files
+.gradle
+build
+.java~

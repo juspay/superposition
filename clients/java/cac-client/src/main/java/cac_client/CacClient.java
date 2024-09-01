@@ -1,4 +1,4 @@
-package CAC;
+package cac_client;
 
 import java.io.IOException;
 
@@ -31,18 +31,19 @@ public class CacClient {
 
     public static RustLib rustLib;
 
-    public CacClient(String libraryPath, String libraryName) {
+    public CacClient() {
+        String libraryName = "cac_client";
+        String libraryPath = System.getenv("SUPERPOSITION_LIB_PATH");
+        System.out.println("libraryPath" + libraryPath);
         System.setProperty("jnr.ffi.library.path", libraryPath);
-
-        // Load the Rust library
         CacClient.rustLib = LibraryLoader.create(RustLib.class).load(libraryName);
     }
 
-    public int cacNewClient(String tenant, long updateFrequency, String hostName) throws IOException {
+    public int cacNewClient(String tenant, long updateFrequency, String hostName) throws CACClientException {
         int result = rustLib.cac_new_client(tenant, updateFrequency, hostName);
         if (result > 0) {
             String errorMessage = rustLib.cac_last_error_message();
-            throw new IOException("Failed to create new CAC client: " + errorMessage);
+            throw new CACClientException("Failed to create new CAC client: " + errorMessage);
         }
         return result;
     }

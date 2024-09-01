@@ -1,32 +1,28 @@
-package CAC;
+package example;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
+import exp_client.EXPClientException;
+import exp_client.ExperimentationClient;
 import jnr.ffi.Pointer;
 
-public class Client {
+public class Demo {
 
     private static void callExperimentationClient() {
-        String dylib = "experimentation_client";
-        File currentDir = new File(System.getProperty("user.dir"));
-        String libraryPath = currentDir.getParentFile().getParentFile().getParentFile() + "/target/debug";
         String tenant = "dev";
-
-        System.out.println("------------------------------------------");
-
+        
         System.out.println("Experimentation Client");
 
         System.out.println("---------------------");
 
-        ExperimentationClient wrapper = new ExperimentationClient(libraryPath, dylib);
+        ExperimentationClient wrapper = new ExperimentationClient();
 
         int newClient;
         try {
             newClient = wrapper.exptNewClient(tenant, 1, "http://localhost:8080");
             System.out.println("New Experimentation client created successfully. Client ID: " + newClient);
-        } catch (IOException e) {
+        } catch (EXPClientException e) {
             System.err.println(e.getMessage());
         }
 

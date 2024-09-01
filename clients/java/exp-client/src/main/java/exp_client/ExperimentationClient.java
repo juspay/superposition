@@ -1,4 +1,4 @@
-package CAC;
+package exp_client;
 
 import java.io.IOException;
 
@@ -31,16 +31,19 @@ public class ExperimentationClient {
 
     public static RustLib rustLib;
 
-    public ExperimentationClient(String libraryPath, String libraryName) {
+    public ExperimentationClient() {
+        String libraryName = "experimentation_client";
+        String libraryPath = System.getenv("SUPERPOSITION_LIB_PATH");
+        System.out.println("libraryPath" + libraryPath);
         System.setProperty("jnr.ffi.library.path", libraryPath);
         ExperimentationClient.rustLib = LibraryLoader.create(RustLib.class).load(libraryName);
     }
 
-    public int exptNewClient(String tenant, long updateFrequency, String hostName) throws IOException {
+    public int exptNewClient(String tenant, long updateFrequency, String hostName) throws EXPClientException {
         int result = rustLib.expt_new_client(tenant, updateFrequency, hostName);
         if (result > 0) {
             String errorMessage = rustLib.expt_last_error_message();
-            throw new IOException("Failed to create new Experimentation client: " + errorMessage);
+            throw new EXPClientException("Failed to create new Experimentation client: " + errorMessage);
         }
         return result;
     }
