@@ -335,20 +335,35 @@ pub fn context_override() -> impl IntoView {
                                 (context.clone(), overrides)
                             })
                             .collect::<Vec<(Context, Map<String, Value>)>>();
-                        ctx_n_overrides
-                            .into_iter()
-                            .map(|(context, overrides)| {
-                                view! {
-                                    <ContextCard
-                                        context=context
-                                        overrides=overrides
-                                        handle_edit=handle_context_edit
-                                        handle_clone=handle_context_clone
-                                        handle_delete=handle_context_delete
-                                    />
-                                }
-                            })
-                            .collect_view()
+                        if ctx_n_overrides.is_empty() {
+                            view! {
+                                <div class="flex-row" style="margin-top:20rem;">
+                                    <div class="flex justify-center text-gray-400">
+                                    <i class="ri-file-add-line ri-xl"></i>
+                                    </div>
+                                    <div class="flex mt-4 font-semibold items-center text-gray-400 text-xl justify-center">
+                                    "Start with creating an override"
+                                    </div>
+                                </div>
+
+                            }.into_view()
+                        } else {
+                            ctx_n_overrides
+                                .into_iter()
+                                .map(|(context, overrides)| {
+                                    view! {
+                                        <ContextCard
+                                            context=context
+                                            overrides=overrides
+                                            handle_edit=handle_context_edit
+                                            handle_clone=handle_context_clone
+                                            handle_delete=handle_context_delete
+                                        />
+                                    }
+                                })
+                                .collect_view()
+                        }
+
                     }}
 
                 </div>
