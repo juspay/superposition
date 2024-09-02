@@ -63,7 +63,7 @@ fn generate_code(code_str: &str) -> String {
                 delete process.env[key];
             }}
         }}
-        
+
 
     // starting worker thread , making separated from the main thread
     function runService() {{
@@ -96,7 +96,7 @@ fn generate_code(code_str: &str) -> String {
 
         // terminate worker thread if execution time exceed 2 secs
 
-        var tl = setTimeout(timelimit, 2000);
+        var tl = setTimeout(timelimit, 10000);
         }});
     }}
 
