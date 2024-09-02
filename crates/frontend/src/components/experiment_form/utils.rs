@@ -1,4 +1,5 @@
 use super::types::{ExperimentCreateRequest, ExperimentUpdateRequest};
+use crate::components::condition_pills::types::Condition;
 use crate::components::context_form::utils::construct_context;
 use crate::types::{Dimension, VariantFormT};
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
@@ -12,7 +13,7 @@ pub fn validate_experiment(experiment: &ExperimentCreateRequest) -> Result<bool,
 }
 
 pub async fn create_experiment(
-    conditions: Vec<(String, String, String)>,
+    conditions: Vec<Condition>,
     variants: Vec<VariantFormT>,
     name: String,
     tenant: String,
@@ -21,7 +22,7 @@ pub async fn create_experiment(
     let payload = ExperimentCreateRequest {
         name,
         variants: FromIterator::from_iter(variants),
-        context: construct_context(conditions, dimensions),
+        context: construct_context(conditions, dimensions.clone()),
     };
 
     let _ = validate_experiment(&payload)?;

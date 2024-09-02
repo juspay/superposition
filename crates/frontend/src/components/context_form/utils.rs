@@ -1,62 +1,184 @@
-use crate::types::Dimension;
-use crate::utils::{
-    construct_request_headers, get_config_value, get_host, parse_json_response, request,
-    ConfigType,
+use crate::{
+    components::condition_pills::types::{Condition, ConditionOperator},
+    types::Dimension,
+    utils::{
+        construct_request_headers, get_config_value, get_host, parse_json_response,
+        request, ConfigType,
+    },
 };
 use anyhow::Result;
 use serde_json::{json, Map, Value};
 
 pub fn get_condition_schema(
-    var: &str,
-    op: &str,
-    val: &str,
+    condition: &Condition,
     dimensions: Vec<Dimension>,
 ) -> Result<Value, String> {
+    let var = &condition.left_operand; // Dimension name
+    let op = &condition.operator; // Operator type
+    let val = &condition.right_operand; // Vec<Value>
+
+    // Extract non-"var" elements from the right_operand
+    let filtered_values: Vec<&Value> = val
+        .iter()
+        .filter(|v| !v.is_object() || !v.get("var").is_some()) // Ignore objects with "var"
+        .collect();
+    let dimensions_clone = dimensions.clone();
+
     match op {
-        "<=" => {
-            let mut split_value = val.split(',');
+        ConditionOperator::Between => {
+            // Expecting three elements for "Between" condition: two operands and one "var" object
+            if filtered_values.len() != 2 {
+                return Err(
+                    "Invalid number of operands for 'between' condition.".to_string()
+                );
+            }
 
-            let first_operand =
-                split_value.next().unwrap().trim().parse::<i64>().unwrap();
+            let first_operand = &filtered_values[0]; // The first value
+            let third_operand = &filtered_values[1]; // The third value
 
-            let dimension_val = get_config_value(
+            let first_operand_value = get_config_value(
                 var,
-                split_value.next().unwrap().trim(),
+                first_operand,
                 &dimensions
                     .into_iter()
                     .map(ConfigType::Dimension)
                     .collect::<Vec<_>>(),
-            );
+            )?;
+
+            let third_operand_value = get_config_value(
+                var,
+                third_operand,
+                &dimensions_clone
+                    .into_iter()
+                    .map(ConfigType::Dimension)
+                    .collect::<Vec<_>>(),
+            )?;
 
             Ok(json!({
-                op: [
-                    first_operand,
+                "<=": [
+                    first_operand_value,
                     { "var": var },
-                    dimension_val.expect("can't parse dimension value")
+                    third_operand_value
                 ]
             }))
         }
-        _ => {
-            let dimension_val = get_config_value(
+        ConditionOperator::Is => {
+            // Expecting two elements for "Is" condition: one "var" object and one value
+            if filtered_values.len() != 1 {
+                return Err("Invalid number of operands for 'is' condition.".to_string());
+            }
+
+            let value = &filtered_values[0]; // The value after "var"
+            let first_operand_value = get_config_value(
                 var,
-                val,
+                value,
                 &dimensions
                     .into_iter()
                     .map(ConfigType::Dimension)
                     .collect::<Vec<_>>(),
-            );
+            )?;
+
             Ok(json!({
-                op: [
-                    {"var": var},
-                    dimension_val.expect("can't parse dimension value")
+                "==": [
+                    { "var": var },
+                    first_operand_value
                 ]
             }))
+        }
+        ConditionOperator::In => {
+            if filtered_values.len() != 1 {
+                return Err("Invalid number of operands for 'in' condition.".to_string());
+            }
+            let value = &filtered_values[0]; // The value after "var"
+            let first_operand_value = get_config_value(
+                var,
+                value,
+                &dimensions
+                    .into_iter()
+                    .map(ConfigType::Dimension)
+                    .collect::<Vec<_>>(),
+            )?;
+
+            Ok(json!({
+                "in": [
+                    { "var": var },
+                    first_operand_value
+                ]
+            }))
+        }
+        ConditionOperator::Has => {
+            if filtered_values.len() != 1 {
+                return Err("Invalid number of operands for 'has' condition.".to_string());
+            }
+            let value = &filtered_values[0]; // The value after "var"
+            let first_operand_value = get_config_value(
+                var,
+                value,
+                &dimensions
+                    .into_iter()
+                    .map(ConfigType::Dimension)
+                    .collect::<Vec<_>>(),
+            )?;
+
+            Ok(json!({
+                "in": [
+                    first_operand_value,
+                    { "var": var }
+                ]
+            }))
+        }
+        ConditionOperator::Other(op) => {
+            if filtered_values.len() == 1 {
+                let value = &filtered_values[0]; // The value after "var"
+                let first_operand_value = get_config_value(
+                    var,
+                    value,
+                    &dimensions
+                        .into_iter()
+                        .map(ConfigType::Dimension)
+                        .collect::<Vec<_>>(),
+                )?;
+                Ok(json!({
+                    op: [
+                        { "var": var },
+                        first_operand_value
+                    ]
+                }))
+            } else if filtered_values.len() == 2 {
+                let first_operand = &filtered_values[0]; // The first value
+                let second_operand = &filtered_values[1]; // The second value
+                let first_operand_value = get_config_value(
+                    var,
+                    first_operand,
+                    &dimensions
+                        .into_iter()
+                        .map(ConfigType::Dimension)
+                        .collect::<Vec<_>>(),
+                )?;
+                let second_operand_value = get_config_value(
+                    var,
+                    second_operand,
+                    &dimensions_clone
+                        .into_iter()
+                        .map(ConfigType::Dimension)
+                        .collect::<Vec<_>>(),
+                )?;
+                Ok(json!({
+                    op: [
+                        first_operand_value,
+                        { "var": var },
+                        second_operand_value
+                    ]
+                }))
+            } else {
+                Err("Invalid number of operands for custom operator.".to_string())
+            }
         }
     }
 }
 
 pub fn construct_context(
-    conditions: Vec<(String, String, String)>,
+    conditions: Vec<Condition>,
     dimensions: Vec<Dimension>,
 ) -> Value {
     if conditions.is_empty() {
@@ -64,10 +186,7 @@ pub fn construct_context(
     } else {
         let condition_schemas = conditions
             .iter()
-            .map(|(variable, operator, value)| {
-                get_condition_schema(variable, operator, value, dimensions.clone())
-                    .unwrap()
-            })
+            .map(|condition| get_condition_schema(condition, dimensions.clone()).unwrap())
             .collect::<Vec<Value>>();
 
         if condition_schemas.len() == 1 {
@@ -80,14 +199,14 @@ pub fn construct_context(
 
 pub fn construct_request_payload(
     overrides: Map<String, Value>,
-    conditions: Vec<(String, String, String)>,
+    conditions: Vec<Condition>,
     dimensions: Vec<Dimension>,
 ) -> Value {
     // Construct the override section
     let override_section: Map<String, Value> = overrides;
 
     // Construct the context section
-    let context_section = construct_context(conditions, dimensions);
+    let context_section = construct_context(conditions, dimensions.clone());
 
     // Construct the entire request payload
     let request_payload = json!({
@@ -101,7 +220,7 @@ pub fn construct_request_payload(
 pub async fn create_context(
     tenant: String,
     overrides: Map<String, Value>,
-    conditions: Vec<(String, String, String)>,
+    conditions: Vec<Condition>,
     dimensions: Vec<Dimension>,
 ) -> Result<serde_json::Value, String> {
     let host = get_host();
@@ -121,12 +240,13 @@ pub async fn create_context(
 pub async fn update_context(
     tenant: String,
     overrides: Map<String, Value>,
-    conditions: Vec<(String, String, String)>,
+    conditions: Vec<Condition>,
     dimensions: Vec<Dimension>,
 ) -> Result<serde_json::Value, String> {
     let host = get_host();
     let url = format!("{host}/context/overrides");
-    let request_payload = construct_request_payload(overrides, conditions, dimensions);
+    let request_payload =
+        construct_request_payload(overrides, conditions, dimensions.clone());
     let response = request(
         url,
         reqwest::Method::PUT,

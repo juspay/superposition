@@ -1,10 +1,11 @@
 use std::fmt::Display;
 
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 use crate::types::Context;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ConditionOperator {
     Is,
     In,
@@ -21,6 +22,18 @@ impl Display for ConditionOperator {
             Self::In => f.write_str("in"),
             Self::Between => f.write_str("between"),
             Self::Other(o) => f.write_str(o),
+        }
+    }
+}
+
+impl From<String> for ConditionOperator {
+    fn from(op: String) -> Self {
+        match op.as_str() {
+            "==" => ConditionOperator::Is,
+            "<=" => ConditionOperator::Between,
+            "in" => ConditionOperator::In,
+            "has" => ConditionOperator::Has,
+            other => ConditionOperator::Other(other.to_string()),
         }
     }
 }
@@ -50,11 +63,11 @@ impl From<(String, &Vec<Value>)> for ConditionOperator {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Condition {
     pub left_operand: String,
     pub operator: ConditionOperator,
-    pub right_operand: String,
+    pub right_operand: Vec<Value>,
 }
 
 impl TryFrom<&Map<String, Value>> for Condition {
@@ -76,27 +89,10 @@ impl TryFrom<&Map<String, Value>> for Condition {
                 })
                 .unwrap_or("");
 
-            let other_operands = operands
-                .iter()
-                .filter_map(|item| {
-                    if item.is_object() && item.as_object().unwrap().contains_key("var") {
-                        return None;
-                    }
-
-                    match item {
-                        Value::Null => String::from("null"),
-                        Value::String(v) => v.clone(),
-                        _ => format!("{}", item),
-                    }
-                    .into()
-                })
-                .collect::<Vec<String>>()
-                .join(",");
-
             return Ok(Condition {
                 operator,
                 left_operand: dimension_name.to_owned(),
-                right_operand: other_operands,
+                right_operand: operands.to_vec(),
             });
         }
 
