@@ -32,7 +32,7 @@ assets-dir = "crates/frontend/assets"
 dotenv = "0.15.0"
 actix = "0.13.0"
 actix-web = "4.5.0"
-diesel = { version = "2.1.0", features = [
+diesel = { version = "2.2.3", features = [
     "postgres",
     "r2d2",
     "serde_json",
