@@ -153,6 +153,7 @@ where
                                                 };
                                                 view! {
                                                     <Input
+                                                        id=config_key.clone()
                                                         class=input_class
                                                         r#type=input_type
                                                         value=config_value_raw

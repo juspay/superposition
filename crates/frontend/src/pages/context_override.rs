@@ -7,12 +7,11 @@ use crate::components::context_form::utils::{create_context, update_context};
 use crate::components::context_form::ContextForm;
 use crate::components::delete_modal::DeleteModal;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
-use crate::components::monaco_editor::MonacoEditor;
 use crate::components::override_form::OverrideForm;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
-use crate::providers::monaco_provider::{use_monaco, MonacoProvider};
+use crate::providers::editor_provider::EditorProvider;
 use crate::types::{Config, Context, DefaultConfig, Dimension};
 use crate::utils::extract_conditions;
 use futures::join;
@@ -260,7 +259,6 @@ pub fn context_override() -> impl IntoView {
                             Some(FormMode::Create) => "Create Overrides",
                             None => "",
                         };
-
                         view! {
                             <Drawer
                                 id="context_and_override_drawer".to_string()
@@ -272,76 +270,47 @@ pub fn context_override() -> impl IntoView {
                                 }
                             >
 
-                                <MonacoProvider id="context_override_page">
-                                {match (form_mode.get(), data) {
-                                    (Some(FormMode::Edit), Some(data)) => {
-                                        view! {
-                                            <Form
-                                                context=data.context
-                                                overrides=data.overrides
-                                                dimensions=dimensions
-                                                default_config=default_config
-                                                handle_submit=handle_submit
-                                                edit=true
-                                            />
+                                <EditorProvider>
+                                    {match (form_mode.get(), data) {
+                                        (Some(FormMode::Edit), Some(data)) => {
+                                            view! {
+                                                <Form
+                                                    context=data.context
+                                                    overrides=data.overrides
+                                                    dimensions=dimensions
+                                                    default_config=default_config
+                                                    handle_submit=handle_submit
+                                                    edit=true
+                                                />
+                                            }
+                                                .into_view()
                                         }
-                                            .into_view()
-                                    }
-                                    (Some(FormMode::Create), data) => {
-                                        let Data { context, overrides } = data.unwrap_or_default();
-                                        view! {
-                                            <Form
-                                                context=context
-                                                overrides=overrides
-                                                dimensions=dimensions
-                                                default_config=default_config
-                                                handle_submit=handle_submit
-                                                edit=false
-                                            />
+                                        (Some(FormMode::Create), data) => {
+                                            let Data { context, overrides } = data.unwrap_or_default();
+                                            view! {
+                                                <Form
+                                                    context=context
+                                                    overrides=overrides
+                                                    dimensions=dimensions
+                                                    default_config=default_config
+                                                    handle_submit=handle_submit
+                                                    edit=false
+                                                />
+                                            }
+                                                .into_view()
                                         }
-                                            .into_view()
-                                    }
-                                    (Some(FormMode::Edit), None) => {
-                                        enqueue_alert(
-                                            String::from("Something went wrong, failed to load form"),
-                                            AlertType::Error,
-                                            5000,
-                                        );
-                                        view! {}.into_view()
-                                    }
-                                    (None, _) => view! {}.into_view(),
-                                }}
+                                        (Some(FormMode::Edit), None) => {
+                                            enqueue_alert(
+                                                String::from("Something went wrong, failed to load form"),
+                                                AlertType::Error,
+                                                5000,
+                                            );
+                                            view! {}.into_view()
+                                        }
+                                        (None, _) => view! {}.into_view(),
+                                    }}
 
-                                {move || {
-                                    let (tr, ts) = create_signal(String::new());
-                                    let (monaco_state_rs, monaco_state_ws) = use_monaco();
-                                    // listen on selected_data  and then reset the monaco
-                                    view! {
-                                        <Show when=move || { monaco_state_rs.with(|v| v.show) }>
-                                        <div class="absolute w-full h-full bg-white top-0 left-0">
-                                            <MonacoEditor
-                                                node_id=monaco_state_rs.with(|v| v.id)
-                                                data=monaco_state_rs.with(|v| v.data.clone())
-                                                on_change=move |s| {
-                                                    monaco_state_ws.update_untracked(|v| {
-                                                        v.data = s;
-                                                    })
-                                                }
-                                                classes=vec!["h-3/4"]
-                                                data_rs=tr
-                                                data_ws=ts
-                                            />
-                                            <button on:click=move |_| {
-                                                monaco_state_ws.update(|v| {
-                                                    v.on_change.call(v.data.clone());
-                                                    v.reset();
-                                                })
-                                            }>Save</button>
-                                        </div>
-                                        </Show>
-                                    }
-                                }}
-                                </ MonacoProvider>
+                                </EditorProvider>
                             </Drawer>
                         }
                     }}

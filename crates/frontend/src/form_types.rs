@@ -8,6 +8,38 @@ use derive_more::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
+pub trait HtmlDisplay: ToString {
+    fn html_display(&self) -> String;
+}
+
+impl HtmlDisplay for Value {
+    fn html_display(&self) -> String {
+        match self {
+            Value::Bool(v) => v.to_string(),
+            Value::Number(v) => v.to_string(),
+            Value::String(v) => v.to_string(),
+            Value::Null => String::from("null"),
+            Value::Array(arr) => {
+                let items: Vec<String> = arr.iter().map(|v| v.to_string()).collect();
+                format!("[{}]", items.join(","))
+            }
+            Value::Object(obj) => {
+                let items: Vec<String> = obj
+                    .iter()
+                    .map(|(k, v)| format!("\"{}\": {}", k, v.to_string()))
+                    .collect();
+                format!("{{{}}}", items.join(", "))
+            }
+        }
+    }
+}
+
+impl HtmlDisplay for String {
+    fn html_display(&self) -> String {
+        self.clone()
+    }
+}
+
 #[derive(
     Debug, Clone, PartialEq, PartialOrd, strum_macros::Display, strum_macros::EnumString,
 )]
@@ -60,8 +92,8 @@ impl SchemaType {
             SchemaType::Single(JsonSchemaType::Number) => json!(0),
             SchemaType::Single(JsonSchemaType::Integer) => json!(0),
             SchemaType::Single(JsonSchemaType::Boolean) => json!(false),
-            SchemaType::Single(JsonSchemaType::Object) => json!("{}"),
-            SchemaType::Single(JsonSchemaType::Array) => json!("[]"),
+            SchemaType::Single(JsonSchemaType::Object) => json!({}),
+            SchemaType::Single(JsonSchemaType::Array) => json!([]),
             SchemaType::Single(JsonSchemaType::Null) => json!("null"),
         }
     }

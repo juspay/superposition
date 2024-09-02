@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::{cell::RefCell, rc::Rc};
 
 use leptos::*;
@@ -11,11 +12,11 @@ pub enum Languages {
     Json,
 }
 
-pub type EditorModelCell = Rc<RefCell<Option<CodeEditor>>>;
+pub type EditorModelCell = Rc<Option<CodeEditor>>;
 
 #[component]
 pub fn monaco_editor(
-    node_id: &'static str,
+    #[prop(into)] node_id: String,
     #[prop(into, default = String::new())] data: String,
     #[prop(into, default = Callback::new(move |_| {}))] on_change: Callback<String, ()>,
     data_rs: ReadSignal<String>,
@@ -26,7 +27,7 @@ pub fn monaco_editor(
     #[prop(default = false)] read_only: bool,
 ) -> impl IntoView {
     let editor_ref = create_node_ref::<html::Div>();
-    let (_, editor_ws) = create_signal(EditorModelCell::default());
+    let (editor_rs, editor_ws) = create_signal(Rc::new(None));
     let styling = classes.join(" ");
     create_effect(move |_| {
         if let Some(node) = editor_ref.get() {
@@ -47,20 +48,22 @@ pub fn monaco_editor(
             editor_settings.set_read_only(Some(read_only));
             editor_settings.set_minimap(Some(&minimap_settings));
             let editor = CodeEditor::create(&node, Some(editor_settings));
-            editor_ws.update(|prev| {
-                prev.replace(Some(editor));
-            });
-            if let Ok(e) = KeyboardEvent::new("keyup") {
-                node.dispatch_event(&e);
-            }
+
+            editor_ws.set(Rc::new(Some(editor)));
+            // if let Ok(e) = KeyboardEvent::new("keyup") {
+            //     node.dispatch_event(&e);
+            // }
         }
     });
     view! {
-        <div id={node_id} class={styling} node_ref=editor_ref on:keyup=move |event| {
-            let new_data = event_target_value(&event);
-            logging::log!("Updating code");
-            on_change.call(new_data.clone());
-            // data_ws.set_untracked(new_data);
+        <div id={node_id} class={styling} node_ref=editor_ref on:keyup=move |_| {
+            match editor_rs.get().borrow() {
+                Some(editor) => {
+                    logging::log!("here editor {:?}", editor.get_model().unwrap().get_value());
+                    on_change.call(editor.get_model().unwrap().get_value());
+                },
+                None => {}
+            }
         }>
         </div>
     }
