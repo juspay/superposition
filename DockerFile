@@ -39,7 +39,7 @@ RUN cargo build --release
 RUN pwd
 RUN ls -l target
 
-FROM ubuntu:24.04 as runtime
+FROM debian:bookworm-slim as runtime
 
 ENV NODE_VERSION=18.19.0
 WORKDIR /app
