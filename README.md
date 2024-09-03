@@ -24,7 +24,8 @@ Once you run this command, you'll find the demo app at `localhost:8081` and Supe
 5. [Local setup](docs/setup.md)
 6. [Context-Aware-Configuration API Ref - Postman Collection](postman/cac.postman_collection.json)
 7. [Experimentation API Ref - Postman Collection](postman/experimentation-platform.postman_collection.json)
-8. [Hitchiker's Guide to Create a New Client](docs/creating-client.md)
+8. [TOML formatted Context-Aware-Configuration example](docs/cac-toml.md)
+9. [Hitchiker's Guide to Create a New Client](docs/creating-client.md)
 
 ## Key highlights
 * **Admin UI** - Out of the box administration (and tools) UI for configurations and experiments
@@ -33,3 +34,9 @@ Once you run this command, you'll find the demo app at `localhost:8081` and Supe
 * **Type/Validation support** - Comprehensive type support using json-schema and custom validator function support for configuration values
 * **Multi-tenant support** - a single deployment allows multiple tenants to manage their configurations/experiments in a completely isolated manner
 * **Authn/Authz support** - control who can make configuration/experimentation changes
+
+## Interested to know more - reach out to the team !
+* Website: https://juspay.io/superposition
+* Twitter: https://x.com/superpositionjp
+* Discord: https://discord.gg/sBgYYUQU
+* Github Issues: https://github.com/juspay/superposition/issues
