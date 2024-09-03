@@ -37,7 +37,7 @@ RUN cp .env.example target/.env
 # building backend
 RUN cargo build --release
 
-FROM ubuntu:24.04 as runtime
+FROM debian:bookworm-slim as runtime
 
 ENV NODE_VERSION=18.19.0
 WORKDIR /app

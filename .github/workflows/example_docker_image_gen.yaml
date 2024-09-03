@@ -1,4 +1,4 @@
-name: Create superposition docker image
+name: Create superposition example docker image
 
 on: workflow_dispatch
 
@@ -35,10 +35,11 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Build and push production image
+            - name: Build and push example image
               uses: docker/build-push-action@v6
               with:
                   push: true
                   context: .
                   platforms: linux/amd64,linux/arm64
-                  tags: datron1/superposition:${{ steps.git_tag.outputs.docker_tag }}, datron1/superposition:latest
+                  file: ./example.Dockerfile
+                  tags: datron1/superposition-demo-app:${{ steps.git_tag.outputs.docker_tag }}, datron1/superposition-demo-app:latest
