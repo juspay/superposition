@@ -41,6 +41,7 @@ pub fn monaco_editor(
             minimap_settings.set_enabled(Some(false));
             editor_settings.set_language(Some(language.to_string().as_str()));
             editor_settings.set_automatic_layout(Some(true));
+            editor_settings.set_font_family(Some("ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace"));
             logging::log!("Monaco Init value {}", data);
             editor_settings.set_value(Some(data.as_str()));
             // editor_settings.set_value(Some(data_rs.get().as_str()));
@@ -56,15 +57,19 @@ pub fn monaco_editor(
         }
     });
     view! {
-        <div id={node_id} class={styling} node_ref=editor_ref on:keyup=move |_| {
-            match editor_rs.get().borrow() {
-                Some(editor) => {
-                    logging::log!("here editor {:?}", editor.get_model().unwrap().get_value());
-                    on_change.call(editor.get_model().unwrap().get_value());
-                },
-                None => {}
+        <div
+            id=node_id
+            class=styling
+            node_ref=editor_ref
+            on:keyup=move |_| {
+                match editor_rs.get().borrow() {
+                    Some(editor) => {
+                        logging::log!("here editor {:?}", editor.get_model().unwrap().get_value());
+                        on_change.call(editor.get_model().unwrap().get_value());
+                    }
+                    None => {}
+                }
             }
-        }>
-        </div>
+        ></div>
     }
 }

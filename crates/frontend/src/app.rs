@@ -38,7 +38,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                     <Stylesheet id="leptos" href=styles_href/>
                     <Link rel="shortcut icon" type_="image/ico" href=favicon_href/>
                     <Link
-                        href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+                        href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css"
                         rel="stylesheet"
                     />
                     {move || {

@@ -11,7 +11,7 @@ use crate::{
     components::{
         button::Button,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-        input_components::{EnumDropdown, BooleanToggle},
+        input_components::{BooleanToggle, EnumDropdown},
     },
     types::{FunctionsName, TypeTemplate},
     utils::get_key_type,

@@ -32,7 +32,7 @@ pub fn dropdown<T>(
     #[prop(default = false)] disabled: bool,
     #[prop(default = true)] searchable: bool,
     #[prop(into, default = String::new())] name: String,
-    #[prop(into, default = String::new())] class: String
+    #[prop(into, default = String::new())] class: String,
 ) -> impl IntoView
 where
     T: DropdownOption + Clone + 'static,

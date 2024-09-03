@@ -112,7 +112,7 @@ fn form(
             }
         />
 
-        <div class="form-control grid w-full mt-10 justify-start">
+        <div class="flex justify-start w-full mt-10">
             <Button
                 class="pl-[70px] pr-[70px]".to_string()
                 text="Submit".to_string()

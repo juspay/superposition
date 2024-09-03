@@ -6,7 +6,7 @@ use crate::{
 };
 use derive_more::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 pub trait HtmlDisplay: ToString {
     fn html_display(&self) -> String;
@@ -62,8 +62,7 @@ impl From<&Value> for JsonSchemaType {
             Value::Array(_) => JsonSchemaType::Array,
             Value::Object(_) => JsonSchemaType::Object,
             Value::Null => JsonSchemaType::Null,
-            Value::Bool(_) => JsonSchemaType::Boolean
-
+            Value::Bool(_) => JsonSchemaType::Boolean,
         }
     }
 }

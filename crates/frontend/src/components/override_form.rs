@@ -111,55 +111,78 @@ where
 
                             key=|(config_key, _)| config_key.to_string()
                             children=move |(config_key, config_value)| {
-                                let config_key_label = config_key.to_string();
-                                let config_key_value = config_key.to_string();
-                                let config_value_raw = config_value.clone();
+                                let config_key = store_value(config_key);
                                 let schema_type = SchemaType::try_from(
                                     default_config_map
-                                        .get(&config_key_label)
+                                        .get(&config_key.get_value())
                                         .unwrap()
                                         .schema
                                         .clone(),
                                 );
                                 let enum_variants = EnumVariants::try_from(
                                     default_config_map
-                                        .get(&config_key_label)
+                                        .get(&config_key.get_value())
                                         .unwrap()
                                         .schema
                                         .clone(),
                                 );
+                                let input_type = match (schema_type.clone(), enum_variants) {
+                                    (Ok(type_), Ok(variants)) => {
+                                        Some(InputType::from((type_, variants)))
+                                    }
+                                    _ => None,
+                                };
+                                let input_class = match input_type {
+                                    Some(InputType::Toggle) | None => "",
+                                    Some(_) => "w-[450px] text-gray-700",
+                                };
+                                let type_labels = match schema_type.clone() {
+                                    Ok(SchemaType::Single(ref r#type)) => {
+                                        view! {
+                                            <div class="badge badge-outline text-gray-400 font-medium text-xs">
+                                                {r#type.to_string()}
+                                            </div>
+                                        }
+                                            .into_view()
+                                    }
+                                    Ok(SchemaType::Multiple(types)) => {
+                                        types
+                                            .iter()
+                                            .map(|r#type| {
+                                                view! {
+                                                    <div class="badge badge-outline text-gray-400 font-medium text-xs">
+                                                        {r#type.to_string()}
+                                                    </div>
+                                                }
+                                            })
+                                            .collect_view()
+                                    }
+                                    Err(_) => view! {}.into_view(),
+                                };
                                 view! {
+                                    // TODO: give a width to the form container and remove it from the fields
                                     <div class="flex flex-col">
                                         <div class="form-control">
-                                            <label class="label font-medium font-mono text-sm">
-                                                <span class="label-text">
-                                                    {config_key_label.clone()} ":"
+                                            <label class="label justify-start font-mono text-sm gap-2">
+                                                <span class="label-text font-bold text-gray-500">
+                                                    // add the type as a label here for each key
+                                                    {config_key.get_value()} ":"
                                                 </span>
+                                                <div class="flex gap-1">{type_labels}</div>
                                             </label>
                                         </div>
 
                                         <div class="flex gap-4">
-                                            {if schema_type.is_ok() && enum_variants.is_ok() {
-                                                let schema_type = schema_type.unwrap();
-                                                let enum_variants = enum_variants.unwrap();
-                                                let input_type = InputType::from((
-                                                    schema_type.clone(),
-                                                    enum_variants,
-                                                ));
-                                                let input_class = if input_type == InputType::Toggle {
-                                                    ""
-                                                } else {
-                                                    "w-[450px] text-gray-700 shadow-md"
-                                                };
+                                            {if input_type.is_some() {
                                                 view! {
                                                     <Input
-                                                        id=config_key.clone()
+                                                        id=config_key.get_value()
                                                         class=input_class
-                                                        r#type=input_type
-                                                        value=config_value_raw
-                                                        schema_type=schema_type
+                                                        r#type=input_type.unwrap()
+                                                        value=config_value
+                                                        schema_type=schema_type.unwrap()
                                                         on_change=Callback::new(move |value| {
-                                                            update_overrides(&config_key_value, value);
+                                                            update_overrides(&config_key.get_value(), value);
                                                         })
                                                     />
                                                 }
@@ -176,20 +199,20 @@ where
                                                             on:click=move |ev| {
                                                                 ev.prevent_default();
                                                                 match handle_key_remove {
-                                                                    Some(f) => f.call(config_key_label.clone()),
+                                                                    Some(f) => f.call(config_key.get_value()),
                                                                     None => {
                                                                         set_overrides
                                                                             .update(|value| {
                                                                                 let position = value
                                                                                     .iter()
-                                                                                    .position(|(k, _)| k.to_owned() == config_key.clone());
+                                                                                    .position(|(k, _)| k.to_owned() == config_key.get_value());
                                                                                 if let Some(idx) = position {
                                                                                     value.remove(idx);
                                                                                 }
                                                                             });
                                                                         set_override_keys
                                                                             .update(|keys| {
-                                                                                keys.remove(&config_key);
+                                                                                keys.remove(&config_key.get_value());
                                                                             })
                                                                     }
                                                                 };

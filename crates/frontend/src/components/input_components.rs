@@ -1,12 +1,14 @@
+use std::time::Duration;
+
 use leptos::*;
 use serde_json::{json, Map, Value};
 
 use crate::{
     components::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-        monaco_editor::{MonacoEditor, Languages},
+        monaco_editor::{Languages, MonacoEditor},
     },
-    form_types::{EnumVariants, JsonSchemaType, SchemaType, HtmlDisplay},
+    form_types::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
     providers::editor_provider::use_editor,
 };
 
@@ -137,7 +139,7 @@ impl From<(SchemaType, EnumVariants)> for InputType {
             SchemaType::Single(JsonSchemaType::Boolean) => InputType::Toggle,
             SchemaType::Single(JsonSchemaType::String) => InputType::Text,
             SchemaType::Single(JsonSchemaType::Null) => InputType::Disabled,
-            SchemaType::Single(JsonSchemaType::Array) => InputType::Text,
+            SchemaType::Single(JsonSchemaType::Array) => InputType::Monaco,
             SchemaType::Single(JsonSchemaType::Object) => InputType::Monaco,
             SchemaType::Multiple(types)
                 if types.contains(&JsonSchemaType::Object)
@@ -179,7 +181,9 @@ fn str_to_value(s: &str, type_: &JsonSchemaType) -> Result<Value, String> {
 fn parse_input_value(value: String, schema_type: SchemaType) -> Result<Value, String> {
     match schema_type {
         SchemaType::Single(ref type_) => str_to_value(&value, type_),
-        SchemaType::Multiple(types) => {
+        SchemaType::Multiple(mut types) => {
+            types.sort_by(|a, b| a.precedence().cmp(&b.precedence()));
+
             for type_ in types.iter() {
                 let v = str_to_value(&value, type_);
                 if v.is_ok() {
@@ -187,7 +191,6 @@ fn parse_input_value(value: String, schema_type: SchemaType) -> Result<Value, St
                 }
             }
             Err("not of valid type".to_string())
-            // types.sort_by(|a, b| a.precedence().cmp(&b.precedence()))
         }
     }
 }
@@ -227,6 +230,7 @@ pub fn select(
     schema_type: SchemaType,
     on_change: Callback<Value, ()>,
 ) -> impl IntoView {
+    //TODO: Use id in dropdown and also other fields along with other required attributes
     let (selected_value_rs, selected_value_ws) = create_signal(value);
     view! {
         {move || {
@@ -276,37 +280,52 @@ fn basic_input(
     }
 
     view! {
-        <input
-            id=id
-            name=name
-            class=format!("input input-bordered  {}", class)
-            required=required
-            disabled=disabled
-            type=r#type.to_html_input_type()
+        <div class="flex flex-col gap-1">
+            <input
+                id=id
+                name=name
+                class=format!("input input-bordered  {}", class)
+                required=required
+                disabled=disabled
+                type=r#type.to_html_input_type()
 
-            value=value.html_display()
-            on:change=move |e| {
-                let v = event_target_value(&e);
-                match parse_input_value(v, schema_type.get_value()) {
-                    Ok(v) => on_change.call(v),
-                    Err(e) => error_ws.set(Some(e)),
+                value=value.html_display()
+                on:change=move |e| {
+                    let v = event_target_value(&e);
+                    match parse_input_value(v, schema_type.get_value()) {
+                        Ok(v) => {
+                            on_change.call(v);
+                            error_ws.set(None);
+                        }
+                        Err(e) => error_ws.set(Some(e)),
+                    }
                 }
-            }
-        />
+            />
 
-        {move || {
-            let error = error_rs.get();
-            match error {
-                Some(msg) => view! { <span>{msg}</span> }.into_view(),
-                None => ().into_view(),
-            }
-        }}
+            {move || {
+                let error = error_rs.get();
+                match error {
+                    Some(msg) => {
+                        view! {
+                            <span class="flex gap-2 px-4 text-xs font-semibold text-red-600">
+                                <i class="ri-close-circle-line"></i>
+                                {msg}
+                            </span>
+                        }
+                            .into_view()
+                    }
+                    None => ().into_view(),
+                }
+            }}
+
+        </div>
     }
 }
 
 #[component]
 pub fn monaco_input(
     id: String,
+    class: String,
     value: Value,
     on_change: Callback<Value, ()>,
     schema_type: SchemaType,
@@ -314,96 +333,190 @@ pub fn monaco_input(
     let id = store_value(id);
     let schema_type = store_value(schema_type);
     let (value_rs, value_ws) = create_signal(value);
+    let (expand_editor_rs, expand_editor_ws) = create_signal(false);
+    let (error_rs, error_ws) = create_signal::<Option<String>>(None);
+    let show_error = Signal::derive(move || error_rs.get().is_some());
+
     let (editor_rs, editor_ws) = use_editor();
 
+    let on_edit = Callback::new(move |s: String| {
+        editor_ws.update_untracked(|v| {
+            v.data = s;
+        })
+    });
+
+    let on_edit_click = Callback::new(move |_| {
+        editor_ws.update(|v| {
+            v.data =
+                serde_json::to_string_pretty(&value_rs.get()).unwrap_or(String::new());
+            v.id = id.get_value();
+        });
+    });
+
+    let on_editor_save = Callback::new(move |_| {
+        let editor_value = editor_rs.with(|v| v.data.clone());
+        logging::log!("Saving editor value: {}", editor_value);
+
+        let parsed_value =
+            parse_input_value(editor_value.clone(), schema_type.get_value());
+        match parsed_value {
+            Ok(v) => {
+                logging::log!("Saving parsed value: {}", editor_value);
+                value_ws.set(v.clone());
+                on_change.call(v);
+
+                editor_ws.update(|v| v.reset());
+                expand_editor_ws.set(false);
+                error_ws.set(None);
+            }
+            Err(e) => {
+                logging::log!("Error parsing editor value: {}", e);
+                error_ws.set(Some(e));
+            }
+        }
+    });
+
+    let on_editor_cancel = Callback::new(move |_| {
+        editor_ws.update(|v| {
+            v.reset();
+        });
+        expand_editor_ws.set(false);
+        error_ws.set(None);
+    });
+
+    create_effect(move |_| {
+        let value = value_rs.get();
+        let open_editor = match value {
+            Value::String(s) => s.is_empty(),
+            Value::Object(o) => o.is_empty(),
+            Value::Array(a) => a.is_empty(),
+            _ => false,
+        };
+
+        if open_editor {
+            editor_ws.update(|v| {
+                v.data = serde_json::to_string_pretty(&value_rs.get())
+                    .unwrap_or(String::new());
+                v.id = id.get_value();
+            });
+        }
+    });
+
     view! {
-        <div class="card border rounded">
-            <div class="card-body p-0">
-                <button on:click=move |_| {
-                    editor_ws
-                        .update(|v| {
-                            v
-                                .data = serde_json::to_string_pretty(&value_rs.get())
-                                .unwrap_or(String::new());
-                            v.id = id.get_value();
-                        });
-                }>Edit</button>
-
-                <Show when=move || {
-                    editor_rs.with(|v| v.id != id.get_value())
-                }>
-                    {move || {
-                        let display_value = value_rs.get().html_display();
-                        view! {
-                            <andypf-json-viewer
-                                indent="2"
-                                expanded="true"
-                                theme="default-light"
-                                show-data-types="false"
-                                show-toolbar="false"
-                                expand-icon-type="arrow"
-                                show-copy="true"
-                                show-size="false"
-                                data=display_value
-                            ></andypf-json-viewer>
-                        }
-                    }}
-
-                </Show>
-
+        <div class=format!("relative border rounded-lg bg-white p-2 {}", class)>
+            <Show when=move || {
+                editor_rs.with(|v| v.id != id.get_value())
+            }>
                 {move || {
-                    let (tr, ts) = create_signal(String::new());
+                    let display_value = value_rs.get().html_display();
                     view! {
-                        <Show when=move || { editor_rs.with(|v| v.id == id.get_value()) }>
-                            <div class="bg-white w-96 h-full">
-                                <MonacoEditor
-                                    node_id=editor_rs.with(|v| v.id.clone())
-                                    data=editor_rs.with(|v| v.data.clone())
-                                    on_change=move |s: String| {
-                                        match parse_input_value(
-                                            s.clone(),
-                                            schema_type.get_value(),
-                                        ) {
-                                            Ok(v) => {
-                                                logging::log!("{:?}", v);
-                                            }
-                                            Err(e) => logging::log!("{}", e),
-                                        }
-                                        editor_ws
-                                            .update_untracked(|v| {
-                                                v.data = s;
-                                            })
-                                    }
-
-                                    language=Languages::Json
-                                    classes=vec!["h-3/4"]
-                                    data_rs=tr
-                                    data_ws=ts
-                                />
-                                <button on:click=move |_| {
-                                    editor_ws
-                                        .update(|v| {
-                                            logging::log!("{}", v.data);
-                                            match parse_input_value(
-                                                v.data.clone(),
-                                                schema_type.get_value(),
-                                            ) {
-                                                Ok(v) => {
-                                                    logging::log!("{:?}", v);
-                                                    value_ws.set(v.clone());
-                                                    on_change.call(v);
-                                                }
-                                                Err(e) => logging::log!("{}", e),
-                                            }
-                                            v.reset();
-                                        })
-                                }>Save</button>
-                            </div>
-                        </Show>
+                        <div class="absolute top-[10px] right-[10px]">
+                            <i
+                                class="ri-pencil-line text-gray-500 cursor-pointer"
+                                on:click=move |e| {
+                                    on_edit_click.call(e);
+                                }
+                            >
+                            </i>
+                        </div>
+                        <andypf-json-viewer
+                            indent="4"
+                            expanded="true"
+                            theme="default-light"
+                            show-data-types="false"
+                            show-toolbar="true"
+                            expand-icon-type="arrow"
+                            expanded="1"
+                            show-copy="true"
+                            show-size="false"
+                            data=display_value
+                        ></andypf-json-viewer>
                     }
                 }}
 
-            </div>
+            </Show>
+
+            <Show when=move || {
+                editor_rs.with(|v| v.id == id.get_value())
+            }>
+                {move || {
+                    let (tr, ts) = create_signal(String::new());
+                    let container_class = if expand_editor_rs.get() {
+                        String::from("fixed top-0 left-0 z-10 flex flex-col w-full h-full bg-white")
+                    } else {
+                        String::from("w-full h-96 p-1")
+                    };
+                    view! {
+                        <div class=container_class>
+                            <Show when=move || { expand_editor_rs.get() }>
+                                <div class="breadcrumbs px-4 py-4 font-bold">
+                                    <ul>
+                                        <li>Override</li>
+                                        <li>{id.get_value()}</li>
+                                    </ul>
+                                </div>
+                                <div class="divider m-0"></div>
+                            </Show>
+                            <MonacoEditor
+                                node_id=editor_rs.with(|v| v.id.clone())
+                                data=editor_rs.with(|v| v.data.clone())
+                                on_change=on_edit
+
+                                language=Languages::Json
+                                classes=vec!["h-full"]
+                                data_rs=tr
+                                data_ws=ts
+                            />
+                            <div class="absolute top-[0px] right-[0px]">
+                                <button
+                                    class="btn btn-sm btn-ghost font-normal rounded-lg"
+                                    on:click=move |_| {
+                                        expand_editor_ws.update(|v| *v = !*v);
+                                    }
+                                >
+
+                                    <i class="ri-expand-diagonal-line ri-lg cursor-pointer"></i>
+                                </button>
+                            </div>
+                            <div class="flex justify-between w-[calc(100%-1rem)] absolute bottom-[10px] right-2">
+                                <AnimatedShow
+                                    when=show_error
+                                    show_class="animate-slide-in-bottom"
+                                    hide_class="animate-slide-out-bottom"
+                                    hide_delay=Duration::from_millis(5000)
+                                >
+                                    <span class="alert alert-error w-fit text-white capitalize py-2 text-xs">
+                                        {error_rs.get().unwrap_or(String::new())}
+                                    </span>
+                                </AnimatedShow>
+                                <div class="join ml-auto">
+                                    <button
+                                        class="btn btn-sm join-item font-normal"
+                                        on:click=move |e| {
+                                            on_editor_save.call(e);
+                                        }
+                                    >
+
+                                        <i class="ri-check-line text-gray-500 cursor-pointer"></i>
+                                        Save
+                                    </button>
+                                    <button
+                                        class="btn btn-sm join-item font-normal"
+                                        on:click=move |e| {
+                                            on_editor_cancel.call(e);
+                                        }
+                                    >
+
+                                        <i class="ri-close-line text-gray-500 cursor-pointer"></i>
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }}
+
+            </Show>
         </div>
     }
 }
@@ -441,7 +554,7 @@ pub fn input(
         }
         .into_view(),
         InputType::Monaco => {
-            view! { <MonacoInput id value on_change schema_type/> }.into_view()
+            view! { <MonacoInput id class value on_change schema_type/> }.into_view()
         }
         _ => {
             view! {
@@ -460,55 +573,3 @@ pub fn input(
         }
     }
 }
-
-/***
-
-pub enum SchemaType {
-    Boolean,
-    Number,
-    String,
-    Integer,
-    Array,
-    Object,
-    Null,
-}
-
-Indicate just the type name for each override in the form
-
-Boolean - toggle
-Number - number field
-Integer - number field with pattern and setp as 1
-String - text
-Array - monaco
-Object - monaco
-
-now when there are multiple types for an override
-
-- Boolean, Number: Text
-- Boolean, String: Text
-- Boolean, Integer: Text
-- Boolean, Array: Monaco
-- Boolean, Object: Monaco
-- Number, Integer: Text
-- Number, String: Text
-- Number, Array: Monaco
-- Number, Object: Monaco
-- String, Integer: Text
-- String, Array: Monaco
-- String, Object: Monaco
-- Integer, Array: Monaco
-- Integer, Object: Monaco
-- Array, Object: Monaco
-
-Rule:
-    - is Object or has Object -> Monaco
-    - is Array or has Array -> Monaco
-    - is String or has String -> Text
-
-    - is Number -> Number
-    - is Integer -> Integer
-    - is Boolean -> Boolean toggle
-    - any mixture -> Text
-
-
-  */
