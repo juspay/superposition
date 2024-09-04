@@ -33,6 +33,7 @@ pub fn dropdown<T>(
     #[prop(default = true)] searchable: bool,
     #[prop(into, default = String::new())] name: String,
     #[prop(into, default = String::new())] class: String,
+    #[prop(into, default = String::new())] id: String,
 ) -> impl IntoView
 where
     T: DropdownOption + Clone + 'static,
@@ -57,6 +58,7 @@ where
 
     view! {
         <div
+            id=id
             class="dropdown"
             class=("disable-click", disabled)
             class=("dropdown-right", dropdown_direction == DropdownDirection::Right)

@@ -3,9 +3,9 @@ use std::collections::{HashMap, HashSet};
 use crate::{
     components::{
         dropdown::{Dropdown, DropdownDirection},
-        input_components::{Input, InputType},
+        input::{Input, InputType},
     },
-    form_types::{EnumVariants, SchemaType},
+    schema::{EnumVariants, SchemaType},
     types::DefaultConfig,
 };
 use leptos::*;

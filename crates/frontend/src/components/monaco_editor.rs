@@ -1,10 +1,9 @@
 use std::borrow::Borrow;
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use leptos::*;
 use monaco::api::CodeEditor;
 use monaco::sys::editor::{IEditorMinimapOptions, IStandaloneEditorConstructionOptions};
-use web_sys::KeyboardEvent;
 #[derive(Debug, Clone, strum_macros::Display)]
 #[strum(serialize_all = "lowercase")]
 pub enum Languages {

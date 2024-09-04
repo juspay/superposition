@@ -184,38 +184,6 @@ pub fn close_modal(id: &str) {
     }
 }
 
-pub fn get_variable_name_and_value_2(
-    operands: &Vec<Value>,
-) -> Result<(&str, Vec<Value>), String> {
-    let (obj_pos, variable_obj) = operands
-        .iter()
-        .enumerate()
-        .find(|(_, operand)| {
-            operand.is_object()
-                && operand
-                    .as_object()
-                    .expect("unable to parse operands as object")
-                    .get("var")
-                    .is_some()
-        })
-        .ok_or(" failed to get variable name from operands list".to_string())?;
-
-    let variable_name = variable_obj
-        .as_object()
-        .and_then(|obj| obj.get("var"))
-        .and_then(|value| value.as_str())
-        .ok_or(" failed to get variable name from operands list".to_string())?;
-
-    let variable_value = operands
-        .iter()
-        .enumerate()
-        .filter(|(idx, _)| *idx != obj_pos)
-        .map(|(_, val)| val.clone())
-        .collect::<Vec<Value>>();
-
-    Ok((variable_name, variable_value))
-}
-
 pub fn get_variable_name_and_value(
     operands: &Vec<Value>,
 ) -> Result<(&str, String), String> {

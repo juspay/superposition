@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use chrono::Local;
 use leptos::*;
@@ -9,7 +9,7 @@ use crate::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         override_form::OverrideForm,
     },
-    form_types::SchemaType,
+    schema::SchemaType,
     types::{DefaultConfig, VariantFormT, VariantType},
 };
 
@@ -46,6 +46,12 @@ where
     let (f_variants, set_variants) = create_signal(variants);
     let (override_keys, set_override_keys) = create_signal(init_override_keys);
 
+    let key_to_type = StoredValue::new(
+        default_config
+            .iter()
+            .map(|d| (d.key.clone(), SchemaType::try_from(d.schema.clone()).ok()))
+            .collect::<HashMap<String, Option<SchemaType>>>(),
+    );
     let default_config = StoredValue::new(default_config);
     let handle_change = StoredValue::new(handle_change);
     let unused_config_keys = Signal::derive(move || {
@@ -107,19 +113,17 @@ where
     });
 
     let on_add_variant = move |_: web_sys::MouseEvent| {
-        leptos::logging::log!("add new variant");
+        logging::log!("add new variant");
         set_variants.update(|curr_variants| {
             let key = Local::now().timestamp().to_string();
-            let overrides = default_config
-                .get_value()
+            let overrides = override_keys
+                .get()
                 .iter()
-                .filter_map(|config| {
-                    if override_keys.get().contains(&config.key) {
-                        if let Ok(r#type) = SchemaType::try_from(config.schema.clone()) {
-                            return Some((config.key.clone(), r#type.default_value()));
-                        }
-                    }
-                    None
+                .filter_map(|key| {
+                    key_to_type
+                        .with_value(|v| v.get(key).cloned())
+                        .flatten()
+                        .map(|r#type| (key.clone(), r#type.default_value()))
                 })
                 .collect::<Vec<(String, Value)>>();
             curr_variants.push((

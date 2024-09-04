@@ -1,6 +1,6 @@
 use serde_json::Value;
 
-use crate::form_types::HtmlDisplay;
+use crate::schema::HtmlDisplay;
 
 pub trait DropdownOption {
     fn key(&self) -> String;
