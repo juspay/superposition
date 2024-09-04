@@ -3,7 +3,9 @@ use crate::{
     db::{
         models::ConfigVersion,
         schema::{
-            config_versions, contexts::dsl as ctxt, default_configs::dsl as def_conf,
+            config_versions,
+            contexts::dsl::{self as ctxt},
+            default_configs::dsl as def_conf,
         },
     },
 };
@@ -23,79 +25,10 @@ use service_utils::{
     service::types::AppState,
 };
 
-use superposition_macros::{db_error, validation_error};
-use superposition_types::result as superposition;
+use superposition_macros::{db_error, unexpected_error, validation_error};
+use superposition_types::{result as superposition, Cac, Condition, Overrides};
 
 use std::collections::HashMap;
-
-pub fn get_default_config_validation_schema() -> JSONSchema {
-    let my_schema = json!(
-    {
-        "type": "object",
-        "properties": {
-          "type": {
-            "anyOf": [
-              {
-                "type": "null"
-              },
-              {
-                "type": "string"
-              },
-              {
-                "type": "object"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "array"
-              }
-            ]
-          }
-        },
-        "required": [
-          "type"
-        ],
-        "allOf": [
-          {
-            "if": {
-              "properties": {
-                "type": {
-                  "const": "string"
-                }
-              }
-            },
-            "then": {
-                "oneOf": [
-                    {
-                        "required": ["pattern"],
-                        "properties": { "pattern": { "type": "string" } }
-                    },
-                    {
-                        "required": ["enum"],
-                        "properties": {
-                            "enum": {
-                                "type": "array",
-                                "contains": { "type": "string" },
-                                "minContains": 1
-                            },
-                        }
-                    }
-                ]
-            }
-          }
-          // TODO: Add validations for Array types.
-        ]
-      });
-
-    JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(&my_schema)
-        .expect("THE IMPOSSIBLE HAPPENED, failed to compile the schema for the schema!")
-}
 
 pub fn parse_headermap_safe(headermap: &HeaderMap) -> HashMap<String, String> {
     let mut req_headers = HashMap::new();
@@ -121,33 +54,10 @@ pub fn get_meta_schema() -> JSONSchema {
         "type": "object",
         "properties": {
             "type": {
-                "enum": ["boolean", "number", "string"]
+                "enum": ["boolean", "number", "integer", "string", "array", "null"]
             },
         },
         "required": ["type"],
-
-        // # Add extra validation if needed for other primitive data types
-        "if": {
-            "properties": { "type": { "const": "string" } }
-        }
-        , "then": {
-            "oneOf": [
-                {
-                    "required": ["pattern"],
-                    "properties": { "pattern": { "type": "string" } }
-                },
-                {
-                    "required": ["enum"],
-                    "properties": {
-                        "enum": {
-                            "type": "array",
-                            "contains": { "type": "string" },
-                            "minContains": 1
-                        },
-                    }
-                }
-            ]
-        }
     });
 
     JSONSchema::options()
@@ -323,21 +233,36 @@ pub fn generate_cac(
             db_error!(err)
         })?;
 
-    let (contexts, overrides) = contexts_vec.into_iter().fold(
-        (Vec::new(), Map::new()),
-        |(mut ctxts, mut overrides),
-         (id, condition, priority_, override_id, override_)| {
-            let ctxt = Context {
-                id,
-                condition,
-                priority: priority_,
-                override_with_keys: [override_id.to_owned()],
-            };
-            ctxts.push(ctxt);
-            overrides.insert(override_id, override_);
-            (ctxts, overrides)
-        },
-    );
+    let mut contexts = Vec::new();
+    let mut overrides: HashMap<String, Overrides> = HashMap::new();
+
+    for (id, condition, priority_, override_id, override_) in contexts_vec.iter() {
+        let condition = Cac::<Condition>::try_from_db(
+            condition.as_object().unwrap_or(&Map::new()).clone(),
+        )
+        .map_err(|err| {
+            log::error!("generate_cac : failed to decode context from db {}", err);
+            unexpected_error!(err)
+        })?
+        .into_inner();
+
+        let override_ = Cac::<Overrides>::try_from_db(
+            override_.as_object().unwrap_or(&Map::new()).clone(),
+        )
+        .map_err(|err| {
+            log::error!("generate_cac : failed to decode overrides from db {}", err);
+            unexpected_error!(err)
+        })?
+        .into_inner();
+        let ctxt = Context {
+            id: id.to_owned(),
+            condition,
+            priority: priority_.to_owned(),
+            override_with_keys: [override_id.to_owned()],
+        };
+        contexts.push(ctxt);
+        overrides.insert(override_id.to_owned(), override_);
+    }
 
     let default_config_vec = def_conf::default_configs
         .select((def_conf::key, def_conf::value))
@@ -397,16 +322,6 @@ mod tests {
         let ok_string_schema = json!({"type": "string", "pattern": ".*"});
         let ok_string_validation = x.validate(&ok_string_schema);
         assert!(ok_string_validation.is_ok());
-
-        let error_string_schema = json!({"type": "string"});
-        let error_string_validation = x.validate(&error_string_schema).map_err(|e| {
-            let verrors = e.collect::<Vec<ValidationError>>();
-            format!(
-                "Error While validating string dataType, Bad schema: {:?}",
-                verrors.as_slice()
-            )
-        });
-        assert!(error_string_validation.is_err_and(|error| error.contains("Bad schema")));
 
         let error_object_schema = json!({"type": "object"});
         let error_object_validation = x.validate(&error_object_schema).map_err(|e| {

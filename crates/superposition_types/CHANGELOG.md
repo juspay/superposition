@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.3.2 - 2024-08-14
+#### Bug Fixes
+- newtypes for entity fields (#199) - (49562b7) - PRATIK MISHRA
+
+- - -
+
+## superposition_types-v0.3.1 - 2024-08-08
+#### Bug Fixes
+- api validation with new types (#146) - (66ad741) - PRATIK MISHRA
+
+- - -
+
 ## superposition_types-v0.3.0 - 2024-07-11
 #### Features
 - move apperror to superposition_types - (f1c8395) - Pratik Mishra

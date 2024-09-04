@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.14.0 - 2024-08-14
+#### Bug Fixes
+- dropdown search (#202) - (f78ddbc) - Ankit Kumar Mahato
+#### Features
+- Mandatory dimensions feature (#173) - (8d95a30) - Ankit Kumar Mahato
+
+- - -
+
+## frontend-v0.13.0 - 2024-08-08
+#### Bug Fixes
+- out-of-sync TemplateType struct (#201) - (68d9204) - Shubhranshu Sanjeev
+- resolve page issue (#180) - (73b5dbc) - Ankit Kumar Mahato
+- remove process, filter env variables (#174) - (710c69d) - PRATIK MISHRA
+#### Features
+- monaco as a component (#184) - (5233f1a) - Datron
+
+- - -
+
 ## frontend-v0.12.1 - 2024-07-17
 #### Bug Fixes
 - Improve form inputs - (ebd2f57) - Ankit Mahato

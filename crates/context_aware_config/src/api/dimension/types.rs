@@ -1,13 +1,57 @@
-use serde::{Deserialize, Deserializer};
+use chrono::{DateTime, NaiveDateTime, Utc};
+use derive_more::{AsRef, Deref, DerefMut, Into};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
+use superposition_types::RegexEnum;
+
+use crate::db::models::Dimension;
 
 #[derive(Debug, Deserialize)]
 pub struct CreateReq {
-    pub dimension: String,
-    pub priority: i32,
+    pub dimension: DimensionName,
+    pub priority: Priority,
     pub schema: Value,
     #[serde(default, deserialize_with = "deserialize_option")]
     pub function_name: Option<Value>,
+}
+
+#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
+#[serde(try_from = "i32")]
+pub struct Priority(i32);
+impl Priority {
+    fn validate_data(priority_val: i32) -> Result<Self, String> {
+        if priority_val <= 0 {
+            return Err("Priority should be greater than 0".to_string());
+        } else {
+            Ok(Self(priority_val))
+        }
+    }
+}
+
+impl TryFrom<i32> for Priority {
+    type Error = String;
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        Ok(Self::validate_data(value)?)
+    }
+}
+
+#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
+#[serde(try_from = "String")]
+pub struct DimensionName(String);
+impl DimensionName {
+    pub fn validate_data(name: String) -> Result<Self, String> {
+        let name = name.trim();
+        RegexEnum::DimensionName
+            .match_regex(name)
+            .map(|_| Self(name.to_string()))
+    }
+}
+
+impl TryFrom<String> for DimensionName {
+    type Error = String;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Ok(Self::validate_data(value)?)
+    }
 }
 
 fn deserialize_option<'de, D>(deserializer: D) -> Result<Option<Value>, D::Error>
@@ -16,4 +60,33 @@ where
 {
     let value: Value = Deserialize::deserialize(deserializer)?;
     Ok(Some(value))
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DimensionWithMandatory {
+    pub dimension: String,
+    pub priority: i32,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub schema: Value,
+    pub function_name: Option<String>,
+    pub last_modified_at: NaiveDateTime,
+    pub last_modified_by: String,
+    pub mandatory: bool,
+}
+
+impl DimensionWithMandatory {
+    pub fn new(value: Dimension, mandatory: bool) -> Self {
+        DimensionWithMandatory {
+            dimension: value.dimension,
+            priority: value.priority,
+            created_at: value.created_at,
+            created_by: value.created_by,
+            schema: value.schema,
+            function_name: value.function_name,
+            last_modified_at: value.last_modified_at,
+            last_modified_by: value.last_modified_by,
+            mandatory,
+        }
+    }
 }

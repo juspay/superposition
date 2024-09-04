@@ -2,6 +2,26 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.37.0 - 2024-08-14
+#### Bug Fixes
+- changing aws kms library to aws-sdk-kms to rusto (#203) - (a455f93) - namit goel
+- newtypes for entity fields (#199) - (49562b7) - PRATIK MISHRA
+#### Features
+- Mandatory dimensions feature (#173) - (8d95a30) - Ankit Kumar Mahato
+
+- - -
+
+## context_aware_config-v0.36.1 - 2024-08-08
+#### Bug Fixes
+- jsonschema for dimension and remove default_config's jsonsschema check (#197) - (89a23af) - PRATIK MISHRA
+- add last modified to all tables (#192) - (d41195c) - PRATIK MISHRA
+- api validation with new types (#146) - (66ad741) - PRATIK MISHRA
+- Snapshot version parsing (#193) - (f3f4535) - Ayush Jain
+- resolve page issue (#180) - (73b5dbc) - Ankit Kumar Mahato
+- remove process, filter env variables (#174) - (710c69d) - PRATIK MISHRA
+
+- - -
+
 ## context_aware_config-v0.36.0 - 2024-07-17
 #### Bug Fixes
 - update axios version in cac crate (#162) - (ff1cde6) - PRATIK MISHRA

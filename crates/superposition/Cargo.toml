@@ -36,8 +36,6 @@ chrono = { workspace = true }
 # ORM
 diesel = { workspace = true }
 blake3 = { workspace = true }
-rusoto_kms = { workspace = true }
-rusoto_signature = { workspace = true }
 bytes = { workspace = true }
 rusoto_core = { workspace = true }
 base64 = { workspace = true }
@@ -53,7 +51,7 @@ futures = "0.3.28"
 actix-http = "3.3.1"
 futures-util = "0.3.28"
 actix-cors = "0.6.4"
-leptos_actix = { version = "0.5.2" }
+leptos_actix = { workspace = true }
 leptos = { workspace = true }
 leptos_meta = { workspace = true }
 leptos_router = { workspace = true }

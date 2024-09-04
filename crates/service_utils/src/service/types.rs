@@ -1,7 +1,7 @@
 use crate::db::pgschema_manager::{PgSchemaConnection, PgSchemaManager};
 use derive_more::{Deref, DerefMut};
 use jsonschema::JSONSchema;
-use serde_json::json;
+use serde_json::{json, Map, Value};
 
 use std::{
     collections::HashSet,
@@ -43,13 +43,13 @@ pub struct AppState {
     pub tenants: HashSet<String>,
     pub cac_version: String,
     pub db_pool: PgSchemaManager,
-    pub default_config_validation_schema: JSONSchema,
     pub meta_schema: JSONSchema,
     pub experimentation_flags: ExperimentationFlags,
     pub snowflake_generator: Arc<Mutex<SnowflakeIdGenerator>>,
     pub enable_tenant_and_scope: bool,
     pub tenant_middleware_exclusion_list: HashSet<String>,
     pub service_prefix: String,
+    pub mandatory_dimensions: Map<String, Value>,
 }
 
 impl FromStr for AppEnv {
@@ -174,6 +174,26 @@ impl FromRequest for Tenant {
             }
         };
         ready(result)
+    }
+}
+
+impl Tenant {
+    pub fn get_mandatory_dimensions(
+        &self,
+        mandatory_dimensions: &Map<String, Value>,
+    ) -> Vec<String> {
+        mandatory_dimensions
+            .get(&self.0)
+            .and_then(|v| v.as_array())
+            .map_or_else(
+                || vec![],
+                |arr| {
+                    arr.iter()
+                        .filter_map(|value| value.as_str())
+                        .map(String::from)
+                        .collect()
+                },
+            )
     }
 }
 

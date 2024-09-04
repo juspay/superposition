@@ -27,7 +27,7 @@ use superposition_types::{result as superposition, SuperpositionUser, User};
 
 use validation_functions::{compile_fn, execute_fn};
 
-use super::types::{CreateFunctionRequest, UpdateFunctionRequest};
+use super::types::{CreateFunctionRequest, FunctionName, UpdateFunctionRequest};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -52,7 +52,7 @@ async fn create(
     compile_fn(&req.function)?;
 
     let function = Function {
-        function_name: req.function_name,
+        function_name: req.function_name.into(),
         draft_code: BASE64_STANDARD.encode(req.function),
         draft_runtime_version: req.runtime_version,
         draft_edited_by: user.get_email(),
@@ -62,6 +62,8 @@ async fn create(
         published_by: None,
         published_runtime_version: None,
         function_description: req.description,
+        last_modified_at: Utc::now().naive_utc(),
+        last_modified_by: user.get_email(),
     };
 
     let insert: Result<Function, diesel::result::Error> = diesel::insert_into(functions)
@@ -97,14 +99,14 @@ async fn create(
 
 #[patch("/{function_name}")]
 async fn update(
-    params: web::Path<String>,
+    params: web::Path<FunctionName>,
     request: web::Json<UpdateFunctionRequest>,
     db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
-    let f_name = params.into_inner();
+    let f_name: String = params.into_inner().into();
 
     let result = match fetch_function(&f_name, &mut conn) {
         Ok(val) => val,
@@ -139,6 +141,8 @@ async fn update(
         published_at: result.published_at,
         published_by: result.published_by,
         published_runtime_version: result.published_runtime_version,
+        last_modified_at: Utc::now().naive_utc(),
+        last_modified_by: user.get_email(),
     };
 
     let mut updated_function = diesel::update(functions)
@@ -152,11 +156,11 @@ async fn update(
 
 #[get("/{function_name}")]
 async fn get(
-    params: web::Path<String>,
+    params: web::Path<FunctionName>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
-    let f_name = params.into_inner();
+    let f_name: String = params.into_inner().into();
     let mut function = fetch_function(&f_name, &mut conn)?;
 
     decode_function(&mut function)?;
@@ -177,13 +181,20 @@ async fn list_functions(
 
 #[delete("/{function_name}")]
 async fn delete_function(
-    params: web::Path<String>,
+    params: web::Path<FunctionName>,
     db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let f_name = params.into_inner();
+    let f_name: String = params.into_inner().into();
 
+    diesel::update(functions)
+        .filter(function_name.eq(&f_name))
+        .set((
+            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_by.eq(user.get_email()),
+        ))
+        .execute(&mut conn)?;
     let deleted_row =
         delete(functions.filter(function_name.eq(&f_name))).execute(&mut conn);
     match deleted_row {
@@ -209,7 +220,7 @@ async fn test(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let path_params = params.into_inner();
-    let fun_name = &path_params.function_name;
+    let fun_name: &String = &path_params.function_name.into();
     let req = request.into_inner();
     let mut function = match fetch_function(fun_name, &mut conn) {
         Ok(val) => val,
@@ -249,12 +260,12 @@ async fn test(
 
 #[put("/{function_name}/publish")]
 async fn publish(
-    params: web::Path<String>,
+    params: web::Path<FunctionName>,
     db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
-    let fun_name = params.into_inner();
+    let fun_name: String = params.into_inner().into();
 
     let function = match fetch_function(&fun_name, &mut conn) {
         Ok(val) => val,

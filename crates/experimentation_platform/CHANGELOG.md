@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.18.1 - 2024-08-08
+#### Bug Fixes
+- jsonschema for dimension and remove default_config's jsonsschema check (#197) - (89a23af) - PRATIK MISHRA
+- api validation with new types (#146) - (66ad741) - PRATIK MISHRA
+
+- - -
+
 ## experimentation_platform-v0.18.0 - 2024-07-11
 #### Bug Fixes
 - x-config-version in get config and experiments response (#152) - (1a429a9) - Ayush Jain

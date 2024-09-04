@@ -35,3 +35,8 @@ test_logs
 # pre-commit config
 .pre-commit-config.yaml
 .cargo
+
+#gradle files
+.gradle
+build
+.java~

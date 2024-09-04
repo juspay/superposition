@@ -19,6 +19,8 @@ pub struct Context {
     pub priority: i32,
     #[serde(rename(serialize = "override"))]
     pub override_: Value,
+    pub last_modified_at: NaiveDateTime,
+    pub last_modified_by: String,
 }
 
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize)]
@@ -32,6 +34,8 @@ pub struct Dimension {
     pub created_by: String,
     pub schema: Value,
     pub function_name: Option<String>,
+    pub last_modified_at: NaiveDateTime,
+    pub last_modified_by: String,
 }
 
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize, Clone)]
@@ -45,6 +49,8 @@ pub struct DefaultConfig {
     pub created_by: String,
     pub schema: Value,
     pub function_name: Option<String>,
+    pub last_modified_at: NaiveDateTime,
+    pub last_modified_by: String,
 }
 
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize, Clone, Debug)]
@@ -61,6 +67,8 @@ pub struct Function {
     pub draft_edited_at: NaiveDateTime,
     pub published_by: Option<String>,
     pub draft_edited_by: String,
+    pub last_modified_at: NaiveDateTime,
+    pub last_modified_by: String,
 }
 
 #[derive(Queryable, Selectable, Insertable, Serialize, Clone, Debug)]
@@ -98,5 +106,6 @@ pub struct TypeTemplates {
     pub type_schema: Value,
     pub created_by: String,
     pub created_at: NaiveDateTime,
-    pub last_modified: NaiveDateTime,
+    pub last_modified_at: NaiveDateTime,
+    pub last_modified_by: String,
 }

@@ -15,6 +15,7 @@ pub mod experiment_ramp_form;
 pub mod function_form;
 pub mod input_components;
 pub mod modal;
+pub mod monaco_editor;
 pub mod nav_item;
 pub mod override_form;
 pub mod pagination;

@@ -28,7 +28,7 @@ cac-migration: cleanup
 		do echo "waiting for postgres bootup"; \
 		sleep 0.5; \
 		done
-	diesel migration run --config-file=crates/context_aware_config/diesel.toml
+	diesel migration run --locked-schema --config-file=crates/context_aware_config/diesel.toml
 	docker-compose down
 
 exp-migration: cleanup
@@ -38,7 +38,7 @@ exp-migration: cleanup
 		do echo "waiting for postgres bootup"; \
 		sleep 0.5; \
 		done
-	diesel migration run --config-file=crates/experimentation_platform/diesel.toml
+	--diesel migration run --locked-schema --config-file=crates/experimentation_platform/diesel.toml
 	docker-compose down
 
 migration: cac-migration exp-migration
@@ -82,10 +82,7 @@ ci-setup: env-setup test-tenant
 	# NOTE: The container spinned-up here is the actual container being used in development
 	echo setup completed successfully!!!
 
-setup: migration env-setup test-tenant dev-tenant
-	# NOTE: `make migration` is being used to run the migrations for cac and experimentation in isolation,
-	# otherwise the tables and types of cac and experimentation spill into each others schema.rs
-	# NOTE: The container spinned up are stopped and removed after the work is done.
+setup: env-setup
 
 kill:
 	-pkill -f target/debug/superposition &
@@ -95,6 +92,12 @@ get-password:
 
 superposition:
 	cargo run --color always --bin superposition --no-default-features --features=ssr
+
+superposition-example:
+	cargo run --bin cac-demo-app
+
+superposition_legacy:
+	cargo run --color always --bin superposition --no-default-features --features='ssr superposition_types/disable_db_data_validation context_aware_config/disable_db_data_validation experimentation_platform/disable_db_data_validation'
 
 superposition_dev:
 	# export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`
@@ -125,6 +128,14 @@ run: kill build
 		sleep 0.5; \
 		done
 	make superposition -e DOCKER_DNS=$(DOCKER_DNS)
+
+
+run_legacy: kill build
+	while ! make validate-psql-connection validate-aws-connection; \
+		do echo "waiting for postgres, localstack bootup"; \
+		sleep 0.5; \
+		done
+	make superposition_legacy -e DOCKER_DNS=$(DOCKER_DNS)
 
 ci-test: ci-setup
 	cargo test

@@ -5,7 +5,7 @@ use crate::{
 };
 use actix_web::{
     get, put,
-    web::{self, Data, Json},
+    web::{self, Data},
     HttpResponse, Scope,
 };
 use chrono::Utc;
@@ -15,7 +15,9 @@ use serde_json::Value;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{result as superposition, SuperpositionUser, User};
 
-use service_utils::service::types::{AppState, DbConnection};
+use service_utils::service::types::{AppState, DbConnection, Tenant};
+
+use super::types::DimensionWithMandatory;
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create).service(get)
@@ -27,12 +29,9 @@ async fn create(
     req: web::Json<CreateReq>,
     user: User,
     db_conn: DbConnection,
+    tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-
-    if req.priority <= 0 {
-        return Err(bad_argument!("Priority should be greater than 0"));
-    }
 
     let create_req = req.into_inner();
     let schema_value = create_req.schema;
@@ -62,12 +61,14 @@ async fn create(
     };
 
     let new_dimension = Dimension {
-        dimension: create_req.dimension,
-        priority: create_req.priority,
+        dimension: create_req.dimension.into(),
+        priority: create_req.priority.into(),
         schema: schema_value,
         created_by: user.get_email(),
         created_at: Utc::now(),
         function_name: fun_name.clone(),
+        last_modified_at: Utc::now().naive_utc(),
+        last_modified_by: user.get_email(),
     };
 
     let upsert = diesel::insert_into(dimensions)
@@ -78,14 +79,23 @@ async fn create(
         .get_result::<Dimension>(&mut conn);
 
     match upsert {
-        Ok(upserted_dimension) => Ok(HttpResponse::Created().json(upserted_dimension)),
+        Ok(upserted_dimension) => {
+            let mandatory_dimensions =
+                Tenant::get_mandatory_dimensions(&tenant, &state.mandatory_dimensions);
+            let is_mandatory =
+                mandatory_dimensions.contains(&upserted_dimension.dimension);
+            Ok(HttpResponse::Created().json(DimensionWithMandatory::new(
+                upserted_dimension,
+                is_mandatory,
+            )))
+        }
         Err(diesel::result::Error::DatabaseError(
             diesel::result::DatabaseErrorKind::ForeignKeyViolation,
             e,
         )) => {
             log::error!("{fun_name:?} function not found with error: {e:?}");
             Err(bad_argument!(
-                "Funtion {} doesn't exists",
+                "Function {} doesn't exists",
                 fun_name.unwrap_or(String::new())
             ))
         }
@@ -99,9 +109,25 @@ async fn create(
 }
 
 #[get("")]
-async fn get(db_conn: DbConnection) -> superposition::Result<Json<Vec<Dimension>>> {
+async fn get(
+    db_conn: DbConnection,
+    state: Data<AppState>,
+    tenant: Tenant,
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
     let result: Vec<Dimension> = dimensions.get_results(&mut conn)?;
-    Ok(Json(result))
+
+    let mandatory_dimensions =
+        Tenant::get_mandatory_dimensions(&tenant, &state.mandatory_dimensions);
+
+    let dimensions_with_mandatory: Vec<DimensionWithMandatory> = result
+        .into_iter()
+        .map(|ele| {
+            let is_mandatory = mandatory_dimensions.contains(&ele.dimension);
+            DimensionWithMandatory::new(ele, is_mandatory)
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(dimensions_with_mandatory))
 }

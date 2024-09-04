@@ -23,7 +23,7 @@ main = do
             lastModified    <- getCacLastModified client
             overrides       <- getResolvedConfig client "{\"country\": \"India\"}" $ Just ["country_image_url", "hyperpay_version"]
             defaults        <- getDefaultConfig client $ Just ["country_image_url", "hyperpay_version"]
-            filteredConfig  <- getFullConfigStateWithFilter client (Just "{\"os\": \"android\"}") (Just "hyperpay")
+            filteredConfig  <- getFullConfigStateWithFilter client (Just "{\"os\": \"android\"}") $ Just ["hyperpay"]
             print config
             print lastModified
             print overrides

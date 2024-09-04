@@ -2,6 +2,7 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use service_utils::helpers::deserialize_stringified_list;
+use superposition_types::{Condition, Exp, Overrides};
 
 use crate::db::models::{self, ExperimentStatusType};
 
@@ -17,7 +18,7 @@ pub struct Variant {
     pub variant_type: VariantType,
     pub context_id: Option<String>,
     pub override_id: Option<String>,
-    pub overrides: Map<String, Value>,
+    pub overrides: Exp<Overrides>,
 }
 
 /********** Experiment Create Req Types ************/
@@ -25,7 +26,7 @@ pub struct Variant {
 #[derive(Deserialize)]
 pub struct ExperimentCreateRequest {
     pub name: String,
-    pub context: Value,
+    pub context: Exp<Condition>,
     pub variants: Vec<Variant>,
 }
 
@@ -101,7 +102,7 @@ pub struct ConcludeExperimentRequest {
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct ContextPutReq {
-    pub context: serde_json::Map<String, Value>,
+    pub context: Map<String, Value>,
     pub r#override: Value,
 }
 
@@ -154,7 +155,7 @@ pub struct RampRequest {
 #[derive(Deserialize, Debug)]
 pub struct VariantUpdateRequest {
     pub id: String,
-    pub overrides: Map<String, Value>,
+    pub overrides: Exp<Overrides>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -164,7 +165,7 @@ pub struct OverrideKeysUpdateRequest {
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct ContextMoveReq {
-    pub context: serde_json::Map<String, Value>,
+    pub context: Map<String, Value>,
 }
 
 /*********** List Audit API Filter Type **************/

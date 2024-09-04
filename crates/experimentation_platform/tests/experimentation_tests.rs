@@ -4,7 +4,7 @@ use experimentation_platform::db::models::{Experiment, ExperimentStatusType};
 use serde_json::{json, Map, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::ExperimentationFlags;
-use superposition_types::result::AppError;
+use superposition_types::{result as superposition, Cac, Condition, Exp, Overrides};
 
 enum Dimensions {
     Os(String),
@@ -12,41 +12,45 @@ enum Dimensions {
     VariantIds(String),
 }
 
-fn single_dimension_ctx_gen(value: Dimensions) -> serde_json::Value {
+fn single_dimension_ctx_gen(value: Dimensions) -> Map<String, Value> {
+    let mut map = Map::new();
     match value {
-        Dimensions::Os(os) => serde_json::json!({
-            "==": [
+        Dimensions::Os(os) => map.insert(
+            "==".to_string(),
+            json!([
                 {"var": "os"},
                 os
-            ]
-        }),
-        Dimensions::Client(client_id) => serde_json::json!({
-            "==": [
+            ]),
+        ),
+        Dimensions::Client(client_id) => map.insert(
+            "==".to_string(),
+            json!([
                 client_id,
                 {"var": "clientId"}
-            ]
-        }),
-        Dimensions::VariantIds(id) => serde_json::json!({
-            "in": [
+            ]),
+        ),
+        Dimensions::VariantIds(id) => map.insert(
+            "in".to_string(),
+            json!([
                 id,
                 {"var": "variantIds"},
-            ]
-        }),
-    }
+            ]),
+        ),
+    };
+    map
 }
 
-fn multiple_dimension_ctx_gen(values: Vec<Dimensions>) -> serde_json::Value {
-    let mut conditions: Vec<serde_json::Value> = vec![];
+fn multiple_dimension_ctx_gen(values: Vec<Dimensions>) -> Map<String, Value> {
+    let mut conditions: Vec<Map<String, Value>> = vec![];
     for val in values {
         conditions.push(single_dimension_ctx_gen(val));
     }
-
-    serde_json::json!({ "and": conditions })
+    Map::from_iter(vec![("and".to_string(), json!(conditions))])
 }
 
 fn experiment_gen(
     override_keys: &[String],
-    context: &Value,
+    context: &Map<String, Value>,
     status: ExperimentStatusType,
     variants: &Value,
 ) -> Experiment {
@@ -61,7 +65,7 @@ fn experiment_gen(
 
         override_keys: override_keys.to_vec(),
         status,
-        context: context.clone(),
+        context: json!(context.clone()),
         variants: variants.clone(),
         chosen_variant: None,
     }
@@ -72,7 +76,7 @@ fn test_duplicate_override_key_entries() {
     let override_keys = vec!["key1".to_string(), "key2".to_string(), "key1".to_string()];
     assert!(matches!(
         helpers::validate_override_keys(&override_keys),
-        Err(AppError::BadArgument(_))
+        Err(superposition::AppError::BadArgument(_))
     ));
 }
 
@@ -86,13 +90,20 @@ fn test_unique_override_key_entries() {
 }
 
 #[test]
-fn test_extract_dimensions() -> Result<(), AppError> {
+fn test_extract_dimensions() -> Result<(), superposition::AppError> {
     let context_a = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
+    let context_a = Cac::<Condition>::try_from(context_a.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
+
     let context_b =
         single_dimension_ctx_gen(Dimensions::Client("testclient1".to_string()));
+    let context_b = Cac::<Condition>::try_from(context_b.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
 
     let expected_dimensions_1 = serde_json::Map::from_iter(vec![
         ("os".to_string(), json!("os1")),
@@ -109,17 +120,31 @@ fn test_extract_dimensions() -> Result<(), AppError> {
 }
 
 #[test]
-fn test_are_overlapping_contexts() -> Result<(), AppError> {
+fn test_are_overlapping_contexts() -> Result<(), superposition::AppError> {
     let context_a = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
+    let context_a = Exp::<Condition>::try_from(context_a.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
+
     let context_b = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient2".to_string()),
     ]);
+    let context_b = Exp::<Condition>::try_from(context_b.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
+
     let context_c = single_dimension_ctx_gen(Dimensions::Os("os1".to_string()));
     let context_d = single_dimension_ctx_gen(Dimensions::Os("os2".to_string()));
+    let context_c = Exp::<Condition>::try_from(context_c.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
+    let context_d = Exp::<Condition>::try_from(context_d.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
 
     // both contexts with same dimensions
     assert!(helpers::are_overlapping_contexts(&context_a, &context_a)?);
@@ -135,24 +160,34 @@ fn test_are_overlapping_contexts() -> Result<(), AppError> {
 }
 
 #[test]
-fn test_check_variants_override_coverage() {
+fn test_check_variants_override_coverage() -> Result<(), superposition::AppError> {
     let override_keys = vec!["key1".to_string(), "key2".to_string()];
     let overrides = [
-        Map::from_iter(vec![
+        Exp::<Overrides>::try_from(Map::from_iter(vec![
             ("key1".to_string(), json!("value1")),
             ("key2".to_string(), json!("value2")),
-        ]),
-        // has one override key mi)ssing
-        Map::from_iter(vec![("key1".to_string(), json!("value1"))]),
-        // has an unknown override) key
-        Map::from_iter(vec![("key3".to_string(), json!("value3"))]),
-        // has an extra unknown ov)erride key
-        Map::from_iter(vec![
+        ])),
+        // has one override key missing
+        Exp::<Overrides>::try_from(Map::from_iter(vec![(
+            "key1".to_string(),
+            json!("value1"),
+        )])),
+        // has an unknown override key
+        Exp::<Overrides>::try_from(Map::from_iter(vec![(
+            "key3".to_string(),
+            json!("value3"),
+        )])),
+        // has an extra unknown override key
+        Exp::<Overrides>::try_from(Map::from_iter(vec![
             ("key1".to_string(), json!("value1")),
             ("key2".to_string(), json!("value2")),
             ("key3".to_string(), json!("value3")),
-        ]),
-    ];
+        ])),
+    ]
+    .into_iter()
+    .map(|a| a.map(|b| b.into_inner()))
+    .collect::<Result<Vec<Overrides>, String>>()
+    .map_err(superposition::AppError::BadArgument)?;
 
     assert!(helpers::check_variant_override_coverage(
         &overrides[0],
@@ -170,17 +205,21 @@ fn test_check_variants_override_coverage() {
         &overrides[3],
         &override_keys
     ));
+    Ok(())
 }
 
 /************************* No Restrictions *****************************************/
 
 #[test]
 fn test_is_valid_experiment_no_restrictions_overlapping_experiment(
-) -> Result<(), AppError> {
+) -> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
+    let experiment_context = Exp::<Condition>::try_from(experiment_context.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -210,11 +249,14 @@ fn test_is_valid_experiment_no_restrictions_overlapping_experiment(
 
 #[test]
 fn test_is_valid_experiment_no_restrictions_non_overlapping_experiment(
-) -> Result<(), AppError> {
+) -> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
+    let experiment_context = Exp::<Condition>::try_from(experiment_context.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -249,11 +291,14 @@ fn test_is_valid_experiment_no_restrictions_non_overlapping_experiment(
 
 #[test]
 fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_experiment_same_keys(
-) -> Result<(), AppError> {
+) -> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
+    let experiment_context = Exp::<Condition>::try_from(experiment_context.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: false,
@@ -283,11 +328,14 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
 
 #[test]
 fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_experiment_one_same_key(
-) -> Result<(), AppError> {
+) -> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
+    let experiment_context = Exp::<Condition>::try_from(experiment_context.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: false,
@@ -317,11 +365,14 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
 
 #[test]
 fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_experiment_diff_keys(
-) -> Result<(), AppError> {
+) -> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
+    let experiment_context = Exp::<Condition>::try_from(experiment_context.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: false,
@@ -353,11 +404,14 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
 
 #[test]
 fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_experiment_same_keys(
-) -> Result<(), AppError> {
+) -> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
+    let experiment_context = Exp::<Condition>::try_from(experiment_context.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -387,11 +441,14 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
 
 #[test]
 fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_experiment_one_diff_key(
-) -> Result<(), AppError> {
+) -> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
+    let experiment_context = Exp::<Condition>::try_from(experiment_context.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -421,11 +478,14 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
 
 #[test]
 fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_experiment_diff_keys(
-) -> Result<(), AppError> {
+) -> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
+    let experiment_context = Exp::<Condition>::try_from(experiment_context.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -457,11 +517,14 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
 
 #[test]
 fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlapping_experiment_same_keys(
-) -> Result<(), AppError> {
+) -> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
+    let experiment_context = Exp::<Condition>::try_from(experiment_context.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -494,11 +557,14 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
 
 #[test]
 fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlapping_experiment_one_diff_key(
-) -> Result<(), AppError> {
+) -> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
+    let experiment_context = Exp::<Condition>::try_from(experiment_context.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -531,11 +597,14 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
 
 #[test]
 fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlapping_experiment_diff_keys(
-) -> Result<(), AppError> {
+) -> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
     ]);
+    let experiment_context = Exp::<Condition>::try_from(experiment_context.clone())
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner();
     let experiment_override_keys = vec!["key1".to_string(), "key2".to_string()];
     let flags = ExperimentationFlags {
         allow_same_keys_overlapping_ctx: true,
@@ -564,32 +633,4 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
     );
 
     Ok(())
-}
-
-#[test]
-fn test_fail_context_with_variant_ids_dimensions() {
-    let experiment_context = multiple_dimension_ctx_gen(vec![
-        Dimensions::Os("os1".to_string()),
-        Dimensions::Client("testclient1".to_string()),
-        Dimensions::VariantIds("123456789-variant1".to_string()),
-    ]);
-
-    let result = helpers::validate_context(&experiment_context);
-    assert!(result.is_err());
-
-    let error_msg = result.unwrap_err();
-    match error_msg {
-        AppError::BadArgument(msg) => assert_eq!(msg, "experiment's context should not contain variantIds dimension"),
-        _ => panic!("Not a AppError::BadArgument('experiment's context should not contain variantIds dimension')")
-    }
-}
-
-#[test]
-fn test_pass_context_without_variant_ids_dimensions() {
-    let experiment_context = multiple_dimension_ctx_gen(vec![
-        Dimensions::Os("os1".to_string()),
-        Dimensions::Client("testclient1".to_string()),
-    ]);
-
-    assert!(helpers::validate_context(&experiment_context).is_ok());
 }

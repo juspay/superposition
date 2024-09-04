@@ -20,7 +20,6 @@ use crate::types::Envs;
 pub fn app(app_envs: Envs) -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
-
     let service_prefix = app_envs.service_prefix;
     provide_context(app_envs.clone());
     view! {
@@ -82,7 +81,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                 }
             }}
             // sets the document title
-            <Title text="Welcome to Context Aware Config"/>
+            <Title text="Welcome to Superposition"/>
             <script type_="text/javascript">"__APP_ENVS=" {json!(app_envs).to_string()}</script>
             <Router base=service_prefix>
                 <body class="m-0 min-h-screen bg-gray-50 font-mono">

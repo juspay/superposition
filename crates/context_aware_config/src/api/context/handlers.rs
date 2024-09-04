@@ -22,7 +22,7 @@ use crate::{
     },
 };
 use actix_web::web::Data;
-use service_utils::service::types::{AppHeader, AppState, CustomHeaders};
+use service_utils::service::types::{AppHeader, AppState, CustomHeaders, Tenant};
 
 use actix_web::{
     delete, get, post, put,
@@ -45,7 +45,8 @@ use std::collections::HashMap;
 use superposition_types::{SuperpositionUser, User};
 
 use super::helpers::{
-    validate_condition_with_functions, validate_override_with_functions,
+    validate_condition_with_functions, validate_condition_with_mandatory_dimensions,
+    validate_override_with_functions,
 };
 
 use superposition_macros::{
@@ -192,18 +193,27 @@ fn create_ctx_from_put_req(
     req: Json<PutReq>,
     conn: &mut DBConnection,
     user: &User,
+    state: &Data<AppState>,
+    tenant: &Tenant,
 ) -> superposition::Result<Context> {
-    let ctx_condition = Value::Object(req.context.to_owned());
-    let ctx_override: Value = req.r#override.to_owned().into();
-    validate_override_with_default_configs(conn, &req.r#override)?;
+    let ctx_condition = req.context.to_owned().into_inner();
+    let condition_val = json!(ctx_condition);
+    let r_override = req.r#override.clone().into_inner();
+    let ctx_override = json!(r_override.to_owned());
+    validate_condition_with_mandatory_dimensions(
+        &ctx_condition,
+        &state.mandatory_dimensions,
+        tenant,
+    )?;
+    validate_override_with_default_configs(conn, &r_override)?;
     validate_condition_with_functions(conn, &ctx_condition)?;
-    validate_override_with_functions(conn, &req.r#override)?;
+    validate_override_with_functions(conn, &r_override)?;
 
     let dimension_schema_map = get_all_dimension_schema_map(conn)?;
 
     let priority = validate_dimensions_and_calculate_priority(
         "context",
-        &ctx_condition,
+        &condition_val,
         &dimension_schema_map,
     )?;
 
@@ -211,16 +221,18 @@ fn create_ctx_from_put_req(
         return Err(bad_argument!("No dimension found in context"));
     }
 
-    let context_id = hash(&ctx_condition);
+    let context_id = hash(&condition_val);
     let override_id = hash(&ctx_override);
     Ok(Context {
         id: context_id.clone(),
-        value: ctx_condition,
+        value: condition_val,
         priority,
         override_id: override_id.to_owned(),
         override_: ctx_override.to_owned(),
         created_at: Utc::now(),
         created_by: user.get_email(),
+        last_modified_at: Utc::now().naive_utc(),
+        last_modified_by: user.get_email(),
     })
 }
 
@@ -232,6 +244,7 @@ pub fn hash(val: &Value) -> String {
 fn update_override_of_existing_ctx(
     conn: &mut PgConnection,
     ctx: Context,
+    user: &User,
 ) -> superposition::Result<PutResp> {
     use contexts::dsl;
     let mut new_override: Value = dsl::contexts
@@ -245,18 +258,14 @@ fn update_override_of_existing_ctx(
         override_id: new_override_id,
         ..ctx
     };
-    diesel::update(dsl::contexts)
-        .filter(dsl::id.eq(&new_ctx.id))
-        .set(&new_ctx)
-        .execute(conn)?;
-    Ok(get_put_resp(new_ctx))
+    db_update_override(conn, new_ctx, user)
 }
 
 fn replace_override_of_existing_ctx(
     conn: &mut PgConnection,
     ctx: Context,
+    user: &User,
 ) -> superposition::Result<PutResp> {
-    use contexts::dsl;
     let new_override = ctx.override_;
     let new_override_id = hash(&new_override);
     let new_ctx = Context {
@@ -264,11 +273,25 @@ fn replace_override_of_existing_ctx(
         override_id: new_override_id,
         ..ctx
     };
-    diesel::update(dsl::contexts)
-        .filter(dsl::id.eq(&new_ctx.id))
-        .set(&new_ctx)
-        .execute(conn)?;
-    Ok(get_put_resp(new_ctx))
+    db_update_override(conn, new_ctx, user)
+}
+
+fn db_update_override(
+    conn: &mut PgConnection,
+    ctx: Context,
+    user: &User,
+) -> superposition::Result<PutResp> {
+    use contexts::dsl;
+    let update_resp = diesel::update(dsl::contexts)
+        .filter(dsl::id.eq(&ctx.id))
+        .set((
+            dsl::override_.eq(ctx.override_),
+            dsl::override_id.eq(ctx.override_id),
+            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_by.eq(user.get_email()),
+        ))
+        .get_result::<Context>(conn)?;
+    Ok(get_put_resp(update_resp))
 }
 
 fn get_put_resp(ctx: Context) -> PutResp {
@@ -284,9 +307,11 @@ pub fn put(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
+    state: &Data<AppState>,
+    tenant: &Tenant,
 ) -> superposition::Result<PutResp> {
     use contexts::dsl::contexts;
-    let new_ctx = create_ctx_from_put_req(req, conn, user)?;
+    let new_ctx = create_ctx_from_put_req(req, conn, user, &state, tenant)?;
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
@@ -299,7 +324,7 @@ pub fn put(
             if already_under_txn {
                 diesel::sql_query("ROLLBACK TO put_ctx_savepoint").execute(conn)?;
             }
-            update_override_of_existing_ctx(conn, new_ctx)
+            update_override_of_existing_ctx(conn, new_ctx, user)
         }
         Err(e) => {
             log::error!("failed to update context with db error: {:?}", e);
@@ -315,15 +340,15 @@ async fn put_handler(
     req: Json<PutReq>,
     mut db_conn: DbConnection,
     user: User,
+    tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        let put_response = put(req, transaction_conn, true, &user).map_err(
-            |err: superposition::AppError| {
+        let put_response = put(req, transaction_conn, true, &user, &state, &tenant)
+            .map_err(|err: superposition::AppError| {
                 log::info!("context put failed with error: {:?}", err);
                 err
-            },
-        )?;
+            })?;
         let version_id = add_config_version(&state, tags, transaction_conn)?;
         let mut http_resp = HttpResponse::Ok();
 
@@ -340,9 +365,11 @@ fn override_helper(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
+    state: &Data<AppState>,
+    tenant: Tenant,
 ) -> superposition::Result<PutResp> {
     use contexts::dsl::contexts;
-    let new_ctx = create_ctx_from_put_req(req, conn, user)?;
+    let new_ctx = create_ctx_from_put_req(req, conn, user, state, &tenant)?;
     if already_under_txn {
         diesel::sql_query("SAVEPOINT insert_ctx_savepoint").execute(conn)?;
     }
@@ -354,7 +381,7 @@ fn override_helper(
             if already_under_txn {
                 diesel::sql_query("ROLLBACK TO insert_ctx_savepoint").execute(conn)?;
             }
-            replace_override_of_existing_ctx(conn, new_ctx) // no need for .map(Json)
+            replace_override_of_existing_ctx(conn, new_ctx, user) // no need for .map(Json)
         }
         Err(e) => {
             log::error!("failed to update context with db error: {:?}", e);
@@ -370,15 +397,17 @@ async fn update_override_handler(
     req: Json<PutReq>,
     mut db_conn: DbConnection,
     user: User,
+    tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        let override_resp = override_helper(req, transaction_conn, true, &user).map_err(
-            |err: superposition::AppError| {
-                log::info!("context put failed with error: {:?}", err);
-                err
-            },
-        )?;
+        let override_resp =
+            override_helper(req, transaction_conn, true, &user, &state, tenant).map_err(
+                |err: superposition::AppError| {
+                    log::info!("context put failed with error: {:?}", err);
+                    err
+                },
+            )?;
         let version_id = add_config_version(&state, tags, transaction_conn)?;
         let mut http_resp = HttpResponse::Ok();
 
@@ -396,16 +425,24 @@ fn r#move(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
+    state: &Data<AppState>,
+    tenant: &Tenant,
 ) -> superposition::Result<PutResp> {
     use contexts::dsl;
     let req = req.into_inner();
-    let ctx_condition = Value::Object(req.context);
-    let new_ctx_id = hash(&ctx_condition);
+    let ctx_condition = req.context.to_owned().into_inner();
+    let ctx_condition_value = Value::Object(ctx_condition.into());
+    let new_ctx_id = hash(&ctx_condition_value);
     let dimension_schema_map = get_all_dimension_schema_map(conn)?;
     let priority = validate_dimensions_and_calculate_priority(
         "context",
-        &ctx_condition,
+        &ctx_condition_value,
         &dimension_schema_map,
+    )?;
+    validate_condition_with_mandatory_dimensions(
+        &req.context.into_inner(),
+        &state.mandatory_dimensions,
+        tenant,
     )?;
 
     if priority == 0 {
@@ -420,19 +457,23 @@ fn r#move(
         .filter(dsl::id.eq(&old_ctx_id))
         .set((
             dsl::id.eq(&new_ctx_id),
-            dsl::value.eq(&ctx_condition),
+            dsl::value.eq(&ctx_condition_value),
             dsl::priority.eq(priority),
+            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_by.eq(user.get_email()),
         ))
         .get_result(conn);
 
     let contruct_new_ctx_with_old_overrides = |ctx: Context| Context {
         id: new_ctx_id,
-        value: ctx_condition,
+        value: ctx_condition_value,
         priority,
         created_at: Utc::now(),
         created_by: user.get_email(),
         override_id: ctx.override_id,
         override_: ctx.override_,
+        last_modified_at: Utc::now().naive_utc(),
+        last_modified_by: user.get_email(),
     };
 
     let handle_unique_violation =
@@ -443,14 +484,14 @@ fn r#move(
                     .get_result(db_conn)?;
 
                 let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
-                update_override_of_existing_ctx(db_conn, ctx)
+                update_override_of_existing_ctx(db_conn, ctx, user)
             } else {
                 db_conn.build_transaction().read_write().run(|conn| {
                     let deleted_ctxt = diesel::delete(dsl::contexts)
                         .filter(dsl::id.eq(&old_ctx_id))
                         .get_result(conn)?;
                     let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
-                    update_override_of_existing_ctx(conn, ctx)
+                    update_override_of_existing_ctx(conn, ctx, user)
                 })
             }
         };
@@ -478,14 +519,23 @@ async fn move_handler(
     req: Json<MoveReq>,
     mut db_conn: DbConnection,
     user: User,
+    tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        let move_reponse = r#move(path.into_inner(), req, transaction_conn, true, &user)
-            .map_err(|err| {
-                log::info!("move api failed with error: {:?}", err);
-                err
-            })?;
+        let move_reponse = r#move(
+            path.into_inner(),
+            req,
+            transaction_conn,
+            true,
+            &user,
+            &state,
+            &tenant,
+        )
+        .map_err(|err| {
+            log::info!("move api failed with error: {:?}", err);
+            err
+        })?;
         let version_id = add_config_version(&state, tags, transaction_conn)?;
         let mut http_resp = HttpResponse::Ok();
 
@@ -569,6 +619,13 @@ pub fn delete_context_api(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<()> {
     use contexts::dsl;
+    diesel::update(dsl::contexts)
+        .filter(dsl::id.eq(&ctx_id))
+        .set((
+            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_by.eq(user.get_email()),
+        ))
+        .execute(conn)?;
     let deleted_row = delete(dsl::contexts.filter(dsl::id.eq(&ctx_id))).execute(conn);
     match deleted_row {
         Ok(0) => Err(not_found!("Context Id `{}` doesn't exists", ctx_id)),
@@ -612,6 +669,7 @@ async fn bulk_operations(
     reqs: Json<Vec<ContextAction>>,
     db_conn: DbConnection,
     user: User,
+    tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
     let DbConnection(mut conn) = db_conn;
@@ -622,14 +680,18 @@ async fn bulk_operations(
         for action in reqs.into_inner().into_iter() {
             match action {
                 ContextAction::Put(put_req) => {
-                    let put_resp = put(Json(put_req), transaction_conn, true, &user)
-                        .map_err(|err| {
-                            log::error!(
-                                "Failed at insert into contexts due to {:?}",
-                                err
-                            );
-                            err
-                        })?;
+                    let put_resp = put(
+                        Json(put_req),
+                        transaction_conn,
+                        true,
+                        &user,
+                        &state,
+                        &tenant,
+                    )
+                    .map_err(|err| {
+                        log::error!("Failed at insert into contexts due to {:?}", err);
+                        err
+                    })?;
                     response.push(ContextBulkResponse::Put(put_resp));
                 }
                 ContextAction::Delete(ctx_id) => {
@@ -657,15 +719,19 @@ async fn bulk_operations(
                     };
                 }
                 ContextAction::Move((old_ctx_id, move_req)) => {
-                    let move_context_resp =
-                        r#move(old_ctx_id, Json(move_req), transaction_conn, true, &user)
-                            .map_err(|err| {
-                                log::error!(
-                                    "Failed at moving context reponse due to {:?}",
-                                    err
-                                );
-                                err
-                            })?;
+                    let move_context_resp = r#move(
+                        old_ctx_id,
+                        Json(move_req),
+                        transaction_conn,
+                        true,
+                        &user,
+                        &state,
+                        &tenant,
+                    )
+                    .map_err(|err| {
+                        log::error!("Failed at moving context reponse due to {:?}", err);
+                        err
+                    })?;
                     response.push(ContextBulkResponse::Move(move_context_resp));
                 }
             }

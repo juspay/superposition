@@ -1,6 +1,6 @@
 [package]
 name = "service_utils"
-version = "0.19.0"
+version = "0.21.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -20,8 +20,6 @@ anyhow = { workspace = true }
 strum_macros = { workspace = true }
 strum = { workspace = true }
 diesel = { workspace = true }
-rusoto_kms = { workspace = true }
-rusoto_signature = { workspace = true }
 bytes = { workspace = true }
 rusoto_core = { workspace = true }
 base64 = { workspace = true }
@@ -37,6 +35,8 @@ once_cell = { workspace = true }
 regex = { workspace = true }
 mime = { workspace = true }
 superposition_types = { path="../superposition_types" }
+aws-sdk-kms = {workspace = true}
+aws-config = {workspace = true}
 
 [lints]
 workspace = true

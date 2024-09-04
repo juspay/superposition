@@ -1,11 +1,11 @@
 use actix_web::dev::Service;
+use actix_web::web::PathConfig;
 use actix_web::HttpMessage;
 use actix_web::{web, web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
 use context_aware_config::api::*;
-use context_aware_config::helpers::{
-    get_default_config_validation_schema, get_meta_schema,
-};
+use context_aware_config::helpers::get_meta_schema;
 use experimentation_platform::api::*;
+use serde_json::{Map, Value};
 use std::sync::Arc;
 use std::{collections::HashSet, io::Result};
 use superposition_types::User;
@@ -65,8 +65,8 @@ async fn main() -> Result<()> {
 
     let cac_host: String = get_from_env_unsafe("CAC_HOST").expect("CAC host is not set");
     let cac_port: u16 = get_from_env_unsafe("PORT").unwrap_or(8080);
-    let cac_version: String = get_from_env_unsafe("CONTEXT_AWARE_CONFIG_VERSION")
-        .expect("CONTEXT_AWARE_CONFIG_VERSION is not set");
+    let cac_version: String = get_from_env_unsafe("SUPERPOSITION_VERSION")
+        .expect("SUPERPOSITION_VERSION is not set");
     let max_pool_size = get_from_env_or_default("MAX_DB_CONNECTION_POOL_SIZE", 2);
 
     let api_host: String =
@@ -85,6 +85,25 @@ async fn main() -> Result<()> {
             .split(',')
             .map(String::from)
             .collect::<HashSet<String>>();
+    let mandatory_dimensions: Map<String, Value> =
+        get_from_env_unsafe::<String>("MANDATORY_DIMENSIONS")
+            .expect("MANDATORY_DIMENSIONS is not set")
+            .split(';')
+            .filter_map(|ele| {
+                let arr: Vec<&str> = ele.split(':').collect();
+                if arr.len() == 2 {
+                    let key = arr[0].to_string();
+                    let values = arr[1]
+                        .split(',')
+                        .map(String::from)
+                        .map(Value::String)
+                        .collect();
+                    Some((key.trim().to_string(), Value::Array(values)))
+                } else {
+                    None
+                }
+            })
+            .collect();
 
     let schema_manager: PgSchemaManager = init_pool_manager(
         tenants.clone(),
@@ -144,7 +163,6 @@ async fn main() -> Result<()> {
             .wrap(TenantMiddlewareFactory)
             .app_data(Data::new(AppState {
                 db_pool: schema_manager.clone(),
-                default_config_validation_schema: get_default_config_validation_schema(),
                 cac_host: cac_host.to_owned(),
                 cac_version: cac_version.to_owned(),
 
@@ -165,6 +183,10 @@ async fn main() -> Result<()> {
                 tenant_middleware_exclusion_list: tenant_middleware_exclusion_list
                     .to_owned(),
                 service_prefix: service_prefix_str.to_owned(),
+                mandatory_dimensions: mandatory_dimensions.to_owned(),
+            }))
+            .app_data(PathConfig::default().error_handler(|err, _| {
+                actix_web::error::ErrorBadRequest(err)
             }))
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()

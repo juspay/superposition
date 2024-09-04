@@ -1,6 +1,6 @@
 [package]
 name = "cac_client"
-version = "0.14.0"
+version = "0.14.1"
 edition = "2021"
 build = "build.rs"
 
@@ -20,7 +20,7 @@ strum_macros = { workspace = true }
 strum = { workspace = true }
 tokio = {version = "1.29.1", features = ["full"]}
 service_utils = { path = "../service_utils" }
-superposition_types = {path = "../superposition_types"}
+superposition_types = {path = "../superposition_types" }
 anyhow = { workspace = true }
 superposition_macros = { path = "../superposition_macros" }
 [lib]

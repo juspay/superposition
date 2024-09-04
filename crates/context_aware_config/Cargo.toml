@@ -1,6 +1,6 @@
 [package]
 name = "context_aware_config"
-version = "0.36.0"
+version = "0.37.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -34,8 +34,6 @@ chrono = { workspace = true }
 # ORM
 diesel = { workspace = true }
 blake3 = { workspace = true }
-rusoto_kms = { workspace = true }
-rusoto_signature = { workspace = true }
 bytes = { workspace = true }
 rusoto_core = { workspace = true }
 base64 = { workspace = true }
@@ -64,6 +62,10 @@ mime = { workspace = true }
 jsonlogic = { workspace = true }
 superposition_types = { path = "../superposition_types" }
 superposition_macros = { path = "../superposition_macros" }
+
+
+[features]
+disable_db_data_validation = ["superposition_types/disable_db_data_validation"]
 
 [lints]
 workspace = true

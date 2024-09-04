@@ -201,6 +201,7 @@ pub struct Dimension {
     pub created_by: String,
     pub schema: Value,
     pub function_name: Option<String>,
+    pub mandatory: bool,
 }
 
 impl DropdownOption for Dimension {
@@ -273,7 +274,8 @@ pub struct TypeTemplate {
     pub type_schema: Value,
     pub created_by: String,
     pub created_at: NaiveDateTime,
-    pub last_modified: NaiveDateTime,
+    pub last_modified_at: NaiveDateTime,
+    pub last_modified_by: String,
 }
 
 impl DropdownOption for TypeTemplate {
