@@ -43,18 +43,23 @@ plugins {
 }
 
 repositories {
-    mavenLocal() // if using local Maven repository
-    mavenCentral()
-    // maven {
-    //     url = uri('https://your-repo-url/maven') // if using a remote repository
-    // }
+    // mavenLocal() // if using local Maven repository
+    mavenCentral() // It's good to have this as a fallback
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/juspay/superposition")
+        credentials {
+            username = System.getenv("GITHUB_USERNAME")
+            password = System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 
 dependencies {
     implementation 'com.github.jnr:jnr-ffi:2.2.16'
     implementation 'com.github.jnr:jffi:1.3.13'
-    implementation 'cac-client:CacClient:1.0.0'
-    implementation 'exp-client:ExpClient:1.0.0'
+    implementation 'juspay.superposition:cac-client:0.0.1'
+    implementation 'juspay.superposition:exp-client:0.0.1'
 }
 
 application {
@@ -68,6 +73,7 @@ import cac_client.CacClient;
 import exp_client.ExperimentationClient;
 import cac_client.CACClientException;
 import exp_client.EXPClientException;
+import java.util.concurrent.CountDownLatch;
 
 public class Client {
     public static void main(String[] args) {
