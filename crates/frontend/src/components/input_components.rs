@@ -333,7 +333,7 @@ pub fn monaco_input(
     let id = store_value(id);
     let schema_type = store_value(schema_type);
     let (value_rs, value_ws) = create_signal(value);
-    let (expand_editor_rs, expand_editor_ws) = create_signal(false);
+    let (expand_rs, expand_ws) = create_signal(false);
     let (error_rs, error_ws) = create_signal::<Option<String>>(None);
     let show_error = Signal::derive(move || error_rs.get().is_some());
 
@@ -353,7 +353,7 @@ pub fn monaco_input(
         });
     });
 
-    let on_editor_save = Callback::new(move |_| {
+    let on_save = Callback::new(move |_| {
         let editor_value = editor_rs.with(|v| v.data.clone());
         logging::log!("Saving editor value: {}", editor_value);
 
@@ -366,7 +366,7 @@ pub fn monaco_input(
                 on_change.call(v);
 
                 editor_ws.update(|v| v.reset());
-                expand_editor_ws.set(false);
+                expand_ws.set(false);
                 error_ws.set(None);
             }
             Err(e) => {
@@ -376,30 +376,12 @@ pub fn monaco_input(
         }
     });
 
-    let on_editor_cancel = Callback::new(move |_| {
+    let on_cancel = Callback::new(move |_| {
         editor_ws.update(|v| {
             v.reset();
         });
-        expand_editor_ws.set(false);
+        expand_ws.set(false);
         error_ws.set(None);
-    });
-
-    create_effect(move |_| {
-        let value = value_rs.get();
-        let open_editor = match value {
-            Value::String(s) => s.is_empty(),
-            Value::Object(o) => o.is_empty(),
-            Value::Array(a) => a.is_empty(),
-            _ => false,
-        };
-
-        if open_editor {
-            editor_ws.update(|v| {
-                v.data = serde_json::to_string_pretty(&value_rs.get())
-                    .unwrap_or(String::new());
-                v.id = id.get_value();
-            });
-        }
     });
 
     view! {
@@ -441,14 +423,14 @@ pub fn monaco_input(
             }>
                 {move || {
                     let (tr, ts) = create_signal(String::new());
-                    let container_class = if expand_editor_rs.get() {
+                    let container_class = if expand_rs.get() {
                         String::from("fixed top-0 left-0 z-10 flex flex-col w-full h-full bg-white")
                     } else {
                         String::from("w-full h-96 p-1")
                     };
                     view! {
                         <div class=container_class>
-                            <Show when=move || { expand_editor_rs.get() }>
+                            <Show when=move || { expand_rs.get() }>
                                 <div class="breadcrumbs px-4 py-4 font-bold">
                                     <ul>
                                         <li>Override</li>
@@ -471,7 +453,7 @@ pub fn monaco_input(
                                 <button
                                     class="btn btn-sm btn-ghost font-normal rounded-lg"
                                     on:click=move |_| {
-                                        expand_editor_ws.update(|v| *v = !*v);
+                                        expand_ws.update(|v| *v = !*v);
                                     }
                                 >
 
@@ -485,15 +467,17 @@ pub fn monaco_input(
                                     hide_class="animate-slide-out-bottom"
                                     hide_delay=Duration::from_millis(5000)
                                 >
-                                    <span class="alert alert-error w-fit text-white capitalize py-2 text-xs">
-                                        {error_rs.get().unwrap_or(String::new())}
+
+                                    <span class="flex gap-2 px-4 text-xs font-semibold text-red-600">
+                                        <i class="ri-close-circle-line"></i>
+                                        {move || { error_rs.get().unwrap_or(String::new()) }}
                                     </span>
                                 </AnimatedShow>
                                 <div class="join ml-auto">
                                     <button
                                         class="btn btn-sm join-item font-normal"
                                         on:click=move |e| {
-                                            on_editor_save.call(e);
+                                            on_save.call(e);
                                         }
                                     >
 
@@ -503,7 +487,7 @@ pub fn monaco_input(
                                     <button
                                         class="btn btn-sm join-item font-normal"
                                         on:click=move |e| {
-                                            on_editor_cancel.call(e);
+                                            on_cancel.call(e);
                                         }
                                     >
 

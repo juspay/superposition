@@ -13,10 +13,106 @@ use serde_json::Value;
 use web_sys::MouseEvent;
 
 #[component]
+fn type_badge(r#type: Option<SchemaType>) -> impl IntoView {
+    match r#type.clone() {
+        Some(SchemaType::Single(ref r#type)) => view! {
+            <div class="badge badge-outline text-gray-400 font-medium text-xs">
+                {r#type.to_string()}
+            </div>
+        }
+        .into_view(),
+        Some(SchemaType::Multiple(types)) => types
+            .iter()
+            .map(|r#type| {
+                view! {
+                    <div class="badge badge-outline text-gray-400 font-medium text-xs">
+                        {r#type.to_string()}
+                    </div>
+                }
+            })
+            .collect_view(),
+        None => view! {}.into_view(),
+    }
+}
+
+#[component]
+fn override_input(
+    id: String,
+    key: String,
+    value: Value,
+    r#type: Option<SchemaType>,
+    variants: Option<EnumVariants>,
+    on_change: Callback<(String, Value), ()>,
+    on_remove: Callback<String, ()>,
+    allow_remove: bool,
+) -> impl IntoView {
+    let key = store_value(key);
+
+    let input_type = match (r#type.clone(), variants) {
+        (Some(type_), Some(variants)) => Some(InputType::from((type_, variants))),
+        _ => None,
+    };
+    let input_class = match input_type {
+        Some(InputType::Toggle) | None => "",
+        Some(_) => "w-[450px] text-gray-700",
+    };
+
+    view! {
+        <div class="flex flex-col">
+            <div class="form-control">
+                <label class="label justify-start font-mono text-sm gap-2">
+                    <span class="label-text font-bold text-gray-500">{key.get_value()} ":"</span>
+                    <div class="flex gap-1">
+                        <TypeBadge r#type=r#type.clone()/>
+                    </div>
+                </label>
+            </div>
+
+            <div class="flex gap-4">
+                {if input_type.is_some() {
+                    view! {
+                        <Input
+                            id=id
+                            class=input_class
+                            r#type=input_type.unwrap()
+                            value=value
+                            schema_type=r#type.unwrap()
+                            on_change=Callback::new(move |value| {
+                                on_change.call((key.get_value(), value));
+                            })
+                        />
+                    }
+                        .into_view()
+                } else {
+                    view! { <p>"An Error Occured"</p> }.into_view()
+                }}
+                <Show when=move || { allow_remove }>
+                    <div class="w-1/5">
+                        <button
+                            class="btn btn-ghost btn-circle btn-sm"
+                            on:click=move |ev| {
+                                ev.prevent_default();
+                                on_remove.call(key.get_value());
+                            }
+                        >
+
+                            <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
+                        </button>
+
+                    </div>
+                </Show>
+            </div>
+
+        </div>
+    }
+}
+
+#[component]
 pub fn override_form<NF>(
     overrides: Vec<(String, Value)>,
     default_config: Vec<DefaultConfig>,
     handle_change: NF,
+    #[prop(into, default=String::new())] id: String,
     #[prop(default = false)] is_standalone: bool,
     #[prop(default = false)] disable_remove: bool,
     #[prop(default = true)] show_add_override: bool,
@@ -25,7 +121,8 @@ pub fn override_form<NF>(
 where
     NF: Fn(Vec<(String, Value)>) + 'static,
 {
-    let default_config = StoredValue::new(default_config);
+    let id = store_value(id);
+    let default_config = store_value(default_config);
     let (override_keys, set_override_keys) = create_signal(HashSet::<String>::from_iter(
         overrides.clone().iter().map(|(k, _)| String::from(k)),
     ));
@@ -56,7 +153,7 @@ where
         }
     });
 
-    let update_overrides = move |config_key_value: &str, value: Value| {
+    let on_change = Callback::new(move |(config_key_value, value): (String, Value)| {
         set_overrides.update(|curr_overrides| {
             let position = curr_overrides
                 .iter()
@@ -65,7 +162,25 @@ where
                 curr_overrides[idx].1 = value;
             }
         });
-    };
+    });
+
+    let on_remove = Callback::new(move |key: String| {
+        match handle_key_remove {
+            Some(f) => f.call(key),
+            None => {
+                set_overrides.update(|value| {
+                    let position =
+                        value.iter().position(|(k, _)| k.to_owned() == key.clone());
+                    if let Some(idx) = position {
+                        value.remove(idx);
+                    }
+                });
+                set_override_keys.update(|keys| {
+                    keys.remove(&key.clone());
+                })
+            }
+        };
+    });
 
     create_effect(move |_| {
         let f_override = overrides.get();
@@ -111,126 +226,31 @@ where
 
                             key=|(config_key, _)| config_key.to_string()
                             children=move |(config_key, config_value)| {
-                                let config_key = store_value(config_key);
                                 let schema_type = SchemaType::try_from(
                                     default_config_map
-                                        .get(&config_key.get_value())
+                                        .get(&config_key.clone())
                                         .unwrap()
                                         .schema
                                         .clone(),
                                 );
                                 let enum_variants = EnumVariants::try_from(
                                     default_config_map
-                                        .get(&config_key.get_value())
+                                        .get(&config_key.clone())
                                         .unwrap()
                                         .schema
                                         .clone(),
                                 );
-                                let input_type = match (schema_type.clone(), enum_variants) {
-                                    (Ok(type_), Ok(variants)) => {
-                                        Some(InputType::from((type_, variants)))
-                                    }
-                                    _ => None,
-                                };
-                                let input_class = match input_type {
-                                    Some(InputType::Toggle) | None => "",
-                                    Some(_) => "w-[450px] text-gray-700",
-                                };
-                                let type_labels = match schema_type.clone() {
-                                    Ok(SchemaType::Single(ref r#type)) => {
-                                        view! {
-                                            <div class="badge badge-outline text-gray-400 font-medium text-xs">
-                                                {r#type.to_string()}
-                                            </div>
-                                        }
-                                            .into_view()
-                                    }
-                                    Ok(SchemaType::Multiple(types)) => {
-                                        types
-                                            .iter()
-                                            .map(|r#type| {
-                                                view! {
-                                                    <div class="badge badge-outline text-gray-400 font-medium text-xs">
-                                                        {r#type.to_string()}
-                                                    </div>
-                                                }
-                                            })
-                                            .collect_view()
-                                    }
-                                    Err(_) => view! {}.into_view(),
-                                };
                                 view! {
-                                    // TODO: give a width to the form container and remove it from the fields
-                                    <div class="flex flex-col">
-                                        <div class="form-control">
-                                            <label class="label justify-start font-mono text-sm gap-2">
-                                                <span class="label-text font-bold text-gray-500">
-                                                    // add the type as a label here for each key
-                                                    {config_key.get_value()} ":"
-                                                </span>
-                                                <div class="flex gap-1">{type_labels}</div>
-                                            </label>
-                                        </div>
-
-                                        <div class="flex gap-4">
-                                            {if input_type.is_some() {
-                                                view! {
-                                                    <Input
-                                                        id=config_key.get_value()
-                                                        class=input_class
-                                                        r#type=input_type.unwrap()
-                                                        value=config_value
-                                                        schema_type=schema_type.unwrap()
-                                                        on_change=Callback::new(move |value| {
-                                                            update_overrides(&config_key.get_value(), value);
-                                                        })
-                                                    />
-                                                }
-                                                    .into_view()
-                                            } else {
-                                                view! { <p>"An Error Occured"</p> }.into_view()
-                                            }}
-                                            <div class="w-1/5">
-
-                                                {if !disable_remove {
-                                                    view! {
-                                                        <button
-                                                            class="btn btn-ghost btn-circle btn-sm"
-                                                            on:click=move |ev| {
-                                                                ev.prevent_default();
-                                                                match handle_key_remove {
-                                                                    Some(f) => f.call(config_key.get_value()),
-                                                                    None => {
-                                                                        set_overrides
-                                                                            .update(|value| {
-                                                                                let position = value
-                                                                                    .iter()
-                                                                                    .position(|(k, _)| k.to_owned() == config_key.get_value());
-                                                                                if let Some(idx) = position {
-                                                                                    value.remove(idx);
-                                                                                }
-                                                                            });
-                                                                        set_override_keys
-                                                                            .update(|keys| {
-                                                                                keys.remove(&config_key.get_value());
-                                                                            })
-                                                                    }
-                                                                };
-                                                            }
-                                                        >
-
-                                                            <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
-                                                        </button>
-                                                    }
-                                                        .into_view()
-                                                } else {
-                                                    view! {}.into_view()
-                                                }}
-
-                                            </div>
-                                        </div>
-
-                                    </div>
+                                    <OverrideInput
+                                        id=format!("{}-{}", id.get_value(), config_key)
+                                        key=config_key
+                                        value=config_value
+                                        r#type=schema_type.ok()
+                                        variants=enum_variants.ok()
+                                        on_change=on_change
+                                        on_remove=on_remove
+                                        allow_remove=!disable_remove
+                                    />
                                 }
                             }
                         />

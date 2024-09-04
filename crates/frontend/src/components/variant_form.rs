@@ -2,13 +2,14 @@ use std::collections::HashSet;
 
 use chrono::Local;
 use leptos::*;
-use serde_json::{json, Value};
+use serde_json::Value;
 
 use crate::{
     components::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         override_form::OverrideForm,
     },
+    form_types::SchemaType,
     types::{DefaultConfig, VariantFormT, VariantType},
 };
 
@@ -55,7 +56,7 @@ where
             .collect::<Vec<DefaultConfig>>()
     });
 
-    let handle_control_override_key_remove = move |removed_key: String| {
+    let on_key_remove = move |removed_key: String| {
         logging::log!("Removing key {:?}", removed_key);
 
         set_override_keys.update(|current_override_keys| {
@@ -75,7 +76,7 @@ where
         });
     };
 
-    let handle_override_form_change = move |variant_idx: usize| {
+    let on_override_change = move |variant_idx: usize| {
         move |updated_overrides: Vec<(String, Value)>| {
             set_variants.update_untracked(|curr_variants| {
                 curr_variants[variant_idx]
@@ -87,21 +88,54 @@ where
         }
     };
 
+    let on_key_select = Callback::new(move |default_config: DefaultConfig| {
+        let config_key = default_config.key;
+        if let Ok(config_type) = SchemaType::try_from(default_config.schema) {
+            let def_value = config_type.default_value();
+
+            set_variants.update(|current_variants: &mut Vec<(String, VariantFormT)>| {
+                for (_, variant) in current_variants.iter_mut() {
+                    variant
+                        .overrides
+                        .push((config_key.clone(), def_value.clone()));
+                }
+            });
+            set_override_keys.update(|value: &mut HashSet<String>| {
+                value.insert(config_key.clone());
+            });
+        }
+    });
+
+    let on_add_variant = move |_: web_sys::MouseEvent| {
+        leptos::logging::log!("add new variant");
+        set_variants.update(|curr_variants| {
+            let key = Local::now().timestamp().to_string();
+            let overrides = default_config
+                .get_value()
+                .iter()
+                .filter_map(|config| {
+                    if override_keys.get().contains(&config.key) {
+                        if let Ok(r#type) = SchemaType::try_from(config.schema.clone()) {
+                            return Some((config.key.clone(), r#type.default_value()));
+                        }
+                    }
+                    None
+                })
+                .collect::<Vec<(String, Value)>>();
+            curr_variants.push((
+                key,
+                VariantFormT {
+                    id: String::new(),
+                    variant_type: VariantType::EXPERIMENTAL,
+                    overrides,
+                },
+            ))
+        });
+    };
+
     create_effect(move |_| {
         let f_variants = f_variants.get();
         handle_change.get_value()(f_variants.clone());
-    });
-
-    let handle_config_key_select = Callback::new(move |default_config: DefaultConfig| {
-        let config_key = default_config.key;
-        set_variants.update(|current_variants: &mut Vec<(String, VariantFormT)>| {
-            for (_, variant) in current_variants.iter_mut() {
-                variant.overrides.push((config_key.clone(), json!("")));
-            }
-        });
-        set_override_keys.update(|value: &mut HashSet<String>| {
-            value.insert(config_key.clone());
-        });
     });
 
     view! {
@@ -127,12 +161,13 @@ where
                 key=|(idx, (key, _))| format!("{}-{}", key, idx)
                 children=move |(idx, (key, variant))| {
                     let is_control_variant = variant.variant_type == VariantType::CONTROL;
-                    let handle_change = handle_override_form_change(idx);
+                    let handle_change = on_override_change(idx);
                     let variant_type_label = match variant.variant_type {
                         VariantType::CONTROL => "Control".to_string(),
                         VariantType::EXPERIMENTAL => format!("Variant {idx}"),
                     };
-                    let show_remove_btn = key != "control-variant" && key != "experimental-variant";
+                    let show_remove_btn = key != "control-variant" && key != "experimental-variant"
+                        && !is_control_variant;
                     let key = StoredValue::new(key);
                     view! {
                         <div class="my-2 p-4 rounded bg-gray-50">
@@ -151,7 +186,7 @@ where
                                         dropdown_text=String::from("Add Override")
                                         dropdown_icon=String::from("ri-add-line")
                                         dropdown_options=unused_config_keys.get()
-                                        on_select=handle_config_key_select
+                                        on_select=on_key_select
                                     />
                                 </Show>
                                 <Show when=move || show_remove_btn>
@@ -222,7 +257,7 @@ where
                                             dropdown_text=String::from("Add Override")
                                             dropdown_icon=String::from("ri-add-line")
                                             dropdown_options=unused_config_keys.get()
-                                            on_select=handle_config_key_select
+                                            on_select=on_key_select
                                         />
                                         <div>
                                             <span class="label-text text-slate-400 text-sm">
@@ -251,19 +286,19 @@ where
                                         if is_control_variant {
                                             view! {
                                                 <OverrideForm
+                                                    id=key.get_value()
                                                     overrides=overrides
                                                     default_config=default_config.get_value()
                                                     handle_change=handle_change
                                                     is_standalone=false
                                                     show_add_override=false
-                                                    handle_key_remove=Some(
-                                                        Callback::new(handle_control_override_key_remove),
-                                                    )
+                                                    handle_key_remove=Some(Callback::new(on_key_remove))
                                                 />
                                             }
                                         } else {
                                             view! {
                                                 <OverrideForm
+                                                    id=key.get_value()
                                                     overrides=overrides
                                                     default_config=default_config.get_value()
                                                     handle_change=handle_change
@@ -287,27 +322,7 @@ where
                 <button
                     class="btn btn-purple-outline btn-sm text-xs m-1"
                     disabled=edit
-                    on:click:undelegated=move |_| {
-                        leptos::logging::log!("add new variant");
-                        set_variants
-                            .update(|curr_variants| {
-                                let key = Local::now().timestamp().to_string();
-                                let overrides = override_keys
-                                    .get()
-                                    .into_iter()
-                                    .map(|key| { (key, json!("")) })
-                                    .collect();
-                                curr_variants
-                                    .push((
-                                        key,
-                                        VariantFormT {
-                                            id: String::new(),
-                                            variant_type: VariantType::EXPERIMENTAL,
-                                            overrides,
-                                        },
-                                    ))
-                            });
-                    }
+                    on:click:undelegated=on_add_variant
                 >
 
                     <i class="ri-add-line"></i>

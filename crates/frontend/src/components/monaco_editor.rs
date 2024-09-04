@@ -70,6 +70,7 @@ pub fn monaco_editor(
                     None => {}
                 }
             }
-        ></div>
+        >
+        </div>
     }
 }

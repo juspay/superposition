@@ -11,6 +11,7 @@ use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{experiment_form::ExperimentForm, stat::Stat, table::Table};
 
+use crate::providers::editor_provider::EditorProvider;
 use crate::types::{ExperimentsResponse, ListFilters};
 
 use self::utils::experiment_table_columns;
@@ -224,14 +225,16 @@ pub fn experiment_list() -> impl IntoView {
                             }
                         >
 
-                            <ExperimentForm
-                                name="".to_string()
-                                context=vec![]
-                                variants=vec![]
-                                dimensions=dim.clone()
-                                default_config=def_conf.clone()
-                                handle_submit=handle_submit_experiment_form
-                            />
+                            <EditorProvider>
+                                <ExperimentForm
+                                    name="".to_string()
+                                    context=vec![]
+                                    variants=vec![]
+                                    dimensions=dim.clone()
+                                    default_config=def_conf.clone()
+                                    handle_submit=handle_submit_experiment_form
+                                />
+                            </EditorProvider>
                         </Drawer>
                     }
                 }}
