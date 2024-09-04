@@ -340,7 +340,6 @@ pub fn monaco_input(
                 editor_rs.with(|v| v.id == id.get_value())
             }>
                 {move || {
-                    let (tr, ts) = create_signal(String::new());
                     let container_class = if expand_rs.get() {
                         String::from("fixed top-0 left-0 z-10 flex flex-col w-full h-full bg-white")
                     } else {
@@ -364,8 +363,6 @@ pub fn monaco_input(
 
                                 language=Languages::Json
                                 classes=vec!["h-full"]
-                                data_rs=tr
-                                data_ws=ts
                             />
                             <div class="absolute top-[0px] right-[0px]">
                                 <button

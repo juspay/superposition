@@ -89,11 +89,10 @@ where
 
                 <div class="flex flex-row w-full justify-between">
                     <div class="form-group">
-
                         <MonacoEditor
                             node_id="code_editor_fn"
-                            data_rs=function
-                            data_ws=set_function
+                            data=function.get_untracked()
+                            on_change=move |value| set_function.set(value)
                             classes=vec!["min-w-[1000px]", "min-h-[500px]"]
                         />
                     </div>

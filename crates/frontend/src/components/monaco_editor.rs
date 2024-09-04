@@ -18,8 +18,6 @@ pub fn monaco_editor(
     #[prop(into)] node_id: String,
     #[prop(into, default = String::new())] data: String,
     #[prop(into, default = Callback::new(move |_| {}))] on_change: Callback<String, ()>,
-    data_rs: ReadSignal<String>,
-    data_ws: WriteSignal<String>,
     #[prop(default = Languages::Javascript)] language: Languages,
     #[prop(default = vec!["min-h-50"])] classes: Vec<&'static str>,
     #[prop(default = false)] _validation: bool,
@@ -43,16 +41,12 @@ pub fn monaco_editor(
             editor_settings.set_font_family(Some("ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace"));
             logging::log!("Monaco Init value {}", data);
             editor_settings.set_value(Some(data.as_str()));
-            // editor_settings.set_value(Some(data_rs.get().as_str()));
             editor_settings.set_render_final_newline(Some(true));
             editor_settings.set_read_only(Some(read_only));
             editor_settings.set_minimap(Some(&minimap_settings));
             let editor = CodeEditor::create(&node, Some(editor_settings));
 
             editor_ws.set(Rc::new(Some(editor)));
-            // if let Ok(e) = KeyboardEvent::new("keyup") {
-            //     node.dispatch_event(&e);
-            // }
         }
     });
     view! {
