@@ -1,4 +1,5 @@
 use actix_web::dev::Service;
+use actix_web::middleware::Compress;
 use actix_web::web::PathConfig;
 use actix_web::HttpMessage;
 use actix_web::{web, web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
@@ -155,6 +156,7 @@ async fn main() -> Result<()> {
         let leptos_envs = ui_envs.clone();
         let cac_host = cac_host.to_owned() + base.as_str();
         App::new()
+            .wrap(Compress::default())
             .wrap_fn(|req, srv| {
                 let user = User::default();
                 req.extensions_mut().insert::<User>(user);
