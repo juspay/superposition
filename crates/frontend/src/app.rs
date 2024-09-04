@@ -41,6 +41,10 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css"
                         rel="stylesheet"
                     />
+                    <script
+                        type_="text/javascript"
+                        src="https://cdn.jsdelivr.net/npm/@andypf/json-viewer@2.1.5/dist/iife/index.min.js"
+                    ></script>
                     {move || {
                         if base.is_empty() {
                             view! {}.into_view()
@@ -83,7 +87,6 @@ pub fn app(app_envs: Envs) -> impl IntoView {
             // sets the document title
             <Title text="Welcome to Superposition"/>
             <script type_="text/javascript">"__APP_ENVS=" {json!(app_envs).to_string()}</script>
-            <script src="https://pfau-software.de/json-viewer/dist/iife/index.js"></script>
             <Router base=service_prefix>
                 <body class="m-0 min-h-screen bg-gray-50 font-mono">
                     <AlertProvider>
