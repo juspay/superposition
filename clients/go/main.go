@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"goclients/cacclient"
-	"goclients/expclient"
+	"github.com/juspay/superposition/clients/go/cacclient"
+	"github.com/juspay/superposition/clients/go/expclient"
 )
 
 func main() {

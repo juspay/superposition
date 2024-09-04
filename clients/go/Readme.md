@@ -13,6 +13,14 @@
 
 You can obtain the lib and include files by compiling from source for now. We will soon pusha downloadable zip for you to use.
 
+## Installation 
+
+- Run 
+    ```
+    go get github.com/juspay/superposition/clients/go
+    ```
+- 
+
 ## [CAC Client](./cacclient/main.go)
 
 ***Set this flag in order to know go where to pick superposition object files from***
