@@ -21,6 +21,7 @@
         ./nix/pre-commit.nix
         ./clients/haskell
         ./nix/rust.nix
+        ./nix/om.nix
       ];
 
       perSystem = { pkgs, self', config, ... }: {
