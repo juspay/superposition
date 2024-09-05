@@ -205,7 +205,7 @@ pub fn dimensions() -> impl IntoView {
                                     </DrawerBtn>
                                 </div>
                                 <Table
-                                    cell_style="min-w-48 font-mono".to_string()
+                                    cell_class="min-w-48 font-mono".to_string()
                                     rows=table_rows
                                     key_column="id".to_string()
                                     columns=table_columns.get()

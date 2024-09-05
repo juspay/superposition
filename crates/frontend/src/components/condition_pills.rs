@@ -43,14 +43,6 @@ pub fn condition_expression(
         "condition_expression component must be used inside condition_collapse_provider",
     );
 
-    let classes = Signal::derive(move || {
-        if expand_rs.get() {
-            ("condition-item", "condition-value")
-        } else {
-            ("condition-item-collapsed", "condition-value-collapsed")
-        }
-    });
-
     create_effect(move |_| {
         if let ConditionId(Some(c_id)) = condition_id_rs.get() {
             if !c_id.contains(&list_id) {
@@ -61,7 +53,11 @@ pub fn condition_expression(
 
     view! {
         {move || {
-            let (list_item_class, value_class) = classes.get();
+            let (list_item_class, value_class) = if expand_rs.get() {
+                ("condition-item", "condition-value")
+            } else {
+                ("condition-item-collapsed", "condition-value-collapsed")
+            };
             let Condition { left_operand: dimension, operator, right_operand: value } = condition
                 .get_value();
             view! {
@@ -135,7 +131,8 @@ pub fn condition(
 
     view! {
         <div class=outer_div_class>
-            <ol id=id.clone()>
+            <ol id=id
+                .clone()>
                 {conditions
                     .get_value()
                     .into_iter()
@@ -147,9 +144,7 @@ pub fn condition(
                     .collect::<Vec<_>>()}
             </ol>
             <Show when=move || grouped_view>
-                <span class="and">
-                    "and"
-                </span>
+                <span class="and">"and"</span>
             </Show>
         </div>
     }
