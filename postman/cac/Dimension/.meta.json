@@ -1,5 +1,6 @@
 {
   "childrenOrder": [
-    "Create Dimension"
+    "Create Dimension",
+    "Delete Dimension"
   ]
 }

@@ -456,6 +456,114 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Delete Dimension",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const host = pm.variables.get(\"host\");",
+                  "",
+                  "function add_dimension() {",
+                  "    const options = {",
+                  "        'method': 'PUT',",
+                  "        'url': `${host}/dimension`,",
+                  "        'header': {",
+                  "            'x-tenant': 'test',",
+                  "            'Content-Type': 'application/json'",
+                  "        },",
+                  "        \"body\": {",
+                  "            \"mode\": \"raw\",",
+                  "            \"raw\": JSON.stringify({",
+                  "               \"dimension\": \"dim1\",",
+                  "                \"priority\": 4,",
+                  "                \"schema\": {",
+                  "                    \"type\": \"string\",",
+                  "                    \"pattern\": \".*\"",
+                  "                }",
+                  "            })",
+                  "        }",
+                  "    };",
+                  "    pm.sendRequest(options, function (error, response) {",
+                  "        if (error) {",
+                  "            console.log(`Error creating dimension: dim1`);",
+                  "            console.log(error);",
+                  "            return;",
+                  "        }",
+                  "        console.log(`created dimension: dim1`);",
+                  "    });",
+                  "    ",
+                  "}",
+                  "",
+                  "add_dimension();"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const host = pm.variables.get(\"host\");",
+                  "const token = pm.variables.get(\"token\");",
+                  "",
+                  "pm.test(\"204 check\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "})",
+                  "",
+                  "pm.test(\"404 check\", function () {",
+                  "  const deleteRequest = {",
+                  "      url: `${host}/dimension/dim1`,",
+                  "      method: 'DELETE',",
+                  "      header: {",
+                  "          'Content-Type': 'application/json',",
+                  "          'x-tenant': 'test',",
+                  "          'Authorization': `Bearer ${token}`",
+                  "      }",
+                  "  };",
+                  "",
+                  "  pm.sendRequest(deleteRequest, (error, response) => {",
+                  "      response.to.have.status(404);",
+                  "  });",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/dimension/dim1",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "dimension",
+                "dim1"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },

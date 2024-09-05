@@ -213,6 +213,21 @@ pub async fn delete_default_config(key: String, tenant: String) -> Result<(), St
     Ok(())
 }
 
+pub async fn delete_dimension(name: String, tenant: String) -> Result<(), String> {
+    let host = get_host();
+    let url = format!("{host}/dimension/{name}");
+
+    request(
+        url,
+        reqwest::Method::DELETE,
+        None::<serde_json::Value>,
+        construct_request_headers(&[("x-tenant", &tenant)])?,
+    )
+    .await?;
+
+    Ok(())
+}
+
 pub async fn fetch_types(
     tenant: String,
     page: i64,

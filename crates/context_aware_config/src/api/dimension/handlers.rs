@@ -1,26 +1,34 @@
 use crate::{
-    api::dimension::types::CreateReq,
-    db::{models::Dimension, schema::dimensions::dsl::*},
+    api::dimension::{types::CreateReq, utils::get_dimension_usage_context_ids},
+    db::{
+        models::Dimension,
+        schema::{dimensions, dimensions::dsl::*},
+    },
     helpers::validate_jsonschema,
 };
 use actix_web::{
-    get, put,
-    web::{self, Data},
+    delete, get, put,
+    web::{self, Data, Path},
     HttpResponse, Scope,
 };
 use chrono::Utc;
-use diesel::RunQueryDsl;
+use diesel::{
+    delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
+};
 use jsonschema::{Draft, JSONSchema};
 use serde_json::Value;
-use superposition_macros::{bad_argument, unexpected_error};
+use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{result as superposition, SuperpositionUser, User};
 
 use service_utils::service::types::{AppState, DbConnection, Tenant};
 
-use super::types::DimensionWithMandatory;
+use super::types::{DeleteReq, DimensionWithMandatory};
 
 pub fn endpoints() -> Scope {
-    Scope::new("").service(create).service(get)
+    Scope::new("")
+        .service(create)
+        .service(get)
+        .service(delete_dimension)
 }
 
 #[put("")]
@@ -130,4 +138,47 @@ async fn get(
         .collect();
 
     Ok(HttpResponse::Ok().json(dimensions_with_mandatory))
+}
+
+#[delete("/{name}")]
+async fn delete_dimension(
+    path: Path<DeleteReq>,
+    user: User,
+    db_conn: DbConnection,
+) -> superposition::Result<HttpResponse> {
+    let name: String = path.into_inner().into();
+    let DbConnection(mut conn) = db_conn;
+    dimensions::dsl::dimensions
+        .filter(dimensions::dimension.eq(&name))
+        .select(Dimension::as_select())
+        .get_result(&mut conn)?;
+    let context_ids = get_dimension_usage_context_ids(&name, &mut conn)
+        .map_err(|_| unexpected_error!("Something went wrong"))?;
+    if context_ids.is_empty() {
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            use dimensions::dsl;
+            diesel::update(dsl::dimensions)
+                .filter(dsl::dimension.eq(&name))
+                .set((
+                    dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                    dsl::last_modified_by.eq(user.get_email()),
+                ))
+                .execute(transaction_conn)?;
+            let deleted_row = delete(dsl::dimensions.filter(dsl::dimension.eq(&name)))
+                .execute(transaction_conn);
+            match deleted_row {
+                Ok(0) => Err(not_found!("Dimension `{}` doesn't exists", name)),
+                Ok(_) => Ok(HttpResponse::NoContent().finish()),
+                Err(e) => {
+                    log::error!("dimension delete query failed with error: {e}");
+                    Err(unexpected_error!("Something went wrong."))
+                }
+            }
+        })
+    } else {
+        Err(bad_argument!(
+            "Given key already in use in contexts: {}",
+            context_ids.join(",")
+        ))
+    }
 }
