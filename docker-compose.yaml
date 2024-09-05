@@ -13,7 +13,7 @@ services:
     network_mode: bridge
 
   localstack:
-    build : ./docker-compose/localstack/
+    build: ./docker-compose/localstack/
     container_name: superposition_localstack
     ports:
       - "4510-4559:4510-4559"  # external service port range
@@ -24,3 +24,16 @@ services:
       LOCALSTACK_SERVICES: s3, sns, sqs, logs, cloudwatch, kms
       AWS_DEFAULT_REGION: ap-south-1
       EDGE_PORT: 4566
+
+  # app:
+  #   image: superposition_github:latest  
+  #   container_name: superposition_app
+  #   ports:
+  #     - "8080:8080" 
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - postgres
+  #     - localstack
+  #   network_mode: bridge
+  #   restart: on-failure
