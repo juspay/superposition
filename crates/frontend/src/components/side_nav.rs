@@ -66,8 +66,6 @@ pub fn side_nav(
     let tenant_ws = use_context::<WriteSignal<String>>().unwrap();
     let (app_routes, set_app_routes) = create_signal::<Vec<AppRoute>>(vec![]);
 
-    logging::log!("{:?}", app_routes.get());
-
     let resolved_path = create_rw_signal(resolved_path);
     let original_path = create_rw_signal(original_path);
 
@@ -124,7 +122,6 @@ pub fn side_nav(
                             .collect::<Vec<String>>()
                             .join("/");
                         tenant_ws.set(selected_tenant.clone());
-                        // set_app_routes.set(create_routes(selected_tenant.as_str()));
                         let navigate = use_navigate();
                         navigate(redirect_url.as_str(), Default::default())
                     }
@@ -159,7 +156,7 @@ pub fn side_nav(
                 <div class="items-center block w-auto max-h-screen overflow-auto h-sidenav grow basis-full">
                     <ul class="menu">
                         <For
-                            each=move || { let a = app_routes.get(); logging::log!("{:?}", a); a }
+                            each=move || app_routes.get()
                             key=|route: &AppRoute| route.key.to_string()
                             children=move |route: AppRoute| {
                                 let path = route.path.to_string();
