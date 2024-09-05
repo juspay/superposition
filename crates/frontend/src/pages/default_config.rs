@@ -287,7 +287,7 @@ pub fn default_config() -> impl IntoView {
                                     </div>
                                 </div>
                                 <Table
-                                    cell_style="min-w-48 font-mono".to_string()
+                                    cell_class="min-w-48 font-mono".to_string()
                                     rows=filtered_rows
                                     key_column="id".to_string()
                                     columns=table_columns.get()

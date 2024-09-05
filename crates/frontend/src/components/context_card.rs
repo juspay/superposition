@@ -81,7 +81,7 @@ pub fn context_card(
                     class="xl:w-[400px] h-fit"
                 />
                 <Table
-                    cell_style="min-w-48 font-mono".to_string()
+                    cell_class="min-w-48 font-mono".to_string()
                     rows=override_table_rows
                     key_column="id".to_string()
                     columns=table_columns

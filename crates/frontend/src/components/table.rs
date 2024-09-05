@@ -26,17 +26,17 @@ pub fn table(
     key_column: String,
     columns: Vec<Column>,
     rows: Vec<Map<String, Value>>,
-    #[prop(into, default = String::new())] cell_style: String,
-    #[prop(into, default = String::new())] style: String,
-    #[prop(into, default = String::new())] head_style: String,
+    #[prop(into, default = String::new())] class: String,
+    #[prop(into, default = String::new())] cell_class: String,
+    #[prop(into, default = String::new())] head_class: String,
     #[prop(default = TablePaginationProps::default())] pagination: TablePaginationProps,
 ) -> impl IntoView {
     let pagination_props = StoredValue::new(pagination);
-    let container_style = format!("{} overflow-x-auto", style);
+    let container_style = format!("{} overflow-x-auto", class);
     view! {
         <div class=container_style>
             <table class="table table-zebra">
-                <thead class=head_style>
+                <thead class=head_class>
                     <tr>
                         <th></th>
 
@@ -84,7 +84,7 @@ pub fn table(
                                                 row.get(cname).unwrap_or(&Value::String("".to_string())),
                                             );
                                             view! {
-                                                <td class=cell_style
+                                                <td class=cell_class
                                                     .to_string()>{(column.formatter)(&value, row)}</td>
                                             }
                                         })
