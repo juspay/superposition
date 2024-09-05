@@ -1,5 +1,5 @@
 from expclient import ExperimentationClient
-from cacclient import CacClient 
+from cacclient import CacClient , MergeStrategy
 import http.server
 import socketserver
 
@@ -9,9 +9,6 @@ try:
     cac_host_name = "http://localhost:8080"
     exp_client = ExperimentationClient(tenant_name, polling_frequency, cac_host_name)
     cac_client = CacClient(tenant_name, polling_frequency, cac_host_name)
-
-    exp_client.create_new_experimentation_client()
-    cac_client.create_new_cac_client()
 
     cac_client.start_cac_polling_update()
     exp_client.start_experimentation_polling_update()
@@ -28,13 +25,13 @@ try:
                 self.send_response(200)
                 self.send_header("Content-type", "text/html")
                 self.end_headers()
-                self.wfile.write(cacClientResp.encode())
+                self.wfile.write(str((cacClientResp)).encode())
             elif self.path == '/testexp':
-                expClientResp = exp_client.get_running_experiments()
+                expClientResp = exp_client.get_satisfied_experiments({})
                 self.send_response(200)
                 self.send_header("Content-type", "text/html")
                 self.end_headers()
-                self.wfile.write(expClientResp.encode())
+                self.wfile.write(str(expClientResp).encode())
 
     with socketserver.TCPServer(("", PORT), MyHandler) as httpd:
         print(f"Serving at port http://localhost:{PORT}")

@@ -1,6 +1,7 @@
 import ctypes
 import os
 import threading
+import ast
 
 platform = os.uname().sysname.lower()
 lib_path = os.environ.get("SUPERPOSITION_LIB_PATH")
@@ -14,6 +15,22 @@ file_name = (
 )
 
 lib_path = os.path.join(lib_path, file_name)
+
+
+from enum import Enum, auto
+
+class MergeStrategy(Enum):
+    MERGE = auto()
+    REPLACE = auto()
+
+class Config:
+    def __init__(self, config_dict):
+        try:
+            self.contexts = config_dict['contexts']
+            self.overrides = config_dict['overrides']
+            self.default_configs = config_dict['default_configs']
+        except Exception as e:
+            raise Exception("Invalid config dictionary", e)
 
 class CacClient:
     rust_lib = ctypes.CDLL(lib_path)
@@ -57,6 +74,12 @@ class CacClient:
         self.polling_frequency = polling_frequency
         self.cac_host_name = cac_host_name
 
+        resp = self.rust_lib.cac_new_client(
+            self.tenant.encode(), self.polling_frequency, self.cac_host_name.encode())
+        if resp == 1:
+            error_message = self.get_cac_last_error_message()
+            raise Exception("Error Occured while creating new client ", error_message)
+
     def get_cac_last_error_message(self) -> str:
         return self.rust_lib.cac_last_error_message().decode()
 
@@ -66,26 +89,24 @@ class CacClient:
     def get_cac_client(self) -> str:
         return self.rust_lib.cac_get_client(self.tenant.encode())
 
-    def create_new_cac_client(self) -> int:
-        resp = self.rust_lib.cac_new_client(
-            self.tenant.encode(), self.polling_frequency, self.cac_host_name.encode())
-        if resp == 1:
-            error_message = self.get_cac_last_error_message()
-            print("Some Error Occur while creating new client ", error_message)
-        return resp
-
     def start_cac_polling_update(self):
         threading.Thread(target=self._polling_update_worker).start()
 
     def _polling_update_worker(self):
         self.rust_lib.cac_start_polling_update(self.tenant.encode())
 
-    def get_cac_config(self, filter_query: str | None = None, filter_prefix: str | None = None) -> str:
+    def get_cac_config(self, filter_query: str | None = None, filter_prefix: str | None = None) -> Config:
         client_ptr = self.get_cac_client()
         filter_prefix_ptr = None if filter_prefix is None else filter_prefix.encode()
         filter_query_ptr = None if filter_query is None else filter_query.encode()
-        return self.rust_lib.cac_get_config(client_ptr, filter_query_ptr, filter_prefix_ptr).decode()
-
+        try:
+            result =  self.rust_lib.cac_get_config(client_ptr, filter_query_ptr, filter_prefix_ptr).decode()
+            print("pppp", result)
+            print(ast.literal_eval(result))
+            return Config(ast.literal_eval(result))
+        except:
+            raise Exception(self.rust_lib.get_cac_last_error_message())
+        
     def free_cac_client(self, client_ptr: str):
         self.rust_lib.cac_free_client(client_ptr.encode())
 
@@ -93,13 +114,24 @@ class CacClient:
         self.rust_lib.cac_free_string(string.encode())
 
     def get_last_modified(self) -> str:
-        return self.rust_lib.cac_get_last_modified(self.get_cac_client()).decode()
+        try:
+            return self.rust_lib.cac_get_last_modified(self.get_cac_client()).decode()
+        except:
+            raise Exception(self.rust_lib.get_cac_last_error_message())
 
-    def get_resolved_config(self, query: str, merge_strategy: str, filter_keys: str | None = None) -> str:
+    def get_resolved_config(self, query: dict, merge_strategy: MergeStrategy, filter_keys: str | None = None) -> dict:
         filter_keys_ptr = None if filter_keys is None else filter_keys.encode()
-        return self.rust_lib.cac_get_resolved_config(
-            self.get_cac_client(), query.encode(), filter_keys_ptr, merge_strategy.encode()).decode()
-
-    def get_default_config(self, filter_keys: str | None = None) -> str:
+        try:
+            result =  self.rust_lib.cac_get_resolved_config(
+                self.get_cac_client(), str(query).encode(), filter_keys_ptr, merge_strategy.name.encode()).decode()
+            return ast.literal_eval(result)
+        except:
+            raise Exception(self.rust_lib.get_cac_last_error_message())
+        
+    def get_default_config(self, filter_keys: list[str] | None = None) -> dict:
         filter_keys_ptr = None if filter_keys is None else filter_keys.encode()
-        return self.rust_lib.cac_get_default_config(self.get_cac_client(), filter_keys_ptr).decode()
+        try:
+            result = self.rust_lib.cac_get_default_config(self.get_cac_client(), filter_keys_ptr).decode()
+            return ast.literal_eval(result)
+        except:
+            raise Exception(self.rust_lib.get_cac_last_error_message())

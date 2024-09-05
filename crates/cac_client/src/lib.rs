@@ -99,6 +99,9 @@ impl Client {
         let reqwc = clone_reqw(&reqw)?;
         let resp = reqwc.send().await.map_err_to_string()?;
         let last_modified_at = get_last_modified(&resp);
+        if resp.status().is_client_error() {
+            return Err("Invalid tenant".to_string());
+        }
         let config = resp.json::<Config>().await.map_err_to_string()?;
 
         let client = Client {
