@@ -34,6 +34,8 @@ RUN cd crates/frontend \
 RUN mv crates/frontend/pkg target/site/
 RUN cp -a crates/frontend/assets/. target/site/
 RUN cp .env.example target/.env
+RUN mkdir -p target/web
+RUN cp -a examples/superposition-demo-app/web/. target/web/
 # building backend
 RUN cargo build --release
 
@@ -68,7 +70,7 @@ RUN node --version
 COPY examples/superposition-demo-app/superposition_demo.sh .
 RUN chmod 774 superposition_demo.sh
 COPY --from=builder /build/target/release/cac-demo-app /app/cac-demo-app
-COPY --from=builder /build/examples/superposition-demo-app/web /app/web
+COPY --from=builder /build/target/web /app/examples/superposition-demo-app/web/
 COPY --from=builder /build/target/release/superposition /app/superposition
 COPY --from=builder /build/Cargo.toml /app/Cargo.toml
 COPY --from=builder /build/target/site /app/target/site
