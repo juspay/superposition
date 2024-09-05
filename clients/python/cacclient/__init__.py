@@ -1,1 +1,1 @@
-from .client import CacClient
+from .client import CacClient, MergeStrategy
