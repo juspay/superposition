@@ -9,7 +9,7 @@ members = [
     "crates/experimentation_client",
     "crates/cac_client",
     "crates/frontend",
-    "crates/caclang",
+    "crates/cac_toml",
     "crates/superposition",
     "crates/superposition_types",
     "examples/experimentation_client_integration_example",

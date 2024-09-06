@@ -1,0 +1,20 @@
+[package]
+name = "cac_toml"
+version = "0.2.1"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "cac_toml"
+path = "src/lib.rs"
+
+[[bin]]
+name = "cac"
+path = "src/bin.rs"
+
+[dependencies]
+clap = { version = "4.3.0", features = ["derive"] }
+pest = "2.6"
+pest_derive = "2.6"
+toml = { version = "0.8.8", features = ["preserve_order"] }
