@@ -40,7 +40,7 @@ where
     let (config_schema_rs, config_schema_ws) = create_signal(type_schema);
     let (config_value, set_config_value) = create_signal(config_value);
     let (function_name, set_function_name) = create_signal(function_name);
-
+    let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let string_to_value_closure = |val: String| {
         Value::from_str(&val).unwrap_or_else(|_| {
             // do this for Value::String, since for some reason from_str
@@ -87,6 +87,7 @@ where
     let (error_message, set_error_message) = create_signal("".to_string());
 
     let on_submit = move |ev: MouseEvent| {
+        req_inprogress_ws.set(true);
         ev.prevent_default();
         let f_name = prefix
             .clone()
@@ -124,6 +125,7 @@ where
                         // Consider logging or displaying the error
                     }
                 }
+                req_inprogress_ws.set(false);
             }
         });
     };
@@ -329,11 +331,17 @@ where
             </Suspense>
 
             <div class="form-control grid w-full justify-start">
-                <Button
-                    class="pl-[70px] pr-[70px]".to_string()
-                    text="Submit".to_string()
-                    on_click=on_submit
-                />
+            { move || {
+                let loading = req_inprogess_rs.get();
+                view! {
+                    <Button
+                        class="pl-[70px] pr-[70px] w-48 h-12".to_string()
+                        text="Submit".to_string()
+                        on_click=on_submit.clone()
+                        loading
+                    />
+                }
+            }}
             </div>
 
             {

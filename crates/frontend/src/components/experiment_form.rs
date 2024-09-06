@@ -64,6 +64,7 @@ where
     let (experiment_name, set_experiment_name) = create_signal(name);
     let (f_context, set_context) = create_signal(context.clone());
     let (f_variants, set_variants) = create_signal(init_variants);
+    let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
     let handle_context_form_change = move |updated_ctx: Vec<(String, String, String)>| {
         set_context.set_untracked(updated_ctx);
@@ -76,6 +77,7 @@ where
 
     let dimensions = StoredValue::new(dimensions);
     let on_submit = move |event: MouseEvent| {
+        req_inprogress_ws.set(true);
         event.prevent_default();
         logging::log!("Submitting experiment form");
         logging::log!("{:?}", f_variants.get());
@@ -118,6 +120,7 @@ where
                         // We can consider logging or displaying the error
                     }
                 }
+                req_inprogress_ws.set(false);
             }
         });
     };
@@ -176,7 +179,17 @@ where
             }}
 
             <div class="flex justify-start mt-8">
-                <Button text="Submit".to_string() on_click=on_submit/>
+            { move || {
+                let loading = req_inprogess_rs.get();
+                view! {
+                    <Button
+                        class="pl-[70px] pr-[70px] w-48 h-12".to_string()
+                        text="Submit".to_string()
+                        on_click=on_submit.clone()
+                        loading
+                    />
+                }
+            }}
             </div>
         </div>
     }

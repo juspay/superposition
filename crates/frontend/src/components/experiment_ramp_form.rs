@@ -18,9 +18,10 @@ where
 {
     let (traffic, set_traffic) = create_signal(experiment.traffic_percentage);
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-
+    let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let experiment_rc = Rc::new(experiment);
     let handle_ramp_experiment = move |event: MouseEvent| {
+        req_inprogress_ws.set(true);
         event.prevent_default();
         let experiment_clone = experiment_rc.clone();
         let handle_submit_clone = handle_submit.clone();
@@ -28,6 +29,7 @@ where
             let tenant = tenant_rs.get();
             let traffic_value = traffic.get();
             let _ = ramp_experiment(&experiment_clone.id, traffic_value, &tenant).await;
+            req_inprogress_ws.set(false);
             handle_submit_clone()
         });
     };
@@ -48,8 +50,12 @@ where
                     set_traffic.set(traffic_value);
                 }
             />
-
-            <Button text="Set".to_string() on_click=handle_ramp_experiment/>
+            { move || {
+                let loading = req_inprogess_rs.get();
+                view! {
+                    <Button text="Set".to_string() on_click=handle_ramp_experiment.clone() loading/>
+                }
+            }}
         </form>
     }
 }

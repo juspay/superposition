@@ -33,10 +33,12 @@ where
     let (runtime_version, set_runtime_version) = create_signal(runtime_version);
     let (error_message, set_error_message) = create_signal("".to_string());
     let (description, set_description) = create_signal(description);
+    let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     if !edit {
         set_runtime_version.set("1.0.0".to_string())
     };
     let on_submit = move |event: MouseEvent| {
+        req_inprogress_ws.set(true);
         event.prevent_default();
         logging::log!("Submitting function form");
 
@@ -79,6 +81,7 @@ where
                         set_error_message.set(e);
                     }
                 }
+                req_inprogress_ws.set(false);
             }
         });
     };
@@ -158,7 +161,17 @@ where
                         </div>
 
                         <div class="flex justify-end mt-8">
-                            <Button text="Submit".to_string() on_click=on_submit/>
+                        { move || {
+                            let loading = req_inprogess_rs.get();
+                            view! {
+                                <Button
+                                    class="pl-[70px] pr-[70px] w-48 h-12".to_string()
+                                    text="Submit".to_string()
+                                    on_click=on_submit.clone()
+                                    loading
+                                />
+                            }
+                        }}
                         </div>
 
                         <div class="flex">
@@ -180,8 +193,9 @@ pub fn test_form(function_name: String, stage: String) -> impl IntoView {
         create_signal::<Option<FunctionTestResponse>>(None);
     let (val, set_val) = create_signal(json!({}));
     let (key, set_key) = create_signal(String::new());
-
+    let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let on_submit = move |event: MouseEvent| {
+        req_inprogress_ws.set(true);
         event.prevent_default();
         logging::log!("Submitting function form");
 
@@ -210,6 +224,7 @@ pub fn test_form(function_name: String, stage: String) -> impl IntoView {
                         set_error_message.set(e);
                     }
                 }
+                req_inprogress_ws.set(false);
             }
         });
     };
@@ -269,7 +284,17 @@ pub fn test_form(function_name: String, stage: String) -> impl IntoView {
                     </div>
 
                     <div class="flex justify-end mt-8">
-                        <Button text="Submit".to_string() on_click=on_submit/>
+                    { move || {
+                        let loading = req_inprogess_rs.get();
+                        view! {
+                            <Button
+                                class="pl-[70px] pr-[70px] w-48 h-12".to_string()
+                                text="Submit".to_string()
+                                on_click=on_submit.clone()
+                                loading
+                            />
+                        }
+                    }}
                     </div>
 
                     <div class="mt-7">

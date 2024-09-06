@@ -182,6 +182,7 @@ pub fn home() -> impl IntoView {
 
     let (context_rs, context_ws) = create_signal::<Vec<(String, String, String)>>(vec![]);
     let (selected_tab_rs, selected_tab_ws) = create_signal(ResolveTab::AllConfig);
+    let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
     let unstrike = |search_field_prefix: &String, config: &Map<String, Value>| {
         for (dimension, value) in config.into_iter() {
@@ -251,6 +252,7 @@ pub fn home() -> impl IntoView {
 
     let resolve_click = move |ev: MouseEvent| {
         ev.prevent_default();
+        req_inprogress_ws.set(true);
         // strike out all config elements on the page
         let config_name_elements = document().get_elements_by_class_name("config-name");
         let config_value_elements = document().get_elements_by_class_name("config-value");
@@ -330,6 +332,7 @@ pub fn home() -> impl IntoView {
                 }
                 resolution_card.set_inner_html(&table_rows);
             }
+            req_inprogress_ws.set(false);
         });
     };
     view! {
@@ -363,11 +366,17 @@ pub fn home() -> impl IntoView {
                                                 />
 
                                                 <div class="card-actions mt-6 justify-end">
-                                                    <Button
-                                                        id="resolve_btn".to_string()
-                                                        text="Resolve".to_string()
-                                                        on_click=resolve_click
-                                                    />
+                                                    { move || {
+                                                        let loading = req_inprogess_rs.get();
+                                                        view! {
+                                                            <Button
+                                                            id="resolve_btn".to_string()
+                                                            text="Resolve".to_string()
+                                                            on_click=resolve_click.clone()
+                                                            loading=loading
+                                                            />
+                                                        }
+                                                    }}
                                                 </div>
                                             </div>
                                         </div>
