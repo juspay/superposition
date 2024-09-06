@@ -1,4 +1,9 @@
 # Superposition
+
+<p align="center">
+<img src="https://juspay.io/images/superposition/logo.jpg" alttext="Superposition Logo" width="400">
+</p>
+
 Superposition is a cloud configuration and experimentation management platform that allows software teams to manage their configuration via a central location, run multi-variate experiments for different configuration values and evaluate results of these experiments and conclude them accordingly.
 
 The Superposition platform comes with three components:
@@ -38,6 +43,6 @@ Once you run this command, you'll find the demo app at `localhost:8081` and Supe
 * **Authn/Authz support** - control who can make configuration/experimentation changes
 
 ## Interested to know more - reach out to the team !
-* Website: https://juspay.io/superposition
+* https://juspay.io/superposition
 * [![Twitter](https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/superpositionjp)
 * [![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/sBgYYUQU)
