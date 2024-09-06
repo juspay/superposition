@@ -69,7 +69,7 @@ RUN node --version
 
 COPY examples/superposition-demo-app/superposition_demo.sh .
 RUN chmod 774 superposition_demo.sh
-COPY --from=builder /build/target/release/cac-demo-app /app/cac-demo-app
+COPY --from=builder /build/target/release/superposition-demo-app /app/cac-demo-app
 COPY --from=builder /build/target/web /app/examples/superposition-demo-app/web/
 COPY --from=builder /build/target/release/superposition /app/superposition
 COPY --from=builder /build/Cargo.toml /app/Cargo.toml
