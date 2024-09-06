@@ -1058,7 +1058,7 @@ dependencies = [
 
 [[package]]
 name = "cac_client"
-version = "0.14.1"
+version = "0.14.2"
 dependencies = [
  "actix-web",
  "anyhow",
@@ -1092,7 +1092,7 @@ dependencies = [
 
 [[package]]
 name = "cac_toml"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "clap 4.3.4",
  "pest",
@@ -1391,7 +1391,7 @@ checksum = "13418e745008f7349ec7e449155f419a61b92b58a99cc3616942b926825ec76b"
 
 [[package]]
 name = "context_aware_config"
-version = "0.37.0"
+version = "0.38.0"
 dependencies = [
  "actix",
  "actix-cors",
@@ -1888,7 +1888,7 @@ dependencies = [
 
 [[package]]
 name = "experimentation_client"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "cbindgen",
  "chrono",
@@ -2016,7 +2016,7 @@ dependencies = [
 
 [[package]]
 name = "frontend"
-version = "0.14.0"
+version = "0.15.0"
 dependencies = [
  "actix-files",
  "actix-web",

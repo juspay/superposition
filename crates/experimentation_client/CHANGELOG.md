@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.8.1 - 2024-09-06
+#### Bug Fixes
+- python client (#219) - (31a9887) - PRATIK MISHRA
+
+- - -
+
 ## experimentation_client-v0.8.0 - 2024-06-27
 #### Features
 - Rework async library in CAC client (#88) - (5610b93) - Datron

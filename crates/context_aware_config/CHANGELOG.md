@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.38.0 - 2024-09-06
+#### Bug Fixes
+- update function time from 2s to 10s for network requests (#211) - (188683b) - Datron
+- return default config object when created (#208) - (8118e5c) - Datron
+#### Features
+- delete dimension api and ui (#213) - (01cdc18) - PRATIK MISHRA
+#### Miscellaneous Chores
+- **(deps)** bump axios in /crates/context_aware_config - (6c46c94) - dependabot[bot]
+
+- - -
+
 ## context_aware_config-v0.37.0 - 2024-08-14
 #### Bug Fixes
 - changing aws kms library to aws-sdk-kms to rusto (#203) - (a455f93) - namit goel

@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.14.2 - 2024-09-06
+#### Bug Fixes
+- python client (#219) - (31a9887) - PRATIK MISHRA
+
+- - -
+
 ## cac_client-v0.14.1 - 2024-08-08
 #### Bug Fixes
 - api validation with new types (#146) - (66ad741) - PRATIK MISHRA

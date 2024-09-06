@@ -2,6 +2,43 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.56.0 - 2024-09-06
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.38.0
+- cac_client bumped to cac_client-v0.14.2
+- experimentation_client bumped to experimentation_client-v0.8.1
+- frontend bumped to frontend-v0.15.0
+- cac_toml bumped to cac_toml-v0.1.0
+### Global changes
+#### Bug Fixes
+- update go clients - (3497b0e) - Kartik
+- optimised wasm file size (#222) - (a044706) - sauraww
+- python client (#219) - (31a9887) - PRATIK MISHRA
+- example dockerfile - (533a277) - Kartik
+- add setup.py fle and doc update - (87f8e34) - Pratik Mishra
+- removed edit option for experiment contexts (#229) - (a9b01a6) - Shubhranshu Sanjeev
+#### Continuous Integration
+- **(nix)** Run Haskell clients in CI (#191) - (5eeb498) - Shivaraj B H
+#### Documentation
+- update docs with correct icons and include logo (#228) - (cb80c7d) - Natarajan Kannan
+#### Features
+- [Client] Java client (#198) - (290227f) - Ankit Kumar Mahato
+- adding go cac and experimentation client wrapper - (ff2e240) - namit goel
+- adding go cac and experimentation client wrapper - (9198e02) - namit goel
+- delete dimension api and ui (#213) - (01cdc18) - PRATIK MISHRA
+- Build CAC Lang using a formal expression parser (#220) - (88a24a5) - Natarajan Kannan
+- JsonSchema generated forms (#221) - (3c02248) - Shubhranshu Sanjeev
+#### Miscellaneous Chores
+- **(action)** split up github docker actions to build faster - (be2abe3) - Kartik
+- **(deps-dev)** bump axios from 1.7.2 to 1.7.4 - (a0e6a8d) - dependabot[bot]
+- **(nix)** Switch to omnix (#206) - (d142ce5) - Sridhar Ratnakumar
+- add example app and release scripts - (41073fc) - Kartik
+- add example app and release scripts - (c6201fa) - Kartik
+- Rename example.DockerFile to example.Dockerfile - (a92e530) - Datron
+- Rename DockerFile to Dockerfile - (e205e71) - Datron
+
+- - -
+
 ## v0.55.0 - 2024-08-14
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.37.0

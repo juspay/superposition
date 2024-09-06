@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.15.0 - 2024-09-06
+#### Bug Fixes
+- removed edit option for experiment contexts (#229) - (a9b01a6) - Shubhranshu Sanjeev
+- display unsupported operators in overrides UI and enhance context_form (#217) - (c615b77) - sauraww
+- resolved comments - (527e698) - Shubhranshu Sanjeev
+- removed horizontal arrangement of conditions and overrides - (a8f8d75) - Shubhranshu Sanjeev
+- preveting multiple event handler register - (b510756) - Shubhranshu Sanjeev
+- horizontal scroll for big conditions - (0be0c60) - Shubhranshu Sanjeev
+- override-page-empty-prompt-text (#216) - (1adf631) - PRATIK MISHRA
+#### Features
+- add button loader when network requests are in progress - (acef03c) - Kartik
+- JsonSchema generated forms (#221) - (3c02248) - Shubhranshu Sanjeev
+- delete dimension api and ui (#213) - (01cdc18) - PRATIK MISHRA
+
+- - -
+
 ## frontend-v0.14.0 - 2024-08-14
 #### Bug Fixes
 - dropdown search (#202) - (f78ddbc) - Ankit Kumar Mahato
