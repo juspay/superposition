@@ -7,7 +7,9 @@ The Superposition platform comes with three components:
 * **Experimentation** - a experimentation management system that allows supplying different configuration values to equal-sized cohorts (facilitating A/B testing)
 * **Metrics** - a metrics sub-system that interacts with analytics backends to provide supporting metrics that enable conclusions to be drawn from experiments (TBD)
 
-## Immediately get started with Superposition and a demo app
+## Getting started
+
+The fastest way to setup superposition along with a demo-app is to use the following docker command:
 
 ```
 docker run -d -p 8081:9090 -p 8080:8080 datron1/superposition-demo-app:latest
