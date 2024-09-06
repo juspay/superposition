@@ -51,8 +51,10 @@ fn form(
     let (context, set_context) = create_signal(context);
     let (overrides, set_overrides) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
+    let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
     let on_submit = move |_| {
+        req_inprogress_ws.set(true);
         spawn_local(async move {
             let f_context = context.get();
             let f_overrides = overrides.get();
@@ -84,6 +86,7 @@ fn form(
                     logging::log!("Error submitting context and overrides: {:?}", e);
                 }
             }
+            req_inprogress_ws.set(false);
         });
     };
     view! {
@@ -113,11 +116,17 @@ fn form(
         />
 
         <div class="flex justify-start w-full mt-10">
-            <Button
-                class="pl-[70px] pr-[70px]".to_string()
-                text="Submit".to_string()
-                on_click=on_submit
-            />
+        { move || {
+            let loading = req_inprogess_rs.get();
+            view! {
+                <Button
+                    class="pl-[70px] pr-[70px] w-48 h-12".to_string()
+                    text="Submit".to_string()
+                    on_click=on_submit.clone()
+                    loading
+                />
+            }
+        }}
         </div>
     }
 }

@@ -21,8 +21,10 @@ where
     let (error_message, set_error_message) = create_signal("".to_string());
     let (type_name_rs, type_name_ws) = create_signal(type_name);
     let (type_schema_rs, type_schema_ws) = create_signal(type_schema);
+    let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
     let on_submit = move |ev: MouseEvent| {
+        req_inprogress_ws.set(true);
         ev.prevent_default();
         let type_name = type_name_rs.get();
         let type_schema = type_schema_rs.get();
@@ -48,6 +50,7 @@ where
                         set_error_message.set(e);
                     }
                 }
+                req_inprogress_ws.set(false);
             }
         });
     };
@@ -110,11 +113,17 @@ where
             </div>
 
             <div class="form-control grid w-full mt-5 justify-start">
-                <Button
-                    class="pl-[70px] pr-[70px]".to_string()
-                    text="Submit".to_string()
-                    on_click=on_submit
-                />
+                { move || {
+                    let loading = req_inprogess_rs.get();
+                    view! {
+                        <Button
+                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
+                            text="Submit".to_string()
+                            on_click=on_submit.clone()
+                            loading
+                        />
+                    }
+                }}
             </div>
             <div>
                 <p class="text-red-500">{move || error_message.get()}</p>
