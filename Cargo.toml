@@ -14,7 +14,6 @@ members = [
     "crates/superposition_types",
     "examples/experimentation_client_integration_example",
     "examples/cac_client_integration_example",
-    "examples/cac_toml_app_example",
     "examples/superposition-demo-app",
     "crates/superposition_macros"
 ]

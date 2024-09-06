@@ -1101,26 +1101,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cac_toml"
-version = "0.2.1"
-source = "git+https://github.com/juspay/superposition.git?branch=pest-cac-lang#054500e26fd07187f17574ad4c3667f7673a7b37"
-dependencies = [
- "clap 4.3.4",
- "pest",
- "pest_derive",
- "toml 0.8.8",
-]
-
-[[package]]
-name = "cac_toml_app_example"
-version = "0.1.0"
-dependencies = [
- "cac_toml 0.2.1 (git+https://github.com/juspay/superposition.git?branch=pest-cac-lang)",
- "clap 4.3.4",
- "toml 0.8.8",
-]
-
-[[package]]
 name = "cached"
 version = "0.45.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
