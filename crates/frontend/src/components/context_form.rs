@@ -244,8 +244,8 @@ where
                                                                             view! {
                                                                                 <BooleanToggle
                                                                                     name="context-dimension-value"
-                                                                                    config_value={value.parse::<bool>().unwrap_or(false)}
-                                                                                    update_value=Callback::new(move |flag: bool| {
+                                                                                    value={value.parse::<bool>().unwrap_or(false)}
+                                                                                    on_change=Callback::new(move |flag: bool| {
                                                                                         set_context
                                                                                             .update(|curr_context| {
                                                                                                 curr_context[idx].2 = flag.to_string();

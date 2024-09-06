@@ -22,16 +22,18 @@ pub enum DropdownDirection {
 
 #[component]
 pub fn dropdown<T>(
-    dropdown_text: String,
     dropdown_options: Vec<T>,
     on_select: Callback<T, ()>,
-    #[prop(default = "".to_string())] dropdown_icon: String,
+    #[prop(into)] dropdown_text: String,
+    #[prop(into, default = String::new())] dropdown_icon: String,
     #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
     #[prop(default = DropdownBtnType::Outline)] dropdown_btn_type: DropdownBtnType,
-    #[prop(default = "w-96")] dropdown_width: &'static str,
+    #[prop(into, default = String::from("w-96"))] dropdown_width: String,
     #[prop(default = false)] disabled: bool,
     #[prop(default = true)] searchable: bool,
-    #[prop(default = "")] name: &'static str,
+    #[prop(into, default = String::new())] name: String,
+    #[prop(into, default = String::new())] class: String,
+    #[prop(into, default = String::new())] id: String,
 ) -> impl IntoView
 where
     T: DropdownOption + Clone + 'static,
@@ -56,6 +58,7 @@ where
 
     view! {
         <div
+            id=id
             class="dropdown"
             class=("disable-click", disabled)
             class=("dropdown-right", dropdown_direction == DropdownDirection::Right)
@@ -63,7 +66,7 @@ where
             class=("dropdown-top", dropdown_direction == DropdownDirection::Top)
             class=("dropdown-down", dropdown_direction == DropdownDirection::Down)
         >
-            <label tabindex="0" class=btn_class>
+            <label tabindex="0" class=format!("{} {}", class, btn_class)>
                 <i class=format!("{dropdown_icon}")></i>
                 {dropdown_text}
             </label>
@@ -74,30 +77,28 @@ where
                 )
             >
 
-                {move || {
-                    if searchable {
-                        view! {
-                            <div class="mb-3">
-                                <label class="input input-bordered flex items-center gap-2 h-10">
-                                    <i class="ri-search-line"></i>
-                                    <input
-                                        type="text"
-                                        class="grow"
-                                        placeholder="Search"
-                                        name=name
-                                        value=String::new()
-                                        on:input=move |event| {
-                                            set_search_term.set(event_target_value(&event));
-                                        }
-                                    />
+                {if searchable {
+                    view! {
+                        <div class="mb-3">
+                            <label class="input input-bordered flex items-center gap-2 h-10">
+                                <i class="ri-search-line"></i>
+                                <input
+                                    type="text"
+                                    class="grow"
+                                    placeholder="Search"
+                                    name=name
+                                    value=search_term.get_untracked()
+                                    on:input=move |event| {
+                                        set_search_term.set(event_target_value(&event));
+                                    }
+                                />
 
-                                </label>
-                            </div>
-                        }
-                            .into_view()
-                    } else {
-                        view! {}.into_view()
+                            </label>
+                        </div>
                     }
+                        .into_view()
+                } else {
+                    view! {}.into_view()
                 }}
 
                 <For
