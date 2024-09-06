@@ -87,7 +87,7 @@ where
                                     class="grow"
                                     placeholder="Search"
                                     name=name
-                                    value=String::new()
+                                    value=search_term.get_untracked()
                                     on:input=move |event| {
                                         set_search_term.set(event_target_value(&event));
                                     }

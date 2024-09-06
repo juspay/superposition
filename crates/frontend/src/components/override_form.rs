@@ -14,14 +14,14 @@ use web_sys::MouseEvent;
 
 #[component]
 fn type_badge(r#type: Option<SchemaType>) -> impl IntoView {
-    match r#type.clone() {
-        Some(SchemaType::Single(ref r#type)) => view! {
+    r#type.map(|t| match t {
+        SchemaType::Single(ref r#type) => view! {
             <div class="badge badge-outline text-gray-400 font-medium text-xs">
                 {r#type.to_string()}
             </div>
         }
         .into_view(),
-        Some(SchemaType::Multiple(types)) => types
+        SchemaType::Multiple(types) => types
             .iter()
             .map(|r#type| {
                 view! {
@@ -31,8 +31,7 @@ fn type_badge(r#type: Option<SchemaType>) -> impl IntoView {
                 }
             })
             .collect_view(),
-        None => view! {}.into_view(),
-    }
+    })
 }
 
 #[component]

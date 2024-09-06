@@ -55,12 +55,20 @@ pub fn monaco_editor(
             class=styling
             node_ref=editor_ref
             on:keyup=move |_| {
-                match editor_rs.get().borrow() {
-                    Some(editor) => {
-                        logging::log!("here editor {:?}", editor.get_model().unwrap().get_value());
-                        on_change.call(editor.get_model().unwrap().get_value());
+                let editor = editor_rs.get();
+                let value = (editor.borrow() as &Option<CodeEditor>)
+                    .as_ref()
+                    .map(|editor| editor.get_model())
+                    .flatten()
+                    .map(|model| model.get_value());
+                match value {
+                    Some(value) => {
+                        logging::log!("Change editor value {}", value);
+                        on_change.call(value);
                     }
-                    None => {}
+                    None => {
+                        logging::log!("Failed to get editor value");
+                    }
                 }
             }
         >

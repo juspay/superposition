@@ -28,15 +28,13 @@ pub enum InputType {
 impl InputType {
     pub fn to_html_input_type(self) -> &'static str {
         match self {
-            InputType::Text => "text",
-            InputType::Disabled => "text",
+            InputType::Text
+            | InputType::Disabled
+            | InputType::Toggle
+            | InputType::Monaco
+            | InputType::Select(_) => "text",
 
-            InputType::Number => "number",
-            InputType::Integer => "number",
-
-            InputType::Toggle => "text",
-            InputType::Monaco => "text",
-            InputType::Select(_) => "text",
+            InputType::Number | InputType::Integer => "number",
         }
     }
 }
@@ -221,19 +219,16 @@ fn basic_input(
             />
 
             {move || {
-                let error = error_rs.get();
-                match error {
-                    Some(msg) => {
+                error_rs
+                    .get()
+                    .map(|err| {
                         view! {
                             <span class="flex gap-2 px-4 text-xs font-semibold text-red-600">
                                 <i class="ri-close-circle-line"></i>
-                                {msg}
+                                {err}
                             </span>
                         }
-                            .into_view()
-                    }
-                    None => ().into_view(),
-                }
+                    });
             }}
 
         </div>
