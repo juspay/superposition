@@ -1,3 +1,15 @@
+# Client Installation
+ Install the python client via using below commands
+ 1. For cac client
+   ```
+    $ pip3 install git+https://github.com/juspay/superposition.git#subdirectory=clients/python/cac_client
+   ```
+ 2. For experimentation client
+   ```
+    $ pip3 install git+https://github.com/juspay/superposition.git#subdirectory=clients/python/exp_client
+   ```
+
+
 Set directory path that contains superposition object files in <span style="color: red" > SUPERPOSITION_LIB_PATH </span> env variable;
 
 ## [<u> CAC Client </u>](./cacclient)
