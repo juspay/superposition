@@ -43,6 +43,6 @@ Once you run this command, you'll find the demo app at `localhost:8081` and Supe
 * **Authn/Authz support** - control who can make configuration/experimentation changes
 
 ## Interested to know more - reach out to the team !
-* https://juspay.io/superposition
 * ![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/superpositionJP)
 * [![Discord](https://img.shields.io/discord/1280216553350107258)](https://discord.gg/sBgYYUQU)
+* [Email us](mailto:superposition@juspay.in)
