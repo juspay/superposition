@@ -15,7 +15,7 @@ use crate::{
     },
     providers::editor_provider::EditorProvider,
     types::{DefaultConfig, Dimension, Experiment},
-    utils::{close_modal, extract_conditions, show_modal},
+    utils::{close_modal, show_modal},
 };
 
 use crate::components::experiment_ramp_form::ExperimentRampForm;
@@ -134,8 +134,7 @@ pub fn experiment_page() -> impl IntoView {
                                         edit=true
                                         id=experiment.id
                                         name=experiment_ef.name
-                                        context=extract_conditions(&experiment_ef.context)
-                                            .unwrap_or_default()
+                                        context=experiment_ef.context.clone()
                                         variants=FromIterator::from_iter(experiment_ef.variants)
                                         default_config=default_config
                                         dimensions=dimensions

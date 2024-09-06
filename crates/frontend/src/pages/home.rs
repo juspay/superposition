@@ -1,7 +1,10 @@
+use std::borrow::Cow;
 use std::time::Duration;
 
-use crate::components::condition_pills::types::Condition;
-use crate::components::condition_pills::Condition as ConditionComponent;
+use crate::components::condition_pills::{
+    types::{Condition, ConditionOperator},
+    Condition as ConditionComponent,
+};
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::Config;
@@ -180,7 +183,7 @@ pub fn home() -> impl IntoView {
         },
     );
 
-    let (context_rs, context_ws) = create_signal::<Vec<(String, String, String)>>(vec![]);
+    let (context_rs, context_ws) = create_signal::<Vec<Condition>>(vec![]);
     let (selected_tab_rs, selected_tab_ws) = create_signal(ResolveTab::AllConfig);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
@@ -238,13 +241,37 @@ pub fn home() -> impl IntoView {
         }
     };
 
-    let gen_query_context = |query: Vec<(String, String, String)>| -> String {
+    let gen_query_context = |query: Vec<Condition>| -> String {
         let mut context: Vec<String> = vec![];
-        for (dimension, op, value) in query.iter() {
-            let op = match op.as_str() {
-                "==" => "=",
-                _ => break, // query params do not support the other operators :  != and IN, do something differently later
+        for condition in query.iter() {
+            let dimension = condition.left_operand.clone();
+            let op = match condition.operator.clone() {
+                ConditionOperator::Is => Cow::Borrowed("="),
+                ConditionOperator::In => Cow::Borrowed("IN"),
+                ConditionOperator::Has => Cow::Borrowed("HAS"),
+                ConditionOperator::Between => Cow::Borrowed("BETWEEN"),
+                ConditionOperator::Other(op) => Cow::Owned(op),
             };
+            let value = condition
+                .right_operand
+                .clone()
+                .into_iter()
+                .filter_map(|value| {
+                    if value.is_object() && value.get("var").is_some() {
+                        None
+                    } else {
+                        Some(value)
+                    }
+                })
+                .map(|value| match value {
+                    Value::String(s) => s.clone(),
+                    Value::Number(n) => n.to_string(),
+                    Value::Bool(b) => b.to_string(),
+                    Value::Null => String::from("null"),
+                    _ => format!("{}", value),
+                })
+                .collect::<Vec<String>>()
+                .join(",");
             context.push(format!("{}{op}{}", dimension, value));
         }
         context.join("&").to_string()
