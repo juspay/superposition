@@ -1,3 +1,4 @@
+use crate::components::condition_pills::types::ConditionOperator;
 use leptos::*;
 use serde_json::{Map, Value};
 
@@ -25,6 +26,7 @@ pub fn context_card(
     #[prop(default=Callback::new(|_| {}))] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
     let conditions: Vec<Condition> = (&context).try_into().unwrap_or(vec![]);
+
     let override_table_rows = overrides
         .clone()
         .into_iter()
@@ -35,55 +37,68 @@ pub fn context_card(
         })
         .collect::<Vec<Map<String, Value>>>();
 
-    let context_id = StoredValue::new(context.id.clone());
-    let context = StoredValue::new(context);
-    let overrides = StoredValue::new(overrides);
+    // Clone context and overrides for use in event handlers
+    let context_id = store_value(context.id.clone());
+    let context = store_value(context);
+    let overrides = store_value(overrides);
 
     let table_columns = vec![
         Column::default("KEY".to_string()),
         Column::default("VALUE".to_string()),
     ];
 
+    let edit_unsupported = conditions
+        .iter()
+        .any(|condition| matches!(condition.operator, ConditionOperator::Other(_)));
+
     view! {
-        <div class="rounded-lg shadow bg-base-100 p-6 shadow flex flex-col gap-4">
+        <div class="rounded-lg shadow bg-base-100 p-6 flex flex-col gap-4">
             <div class="flex justify-between">
                 <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
                     "Condition"
                 </h3>
                 <Show when=move || show_actions>
                     <div class="h-fit text-right space-x-4">
-                        <i
-                            class="ri-pencil-line ri-lg text-blue-500 cursor-pointer"
-                            on:click=move |_| {
-                                handle_edit.call((context.get_value(), overrides.get_value()))
-                            }
-                        >
-                        </i>
-                        <i
-                            class="ri-file-copy-line ri-lg text-blue-500 cursor-pointer"
-                            on:click=move |_| {
-                                handle_clone.call((context.get_value(), overrides.get_value()))
-                            }
-                        >
-                        </i>
+                        <Show when=move || !edit_unsupported.clone()>
+                            <i
+                                class="ri-pencil-line ri-lg text-blue-500 cursor-pointer"
+                                on:click=move |_| {
+                                    handle_edit.call((context.get_value(), overrides.get_value()));
+                                }
+                            />
+                            <i
+                                class="ri-file-copy-line ri-lg text-blue-500 cursor-pointer"
+                                on:click=move |_| {
+                                    handle_clone.call((context.get_value(), overrides.get_value()));
+                                }
+                            />
+                        </Show>
+                        <Show when=move || edit_unsupported.clone()>
+                            <span class="badge badge-warning text-xs ml-2 flex items-center">
+                                {"Edit Unsupported"}
+                            </span>
+                        </Show>
                         <i
                             class="ri-delete-bin-5-line ri-lg text-red-500 cursor-pointer"
-                            on:click=move |_| { handle_delete.call(context.get_value().id) }
-                        ></i>
+                            on:click=move |_| {
+                                let context_id = context_id.get_value();
+                                handle_delete.call(context_id);
+                            }
+                        />
                     </div>
                 </Show>
             </div>
 
             <div class="pl-5">
                 <ConditionComponent
-                    conditions=conditions
+                    conditions=conditions  // Clone only once before reusing in multiple closures
                     id=context_id.get_value()
                     class="xl:w-[400px] h-fit"
                 />
                 <Table
                     cell_class="min-w-48 font-mono".to_string()
                     rows=override_table_rows
-                    key_column="id".to_string()
+                    key_column="KEY".to_string()
                     columns=table_columns
                 />
             </div>

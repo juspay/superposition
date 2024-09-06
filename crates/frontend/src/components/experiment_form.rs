@@ -9,6 +9,8 @@ use crate::types::{DefaultConfig, Dimension, VariantFormT, VariantType};
 use leptos::*;
 use web_sys::MouseEvent;
 
+use super::condition_pills::types::Condition;
+
 fn default_variants_for_form() -> Vec<(String, VariantFormT)> {
     vec![
         (
@@ -48,7 +50,7 @@ pub fn experiment_form<NF>(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] id: String,
     name: String,
-    context: Vec<(String, String, String)>,
+    context: Vec<Condition>,
     variants: Vec<VariantFormT>,
     handle_submit: NF,
     default_config: Vec<DefaultConfig>,
@@ -66,7 +68,7 @@ where
     let (f_variants, set_variants) = create_signal(init_variants);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
-    let handle_context_form_change = move |updated_ctx: Vec<(String, String, String)>| {
+    let handle_context_form_change = move |updated_ctx: Vec<Condition>| {
         set_context.set_untracked(updated_ctx);
     };
 
@@ -80,7 +82,7 @@ where
         req_inprogress_ws.set(true);
         event.prevent_default();
         logging::log!("Submitting experiment form");
-        logging::log!("{:?}", f_variants.get());
+        logging::log!("Variant Ids{:?}", f_variants.get());
 
         let f_experiment_name = experiment_name.get();
         let f_context = f_context.get();
@@ -93,8 +95,8 @@ where
         let experiment_id = id.clone();
         let handle_submit_clone = handle_submit.clone();
 
-        logging::log!("{:?}", f_experiment_name);
-        logging::log!("{:?}", f_context);
+        logging::log!("Experiment name {:?}", f_experiment_name);
+        logging::log!("Context Experiment form {:?}", f_context);
 
         spawn_local({
             async move {
@@ -106,7 +108,7 @@ where
                         f_variants,
                         f_experiment_name,
                         tenant,
-                        dimensions.get_value(),
+                        dimensions.get_value().clone(),
                     )
                     .await
                 };
@@ -150,7 +152,7 @@ where
                     let context = f_context.get();
                     view! {
                         <ContextForm
-                            dimensions=dimensions.get_value()
+                            dimensions=dimensions.get_value() // dimensions will now be a Vec<Dimension>
                             context=context
                             handle_change=handle_context_form_change
                             is_standalone=false
