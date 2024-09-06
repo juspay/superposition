@@ -13,6 +13,7 @@ use crate::{
         modal::Modal,
         skeleton::{Skeleton, SkeletonVariant},
     },
+    providers::editor_provider::EditorProvider,
     types::{DefaultConfig, Dimension, Experiment},
     utils::{close_modal, extract_conditions, show_modal},
 };
@@ -128,18 +129,19 @@ pub fn experiment_page() -> impl IntoView {
                                 classnames="w-12/12 max-w-5xl".to_string()
                                 handle_close=move || { close_modal("experiment_edit_form_modal") }
                             >
-
-                                <ExperimentForm
-                                    edit=true
-                                    id=experiment.id
-                                    name=experiment_ef.name
-                                    context=extract_conditions(&experiment_ef.context)
-                                        .unwrap_or_default()
-                                    variants=FromIterator::from_iter(experiment_ef.variants)
-                                    default_config=default_config
-                                    dimensions=dimensions
-                                    handle_submit=move || { combined_resource.refetch() }
-                                />
+                                <EditorProvider>
+                                    <ExperimentForm
+                                        edit=true
+                                        id=experiment.id
+                                        name=experiment_ef.name
+                                        context=extract_conditions(&experiment_ef.context)
+                                            .unwrap_or_default()
+                                        variants=FromIterator::from_iter(experiment_ef.variants)
+                                        default_config=default_config
+                                        dimensions=dimensions
+                                        handle_submit=move || { combined_resource.refetch() }
+                                    />
+                                </EditorProvider>
 
                             </Modal>
                         }

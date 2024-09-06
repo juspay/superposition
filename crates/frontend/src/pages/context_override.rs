@@ -11,6 +11,7 @@ use crate::components::override_form::OverrideForm;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
+use crate::providers::editor_provider::EditorProvider;
 use crate::types::{Config, Context, DefaultConfig, Dimension};
 use crate::utils::extract_conditions;
 use futures::join;
@@ -111,7 +112,7 @@ fn form(
             }
         />
 
-        <div class="form-control grid w-full mt-10 justify-start">
+        <div class="flex justify-start w-full mt-10">
             <Button
                 class="pl-[70px] pr-[70px]".to_string()
                 text="Submit".to_string()
@@ -269,45 +270,47 @@ pub fn context_override() -> impl IntoView {
                                 }
                             >
 
-                                {match (form_mode.get(), data) {
-                                    (Some(FormMode::Edit), Some(data)) => {
-                                        view! {
-                                            <Form
-                                                context=data.context
-                                                overrides=data.overrides
-                                                dimensions=dimensions
-                                                default_config=default_config
-                                                handle_submit=handle_submit
-                                                edit=true
-                                            />
+                                <EditorProvider>
+                                    {match (form_mode.get(), data) {
+                                        (Some(FormMode::Edit), Some(data)) => {
+                                            view! {
+                                                <Form
+                                                    context=data.context
+                                                    overrides=data.overrides
+                                                    dimensions=dimensions
+                                                    default_config=default_config
+                                                    handle_submit=handle_submit
+                                                    edit=true
+                                                />
+                                            }
+                                                .into_view()
                                         }
-                                            .into_view()
-                                    }
-                                    (Some(FormMode::Create), data) => {
-                                        let Data { context, overrides } = data.unwrap_or_default();
-                                        view! {
-                                            <Form
-                                                context=context
-                                                overrides=overrides
-                                                dimensions=dimensions
-                                                default_config=default_config
-                                                handle_submit=handle_submit
-                                                edit=false
-                                            />
+                                        (Some(FormMode::Create), data) => {
+                                            let Data { context, overrides } = data.unwrap_or_default();
+                                            view! {
+                                                <Form
+                                                    context=context
+                                                    overrides=overrides
+                                                    dimensions=dimensions
+                                                    default_config=default_config
+                                                    handle_submit=handle_submit
+                                                    edit=false
+                                                />
+                                            }
+                                                .into_view()
                                         }
-                                            .into_view()
-                                    }
-                                    (Some(FormMode::Edit), None) => {
-                                        enqueue_alert(
-                                            String::from("Something went wrong, failed to load form"),
-                                            AlertType::Error,
-                                            5000,
-                                        );
-                                        view! {}.into_view()
-                                    }
-                                    (None, _) => view! {}.into_view(),
-                                }}
+                                        (Some(FormMode::Edit), None) => {
+                                            enqueue_alert(
+                                                String::from("Something went wrong, failed to load form"),
+                                                AlertType::Error,
+                                                5000,
+                                            );
+                                            view! {}.into_view()
+                                        }
+                                        (None, _) => view! {}.into_view(),
+                                    }}
 
+                                </EditorProvider>
                             </Drawer>
                         }
                     }}

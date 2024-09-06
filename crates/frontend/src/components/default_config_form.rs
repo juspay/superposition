@@ -231,8 +231,8 @@ where
                         }
                         view! {
                             <BooleanToggle
-                                config_value={value.parse::<bool>().unwrap_or(false)}
-                                update_value=Callback::new(move |flag: bool| {
+                                value={value.parse::<bool>().unwrap_or(false)}
+                                on_change=Callback::new(move |flag: bool| {
                                     set_config_value.set(flag.to_string());
                                 })
                             />

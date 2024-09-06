@@ -38,9 +38,13 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                     <Stylesheet id="leptos" href=styles_href/>
                     <Link rel="shortcut icon" type_="image/ico" href=favicon_href/>
                     <Link
-                        href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+                        href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css"
                         rel="stylesheet"
                     />
+                    <script
+                        type_="text/javascript"
+                        src="https://cdn.jsdelivr.net/npm/@andypf/json-viewer@2.1.5/dist/iife/index.min.js"
+                    ></script>
                     {move || {
                         if base.is_empty() {
                             view! {}.into_view()
@@ -53,7 +57,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                     type_="application/wasm"
                                     crossorigin=""
                                 />
-                                <link rel="modulepreload" href=js_href.clone()/>
+                                <link as_="script" rel="modulepreload" href=js_href.clone()/>
                                 <script type_="module">
                                     {format!(
                                         r#"

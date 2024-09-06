@@ -66,19 +66,19 @@ pub fn enum_dropdown(
 
 #[component]
 pub fn boolean_toggle(
-    config_value: bool,
-    update_value: Callback<bool, ()>,
+    value: bool,
+    on_change: Callback<bool, ()>,
     #[prop(default = String::new())] class: String,
     #[prop(default = false)] disabled: bool,
     #[prop(default = "")] name: &'static str,
 ) -> impl IntoView {
-    let (flag, set_flag) = create_signal(config_value);
+    let (flag, set_flag) = create_signal(value);
     view! {
         <input
             disabled=disabled
             on:click=move |_| {
                 set_flag.update(|val| *val = !*val);
-                update_value.call(flag.get());
+                on_change.call(flag.get());
             }
 
             type="checkbox"

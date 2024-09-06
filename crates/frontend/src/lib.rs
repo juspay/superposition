@@ -6,6 +6,7 @@ pub mod components;
 pub mod hoc;
 pub mod pages;
 pub mod providers;
+pub mod schema;
 pub mod types;
 mod utils;
 use cfg_if::cfg_if;
