@@ -39,5 +39,5 @@ Once you run this command, you'll find the demo app at `localhost:8081` and Supe
 
 ## Interested to know more - reach out to the team !
 * Website: https://juspay.io/superposition
-* ![[Twitter](https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/superpositionjp)
-* ![[Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/sBgYYUQU)
+* [![Twitter](https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/superpositionjp)
+* [![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/sBgYYUQU)
