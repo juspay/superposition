@@ -219,16 +219,17 @@ fn basic_input(
             />
 
             {move || {
-                error_rs
-                    .get()
-                    .map(|err| {
+                match error_rs.get() {
+                    Some(err) => {
                         view! {
                             <span class="flex gap-2 px-4 text-xs font-semibold text-red-600">
                                 <i class="ri-close-circle-line"></i>
                                 {err}
                             </span>
-                        }
-                    });
+                        }.into_view()
+                    },
+                    None => ().into_view()
+                }
             }}
 
         </div>
