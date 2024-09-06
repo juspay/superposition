@@ -47,6 +47,11 @@ pub fn context_card(
         Column::default("VALUE".to_string()),
     ];
 
+    let actions_supported = show_actions
+        && !conditions
+            .iter()
+            .any(|condition| condition.left_operand == "variantIds");
+
     let edit_unsupported = conditions
         .iter()
         .any(|condition| matches!(condition.operator, ConditionOperator::Other(_)));
@@ -57,23 +62,25 @@ pub fn context_card(
                 <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
                     "Condition"
                 </h3>
-                <Show when=move || show_actions>
+                <Show when=move || actions_supported>
                     <div class="h-fit text-right space-x-4">
-                        <Show when=move || !edit_unsupported.clone()>
+                        <Show when=move || !edit_unsupported>
                             <i
                                 class="ri-pencil-line ri-lg text-blue-500 cursor-pointer"
                                 on:click=move |_| {
                                     handle_edit.call((context.get_value(), overrides.get_value()));
                                 }
-                            />
+                            ></i>
+
                             <i
                                 class="ri-file-copy-line ri-lg text-blue-500 cursor-pointer"
                                 on:click=move |_| {
                                     handle_clone.call((context.get_value(), overrides.get_value()));
                                 }
-                            />
+                            ></i>
+
                         </Show>
-                        <Show when=move || edit_unsupported.clone()>
+                        <Show when=move || edit_unsupported>
                             <span class="badge badge-warning text-xs ml-2 flex items-center">
                                 {"Edit Unsupported"}
                             </span>
@@ -84,14 +91,21 @@ pub fn context_card(
                                 let context_id = context_id.get_value();
                                 handle_delete.call(context_id);
                             }
-                        />
+                        ></i>
+
                     </div>
+                </Show>
+                <Show when=move || !actions_supported>
+                    <span class="badge badge-warning text-xs ml-2 flex items-center">
+                        {"Edit Unsupported"}
+                    </span>
                 </Show>
             </div>
 
             <div class="pl-5">
                 <ConditionComponent
-                    conditions=conditions  // Clone only once before reusing in multiple closures
+                    // Clone only once before reusing in multiple closures
+                    conditions=conditions
                     id=context_id.get_value()
                     class="xl:w-[400px] h-fit"
                 />
