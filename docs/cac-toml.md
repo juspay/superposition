@@ -5,7 +5,7 @@ This document shows how to use a TOML formatted CAC configuration file in your R
 
 ```toml
 [dependencies]
-cac_toml = { git = "https://github.com/juspay/superposition.git", branch = "pest-cac-lang" }
+cac_toml = { git = "https://github.com/juspay/superposition.git", branch = "main" }
 toml = { version = "0.8.8", features = ["preserve_order"] }
 ```
 

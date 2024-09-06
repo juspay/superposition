@@ -6,6 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cac_toml = { git = "https://github.com/juspay/superposition.git", branch = "pest-cac-lang" }
+cac_toml = { git = "https://github.com/juspay/superposition.git", branch = "main" }
 clap = { version = "4.3.0", features = ["derive"] }
 toml = { version = "0.8.8", features = ["preserve_order"] }
