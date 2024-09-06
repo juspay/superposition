@@ -4,6 +4,10 @@
 <img src="https://juspay.io/images/superposition/logo.jpg" alttext="Superposition Logo" width="400">
 </p>
 
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/juspay/superposition)](https://github.com/juspay/superposition/pulse) 
+[![GitHub last commit](https://img.shields.io/github/last-commit/juspay/superposition)](https://github.com/juspay/superposition/commits/main)  ![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/superpositionJP)  [![Discord badge](https://img.shields.io/discord/1280216553350107258?label=Discord&logo=Discord)](https://discord.gg/KMh2eNSdxV) 
+
+
 Superposition is a cloud configuration and experimentation management platform that allows software teams to manage their configuration via a central location, run multi-variate experiments for different configuration values and evaluate results of these experiments and conclude them accordingly.
 
 The Superposition platform comes with three components:
@@ -42,7 +46,5 @@ Once you run this command, you'll find the demo app at `localhost:8081` and Supe
 * **Multi-tenant support** - a single deployment allows multiple tenants to manage their configurations/experiments in a completely isolated manner
 * **Authn/Authz support** - control who can make configuration/experimentation changes
 
-## Interested to know more - reach out to the team !
-* ![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/superpositionJP)
-* [![Discord](https://img.shields.io/discord/1280216553350107258)](https://discord.gg/sBgYYUQU)
-* [Email us](mailto:superposition@juspay.in)
+## Email us
+* [superposition@juspay.in](mailto:superposition@juspay.in)
