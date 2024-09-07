@@ -1,6 +1,6 @@
 use crate::components::{
-    condition_pills::utils::extract_conditions,
-    condition_pills::Condition as ConditionComponent, table::types::Column,
+    condition_pills::{utils::extract_conditions, ConditionPills},
+    table::types::Column,
 };
 use core::time::Duration;
 use leptos::*;
@@ -104,13 +104,10 @@ pub fn experiment_table_columns() -> Vec<Column> {
                     Some(value) => value.to_owned(),
                     None => json!(""),
                 };
-                let id = row.get("id").map_or(String::from(""), |value| {
-                    value.as_str().unwrap_or("").to_string()
-                });
 
                 view! {
-                    <div class="w-[400px]">
-                        <ConditionComponent conditions=extract_conditions(&context) grouped_view=false id />
+                    <div class="inline-flex flex-col gap-y-2">
+                        <ConditionPills conditions=extract_conditions(&context) />
                     </div>
                 }
                 .into_view()

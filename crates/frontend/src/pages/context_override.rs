@@ -2,8 +2,6 @@ use crate::api::fetch_config;
 use crate::api::{delete_context, fetch_default_config, fetch_dimensions};
 use crate::components::alert::AlertType;
 use crate::components::button::Button;
-use crate::components::condition_pills::types::{Condition, ConditionOperator};
-use crate::components::condition_pills::utils::extract_conditions;
 use crate::components::context_card::ContextCard;
 use crate::components::context_form::utils::{create_context, update_context};
 use crate::components::context_form::ContextForm;
@@ -15,6 +13,7 @@ use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
 use crate::types::{Config, Context, DefaultConfig, Dimension};
+use crate::utils::extract_conditions;
 use futures::join;
 use leptos::*;
 use serde::{Deserialize, Serialize};
@@ -22,7 +21,7 @@ use serde_json::{json, Map, Value};
 
 #[derive(Clone, Debug, Default)]
 pub struct Data {
-    pub context: Vec<Condition>,
+    pub context: Vec<(String, String, String)>,
     pub overrides: Vec<(String, Value)>,
 }
 
@@ -41,7 +40,7 @@ enum FormMode {
 
 #[component]
 fn form(
-    context: Vec<Condition>,
+    context: Vec<(String, String, String)>,
     overrides: Vec<(String, Value)>,
     dimensions: Vec<Dimension>,
     edit: bool,
@@ -59,13 +58,13 @@ fn form(
         spawn_local(async move {
             let f_context = context.get();
             let f_overrides = overrides.get();
-            let dimensions = dimensions.get_value().clone();
+            let dimensions = dimensions.get_value();
             let result = if edit {
                 update_context(
                     tenant_rs.get().clone(),
                     Map::from_iter(f_overrides),
                     f_context,
-                    dimensions.clone(),
+                    dimensions,
                 )
                 .await
             } else {
@@ -73,7 +72,7 @@ fn form(
                     tenant_rs.get().clone(),
                     Map::from_iter(f_overrides),
                     f_context,
-                    dimensions.clone(),
+                    dimensions,
                 )
                 .await
             };
@@ -168,16 +167,12 @@ pub fn context_override() -> impl IntoView {
             .into_iter()
             .filter_map(|dim| {
                 if dim.mandatory {
-                    Some(Condition {
-                        left_operand: dim.dimension,
-                        operator: ConditionOperator::Other(String::from("")),
-                        right_operand: vec![],
-                    })
+                    Some((dim.dimension, String::from(""), String::from("")))
                 } else {
                     None
                 }
             })
-            .collect::<Vec<Condition>>();
+            .collect::<Vec<(String, String, String)>>();
         set_selected_data.set(Some(Data {
             context: context_with_mandatory_dimensions,
             overrides: vec![],
@@ -195,7 +190,7 @@ pub fn context_override() -> impl IntoView {
     let handle_context_edit =
         Callback::new(move |data: (Context, Map<String, Value>)| {
             let (context, overrides) = data;
-            let conditions = extract_conditions(&context.condition);
+            let conditions = extract_conditions(&context.condition).unwrap_or(vec![]);
 
             set_selected_data.set(Some(Data {
                 context: conditions,
@@ -209,7 +204,7 @@ pub fn context_override() -> impl IntoView {
     let handle_context_clone =
         Callback::new(move |data: (Context, Map<String, Value>)| {
             let (context, overrides) = data;
-            let conditions = extract_conditions(&context.condition);
+            let conditions = extract_conditions(&context.condition).unwrap_or(vec![]);
 
             set_selected_data.set(Some(Data {
                 context: conditions,

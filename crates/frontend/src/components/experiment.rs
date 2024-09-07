@@ -3,8 +3,8 @@ pub mod utils;
 use std::rc::Rc;
 
 use leptos::*;
-use serde_json::Value;
 
+use crate::components::condition_pills::utils::extract_conditions;
 use crate::components::table::Table;
 
 use self::utils::gen_variant_table;
@@ -25,7 +25,7 @@ where
     HE: Fn() + 'static + Clone,
 {
     let experiment_rc = Rc::new(experiment.clone());
-    let contexts = Rc::clone(&experiment_rc).context.clone();
+    let contexts = extract_conditions(&experiment_rc.clone().context);
 
     view! {
         <div class="flex flex-col overflow-x-auto p-2 bg-transparent">
@@ -160,38 +160,17 @@ where
                         {move || {
                             let mut view = Vec::new();
                             for token in contexts.clone() {
-                                let (dimension, values) = (token.left_operand, token.right_operand);
-                                let mut value_views = Vec::new();
-
-                                for value in values.iter() {
-                                    if value.is_object() && value.get("var").is_some() {
-                                        continue;
-                                    }
-
-                                    let value_str = match value {
-                                        Value::String(s) => s.clone(),
-                                        Value::Number(n) => n.to_string(),
-                                        Value::Bool(b) => b.to_string(),
-                                        Value::Null => String::from("null"),
-                                        _ => format!("{}", value),
-                                    };
-
-                                    value_views.push(
-                                        view! {
-                                                <div class="stat-value text-base">
-                                                    {&value_str.replace('"', "")}
-                                                </div>
-                                        },
-                                    );
-
-                                }
-                                view.push(view! {
-                                    <div class="stat w-3/12">
-                                        <div class="stat-title">{dimension}</div>
-                                        {value_views}
-                                    </div>
-                                });
-
+                                let (dimension, value) = (token.left_operand, token.right_operand);
+                                view.push(
+                                    view! {
+                                        <div class="stat w-3/12">
+                                            <div class="stat-title">{dimension}</div>
+                                            <div class="stat-value text-base">
+                                                {&value.replace('"', "")}
+                                            </div>
+                                        </div>
+                                    },
+                                );
                             }
                             view
                         }}

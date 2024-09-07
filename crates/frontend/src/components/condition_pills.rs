@@ -5,7 +5,6 @@ use crate::components::condition_pills::types::ConditionOperator;
 
 use self::types::Condition;
 use leptos::{leptos_dom::helpers::WindowListenerHandle, *};
-use serde_json::Value;
 use wasm_bindgen::JsCast;
 use web_sys::Element;
 
@@ -59,31 +58,8 @@ pub fn condition_expression(
             } else {
                 ("condition-item-collapsed", "condition-value-collapsed")
             };
-
-            // Destructure the condition
-            let Condition { left_operand: dimension, operator, right_operand: value } = condition.get_value();
-
-            // Filter and convert values to strings for rendering
-            let filtered_vals: Vec<String> = value.into_iter().filter_map(|v|
-                if v.is_object() && v.get("var").is_some() {
-                    None
-                } else {
-                match v {
-                    Value::String(s) => Some(s.to_string()),
-                    Value::Number(n) => Some(n.to_string()),
-                    Value::Bool(b) => Some(b.to_string()),
-                    Value::Array(arr) => {
-                        Some(arr.iter().map(|v| v.to_string()).collect::<Vec<String>>().join(","))
-                    }
-                    Value::Object(o) => {
-                        serde_json::to_string_pretty(&o).ok()
-                    }
-                    _ => None,
-                }
-              }
-            ).collect();
-
-            // Render based on the operator type
+            let Condition { left_operand: dimension, operator, right_operand: value } = condition
+                .get_value();
             view! {
                 <li
                     id=id.get_value()
@@ -102,37 +78,36 @@ pub fn condition_expression(
                         {operator.to_string()}
                     </span>
 
-                    {
-                        match operator {
-                            ConditionOperator::Between => {
-                                if filtered_vals.len() == 2 {
-                                    view! {
-                                        <>
-                                            <span class="font-mono font-semibold context_condition">
-                                                {&filtered_vals[0]}
-                                            </span>
-                                            <span class="font-mono font-medium text-gray-650 context_condition">
-                                                {"and"}
-                                            </span>
-                                            <span class="font-mono font-semibold context_condition">
-                                                {&filtered_vals[1]}
-                                            </span>
-                                        </>
-                                    }.into_view()
-                                } else {
-                                    view! { <span class="font-mono text-red-500">"Invalid between values"</span> }.into_view()
-                                }
-                            },
-                            _ => {
-                                let rendered_value = filtered_vals.join(", ");
-                                view! {
-                                    <span class=value_class>
-                                        {rendered_value}
+                    {match operator {
+                        ConditionOperator::Between => {
+                            let split_val: Vec<String> = value
+                                .clone()
+                                .split(',')
+                                .map(String::from)
+                                .collect();
+                            view! {
+                                <>
+                                    <span class="font-mono font-semibold context_condition">
+                                        {&split_val[0]}
                                     </span>
-                                }.into_view()
+                                    <span class="font-mono font-medium text-gray-650 context_condition ">
+                                        {"and"}
+                                    </span>
+                                    <span class="font-mono font-semibold context_condition">
+                                        {&split_val[1]}
+                                    </span>
+                                </>
                             }
                         }
-                    }
+                        _ => {
+                            view! {
+                                <>
+                                    <span class=value_class>{value}</span>
+                                </>
+                            }
+                        }
+                    }}
+
                 </li>
             }
         }}
@@ -172,5 +147,62 @@ pub fn condition(
                 <span class="and">"and"</span>
             </Show>
         </div>
+    }
+}
+
+#[component]
+pub fn condition_pills(#[prop(into)] conditions: Vec<Condition>) -> impl IntoView {
+    view! {
+        {conditions
+            .into_iter()
+            .map(|condition| {
+                let dimension = condition.left_operand;
+                let op = condition.operator;
+                let val = condition.right_operand;
+                view! {
+                    <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs ring-1 ring-inset ring-purple-700/10 shadow-md gap-x-2">
+                        <span class="font-mono font-medium context_condition text-gray-500">
+                            {dimension}
+                        </span>
+                        <span class="font-mono font-medium text-gray-650 context_condition ">
+                            {op.to_string()}
+                        </span>
+
+                        {match op {
+                            ConditionOperator::Between => {
+                                let split_val: Vec<String> = val
+                                    .clone()
+                                    .split(',')
+                                    .map(String::from)
+                                    .collect();
+                                view! {
+                                    <>
+                                        <span class="font-mono font-semibold context_condition">
+                                            {&split_val[0]}
+                                        </span>
+                                        <span class="font-mono font-medium text-gray-650 context_condition ">
+                                            {"and"}
+                                        </span>
+                                        <span class="font-mono font-semibold context_condition">
+                                            {&split_val[1]}
+                                        </span>
+                                    </>
+                                }
+                            }
+                            _ => {
+                                view! {
+                                    <>
+                                        <span class="font-mono font-semibold context_condition">
+                                            {val}
+                                        </span>
+                                    </>
+                                }
+                            }
+                        }}
+
+                    </span>
+                }
+            })
+            .collect::<Vec<_>>()}
     }
 }

@@ -1,10 +1,12 @@
-use crate::components::condition_pills::types::ConditionOperator;
 use leptos::*;
 use serde_json::{Map, Value};
 
 use crate::{
     components::{
-        condition_pills::{types::Condition, Condition as ConditionComponent},
+        condition_pills::{
+            types::{Condition, ConditionOperator},
+            Condition as ConditionComponent,
+        },
         table::{types::Column, Table},
     },
     types::Context,
@@ -26,7 +28,6 @@ pub fn context_card(
     #[prop(default=Callback::new(|_| {}))] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
     let conditions: Vec<Condition> = (&context).try_into().unwrap_or(vec![]);
-
     let override_table_rows = overrides
         .clone()
         .into_iter()
@@ -37,10 +38,9 @@ pub fn context_card(
         })
         .collect::<Vec<Map<String, Value>>>();
 
-    // Clone context and overrides for use in event handlers
-    let context_id = store_value(context.id.clone());
-    let context = store_value(context);
-    let overrides = store_value(overrides);
+    let context_id = StoredValue::new(context.id.clone());
+    let context = StoredValue::new(context);
+    let overrides = StoredValue::new(overrides);
 
     let table_columns = vec![
         Column::default("KEY".to_string()),
@@ -57,7 +57,7 @@ pub fn context_card(
         .any(|condition| matches!(condition.operator, ConditionOperator::Other(_)));
 
     view! {
-        <div class="rounded-lg shadow bg-base-100 p-6 flex flex-col gap-4">
+        <div class="rounded-lg shadow bg-base-100 p-6 shadow flex flex-col gap-4">
             <div class="flex justify-between">
                 <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
                     "Condition"
@@ -104,7 +104,6 @@ pub fn context_card(
 
             <div class="pl-5">
                 <ConditionComponent
-                    // Clone only once before reusing in multiple closures
                     conditions=conditions
                     id=context_id.get_value()
                     class="xl:w-[400px] h-fit"
@@ -112,7 +111,7 @@ pub fn context_card(
                 <Table
                     cell_class="min-w-48 font-mono".to_string()
                     rows=override_table_rows
-                    key_column="KEY".to_string()
+                    key_column="id".to_string()
                     columns=table_columns
                 />
             </div>

@@ -6,9 +6,7 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use derive_more::{Deref, DerefMut};
 use serde_json::{Map, Value};
 
-use crate::components::{
-    condition_pills::types::Condition, dropdown::utils::DropdownOption,
-};
+use crate::components::dropdown::utils::DropdownOption;
 
 #[derive(Clone, Debug)]
 pub struct AppRoute {
@@ -184,7 +182,7 @@ pub struct Experiment {
     pub(crate) name: String,
     pub(crate) id: String,
     pub(crate) traffic_percentage: u8,
-    pub(crate) context: Vec<Condition>,
+    pub(crate) context: Value,
     pub(crate) status: ExperimentStatusType,
     pub(crate) override_keys: Value,
     pub(crate) created_by: String,

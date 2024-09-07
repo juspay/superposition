@@ -184,6 +184,81 @@ pub fn close_modal(id: &str) {
     }
 }
 
+pub fn get_variable_name_and_value(
+    operands: &Vec<Value>,
+) -> Result<(&str, String), String> {
+    let (obj_pos, variable_obj) = operands
+        .iter()
+        .enumerate()
+        .find(|(_, operand)| {
+            operand.is_object()
+                && operand
+                    .as_object()
+                    .expect("unable to parse operands as object")
+                    .get("var")
+                    .is_some()
+        })
+        .ok_or(" failed to get variable name from operands list".to_string())?;
+
+    let variable_name = variable_obj
+        .as_object()
+        .and_then(|obj| obj.get("var"))
+        .and_then(|value| value.as_str())
+        .ok_or(" failed to get variable name from operands list".to_string())?;
+
+    let variable_value = operands
+        .iter()
+        .enumerate()
+        .filter(|(idx, _)| *idx != obj_pos)
+        .map(|(_, val)| val.to_string().replace('"', ""))
+        .collect::<Vec<String>>()
+        .join(",");
+
+    Ok((variable_name, variable_value))
+}
+
+pub fn extract_conditions(
+    context_json: &Value,
+) -> Result<Vec<(String, String, String)>, String> {
+    // Assuming max 2-level nesting in context json logic
+    let context = context_json.as_object().ok_or(
+        "An error occurred while extracting dimensions: context not a valid JSON object"
+            .to_string(),
+    )?;
+
+    let conditions = match context.get("and") {
+        Some(conditions_json) => conditions_json
+            .as_array()
+            .ok_or("An error occurred while extracting dimensions: failed parsing conditions as an array".to_string())?
+            .clone(),
+        None => vec![context_json.clone()],
+    };
+
+    let mut condition_tuples = Vec::new();
+    for condition in &conditions {
+        let condition_obj = condition
+            .as_object()
+            .ok_or("failed to parse condition as an object".to_string())?;
+        let operators = condition_obj.keys();
+
+        for operator in operators {
+            let operands = condition_obj[operator]
+                .as_array()
+                .ok_or("failed to parse operands as an arrays".to_string())?;
+
+            let (variable_name, variable_value) = get_variable_name_and_value(operands)?;
+
+            condition_tuples.push((
+                String::from(variable_name),
+                operator.to_owned(),
+                variable_value.to_owned(),
+            ));
+        }
+    }
+
+    Ok(condition_tuples)
+}
+
 pub fn check_url_and_return_val(s: String) -> String {
     match Url::parse(&s) {
         Ok(_) => format!(
@@ -259,82 +334,57 @@ pub fn get_config_type(
     })
 }
 
-pub fn parse_value(val: &Value, config_type: ConfigValueType) -> Result<Value, String> {
+pub fn parse_value(val: &str, config_type: ConfigValueType) -> Result<Value, String> {
     match config_type {
-        ConfigValueType::Boolean => {
-            match val {
-                Value::Bool(_) => Ok(val.clone()),
-
-                Value::String(s) => {
-                    // Attempting to parse the string as a boolean
-                    match s.to_lowercase().as_str() {
-                        "true" => Ok(Value::Bool(true)),
-                        "false" => Ok(Value::Bool(false)),
-                        _ => Err(format!("Invalid boolean string: {:?}", s)), // Error if not a valid boolean string
-                    }
-                }
-
-                _ => Err(format!("Invalid boolean value: {:?}", val)),
-            }
-        }
-
+        ConfigValueType::Boolean => bool::from_str(val)
+            .map(Value::Bool)
+            .map_err(|_| "Invalid boolean".to_string()),
         ConfigValueType::Number | ConfigValueType::Integer => {
-            match val {
-                Value::Number(num) => Ok(Value::Number(num.clone())),
-
-                Value::String(s) => {
-                    // Attempting to parse as integer first, then as float
-                    if let Ok(int_val) = s.parse::<i64>() {
-                        Ok(Value::Number(int_val.into()))
-                    } else if let Ok(float_val) = s.parse::<f64>() {
-                        Ok(Value::Number(
-                            serde_json::Number::from_f64(float_val).unwrap(),
-                        ))
-                    } else {
-                        Err(format!("Invalid number format: {:?}", s))
-                    }
-                }
-
+            let parsed_value: Value = serde_json::from_str(val)
+                .map_err(|_| "Invalid number or number array format".to_string())?;
+            match parsed_value {
+                Value::Number(num) => Ok(Value::Number(num)),
                 Value::Array(arr) => {
-                    // Ensuring all items in the array are numbers
-                    if arr.iter().all(|item| item.is_number()) {
-                        Ok(val.clone())
-                    } else {
-                        Err("Array contains non-number value".to_string())
+                    for item in &arr {
+                        if !item.is_number() {
+                            return Err("Array contains non-number value".to_string());
+                        }
                     }
+                    Ok(Value::Array(arr))
                 }
-
                 _ => Err(format!(
-                    "{:?} is neither a valid number nor an array of numbers.",
+                    "{:?} is either an invalid number or a invalid number array.",
                     val
                 )),
             }
         }
-
-        ConfigValueType::String => match val {
-            Value::String(_) => Ok(val.clone()),
-            Value::Array(arr) => {
-                if arr.iter().all(|item| item.is_string()) {
-                    Ok(val.clone())
-                } else {
-                    Err("Array contains non-string value".to_string())
+        ConfigValueType::String => {
+            let parsed_value: Result<Value, _> = serde_json::from_str(&val);
+            match parsed_value {
+                Ok(Value::String(s)) => Ok(Value::String(s)),
+                Ok(Value::Array(arr)) => {
+                    for item in &arr {
+                        if !item.is_string() {
+                            return Err("Array contains non-string value".to_string());
+                        }
+                    }
+                    Ok(Value::Array(arr))
                 }
+                Ok(_) => Err(format!(
+                    "{:?} is either an invalid string or a invalid string array.",
+                    val
+                )),
+                Err(_) => Ok(Value::String(val.to_string())),
             }
-            _ => Err(format!(
-                "{:?} is neither a valid string nor an array of strings.",
-                val
-            )),
-        },
-
-        ConfigValueType::Null if val.is_null() => Ok(Value::Null),
-
-        _ => Ok(val.clone()),
+        }
+        ConfigValueType::Null if val == "null" => Ok(Value::Null),
+        _ => Value::from_str(val).map_err(|err| format!("Error parsing JSON: {}", err)),
     }
 }
 
 pub fn get_config_value(
     name: &str,
-    val: &Value,
+    val: &str,
     configs: &[ConfigType],
 ) -> Result<Value, String> {
     let config_type = get_config_type(configs, name);
@@ -348,7 +398,9 @@ pub fn get_config_value(
             }
             Err("Error parsing config value".to_string())
         }
-        None => Ok(val.clone()),
+        None => {
+            Value::from_str(val).map_err(|err| format!("Error parsing JSON: {}", err))
+        }
     }
 }
 
