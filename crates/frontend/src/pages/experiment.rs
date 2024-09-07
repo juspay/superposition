@@ -51,7 +51,7 @@ pub fn experiment_page() -> impl IntoView {
 
             // Construct the combined result, handling errors as needed
             CombinedResource {
-                experiment: experiments_result.ok(),
+                experiment: experiments_result.ok().map(|v| v.into()),
                 dimensions: dimensions_result
                     .unwrap_or(vec![])
                     .into_iter()

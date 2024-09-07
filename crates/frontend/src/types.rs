@@ -4,10 +4,11 @@ use std::{str::FromStr, vec::Vec};
 
 use chrono::{DateTime, NaiveDateTime, Utc};
 use derive_more::{Deref, DerefMut};
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 
 use crate::components::{
-    condition_pills::types::Condition, dropdown::utils::DropdownOption,
+    condition_pills::{types::Condition, utils::extract_conditions},
+    dropdown::utils::DropdownOption,
 };
 
 #[derive(Clone, Debug)]
@@ -191,6 +192,24 @@ pub struct Experiment {
     pub(crate) created_at: DateTime<Utc>,
     pub(crate) last_modified: DateTime<Utc>,
     pub(crate) chosen_variant: Option<String>,
+}
+
+impl From<ExperimentResponse> for Experiment {
+    fn from(value: ExperimentResponse) -> Self {
+        Experiment {
+            name: value.name,
+            id: value.id,
+            traffic_percentage: value.traffic_percentage as u8,
+            status: value.status,
+            override_keys: json!(value.override_keys),
+            created_by: value.created_by,
+            created_at: value.created_at,
+            last_modified: value.last_modified,
+            chosen_variant: value.chosen_variant,
+            variants: serde_json::from_value(value.variants).unwrap_or_default(),
+            context: extract_conditions(&value.context),
+        }
+    }
 }
 
 /*************************** Context-Override types ********************************/
