@@ -2,8 +2,8 @@ use leptos::ServerFnError;
 
 use crate::{
     types::{
-        Config, DefaultConfig, Dimension, Experiment, ExperimentsResponse,
-        FetchTypeTemplateResponse, FunctionResponse, ListFilters,
+        Config, DefaultConfig, Dimension, Experiment, ExperimentResponse,
+        ExperimentsResponse, FetchTypeTemplateResponse, FunctionResponse, ListFilters,
     },
     utils::{
         construct_request_headers, get_host, parse_json_response, request,
@@ -181,7 +181,7 @@ pub async fn fetch_config(tenant: String) -> Result<Config, ServerFnError> {
 pub async fn fetch_experiment(
     exp_id: String,
     tenant: String,
-) -> Result<Experiment, ServerFnError> {
+) -> Result<ExperimentResponse, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
     let url = format!("{}/experiments/{}", host, exp_id);
