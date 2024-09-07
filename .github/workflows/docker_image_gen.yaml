@@ -40,5 +40,5 @@ jobs:
               with:
                   push: true
                   context: .
-                  platforms: linux/amd64,linux/arm64
+                  platforms: linux/amd64
                   tags: datron1/superposition:${{ steps.git_tag.outputs.docker_tag }}, datron1/superposition:latest
