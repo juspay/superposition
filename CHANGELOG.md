@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.56.1 - 2024-09-09
+### Package updates
+- frontend bumped to frontend-v0.15.1
+### Global changes
+#### Bug Fixes
+- update docker image binary name - (cdd59b2) - Kartik
+- re-enable ARM builds - (ddc17ad) - Kartik
+- faster docker builds - (a9afdb9) - Kartik
+#### Documentation
+- fix discord link - (5baad41) - Natarajan Kannan
+#### Miscellaneous Chores
+- turn off ARM docker builds - (37306e7) - Kartik
+
+- - -
+
 ## v0.56.0 - 2024-09-06
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.38.0

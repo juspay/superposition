@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.15.1 - 2024-09-09
+#### Bug Fixes
+- using ExperimentResponse type for single experiment get response - (2906966) - Shubhranshu Sanjeev
+
+- - -
+
 ## frontend-v0.15.0 - 2024-09-06
 #### Bug Fixes
 - removed edit option for experiment contexts (#229) - (a9b01a6) - Shubhranshu Sanjeev
