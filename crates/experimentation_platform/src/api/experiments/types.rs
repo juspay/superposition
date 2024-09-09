@@ -61,6 +61,7 @@ pub struct ExperimentResponse {
 
     pub context: Value,
     pub variants: Value,
+    pub last_modified_by: String,
     pub chosen_variant: Option<String>,
 }
 
@@ -79,6 +80,7 @@ impl From<models::Experiment> for ExperimentResponse {
 
             context: experiment.context,
             variants: experiment.variants,
+            last_modified_by: experiment.last_modified_by,
             chosen_variant: experiment.chosen_variant,
         }
     }
