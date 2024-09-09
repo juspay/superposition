@@ -4,7 +4,7 @@ WORKDIR /build
 
 # install nodeJS for functions
 ENV NVM_DIR /usr/local/nvm
-ENV NODE_VERSION 18.19.0
+ENV NODE_VERSION 20.17.0
 
 RUN mkdir -p $NVM_DIR
 RUN curl "https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh" | bash \
@@ -17,10 +17,10 @@ ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
 ENV PATH="${NVM_DIR}/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 RUN node --version
 
-RUN cargo install wasm-pack
+RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
 COPY . .
-RUN npm ci --loglevel=info
+RUN npm ci --loglevel=info --maxsockets 1
 RUN cd crates/context_aware_config/ && npm ci
 RUN mkdir -p target/node_modules
 RUN cp -a crates/context_aware_config/node_modules target/
@@ -41,7 +41,7 @@ RUN cargo build --release
 
 FROM debian:bookworm-slim as runtime
 
-ENV NODE_VERSION=18.19.0
+ENV NODE_VERSION=20.17.0
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y libpq5 ca-certificates curl supervisor
