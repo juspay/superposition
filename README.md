@@ -5,7 +5,7 @@
 </p>
 
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/juspay/superposition)](https://github.com/juspay/superposition/pulse) 
-[![GitHub last commit](https://img.shields.io/github/last-commit/juspay/superposition)](https://github.com/juspay/superposition/commits/main)  ![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/superpositionJP)  [![Discord badge](https://img.shields.io/discord/1280216553350107258?label=Discord&logo=Discord)](https://discord.gg/sBgYYUQU) 
+[![GitHub last commit](https://img.shields.io/github/last-commit/juspay/superposition)](https://github.com/juspay/superposition/commits/main)  ![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/superpositionJP)  [![Discord badge](https://img.shields.io/discord/1280216553350107258?label=Discord&logo=Discord)](https://discord.gg/jNeUJR9Bwr) 
 
 
 Superposition is a cloud configuration and experimentation management platform that allows software teams to manage their configuration via a central location, run multi-variate experiments for different configuration values and evaluate results of these experiments and conclude them accordingly.
