@@ -42,4 +42,8 @@ jobs:
                   context: .
                   platforms: linux/amd64,linux/arm64
                   file: ./example.Dockerfile
-                  tags: datron1/superposition-demo-app:${{ steps.git_tag.outputs.docker_tag }}, datron1/superposition-demo-app:latest
+                  tags:
+                    - ghcr.io/juspay/superposition-demo-app:latest
+                    - ghcr.io/juspay/superposition-demo-app:${{ steps.git_tag.outputs.docker_tag }}
+                    - datron1/superposition-demo-app:${{ steps.git_tag.outputs.docker_tag }}
+                    - datron1/superposition-demo-app:latest
