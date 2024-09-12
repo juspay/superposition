@@ -92,7 +92,13 @@ impl TryFrom<&Map<String, Value>> for Condition {
             return Ok(Condition {
                 operator,
                 left_operand: dimension_name.to_owned(),
-                right_operand: operands.to_vec(),
+                right_operand: operands
+                    .to_vec()
+                    .into_iter()
+                    .filter(|operand| {
+                        !(operand.is_object() && operand.get("var").is_some())
+                    })
+                    .collect(),
             });
         }
 
