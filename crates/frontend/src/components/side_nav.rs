@@ -64,7 +64,8 @@ pub fn side_nav(
     let location = use_location();
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let tenant_ws = use_context::<WriteSignal<String>>().unwrap();
-    let (app_routes, set_app_routes) = create_signal::<Vec<AppRoute>>(vec![]);
+    let (app_routes, set_app_routes) =
+        create_signal(create_routes(tenant_rs.get().as_str()));
 
     let resolved_path = create_rw_signal(resolved_path);
     let original_path = create_rw_signal(original_path);
@@ -81,11 +82,6 @@ pub fn side_nav(
                 }
             }
         })
-    });
-
-    create_effect(move |_| {
-        let tenant = tenant_rs.get();
-        set_app_routes.set(create_routes(&tenant));
     });
 
     view! {
@@ -122,6 +118,7 @@ pub fn side_nav(
                             .collect::<Vec<String>>()
                             .join("/");
                         tenant_ws.set(selected_tenant.clone());
+                        set_app_routes.set(create_routes(selected_tenant.as_str()));
                         let navigate = use_navigate();
                         navigate(redirect_url.as_str(), Default::default())
                     }
