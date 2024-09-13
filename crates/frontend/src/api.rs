@@ -1,3 +1,5 @@
+pub mod types;
+
 use leptos::ServerFnError;
 
 use crate::{

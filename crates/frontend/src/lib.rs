@@ -8,6 +8,7 @@ pub mod pages;
 pub mod providers;
 pub mod schema;
 pub mod types;
+pub mod core;
 mod utils;
 use cfg_if::cfg_if;
 
