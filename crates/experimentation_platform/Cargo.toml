@@ -34,6 +34,7 @@ superposition_types = { path = "../superposition_types" }
 reqwest = { workspace = true }
 anyhow = { workspace = true }
 superposition_macros = { path = "../superposition_macros" }
+jsonlogic = { workspace = true }
 
 [features]
 disable_db_data_validation = ["superposition_types/disable_db_data_validation"]

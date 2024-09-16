@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -127,6 +129,46 @@ pub enum ContextBulkResponse {
     PUT(ContextPutResp),
     DELETE(String),
     MOVE(ContextPutResp),
+}
+
+/********** Applicable Variants API Type *************/
+#[derive(Debug, Deserialize)]
+#[serde(try_from = "HashMap<String,String>")]
+pub struct ApplicableVariantsQuery {
+    pub context: Map<String, Value>,
+    pub toss: i8,
+}
+
+impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
+    type Error = String;
+    fn try_from(value: HashMap<String, String>) -> Result<Self, Self::Error> {
+        let mut value = value
+            .into_iter()
+            .map(|(key, value)| {
+                (key, value.parse().unwrap_or_else(|_| Value::String(value)))
+            })
+            .collect::<Map<_, _>>();
+
+        let toss = value
+            .remove("toss")
+            .and_then(|toss| toss.as_i64())
+            .and_then(|toss| {
+                if -1 <= toss && toss <= 100 {
+                    Some(toss as i8)
+                } else {
+                    None
+                }
+            })
+            .ok_or_else(|| {
+                log::error!("toss should be a an interger between -1 and 100 (included)");
+                String::from("toss should be a an interger between -1 and 100 (included)")
+            })?;
+
+        Ok(Self {
+            toss,
+            context: value,
+        })
+    }
 }
 
 /********** List API Filter Type *************/

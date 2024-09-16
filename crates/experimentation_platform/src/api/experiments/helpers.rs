@@ -240,3 +240,31 @@ pub fn add_variant_dimension_to_ctx(
 pub fn extract_override_keys(overrides: &Map<String, Value>) -> HashSet<String> {
     overrides.keys().map(String::from).collect()
 }
+
+pub fn decide_variant(
+    traffic: u8,
+    applicable_variants: Vec<Variant>,
+    toss: i8,
+) -> Result<Option<Variant>, String> {
+    if toss < 0 {
+        for variant in applicable_variants.iter() {
+            if variant.variant_type == VariantType::EXPERIMENTAL {
+                return Ok(Some(variant.clone()));
+            }
+        }
+    }
+    let variant_count = applicable_variants.len() as u8;
+    let range = (traffic * variant_count) as i32;
+    if (toss as i32) >= range {
+        return Ok(None);
+    }
+    let buckets = (1..=variant_count)
+        .map(|i| (traffic * i) as i8)
+        .collect::<Vec<i8>>();
+    let index = buckets
+        .into_iter()
+        .position(|x| toss < x)
+        .ok_or_else(|| "Unable to fetch variant's index".to_string())?;
+
+    Ok(applicable_variants.get(index).cloned())
+}
