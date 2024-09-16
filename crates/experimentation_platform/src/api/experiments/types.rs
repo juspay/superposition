@@ -6,22 +6,7 @@ use serde_json::{Map, Value};
 use service_utils::helpers::deserialize_stringified_list;
 use superposition_types::{Condition, Exp, Overrides};
 
-use crate::db::models::{self, ExperimentStatusType};
-
-#[derive(Deserialize, Serialize, Clone, PartialEq, Debug)]
-pub enum VariantType {
-    CONTROL,
-    EXPERIMENTAL,
-}
-
-#[derive(Deserialize, Serialize, Clone)]
-pub struct Variant {
-    pub id: String,
-    pub variant_type: VariantType,
-    pub context_id: Option<String>,
-    pub override_id: Option<String>,
-    pub overrides: Exp<Overrides>,
-}
+use crate::db::models::{self, ExperimentStatusType, Variant};
 
 /********** Experiment Create Req Types ************/
 
@@ -62,7 +47,7 @@ pub struct ExperimentResponse {
     pub traffic_percentage: i32,
 
     pub context: Value,
-    pub variants: Value,
+    pub variants: Vec<Variant>,
     pub last_modified_by: String,
     pub chosen_variant: Option<String>,
 }
@@ -81,7 +66,7 @@ impl From<models::Experiment> for ExperimentResponse {
             traffic_percentage: experiment.traffic_percentage,
 
             context: experiment.context,
-            variants: experiment.variants,
+            variants: experiment.variants.into_inner(),
             last_modified_by: experiment.last_modified_by,
             chosen_variant: experiment.chosen_variant,
         }

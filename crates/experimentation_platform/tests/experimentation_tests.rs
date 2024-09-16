@@ -1,6 +1,8 @@
 use chrono::Utc;
 use experimentation_platform::api::experiments::helpers;
-use experimentation_platform::db::models::{Experiment, ExperimentStatusType};
+use experimentation_platform::db::models::{
+    Experiment, ExperimentStatusType, Variant, Variants,
+};
 use serde_json::{json, Map, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::ExperimentationFlags;
@@ -52,7 +54,7 @@ fn experiment_gen(
     override_keys: &[String],
     context: &Map<String, Value>,
     status: ExperimentStatusType,
-    variants: &Value,
+    variants: &Vec<Variant>,
 ) -> Experiment {
     Experiment {
         id: 123456789,
@@ -66,7 +68,7 @@ fn experiment_gen(
         override_keys: override_keys.to_vec(),
         status,
         context: json!(context.clone()),
-        variants: variants.clone(),
+        variants: Variants::new(variants.clone()),
         chosen_variant: None,
     }
 }
@@ -231,7 +233,7 @@ fn test_is_valid_experiment_no_restrictions_overlapping_experiment(
         &["key1".to_string(), "key2".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &json!(""),
+        &vec![],
     )];
 
     assert_eq!(
@@ -271,7 +273,7 @@ fn test_is_valid_experiment_no_restrictions_non_overlapping_experiment(
             Dimensions::Client("testclient2".to_string()),
         ]),
         ExperimentStatusType::CREATED,
-        &json!(""),
+        &vec![],
     )];
 
     assert_eq!(
@@ -310,7 +312,7 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
         &experiment_override_keys,
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &json!(""),
+        &vec![],
     )];
 
     assert_eq!(
@@ -347,7 +349,7 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
         &["key1".to_string(), "key3".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &json!(""),
+        &vec![],
     )];
 
     assert_eq!(
@@ -384,7 +386,7 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
         &["key3".to_string(), "key4".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &json!(""),
+        &vec![],
     )];
 
     assert_eq!(
@@ -423,7 +425,7 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
         &experiment_override_keys,
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &json!(""),
+        &vec![],
     )];
 
     assert_eq!(
@@ -460,7 +462,7 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
         &["key1".to_string(), "key3".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &json!(""),
+        &vec![],
     )];
 
     assert_eq!(
@@ -497,7 +499,7 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
         &["key3".to_string(), "key4".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &json!(""),
+        &vec![],
     )];
 
     assert_eq!(
@@ -539,7 +541,7 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
             Dimensions::Client("testclient2".to_string()),
         ]),
         ExperimentStatusType::CREATED,
-        &json!(""),
+        &vec![],
     )];
 
     assert_eq!(
@@ -579,7 +581,7 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
             Dimensions::Client("testclient2".to_string()),
         ]),
         ExperimentStatusType::CREATED,
-        &json!(""),
+        &vec![],
     )];
 
     assert_eq!(
@@ -619,7 +621,7 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
             Dimensions::Client("testclient2".to_string()),
         ]),
         ExperimentStatusType::CREATED,
-        &json!(""),
+        &vec![],
     )];
 
     assert_eq!(
