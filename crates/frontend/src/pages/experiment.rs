@@ -74,7 +74,7 @@ pub fn experiment_page() -> impl IntoView {
     let handle_edit = move || show_modal("experiment_edit_form_modal");
 
     view! {
-        <Transition fallback=move || {
+        <Suspense fallback=move || {
             view! {
                 <div class="m-4">
                     <Skeleton variant=SkeletonVariant::DetailPage/>
@@ -150,6 +150,6 @@ pub fn experiment_page() -> impl IntoView {
                 }
             }}
 
-        </Transition>
+        </Suspense>
     }
 }

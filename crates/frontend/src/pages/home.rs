@@ -301,10 +301,13 @@ pub fn home() -> impl IntoView {
                 .class_list()
                 .add_2("text-gray-300", "line-through");
         }
+        let context_updated = context_rs.get();
         // resolve the context and get the config that would apply
         spawn_local(async move {
-            let context = gen_query_context(context_rs.get());
-            let mut config = match resolve_config(tenant_rs.get(), context).await.unwrap()
+            let context = gen_query_context(context_updated);
+            let mut config = match resolve_config(tenant_rs.get_untracked(), context)
+                .await
+                .unwrap()
             {
                 Value::Object(m) => m,
                 _ => Map::new(),

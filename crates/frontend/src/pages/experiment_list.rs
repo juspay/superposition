@@ -42,7 +42,7 @@ pub fn experiment_list() -> impl IntoView {
     });
 
     let (reset_exp_form, set_exp_form) = create_signal(0);
-    let table_columns = create_memo(move |_| experiment_table_columns());
+    let table_columns = store_value(experiment_table_columns());
 
     let combined_resource: Resource<(String, ListFilters), CombinedResource> =
         create_blocking_resource(
@@ -177,7 +177,7 @@ pub fn experiment_list() -> impl IntoView {
                                                     cell_class="min-w-48 font-mono".to_string()
                                                     rows=data
                                                     key_column="id".to_string()
-                                                    columns=table_columns.get()
+                                                    columns=table_columns.get_value()
                                                     pagination=pagination_props
                                                 />
                                             </ConditionCollapseProvider>

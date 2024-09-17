@@ -141,7 +141,7 @@ where
                     type="text"
                     placeholder="Key"
                     class="input input-bordered w-full max-w-md"
-                    value=config_key.get()
+                    value=config_key.get_untracked()
                     on:change=move |ev| {
                         let value = event_target_value(&ev);
                         set_config_key.set(value);
