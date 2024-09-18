@@ -1,0 +1,15 @@
+{
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className",
+    "ngClass",
+    "[\\S]*[cC]lass[\\S]*"
+  ],
+  "files.associations": {
+    "*.rs": "rust"
+  },
+  "tailwindCSS.includeLanguages": {
+    "rust": "html",
+    "*.rs": "html"
+  }
+}
