@@ -8,14 +8,14 @@ use leptos_router::*;
 pub fn use_tenant() -> String {
     let params_map = use_params_map();
     let route_context = use_route();
-    logging::log!("use_route-params_map {:?}", params_map.get());
+    logging::log!("use_route-params_map {:?}", params_map.get_untracked());
     logging::log!(
         "use_route-original_path {:?}",
         route_context.original_path()
     );
     logging::log!("use_route-path {:?}", route_context.path());
 
-    match params_map.get().get("tenant") {
+    match params_map.get_untracked().get("tenant") {
         Some(tenant) => tenant.clone(),
         None => String::from("no-tenant"),
     }

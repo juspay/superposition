@@ -2,8 +2,8 @@ use leptos::ServerFnError;
 
 use crate::{
     types::{
-        Config, DefaultConfig, Dimension, Experiment, ExperimentResponse,
-        ExperimentsResponse, FetchTypeTemplateResponse, FunctionResponse, ListFilters,
+        Config, DefaultConfig, Dimension, ExperimentResponse, ExperimentsResponse,
+        FetchTypeTemplateResponse, FunctionResponse, ListFilters,
     },
     utils::{
         construct_request_headers, get_host, parse_json_response, request,

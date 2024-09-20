@@ -19,6 +19,7 @@ where
     let (traffic, set_traffic) = create_signal(experiment.traffic_percentage);
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
+    let range_max = 100 / experiment.variants.len();
     let experiment_rc = Rc::new(experiment);
     let handle_ramp_experiment = move |event: MouseEvent| {
         req_inprogress_ws.set(true);
@@ -41,7 +42,7 @@ where
             <input
                 type="range"
                 min="0"
-                max="100"
+                max={range_max.to_string()}
                 value=move || traffic.get()
                 class="range"
                 on:input=move |event| {

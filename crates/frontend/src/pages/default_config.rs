@@ -38,10 +38,15 @@ pub fn default_config() -> impl IntoView {
 
     let selected_config = create_rw_signal::<Option<RowData>>(None);
     let key_prefix = create_rw_signal::<Option<String>>(None);
-    let enable_grouping =
-        create_rw_signal(get_local_storage::<bool>("enable_grouping").unwrap_or(false));
+    let enable_grouping = create_rw_signal(false);
     let query_params = use_query_map();
     let bread_crums = Signal::derive(move || get_bread_crums(key_prefix.get()));
+
+    create_effect(move |_| {
+        let enable_grouping_val =
+            get_local_storage::<bool>("enable_grouping").unwrap_or(false);
+        enable_grouping.set(enable_grouping_val);
+    });
 
     create_effect(move |_| {
         let query_params_map = query_params.try_get();
@@ -66,10 +71,10 @@ pub fn default_config() -> impl IntoView {
     };
 
     let table_columns = create_memo(move |_| {
+        let grouping_enabled = enable_grouping.get();
         let actions_col_formatter = move |_: &str, row: &Map<String, Value>| {
             let row_key = row["key"].to_string().replace('"', "");
             let is_folder = row_key.contains('.');
-            let grouping_enabled = enable_grouping.get();
             let row_value = row["value"].to_string().replace('"', "");
 
             let schema = row["schema"].clone().to_string();
@@ -133,7 +138,7 @@ pub fn default_config() -> impl IntoView {
             let label = key_name.clone();
             let is_folder = key_name.contains('.');
 
-            if is_folder && enable_grouping.get() {
+            if is_folder && grouping_enabled {
                 view! {
                     <span
                         class="cursor-pointer text-blue-500 underline underline-offset-2"
@@ -310,37 +315,34 @@ pub fn bread_crums<NF>(
 where
     NF: Fn(Option<String>) + 'static + Clone,
 {
-    let last_index = bread_crums.len() - 1;
     view! {
         <div class="flex justify-between pt-3">
 
             {bread_crums
                 .iter()
                 .enumerate()
-                .map(|(index, ele)| {
+                .map(|(_, ele)| {
                     let value = ele.value.clone();
                     let is_link = ele.is_link;
                     let handler = folder_click_handler.clone();
                     view! {
-                        <div class="flex">
-                            <h2
+                        <h2 class="flex after:content-['>'] after:mx-4 after:last:hidden">
+                            <span
                                 on:click=move |_| {
                                     if is_link {
                                         handler(value.clone())
                                     }
                                 }
-
-                                class=if ele.is_link {
+                                class={if ele.is_link {
                                     "cursor-pointer text-blue-500 underline underline-offset-2"
                                 } else {
                                     ""
-                                }
+                                }}
                             >
 
                                 {ele.key.clone()}
-                            </h2>
-                            <h2 class="pl-4 pr-4">{if index < last_index { ">" } else { "" }}</h2>
-                        </div>
+                            </span>
+                        </h2>
                     }
                 })
                 .collect_view()}

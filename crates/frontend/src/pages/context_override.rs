@@ -285,7 +285,7 @@ pub fn context_override() -> impl IntoView {
                             >
 
                                 <EditorProvider>
-                                    {match (form_mode.get(), data) {
+                                    {match (form_mode.get_untracked(), data) {
                                         (Some(FormMode::Edit), Some(data)) => {
                                             view! {
                                                 <Form
