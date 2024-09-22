@@ -41,11 +41,11 @@ where
     let all_options = StoredValue::new(dropdown_options.clone());
     let (search_term, set_search_term) = create_signal(String::new());
     let dropdown_options = Signal::derive(move || {
-        let term = search_term.get();
+        let term = search_term.get().to_lowercase();
         all_options
             .get_value()
             .into_iter()
-            .filter(|option| option.label().contains(&term))
+            .filter(|option| option.label().to_lowercase().contains(&term))
             .collect::<Vec<T>>()
     });
 
