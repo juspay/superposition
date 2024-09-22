@@ -31,9 +31,10 @@ pub fn context_card(
         .clone()
         .into_iter()
         .map(|(k, v)| {
-            let k = Value::String(k.trim_matches('"').to_string());
-            let v = Value::String(format!("{}", v).trim_matches('"').to_string());
-            Map::from_iter(vec![(String::from("KEY"), k), (String::from("VALUE"), v)])
+            Map::from_iter(vec![
+                (String::from("KEY"), Value::String(k.clone())),
+                (String::from("VALUE"), v),
+            ])
         })
         .collect::<Vec<Map<String, Value>>>();
 
