@@ -84,6 +84,16 @@ pub enum ExperimentStatusType {
     INPROGRESS,
 }
 
+impl ExperimentStatusType {
+    pub fn badge_class(&self) -> &'static str {
+        match self {
+            ExperimentStatusType::CREATED => "badge-info",
+            ExperimentStatusType::INPROGRESS => "badge-warning",
+            ExperimentStatusType::CONCLUDED => "badge-success",
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ExperimentResponse {
     pub id: String,

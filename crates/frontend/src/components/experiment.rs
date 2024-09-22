@@ -10,16 +10,6 @@ use crate::{
     types::{Variant, VariantType},
 };
 
-impl ExperimentStatusType {
-    fn badge_class(&self) -> &'static str {
-        match self {
-            ExperimentStatusType::CREATED => "badge-info",
-            ExperimentStatusType::INPROGRESS => "badge-warning",
-            ExperimentStatusType::CONCLUDED => "badge-success",
-        }
-    }
-}
-
 pub fn gen_variant_table(
     variants: &[Variant],
 ) -> Result<(Vec<Map<String, Value>>, Vec<Column>), String> {
