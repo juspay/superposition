@@ -17,6 +17,8 @@ use crate::components::drawer::{close_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{experiment_form::ExperimentForm, stat::Stat, table::Table};
+use crate::logic::Conditions;
+
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
 use crate::types::{ExperimentListFilters, ExperimentResponse, VariantFormTs};
@@ -62,7 +64,7 @@ pub fn experiment_list() -> impl IntoView {
             )
         },
         |(current_tenant, filters, pagination_filters)| async move {
-            let fetch_all_filters = ListFilters {
+            let fetch_all_filters = PaginationParams {
                 page: None,
                 count: None,
                 all: Some(true),
@@ -221,7 +223,7 @@ pub fn experiment_list() -> impl IntoView {
                             <EditorProvider>
                                 <ExperimentForm
                                     name="".to_string()
-                                    context=vec![]
+                                    context=Conditions::default()
                                     variants=VariantFormTs::default()
                                     dimensions=dim.clone()
                                     default_config=def_conf.clone()

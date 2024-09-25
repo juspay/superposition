@@ -3,7 +3,6 @@ use std::collections::{HashMap, HashSet};
 use leptos::*;
 use serde_json::Value;
 use superposition_types::database::models::cac::DefaultConfig;
-use web_sys::MouseEvent;
 
 use crate::{
     components::{
@@ -63,7 +62,7 @@ fn override_input(
                 <label class="label justify-start font-mono text-sm gap-2">
                     <span class="label-text font-bold text-gray-500">{key.get_value()} ":"</span>
                     <div class="flex gap-1">
-                        <TypeBadge r#type=r#type.clone()/>
+                        <TypeBadge r#type=r#type.clone() />
                     </div>
                 </label>
             </div>
@@ -85,8 +84,7 @@ fn override_input(
                         .into_view()
                 } else {
                     view! { <p>"An Error Occured"</p> }.into_view()
-                }}
-                <Show when=move || { allow_remove }>
+                }} <Show when=move || { allow_remove }>
                     <div class="w-1/5">
                         <button
                             class="btn btn-ghost btn-circle btn-sm"
@@ -113,7 +111,6 @@ pub fn override_form<NF>(
     default_config: Vec<DefaultConfig>,
     handle_change: NF,
     #[prop(into, default=String::new())] id: String,
-    #[prop(default = false)] is_standalone: bool,
     #[prop(default = false)] disable_remove: bool,
     #[prop(default = true)] show_add_override: bool,
     #[prop(into, default = None)] handle_key_remove: Option<Callback<String, ()>>,
@@ -133,11 +130,6 @@ where
         .into_iter()
         .map(|ele| (ele.clone().key, ele))
         .collect();
-
-    let on_submit = move |event: MouseEvent| {
-        event.prevent_default();
-        logging::log!("{:?}", overrides.get());
-    };
 
     let handle_config_key_select = Callback::new(move |default_config: DefaultConfig| {
         let config_key = default_config.key;
@@ -280,13 +272,6 @@ where
                     </div>
                 </div>
             </div>
-            <Show when=move || is_standalone>
-                <div class="flex justify-end mt-4">
-                    <button class="btn" on:click:undelegated=on_submit>
-                        Save
-                    </button>
-                </div>
-            </Show>
         </div>
     }
 }
