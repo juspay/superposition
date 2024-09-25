@@ -4,6 +4,7 @@ use crate::{
         condition_pills::Condition as ConditionComponent,
         table::types::{Column, ColumnSortable},
     },
+    logic::Conditions,
     types::ExperimentListFilters,
 };
 use core::time::Duration;
@@ -129,17 +130,19 @@ pub fn experiment_table_columns(
             "context".to_string(),
             None,
             |_, row: &Map<String, Value>| {
-                let context = match row.get("context") {
-                    Some(value) => value.to_owned(),
-                    None => json!(""),
-                };
+                let context = row
+                    .get("context")
+                    .and_then(|v| v.as_object().cloned())
+                    .unwrap_or(Map::new());
                 let id = row.get("id").map_or(String::from(""), |value| {
                     value.as_str().unwrap_or("").to_string()
                 });
+                let conditions =
+                    Conditions::from_context_json(&context).unwrap_or_default();
 
                 view! {
                     <div class="w-[400px]">
-                        <ConditionComponent conditions=extract_conditions(&context) grouped_view=false id />
+                        <ConditionComponent conditions grouped_view=false id />
                     </div>
                 }
                 .into_view()
