@@ -10,7 +10,6 @@ use crate::{
 };
 use leptos::*;
 use serde_json::Value;
-use web_sys::MouseEvent;
 
 #[component]
 fn type_badge(r#type: Option<SchemaType>) -> impl IntoView {
@@ -112,7 +111,6 @@ pub fn override_form<NF>(
     default_config: Vec<DefaultConfig>,
     handle_change: NF,
     #[prop(into, default=String::new())] id: String,
-    #[prop(default = false)] is_standalone: bool,
     #[prop(default = false)] disable_remove: bool,
     #[prop(default = true)] show_add_override: bool,
     #[prop(into, default = None)] handle_key_remove: Option<Callback<String, ()>>,
@@ -132,11 +130,6 @@ where
         .into_iter()
         .map(|ele| (ele.clone().key, ele))
         .collect();
-
-    let on_submit = move |event: MouseEvent| {
-        event.prevent_default();
-        logging::log!("{:?}", overrides.get());
-    };
 
     let handle_config_key_select = Callback::new(move |default_config: DefaultConfig| {
         let config_key = default_config.key;
@@ -279,13 +272,6 @@ where
                     </div>
                 </div>
             </div>
-            <Show when=move || is_standalone>
-                <div class="flex justify-end mt-4">
-                    <button class="btn" on:click:undelegated=on_submit>
-                        Save
-                    </button>
-                </div>
-            </Show>
         </div>
     }
 }

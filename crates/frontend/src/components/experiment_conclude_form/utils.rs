@@ -1,13 +1,13 @@
 use leptos::logging::log;
 use serde_json::json;
 
-use crate::{types::Experiment, utils::get_host};
+use crate::{types::ExperimentResponse, utils::get_host};
 
 pub async fn conclude_experiment(
     exp_id: String,
     variant_id: String,
     tenant: &String,
-) -> Result<Experiment, String> {
+) -> Result<ExperimentResponse, String> {
     let client = reqwest::Client::new();
     let host = get_host();
     match client
@@ -20,7 +20,7 @@ pub async fn conclude_experiment(
         Ok(experiment) => {
             log!("experiment response {:?}", experiment);
             Ok(experiment
-                .json::<Experiment>()
+                .json::<ExperimentResponse>()
                 .await
                 .map_err(|err| err.to_string())?)
         }

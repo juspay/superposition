@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::time::Duration;
 
 use leptos::*;
@@ -9,8 +8,8 @@ use superposition_types::Config;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlButtonElement, HtmlSpanElement, MouseEvent};
 
-use crate::components::condition_pills::types::Conditions;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
+use crate::logic::Conditions;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::ListFilters;
 use crate::{
@@ -21,10 +20,7 @@ use crate::{
     utils::{check_url_and_return_val, get_element_by_id, get_host},
 };
 use crate::{
-    components::condition_pills::{
-        types::{Condition, ConditionOperator},
-        Condition as ConditionComponent,
-    },
+    components::condition_pills::Condition as ConditionComponent,
     types::PaginatedResponse,
 };
 
@@ -68,14 +64,9 @@ fn all_context_view(config: Config) -> impl IntoView {
         overrides,
         default_configs,
     } = config;
-    let rows = |k: &String, v: &Value, striked: bool| {
-        let default_iter = vec![(k.clone(), v.clone())];
-        v
-            .as_object()
-            .unwrap_or(&Map::from_iter(default_iter))
-            .iter()
+    let rows = |m: &Map<String, Value>, striked: bool| {
+        m.iter()
             .map(|(key, value)| {
-                let key = key.replace('"', "").trim().to_string();
                 let value = value
                     .as_str()
                     .unwrap_or(value.to_string().trim_matches('"'))
@@ -117,7 +108,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                         let rows: Vec<_> = context
                             .override_with_keys
                             .iter()
-                            .filter_map(|key| overrides.get(key).map(|o| rows(key, &Value::Object(o.clone().into()), true)))
+                            .filter_map(|key| overrides.get(key).map(|o| rows(o, true)))
                             .collect();
                         let conditions: Conditions = context.try_into().unwrap_or_default();
                         view! {
@@ -127,7 +118,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                                 </h3>
                                 <div class="pl-5">
                                     <ConditionComponent
-                                        conditions=conditions.0
+                                        conditions=conditions
                                         id=context.id.clone()
                                         class="xl:w-[400px] h-fit"
                                     />
@@ -162,10 +153,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                         </thead>
                         <tbody>
 
-                            {default_configs
-                                .iter()
-                                .map(|(k, v)| rows(k, v, false))
-                                .collect::<Vec<_>>()}
+                        {rows(&default_configs, false)}
 
                         </tbody>
                     </table>
@@ -201,7 +189,7 @@ pub fn home() -> impl IntoView {
         },
     );
 
-    let (context_rs, context_ws) = create_signal::<Vec<Condition>>(vec![]);
+    let (context_rs, context_ws) = create_signal::<Conditions>(Conditions::default());
     let (selected_tab_rs, selected_tab_ws) = create_signal(ResolveTab::AllConfig);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
@@ -259,42 +247,6 @@ pub fn home() -> impl IntoView {
         }
     };
 
-    let gen_query_context = |query: Vec<Condition>| -> String {
-        let mut context: Vec<String> = vec![];
-        for condition in query.iter() {
-            let dimension = condition.left_operand.clone();
-            let op = match condition.operator.clone() {
-                ConditionOperator::Is => Cow::Borrowed("="),
-                ConditionOperator::In => Cow::Borrowed("IN"),
-                ConditionOperator::Has => Cow::Borrowed("HAS"),
-                ConditionOperator::Between => Cow::Borrowed("BETWEEN"),
-                ConditionOperator::Other(op) => Cow::Owned(op),
-            };
-            let value = condition
-                .right_operand
-                .clone()
-                .into_iter()
-                .filter_map(|value| {
-                    if value.is_object() && value.get("var").is_some() {
-                        None
-                    } else {
-                        Some(value)
-                    }
-                })
-                .map(|value| match value {
-                    Value::String(s) => s.clone(),
-                    Value::Number(n) => n.to_string(),
-                    Value::Bool(b) => b.to_string(),
-                    Value::Null => String::from("null"),
-                    _ => format!("{}", value),
-                })
-                .collect::<Vec<String>>()
-                .join(",");
-            context.push(format!("{}{op}{}", dimension, value));
-        }
-        context.join("&").to_string()
-    };
-
     let resolve_click = move |ev: MouseEvent| {
         ev.prevent_default();
         req_inprogress_ws.set(true);
@@ -322,7 +274,7 @@ pub fn home() -> impl IntoView {
         let context_updated = context_rs.get();
         // resolve the context and get the config that would apply
         spawn_local(async move {
-            let context = gen_query_context(context_updated);
+            let context = context_updated.to_query_string();
             let mut config = match resolve_config(tenant_rs.get_untracked(), context)
                 .await
                 .unwrap()
@@ -403,10 +355,9 @@ pub fn home() -> impl IntoView {
                                                         .to_owned()
                                                         .unwrap_or(PaginatedResponse::default())
                                                         .data
-                                                    context=vec![]
+                                                    context=Conditions::default()
                                                     heading_sub_text="Query your configs".to_string()
                                                     dropdown_direction=DropdownDirection::Right
-                                                    is_standalone=false
                                                     resolve_mode=true
                                                     handle_change=move |new_context| {
                                                         context_ws
