@@ -14,7 +14,7 @@ use crate::components::context_form::ContextForm;
 use crate::components::variant_form::VariantForm;
 use crate::types::{VariantFormT, VariantFormTs};
 
-use super::condition_pills::types::Condition;
+use crate::logic::Conditions;
 
 fn default_variants_for_form() -> Vec<(String, VariantFormT)> {
     vec![
@@ -55,7 +55,7 @@ pub fn experiment_form<NF>(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] id: String,
     name: String,
-    context: Vec<Condition>,
+    context: Conditions,
     variants: VariantFormTs,
     handle_submit: NF,
     default_config: Vec<DefaultConfig>,
@@ -73,7 +73,7 @@ where
     let (f_variants, set_variants) = create_signal(init_variants);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
-    let handle_context_form_change = move |updated_ctx: Vec<Condition>| {
+    let handle_context_form_change = move |updated_ctx: Conditions| {
         set_context.set_untracked(updated_ctx);
     };
 
@@ -108,14 +108,8 @@ where
                 let result = if edit {
                     update_experiment(experiment_id, f_variants, tenant).await
                 } else {
-                    create_experiment(
-                        f_context,
-                        f_variants,
-                        f_experiment_name,
-                        tenant,
-                        dimensions.get_value().clone(),
-                    )
-                    .await
+                    create_experiment(f_context, f_variants, f_experiment_name, tenant)
+                        .await
                 };
 
                 match result {
@@ -157,11 +151,9 @@ where
                     let context = f_context.get();
                     view! {
                         <ContextForm
-                            // dimensions will now be a Vec<Dimension>
                             dimensions=dimensions.get_value()
                             context=context
                             handle_change=handle_context_form_change
-                            is_standalone=false
                             disabled=edit
                             heading_sub_text=String::from(
                                 "Define rules under which this experiment would run",

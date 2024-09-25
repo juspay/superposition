@@ -297,7 +297,6 @@ where
                                                     overrides=overrides
                                                     default_config=default_config.get_value()
                                                     handle_change=handle_change
-                                                    is_standalone=false
                                                     show_add_override=false
                                                     handle_key_remove=Some(Callback::new(on_key_remove))
                                                 />
@@ -309,7 +308,6 @@ where
                                                     overrides=overrides
                                                     default_config=default_config.get_value()
                                                     handle_change=handle_change
-                                                    is_standalone=false
                                                     show_add_override=false
                                                     disable_remove=true
                                                 />

@@ -6,6 +6,11 @@ use serde_json::{json, Map};
 use crate::schema::{HtmlDisplay, SchemaType};
 use superposition_types::Context;
 
+/// The `Expression` enum represents a JSONLogic expression and ensures
+/// the correct construction of expressions by tying operators and operands together.
+///
+/// This enum provides a way to enforce the proper order and number of operands
+/// for each operator, ensuring the resulting JSONLogic expression is well-formed.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Expression {
     Is(serde_json::Value),
@@ -16,7 +21,10 @@ pub enum Expression {
 }
 
 pub fn is_variable(v: &serde_json::Value) -> bool {
-    v.is_object() && v.as_object().unwrap().contains_key("var")
+    v.is_object()
+        && v.as_object()
+            .map(|v| v.contains_key("var"))
+            .unwrap_or_default()
 }
 
 pub fn is_constant(v: &serde_json::Value) -> bool {
@@ -33,7 +41,7 @@ impl Expression {
                 .cloned()
                 .ok_or("Invalid operands list for context")?;
 
-            let operand_0 = operands.first();
+            let operand_0 = operands.get(0);
             let operand_1 = operands.get(1);
             let operand_2 = operands.get(2);
 
@@ -176,6 +184,8 @@ impl From<(SchemaType, Operator)> for Expression {
     }
 }
 
+/// This a copy of `Expression` enum, to prevent copying/moving of data
+/// where just the operator information is needed.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Operator {
     Is,
