@@ -1,12 +1,7 @@
-use serde_json::Value;
-use superposition_types::database::types::DimensionWithMandatory;
-
-use crate::components::condition_pills::types::Condition;
-use crate::components::context_form::utils::construct_context;
+use super::types::{ExperimentCreateRequest, ExperimentUpdateRequest};
+use crate::logic::Conditions;
 use crate::types::VariantFormT;
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
-
-use super::types::{ExperimentCreateRequest, ExperimentUpdateRequest};
 
 pub fn validate_experiment(experiment: &ExperimentCreateRequest) -> Result<bool, String> {
     if experiment.name.is_empty() {
@@ -16,16 +11,15 @@ pub fn validate_experiment(experiment: &ExperimentCreateRequest) -> Result<bool,
 }
 
 pub async fn create_experiment(
-    conditions: Vec<Condition>,
+    conditions: Conditions,
     variants: Vec<VariantFormT>,
     name: String,
     tenant: String,
-    dimensions: Vec<DimensionWithMandatory>,
-) -> Result<Value, String> {
+) -> Result<serde_json::Value, String> {
     let payload = ExperimentCreateRequest {
         name,
         variants: FromIterator::from_iter(variants),
-        context: construct_context(conditions, dimensions.clone()),
+        context: conditions.to_context_json(),
     };
 
     let _ = validate_experiment(&payload)?;
@@ -47,7 +41,7 @@ pub async fn update_experiment(
     experiment_id: String,
     variants: Vec<VariantFormT>,
     tenant: String,
-) -> Result<Value, String> {
+) -> Result<serde_json::Value, String> {
     let payload = ExperimentUpdateRequest {
         variants: FromIterator::from_iter(variants),
     };
