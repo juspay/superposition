@@ -2,10 +2,12 @@ use leptos::*;
 use serde_json::{Map, Value};
 use superposition_types::Context;
 
-use crate::components::condition_pills::types::{ConditionOperator, Conditions};
-use crate::components::{
-    condition_pills::Condition as ConditionComponent,
-    table::{types::Column, Table},
+use crate::{
+    components::{
+        condition_pills::Condition as ConditionComponent,
+        table::{types::Column, Table},
+    },
+    logic::{Conditions, Operator},
 };
 
 #[component]
@@ -50,12 +52,12 @@ pub fn context_card(
         && !conditions
             .0
             .iter()
-            .any(|condition| condition.left_operand == "variantIds");
+            .any(|condition| condition.dimension == "variantIds");
 
     let edit_unsupported = conditions
         .0
         .iter()
-        .any(|condition| matches!(condition.operator, ConditionOperator::Other(_)));
+        .any(|condition| matches!(condition.operator, Operator::Other(_)));
 
     view! {
         <div class="rounded-lg shadow bg-base-100 p-6 flex flex-col gap-4">
@@ -109,7 +111,7 @@ pub fn context_card(
             <div class="pl-5">
                 <ConditionComponent
                     // Clone only once before reusing in multiple closures
-                    conditions=conditions.0
+                    conditions=conditions
                     id=context_id.get_value()
                     class="xl:w-[400px] h-fit"
                 />
