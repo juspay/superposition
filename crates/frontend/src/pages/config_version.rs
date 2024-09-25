@@ -15,53 +15,55 @@ pub fn config_version() -> impl IntoView {
 
     let config_resource = create_blocking_resource(
         move || (tenant.get().0, version.clone(), org_id.get().0),
-        |(tenant, version, org_id)| async move { fetch_config(tenant, version, org_id).await },
+        |(tenant, version, org_id)| async move {
+            fetch_config(&tenant, version, org_id).await
+        },
     );
 
     view! {
-        <div class="p-8">
-            <Suspense fallback=move || view! { <Skeleton /> }>
-                {move || {
-                    match config_resource.get() {
-                        Some(Ok(config)) => {
-                            let config_json = serde_json::to_string_pretty(&config)
-                                .unwrap_or_default();
-                            view! {
-                                <div>
-                                    <andypf-json-viewer
-                                        indent="4"
-                                        expanded="true"
-                                        theme="default-light"
-                                        show-data-types="false"
-                                        show-toolbar="true"
-                                        expand-icon-type="arrow"
-                                        expanded="1"
-                                        show-copy="true"
-                                        show-size="false"
-                                        data=config_json
-                                    ></andypf-json-viewer>
-                                </div>
-                            }
+        <Suspense fallback=move || {
+            view! { <Skeleton /> }
+        }>
+            {move || {
+                match config_resource.get() {
+                    Some(Ok(config)) => {
+                        let config_json = serde_json::to_string_pretty(&config).unwrap_or_default();
+                        view! {
+                            <div>
+                                <andypf-json-viewer
+                                    indent="4"
+                                    expanded="true"
+                                    theme="default-light"
+                                    show-data-types="false"
+                                    show-toolbar="true"
+                                    expand-icon-type="arrow"
+                                    expanded="1"
+                                    show-copy="true"
+                                    show-size="false"
+                                    data=config_json
+                                ></andypf-json-viewer>
+                            </div>
+                        }
                             .into_view()
-                        }
-                        Some(Err(_)) => {
-                            view! {
-                                <Toast
-                                    alerts=vec![Alert::new(
-                                        0,
-                                        "Error loading config.".to_string(),
-                                        AlertType::Error,
-                                        5000,
-                                    )]
-                                />
-                            }.into_view()
-                        }
-                        None => {
-                            view! { <Skeleton /> }
-                        }
                     }
-                }}
-            </Suspense>
-        </div>
+                    Some(Err(_)) => {
+                        view! {
+                            <Toast alerts=vec![
+                                Alert::new(
+                                    0,
+                                    "Error loading config.".to_string(),
+                                    AlertType::Error,
+                                    5000,
+                                ),
+                            ] />
+                        }
+                            .into_view()
+                    }
+                    None => {
+                        view! { <Skeleton /> }
+                    }
+                }
+            }}
+        </Suspense>
     }
 }

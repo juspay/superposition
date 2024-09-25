@@ -26,6 +26,7 @@ pub fn endpoints() -> Scope {
         .service(create_type)
         .service(update_type)
         .service(delete_type)
+        .service(get_type)
 }
 
 #[post("")]
@@ -199,4 +200,18 @@ async fn list_types(
         total_items: n_types,
         data: custom_types,
     }))
+}
+
+#[get("/{type_name}")]
+async fn get_type(
+    db_conn: DbConnection,
+    path: Path<TypeTemplateName>,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let type_name: String = path.into_inner().into();
+
+    let custom_type = dsl::type_templates
+        .find(type_name)
+        .get_result::<TypeTemplate>(&mut conn)?;
+    Ok(HttpResponse::Ok().json(custom_type))
 }

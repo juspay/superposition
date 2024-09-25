@@ -8,6 +8,7 @@ pub mod hoc;
 pub mod logic;
 pub mod pages;
 pub mod providers;
+pub mod routes;
 pub mod schema;
 pub mod types;
 mod utils;

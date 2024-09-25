@@ -36,13 +36,14 @@ pub fn dimension_form<NF>(
     #[prop(default = None)] function_name: Option<Value>,
     #[prop(default = String::new())] description: String,
     #[prop(default = String::new())] change_reason: String,
+    #[prop(into, default = String::new())] class: String,
     handle_submit: NF,
 ) -> impl IntoView
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_s = use_context::<Signal<Tenant>>().unwrap();
+    let org_s = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (position_rs, position_ws) = create_signal(position);
     let (dimension_name_rs, dimension_name_ws) = create_signal(dimension_name);
@@ -54,7 +55,7 @@ where
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let functions_resource: Resource<(String, String), Vec<Function>> =
         create_blocking_resource(
-            move || (tenant_rws.get().0, org_rws.get().0),
+            move || (tenant_s.get().0, org_s.get().0),
             |(current_tenant, org)| async move {
                 fetch_functions(&PaginationParams::all_entries(), current_tenant, org)
                     .await
@@ -63,7 +64,7 @@ where
         );
 
     let type_template_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
+        move || (tenant_s.get().0, org_s.get().0),
         |(current_tenant, org)| async move {
             fetch_types(&PaginationParams::all_entries(), current_tenant, org)
                 .await
@@ -107,10 +108,10 @@ where
                         change_reason: change_reason_rs.get(),
                     };
                     update_dimension(
-                        tenant_rws.get().0,
+                        tenant_s.get().0,
                         dimension_name,
                         update_payload,
-                        org_rws.get().0,
+                        org_s.get().0,
                     )
                     .await
                 } else {
@@ -122,7 +123,7 @@ where
                         description: description_rs.get(),
                         change_reason: change_reason_rs.get(),
                     };
-                    create_dimension(tenant_rws.get().0, create_payload, org_rws.get().0)
+                    create_dimension(tenant_s.get().0, create_payload, org_s.get().0)
                         .await
                 };
                 match result {
@@ -151,7 +152,7 @@ where
         });
     };
     view! {
-        <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
+        <form class=format!("relative form-control space-y-4 text-gray-700 font-mono {}", class)>
             <div class="form-control">
                 <label class="label">
                     <span class="label-text">Dimension</span>
@@ -210,14 +211,16 @@ where
                     } else {
                         dimension_type_rs.get()
                     };
-                    let dimension_type_schema = SchemaType::Single(JsonSchemaType::from(&dimension_schema_rs.get()));
+                    let dimension_type_schema = SchemaType::Single(
+                        JsonSchemaType::from(&dimension_schema_rs.get()),
+                    );
                     view! {
                         <div class="form-control">
                             <label class="label">
                                 <span class="label-text">Set Schema</span>
                             </label>
                             <Dropdown
-                                dropdown_width="w-100"
+                                dropdown_width="w-full max-w-md"
                                 dropdown_icon="".to_string()
                                 dropdown_text=dimension_t
                                 dropdown_direction=DropdownDirection::Down
@@ -235,7 +238,9 @@ where
                                     class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
                                     schema_type=dimension_type_schema
                                     value=dimension_schema_rs.get()
-                                    on_change=Callback::new(move |new_type_schema| dimension_schema_ws.set(new_type_schema))
+                                    on_change=Callback::new(move |new_type_schema| {
+                                        dimension_schema_ws.set(new_type_schema)
+                                    })
                                     r#type=InputType::Monaco
                                 />
                             </EditorProvider>
@@ -326,16 +331,11 @@ where
 
             </Suspense>
 
-            <div class="form-control grid w-full justify-start">
+            <div class="absolute bottom-0 right-0 p-4 flex justify-end items-end w-full bg-white">
                 {move || {
                     let loading = req_inprogess_rs.get();
                     view! {
-                        <Button
-                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                            text="Submit".to_string()
-                            on_click=on_submit.clone()
-                            loading
-                        />
+                        <Button text="Submit".to_string() on_click=on_submit.clone() loading />
                     }
                 }}
 

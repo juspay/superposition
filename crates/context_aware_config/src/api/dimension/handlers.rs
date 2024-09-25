@@ -36,6 +36,7 @@ pub fn endpoints() -> Scope {
         .service(create)
         .service(update)
         .service(get)
+        .service(get_by_name)
         .service(delete_dimension)
 }
 
@@ -306,6 +307,32 @@ async fn get(
         total_items,
         data: dimensions_with_mandatory,
     }))
+}
+
+#[get("/{name}")]
+async fn get_by_name(
+    db_conn: DbConnection,
+    path: Path<String>,
+    schema_name: SchemaName,
+) -> superposition::Result<HttpResponse> {
+    use superposition_types::database::{
+        models::cac::Dimension,
+        schema::dimensions::{self, dsl},
+    };
+    let DbConnection(mut conn) = db_conn;
+    let name: String = path.into_inner().into();
+    let res = dsl::dimensions
+        .filter(dimensions::dimension.eq(name))
+        .select(Dimension::as_select())
+        .get_result(&mut conn)?;
+
+    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
+
+    let mandatory_dimensions =
+        workspace_settings.mandatory_dimensions.unwrap_or_default();
+    let is_mandatory = mandatory_dimensions.contains(&res.dimension);
+
+    Ok(HttpResponse::Ok().json(DimensionWithMandatory::new(res, is_mandatory)))
 }
 
 #[delete("/{name}")]

@@ -189,6 +189,7 @@ pub fn select(
     id: String,
     name: String,
     class: String,
+    width: String,
     disabled: bool,
     value: Value,
     options: Vec<Value>,
@@ -210,7 +211,7 @@ pub fn select(
                     name=name.clone()
                     class=class.clone()
                     disabled=disabled
-                    dropdown_width="w-100"
+                    dropdown_width=width.clone()
                     dropdown_icon="".to_string()
                     dropdown_text=dropdown_text
                     dropdown_direction=DropdownDirection::Down
@@ -231,6 +232,7 @@ fn basic_input(
     id: String,
     name: String,
     class: String,
+    width: String,
     r#type: InputType,
     disabled: bool,
     required: bool,
@@ -251,11 +253,11 @@ fn basic_input(
     }
 
     view! {
-        <div class="flex flex-col gap-1">
+        <div class=format!("flex flex-col gap-y-1 {}", width)>
             <input
                 id=id
                 name=name
-                class=format!("input input-bordered  {}", class)
+                class=format!("input input-bordered {} w-full", class)
                 required=required
                 disabled=disabled
                 type=r#type.to_html_input_type()
@@ -296,6 +298,7 @@ fn basic_input(
 pub fn monaco_input(
     id: String,
     class: String,
+    width: String,
     value: Value,
     on_change: Callback<Value, ()>,
     schema_type: SchemaType,
@@ -356,7 +359,7 @@ pub fn monaco_input(
     });
 
     view! {
-        <div class=format!("relative border rounded-lg bg-white p-2 {}", class)>
+        <div class=format!("relative border rounded-lg bg-white p-2 {} {}", class, width)>
             <Show when=move || {
                 editor_rs.with(|v| v.id != id.get_value())
             }>
@@ -369,8 +372,7 @@ pub fn monaco_input(
                                 on:click=move |e| {
                                     on_edit_click.call(e);
                                 }
-                            >
-                            </i>
+                            ></i>
                         </div>
                         <andypf-json-viewer
                             indent="4"
@@ -482,20 +484,21 @@ pub fn input(
     #[prop(default = false)] disabled: bool,
     #[prop(into, default = String::new())] id: String,
     #[prop(into, default = String::new())] class: String,
+    #[prop(into, default = String::new())] width: String,
     #[prop(into, default = String::new())] name: String,
     #[prop(default = None)] operator: Option<Operator>,
 ) -> impl IntoView {
     match r#type {
         InputType::Toggle => match value.as_bool() {
             Some(ref v) => {
-                view! { <Toggle value=v.clone() on_change class name/> }.into_view()
+                view! { <Toggle value=v.clone() on_change class name /> }.into_view()
             }
-            None => view! { <Toggle value=false on_change class name/> }.into_view(),
+            None => view! { <Toggle value=false on_change class name /> }.into_view(),
         },
-        InputType::Select(ref options) => view! { <Select id name class value on_change disabled options=options.0.clone()/> }
+        InputType::Select(ref options) => view! { <Select id name class width value on_change disabled options=options.0.clone() /> }
         .into_view(),
         InputType::Monaco => {
-            view! { <MonacoInput id class value on_change schema_type operator/> }.into_view()
+            view! { <MonacoInput id class width value on_change schema_type operator /> }.into_view()
         }
         _ => {
             view! {
@@ -503,6 +506,7 @@ pub fn input(
                     id=id
                     name=name
                     class=class
+                    width=width
                     disabled=disabled
                     required=true
                     r#type=r#type

@@ -1,10 +1,5 @@
-use leptos::*;
-use serde_json::{json, Map, Value};
-use superposition_types::custom_query::PaginationParams;
-
 use crate::api::{delete_dimension, fetch_dimensions};
-use crate::components::dimension_form::DimensionForm;
-use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
+use crate::components::button::Button;
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::ColumnSortable;
 use crate::components::{
@@ -18,6 +13,11 @@ use crate::components::{
 use crate::types::{OrganisationId, Tenant};
 use crate::utils::update_page_direction;
 
+use leptos::*;
+use leptos_router::A;
+use serde_json::{json, Map, Value};
+use superposition_types::custom_query::PaginationParams;
+
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
     pub dimension: String,
@@ -29,15 +29,15 @@ pub struct RowData {
 
 #[component]
 pub fn dimensions() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_s = use_context::<Signal<Tenant>>().unwrap();
+    let org_s = use_context::<Signal<OrganisationId>>().unwrap();
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
     let (filters, set_filters) = create_signal(PaginationParams::default());
     let dimensions_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, filters.get(), org_rws.get().0),
-        |(current_tenant, filters, org_id)| async move {
-            fetch_dimensions(&filters, current_tenant, org_id)
+        move || (tenant_s.get().0, filters.get(), org_s.get().0),
+        |(tenant, filters, org_id)| async move {
+            fetch_dimensions(&filters, &tenant, &org_id)
                 .await
                 .unwrap_or_default()
         },
@@ -47,7 +47,7 @@ pub fn dimensions() -> impl IntoView {
         if let Some(id) = delete_id_rs.get().clone() {
             spawn_local(async move {
                 let result =
-                    delete_dimension(id, tenant_rws.get().0, org_rws.get().0).await;
+                    delete_dimension(id, tenant_s.get().0, org_s.get().0).await;
 
                 match result {
                     Ok(_) => {
@@ -75,45 +75,18 @@ pub fn dimensions() -> impl IntoView {
         });
     });
 
-    let selected_dimension = create_rw_signal::<Option<RowData>>(None);
-
     let table_columns = create_memo(move |_| {
         let action_col_formatter = move |_: &str, row: &Map<String, Value>| {
             logging::log!("Dimension row: {:?}", row);
             let row_dimension = row["dimension"].to_string().replace('"', "");
-            let row_position_str = row["position"].to_string().replace('"', "");
-            let row_position = row_position_str.parse::<u32>().unwrap_or(0_u32);
-
-            let schema = row["schema"].clone().to_string();
-            let schema = serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
-
-            let function_name = row["function_name"].to_string();
-            let fun_name = match function_name.as_str() {
-                "null" => None,
-                _ => Some(json!(function_name.replace('"', ""))),
-            };
-            let mandatory = row["mandatory"].as_bool().unwrap_or(false);
             let dimension_name = row_dimension.clone();
-
-            let edit_click_handler = move |_| {
-                let row_data = RowData {
-                    dimension: row_dimension.clone(),
-                    position: row_position.clone(),
-                    schema: schema.clone(),
-                    function_name: fun_name.clone(),
-                    mandatory: mandatory.clone(),
-                };
-                logging::log!("{:?}", row_data);
-                selected_dimension.set(Some(row_data));
-                open_drawer("dimension_drawer");
-            };
 
             if dimension_name.clone() == String::from("variantIds") {
                 view! {
                     <div class="join">
-                        <span class="cursor-pointer" on:click=edit_click_handler>
+                        <A href=format!("{row_dimension}/update")>
                             <i class="ri-pencil-line ri-xl text-blue-500"></i>
-                        </span>
+                        </A>
                     </div>
                 }
                 .into_view()
@@ -124,9 +97,9 @@ pub fn dimensions() -> impl IntoView {
                 };
                 view! {
                     <div class="join">
-                        <span class="cursor-pointer" on:click=edit_click_handler>
+                        <A href=format!("{row_dimension}/update")>
                             <i class="ri-pencil-line ri-xl text-blue-500"></i>
-                        </span>
+                        </A>
                         <span class="cursor-pointer text-red-500" on:click=handle_dimension_delete>
                             <i class="ri-delete-bin-5-line ri-xl text-red-500"></i>
                         </span>
@@ -153,113 +126,66 @@ pub fn dimensions() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8">
+        <Suspense fallback=move || {
+            view! { <Skeleton /> }
+        }>
             {move || {
-                let handle_close = move || {
-                    close_drawer("dimension_drawer");
-                    selected_dimension.set(None);
+                let value = dimensions_resource.get().unwrap_or_default();
+                let total_items = value.data.len().to_string();
+                let table_rows = value
+                    .data
+                    .iter()
+                    .map(|ele| {
+                        let mut ele_map = json!(ele).as_object().unwrap().clone();
+                        ele_map
+                            .insert(
+                                "created_at".to_string(),
+                                json!(ele.created_at.format("%v").to_string()),
+                            );
+                        ele_map
+                    })
+                    .collect::<Vec<Map<String, Value>>>();
+                let filters = filters.get();
+                let pagination_props = TablePaginationProps {
+                    enabled: true,
+                    count: filters.count.unwrap_or_default(),
+                    current_page: filters.page.unwrap_or_default(),
+                    total_pages: value.total_pages,
+                    on_next: handle_next_click,
+                    on_prev: handle_prev_click,
                 };
-                if let Some(selected_dimension_data) = selected_dimension.get() {
-                    view! {
-                        <Drawer
-                            id="dimension_drawer".to_string()
-                            header="Edit Dimension"
-                            handle_close=handle_close
-                        >
-                            <DimensionForm
-                                edit=true
-                                position=selected_dimension_data.position
-                                dimension_name=selected_dimension_data.dimension
-                                dimension_schema=selected_dimension_data.schema
-                                function_name=selected_dimension_data.function_name
-                                handle_submit=move || {
-                                    dimensions_resource.refetch();
-                                    selected_dimension.set(None);
-                                    close_drawer("dimension_drawer");
-                                }
+                view! {
+                    <div class="pb-4">
+                        <Stat heading="Dimensions" icon="ri-ruler-2-fill" number=total_items />
+                    </div>
+                    <div class="card rounded-xl w-full bg-base-100 shadow">
+                        <div class="card-body">
+                            <div class="flex justify-between">
+                                <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
+                                    "Dimensions"
+                                </h2>
+                                <A href="new">
+                                    <Button text="Create Key" on_click=move |_| {} />
+                                </A>
+                            </div>
+                            <Table
+                                cell_class="min-w-48 font-mono".to_string()
+                                rows=table_rows
+                                key_column="id".to_string()
+                                columns=table_columns.get()
+                                pagination=pagination_props
                             />
-
-                        </Drawer>
-                    }
-                } else {
-                    view! {
-                        <Drawer
-                            id="dimension_drawer".to_string()
-                            header="Create New Dimension"
-                            handle_close=handle_close
-                        >
-                            <DimensionForm handle_submit=move || {
-                                dimensions_resource.refetch();
-                                close_drawer("dimension_drawer");
-                            }/>
-                        </Drawer>
-                    }
+                        </div>
+                    </div>
                 }
             }}
-            <Suspense fallback=move || {
-                view! { <Skeleton/> }
-            }>
-                {move || {
-                    let value = dimensions_resource
-                        .get()
-                        .unwrap_or_default();
-                    let total_items = value.data.len().to_string();
-                    let table_rows = value
-                        .data
-                        .iter()
-                        .map(|ele| {
-                            let mut ele_map = json!(ele).as_object().unwrap().clone();
-                            ele_map
-                                .insert(
-                                    "created_at".to_string(),
-                                    json!(ele.created_at.format("%v").to_string()),
-                                );
-                            ele_map
-                        })
-                        .collect::<Vec<Map<String, Value>>>();
-                    let filters = filters.get();
-                    let pagination_props = TablePaginationProps {
-                        enabled: true,
-                        count: filters.count.unwrap_or_default(),
-                        current_page: filters.page.unwrap_or_default(),
-                        total_pages: value.total_pages,
-                        on_next: handle_next_click,
-                        on_prev: handle_prev_click,
-                    };
-                    view! {
-                        <div class="pb-4">
-                            <Stat heading="Dimensions" icon="ri-ruler-2-fill" number=total_items/>
-                        </div>
-                        <div class="card rounded-xl w-full bg-base-100 shadow">
-                            <div class="card-body">
-                                <div class="flex justify-between">
-                                    <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
-                                        "Dimensions"
-                                    </h2>
-                                    <DrawerBtn drawer_id="dimension_drawer"
-                                        .to_string()>
-                                        Create Dimension <i class="ri-edit-2-line ml-2"></i>
-                                    </DrawerBtn>
-                                </div>
-                                <Table
-                                    cell_class="min-w-48 font-mono".to_string()
-                                    rows=table_rows
-                                    key_column="id".to_string()
-                                    columns=table_columns.get()
-                                    pagination=pagination_props
-                                />
-                            </div>
-                        </div>
-                    }
-                }}
-                <DeleteModal
-                    modal_visible=delete_modal_visible_rs
-                    confirm_delete=confirm_delete
-                    set_modal_visible=delete_modal_visible_ws
-                    header_text="Are you sure you want to delete this dimension? Action is irreversible."
-                        .to_string()
-                />
-            </Suspense>
-        </div>
+            <DeleteModal
+                modal_visible=delete_modal_visible_rs
+                confirm_delete=confirm_delete
+                set_modal_visible=delete_modal_visible_ws
+                header_text="Are you sure you want to delete this dimension? Action is irreversible."
+                    .to_string()
+            />
+        </Suspense>
     }
 }

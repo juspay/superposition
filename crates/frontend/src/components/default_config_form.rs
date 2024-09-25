@@ -41,13 +41,14 @@ pub fn default_config_form<NF>(
     #[prop(default = None)] prefix: Option<String>,
     #[prop(default = String::new())] description: String,
     #[prop(default = String::new())] change_reason: String,
+    #[prop(into, default = String::new())] class: String,
     handle_submit: NF,
 ) -> impl IntoView
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_s = use_context::<Signal<Tenant>>().unwrap();
+    let org_s = use_context::<RwSignal<OrganisationId>>().unwrap();
 
     let (config_key_rs, config_key_ws) = create_signal(config_key);
     let (config_type_rs, config_type_ws) = create_signal(config_type);
@@ -60,7 +61,7 @@ where
 
     let functions_resource: Resource<(String, String), Vec<Function>> =
         create_blocking_resource(
-            move || (tenant_rws.get().0, org_rws.get().0),
+            move || (tenant_s.get().0, org_s.get().0),
             |(current_tenant, org)| async move {
                 fetch_functions(&PaginationParams::all_entries(), current_tenant, org)
                     .await
@@ -69,7 +70,7 @@ where
         );
 
     let type_template_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
+        move || (tenant_s.get().0, org_s.get().0),
         |(current_tenant, org)| async move {
             fetch_types(&PaginationParams::all_entries(), current_tenant, org)
                 .await
@@ -130,17 +131,17 @@ where
                     // Call update_default_config when edit is true
                     update_default_config(
                         f_name,
-                        tenant_rws.get().0,
+                        tenant_s.get().0,
                         update_payload,
-                        org_rws.get().0,
+                        org_s.get().0,
                     )
                     .await
                 } else {
                     // Call create_default_config when edit is false
                     create_default_config(
-                        tenant_rws.get().0,
+                        tenant_s.get().0,
                         create_payload,
-                        org_rws.get().0,
+                        org_s.get().0,
                     )
                     .await
                 };
@@ -174,7 +175,8 @@ where
     };
     view! {
         <EditorProvider>
-            <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
+            <form class=format!("relative form-control text-gray-700 font-mono {}", class)>
+
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Key Name</span>

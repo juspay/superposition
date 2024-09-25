@@ -17,6 +17,7 @@ use web_sys::MouseEvent;
 #[component]
 pub fn type_template_form<NF>(
     #[prop(default = false)] edit: bool,
+    #[prop(into, default = String::new())] class: String,
     #[prop(default = String::new())] type_name: String,
     #[prop(default = json!({"type": "number"}))] type_schema: Value,
     handle_submit: NF,
@@ -26,8 +27,8 @@ pub fn type_template_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_s = use_context::<Signal<Tenant>>().unwrap();
+    let org_s = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (error_message, set_error_message) = create_signal("".to_string());
     let (type_name_rs, type_name_ws) = create_signal(type_name);
@@ -53,7 +54,7 @@ where
                         "description": description_rs.get(),
                         "change_reason": change_reason_rs.get(),
                     });
-                    update_type(tenant_rws.get().0, type_name, payload, org_rws.get().0)
+                    update_type(tenant_s.get().0, type_name, payload, org_s.get().0)
                         .await
                 } else {
                     let description = description_rs.get();
@@ -64,7 +65,7 @@ where
                         "description": description,
                         "change_reason": change_reason
                     });
-                    create_type(tenant_rws.get().0, payload.clone(), org_rws.get().0)
+                    create_type(tenant_s.get().0, payload.clone(), org_s.get().0)
                         .await
                 };
                 match result {
@@ -91,10 +92,10 @@ where
         });
     };
     view! {
-        <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
+        <form class=format!("relative form-control space-y-4 text-gray-700 font-mono {}", class)>
             <div class="form-control">
                 <label class="label">
-                    <span class="label-text">Type Name</span>
+                    <span class="label-text font-semibold">Type Name</span>
                 </label>
                 <input
                     disabled=edit
@@ -102,7 +103,7 @@ where
                     placeholder="Type name"
                     name="type_name"
                     id="type_name"
-                    class="input input-bordered w-full max-w-md"
+                    class="input input-bordered w-full"
                     value=move || type_name_rs.get()
                     on:change=move |ev| {
                         let value = event_target_value(&ev);
@@ -174,7 +175,7 @@ where
 
             <div class="form-control">
                 <label class="label">
-                    <span class="label-text">Type Schema</span>
+                    <span class="label-text font-semibold">Type Schema</span>
                 </label>
                 {move || {
                     let schem = type_schema_rs.get();
@@ -183,10 +184,12 @@ where
                         <EditorProvider>
                             <Input
                                 id="type-schema"
-                                class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
+                                class="rounded-md resize-y w-full"
                                 schema_type
                                 value=schem
-                                on_change=Callback::new(move |new_type_schema| type_schema_ws.set(new_type_schema))
+                                on_change=Callback::new(move |new_type_schema| {
+                                    type_schema_ws.set(new_type_schema)
+                                })
                                 r#type=InputType::Monaco
                             />
                         </EditorProvider>
@@ -195,16 +198,11 @@ where
 
             </div>
 
-            <div class="form-control grid w-full mt-5 justify-start">
+            <div class="absolute bottom-0 right-0 p-4 flex justify-end items-end w-full bg-white">
                 {move || {
                     let loading = req_inprogess_rs.get();
                     view! {
-                        <Button
-                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                            text="Submit".to_string()
-                            on_click=on_submit.clone()
-                            loading
-                        />
+                        <Button text="Submit".to_string() on_click=on_submit.clone() loading />
                     }
                 }}
 

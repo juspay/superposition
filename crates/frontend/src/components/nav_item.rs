@@ -2,13 +2,8 @@ use leptos::*;
 use leptos_router::A;
 
 #[component]
-pub fn nav_item(
-    is_active: bool,
-    href: String,
-    text: String,
-    icon: String,
-) -> impl IntoView {
-    let (anchor_class, icon_wrapper_class, icon_class) = if is_active {
+pub fn nav_item(active: bool, href: String, text: String, icon: String) -> impl IntoView {
+    let (anchor_class, icon_wrapper_class, icon_class) = if active {
         (
             "py-2.5 px-4 flex items-center whitespace-nowrap active".to_string(),
             "rounded-lg text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none

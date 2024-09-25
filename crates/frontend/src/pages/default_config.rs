@@ -1,13 +1,7 @@
 use std::collections::HashSet;
 
-use leptos::*;
-use leptos_router::{use_navigate, use_query_map};
-use serde_json::{json, Map, Value};
-use superposition_types::custom_query::PaginationParams;
-
 use crate::api::{delete_default_config, fetch_default_config};
-use crate::components::default_config_form::DefaultConfigForm;
-use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
+use crate::components::button::Button;
 use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
 use crate::components::table::types::ColumnSortable;
@@ -21,6 +15,11 @@ use crate::utils::{
     update_page_direction,
 };
 
+use leptos::*;
+use leptos_router::{use_navigate, use_query_map, A};
+use serde_json::{json, Map, Value};
+use superposition_types::custom_query::PaginationParams;
+
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
     pub key: String,
@@ -31,20 +30,19 @@ pub struct RowData {
 
 #[component]
 pub fn default_config() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_s = use_context::<Signal<Tenant>>().unwrap();
+    let org_s = use_context::<Signal<OrganisationId>>().unwrap();
     let enable_grouping = create_rw_signal(false);
     let (filters, set_filters) = create_signal(PaginationParams::default());
     let default_config_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, filters.get(), org_rws.get().0),
-        |(current_tenant, filters, org_id)| async move {
-            fetch_default_config(&filters, current_tenant, org_id)
+        move || (tenant_s.get().0, filters.get(), org_s.get().0),
+        |(tenant, filters, org_id)| async move {
+            fetch_default_config(&filters, &tenant, &org_id)
                 .await
                 .unwrap_or_default()
         },
     );
 
-    let selected_config = create_rw_signal::<Option<RowData>>(None);
     let key_prefix = create_rw_signal::<Option<String>>(None);
     let query_params = use_query_map();
     let bread_crums = Signal::derive(move || get_bread_crums(key_prefix.get()));
@@ -76,7 +74,7 @@ pub fn default_config() -> impl IntoView {
     });
 
     let folder_click_handler = move |key_name: Option<String>| {
-        let tenant = tenant_rws.get().0;
+        let tenant = tenant_s.get().0;
         let redirect_url = match key_name {
             Some(prefix) => format!("admin/{tenant}/default-config?prefix={prefix}"),
             None => format!("admin/{tenant}/default-config"),
@@ -103,35 +101,12 @@ pub fn default_config() -> impl IntoView {
         let actions_col_formatter = move |_: &str, row: &Map<String, Value>| {
             let row_key = row["key"].to_string().replace('"', "");
             let is_folder = row_key.contains('.');
-            let row_value = row["value"].clone();
-
-            let schema = row["schema"].clone().to_string();
-            let schema_object =
-                serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
-
-            let function_name = row["function_name"].to_string();
-            let fun_name = match function_name.as_str() {
-                "null" => None,
-                _ => Some(json!(function_name.replace('"', ""))),
-            };
 
             let key_name = StoredValue::new(row_key.clone());
 
-            let edit_click_handler = move |_| {
-                let row_data = RowData {
-                    key: row_key.clone(),
-                    value: row_value.clone(),
-                    schema: schema_object.clone(),
-                    function_name: fun_name.clone(),
-                };
-                logging::log!("{:?}", row_data);
-                selected_config.set(Some(row_data));
-                open_drawer("default_config_drawer");
-            };
-
             let handle_delete = move |_| {
-                let tenant = tenant_rws.get().0;
-                let org = org_rws.get().0;
+                let tenant = tenant_s.get().0;
+                let org = org_s.get().0;
                 let prefix = key_prefix.get().unwrap_or_default();
                 spawn_local({
                     async move {
@@ -145,15 +120,16 @@ pub fn default_config() -> impl IntoView {
                     }
                 });
             };
+            let prefix = key_prefix.get().unwrap_or_default();
 
             if is_folder && grouping_enabled {
                 view! { <span>{"-"}</span> }.into_view()
             } else {
                 view! {
                     <div class="join">
-                        <span class="cursor-pointer" on:click=edit_click_handler>
+                        <A href=format!("{row_key}/update?prefix={prefix}")>
                             <i class="ri-pencil-line ri-xl text-blue-500"></i>
-                        </span>
+                        </A>
                         <span class="cursor-pointer text-red-500" on:click=handle_delete>
                             <i class="ri-delete-bin-5-line ri-xl text-red-500"></i>
                         </span>
@@ -206,162 +182,110 @@ pub fn default_config() -> impl IntoView {
         ]
     });
 
-    let handle_close = move || {
-        selected_config.set(None);
-        close_drawer("default_config_drawer");
-    };
-
     view! {
-        <div class="p-8">
-            <Suspense fallback=move || {
-                view! { <Skeleton/> }
-            }>
+        <Suspense fallback=move || {
+            view! { <Skeleton /> }
+        }>
 
-                {move || {
-                    let prefix = key_prefix.get();
-                    if let Some(selected_config_data) = selected_config.get() {
-                        view! {
-                            <Drawer
-                                id="default_config_drawer".to_string()
-                                header="Edit Key"
-                                handle_close=handle_close
-                            >
-                                <DefaultConfigForm
-                                    edit=true
-                                    config_key=selected_config_data.key
-                                    config_value=selected_config_data.value
-                                    type_schema=selected_config_data.schema
-                                    function_name=selected_config_data.function_name
-                                    prefix
-                                    handle_submit=move || {
-                                        default_config_resource.refetch();
-                                        selected_config.set(None);
-                                        close_drawer("default_config_drawer");
-                                    }
-                                />
+            {move || {
+                let prefix = query_params.get().get("prefix").cloned().unwrap_or_default();
+                let default_config = default_config_resource
+                    .get()
+                    .unwrap_or_default();
+                let table_rows = default_config
+                    .data
+                    .into_iter()
+                    .map(|config| {
+                        let mut ele_map = json!(config).as_object().unwrap().to_owned();
+                        ele_map
+                            .insert(
+                                "created_at".to_string(),
+                                json!(config.created_at.format("%v").to_string()),
+                            );
+                        ele_map
+                    })
+                    .collect::<Vec<Map<String, Value>>>();
+                let mut filtered_rows = table_rows.clone();
+                if enable_grouping.get() {
+                    let empty_map = Map::new();
+                    let cols = filtered_rows
+                        .first()
+                        .unwrap_or(&empty_map)
+                        .keys()
+                        .map(|key| key.as_str())
+                        .collect();
+                    filtered_rows = modify_rows(filtered_rows.clone(), key_prefix.get(), cols);
+                }
+                let total_default_config_keys = default_config.total_items.to_string();
+                let filters = filters.get();
+                let (current_page, total_pages) = if enable_grouping.get() {
+                    (1, 1)
+                } else {
+                    (filters.page.unwrap_or_default(), default_config.total_pages)
+                };
+                let pagination_props = TablePaginationProps {
+                    enabled: true,
+                    count: filters.count.unwrap_or_default(),
+                    current_page,
+                    total_pages,
+                    on_next: handle_next_click,
+                    on_prev: handle_prev_click,
+                };
+                view! {
+                    <div class="pb-4">
+                        <Stat
+                            heading="Config Keys"
+                            icon="ri-tools-line"
+                            number=total_default_config_keys
+                        />
+                    </div>
+                    <div class="card rounded-lg w-full bg-base-100 shadow">
+                        <div class="card-body">
+                            <div class="flex justify-between pb-2">
+                                <BreadCrums bread_crums=bread_crums.get() folder_click_handler />
+                                <div class="flex">
+                                    <label
+                                        on:click=move |_| {
+                                            folder_click_handler(None);
+                                            enable_grouping.set(!enable_grouping.get());
+                                            set_local_storage(
+                                                "enable_grouping",
+                                                &enable_grouping.get().to_string(),
+                                            );
+                                            if enable_grouping.get() {
+                                                set_filters_none();
+                                            } else {
+                                                set_filters_default();
+                                            }
+                                        }
 
-                            </Drawer>
-                        }
-                    } else {
-                        view! {
-                            <Drawer
-                                id="default_config_drawer".to_string()
-                                header="Create New Key"
-                                handle_close=handle_close
-                            >
-                                <DefaultConfigForm
-                                    prefix
-                                    handle_submit=move || {
-                                        default_config_resource.refetch();
-                                        selected_config.set(None);
-                                        close_drawer("default_config_drawer");
-                                    }
-                                />
+                                        class="cursor-pointer label mr-10"
+                                    >
+                                        <span class="label-text mr-4">Enable Grouping</span>
+                                        <input
+                                            type="checkbox"
+                                            class="toggle toggle-primary"
+                                            checked=enable_grouping.get()
+                                        />
+                                    </label>
 
-                            </Drawer>
-                        }
-                    }
-                }}
-                {move || {
-                    let default_config = default_config_resource
-                        .get()
-                        .unwrap_or_default();
-                    let table_rows = default_config
-                        .data
-                        .into_iter()
-                        .map(|config| {
-                            let mut ele_map = json!(config).as_object().unwrap().to_owned();
-                            ele_map
-                                .insert(
-                                    "created_at".to_string(),
-                                    json!(config.created_at.format("%v").to_string()),
-                                );
-                            ele_map
-                        })
-                        .collect::<Vec<Map<String, Value>>>();
-                    let mut filtered_rows = table_rows.clone();
-                    if enable_grouping.get() {
-                        let empty_map = Map::new();
-                        let cols = filtered_rows
-                            .first()
-                            .unwrap_or(&empty_map)
-                            .keys()
-                            .map(|key| key.as_str())
-                            .collect();
-                        filtered_rows = modify_rows(filtered_rows.clone(), key_prefix.get(), cols);
-                    }
-                    let total_default_config_keys = default_config.total_items.to_string();
-                    let filters = filters.get();
-                    let (current_page, total_pages) = if enable_grouping.get() {
-                        (1, 1)
-                    } else {
-                        (filters.page.unwrap_or_default(), default_config.total_pages)
-                    };
-                    let pagination_props = TablePaginationProps {
-                        enabled: true,
-                        count: filters.count.unwrap_or_default(),
-                        current_page,
-                        total_pages,
-                        on_next: handle_next_click,
-                        on_prev: handle_prev_click,
-                    };
-                    view! {
-                        <div class="pb-4">
-                            <Stat
-                                heading="Config Keys"
-                                icon="ri-tools-line"
-                                number=total_default_config_keys
+                                    <A href=format!("new?prefix={}", prefix)>
+                                        <Button text="Create Key" on_click=move |_| {} />
+                                    </A>
+                                </div>
+                            </div>
+                            <Table
+                                cell_class="min-w-48 font-mono".to_string()
+                                rows=filtered_rows
+                                key_column="id".to_string()
+                                columns=table_columns.get()
+                                pagination=pagination_props
                             />
                         </div>
-                        <div class="card rounded-lg w-full bg-base-100 shadow">
-                            <div class="card-body">
-                                <div class="flex justify-between pb-2">
-                                    <BreadCrums bread_crums=bread_crums.get() folder_click_handler/>
-                                    <div class="flex">
-                                        <label
-                                            on:click=move |_| {
-                                                folder_click_handler(None);
-                                                enable_grouping.set(!enable_grouping.get());
-                                                set_local_storage(
-                                                    "enable_grouping",
-                                                    &enable_grouping.get().to_string(),
-                                                );
-                                                if enable_grouping.get() {
-                                                    set_filters_none();
-                                                } else {
-                                                    set_filters_default();
-                                                }
-                                            }
-
-                                            class="cursor-pointer label mr-10"
-                                        >
-                                            <span class="label-text mr-4">Enable Grouping</span>
-                                            <input
-                                                type="checkbox"
-                                                class="toggle toggle-primary"
-                                                checked=enable_grouping.get()
-                                            />
-                                        </label>
-                                        <DrawerBtn drawer_id="default_config_drawer"
-                                            .to_string()>
-                                            Create Key <i class="ri-edit-2-line ml-2"></i>
-                                        </DrawerBtn>
-                                    </div>
-                                </div>
-                                <Table
-                                    cell_class="min-w-48 font-mono".to_string()
-                                    rows=filtered_rows
-                                    key_column="id".to_string()
-                                    columns=table_columns.get()
-                                    pagination=pagination_props
-                                />
-                            </div>
-                        </div>
-                    }
-                }}
-
-            </Suspense>
-        </div>
+                    </div>
+                }
+            }}
+        </Suspense>
     }
 }
 

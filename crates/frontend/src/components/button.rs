@@ -3,13 +3,15 @@ use web_sys::MouseEvent;
 
 #[component]
 pub fn button<F: Fn(MouseEvent) + 'static>(
-    text: String,
+    #[prop(into)] text: String,
     on_click: F,
     #[prop(default = String::new())] class: String,
     #[prop(default = String::new())] id: String,
     #[prop(default = false)] loading: bool,
 ) -> impl IntoView {
-    let mut button_class = format!("btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 {class}");
+    let mut button_class = format!(
+        "btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center {class}"
+    );
     if loading {
         button_class = button_class + "hover:cursor-not-allowed";
     }

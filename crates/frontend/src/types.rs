@@ -272,8 +272,8 @@ impl DropdownOption for TypeTemplate {
     }
 }
 
-#[derive(Deref, DerefMut, Clone, Debug)]
+#[derive(Deref, DerefMut, Clone, Debug, PartialEq)]
 pub struct Tenant(pub String);
 
-#[derive(Deref, DerefMut, Clone, Debug)]
+#[derive(Deref, DerefMut, Clone, Debug, PartialEq)]
 pub struct OrganisationId(pub String);

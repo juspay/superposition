@@ -78,21 +78,24 @@ fn all_context_view(config: Config) -> impl IntoView {
                     <tr>
                         <td class="min-w-48 max-w-72 font-mono">
                             <span
-                                name=format!("{unique_name}-1") class="config-name"
-                                class:text-black={!striked}
-                                class:font-bold={!striked}
-                                class:text-gray-300={striked}
-                            >{key}</span>
+                                name=format!("{unique_name}-1")
+                                class="config-name"
+                                class:text-black=!striked
+                                class:font-bold=!striked
+                                class:text-gray-300=striked
+                            >
+                                {key}
+                            </span>
                         </td>
                         <td class="min-w-48 max-w-72 font-mono" style="word-break: break-word;">
                             <span
                                 name=format!("{unique_name}-2")
                                 class="config-value"
-                                class:text-black={ !striked }
-                                class:font-bold={ !striked }
-                                class:text-gray-300 = { striked }
+                                class:text-black=!striked
+                                class:font-bold=!striked
+                                class:text-gray-300=striked
                             >
-                                {check_url_and_return_val(value) }
+                                {check_url_and_return_val(value)}
                             </span>
                         </td>
                     </tr>
@@ -155,7 +158,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                         </thead>
                         <tbody>
 
-                        {rows(&default_configs, false)}
+                            {rows(&default_configs, false)}
 
                         </tbody>
                     </table>
@@ -167,16 +170,18 @@ fn all_context_view(config: Config) -> impl IntoView {
 
 #[component]
 pub fn home() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_rws = use_context::<Signal<Tenant>>().unwrap();
+    let org_rws = use_context::<Signal<OrganisationId>>().unwrap();
     let config_data = create_blocking_resource(
         move || (tenant_rws.get().0, org_rws.get().0),
-        |(tenant, org)| fetch_config(tenant, None, org),
+        |(tenant, org)| async move {
+            fetch_config(&tenant, None, org).await.unwrap_or_default()
+        },
     );
     let dimension_resource = create_resource(
         move || (tenant_rws.get().0, org_rws.get().0),
-        |(tenant, org)| async {
-            fetch_dimensions(&PaginationParams::all_entries(), tenant, org)
+        |(tenant, org)| async move {
+            fetch_dimensions(&PaginationParams::all_entries(), &tenant, &org)
                 .await
                 .unwrap_or_default()
         },
@@ -336,7 +341,7 @@ pub fn home() -> impl IntoView {
         <div class="w-full mt-5">
             <div class="mr-5 ml-5 mt-6">
                 <Suspense fallback=move || {
-                    view! { <Skeleton variant=SkeletonVariant::Block/> }
+                    view! { <Skeleton variant=SkeletonVariant::Block /> }
                 }>
                     {move || {
                         dimension_resource
@@ -348,10 +353,7 @@ pub fn home() -> impl IntoView {
                                                 <h2 class="card-title">Resolve Configs</h2>
 
                                                 <ContextForm
-                                                    dimensions=dimension
-                                                        .to_owned()
-                                                        .unwrap_or_default()
-                                                        .data
+                                                    dimensions=dimension.to_owned().unwrap_or_default().data
                                                     context=Conditions::default()
                                                     heading_sub_text="Query your configs".to_string()
                                                     dropdown_direction=DropdownDirection::Right
@@ -454,26 +456,16 @@ pub fn home() -> impl IntoView {
                                     <Suspense fallback=move || {
                                         view! {
                                             <div class="m-6">
-                                                <Skeleton variant=SkeletonVariant::Content/>
+                                                <Skeleton variant=SkeletonVariant::Content />
                                             </div>
                                         }
                                     }>
                                         {config_data
                                             .with(move |result| {
                                                 match result {
-                                                    Some(Ok(config)) => {
+                                                    Some(config) => {
                                                         vec![
-                                                            view! { <AllContextView config=config.clone()/> }
-                                                                .into_view(),
-                                                        ]
-                                                    }
-                                                    Some(Err(error)) => {
-                                                        vec![
-                                                            view! {
-                                                                <div class="error">
-                                                                    Failed to fetch config data: {error.to_string()}
-                                                                </div>
-                                                            }
+                                                            view! { <AllContextView config=config.clone() /> }
                                                                 .into_view(),
                                                         ]
                                                     }
@@ -494,7 +486,7 @@ pub fn home() -> impl IntoView {
                                     <Suspense fallback=move || {
                                         view! {
                                             <div class="m-6">
-                                                <Skeleton variant=SkeletonVariant::Content/>
+                                                <Skeleton variant=SkeletonVariant::Content />
                                             </div>
                                         }
                                     }>
@@ -502,7 +494,7 @@ pub fn home() -> impl IntoView {
                                         {config_data
                                             .with(move |conf| {
                                                 match conf {
-                                                    Some(Ok(config)) => {
+                                                    Some(config) => {
                                                         let default_configs = config.default_configs.clone();
                                                         view! {
                                                             <div class="card m-6 shadow bg-base-100">
@@ -542,13 +534,6 @@ pub fn home() -> impl IntoView {
                                                                         </tbody>
                                                                     </table>
                                                                 </div>
-                                                            </div>
-                                                        }
-                                                    }
-                                                    Some(Err(error)) => {
-                                                        view! {
-                                                            <div class="error">
-                                                                {"Failed to fetch config data: "} {error.to_string()}
                                                             </div>
                                                         }
                                                     }

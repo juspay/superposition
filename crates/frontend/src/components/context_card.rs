@@ -1,4 +1,5 @@
 use leptos::*;
+use leptos_router::A;
 use serde_json::{Map, Value};
 use superposition_types::Context;
 
@@ -15,14 +16,6 @@ pub fn context_card(
     context: Context,
     overrides: Map<String, Value>,
     #[prop(default = true)] show_actions: bool,
-    #[prop(default=Callback::new(|_| {}))] handle_edit: Callback<
-        (Context, Map<String, Value>),
-        (),
-    >,
-    #[prop(default=Callback::new(|_| {}))] handle_clone: Callback<
-        (Context, Map<String, Value>),
-        (),
-    >,
     #[prop(default=Callback::new(|_| {}))] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
     let conditions: Conditions = (&context).try_into().unwrap_or_default();
@@ -38,10 +31,7 @@ pub fn context_card(
         })
         .collect::<Vec<Map<String, Value>>>();
 
-    // Clone context and overrides for use in event handlers
     let context_id = store_value(context.id.clone());
-    let context = store_value(context);
-    let overrides = store_value(overrides);
 
     let table_columns = vec![
         Column::default("KEY".to_string()),
@@ -65,21 +55,13 @@ pub fn context_card(
                 <Show when=move || actions_supported>
                     <div class="h-fit text-right space-x-4">
                         <Show when=move || !edit_unsupported>
-                            <i
-                                class="ri-pencil-line ri-lg text-blue-500 cursor-pointer"
-                                on:click=move |_| {
-                                    handle_edit.call((context.get_value(), overrides.get_value()));
-                                }
-                            >
-                            </i>
+                            <A href=format!("{}/update", context_id.get_value())>
+                                <i class="ri-pencil-line ri-lg text-blue-500 cursor-pointer"></i>
+                            </A>
 
-                            <i
-                                class="ri-file-copy-line ri-lg text-blue-500 cursor-pointer"
-                                on:click=move |_| {
-                                    handle_clone.call((context.get_value(), overrides.get_value()));
-                                }
-                            >
-                            </i>
+                            <A href=format!("new?clone_from={}", context_id.get_value())>
+                                <i class="ri-file-copy-line ri-lg text-blue-500 cursor-pointer"></i>
+                            </A>
 
                         </Show>
                         <Show when=move || edit_unsupported>
@@ -93,8 +75,7 @@ pub fn context_card(
                                 let context_id = context_id.get_value();
                                 handle_delete.call(context_id);
                             }
-                        >
-                        </i>
+                        ></i>
 
                     </div>
                 </Show>
@@ -107,7 +88,6 @@ pub fn context_card(
 
             <div class="pl-5">
                 <ConditionComponent
-                    // Clone only once before reusing in multiple closures
                     conditions=conditions
                     id=context_id.get_value()
                     class="xl:w-[400px] h-fit"

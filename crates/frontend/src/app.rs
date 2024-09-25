@@ -3,20 +3,8 @@ use leptos_meta::*;
 use leptos_router::*;
 use serde_json::json;
 
-use crate::hoc::layout::Layout;
-use crate::pages::config_version::ConfigVersion;
-use crate::pages::config_version_list::ConfigVersionList;
-use crate::pages::dimensions::Dimensions;
-use crate::pages::experiment_list::ExperimentList;
-use crate::pages::function::{
-    function_create::CreateFunctionView, function_list::FunctionList, FunctionPage,
-};
-use crate::pages::{
-    context_override::ContextOverride, custom_types::TypesPage,
-    default_config::DefaultConfig, experiment::ExperimentPage, home::Home,
-    organisations::Organisations, workspace::Workspace,
-};
 use crate::providers::alert_provider::AlertProvider;
+use crate::routes::AppRoutes;
 use crate::types::Envs;
 
 #[component]
@@ -38,8 +26,8 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                 let js_href = base.to_owned() + "/pkg/frontend.js";
                 let import_callback = "() => mod.hydrate()";
                 view! {
-                    <Stylesheet id="leptos" href=styles_href/>
-                    <Link rel="shortcut icon" type_="image/ico" href=favicon_href/>
+                    <Stylesheet id="leptos" href=styles_href />
+                    <Link rel="shortcut icon" type_="image/ico" href=favicon_href />
                     <Link
                         href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css"
                         rel="stylesheet"
@@ -60,7 +48,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                     type_="application/wasm"
                                     crossorigin=""
                                 />
-                                <link as_="script" rel="modulepreload" href=js_href.clone()/>
+                                <link as_="script" rel="modulepreload" href=js_href.clone() />
                                 <script type_="module">
                                     {format!(
                                         r#"
@@ -86,192 +74,14 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         }
                     }}
                 }
-            }}
-            // sets the document title
-            <Title text="Welcome to Superposition"/>
+            }} // sets the document title
+            <Title text="Welcome to Superposition" />
             <script type_="text/javascript">"__APP_ENVS=" {json!(app_envs).to_string()}</script>
             <Router base=service_prefix>
                 <body class="m-0 min-h-screen bg-gray-50 font-mono">
                     <AlertProvider>
                         <Routes base=service_prefix.to_string()>
-                            <Route
-                                ssr=SsrMode::InOrder
-                                path="/admin/organisations"
-                                view=move || {
-                                    view! {
-                                        <Layout show_side_nav=false>
-                                            <Organisations/>
-                                        </Layout>
-                                    }
-                                }
-                            />
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/dimensions"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <Dimensions/>
-                                        </Layout>
-                                    }
-                                }
-                            />
-
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/function"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <FunctionList/>
-                                        </Layout>
-                                    }
-                                }
-                            />
-
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/function/create"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <CreateFunctionView/>
-                                        </Layout>
-                                    }
-                                }
-                            />
-
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/function/:function_name"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <FunctionPage/>
-                                        </Layout>
-                                    }
-                                }
-                            />
-
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/experiments"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <ExperimentList/>
-                                        </Layout>
-                                    }
-                                }
-                            />
-
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/experiments/:id"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <ExperimentPage/>
-                                        </Layout>
-                                    }
-                                }
-                            />
-
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/default-config"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <DefaultConfig/>
-                                        </Layout>
-                                    }
-                                }
-                            />
-
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/overrides"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <ContextOverride/>
-                                        </Layout>
-                                    }
-                                }
-                            />
-
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/resolve"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <Home/>
-                                        </Layout>
-                                    }
-                                }
-                            />
-
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/types"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <TypesPage/>
-                                        </Layout>
-                                    }
-                                }
-                            />
-
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/config/versions"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <ConfigVersionList/>
-                                        </Layout>
-                                    }
-                                }
-                            />
-
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/config/versions/:version"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <ConfigVersion/>
-                                        </Layout>
-                                    }
-                                }
-                            />
-
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/workspaces"
-                                view=move || {
-                                    view! {
-                                        <Layout show_side_nav=false>
-                                            <Workspace/>
-                                        </Layout>
-                                        }
-                                }
-                            />
-
-                        // <Route
-                        // path="/*any"
-                        // view=move || {
-                        // view! {
-                        // <Layout>
-                        // <NotFound/>
-                        // </Layout>
-                        // }
-                        // }
-                        // />
-
+                            <AppRoutes />
                         </Routes>
                     </AlertProvider>
                 </body>

@@ -10,6 +10,7 @@ use utils::{create_experiment, update_experiment};
 use web_sys::MouseEvent;
 
 use crate::components::context_form::ContextForm;
+use crate::components::dropdown::DropdownDirection;
 use crate::components::variant_form::VariantForm;
 use crate::providers::alert_provider::enqueue_alert;
 use crate::types::{VariantFormT, VariantFormTs};
@@ -55,25 +56,23 @@ fn get_init_state(variants: &VariantFormTs) -> Vec<(String, VariantFormT)> {
 }
 
 #[component]
-pub fn experiment_form<NF>(
+pub fn experiment_form(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] id: String,
     name: String,
     context: Conditions,
     variants: VariantFormTs,
-    handle_submit: NF,
+    #[prop(into)] handle_submit: Callback<String, ()>,
+    #[prop(into, default = String::new())] class: String,
     default_config: Vec<DefaultConfig>,
     dimensions: Vec<DimensionWithMandatory>,
     #[prop(default = String::new())] description: String,
     #[prop(default = String::new())] change_reason: String,
-) -> impl IntoView
-where
-    NF: Fn() + 'static + Clone,
-{
+) -> impl IntoView {
     let init_variants = get_init_state(&variants);
     let default_config = StoredValue::new(default_config);
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_s = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_s = use_context::<RwSignal<OrganisationId>>().unwrap();
 
     let (experiment_name, set_experiment_name) = create_signal(name);
     let (f_context, set_context) = create_signal(context.clone());
@@ -106,10 +105,9 @@ where
             .into_iter()
             .map(|(_, variant)| variant)
             .collect::<Vec<VariantFormT>>();
-        let tenant = tenant_rws.get().0;
-        let org = org_rws.get().0;
+        let tenant = tenant_s.get().0;
+        let org = org_s.get().0;
         let experiment_id = id.clone();
-        let handle_submit_clone = handle_submit.clone();
 
         logging::log!("Experiment name {:?}", f_experiment_name);
         logging::log!("Context Experiment form {:?}", f_context);
@@ -132,8 +130,8 @@ where
                 };
 
                 match result {
-                    Ok(_) => {
-                        handle_submit_clone();
+                    Ok(experiment) => {
+                        handle_submit.call(experiment.id);
                         let success_message = if edit {
                             "Experiment updated successfully!"
                         } else {
@@ -157,93 +155,100 @@ where
     };
 
     view! {
-        <div>
-            <div class="form-control w-full">
-                <label class="label">
-                    <span class="label-text">Experiment Name</span>
-                </label>
-                <input
-                    disabled=edit
-                    value=move || experiment_name.get()
-                    on:input=move |ev| set_experiment_name.set(event_target_value(&ev))
-                    type="text"
-                    name="expName"
-                    id="expName"
-                    placeholder="ex: testing hyperpay release"
-                    class="input input-bordered w-full max-w-md"
-                />
-            </div>
-
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Description</span>
-                </label>
-                <textarea
-                    placeholder="Enter description"
-                    class="textarea textarea-bordered w-full max-w-md"
-                    value=description_rs.get_untracked()
-                    on:change=move |ev| {
-                        let value = event_target_value(&ev);
-                        description_ws.set(value);
-                    }
-                />
-            </div>
-
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Reason for Change</span>
-                </label>
-                <textarea
-                    placeholder="Enter a reason for this change"
-                    class="textarea textarea-bordered w-full max-w-md"
-                    value=change_reason_rs.get_untracked()
-                    on:change=move |ev| {
-                        let value = event_target_value(&ev);
-                        change_reason_ws.set(value);
-                    }
-                />
-            </div>
-
-            <div class="my-4">
-                {move || {
-                    let context = f_context.get();
-                    view! {
-                        <ContextForm
-                            dimensions=dimensions.get_value()
-                            context=context
-                            handle_change=handle_context_form_change
+        <div class="relative">
+            <div class=format!("flex flex-wrap item-center {}", class)>
+                <div class="flex flex-col gap-4 w-[45%]">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold text-base">Experiment Name</span>
+                        </label>
+                        <input
                             disabled=edit
-                            heading_sub_text=String::from(
-                                "Define rules under which this experiment would run",
-                            )
+                            value=move || experiment_name.get()
+                            on:input=move |ev| set_experiment_name.set(event_target_value(&ev))
+                            type="text"
+                            name="expName"
+                            id="expName"
+                            placeholder="ex: testing hyperpay release"
+                            class="input input-bordered w-full max-w-md"
                         />
-                    }
-                }}
+                    </div>
 
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Description</span>
+                        </label>
+                        <textarea
+                            placeholder="Enter description"
+                            class="textarea textarea-bordered w-full max-w-md"
+                            value=description_rs.get_untracked()
+                            on:change=move |ev| {
+                                let value = event_target_value(&ev);
+                                description_ws.set(value);
+                            }
+                        />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Reason for Change</span>
+                        </label>
+                        <textarea
+                            placeholder="Enter a reason for this change"
+                            class="textarea textarea-bordered w-full max-w-md"
+                            value=change_reason_rs.get_untracked()
+                            on:change=move |ev| {
+                                let value = event_target_value(&ev);
+                                change_reason_ws.set(value);
+                            }
+                        />
+                    </div>
+
+
+                    <div class="divider"></div>
+
+                    {move || {
+                        let context = f_context.get();
+                        view! {
+                            <ContextForm
+                                dimensions=dimensions.get_value()
+                                context=context
+                                handle_change=handle_context_form_change
+                                disabled=edit
+                                dropdown_direction=DropdownDirection::Down
+                                heading_sub_text=String::from(
+                                    "Define rules under which this experiment would run",
+                                )
+                            />
+                        }
+                    }}
+
+                </div>
+
+                <div class="divider divider-horizontal"></div>
+
+                <div class="flex-1">
+                    {move || {
+                        let variants = f_variants.get();
+                        view! {
+                            <VariantForm
+                                edit=edit
+                                variants=variants
+                                default_config=default_config.get_value()
+                                handle_change=handle_variant_form_change
+                            />
+                        }
+                    }}
+                </div>
+
+                <div class="w-full h-10" />
             </div>
-
-            {move || {
-                let variants = f_variants.get();
-                view! {
-                    <VariantForm
-                        edit=edit
-                        variants=variants
-                        default_config=default_config.get_value()
-                        handle_change=handle_variant_form_change
-                    />
-                }
-            }}
-
-            <div class="flex justify-start mt-8">
+            <div class="absolute bottom-0 right-0 p-4 flex justify-end items-end w-full bg-white border-r border-b border-l rounded-2xl rounded-t-none">
                 {move || {
                     let loading = req_inprogess_rs.get();
                     view! {
-                        <Button
-                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                            text="Submit".to_string()
-                            on_click=on_submit.clone()
-                            loading
-                        />
+                        <Button text="Submit".to_string() on_click=on_submit.clone() loading />
                     }
                 }}
 

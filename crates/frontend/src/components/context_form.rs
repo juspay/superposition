@@ -2,6 +2,7 @@ pub mod utils;
 
 use std::collections::{HashMap, HashSet};
 
+use crate::components::dropdown::DropdownBtnType;
 use crate::components::input::{Input, InputType};
 use crate::logic::{Condition, Conditions, Expression, Operator};
 use crate::schema::EnumVariants;
@@ -9,6 +10,7 @@ use crate::{
     components::dropdown::{Dropdown, DropdownDirection},
     schema::SchemaType,
 };
+
 use leptos::*;
 use serde_json::Value;
 use superposition_types::database::types::DimensionWithMandatory;
@@ -75,17 +77,11 @@ pub fn condition_input(
         _ => vec![],
     };
     view! {
-        <div class="flex gap-x-6">
-            <div class="form-control">
-                <label class="label font-mono text-sm">
-                    <span class="label-text">Dimension</span>
+        <div class="flex flex-wrap gap-y-2 gap-x-6">
+            <div class="form-control w-full">
+                <label class="label font-mono font-bold">
+                    <span class="label-text underline">{dimension}</span>
                 </label>
-                <input
-                    value=dimension.clone()
-                    class="input w-full max-w-xs"
-                    name="context-dimension-name"
-                    disabled=true
-                />
             </div>
             <div class="form-control w-20">
                 <label class="label font-medium font-mono text-sm">
@@ -123,57 +119,56 @@ pub fn condition_input(
                 </select>
 
             </div>
-        </div>
-        <div class="form-control">
-            <label class="label font-mono text-sm">
-                <span class="label-text">Value</span>
-            </label>
+            <div class="form-control flex-1">
+                <label class="label font-mono text-sm">
+                    <span class="label-text">Value</span>
+                </label>
 
-            <div class="flex gap-x-6 items-center">
+                <div class="flex gap-x-6 items-center">
 
-                {inputs
-                    .into_iter()
-                    .enumerate()
-                    .map(|(idx, (value, on_change)): (usize, (Value, Callback<Value, ()>))| {
-                        view! {
-                            <Input
-                                value=value
-                                schema_type=schema_type.get_value()
-                                on_change=on_change
+                    {inputs
+                        .into_iter()
+                        .enumerate()
+                        .map(|(idx, (value, on_change)): (usize, (Value, Callback<Value, ()>))| {
+                            view! {
+                                <Input
+                                    value=value
+                                    schema_type=schema_type.get_value()
+                                    on_change=on_change
+                                    r#type=input_type.get_value()
+                                    disabled=disabled
+                                    id=format!(
+                                        "{}-{}",
+                                        condition
+                                            .with_value(|v| {
+                                                format!(
+                                                    "{}-{}",
+                                                    v.variable,
+                                                    (<&Condition as Into<Operator>>::into(v)),
+                                                )
+                                            }),
+                                        idx,
+                                    )
 
-                                r#type=input_type.get_value()
-                                disabled=disabled
-                                id=format!(
-                                    "{}-{}",
-                                    condition
-                                        .with_value(|v| {
-                                            format!(
-                                                "{}-{}",
-                                                v.variable,
-                                                (<&Condition as Into<Operator>>::into(v)),
-                                            )
-                                        }),
-                                    idx,
-                                )
+                                    class="w-[450px]"
+                                    name=""
+                                    operator=Some(operator.clone())
+                                />
+                            }
+                        })
+                        .collect_view()} <Show when=move || allow_remove>
+                        <button
+                            class="btn btn-ghost btn-circle btn-sm mt-1"
+                            disabled=disabled
+                            on:click=move |_| {
+                                on_remove.call(condition.with_value(|v| v.variable.clone()));
+                            }
+                        >
 
-                                class="w-[450px]"
-                                name=""
-                                operator=Some(operator.clone())
-                            />
-                        }
-                    })
-                    .collect_view()} <Show when=move || allow_remove>
-                    <button
-                        class="btn btn-ghost btn-circle btn-sm mt-1"
-                        disabled=disabled
-                        on:click=move |_| {
-                            on_remove.call(condition.with_value(|v| v.variable.clone()));
-                        }
-                    >
-
-                        <i class="ri-delete-bin-2-line text-2xl font-bold"></i>
-                    </button>
-                </Show>
+                            <i class="ri-delete-bin-2-line text-2xl font-bold"></i>
+                        </button>
+                    </Show>
+                </div>
             </div>
         </div>
     }
@@ -187,7 +182,7 @@ pub fn context_form<NF>(
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] resolve_mode: bool,
     #[prop(default = String::new())] heading_sub_text: String,
-    #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
+    #[prop(default = DropdownDirection::Left)] dropdown_direction: DropdownDirection,
 ) -> impl IntoView
 where
     NF: Fn(Conditions) + 'static,
@@ -270,20 +265,46 @@ where
 
     view! {
         <div class="form-control w-full">
-            <div class="gap-1">
+            <div class="flex justify-between">
                 <label class="label flex-col justify-center items-start">
                     <span class="label-text font-semibold text-base">Context</span>
                     <span class="label-text text-slate-400">{heading_sub_text}</span>
                 </label>
+                <Show when=move || {
+                    !context_rs.get().is_empty() && !disabled
+                }>
+                    {move || {
+                        let dimensions = dimensions
+                            .get_value()
+                            .into_iter()
+                            .filter(|dimension| {
+                                !used_dimensions_rs.get().contains(&dimension.dimension)
+                            })
+                            .collect::<Vec<DimensionWithMandatory>>();
+                        view! {
+                            <Dropdown
+                                dropdown_icon="ri-add-line".to_string()
+                                dropdown_text="Add Context".to_string()
+                                dropdown_width="w-fit"
+                                dropdown_btn_type=DropdownBtnType::Link
+                                dropdown_options=dimensions
+                                disabled=disabled
+                                dropdown_direction
+                                on_select=on_select_dimension
+                            />
+                        }
+                    }}
+                </Show>
             </div>
             <div class="card w-full bg-slate-50">
                 <div class="card-body">
                     <Show when=move || context_rs.get().is_empty()>
                         <div class="flex justify-center">
                             <Dropdown
-                                dropdown_width="w-80"
+                                dropdown_width="w-fit"
                                 dropdown_icon="ri-add-line".to_string()
                                 dropdown_text="Add Context".to_string()
+                                dropdown_btn_type=DropdownBtnType::Link
                                 dropdown_direction
                                 dropdown_options=dimensions.get_value()
                                 disabled=disabled
@@ -374,33 +395,6 @@ where
                                 .into_view()
                         }
                     />
-
-                    <Show when=move || { !context_rs.get().is_empty() && !disabled }>
-                        <div class="mt-4">
-
-                            {move || {
-                                let dimensions = dimensions
-                                    .get_value()
-                                    .into_iter()
-                                    .filter(|dimension| {
-                                        !used_dimensions_rs.get().contains(&dimension.dimension)
-                                    })
-                                    .collect::<Vec<DimensionWithMandatory>>();
-                                view! {
-                                    <Dropdown
-                                        dropdown_icon="ri-add-line".to_string()
-                                        dropdown_text="Add Context".to_string()
-                                        dropdown_options=dimensions
-                                        disabled=disabled
-                                        dropdown_direction
-                                        on_select=on_select_dimension
-                                    />
-                                }
-                            }}
-
-                        </div>
-                    </Show>
-
                 </div>
             </div>
         </div>

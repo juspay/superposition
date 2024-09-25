@@ -28,7 +28,7 @@ pub fn dropdown<T>(
     #[prop(into, default = String::new())] dropdown_icon: String,
     #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
     #[prop(default = DropdownBtnType::Outline)] dropdown_btn_type: DropdownBtnType,
-    #[prop(into, default = String::from("w-96"))] dropdown_width: String,
+    #[prop(into, default = String::new())] dropdown_width: String,
     #[prop(default = false)] disabled: bool,
     #[prop(default = true)] searchable: bool,
     #[prop(into, default = String::new())] name: String,
@@ -50,10 +50,10 @@ where
     });
 
     let btn_class = match dropdown_btn_type {
-        DropdownBtnType::Outline => "btn btn-sm text-xs m-1 w-full btn-purple-outline",
-        DropdownBtnType::Link => "btn btn-sm text-xs m-1 w-full btn-purple-link",
-        DropdownBtnType::Fill => "btn btn-sm text-xs m-1 w-full btn-purple-fill",
-        DropdownBtnType::Select => "select select-bordered w-[28rem] items-center",
+        DropdownBtnType::Outline => "btn btn-sm text-xs m-1 btn-purple-outline",
+        DropdownBtnType::Link => "btn btn-sm text-xs m-1 btn-purple-link",
+        DropdownBtnType::Fill => "btn btn-sm text-xs m-1 btn-purple-fill",
+        DropdownBtnType::Select => "select select-bordered items-center",
     };
 
     let node_ref = create_node_ref::<html::Input>();
@@ -61,7 +61,7 @@ where
     view! {
         <div
             id=id
-            class="dropdown"
+            class=format!("relative dropdown {}", dropdown_width)
             class=("disable-click", disabled)
             class=("dropdown-right", dropdown_direction == DropdownDirection::Right)
             class=("dropdown-left", dropdown_direction == DropdownDirection::Left)
@@ -70,7 +70,7 @@ where
         >
             <label
                 tabindex="0"
-                class=format!("{} {}", class, btn_class)
+                class=format!("w-full {} {}", class, btn_class)
                 on:click:undelegated=move |_| {
                     if let Some(element) = node_ref.get() {
                         let _ = element.focus();
@@ -83,9 +83,7 @@ where
             </label>
             <ul
                 tabindex="0"
-                class=format!(
-                    "{dropdown_width} dropdown-content z-[1] menu flex-nowrap p-2 shadow bg-base-100 rounded-box max-h-96 overflow-y-scroll overflow-x-hidden",
-                )
+                class="w-64 dropdown-content z-[1] menu flex-nowrap p-2 shadow bg-base-100 rounded-box max-h-96 overflow-y-scroll overflow-x-hidden"
             >
 
                 {if searchable {

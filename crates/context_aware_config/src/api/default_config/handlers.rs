@@ -44,6 +44,7 @@ pub fn endpoints() -> Scope {
         .service(update_default_config)
         .service(get)
         .service(delete)
+        .service(get_by_name)
 }
 
 #[post("")]
@@ -313,6 +314,18 @@ fn fetch_default_key(
         .schema_name(schema_name)
         .get_result(conn)?;
     Ok(res)
+}
+
+#[get("/{key}")]
+async fn get_by_name(
+    db_conn: DbConnection,
+    path: Path<DefaultConfigKey>,
+    schema_name: SchemaName,
+) -> superposition::Result<Json<models::DefaultConfig>> {
+    let DbConnection(mut conn) = db_conn;
+    let key: String = path.into_inner().into();
+    let data = fetch_default_key(&key, &mut conn, &schema_name)?;
+    Ok(Json(data))
 }
 
 #[get("")]

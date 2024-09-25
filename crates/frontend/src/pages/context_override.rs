@@ -1,5 +1,6 @@
 use futures::join;
 use leptos::*;
+use leptos_router::A;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
@@ -8,23 +9,21 @@ use superposition_types::{
     Config, Context,
 };
 
+use crate::api::{delete_context, fetch_default_config, fetch_dimensions};
 use crate::components::button::Button;
 use crate::components::context_card::ContextCard;
 use crate::components::context_form::utils::{create_context, update_context};
 use crate::components::context_form::ContextForm;
 use crate::components::delete_modal::DeleteModal;
-use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::override_form::OverrideForm;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
-use crate::logic::{Condition, Conditions};
-use crate::providers::alert_provider::enqueue_alert;
+use crate::logic::Conditions;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
-use crate::providers::editor_provider::EditorProvider;
+use crate::types::{OrganisationId, Tenant};
 use crate::{
-    api::{delete_context, fetch_config, fetch_default_config, fetch_dimensions},
-    types::{OrganisationId, Tenant},
+    api::fetch_config, components::alert::AlertType,
+    providers::alert_provider::enqueue_alert,
 };
-use crate::{components::alert::AlertType, schema::SchemaType};
 
 #[derive(Clone, Debug, Default)]
 pub struct Data {
@@ -39,12 +38,6 @@ struct PageResource {
     default_config: Vec<DefaultConfig>,
 }
 
-#[derive(Debug, Clone)]
-enum FormMode {
-    Edit,
-    Create,
-}
-
 #[component]
 fn form(
     context: Conditions,
@@ -56,8 +49,8 @@ fn form(
     #[prop(default = String::new())] description: String,
     #[prop(default = String::new())] change_reason: String,
 ) -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_s = use_context::<Signal<Tenant>>().unwrap();
+    let org_s = use_context::<Signal<OrganisationId>>().unwrap();
     let (context, set_context) = create_signal(context);
     let (overrides, set_overrides) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
@@ -73,22 +66,22 @@ fn form(
             let f_overrides = overrides.get();
             let result = if edit {
                 update_context(
-                    tenant_rws.get().0,
+                    tenant_s.get().0,
                     Map::from_iter(f_overrides),
                     f_context,
                     description_rs.get(),
                     change_reason_rs.get(),
-                    org_rws.get().0,
+                    org_s.get().0,
                 )
                 .await
             } else {
                 create_context(
-                    tenant_rws.get().0,
+                    tenant_s.get().0,
                     Map::from_iter(f_overrides),
                     f_context,
                     description_rs.get(),
                     change_reason_rs.get(),
-                    org_rws.get().0,
+                    org_s.get().0,
                 )
                 .await
             };
@@ -191,30 +184,21 @@ fn form(
 
 #[component]
 pub fn context_override() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
-    let (selected_context_rs, selected_context_ws) = create_signal::<Option<Data>>(None);
-    let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
+    let tenant_rws = use_context::<Signal<Tenant>>().unwrap();
+    let org_rws = use_context::<Signal<OrganisationId>>().unwrap();
+
     let (modal_visible, set_modal_visible) = create_signal(false);
     let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
 
     let page_resource: Resource<(String, String), PageResource> =
         create_blocking_resource(
             move || (tenant_rws.get().0, org_rws.get().0),
-            |(current_tenant, org_id)| async move {
+            |(tenant, org_id)| async move {
                 let empty_list_filters = PaginationParams::all_entries();
                 let (config_result, dimensions_result, default_config_result) = join!(
-                    fetch_config(current_tenant.to_string(), None, org_id.clone()),
-                    fetch_dimensions(
-                        &empty_list_filters,
-                        current_tenant.to_string(),
-                        org_id.clone()
-                    ),
-                    fetch_default_config(
-                        &empty_list_filters,
-                        current_tenant.to_string(),
-                        org_id.clone()
-                    )
+                    fetch_config(&tenant, None, org_id.clone()),
+                    fetch_dimensions(&empty_list_filters, &tenant, &org_id),
+                    fetch_default_config(&empty_list_filters, &tenant, &org_id,)
                 );
                 PageResource {
                     config: config_result.unwrap_or_default(),
@@ -228,75 +212,6 @@ pub fn context_override() -> impl IntoView {
                 }
             },
         );
-
-    let on_create_context_click = Callback::new(move |_| {
-        set_form_mode.set(Some(FormMode::Create));
-        let PageResource { dimensions, .. } = page_resource.get().unwrap_or_default();
-        let mut default_ctx: Conditions = Conditions(vec![]);
-        for dim in dimensions.iter().filter(|v| v.mandatory) {
-            let r#type = SchemaType::try_from(dim.schema.clone());
-            if let Err(_) = r#type {
-                //TODO emit an alert and return
-                return;
-            }
-
-            default_ctx.push(Condition::new_with_default_expression(
-                dim.dimension.clone(),
-                r#type.unwrap(),
-            ));
-        }
-
-        selected_context_ws.set(Some(Data {
-            context: default_ctx,
-            overrides: vec![],
-        }));
-        open_drawer("context_and_override_drawer");
-    });
-
-    let on_submit = Callback::new(move |_| {
-        close_drawer("context_and_override_drawer");
-        set_form_mode.set(None);
-        selected_context_ws.set(None);
-        page_resource.refetch();
-    });
-
-    let on_context_edit = Callback::new(move |data: (Context, Map<String, Value>)| {
-        let (context, overrides) = data;
-        match Conditions::from_context_json(&context.condition.into()) {
-            Ok(conditions) => {
-                selected_context_ws.set(Some(Data {
-                    context: conditions,
-                    overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
-                }));
-                set_form_mode.set(Some(FormMode::Edit));
-                open_drawer("context_and_override_drawer");
-            }
-            Err(e) => {
-                logging::error!("Error parsing context: {}", e);
-                enqueue_alert(e.to_string(), AlertType::Error, 5000);
-            }
-        };
-    });
-
-    let on_context_clone = Callback::new(move |data: (Context, Map<String, Value>)| {
-        let (context, overrides) = data;
-
-        match Conditions::from_context_json(&context.condition.into()) {
-            Ok(conditions) => {
-                selected_context_ws.set(Some(Data {
-                    context: conditions,
-                    overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
-                }));
-                set_form_mode.set(Some(FormMode::Create));
-
-                open_drawer("context_and_override_drawer");
-            }
-            Err(e) => {
-                logging::error!("Error parsing context: {}", e);
-                enqueue_alert(e.to_string(), AlertType::Error, 5000);
-            }
-        };
-    });
 
     let on_context_delete = Callback::new(move |id: String| {
         set_delete_id.set(Some(id.clone()));
@@ -325,154 +240,81 @@ pub fn context_override() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8">
-            <div class="flex justify-between">
-                <h2 class="card-title">Overrides</h2>
-                <DrawerBtn
-                    drawer_id="context_and_override_drawer".to_string()
-                    on_click=on_create_context_click
-                >
-                    Create Override
-                    <i class="ri-edit-2-line ml-2"></i>
-                </DrawerBtn>
+        <div class="flex justify-between">
+            <h2 class="card-title">Overrides</h2>
+
+            <A href="new">
+                <Button text="Create Override" on_click=move |_| {} />
+            </A>
+        </div>
+
+        <Suspense fallback=move || {
+            view! { <Skeleton variant=SkeletonVariant::Block /> }
+        }>
+            <div class="space-y-6">
+                {move || {
+                    let config = page_resource.get().map(|v| v.config).unwrap_or_default();
+                    let ctx_n_overrides = config
+                        .contexts
+                        .into_iter()
+                        .map(|context| {
+                            let overrides = context
+                                .override_with_keys
+                                .iter()
+                                .flat_map(|id| {
+                                    config
+                                        .overrides
+                                        .get(id)
+                                        .cloned()
+                                        .map_or(Map::new(), |overrides| overrides.into())
+                                        .into_iter()
+                                        .collect::<Vec<(String, Value)>>()
+                                })
+                                .collect::<Map<String, Value>>();
+                            (context.clone(), overrides)
+                        })
+                        .collect::<Vec<(Context, Map<String, Value>)>>();
+                    let is_empty = ctx_n_overrides.is_empty();
+                    view! {
+                        <Show when=move || is_empty>
+                            <div class="flex-row" style="margin-top:20rem;">
+                                <div class="flex justify-center text-gray-400">
+                                    <i class="ri-file-add-line ri-xl"></i>
+                                </div>
+                                <div class="flex mt-4 font-semibold items-center text-gray-400 text-xl justify-center">
+                                    "Start with creating an override"
+                                </div>
+                            </div>
+                        </Show>
+                        <ConditionCollapseProvider>
+
+                            {ctx_n_overrides
+                                .into_iter()
+                                .map(|(context, overrides)| {
+                                    view! {
+                                        <ContextCard
+                                            context=context
+                                            overrides=overrides
+                                            handle_delete=on_context_delete
+                                        />
+                                    }
+                                })
+                                .collect_view()}
+
+                        </ConditionCollapseProvider>
+                    }
+                }}
+
             </div>
 
-            <Suspense fallback=move || {
-                view! { <Skeleton variant=SkeletonVariant::Block /> }
-            }>
-                <div class="space-y-6">
+            <DeleteModal
+                modal_visible=modal_visible
+                confirm_delete=on_delete_confirm
+                set_modal_visible=set_modal_visible
+                header_text="Are you sure you want to delete this context? Action is irreversible."
+                    .to_string()
+            />
 
-                    {move || {
-                        let PageResource { config: _, dimensions, default_config } = page_resource
-                            .get()
-                            .unwrap_or_default();
-                        let data = selected_context_rs.get();
-                        let drawer_header = match form_mode.get() {
-                            Some(FormMode::Edit) => "Update Overrides",
-                            Some(FormMode::Create) => "Create Overrides",
-                            None => "",
-                        };
-                        view! {
-                            <Drawer
-                                id="context_and_override_drawer".to_string()
-                                header=drawer_header
-                                handle_close=move || {
-                                    close_drawer("context_and_override_drawer");
-                                    set_form_mode.set(None);
-                                    selected_context_ws.set(None);
-                                }
-                            >
-
-                                <EditorProvider>
-                                    {match (form_mode.get_untracked(), data) {
-                                        (Some(FormMode::Edit), Some(data)) => {
-                                            view! {
-                                                <Form
-                                                    context=data.context
-                                                    overrides=data.overrides
-                                                    dimensions=dimensions
-                                                    default_config=default_config
-                                                    handle_submit=on_submit
-                                                    edit=true
-                                                />
-                                            }
-                                                .into_view()
-                                        }
-                                        (Some(FormMode::Create), data) => {
-                                            let Data { context, overrides } = data.unwrap_or_default();
-                                            view! {
-                                                <Form
-                                                    context=context
-                                                    overrides=overrides
-                                                    dimensions=dimensions
-                                                    default_config=default_config
-                                                    handle_submit=on_submit
-                                                    edit=false
-                                                />
-                                            }
-                                                .into_view()
-                                        }
-                                        (Some(FormMode::Edit), None) => {
-                                            enqueue_alert(
-                                                String::from("Something went wrong, failed to load form"),
-                                                AlertType::Error,
-                                                5000,
-                                            );
-                                            view! {}.into_view()
-                                        }
-                                        (None, _) => view! {}.into_view(),
-                                    }}
-
-                                </EditorProvider>
-                            </Drawer>
-                        }
-                    }}
-                    {move || {
-                        let config = page_resource.get().map(|v| v.config).unwrap_or_default();
-                        let ctx_n_overrides = config
-                            .contexts
-                            .into_iter()
-                            .map(|context| {
-                                let overrides = context
-                                    .override_with_keys
-                                    .iter()
-                                    .flat_map(|id| {
-                                        config
-                                            .overrides
-                                            .get(id)
-                                            .cloned()
-                                            .map_or(Map::new(), |overrides| overrides.into())
-                                            .into_iter()
-                                            .collect::<Vec<(String, Value)>>()
-                                    })
-                                    .collect::<Map<String, Value>>();
-                                (context.clone(), overrides)
-                            })
-                            .collect::<Vec<(Context, Map<String, Value>)>>();
-                        let is_empty = ctx_n_overrides.is_empty();
-                        view! {
-                            <Show when=move || is_empty>
-                                <div class="flex-row" style="margin-top:20rem;">
-                                    <div class="flex justify-center text-gray-400">
-                                        <i class="ri-file-add-line ri-xl"></i>
-                                    </div>
-                                    <div class="flex mt-4 font-semibold items-center text-gray-400 text-xl justify-center">
-                                        "Start with creating an override"
-                                    </div>
-                                </div>
-                            </Show>
-                            <ConditionCollapseProvider>
-
-                                {ctx_n_overrides
-                                    .into_iter()
-                                    .map(|(context, overrides)| {
-                                        view! {
-                                            <ContextCard
-                                                context=context
-                                                overrides=overrides
-                                                handle_edit=on_context_edit
-                                                handle_clone=on_context_clone
-                                                handle_delete=on_context_delete
-                                            />
-                                        }
-                                    })
-                                    .collect_view()}
-
-                            </ConditionCollapseProvider>
-                        }
-                    }}
-
-                </div>
-
-                <DeleteModal
-                    modal_visible=modal_visible
-                    confirm_delete=on_delete_confirm
-                    set_modal_visible=set_modal_visible
-                    header_text="Are you sure you want to delete this context? Action is irreversible."
-                        .to_string()
-                />
-
-            </Suspense>
-        </div>
+        </Suspense>
     }
 }

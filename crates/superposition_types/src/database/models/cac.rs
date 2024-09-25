@@ -13,7 +13,7 @@ use super::super::schema::{
     type_templates,
 };
 
-#[derive(Clone, Serialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)
@@ -47,7 +47,7 @@ impl Overridden<Cac<Overrides>> for Context {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)

@@ -16,8 +16,8 @@ pub fn experiment_conclude_form<HS>(
 where
     HS: Fn() + 'static + Clone,
 {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_s = use_context::<Signal<Tenant>>().unwrap();
+    let org_s = use_context::<Signal<OrganisationId>>().unwrap();
     let experiment_rc = Rc::new(experiment);
 
     let experiment_clone = experiment_rc.clone();
@@ -25,8 +25,8 @@ where
         let handle_submit_clone = handle_submit.clone();
         spawn_local(async move {
             let experiment = experiment_clone.clone();
-            let tenant = tenant_rws.get().0;
-            let org = org_rws.get().0;
+            let tenant = tenant_s.get().0;
+            let org = org_s.get().0;
             let _ =
                 conclude_experiment(experiment.id.to_string(), variant_id, &tenant, &org)
                     .await;

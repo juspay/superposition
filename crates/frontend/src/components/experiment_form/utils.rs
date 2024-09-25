@@ -1,6 +1,6 @@
 use super::types::{ExperimentCreateRequest, ExperimentUpdateRequest};
 use crate::logic::Conditions;
-use crate::types::VariantFormT;
+use crate::types::{ExperimentResponse, VariantFormT};
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
 
 pub fn validate_experiment(experiment: &ExperimentCreateRequest) -> Result<bool, String> {
@@ -18,7 +18,7 @@ pub async fn create_experiment(
     description: String,
     change_reason: String,
     org_id: String,
-) -> Result<serde_json::Value, String> {
+) -> Result<ExperimentResponse, String> {
     let payload = ExperimentCreateRequest {
         name,
         variants: FromIterator::from_iter(variants),
@@ -47,7 +47,7 @@ pub async fn update_experiment(
     variants: Vec<VariantFormT>,
     tenant: String,
     org_id: String,
-) -> Result<serde_json::Value, String> {
+) -> Result<ExperimentResponse, String> {
     let payload = ExperimentUpdateRequest {
         variants: FromIterator::from_iter(variants),
     };

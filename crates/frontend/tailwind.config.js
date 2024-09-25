@@ -35,6 +35,14 @@ module.exports = {
                 'slide-in-bottom': 'slideInFromBottom 0.2s ease-out',
                 'slide-out-bottom': 'slideOutToBottom 0.2s ease-in',
             },
+            colors: {
+                'surface': '#fafafa',
+                'surface-2': '#f2ecee',
+                'surface-3': '#f8f1f6',
+            },
+            height: {
+                'main-content': 'calc(100vh - 16px - 12px - 12px - 16px - 36px - 32px - 32px)'
+            }
         },
     },
     plugins: [require('daisyui')],

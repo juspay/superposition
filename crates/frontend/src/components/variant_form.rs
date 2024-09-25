@@ -149,12 +149,20 @@ where
         <div class="form-control w-full">
             <div class="flex items-center justify-between gap-4">
                 <label class="label flex-col justify-center items-start">
-                    <span class="label-text font-semibold text-base">Experiment Variants</span>
+                    <span class="label-text font-semibold text-base">Variants</span>
                     <span class="label-text text-slate-400">
                         "These are the override sets that would apply on the above context"
                     </span>
                 </label>
+                <button
+                    class="btn btn-purple-link btn-sm text-xs m-1"
+                    disabled=edit
+                    on:click:undelegated=on_add_variant
+                >
 
+                    <i class="ri-add-line"></i>
+                    Add Variant
+                </button>
             </div>
             <For
                 each=move || {
@@ -322,19 +330,6 @@ where
                     }
                 }
             />
-
-            <div>
-                <button
-                    class="btn btn-purple-outline btn-sm text-xs m-1"
-                    disabled=edit
-                    on:click:undelegated=on_add_variant
-                >
-
-                    <i class="ri-add-line"></i>
-                    Add Variant
-                </button>
-            </div>
-
         </div>
     }
 }
