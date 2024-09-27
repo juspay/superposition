@@ -1,24 +1,27 @@
-use actix_web::dev::Service;
-use actix_web::middleware::Compress;
-use actix_web::web::PathConfig;
-use actix_web::HttpMessage;
-use actix_web::{web, web::get, web::scope, web::Data, App, HttpResponse, HttpServer};
+#![deny(unused_crate_dependencies)]
+
+use std::{
+    collections::HashSet,
+    io::Result,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+
+use actix_files::Files;
+use actix_web::{
+    dev::Service,
+    middleware::Compress,
+    web::{self, get, scope, Data, PathConfig},
+    App, HttpMessage, HttpResponse, HttpServer,
+};
 use context_aware_config::api::*;
 use context_aware_config::helpers::get_meta_schema;
 use experimentation_platform::api::*;
-use serde_json::{Map, Value};
-use std::sync::Arc;
-use std::{collections::HashSet, io::Result};
-use superposition_types::User;
-
-use snowflake::SnowflakeIdGenerator;
-use std::{sync::Mutex, time::Duration};
-
-use actix_files::Files;
 use frontend::app::*;
 use frontend::types::Envs as UIEnvs;
 use leptos::*;
 use leptos_actix::{generate_route_list, LeptosRoutes};
+use serde_json::{Map, Value};
 use service_utils::{
     db::pgschema_manager::PgSchemaManager,
     db::utils::init_pool_manager,
@@ -28,6 +31,8 @@ use service_utils::{
     },
     service::types::{AppEnv, AppScope, AppState, ExperimentationFlags},
 };
+use snowflake::SnowflakeIdGenerator;
+use superposition_types::User;
 
 #[actix_web::get("favicon.ico")]
 async fn favicon(

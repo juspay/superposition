@@ -6,37 +6,25 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# env
-dotenv = { workspace = true }
-# Https server framework
-actix = { workspace = true }
 actix-web = { workspace = true }
-futures-util = "0.3.28"
-# To help generate snowflake ids
-rs-snowflake = { workspace = true }
-#ORM
-env_logger = { workspace = true }
 anyhow = { workspace = true }
-strum_macros = { workspace = true }
-strum = { workspace = true }
-diesel = { workspace = true }
-bytes = { workspace = true }
-rusoto_core = { workspace = true }
+aws-config = { version = "1.1.7", features = ["behavior-version-latest"] }
+aws-sdk-kms = { version = "1.38.0" }
 base64 = { workspace = true }
-urlencoding = { workspace = true }
+derive_more = { workspace = true }
+diesel = { workspace = true }
+futures-util = "0.3.28"
 jsonschema = { workspace = true }
 log = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-derive_more = { workspace = true }
-reqwest = { workspace = true }
-thiserror = { workspace = true }
 once_cell = { workspace = true }
 regex = { workspace = true }
-mime = { workspace = true }
-superposition_types = { path="../superposition_types" }
-aws-sdk-kms = {workspace = true}
-aws-config = {workspace = true}
+reqwest = { workspace = true }
+rs-snowflake = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+strum_macros = { workspace = true }
+superposition_types = { path = "../superposition_types", features = ["result"] }
+urlencoding = "~2.1.2"
 
 [lints]
 workspace = true

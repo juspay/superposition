@@ -6,35 +6,21 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# env
-dotenv = { workspace = true }
-# Https server framework
-actix = { workspace = true }
 actix-web = { workspace = true }
 actix-http = "3.3.1"
-# To help generate snowflake ids
-rs-snowflake = { workspace = true }
-# To help with generating uuids
-uuid = { workspace = true }
-# To serialize and deserialize objects from json
-serde = { workspace = true }
-serde_json = { workspace = true }
-# For logging and debugging
-env_logger = { workspace = true }
-log = { workspace = true }
-# to work with enums
-derive_more = { workspace = true }
-# date and time
+anyhow = { workspace = true }
 chrono = { workspace = true }
-# ORM
 diesel = { workspace = true }
 diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
-service_utils = { path = "../service_utils" }
-superposition_types = { path = "../superposition_types" }
-reqwest = { workspace = true }
-anyhow = { workspace = true }
-superposition_macros = { path = "../superposition_macros" }
+log = { workspace = true }
 jsonlogic = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+service_utils = { path = "../service_utils" }
+superposition_macros = { path = "../superposition_macros" }
+superposition_types = { path = "../superposition_types", features = ["result"] }
+uuid = { workspace = true }
 
 [features]
 disable_db_data_validation = ["superposition_types/disable_db_data_validation"]

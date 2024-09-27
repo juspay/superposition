@@ -1,3 +1,4 @@
+#![deny(unused_crate_dependencies)]
 use actix_files as fs;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use awc::Client;

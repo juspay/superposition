@@ -1,3 +1,4 @@
+#![deny(unused_crate_dependencies)]
 #[macro_export]
 macro_rules! bad_argument {
     ($msg: literal, $($args: tt)*) => {

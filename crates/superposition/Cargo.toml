@@ -6,57 +6,19 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cac_client = { path = "../cac_client" }
-frontend = { path = "../frontend" }
-service_utils = { path = "../service_utils" }
-experimentation_platform = { path = "../experimentation_platform" }
-context_aware_config = { path = "../context_aware_config" }
-superposition_types = { path = "../superposition_types" }
-# env
-dotenv = { workspace = true }
-# Https server framework
-actix = { workspace = true }
-actix-web = { workspace = true }
-# To help generate snowflake ids
-rs-snowflake = { workspace = true }
-# To help with generating uuids
-uuid = { workspace = true }
-# To serialize and deserialize objects from json
-serde = { workspace = true }
-serde_json = { workspace = true }
-# For logging and debugging
-env_logger = { workspace = true }
-log = { workspace = true }
-# to work with enums
-strum_macros = { workspace = true }
-strum = { workspace = true }
-derive_more = { workspace = true }
-# date and time
-chrono = { workspace = true }
-# ORM
-diesel = { workspace = true }
-blake3 = { workspace = true }
-bytes = { workspace = true }
-rusoto_core = { workspace = true }
-base64 = { workspace = true }
-diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
-urlencoding = { workspace = true }
-jsonschema = { workspace = true }
-reqwest = { workspace = true, features = ["rustls-tls"] }
-rand = { workspace = true }
-tracing-log = "0.1.3"
-valuable = { version = "0.1.0", features = ["std", "alloc", "derive"] }
-itertools = "0.10.5"
-futures = "0.3.28"
-actix-http = "3.3.1"
-futures-util = "0.3.28"
-actix-cors = "0.6.4"
-leptos_actix = { workspace = true }
-leptos = { workspace = true }
-leptos_meta = { workspace = true }
-leptos_router = { workspace = true }
 actix-files = { version = "0.6" }
-anyhow = { workspace = true }
+actix-web = { workspace = true }
+context_aware_config = { path = "../context_aware_config" }
+dotenv = "0.15.0"
+env_logger = "0.8"
+experimentation_platform = { path = "../experimentation_platform" }
+frontend = { path = "../frontend" }
+leptos = { workspace = true }
+leptos_actix = { version = "0.6.11" }
+rs-snowflake = { workspace = true }
+serde_json = { workspace = true }
+service_utils = { path = "../service_utils" }
+superposition_types = { path = "../superposition_types" }
 
 [lints]
 workspace = true

@@ -1,7 +1,10 @@
+#![deny(unused_crate_dependencies)]
+#[cfg(feature = "result")]
 pub mod result;
-use std::fmt::Display;
 
-use actix::fut::{ready, Ready};
+use std::fmt::Display;
+use std::future::{ready, Ready};
+
 use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
 use derive_more::{AsRef, Deref, DerefMut, Into};
 use log::error;
@@ -260,12 +263,10 @@ impl Display for RegexEnum {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anyhow::anyhow;
-    use result as superposition;
     use serde_json::json;
 
     #[test]
-    fn ok_test_deserialize_condition() -> superposition::Result<()> {
+    fn ok_test_deserialize_condition() {
         let db_request_condition_map: Map<String, Value> = Map::from_iter(vec![(
             "and".to_string(),
             json!([
@@ -314,9 +315,8 @@ mod tests {
         .unwrap();
         let db_expected_condition =
             Cac::<Condition>::try_from_db(db_request_condition_map)
-                .map_err(|err| superposition::AppError::UnexpectedError(anyhow!(err)))?
-                .into_inner();
-        assert_eq!(db_condition, db_expected_condition);
+                .map(|a| a.into_inner());
+        assert_eq!(Ok(db_condition), db_expected_condition);
 
         let default_condition = serde_json::from_str::<Condition>(
             &json!(default_request_condition_map).to_string(),
@@ -324,25 +324,20 @@ mod tests {
         .unwrap();
         let default_expected_condition =
             Cac::<Condition>::try_from(default_request_condition_map)
-                .map_err(superposition::AppError::BadArgument)?
-                .into_inner();
-        assert_eq!(default_condition, default_expected_condition);
+                .map(|a| a.into_inner());
+        assert_eq!(Ok(default_condition), default_expected_condition);
 
         let exp_condition = serde_json::from_str::<Condition>(
             &json!(exp_request_condition_map).to_string(),
         )
         .unwrap();
         let exp_expected_condition =
-            Exp::<Condition>::try_from(exp_request_condition_map)
-                .map_err(superposition::AppError::BadArgument)?
-                .into_inner();
-        assert_eq!(exp_condition, exp_expected_condition);
-
-        Ok(())
+            Exp::<Condition>::try_from(exp_request_condition_map).map(|a| a.into_inner());
+        assert_eq!(Ok(exp_condition), exp_expected_condition);
     }
 
     #[test]
-    fn fail_test_deserialize_condition() -> superposition::Result<()> {
+    fn fail_test_deserialize_condition() {
         let request_condition_map: Map<String, Value> = Map::from_iter(vec![(
             "and".to_string(),
             json!([
@@ -404,12 +399,10 @@ mod tests {
                 .contains("variantIds should not be present"),
             true
         );
-
-        Ok(())
     }
 
     #[test]
-    fn test_deserialize_override() -> superposition::Result<()> {
+    fn test_deserialize_override() {
         let override_map = Map::from_iter(vec![
             ("key1".to_string(), json!("val1")),
             ("key2".to_string(), json!(5)),
@@ -419,20 +412,17 @@ mod tests {
 
         let deserialize_overrides =
             serde_json::from_str::<Overrides>(&json!(override_map).to_string()).unwrap();
-        let db_expected_overrides = Cac::<Overrides>::try_from_db(override_map.clone())
-            .map_err(|err| superposition::AppError::UnexpectedError(anyhow!(err)))?
-            .into_inner();
-        assert_eq!(deserialize_overrides, db_expected_overrides);
+        let db_expected_overrides =
+            Cac::<Overrides>::try_from_db(override_map.clone()).map(|a| a.into_inner());
+        assert_eq!(Ok(deserialize_overrides.clone()), db_expected_overrides);
 
-        let exp_expected_overrides = Exp::<Overrides>::try_from(override_map.clone())
-            .map_err(superposition::AppError::BadArgument)?
-            .into_inner();
-        assert_eq!(deserialize_overrides, exp_expected_overrides);
+        let exp_expected_overrides =
+            Exp::<Overrides>::try_from(override_map.clone()).map(|a| a.into_inner());
+        assert_eq!(Ok(deserialize_overrides.clone()), exp_expected_overrides);
 
-        let default_expected_overrides = Cac::<Overrides>::try_from(override_map.clone())
-            .map_err(superposition::AppError::BadArgument)?
-            .into_inner();
-        assert_eq!(deserialize_overrides, default_expected_overrides);
+        let default_expected_overrides =
+            Cac::<Overrides>::try_from(override_map.clone()).map(|a| a.into_inner());
+        assert_eq!(Ok(deserialize_overrides), default_expected_overrides);
 
         let empty_overrides = serde_json::from_str::<Cac<Overrides>>(
             &json!(empty_override_map.clone()).to_string(),
@@ -445,7 +435,5 @@ mod tests {
                 .contains("override should not be empty"),
             true
         );
-
-        Ok(())
     }
 }
