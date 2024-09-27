@@ -1,6 +1,14 @@
+#![deny(unused_crate_dependencies)]
 mod eval;
 mod interface;
 mod utils;
+
+use std::{
+    collections::{HashMap, HashSet},
+    convert::identity,
+    sync::Arc,
+    time::{Duration, UNIX_EPOCH},
+};
 
 use actix_web::{rt::time::interval, web::Data};
 use chrono::{DateTime, Utc};
@@ -8,17 +16,8 @@ use derive_more::{Deref, DerefMut};
 use reqwest::{RequestBuilder, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
-use std::{
-    collections::{HashMap, HashSet},
-    convert::identity,
-    sync::Arc,
-    time::{Duration, UNIX_EPOCH},
-};
 use tokio::sync::RwLock;
 use utils::core::MapError;
-
-use superposition_macros::unexpected_error;
-use superposition_types::result as superposition;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Context {
@@ -166,14 +165,12 @@ impl Client {
         let cac = self.config.read().await;
         let mut config = cac.to_owned();
         if let Some(prefix_list) = prefix {
-            config = filter_config_by_prefix(&config, prefix_list).map_err_to_string()?;
+            config = filter_config_by_prefix(&config, prefix_list)?;
         }
 
         let dimension_filtered_config = query_data
             .filter(|query_map| !query_map.is_empty())
-            .map(|query_map| filter_config_by_dimensions(&config, &query_map))
-            .transpose()
-            .map_err_to_string()?;
+            .map(|query_map| filter_config_by_dimensions(&config, &query_map));
 
         if let Some(filtered_config) = dimension_filtered_config {
             config = filtered_config;
@@ -209,7 +206,7 @@ impl Client {
     ) -> Result<Map<String, Value>, String> {
         let mut cac = self.eval(query_data, merge_strategy).await?;
         if let Some(keys) = filter_keys {
-            cac = filter_keys_by_prefix(cac, keys).map_err_to_string()?;
+            cac = filter_keys_by_prefix(cac, keys);
         }
         Ok(cac)
     }
@@ -221,8 +218,7 @@ impl Client {
         let configs = self.config.read().await;
         let mut default_configs = configs.default_configs.clone();
         if let Some(keys) = filter_keys {
-            default_configs =
-                filter_keys_by_prefix(default_configs, keys).map_err_to_string()?;
+            default_configs = filter_keys_by_prefix(default_configs, keys);
         }
         Ok(default_configs)
     }
@@ -269,33 +265,32 @@ pub use eval::merge;
 pub fn filter_keys_by_prefix(
     keys: Map<String, Value>,
     prefix_list: Vec<String>,
-) -> superposition::Result<Map<String, Value>> {
+) -> Map<String, Value> {
     let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
-    Ok(keys
-        .into_iter()
+    keys.into_iter()
         .filter(|(key, _)| {
             prefix_list
                 .iter()
                 .any(|prefix_str| key.starts_with(prefix_str))
         })
-        .collect())
+        .collect()
 }
 
 pub fn filter_config_by_prefix(
     config: &Config,
     prefix_list: Vec<String>,
-) -> superposition::Result<Config> {
+) -> Result<Config, String> {
     let mut filtered_overrides: Map<String, Value> = Map::new();
 
     let filtered_default_config: Map<String, Value> =
-        filter_keys_by_prefix(config.default_configs.clone(), prefix_list)?;
+        filter_keys_by_prefix(config.default_configs.clone(), prefix_list);
 
     for (key, overrides) in &config.overrides {
         let overrides_map = overrides
             .as_object()
             .ok_or_else(|| {
                 log::error!("failed to decode overrides.");
-                unexpected_error!("failed to decode overrides.")
+                String::from("failed to decode overrides.")
             })?
             .clone();
 
@@ -328,7 +323,7 @@ pub fn filter_config_by_prefix(
 pub fn filter_config_by_dimensions(
     config: &Config,
     dimension_data: &Map<String, Value>,
-) -> superposition::Result<Config> {
+) -> Config {
     let filtered_context = config
         .contexts
         .iter()
@@ -358,5 +353,5 @@ pub fn filter_config_by_dimensions(
         default_configs: config.default_configs.clone(),
     };
 
-    Ok(filtered_config)
+    filtered_config
 }

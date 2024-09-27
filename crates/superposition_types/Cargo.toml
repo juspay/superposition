@@ -9,22 +9,19 @@ edition = "2021"
 # env
 actix = { workspace = true }
 actix-web = { workspace = true }
-strum_macros = { workspace = true }
-strum = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 derive_more = { workspace = true }
-thiserror = { workspace = true }
-diesel = { workspace = true }
-anyhow = { workspace = true }
+thiserror = { workspace = true, optional = true }
+diesel = { workspace = true, optional = true }
+anyhow = { workspace = true, optional = true }
 jsonlogic = { workspace = true }
 regex = { workspace = true }
 
 [features]
 disable_db_data_validation = []
+result = ["diesel", "anyhow", "thiserror"]
 
 [lints]
 workspace = true
-
-

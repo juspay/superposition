@@ -7,43 +7,42 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-dotenv = { workspace = true }
-actix-files = { version = "0.6", optional = true }
-actix-web = { version = "4.5.0", optional = true, features = ["macros"] }
-console_error_panic_hook = "0.1"
+anyhow = { workspace = true }
 cfg-if = "1"
+chrono = { workspace = true }
+console_error_panic_hook = { version = "0.1", optional = true }
+derive_more = { workspace = true }
+futures = "0.3"
+js-sys = "0.3.65"
 leptos = { workspace = true }
 leptos_meta = { workspace = true }
-leptos_actix = { workspace = true, optional = true }
 leptos_router = { workspace = true }
-wasm-bindgen = "=0.2.89"
-reqwest = { workspace = true }
+monaco = { git = "https://github.com/datron/rust-monaco.git" }
+once_cell = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-web-sys = { version = "0.3.64", features = ["Event", "Worker", "Blob", "Window"] }
-futures = "0.3"
-derive_more = { workspace = true }
-anyhow = { workspace = true }
-chrono = {workspace = true }
-strum_macros = { workspace = true }
+reqwest = { workspace = true }
 strum = { workspace = true }
-js-sys = "0.3.65"
+strum_macros = { workspace = true }
 url = "2.5.0"
-once_cell = { workspace = true }
-leptos-use = { workspace = true }
-monaco = { git = "https://github.com/datron/rust-monaco.git" }
+wasm-bindgen = "=0.2.89"
+web-sys = { version = "0.3.64", features = [
+  "Event",
+  "Worker",
+  "Blob",
+  "Window",
+  "Storage",
+] }
 
 [features]
 csr = ["leptos/csr", "leptos_meta/csr", "leptos_router/csr"]
-hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
-ssr = [
-  "dep:actix-files",
-  "dep:actix-web",
-  "dep:leptos_actix",
-  "leptos/ssr",
-  "leptos_meta/ssr",
-  "leptos_router/ssr",
+hydrate = [
+  "leptos/hydrate",
+  "leptos_meta/hydrate",
+  "leptos_router/hydrate",
+  "console_error_panic_hook",
 ]
+ssr = ["leptos/ssr", "leptos_meta/ssr", "leptos_router/ssr"]
 
 [lints]
 workspace = true

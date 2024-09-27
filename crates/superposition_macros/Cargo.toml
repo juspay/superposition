@@ -5,8 +5,5 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-superposition_types = { path="../superposition_types" }
-
 [lints]
 workspace = true

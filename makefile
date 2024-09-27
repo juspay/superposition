@@ -122,7 +122,7 @@ backend:
 
 build: frontend backend
 
-run: kill build
+run: kill frontend
 	while ! make validate-psql-connection validate-aws-connection; \
 		do echo "waiting for postgres, localstack bootup"; \
 		sleep 0.5; \
