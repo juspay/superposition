@@ -1,4 +1,5 @@
 #![allow(unknown_lints, clippy::empty_docs)]
+#![deny(unused_crate_dependencies)]
 
 mod api;
 pub mod app;

@@ -1,3 +1,4 @@
+#![deny(unused_crate_dependencies)]
 mod interface;
 mod types;
 mod utils;

@@ -1,7 +1,8 @@
-use cac_toml::ContextAwareConfig;
-use clap::{Arg, Command};
 use std::collections::HashMap;
 use std::process;
+
+use cac_toml::ContextAwareConfig;
+use clap::{Arg, Command};
 use toml::Value;
 
 fn main() {

@@ -1,3 +1,4 @@
+#![deny(unused_crate_dependencies)]
 use actix_web::{
     get, rt,
     web::{get, Query},

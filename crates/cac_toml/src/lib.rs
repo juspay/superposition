@@ -1,12 +1,13 @@
-use pest::iterators::Pair;
-use pest::Parser;
-use pest_derive::Parser;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap};
 use std::fmt;
 use std::fs;
 use std::path::Path;
 use std::string::String;
+
+use pest::iterators::Pair;
+use pest::Parser;
+use pest_derive::Parser;
 use toml::Value;
 
 // the grammar for context expressions written using PEST
