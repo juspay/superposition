@@ -8,7 +8,7 @@ chrono = { workspace = true }
 derive_more = { workspace = true }
 jsonlogic = { workspace = true }
 once_cell = { workspace = true }
-reqwest = { workspace = true, features = ["json"] }
+reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { version = "1.29.1", features = ["full"] }

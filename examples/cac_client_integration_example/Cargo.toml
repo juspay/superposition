@@ -6,12 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cac_client = { path = "../../crates/cac_client" }
-chrono = { workspace = true }
-
-# Https server framework
-actix = { workspace = true }
 actix-web = { workspace = true }
+cac_client = { path = "../../crates/cac_client" }
 serde_json = { workspace = true }
 
 

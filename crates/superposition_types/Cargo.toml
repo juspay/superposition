@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 # env
-actix = { workspace = true }
 actix-web = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }

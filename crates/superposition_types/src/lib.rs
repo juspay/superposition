@@ -3,8 +3,8 @@
 pub mod result;
 
 use std::fmt::Display;
+use std::future::{ready, Ready};
 
-use actix::fut::{ready, Ready};
 use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
 use derive_more::{AsRef, Deref, DerefMut, Into};
 use log::error;

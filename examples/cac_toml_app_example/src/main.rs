@@ -1,3 +1,4 @@
+#![deny(unused_crate_dependencies)]
 use cac_toml::ContextAwareConfig;
 use clap::{Arg, Command};
 use std::collections::HashMap;
