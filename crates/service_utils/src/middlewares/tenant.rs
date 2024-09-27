@@ -134,7 +134,19 @@ where
                     }
                 };
 
+                let tenant_config = app_state
+                    .tenant_configs
+                    .get(&validated_tenant.0)
+                    .cloned()
+                    .ok_or_else(|| {
+                        error::ErrorInternalServerError(format!(
+                            "tenant config not found for {}",
+                            validated_tenant.0
+                        ))
+                    })?;
+
                 req.extensions_mut().insert(validated_tenant);
+                req.extensions_mut().insert(tenant_config);
             }
 
             let res = srv.call(req).await?;

@@ -1,19 +1,6 @@
 use std::{collections::HashMap, str::FromStr};
 
-use super::helpers::{
-    filter_config_by_dimensions, filter_config_by_prefix, get_query_params_map,
-};
-use super::types::{Config, Context};
-use crate::api::context::{
-    delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
-};
-use crate::api::dimension::get_all_dimension_schema_map;
-use crate::{
-    db::schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
-    helpers::generate_cac,
-};
 use actix_http::header::HeaderValue;
-use actix_web::web::Data;
 use actix_web::{get, put, web, HttpRequest, HttpResponse, HttpResponseBuilder, Scope};
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
@@ -22,18 +9,32 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
-use serde_json::{json, Map, Value};
-use service_utils::service::types::{AppState, Tenant};
-use superposition_macros::{bad_argument, db_error, unexpected_error};
-use superposition_types::{result as superposition, Cac, Condition, Overrides, User};
-
 use itertools::Itertools;
 use jsonschema::JSONSchema;
+use serde_json::{json, Map, Value};
 use service_utils::{
     helpers::extract_dimensions,
     service::types::{AppHeader, DbConnection},
 };
+use superposition_macros::{bad_argument, db_error, unexpected_error};
+use superposition_types::{
+    result as superposition, Cac, Condition, Overrides, TenantConfig, User,
+};
 use uuid::Uuid;
+
+use crate::api::context::{
+    delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
+};
+use crate::api::dimension::get_all_dimension_schema_map;
+use crate::{
+    db::schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
+    helpers::generate_cac,
+};
+
+use super::helpers::{
+    filter_config_by_dimensions, filter_config_by_prefix, get_query_params_map,
+};
+use super::types::{Config, Context};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -365,8 +366,7 @@ fn construct_new_payload(
 async fn reduce_config_key(
     user: User,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-    state: &Data<AppState>,
-    tenant: &Tenant,
+    tenant_config: &TenantConfig,
     mut og_contexts: Vec<Context>,
     mut og_overrides: HashMap<String, Overrides>,
     check_key: &str,
@@ -454,7 +454,7 @@ async fn reduce_config_key(
                     if is_approve {
                         let _ = delete_context_api(cid.clone(), user.clone(), conn);
                         if let Ok(put_req) = construct_new_payload(request_payload) {
-                            let _ = put(put_req, conn, false, &user, state, tenant);
+                            let _ = put(put_req, conn, false, &user, &tenant_config);
                         }
                     }
 
@@ -497,8 +497,7 @@ async fn reduce_config(
     req: HttpRequest,
     user: User,
     db_conn: DbConnection,
-    state: Data<AppState>,
-    tenant: Tenant,
+    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let is_approve = req
@@ -517,8 +516,7 @@ async fn reduce_config(
         config = reduce_config_key(
             user.clone(),
             &mut conn,
-            &state,
-            &tenant,
+            &tenant_config,
             contexts.clone(),
             overrides.clone(),
             key.as_str(),

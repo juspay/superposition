@@ -12,7 +12,7 @@ use regex::Regex;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{json, Map, Value};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub email: String,
     pub username: String,
@@ -54,7 +54,7 @@ impl FromRequest for User {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        if let Some(user) = req.extensions().get::<User>() {
+        if let Some(user) = req.extensions().get::<Self>() {
             ready(Ok(user.to_owned()))
         } else {
             error!("No user was found while validating token");
@@ -239,6 +239,28 @@ impl Display for RegexEnum {
         }
         .to_string();
         write!(f, "{regex}")
+    }
+}
+
+#[derive(Clone, Deserialize)]
+pub struct TenantConfig {
+    pub mandatory_dimensions: Vec<String>,
+}
+
+impl FromRequest for TenantConfig {
+    type Error = actix_web::error::Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        let result = req.extensions().get::<Self>().cloned().ok_or_else(|| {
+            log::error!("Tenant config not found");
+            error::ErrorInternalServerError("Tenant config not found")
+        });
+
+        ready(result)
     }
 }
 

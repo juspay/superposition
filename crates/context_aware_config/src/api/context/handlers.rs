@@ -1,10 +1,32 @@
 extern crate base64;
+
+use std::collections::HashMap;
 use std::str;
 
-use crate::helpers::{
-    add_config_version, calculate_context_priority, json_to_sorted_string,
-    validate_context_jsonschema,
+use actix_web::{
+    delete, get, post, put,
+    web::{Data, Json, Path, Query},
+    HttpResponse, Responder, Scope,
 };
+use chrono::Utc;
+use diesel::{
+    delete,
+    r2d2::{ConnectionManager, PooledConnection},
+    result::{DatabaseErrorKind::*, Error::DatabaseError},
+    upsert::excluded,
+    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
+};
+use jsonschema::{Draft, JSONSchema, ValidationError};
+use serde_json::{from_value, json, Map, Value};
+use service_utils::{
+    helpers::{parse_config_tags, validation_err_to_str},
+    service::types::{AppHeader, AppState, CustomHeaders, DbConnection},
+};
+use superposition_macros::{
+    bad_argument, db_error, not_found, unexpected_error, validation_error,
+};
+use superposition_types::{result as superposition, TenantConfig, User};
+
 use crate::{
     api::{
         context::types::{
@@ -20,39 +42,16 @@ use crate::{
             default_configs::dsl,
         },
     },
+    helpers::{
+        add_config_version, calculate_context_priority, json_to_sorted_string,
+        validate_context_jsonschema,
+    },
 };
-use actix_web::web::Data;
-use service_utils::service::types::{AppHeader, AppState, CustomHeaders, Tenant};
-
-use actix_web::{
-    delete, get, post, put,
-    web::{Json, Path, Query},
-    HttpResponse, Responder, Scope,
-};
-use chrono::Utc;
-use diesel::{
-    delete,
-    r2d2::{ConnectionManager, PooledConnection},
-    result::{DatabaseErrorKind::*, Error::DatabaseError},
-    upsert::excluded,
-    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
-};
-use jsonschema::{Draft, JSONSchema, ValidationError};
-use serde_json::{from_value, json, Map, Value};
-use service_utils::helpers::{parse_config_tags, validation_err_to_str};
-use service_utils::service::types::DbConnection;
-use std::collections::HashMap;
-use superposition_types::User;
 
 use super::helpers::{
     validate_condition_with_functions, validate_condition_with_mandatory_dimensions,
     validate_override_with_functions,
 };
-
-use superposition_macros::{
-    bad_argument, db_error, not_found, unexpected_error, validation_error,
-};
-use superposition_types::result as superposition;
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -193,8 +192,7 @@ fn create_ctx_from_put_req(
     req: Json<PutReq>,
     conn: &mut DBConnection,
     user: &User,
-    state: &Data<AppState>,
-    tenant: &Tenant,
+    tenant_config: &TenantConfig,
 ) -> superposition::Result<Context> {
     let ctx_condition = req.context.to_owned().into_inner();
     let condition_val = json!(ctx_condition);
@@ -202,8 +200,7 @@ fn create_ctx_from_put_req(
     let ctx_override = json!(r_override.to_owned());
     validate_condition_with_mandatory_dimensions(
         &ctx_condition,
-        &state.mandatory_dimensions,
-        tenant,
+        &tenant_config.mandatory_dimensions,
     )?;
     validate_override_with_default_configs(conn, &r_override)?;
     validate_condition_with_functions(conn, &ctx_condition)?;
@@ -307,11 +304,10 @@ pub fn put(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
-    state: &Data<AppState>,
-    tenant: &Tenant,
+    tenant_config: &TenantConfig,
 ) -> superposition::Result<PutResp> {
     use contexts::dsl::contexts;
-    let new_ctx = create_ctx_from_put_req(req, conn, user, &state, tenant)?;
+    let new_ctx = create_ctx_from_put_req(req, conn, user, tenant_config)?;
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
@@ -340,11 +336,11 @@ async fn put_handler(
     req: Json<PutReq>,
     mut db_conn: DbConnection,
     user: User,
-    tenant: Tenant,
+    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        let put_response = put(req, transaction_conn, true, &user, &state, &tenant)
+        let put_response = put(req, transaction_conn, true, &user, &tenant_config)
             .map_err(|err: superposition::AppError| {
                 log::info!("context put failed with error: {:?}", err);
                 err
@@ -365,11 +361,10 @@ fn override_helper(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
-    state: &Data<AppState>,
-    tenant: Tenant,
+    tenant_config: &TenantConfig,
 ) -> superposition::Result<PutResp> {
     use contexts::dsl::contexts;
-    let new_ctx = create_ctx_from_put_req(req, conn, user, state, &tenant)?;
+    let new_ctx = create_ctx_from_put_req(req, conn, user, &tenant_config)?;
     if already_under_txn {
         diesel::sql_query("SAVEPOINT insert_ctx_savepoint").execute(conn)?;
     }
@@ -397,12 +392,12 @@ async fn update_override_handler(
     req: Json<PutReq>,
     mut db_conn: DbConnection,
     user: User,
-    tenant: Tenant,
+    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
         let override_resp =
-            override_helper(req, transaction_conn, true, &user, &state, tenant).map_err(
+            override_helper(req, transaction_conn, true, &user, &tenant_config).map_err(
                 |err: superposition::AppError| {
                     log::info!("context put failed with error: {:?}", err);
                     err
@@ -425,8 +420,7 @@ fn r#move(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
-    state: &Data<AppState>,
-    tenant: &Tenant,
+    tenant_config: &TenantConfig,
 ) -> superposition::Result<PutResp> {
     use contexts::dsl;
     let req = req.into_inner();
@@ -441,8 +435,7 @@ fn r#move(
     )?;
     validate_condition_with_mandatory_dimensions(
         &req.context.into_inner(),
-        &state.mandatory_dimensions,
-        tenant,
+        &tenant_config.mandatory_dimensions,
     )?;
 
     if priority == 0 {
@@ -519,7 +512,7 @@ async fn move_handler(
     req: Json<MoveReq>,
     mut db_conn: DbConnection,
     user: User,
-    tenant: Tenant,
+    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -529,8 +522,7 @@ async fn move_handler(
             transaction_conn,
             true,
             &user,
-            &state,
-            &tenant,
+            &tenant_config,
         )
         .map_err(|err| {
             log::info!("move api failed with error: {:?}", err);
@@ -669,7 +661,7 @@ async fn bulk_operations(
     reqs: Json<Vec<ContextAction>>,
     db_conn: DbConnection,
     user: User,
-    tenant: Tenant,
+    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
     let DbConnection(mut conn) = db_conn;
@@ -680,18 +672,15 @@ async fn bulk_operations(
         for action in reqs.into_inner().into_iter() {
             match action {
                 ContextAction::Put(put_req) => {
-                    let put_resp = put(
-                        Json(put_req),
-                        transaction_conn,
-                        true,
-                        &user,
-                        &state,
-                        &tenant,
-                    )
-                    .map_err(|err| {
-                        log::error!("Failed at insert into contexts due to {:?}", err);
-                        err
-                    })?;
+                    let put_resp =
+                        put(Json(put_req), transaction_conn, true, &user, &tenant_config)
+                            .map_err(|err| {
+                                log::error!(
+                                    "Failed at insert into contexts due to {:?}",
+                                    err
+                                );
+                                err
+                            })?;
                     response.push(ContextBulkResponse::Put(put_resp));
                 }
                 ContextAction::Delete(ctx_id) => {
@@ -725,8 +714,7 @@ async fn bulk_operations(
                         transaction_conn,
                         true,
                         &user,
-                        &state,
-                        &tenant,
+                        &tenant_config,
                     )
                     .map_err(|err| {
                         log::error!("Failed at moving context reponse due to {:?}", err);

@@ -1,8 +1,15 @@
 extern crate base64;
-use base64::prelude::*;
-use service_utils::helpers::extract_dimensions;
-use service_utils::service::types::Tenant;
+
+use std::collections::HashMap;
 use std::str;
+
+use base64::prelude::*;
+use diesel::{
+    r2d2::{ConnectionManager, PooledConnection},
+    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
+};
+use serde_json::{Map, Value};
+use service_utils::helpers::extract_dimensions;
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{result as superposition, Condition};
 
@@ -15,23 +22,15 @@ use crate::{
         dimensions::{self},
     },
 };
-use diesel::{
-    r2d2::{ConnectionManager, PooledConnection},
-    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
-};
-use serde_json::{Map, Value};
-use std::collections::HashMap;
+
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
 pub fn validate_condition_with_mandatory_dimensions(
     context: &Condition,
-    mandatory_dimensions: &Map<String, Value>,
-    tenant: &Tenant,
+    mandatory_dimensions: &Vec<String>,
 ) -> superposition::Result<()> {
     let context_map = extract_dimensions(context)?;
     let dimensions_list: Vec<String> = context_map.keys().cloned().collect();
-    let mandatory_dimensions =
-        Tenant::get_mandatory_dimensions(&tenant, mandatory_dimensions);
     let all_mandatory_present = mandatory_dimensions
         .iter()
         .all(|dimension| dimensions_list.contains(dimension));

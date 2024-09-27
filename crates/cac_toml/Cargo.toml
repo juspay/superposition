@@ -17,4 +17,4 @@ path = "src/bin.rs"
 clap = { version = "4.3.0", features = ["derive"] }
 pest = "2.6"
 pest_derive = "2.6"
-toml = { version = "0.8.8", features = ["preserve_order"] }
+toml = { workspace = true }
