@@ -9,12 +9,12 @@ edition = "2021"
 actix-files = { version = "0.6" }
 actix-web = { workspace = true }
 context_aware_config = { path = "../context_aware_config" }
-dotenv = { workspace = true }
-env_logger = { workspace = true }
+dotenv = "0.15.0"
+env_logger = "0.8"
 experimentation_platform = { path = "../experimentation_platform" }
 frontend = { path = "../frontend" }
 leptos = { workspace = true }
-leptos_actix = { workspace = true }
+leptos_actix = { version = "0.6.11" }
 rs-snowflake = { workspace = true }
 serde_json = { workspace = true }
 service_utils = { path = "../service_utils" }
