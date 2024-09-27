@@ -18,7 +18,7 @@ use diesel::{
 use jsonschema::{Draft, JSONSchema};
 use serde_json::Value;
 use superposition_macros::{bad_argument, not_found, unexpected_error};
-use superposition_types::{result as superposition, SuperpositionUser, User};
+use superposition_types::{result as superposition, User};
 
 use service_utils::service::types::{AppState, DbConnection, Tenant};
 

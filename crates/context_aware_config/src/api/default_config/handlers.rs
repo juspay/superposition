@@ -8,7 +8,7 @@ use service_utils::{
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
-use superposition_types::{result as superposition, SuperpositionUser, User};
+use superposition_types::{result as superposition, User};
 
 use crate::{
     api::{

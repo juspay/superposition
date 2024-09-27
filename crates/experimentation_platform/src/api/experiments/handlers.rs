@@ -20,9 +20,7 @@ use service_utils::service::types::{
     AppHeader, AppState, CustomHeaders, DbConnection, Tenant,
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
-use superposition_types::{
-    result as superposition, Condition, Exp, Overrides, SuperpositionUser, User,
-};
+use superposition_types::{result as superposition, Condition, Exp, Overrides, User};
 
 use super::{
     helpers::{
