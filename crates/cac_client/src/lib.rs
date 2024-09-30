@@ -10,6 +10,8 @@ use std::{
     time::{Duration, UNIX_EPOCH},
 };
 
+use mini_moka::sync::Cache;
+
 use actix_web::{rt::time::interval, web::Data};
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
@@ -64,6 +66,7 @@ pub struct Client {
     polling_interval: Duration,
     last_modified: Data<RwLock<DateTime<Utc>>>,
     config: Data<RwLock<Config>>,
+    config_cache: Data<RwLock<Cache<String, Map<String, Value>>>>,
 }
 
 fn clone_reqw(reqw: &RequestBuilder) -> Result<RequestBuilder, String> {
@@ -102,7 +105,7 @@ impl Client {
             return Err("Invalid tenant".to_string());
         }
         let config = resp.json::<Config>().await.map_err_to_string()?;
-
+        let config_cache = Cache::new(10_000);
         let client = Client {
             tenant,
             reqw: Data::new(reqw),
@@ -111,6 +114,7 @@ impl Client {
                 last_modified_at.unwrap_or(DateTime::<Utc>::from(UNIX_EPOCH)),
             )),
             config: Data::new(RwLock::new(config)),
+            config_cache: Data::new(RwLock::new(config_cache)),
         };
         Ok(client)
     }
@@ -182,7 +186,42 @@ impl Client {
     pub async fn get_last_modified(&self) -> DateTime<Utc> {
         self.last_modified.read().await.clone()
     }
+    pub async fn get_hash_val(
+        &self,
+        query_data: Map<String, Value>,
+    ) -> Result<Map<String, Value>, String> {
+        let query_hash = utils::json_to_sorted_string(&json!(query_data));
 
+        let val = self.config_cache.read().await.get(&query_hash);
+        if let Some(value) = val {
+            Ok(value)
+        } else {
+            let evaled_val = self
+                .eval_without_default_config(query_data, MergeStrategy::REPLACE)
+                .await?;
+            // let value_hash = utils::json_to_sorted_string(&json!(evaled_val));
+            // let config_hash = blake3::hash(value_hash.clone().as_bytes()).to_string();
+            self.config_cache
+                .write()
+                .await
+                .insert(query_hash, evaled_val.clone());
+            Ok(evaled_val)
+        }
+    }
+    pub async fn eval_without_default_config(
+        &self,
+        query_data: Map<String, Value>,
+        merge_strategy: MergeStrategy,
+    ) -> Result<Map<String, Value>, String> {
+        let cac = self.config.read().await;
+        eval::eval_cac(
+            Map::new(),
+            &cac.contexts,
+            &cac.overrides,
+            &query_data,
+            merge_strategy,
+        )
+    }
     pub async fn eval(
         &self,
         query_data: Map<String, Value>,
