@@ -175,11 +175,6 @@ async fn main() -> Result<()> {
                             .service(type_templates::endpoints()),
                     )
                     .service(
-                        scope("/config-versions")
-                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
-                            .service(config_versions::endpoints()),
-                    )
-                    .service(
                         experiments::endpoints(scope("/experiments")).wrap(
                             AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION),
                         ),

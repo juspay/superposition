@@ -9,7 +9,7 @@ use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
 use derive_more::{AsRef, Deref, DerefMut, Into};
 use log::error;
 use regex::Regex;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{de, Deserialize, Deserializer, Serialize};
 use serde_json::{json, Map, Value};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -440,4 +440,49 @@ mod tests {
             true
         );
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct QueryFilters {
+    pub count: Option<i64>,
+    pub page: Option<i64>,
+}
+
+impl<'de> Deserialize<'de> for QueryFilters {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct Helper {
+            count: Option<i64>,
+            page: Option<i64>,
+        }
+
+        let helper = Helper::deserialize(deserializer)?;
+
+        if let Some(count) = helper.count {
+            if count <= 0 {
+                return Err(de::Error::custom("Count should be greater than 0."));
+            }
+        }
+
+        if let Some(page) = helper.page {
+            if page <= 0 {
+                return Err(de::Error::custom("Page should be greater than 0."));
+            }
+        }
+
+        Ok(QueryFilters {
+            count: helper.count,
+            page: helper.page,
+        })
+    }
+}
+
+#[derive(Serialize, Debug, Clone, Deserialize)]
+pub struct PaginatedResponse<T> {
+    pub total_pages: i64,
+    pub total_items: i64,
+    pub data: Vec<T>,
 }
