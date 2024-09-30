@@ -1,37 +1,29 @@
 #![deny(unused_crate_dependencies)]
+mod app_state;
 
-use std::{
-    collections::HashSet,
-    io::Result,
-    sync::{Arc, Mutex},
-    time::Duration,
-};
+use std::{collections::HashSet, io::Result, time::Duration};
 
 use actix_files::Files;
 use actix_web::{
     dev::Service,
+    http::header,
     middleware::Compress,
     web::{self, get, scope, Data, PathConfig},
     App, HttpMessage, HttpResponse, HttpServer,
 };
 use context_aware_config::api::*;
-use context_aware_config::helpers::get_meta_schema;
 use experimentation_platform::api::*;
 use frontend::app::*;
 use frontend::types::Envs as UIEnvs;
 use leptos::*;
 use leptos_actix::{generate_route_list, LeptosRoutes};
-use serde_json::{Map, Value};
 use service_utils::{
-    db::pgschema_manager::PgSchemaManager,
-    db::utils::init_pool_manager,
-    helpers::{get_from_env_or_default, get_from_env_unsafe},
+    helpers::get_from_env_unsafe,
     middlewares::{
         app_scope::AppExecutionScopeMiddlewareFactory, tenant::TenantMiddlewareFactory,
     },
-    service::types::{AppEnv, AppScope, AppState, ExperimentationFlags},
+    service::types::{AppScope, AppState},
 };
-use snowflake::SnowflakeIdGenerator;
 use superposition_types::User;
 
 #[actix_web::get("favicon.ico")]
@@ -69,69 +61,13 @@ async fn main() -> Result<()> {
         prefix => "/".to_owned() + prefix,
     };
 
-    let cac_host: String = get_from_env_unsafe("CAC_HOST").expect("CAC host is not set");
     let cac_port: u16 = get_from_env_unsafe("PORT").unwrap_or(8080);
-    let cac_version: String = get_from_env_unsafe("SUPERPOSITION_VERSION")
-        .expect("SUPERPOSITION_VERSION is not set");
-    let max_pool_size = get_from_env_or_default("MAX_DB_CONNECTION_POOL_SIZE", 2);
 
-    let api_host: String =
-        get_from_env_unsafe("API_HOSTNAME").expect("API_HOSTNAME is not set");
-    let app_env: AppEnv = get_from_env_unsafe("APP_ENV").expect("APP_ENV is not set");
-    let enable_tenant_and_scope: bool = get_from_env_unsafe("ENABLE_TENANT_AND_SCOPE")
-        .expect("ENABLE_TENANT_AND_SCOPE is not set");
-    let tenants: HashSet<String> = get_from_env_unsafe::<String>("TENANTS")
+    let tenants = get_from_env_unsafe::<String>("TENANTS")
         .expect("TENANTS is not set")
         .split(',')
-        .map(|tenant| tenant.to_string())
-        .collect::<HashSet<String>>();
-    let tenant_middleware_exclusion_list =
-        get_from_env_unsafe::<String>("TENANT_MIDDLEWARE_EXCLUSION_LIST")
-            .expect("TENANT_MIDDLEWARE_EXCLUSION_LIST is not set")
-            .split(',')
-            .map(String::from)
-            .collect::<HashSet<String>>();
-    let mandatory_dimensions: Map<String, Value> =
-        get_from_env_unsafe::<String>("MANDATORY_DIMENSIONS")
-            .expect("MANDATORY_DIMENSIONS is not set")
-            .split(';')
-            .filter_map(|ele| {
-                let arr: Vec<&str> = ele.split(':').collect();
-                if arr.len() == 2 {
-                    let key = arr[0].to_string();
-                    let values = arr[1]
-                        .split(',')
-                        .map(String::from)
-                        .map(Value::String)
-                        .collect();
-                    Some((key.trim().to_string(), Value::Array(values)))
-                } else {
-                    None
-                }
-            })
-            .collect();
-
-    let schema_manager: PgSchemaManager = init_pool_manager(
-        tenants.clone(),
-        enable_tenant_and_scope,
-        app_env,
-        max_pool_size,
-    )
-    .await;
-
-    /****** EXPERIMENTATION PLATFORM ENVs *********/
-
-    let allow_same_keys_overlapping_ctx: bool =
-        get_from_env_unsafe("ALLOW_SAME_KEYS_OVERLAPPING_CTX")
-            .expect("ALLOW_SAME_KEYS_OVERLAPPING_CTX not set");
-    let allow_diff_keys_overlapping_ctx: bool =
-        get_from_env_unsafe("ALLOW_DIFF_KEYS_OVERLAPPING_CTX")
-            .expect("ALLOW_DIFF_KEYS_OVERLAPPING_CTX not set");
-    let allow_same_keys_non_overlapping_ctx: bool =
-        get_from_env_unsafe("ALLOW_SAME_KEYS_NON_OVERLAPPING_CTX")
-            .expect("ALLOW_SAME_KEYS_NON_OVERLAPPING_CTX not set");
-
-    /****** EXPERIMENTATION PLATFORM ENVs *********/
+        .map(String::from)
+        .collect::<HashSet<_>>();
 
     /* Frontend configurations */
     let ui_redirect_path = match tenants.iter().next() {
@@ -141,8 +77,8 @@ async fn main() -> Result<()> {
 
     let ui_envs = UIEnvs {
         service_prefix: service_prefix_str,
-        tenants: tenants.clone().into_iter().collect::<Vec<String>>(),
-        host: api_host.clone(),
+        tenants: tenants.clone().into_iter().collect::<Vec<_>>(),
+        host: get_from_env_unsafe("API_HOSTNAME").expect("API_HOSTNAME is not set"),
     };
 
     let routes_ui_envs = ui_envs.clone();
@@ -153,51 +89,39 @@ async fn main() -> Result<()> {
         view! { <App app_envs=routes_ui_envs.clone()/> }
     });
 
-    let snowflake_generator = Arc::new(Mutex::new(SnowflakeIdGenerator::new(1, 1)));
+    let app_state =
+        Data::new(app_state::get(service_prefix_str.to_owned(), &base, &tenants).await);
 
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
         let site_root = &leptos_options.site_root;
         let leptos_envs = ui_envs.clone();
-        let cac_host = cac_host.to_owned() + base.as_str();
         App::new()
             .wrap(Compress::default())
+            .app_data(app_state.clone())
             .wrap_fn(|req, srv| {
-                let user = User::default();
+                let state = req.app_data::<Data<AppState>>().unwrap();
+                let user = req.headers().get(header::AUTHORIZATION).and_then(|auth| auth.to_str().ok()).and_then(|auth| {
+                    let mut token = auth.split(' ').into_iter();
+                    match (token.next(), token.next()) {
+                        (Some("Internal"), Some(token)) if token == state.superposition_token => 
+                            req.headers().get("x-user").and_then(|auth| auth.to_str().ok()).and_then(|user_str| {
+                                serde_json::from_str::<User>(user_str).ok()
+                            }),
+                        (_, _) => None
+                    }
+                }).unwrap_or_default();
+
                 req.extensions_mut().insert::<User>(user);
                 srv.call(req)
             })
             .wrap(TenantMiddlewareFactory)
-            .app_data(Data::new(AppState {
-                db_pool: schema_manager.clone(),
-                cac_host: cac_host.to_owned(),
-                cac_version: cac_version.to_owned(),
-
-                experimentation_flags: ExperimentationFlags {
-                    allow_same_keys_overlapping_ctx: allow_same_keys_overlapping_ctx
-                        .to_owned(),
-                    allow_diff_keys_overlapping_ctx: allow_diff_keys_overlapping_ctx
-                        .to_owned(),
-                    allow_same_keys_non_overlapping_ctx:
-                        allow_same_keys_non_overlapping_ctx.to_owned(),
-                },
-
-                snowflake_generator: snowflake_generator.clone(),
-                meta_schema: get_meta_schema(),
-                app_env: app_env.to_owned(),
-                enable_tenant_and_scope: enable_tenant_and_scope.to_owned(),
-                tenants: tenants.to_owned(),
-                tenant_middleware_exclusion_list: tenant_middleware_exclusion_list
-                    .to_owned(),
-                service_prefix: service_prefix_str.to_owned(),
-                mandatory_dimensions: mandatory_dimensions.to_owned(),
-            }))
             .app_data(PathConfig::default().error_handler(|err, _| {
                 actix_web::error::ErrorBadRequest(err)
             }))
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()
-                    .add(("X-SERVER-VERSION", cac_version.to_string()))
+                    .add(("X-SERVER-VERSION", app_state.cac_version.to_string()))
                     .add(("Cache-Control", "no-store".to_string()))
             )
             .service(web::redirect("/", ui_redirect_path.to_string()))

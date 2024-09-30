@@ -1,19 +1,19 @@
-use crate::db::pgschema_manager::{PgSchemaConnection, PgSchemaManager};
-use derive_more::{Deref, DerefMut};
-use jsonschema::JSONSchema;
-use serde_json::{json, Map, Value};
-
+use std::sync::Mutex;
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     future::{ready, Ready},
     str::FromStr,
     sync::Arc,
 };
 
 use actix_web::{error, web::Data, Error, FromRequest, HttpMessage};
-
+use derive_more::{Deref, DerefMut};
+use jsonschema::JSONSchema;
+use serde_json::json;
 use snowflake::SnowflakeIdGenerator;
-use std::sync::Mutex;
+use superposition_types::TenantConfig;
+
+use crate::db::pgschema_manager::{PgSchemaConnection, PgSchemaManager};
 
 pub struct ExperimentationFlags {
     pub allow_same_keys_overlapping_ctx: bool,
@@ -49,7 +49,8 @@ pub struct AppState {
     pub enable_tenant_and_scope: bool,
     pub tenant_middleware_exclusion_list: HashSet<String>,
     pub service_prefix: String,
-    pub mandatory_dimensions: Map<String, Value>,
+    pub tenant_configs: HashMap<String, TenantConfig>,
+    pub superposition_token: String,
 }
 
 impl FromStr for AppEnv {
@@ -174,26 +175,6 @@ impl FromRequest for Tenant {
             }
         };
         ready(result)
-    }
-}
-
-impl Tenant {
-    pub fn get_mandatory_dimensions(
-        &self,
-        mandatory_dimensions: &Map<String, Value>,
-    ) -> Vec<String> {
-        mandatory_dimensions
-            .get(&self.0)
-            .and_then(|v| v.as_array())
-            .map_or_else(
-                || vec![],
-                |arr| {
-                    arr.iter()
-                        .filter_map(|value| value.as_str())
-                        .map(String::from)
-                        .collect()
-                },
-            )
     }
 }
 

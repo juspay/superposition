@@ -3819,6 +3819,7 @@ version = "0.1.0"
 dependencies = [
  "actix-files",
  "actix-web",
+ "cac_toml",
  "context_aware_config",
  "dotenv",
  "env_logger",
@@ -3830,6 +3831,7 @@ dependencies = [
  "serde_json",
  "service_utils",
  "superposition_types",
+ "toml 0.8.8",
 ]
 
 [[package]]

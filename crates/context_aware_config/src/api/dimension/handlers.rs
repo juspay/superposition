@@ -1,11 +1,3 @@
-use crate::{
-    api::dimension::{types::CreateReq, utils::get_dimension_usage_context_ids},
-    db::{
-        models::Dimension,
-        schema::{dimensions, dimensions::dsl::*},
-    },
-    helpers::validate_jsonschema,
-};
 use actix_web::{
     delete, get, put,
     web::{self, Data, Path},
@@ -17,10 +9,18 @@ use diesel::{
 };
 use jsonschema::{Draft, JSONSchema};
 use serde_json::Value;
+use service_utils::service::types::{AppState, DbConnection};
 use superposition_macros::{bad_argument, not_found, unexpected_error};
-use superposition_types::{result as superposition, User};
+use superposition_types::{result as superposition, TenantConfig, User};
 
-use service_utils::service::types::{AppState, DbConnection, Tenant};
+use crate::{
+    api::dimension::{types::CreateReq, utils::get_dimension_usage_context_ids},
+    db::{
+        models::Dimension,
+        schema::{dimensions, dimensions::dsl::*},
+    },
+    helpers::validate_jsonschema,
+};
 
 use super::types::{DeleteReq, DimensionWithMandatory};
 
@@ -37,7 +37,7 @@ async fn create(
     req: web::Json<CreateReq>,
     user: User,
     db_conn: DbConnection,
-    tenant: Tenant,
+    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
@@ -88,10 +88,9 @@ async fn create(
 
     match upsert {
         Ok(upserted_dimension) => {
-            let mandatory_dimensions =
-                Tenant::get_mandatory_dimensions(&tenant, &state.mandatory_dimensions);
-            let is_mandatory =
-                mandatory_dimensions.contains(&upserted_dimension.dimension);
+            let is_mandatory = tenant_config
+                .mandatory_dimensions
+                .contains(&upserted_dimension.dimension);
             Ok(HttpResponse::Created().json(DimensionWithMandatory::new(
                 upserted_dimension,
                 is_mandatory,
@@ -119,20 +118,17 @@ async fn create(
 #[get("")]
 async fn get(
     db_conn: DbConnection,
-    state: Data<AppState>,
-    tenant: Tenant,
+    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
     let result: Vec<Dimension> = dimensions.get_results(&mut conn)?;
 
-    let mandatory_dimensions =
-        Tenant::get_mandatory_dimensions(&tenant, &state.mandatory_dimensions);
-
     let dimensions_with_mandatory: Vec<DimensionWithMandatory> = result
         .into_iter()
         .map(|ele| {
-            let is_mandatory = mandatory_dimensions.contains(&ele.dimension);
+            let is_mandatory =
+                tenant_config.mandatory_dimensions.contains(&ele.dimension);
             DimensionWithMandatory::new(ele, is_mandatory)
         })
         .collect();

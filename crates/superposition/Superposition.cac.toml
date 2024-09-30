@@ -1,0 +1,9 @@
+[default-config]
+mandatory_dimensions = { "value" = [
+], "schema" = { "type" = "array", "items" = { "type" = "number" } } }
+
+[dimensions]
+tenant = { schema = { "type" = "string", "enum" = ["test", "dev"] } }
+
+[context."$tenant == 'dev'"]
+mandatory_dimensions = []

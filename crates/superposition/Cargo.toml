@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 actix-files = { version = "0.6" }
 actix-web = { workspace = true }
+cac_toml = { path = "../cac_toml" }
 context_aware_config = { path = "../context_aware_config" }
 dotenv = "0.15.0"
 env_logger = "0.8"
@@ -19,6 +20,7 @@ rs-snowflake = { workspace = true }
 serde_json = { workspace = true }
 service_utils = { path = "../service_utils" }
 superposition_types = { path = "../superposition_types" }
+toml = { workspace = true }
 
 [lints]
 workspace = true

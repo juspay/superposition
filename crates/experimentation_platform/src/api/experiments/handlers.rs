@@ -1,6 +1,9 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    str::FromStr,
+};
 
-use actix_http::header::{HeaderMap, HeaderName, HeaderValue};
+use actix_http::header::{self, HeaderMap, HeaderName, HeaderValue};
 use actix_web::{
     get, patch, post, put,
     web::{self, Data, Json, Query},
@@ -60,7 +63,7 @@ pub fn endpoints(scope: Scope) -> Scope {
 
 fn construct_header_map(
     tenant: &str,
-    config_tags: Option<String>,
+    other_headers: Vec<(&str, String)>,
 ) -> superposition::Result<HeaderMap> {
     let mut headers = HeaderMap::new();
     let tenant_val = HeaderValue::from_str(tenant).map_err(|err| {
@@ -68,13 +71,20 @@ fn construct_header_map(
         unexpected_error!("Something went wrong")
     })?;
     headers.insert(HeaderName::from_static("x-tenant"), tenant_val);
-    if let Some(val) = config_tags {
-        let tag_val = HeaderValue::from_str(val.as_str()).map_err(|err| {
+    for (header, value) in other_headers {
+        let header_name = HeaderName::from_str(header).map_err(|err| {
             log::error!("failed to set header: {}", err);
             unexpected_error!("Something went wrong")
         })?;
-        headers.insert(HeaderName::from_static("x-config-tags"), tag_val);
+
+        HeaderValue::from_str(value.as_str())
+            .map(|header_val| headers.insert(header_name, header_val))
+            .map_err(|err| {
+                log::error!("failed to set header: {}", err);
+                unexpected_error!("Something went wrong")
+            })?;
     }
+
     Ok(headers)
 }
 
@@ -232,15 +242,30 @@ async fn create(
     // creating variants' context in CAC
     let http_client = reqwest::Client::new();
     let url = state.cac_host.clone() + "/context/bulk-operations";
-    let headers_map = construct_header_map(tenant.as_str(), custom_headers.config_tags)?;
+    let user_str = serde_json::to_string(&user).map_err(|err| {
+        log::error!("Something went wrong, failed to stringify user data {err}");
+        unexpected_error!(
+            "Something went wrong, failed to stringify user data {}",
+            err
+        )
+    })?;
+    let extra_headers = vec![
+        ("x-user", Some(user_str)),
+        ("x-config-tags", custom_headers.config_tags),
+    ]
+    .into_iter()
+    .filter_map(|(key, val)| val.map(|v| (key, v)))
+    .collect::<Vec<_>>();
+
+    let headers_map = construct_header_map(tenant.as_str(), extra_headers)?;
 
     // Step 1: Perform the HTTP request and handle errors
     let response = http_client
         .put(&url)
         .headers(headers_map.into())
         .header(
-            "Authorization",
-            format!("{} {}", user.get_auth_type(), user.get_auth_token()),
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
         )
         .json(&cac_operations)
         .send()
@@ -248,14 +273,17 @@ async fn create(
 
     // directly return an error response if not a 200 response
     let (resp_contexts, config_version_id) = process_cac_http_response(response).await?;
-    let created_contexts = resp_contexts.into_iter().fold(Vec::new(), |mut acc, item| {
-        if let ContextBulkResponse::PUT(context) = item {
-            acc.push(context);
-        } else {
-            log::error!("Unexpected response item: {:?}", item);
-        }
-        acc
-    });
+    let created_contexts = resp_contexts
+        .into_iter()
+        .filter_map(|item| match item {
+            ContextBulkResponse::PUT(context) => Some(context),
+            ContextBulkResponse::DELETE(_) => None,
+            _ => {
+                log::error!("Unexpected response item: {:?}", item);
+                None
+            }
+        })
+        .collect::<Vec<_>>();
     for i in 0..created_contexts.len() {
         let created_context = &created_contexts[i];
         variants[i].context_id = Some(created_context.context_id.clone());
@@ -369,6 +397,16 @@ pub async fn conclude(
                 };
                 operations.push(ContextAction::MOVE((context_id, context_move_req)));
             } else {
+                let user_str = serde_json::to_string(&user).map_err(|err| {
+                    log::error!(
+                        "Something went wrong, failed to stringify user data {err}"
+                    );
+                    unexpected_error!(
+                        "Something went wrong, failed to stringify user data {}",
+                        err
+                    )
+                })?;
+
                 for (key, val) in variant.overrides.into_inner() {
                     let create_req = HashMap::from([("value", val)]);
 
@@ -378,12 +416,9 @@ pub async fn conclude(
                         ("x-tenant", tenant.as_str()),
                         (
                             "Authorization",
-                            &format!(
-                                "{} {}",
-                                user.get_auth_type(),
-                                user.get_auth_token()
-                            ),
+                            &format!("Internal {}", state.superposition_token),
                         ),
+                        ("x-user", user_str.as_str()),
                     ])
                     .map_err(|err| {
                         superposition::AppError::UnexpectedError(anyhow!(err))
@@ -415,14 +450,26 @@ pub async fn conclude(
     // calling CAC bulk api with operations as payload
     let http_client = reqwest::Client::new();
     let url = state.cac_host.clone() + "/context/bulk-operations";
-    let headers_map = construct_header_map(tenant.as_str(), config_tags)?;
+    let user_str = serde_json::to_string(&user).map_err(|err| {
+        log::error!("Something went wrong, failed to stringify user data {err}");
+        unexpected_error!(
+            "Something went wrong, failed to stringify user data {}",
+            err
+        )
+    })?;
+    let extra_headers = vec![("x-user", Some(user_str)), ("x-config-tags", config_tags)]
+        .into_iter()
+        .filter_map(|(key, val)| val.map(|v| (key, v)))
+        .collect::<Vec<_>>();
+
+    let headers_map = construct_header_map(tenant.as_str(), extra_headers)?;
 
     let response = http_client
         .put(&url)
         .headers(headers_map.into())
         .header(
-            "Authorization",
-            format!("{} {}", user.get_auth_type(), user.get_auth_token()),
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
         )
         .json(&operations)
         .send()
@@ -770,7 +817,7 @@ async fn update_overrides(
 
     // adding operations to create new updated variant contexts
     for variant in &mut new_variants {
-        let updated_cacccontext =
+        let updated_cac_context =
             add_variant_dimension_to_ctx(&experiment_condition, variant.id.to_string())
                 .map_err(|e| {
                 log::error!("failed to add `variantIds` dimension to context: {e}");
@@ -778,7 +825,7 @@ async fn update_overrides(
             })?;
 
         let payload = ContextPutReq {
-            context: updated_cacccontext
+            context: updated_cac_context
                 .as_object()
                 .ok_or_else(|| {
                     log::error!("failed to parse updated context with variant dimension");
@@ -792,14 +839,29 @@ async fn update_overrides(
 
     let http_client = reqwest::Client::new();
     let url = state.cac_host.clone() + "/context/bulk-operations";
-    let headers_map = construct_header_map(tenant.as_str(), custom_headers.config_tags)?;
+    let user_str = serde_json::to_string(&user).map_err(|err| {
+        log::error!("Something went wrong, failed to stringify user data {err}");
+        unexpected_error!(
+            "Something went wrong, failed to stringify user data {}",
+            err
+        )
+    })?;
+    let extra_headers = vec![
+        ("x-user", Some(user_str)),
+        ("x-config-tags", custom_headers.config_tags),
+    ]
+    .into_iter()
+    .filter_map(|(key, val)| val.map(|v| (key, v)))
+    .collect::<Vec<_>>();
+
+    let headers_map = construct_header_map(tenant.as_str(), extra_headers)?;
 
     let response = http_client
         .put(&url)
         .headers(headers_map.into())
         .header(
-            "Authorization",
-            format!("{} {}", user.get_auth_type(), user.get_auth_token()),
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
         )
         .json(&cac_operations)
         .send()
@@ -807,14 +869,17 @@ async fn update_overrides(
 
     // directly return an error response if not a 200 response
     let (resp_contexts, config_version_id) = process_cac_http_response(response).await?;
-    let created_contexts = resp_contexts.into_iter().fold(Vec::new(), |mut acc, item| {
-        if let ContextBulkResponse::PUT(context) = item {
-            acc.push(context);
-        } else {
-            log::error!("Unexpected response item: {:?}", item);
-        }
-        acc
-    });
+    let created_contexts = resp_contexts
+        .into_iter()
+        .filter_map(|item| match item {
+            ContextBulkResponse::PUT(context) => Some(context),
+            ContextBulkResponse::DELETE(_) => None,
+            _ => {
+                log::error!("Unexpected response item: {:?}", item);
+                None
+            }
+        })
+        .collect::<Vec<_>>();
     for i in 0..created_contexts.len() {
         let created_context = &created_contexts[i];
 
