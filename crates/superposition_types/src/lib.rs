@@ -12,13 +12,6 @@ use regex::Regex;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{json, Map, Value};
 
-pub trait SuperpositionUser {
-    fn get_email(&self) -> String;
-    fn get_username(&self) -> String;
-    fn get_auth_token(&self) -> String;
-    fn get_auth_type(&self) -> String;
-}
-
 #[derive(Debug, Clone)]
 pub struct User {
     pub email: String,
@@ -27,20 +20,20 @@ pub struct User {
     pub auth_type: String,
 }
 
-impl SuperpositionUser for User {
-    fn get_email(&self) -> String {
+impl User {
+    pub fn get_email(&self) -> String {
         self.email.clone()
     }
 
-    fn get_username(&self) -> String {
+    pub fn get_username(&self) -> String {
         self.username.clone()
     }
 
-    fn get_auth_token(&self) -> String {
+    pub fn get_auth_token(&self) -> String {
         self.auth_token.clone()
     }
 
-    fn get_auth_type(&self) -> String {
+    pub fn get_auth_type(&self) -> String {
         self.auth_type.clone()
     }
 }
@@ -52,17 +45,6 @@ impl Default for User {
             username: "superposition".into(),
             auth_token: "1234abcd".into(),
             auth_type: "Bearer".into(),
-        }
-    }
-}
-
-impl From<Box<dyn SuperpositionUser>> for User {
-    fn from(value: Box<dyn SuperpositionUser>) -> Self {
-        User {
-            email: value.get_email(),
-            username: value.get_username(),
-            auth_token: value.get_auth_token(),
-            auth_type: value.get_auth_type(),
         }
     }
 }

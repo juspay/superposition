@@ -42,7 +42,7 @@ use serde_json::{from_value, json, Map, Value};
 use service_utils::helpers::{parse_config_tags, validation_err_to_str};
 use service_utils::service::types::DbConnection;
 use std::collections::HashMap;
-use superposition_types::{SuperpositionUser, User};
+use superposition_types::User;
 
 use super::helpers::{
     validate_condition_with_functions, validate_condition_with_mandatory_dimensions,

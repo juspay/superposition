@@ -23,7 +23,7 @@ use serde_json::json;
 use service_utils::service::types::DbConnection;
 
 use superposition_macros::{bad_argument, not_found, unexpected_error};
-use superposition_types::{result as superposition, SuperpositionUser, User};
+use superposition_types::{result as superposition, User};
 
 use validation_functions::{compile_fn, execute_fn};
 
