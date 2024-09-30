@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.14.3 - 2024-09-30
+#### Bug Fixes
+- Dependency pruning (#250) - (8b68900) - Ayush Jain
+
+- - -
+
 ## cac_client-v0.14.2 - 2024-09-06
 #### Bug Fixes
 - python client (#219) - (31a9887) - PRATIK MISHRA

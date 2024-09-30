@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_macros-v0.1.1 - 2024-09-30
+#### Bug Fixes
+- Dependency pruning (#250) - (8b68900) - Ayush Jain
+
+- - -
+
 ## superposition_macros-v0.1.0 - 2024-07-11
 #### Features
 - move apperror to superposition_types - (f1c8395) - Pratik Mishra

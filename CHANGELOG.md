@@ -2,6 +2,32 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.57.0 - 2024-09-30
+### Package updates
+- cac_client bumped to cac_client-v0.14.3
+- superposition_types bumped to superposition_types-v0.4.0
+- cac_toml bumped to cac_toml-v0.2.0
+- experimentation_platform bumped to experimentation_platform-v0.19.0
+- superposition_macros bumped to superposition_macros-v0.1.1
+- context_aware_config bumped to context_aware_config-v0.39.0
+- frontend bumped to frontend-v0.15.2
+- experimentation_client bumped to experimentation_client-v0.8.2
+- service_utils bumped to service_utils-v0.22.0
+### Global changes
+#### Bug Fixes
+- Frontend related issues and warnings (#243) - (1a54fd2) - Ayush Jain
+- Dependency pruning (#250) - (8b68900) - Ayush Jain
+#### Documentation
+- use permanent discord invite link (#235) - (a60110c) - Natarajan Kannan
+#### Features
+- Add get_applicable_variants as expt endpoint (#210) - (54f2037) - Ayush Jain
+- Tenant specific config support via .cac.toml (#246) - (ffc247e) - Ayush Jain
+#### Miscellaneous Chores
+- add github container registry as a target - (b7804a2) - Kartik
+- Add tailwind extension settings to workspace settings for vscode (#240) - (565f822) - Ayush Jain
+
+- - -
+
 ## v0.56.1 - 2024-09-09
 ### Package updates
 - frontend bumped to frontend-v0.15.1

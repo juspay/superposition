@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_toml-v0.2.0 - 2024-09-30
+#### Bug Fixes
+- Dependency pruning (#250) - (8b68900) - Ayush Jain
+#### Features
+- Tenant specific config support via .cac.toml (#246) - (ffc247e) - Ayush Jain
+
+- - -
+
 ## cac_toml-v0.1.0 - 2024-09-06
 #### Bug Fixes
 - removed edit option for experiment contexts (#229) - (a9b01a6) - Shubhranshu Sanjeev

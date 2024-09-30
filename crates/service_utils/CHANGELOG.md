@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.22.0 - 2024-09-30
+#### Bug Fixes
+- Dependency pruning (#250) - (8b68900) - Ayush Jain
+#### Features
+- Tenant specific config support via .cac.toml (#246) - (ffc247e) - Ayush Jain
+
+- - -
+
 ## service_utils-v0.21.0 - 2024-08-14
 #### Bug Fixes
 - changing aws kms library to aws-sdk-kms to rusto (#203) - (a455f93) - namit goel

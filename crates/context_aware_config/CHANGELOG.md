@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.39.0 - 2024-09-30
+#### Bug Fixes
+- Dependency pruning (#250) - (8b68900) - Ayush Jain
+#### Features
+- Tenant specific config support via .cac.toml (#246) - (ffc247e) - Ayush Jain
+#### Miscellaneous Chores
+- Delete SuperpositionUser trait (#251) - (e77ae0b) - Ayush Jain
+
+- - -
+
 ## context_aware_config-v0.38.0 - 2024-09-06
 #### Bug Fixes
 - update function time from 2s to 10s for network requests (#211) - (188683b) - Datron

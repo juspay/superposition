@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.19.0 - 2024-09-30
+#### Bug Fixes
+- Dependency pruning (#250) - (8b68900) - Ayush Jain
+- Make experiment response type consistent with the db type (#233) - (a844ed3) - Ayush Jain
+#### Features
+- Tenant specific config support via .cac.toml (#246) - (ffc247e) - Ayush Jain
+- Add get_applicable_variants as expt endpoint (#210) - (54f2037) - Ayush Jain
+#### Miscellaneous Chores
+- Delete SuperpositionUser trait (#251) - (e77ae0b) - Ayush Jain
+
+- - -
+
 ## experimentation_platform-v0.18.1 - 2024-08-08
 #### Bug Fixes
 - jsonschema for dimension and remove default_config's jsonsschema check (#197) - (89a23af) - PRATIK MISHRA

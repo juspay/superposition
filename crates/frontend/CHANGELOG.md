@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.15.2 - 2024-09-30
+#### Bug Fixes
+- Dependency pruning (#250) - (8b68900) - Ayush Jain
+- case-insensitive dropdown search - (e571480) - Shubhranshu Sanjeev
+- Frontend related issues and warnings (#243) - (1a54fd2) - Ayush Jain
+- SideNav initial hydration delay issue (#239) - (0667967) - Ayush Jain
+- temp fix for override clone operation (#236) - (606099a) - Shubhranshu Sanjeev
+
+- - -
+
 ## frontend-v0.15.1 - 2024-09-09
 #### Bug Fixes
 - using ExperimentResponse type for single experiment get response - (2906966) - Shubhranshu Sanjeev
