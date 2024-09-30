@@ -1,6 +1,20 @@
 use std::{collections::HashMap, str::FromStr};
 
+use super::helpers::{
+    filter_config_by_dimensions, filter_config_by_prefix, get_query_params_map,
+};
+use super::types::{Config, Context};
+use crate::api::context::{
+    delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
+};
+use crate::api::dimension::get_all_dimension_schema_map;
+use crate::db::models::ConfigVersion;
+use crate::{
+    db::schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
+    helpers::generate_cac,
+};
 use actix_http::header::HeaderValue;
+use actix_web::web::{Json, Query};
 use actix_web::{get, put, web, HttpRequest, HttpResponse, HttpResponseBuilder, Scope};
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
@@ -9,38 +23,27 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
+use serde_json::{json, Map, Value};
+use superposition_macros::{bad_argument, db_error, unexpected_error};
+use superposition_types::{
+    result as superposition, Cac, Condition, Overrides, PaginatedResponse, QueryFilters,
+    TenantConfig, User,
+};
+
 use itertools::Itertools;
 use jsonschema::JSONSchema;
-use serde_json::{json, Map, Value};
 use service_utils::{
     helpers::extract_dimensions,
     service::types::{AppHeader, DbConnection},
 };
-use superposition_macros::{bad_argument, db_error, unexpected_error};
-use superposition_types::{
-    result as superposition, Cac, Condition, Overrides, TenantConfig, User,
-};
 use uuid::Uuid;
-
-use crate::api::context::{
-    delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
-};
-use crate::api::dimension::get_all_dimension_schema_map;
-use crate::{
-    db::schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
-    helpers::generate_cac,
-};
-
-use super::helpers::{
-    filter_config_by_dimensions, filter_config_by_prefix, get_query_params_map,
-};
-use super::types::{Config, Context};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(get)
         .service(get_resolved_config)
         .service(reduce_config)
+        .service(get_config_versions)
 }
 
 fn validate_version_in_params(
@@ -653,4 +656,34 @@ async fn get_resolved_config(
     add_config_version_to_header(&config_version, &mut resp);
 
     Ok(resp.json(response))
+}
+
+#[get("/versions")]
+async fn get_config_versions(
+    db_conn: DbConnection,
+    filters: Query<QueryFilters>,
+) -> superposition::Result<Json<PaginatedResponse<ConfigVersion>>> {
+    let DbConnection(mut conn) = db_conn;
+
+    let n_version: i64 = config_versions::config_versions
+        .count()
+        .get_result(&mut conn)?;
+    let mut builder = config_versions::config_versions
+        .into_boxed()
+        .order(config_versions::created_at.desc());
+    if let Some(limit) = filters.count {
+        builder = builder.limit(limit);
+    }
+    if let Some(page) = filters.page {
+        let offset = (page - 1) * filters.count.unwrap_or(10);
+        builder = builder.offset(offset);
+    }
+    let limit = filters.count.unwrap_or(10);
+    let config_versions: Vec<ConfigVersion> = builder.load(&mut conn)?;
+    let total_pages = (n_version as f64 / limit as f64).ceil() as i64;
+    Ok(Json(PaginatedResponse {
+        total_pages,
+        total_items: n_version,
+        data: config_versions,
+    }))
 }
