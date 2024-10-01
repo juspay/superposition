@@ -4,6 +4,8 @@ use leptos_router::*;
 use serde_json::json;
 
 use crate::hoc::layout::Layout;
+use crate::pages::config_version::ConfigVersion;
+use crate::pages::config_version_list::ConfigVersionList;
 use crate::pages::dimensions::Dimensions;
 use crate::pages::experiment_list::ExperimentList;
 use crate::pages::function::{
@@ -206,6 +208,30 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                     view! {
                                         <Layout>
                                             <TypesPage/>
+                                        </Layout>
+                                    }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/config/versions"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <ConfigVersionList/>
+                                        </Layout>
+                                    }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/config/versions/:version"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <ConfigVersion/>
                                         </Layout>
                                     }
                                 }
