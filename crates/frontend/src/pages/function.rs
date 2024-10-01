@@ -89,7 +89,9 @@ pub fn function_page() -> impl IntoView {
                         let (function_rs, _) = create_signal(function);
                         publish_error_ws.set("".to_string());
                         match function_rs.get().published_at {
-                            Some(val) => show_publish_ws.set(val < function_rs.get().draft_edited_at),
+                            Some(val) => {
+                                show_publish_ws.set(val < function_rs.get().draft_edited_at)
+                            }
                             None => show_publish_ws.set(true),
                         }
                         let publish_click = move |event: MouseEvent| {
@@ -123,7 +125,8 @@ pub fn function_page() -> impl IntoView {
                                     <div class="stat w-2/12">
                                         <div class="stat-title">Published Runtime Version</div>
                                         <div>
-                                            {function_rs.get()
+                                            {function_rs
+                                                .get()
                                                 .published_runtime_version
                                                 .unwrap_or("null".to_string())}
                                         </div>
@@ -373,18 +376,24 @@ pub fn function_page() -> impl IntoView {
 
                                                             {
                                                                 let (fun_code_rs, fun_code_ws) = create_signal(
-                                                                        function_rs.get()
+                                                                    function_rs
+                                                                        .get()
                                                                         .published_code
-                                                                        .unwrap_or("// Code not published yet, publish function to see it here!".to_string()));
+                                                                        .unwrap_or(
+                                                                            "// Code not published yet, publish function to see it here!"
+                                                                                .to_string(),
+                                                                        ),
+                                                                );
                                                                 let on_change = move |value| fun_code_ws.set(value);
                                                                 view! {
                                                                     <Show when=move || { !is_test }>
                                                                         <MonacoEditor
-                                                                        node_id="pub_editor_fn"
-                                                                        data=fun_code_rs.get_untracked()
-                                                                        on_change=on_change
-                                                                        read_only=is_edit
-                                                                        classes=vec!["min-h-[500px]"]/>
+                                                                            node_id="pub_editor_fn"
+                                                                            data=fun_code_rs.get_untracked()
+                                                                            on_change=on_change
+                                                                            read_only=is_edit
+                                                                            classes=vec!["min-h-[500px]"]
+                                                                        />
                                                                     </Show>
 
                                                                     <Show when=move || { test_mode_rs.get() }>
@@ -413,7 +422,9 @@ pub fn function_page() -> impl IntoView {
                                                         }>
 
                                                             {
-                                                                let (fun_code_rs, fun_code_ws) = create_signal(function_rs.get().draft_code);
+                                                                let (fun_code_rs, fun_code_ws) = create_signal(
+                                                                    function_rs.get().draft_code,
+                                                                );
                                                                 let on_change = move |value| fun_code_ws.set(value);
                                                                 view! {
                                                                     <Show when=move || {
@@ -437,19 +448,20 @@ pub fn function_page() -> impl IntoView {
 
                                                                     <Show when=move || { should_show }>
                                                                         <MonacoEditor
-                                                                        node_id="code_editor_fn"
-                                                                        data=fun_code_rs.get_untracked()
-                                                                        on_change=on_change
-                                                                        read_only=is_edit
-                                                                        classes=vec!["min-h-[500px]"]/>
+                                                                            node_id="code_editor_fn"
+                                                                            data=fun_code_rs.get_untracked()
+                                                                            on_change=on_change
+                                                                            read_only=is_edit
+                                                                            classes=vec!["min-h-[500px]"]
+                                                                        />
 
                                                                     </Show>
 
                                                                     <Show when=move || {
                                                                         test_mode_rs.get() && editor_mode_rs.get()
                                                                     }>
-                                                                    <div class="flex">
-                                                                        <div class="flex flex-row justify-between">
+                                                                        <div class="flex">
+                                                                            <div class="flex flex-row justify-between">
                                                                                 <MonacoEditor
                                                                                     node_id="test_editor_fn"
                                                                                     data=fun_code_rs.get_untracked()
@@ -457,12 +469,12 @@ pub fn function_page() -> impl IntoView {
                                                                                     read_only=true
                                                                                     classes=vec!["min-w-[1000px]", "min-h-[500px]", "mr-5"]
                                                                                 />
-                                                                            <TestForm
-                                                                                function_name=function_rs.get().function_name
-                                                                                stage="DRAFT".to_string()
-                                                                            />
+                                                                                <TestForm
+                                                                                    function_name=function_rs.get().function_name
+                                                                                    stage="DRAFT".to_string()
+                                                                                />
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
                                                                     </Show>
                                                                 }
                                                                     .into_view()

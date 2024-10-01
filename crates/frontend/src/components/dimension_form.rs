@@ -273,17 +273,18 @@ where
             </Suspense>
 
             <div class="form-control grid w-full justify-start">
-            { move || {
-                let loading = req_inprogess_rs.get();
-                view! {
-                    <Button
-                        class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                        text="Submit".to_string()
-                        on_click=on_submit.clone()
-                        loading
-                    />
-                }
-            }}
+                {move || {
+                    let loading = req_inprogess_rs.get();
+                    view! {
+                        <Button
+                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
+                            text="Submit".to_string()
+                            on_click=on_submit.clone()
+                            loading
+                        />
+                    }
+                }}
+
             </div>
 
             {
