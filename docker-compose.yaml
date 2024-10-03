@@ -25,11 +25,21 @@ services:
       AWS_DEFAULT_REGION: ap-south-1
       EDGE_PORT: 4566
 
+  redis:
+    image: redis:7
+    container_name: superposition_redis
+    restart: on-failure
+    ports:
+      - 6379:6379
+    command: redis-server
+    network_mode: bridge
+
+
   # app:
-  #   image: superposition_github:latest  
+  #   image: superposition_github:latest
   #   container_name: superposition_app
   #   ports:
-  #     - "8080:8080" 
+  #     - "8080:8080"
   #   env_file:
   #     - .env
   #   depends_on:
