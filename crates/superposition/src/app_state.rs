@@ -3,8 +3,17 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+#[cfg(feature = "high-performance-mode")]
+use std::time::Duration;
+
 use cac_toml::ContextAwareConfig;
 use context_aware_config::helpers::get_meta_schema;
+
+#[cfg(feature = "high-performance-mode")]
+use fred::{
+    interfaces::ClientLike,
+    types::{ConnectionConfig, PerformanceConfig},
+};
 use service_utils::{
     aws::kms,
     db::utils::{get_superposition_token, init_pool_manager},
@@ -40,7 +49,7 @@ pub async fn get(
                 toml::Value::String(tenant.clone()),
             )])))
             .and_then(serde_json::from_value::<TenantConfig>)
-            .map(|config| ((tenant, config)))
+            .map(|config| (tenant, config))
             .ok()
         })
         .collect::<HashMap<_, _>>();
@@ -51,6 +60,40 @@ pub async fn get(
         AppEnv::DEV | AppEnv::TEST => None,
         _ => Some(kms::new_client().await),
     };
+
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "high-performance-mode")] {
+            let redis_url =
+                get_from_env_or_default("REDIS_URL", String::from("http://localhost:6379"));
+            let redis_pool_size = get_from_env_or_default("REDIS_POOL_SIZE", 10);
+            let redis_max_attempts = get_from_env_or_default("REDIS_MAX_ATTEMPTS", 10);
+            let config = fred::types::RedisConfig::from_url(&redis_url)
+                .expect(format!("Failed to create RedisConfig from url {}", redis_url).as_str());
+            let reconnect_policy =
+                fred::types::ReconnectPolicy::new_constant(redis_max_attempts, 100);
+            let redis_pool = fred::clients::RedisPool::new(
+                config,
+                Some(PerformanceConfig {
+                    auto_pipeline: true,
+                    ..Default::default()
+                }),
+                Some(ConnectionConfig {
+                    connection_timeout: Duration::from_millis(1000),
+                    ..Default::default()
+                }),
+                Some(reconnect_policy),
+                redis_pool_size,
+            )
+            .map_err(|e| format!("Could not connect to redis due to {e}"))
+            .unwrap();
+
+            redis_pool.connect();
+            redis_pool.wait_for_connect()
+                .await
+                .expect("Failed to connect to Redis");
+        }
+
+    }
 
     AppState {
         db_pool: init_pool_manager(
@@ -93,5 +136,7 @@ pub async fn get(
         service_prefix,
         tenant_configs,
         superposition_token: get_superposition_token(&kms_client, &app_env).await,
+        #[cfg(feature = "high-performance-mode")]
+        redis: redis_pool,
     }
 }

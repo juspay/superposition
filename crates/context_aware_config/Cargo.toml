@@ -28,10 +28,12 @@ strum_macros = { workspace = true }
 superposition_macros = { path = "../superposition_macros" }
 superposition_types = { path = "../superposition_types", features = ["result"] }
 uuid = { workspace = true }
-
+fred = { workspace = true, optional = true }
+cfg-if = { workspace = true }
 
 [features]
 disable_db_data_validation = ["superposition_types/disable_db_data_validation"]
+high-performance-mode = ["dep:fred"]
 
 [lints]
 workspace = true

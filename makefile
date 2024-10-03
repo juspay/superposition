@@ -93,6 +93,9 @@ get-password:
 superposition:
 	cargo run --color always --bin superposition --no-default-features --features=ssr
 
+superposition-fast:
+	cargo run --color always --bin superposition --no-default-features --features="ssr,high-performance-mode"
+
 superposition-example:
 	cargo run --bin cac-demo-app
 
@@ -129,6 +132,12 @@ run: kill frontend
 		done
 	make superposition -e DOCKER_DNS=$(DOCKER_DNS)
 
+run-fast: kill frontend
+	while ! make validate-psql-connection validate-aws-connection; \
+		do echo "waiting for postgres, localstack bootup"; \
+		sleep 0.5; \
+		done
+	make superposition-fast -e DOCKER_DNS=$(DOCKER_DNS)
 
 run_legacy: kill build
 	while ! make validate-psql-connection validate-aws-connection; \
