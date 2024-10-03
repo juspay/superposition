@@ -9,17 +9,26 @@ use crate::{
         },
     },
 };
+
+#[cfg(feature = "high-performance-mode")]
+use crate::db::schema::event_log::dsl as event_log;
+
 use actix_web::http::header::{HeaderMap, HeaderName, HeaderValue};
 use actix_web::web::Data;
+#[cfg(feature = "high-performance-mode")]
+use chrono::DateTime;
 use chrono::Utc;
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
-
+#[cfg(feature = "high-performance-mode")]
+use fred::interfaces::KeysInterface;
 use itertools::{self, Itertools};
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{json, Map, Value};
+#[cfg(feature = "high-performance-mode")]
+use service_utils::service::types::Tenant;
 use service_utils::{
     helpers::{generate_snowflake_id, validation_err_to_str},
     service::types::AppState,
@@ -27,6 +36,8 @@ use service_utils::{
 
 use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::{result as superposition, Cac, Condition, Overrides};
+#[cfg(feature = "high-performance-mode")]
+use uuid::Uuid;
 
 use std::collections::HashMap;
 
@@ -308,6 +319,49 @@ pub fn add_config_version(
         .values(&config_version)
         .execute(db_conn)?;
     Ok(version_id)
+}
+
+#[cfg(feature = "high-performance-mode")]
+pub async fn put_config_in_redis(
+    version_id: i64,
+    state: Data<AppState>,
+    tenant: Tenant,
+    db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> superposition::Result<()> {
+    let config = generate_cac(db_conn)?;
+    let redis_config = serde_json::to_string(&json!(config)).map_err(|e| {
+        log::error!("failed to convert cac config to string: {}", e);
+        unexpected_error!("could not convert cac config to string")
+    })?;
+    let config_key = format!("{}::cac_config", *tenant);
+    let max_created_key = format!("{}::cac_config::max_created_at", *tenant);
+    let audit_id_key = format!("{}::cac_config::audit_id", *tenant);
+    let config_version_key = format!("{}::cac_config::config_version", *tenant);
+    let last_modified = DateTime::to_rfc2822(&Utc::now());
+    let _ = state
+        .redis
+        .set::<(), String, String>(config_key, redis_config, None, None, false)
+        .await;
+    let _ = state
+        .redis
+        .set::<(), String, String>(max_created_key, last_modified, None, None, false)
+        .await;
+    if let Ok(uuid) = event_log::event_log
+        .select(event_log::id)
+        .filter(event_log::table_name.eq("contexts"))
+        .order_by(event_log::timestamp.desc())
+        .first::<Uuid>(db_conn)
+    {
+        let _ = state
+            .redis
+            .set::<(), String, String>(audit_id_key, uuid.to_string(), None, None, false)
+            .await;
+    }
+    let _ = state
+        .redis
+        .set::<(), String, i64>(config_version_key, version_id, None, None, false)
+        .await;
+    Ok(())
 }
 
 // ************ Tests *************
