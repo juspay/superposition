@@ -9,6 +9,7 @@ use actix_web::{
     web::{Data, Json, Path},
     HttpResponse, Scope,
 };
+use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{
     delete,
@@ -53,8 +54,7 @@ use crate::{
         },
     },
     helpers::{
-        add_config_version, calculate_context_priority, json_to_sorted_string,
-        validate_context_jsonschema,
+        add_config_version, calculate_context_priority, validate_context_jsonschema,
     },
 };
 

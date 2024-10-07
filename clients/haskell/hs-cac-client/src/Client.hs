@@ -20,10 +20,11 @@ import           Data.List             (intercalate)
 import           Foreign.C.String      (CString, newCAString, peekCAString)
 import           Foreign.C.Types       (CInt (CInt), CULong (..))
 import           Foreign.ForeignPtr
-import           Foreign.Marshal.Alloc (free)
+import           Foreign.Marshal.Alloc (malloc, free)
 import           Foreign.Marshal.Array (withArrayLen)
 import           Foreign.Ptr
 import           Prelude
+import Foreign.Storable (poke)
 
 data Arc_Client
 
@@ -35,7 +36,7 @@ type Tenant = String
 type Error = String
 
 foreign import ccall unsafe "cac_new_client"
-    c_new_cac_client :: CTenant -> CULong -> CString -> IO CInt
+    c_new_cac_client :: CTenant -> CULong -> CString -> Ptr CULong -> Ptr CULong -> Ptr CULong -> IO CInt
 
 foreign import ccall unsafe "&cac_free_client"
     c_free_cac_client :: FunPtr (Ptr CacClient -> IO ())
@@ -80,12 +81,22 @@ getError = c_last_error_message
 cleanup :: [Ptr a] -> IO ()
 cleanup items = mapM free items $> ()
 
-createCacClient:: Tenant -> Integer -> String -> IO (Either Error ())
-createCacClient tenant frequency hostname = do
+allocateCLongPtr :: Maybe Integer -> IO (Ptr CULong)
+allocateCLongPtr Nothing = return nullPtr
+allocateCLongPtr (Just val) = do
+    ptr <- malloc :: IO (Ptr CULong)  -- Allocate memory for CULong
+    poke ptr (fromInteger val :: CULong)  -- Store the value
+    return ptr  -- Return the pointer
+
+createCacClient:: Tenant -> Integer -> String -> Maybe Integer -> Maybe Integer -> Maybe Integer -> IO (Either Error ())
+createCacClient tenant frequency hostname cacheMaxCapacity cacheTTL cacheTTI = do
     let duration = fromInteger frequency
     cTenant   <- newCAString tenant
     cHostname <- newCAString hostname
-    resp      <- c_new_cac_client cTenant duration cHostname
+    cacheCapacity <- allocateCLongPtr cacheMaxCapacity
+    cacheTimeToLive <- allocateCLongPtr cacheTTL
+    cacheTimeToIdle <- allocateCLongPtr cacheTTI
+    resp      <- c_new_cac_client cTenant duration cHostname cacheCapacity cacheTimeToLive cacheTimeToIdle
     _         <- cleanup [cTenant, cHostname]
     case resp of
         0 -> pure $ Right ()
@@ -108,7 +119,7 @@ getFullConfigStateWithFilter client mbFilters mbPrefix = do
     cPrefix <- case mbPrefix of
         Just prefix -> newCAString (intercalate "," prefix)
         Nothing     -> return nullPtr
-    config <- withForeignPtr client $ \client -> c_get_config client cFilters cPrefix
+    config <- withForeignPtr client $ \val -> c_get_config val cFilters cPrefix
     _ <- cleanup [cFilters]
     if config == nullPtr
         then Left <$> getError
@@ -132,7 +143,7 @@ getResolvedConfigWithStrategy client context mbKeys mergeStrat = do
     cStrKeys    <- case mbKeys of
         Just keys ->  newCAString (intercalate "|" keys)
         Nothing   ->  return nullPtr
-    overrides   <- withForeignPtr client $ \client -> c_cac_get_resolved_config client cContext cStrKeys cMergeStrat
+    overrides   <- withForeignPtr client $ \val -> c_cac_get_resolved_config val cContext cStrKeys cMergeStrat
     _           <- cleanup [cContext, cStrKeys]
     if overrides == nullPtr
         then Left <$> getError
@@ -145,7 +156,7 @@ getDefaultConfig client mbKeys = do
     cStrKeys    <- case mbKeys of
         Just keys ->  newCAString (intercalate "|" keys)
         Nothing   ->  return nullPtr
-    overrides   <- withForeignPtr client $ \client -> c_cac_get_default_config client cStrKeys
+    overrides   <- withForeignPtr client $ \val -> c_cac_get_default_config val cStrKeys
     _           <- cleanup [cStrKeys]
     if overrides == nullPtr
         then Left <$> getError

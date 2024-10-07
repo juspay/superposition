@@ -17,6 +17,9 @@ async fn main() -> std::io::Result<()> {
                 "dev".to_string(),
                 Duration::new(10, 0),
                 "http://localhost:8080".into(),
+                None,
+                None,
+                None,
             )
             .await
             .expect(format!("{}: Failed to acquire cac_client", "dev").as_str())
