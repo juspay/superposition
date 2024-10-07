@@ -19,6 +19,8 @@ serde_json = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 tokio = { version = "1.29.1", features = ["full"] }
+mini-moka = { version = "0.10" }
+itertools = "0.10.5"
 
 [lib]
 name = "cac_client"

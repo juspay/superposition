@@ -13,11 +13,12 @@ use std::{
 use actix_web::{rt::time::interval, web::Data};
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
+use mini_moka::sync::Cache;
 use reqwest::{RequestBuilder, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use tokio::sync::RwLock;
-use utils::core::MapError;
+use utils::{core::MapError, json_to_sorted_string};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Context {
@@ -64,6 +65,7 @@ pub struct Client {
     polling_interval: Duration,
     last_modified: Data<RwLock<DateTime<Utc>>>,
     config: Data<RwLock<Config>>,
+    config_cache: Cache<String, Map<String, Value>>,
 }
 
 fn clone_reqw(reqw: &RequestBuilder) -> Result<RequestBuilder, String> {
@@ -88,6 +90,7 @@ impl Client {
         tenant: String,
         polling_interval: Duration,
         hostname: String,
+        cache_max_capacity: Option<u64>,
     ) -> Result<Self, String> {
         let reqw_client = reqwest::Client::builder().build().map_err_to_string()?;
         let cac_endpoint = format!("{hostname}/config");
@@ -102,7 +105,14 @@ impl Client {
             return Err("Invalid tenant".to_string());
         }
         let config = resp.json::<Config>().await.map_err_to_string()?;
-
+        let config_cache = Cache::builder()
+            .max_capacity(cache_max_capacity.unwrap_or(10_000))
+            // Time to live (TTL): 30 minutes
+            .time_to_live(Duration::from_secs(10 * 60))
+            // Time to idle (TTI):  5 minutes
+            .time_to_idle(Duration::from_secs(5 * 60))
+            // Create the cache.
+            .build();
         let client = Client {
             tenant,
             reqw: Data::new(reqw),
@@ -111,6 +121,7 @@ impl Client {
                 last_modified_at.unwrap_or(DateTime::<Utc>::from(UNIX_EPOCH)),
             )),
             config: Data::new(RwLock::new(config)),
+            config_cache,
         };
         Ok(client)
     }
@@ -183,6 +194,23 @@ impl Client {
         self.last_modified.read().await.clone()
     }
 
+    pub fn get_from_hash(
+        &self,
+        query_data: Map<String, Value>,
+    ) -> Option<Map<String, Value>> {
+        let context_key = json_to_sorted_string(&json!(query_data));
+        self.config_cache.get(&context_key)
+    }
+
+    pub fn insert_in_hash(
+        &self,
+        query_data: Map<String, Value>,
+        value: Map<String, Value>,
+    ) {
+        let context_key = json_to_sorted_string(&json!(query_data));
+        self.config_cache.insert(context_key, value);
+    }
+
     pub async fn eval(
         &self,
         query_data: Map<String, Value>,
@@ -232,6 +260,7 @@ impl ClientFactory {
         tenant: String,
         polling_interval: Duration,
         hostname: String,
+        cache_max_capacity: Option<u64>,
     ) -> Result<Arc<Client>, String> {
         let mut factory = self.write().await;
 
@@ -239,8 +268,15 @@ impl ClientFactory {
             return Ok(client.clone());
         }
 
-        let client =
-            Arc::new(Client::new(tenant.to_string(), polling_interval, hostname).await?);
+        let client = Arc::new(
+            Client::new(
+                tenant.to_string(),
+                polling_interval,
+                hostname,
+                cache_max_capacity,
+            )
+            .await?,
+        );
         factory.insert(tenant.to_string(), client.clone());
         Ok(client.clone())
     }

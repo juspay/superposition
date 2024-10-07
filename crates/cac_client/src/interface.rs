@@ -102,15 +102,29 @@ pub extern "C" fn cac_new_client(
     tenant: *const c_char,
     update_frequency: c_ulong,
     hostname: *const c_char,
+    cache_max_capacity: *const c_char,
 ) -> c_int {
     let duration = Duration::new(update_frequency, 0);
     let tenant = unwrap_safe!(cstring_to_rstring(tenant), return 1);
     let hostname = unwrap_safe!(cstring_to_rstring(hostname), return 1);
 
+    let cache_capacity = if cache_max_capacity.is_null() {
+        None
+    } else {
+        let cache_capacity_str =
+            unwrap_safe!(cstring_to_rstring(cache_max_capacity), return 1);
+        let cache_capacity: u64 = unwrap_safe!(
+            serde_json::from_str::<u64>(cache_capacity_str.as_str()),
+            return 1
+        );
+
+        Some(cache_capacity)
+    };
+
     // println!("Creating cac client thread for tenant {tenant}");
     CAC_RUNTIME.block_on(async move {
         match CLIENT_FACTORY
-            .create_client(tenant.clone(), duration, hostname)
+            .create_client(tenant.clone(), duration, hostname, cache_capacity)
             .await
         {
             Ok(_) => 0,

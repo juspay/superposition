@@ -11,7 +11,10 @@ const char *cac_last_error_message(void);
 
 void cac_free_string(char *s);
 
-int cac_new_client(const char *tenant, unsigned long update_frequency, const char *hostname);
+int cac_new_client(const char *tenant,
+                   unsigned long update_frequency,
+                   const char *hostname,
+                   const char *cache_max_capacity);
 
 void cac_start_polling_update(const char *tenant);
 
