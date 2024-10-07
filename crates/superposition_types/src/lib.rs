@@ -1,4 +1,5 @@
 #![deny(unused_crate_dependencies)]
+pub mod custom_query;
 #[cfg(feature = "result")]
 pub mod result;
 
