@@ -24,6 +24,24 @@ pub fn filter_context(
         .collect()
 }
 
+pub fn apply_prefix_filter_to_config(
+    query_params_map: &mut Map<String, Value>,
+    mut config: Config,
+) -> superposition::Result<Config> {
+    if let Some(prefix) = query_params_map
+        .get("prefix")
+        .and_then(|prefix| prefix.as_str())
+    {
+        config = filter_config_by_prefix(
+            &config,
+            &prefix.split(',').map(String::from).collect(),
+        )?
+    }
+
+    query_params_map.remove("prefix");
+    Ok(config)
+}
+
 pub fn filter_config_by_prefix(
     config: &Config,
     prefix_list: &Vec<String>,
