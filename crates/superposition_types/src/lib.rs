@@ -183,69 +183,107 @@ impl Condition {
 impl_try_from_map!(Cac, Condition, Condition::validate_data_for_cac);
 impl_try_from_map!(Exp, Condition, Condition::validate_data_for_exp);
 
-const ALPHANUMERIC_WITH_DOT: &str =
-    "^[a-zA-Z0-9-_]([a-zA-Z0-9-_.]{0,254}[a-zA-Z0-9-_])?$";
-const ALPHANUMERIC_WITH_DOT_WORDS: &str =
-    "It can contain the following characters only [a-zA-Z0-9-_.] \
-                                    and it should not start or end with a '.' character.";
-
-const ALPHANUMERIC_WITHOUT_DOT: &str = "^[a-zA-Z0-9-_]{1,64}$";
-const ALPHANUMERIC_WITHOUT_DOT_WORDS: &str =
-    "It can contain the following characters only [a-zA-Z0-9-_]";
-
-pub enum RegexEnum {
-    DefaultConfigKey,
-    DimensionName,
-    FunctionName,
-    TypeTemplateName,
-}
-
-impl RegexEnum {
-    pub fn match_regex(&self, val: &str) -> Result<(), String> {
-        let regex_str = self.to_string();
-        let regex = Regex::new(regex_str.as_str()).map_err(|err| {
+pub trait NameValidation {
+    fn validate(&self, s: &str, regex_str: &str) -> Result<(), String> {
+        let regex = Regex::new(regex_str).map_err(|err| {
             log::error!("error while validating with regex : {err}");
             "Something went wrong".to_string()
         })?;
-
-        if !regex.is_match(val) {
+        if regex.is_match(s) {
             return Err(format!(
-                "{val} is invalid, it should obey the regex {regex_str}. \
-                {}",
-                self.get_error_message()
+                "{} is invalid, it should obey the regex {}.",
+                s,
+                regex.as_str(),
             ));
-        } else {
-            Ok(())
         }
-    }
 
-    fn get_error_message(&self) -> String {
-        match self {
-            Self::DefaultConfigKey => ALPHANUMERIC_WITH_DOT_WORDS,
-            Self::DimensionName => ALPHANUMERIC_WITH_DOT_WORDS,
-            Self::FunctionName => ALPHANUMERIC_WITHOUT_DOT_WORDS,
-            Self::TypeTemplateName => ALPHANUMERIC_WITHOUT_DOT_WORDS,
-        }
-        .to_string()
+        Ok(())
     }
 }
 
-impl Display for RegexEnum {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let regex = match self {
-            Self::DefaultConfigKey => ALPHANUMERIC_WITH_DOT,
-            Self::DimensionName => ALPHANUMERIC_WITH_DOT,
-            Self::FunctionName => ALPHANUMERIC_WITHOUT_DOT,
-            Self::TypeTemplateName => ALPHANUMERIC_WITHOUT_DOT,
+// #[derive(Clone, Deserialize)]
+// pub struct DefaultConfigRegex(pub String);
+// impl NameValidation for DefaultConfigRegex {
+//     fn regex_str(&self) -> &str {
+//         self.0.as_str()
+//     }
+// }
+//
+// #[derive(Clone, Deserialize)]
+// pub struct DimesionRegex(pub String);
+// impl NameValidation for DimesionRegex {
+//     fn regex_str(&self) -> &str {
+//         self.0.as_str()
+//     }
+// }
+//
+// #[derive(Clone, Deserialize)]
+// pub struct FunctionRegex(pub String);
+// impl NameValidation for FunctionRegex {
+//     fn regex_str(&self) -> &str {
+//         self.0.as_str()
+//     }
+// }
+//
+// #[derive(Clone, Deserialize)]
+// pub struct TypeTemplateRegex(pub String);
+// impl NameValidation for TypeTemplateRegex {
+//     fn regex_str(&self) -> &str {
+//         self.0.as_str()
+//     }
+// }
+
+pub enum NameRegex {
+    DefaultConfig(String),
+    Dimension(String),
+    Function(String),
+    TypeTemplate(String),
+}
+
+impl NameRegex {
+    fn as_regex_str(&self) -> &str {
+        match self {
+            Self::Dimension(v)
+            | Self::Function(v)
+            | Self::TypeTemplate(v)
+            | Self::DefaultConfig(v) => v,
         }
-        .to_string();
-        write!(f, "{regex}")
+    }
+
+    fn try_as_regex(&self) -> Result<Regex, String> {
+        Regex::new(self.as_regex_str()).map_err(|err| {
+            log::error!("error while validating with regex : {err}");
+            "Something went wrong".to_string()
+        })
+    }
+
+    pub fn match_name(&self, s: &str) -> Result<(), String> {
+        let regex = self.try_as_regex()?;
+        if regex.is_match(s) {
+            return Err(format!(
+                "{} is invalid, it should obey the regex {}.",
+                s,
+                regex.as_str(),
+            ));
+        }
+
+        Ok(())
+    }
+}
+
+impl Display for NameRegex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_regex_str())
     }
 }
 
 #[derive(Clone, Deserialize)]
 pub struct TenantConfig {
     pub mandatory_dimensions: Vec<String>,
+    pub default_config_regex: String,
+    pub dimension_regex: String,
+    pub function_regex: String,
+    pub type_template_regex: String,
 }
 
 impl FromRequest for TenantConfig {

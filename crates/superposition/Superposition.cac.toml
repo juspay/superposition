@@ -1,6 +1,7 @@
 [default-config]
 mandatory_dimensions = { "value" = [
 ], "schema" = { "type" = "array", "items" = { "type" = "number" } } }
+grouping_delimiter = { "value" = ".", "schema" = { "type" = "string" } }
 
 [dimensions]
 tenant = { schema = { "type" = "string", "enum" = ["test", "dev"] } }
