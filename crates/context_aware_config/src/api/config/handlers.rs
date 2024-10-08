@@ -1,7 +1,7 @@
 use std::{collections::HashMap, str::FromStr};
 
 use super::helpers::{
-    filter_config_by_dimensions, filter_config_by_prefix, get_query_params_map,
+    apply_prefix_filter_to_config, filter_config_by_dimensions, get_query_params_map,
 };
 use super::types::{Config, Context};
 use crate::api::context::{
@@ -559,17 +559,7 @@ async fn get(
     let mut config_version = validate_version_in_params(&mut query_params_map)?;
     let mut config = generate_config_from_version(&mut config_version, &mut conn)?;
 
-    if let Some(prefix) = query_params_map
-        .get("prefix")
-        .and_then(|prefix| prefix.as_str())
-    {
-        config = filter_config_by_prefix(
-            &config,
-            &prefix.split(',').map(String::from).collect(),
-        )?
-    }
-
-    query_params_map.remove("prefix");
+    config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
 
     if !query_params_map.is_empty() {
         config = filter_config_by_dimensions(&config, &query_params_map)?
@@ -601,7 +591,9 @@ async fn get_resolved_config(
     }
 
     let mut config_version = validate_version_in_params(&mut query_params_map)?;
-    let config = generate_config_from_version(&mut config_version, &mut conn)?;
+    let mut config = generate_config_from_version(&mut config_version, &mut conn)?;
+
+    config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
 
     let cac_client_contexts = config
         .contexts
