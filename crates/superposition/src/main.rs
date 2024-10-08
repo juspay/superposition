@@ -11,7 +11,6 @@ use actix_web::{
     web::{self, get, scope, Data, PathConfig},
     App, HttpMessage, HttpResponse, HttpServer,
 };
-// #[cfg(feature = "high-performance-mode")]
 use context_aware_config::api::*;
 use experimentation_platform::api::*;
 use frontend::app::*;
