@@ -1,11 +1,8 @@
-use std::borrow::Cow;
 use std::time::Duration;
 
-use crate::components::condition_pills::{
-    types::{Condition, ConditionOperator},
-    Condition as ConditionComponent,
-};
+use crate::components::condition_pills::Condition as ConditionComponent;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
+use crate::logic::Conditions;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::Config;
 use crate::{
@@ -104,45 +101,45 @@ fn all_context_view(config: Config) -> impl IntoView {
     view! {
         <div class="flex flex-col w-full gap-y-6 p-6">
             <ConditionCollapseProvider>
-                {
-                    contexts
-                        .iter()
-                        .map(|context| {
-                            let rows: Vec<_> = context
-                                .override_with_keys
-                                .iter()
-                                .filter_map(|key| overrides.get(key).map(|o| rows(key, o, true)))
-                                .collect();
-                            let conditions: Vec<Condition> = context.try_into().unwrap_or_default();
-                            view! {
-                                <div class="card bg-base-100 shadow gap-4 p-6">
-                                    <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
-                                        "Condition"
-                                    </h3>
-                                    <div class="pl-5">
-                                        <ConditionComponent
-                                            conditions=conditions
-                                            id=context.id.clone()
-                                            class="xl:w-[400px] h-fit"
-                                        />
-                                        <div class="overflow-auto pt-5">
-                                            <table class="table table-zebra">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Key</th>
-                                                        <th>Value</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>{rows}</tbody>
-                                            </table>
-                                        </div>
+
+                {contexts
+                    .iter()
+                    .map(|context| {
+                        let rows: Vec<_> = context
+                            .override_with_keys
+                            .iter()
+                            .filter_map(|key| overrides.get(key).map(|o| rows(key, o, true)))
+                            .collect();
+                        let conditions: Conditions = context.try_into().unwrap_or_default();
+                        view! {
+                            <div class="card bg-base-100 shadow gap-4 p-6">
+                                <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
+                                    "Condition"
+                                </h3>
+                                <div class="pl-5">
+                                    <ConditionComponent
+                                        conditions=conditions
+                                        id=context.id.clone()
+                                        class="xl:w-[400px] h-fit"
+                                    />
+                                    <div class="overflow-auto pt-5">
+                                        <table class="table table-zebra">
+                                            <thead>
+                                                <tr>
+                                                    <th>Key</th>
+                                                    <th>Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>{rows}</tbody>
+                                        </table>
                                     </div>
                                 </div>
-                            }
-                        })
-                        .rev()
-                        .collect::<Vec<_>>()
-                }
+                            </div>
+                        }
+                    })
+                    .rev()
+                    .collect::<Vec<_>>()}
+
             </ConditionCollapseProvider>
             <div class="card bg-base-100 shadow m-6">
                 <div class="card-body">
@@ -183,7 +180,7 @@ pub fn home() -> impl IntoView {
         },
     );
 
-    let (context_rs, context_ws) = create_signal::<Vec<Condition>>(vec![]);
+    let (context_rs, context_ws) = create_signal::<Conditions>(Conditions::default());
     let (selected_tab_rs, selected_tab_ws) = create_signal(ResolveTab::AllConfig);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
@@ -241,42 +238,6 @@ pub fn home() -> impl IntoView {
         }
     };
 
-    let gen_query_context = |query: Vec<Condition>| -> String {
-        let mut context: Vec<String> = vec![];
-        for condition in query.iter() {
-            let dimension = condition.left_operand.clone();
-            let op = match condition.operator.clone() {
-                ConditionOperator::Is => Cow::Borrowed("="),
-                ConditionOperator::In => Cow::Borrowed("IN"),
-                ConditionOperator::Has => Cow::Borrowed("HAS"),
-                ConditionOperator::Between => Cow::Borrowed("BETWEEN"),
-                ConditionOperator::Other(op) => Cow::Owned(op),
-            };
-            let value = condition
-                .right_operand
-                .clone()
-                .into_iter()
-                .filter_map(|value| {
-                    if value.is_object() && value.get("var").is_some() {
-                        None
-                    } else {
-                        Some(value)
-                    }
-                })
-                .map(|value| match value {
-                    Value::String(s) => s.clone(),
-                    Value::Number(n) => n.to_string(),
-                    Value::Bool(b) => b.to_string(),
-                    Value::Null => String::from("null"),
-                    _ => format!("{}", value),
-                })
-                .collect::<Vec<String>>()
-                .join(",");
-            context.push(format!("{}{op}{}", dimension, value));
-        }
-        context.join("&").to_string()
-    };
-
     let resolve_click = move |ev: MouseEvent| {
         ev.prevent_default();
         req_inprogress_ws.set(true);
@@ -304,7 +265,7 @@ pub fn home() -> impl IntoView {
         let context_updated = context_rs.get();
         // resolve the context and get the config that would apply
         spawn_local(async move {
-            let context = gen_query_context(context_updated);
+            let context = context_updated.to_query_string();
             let mut config = match resolve_config(tenant_rs.get_untracked(), context)
                 .await
                 .unwrap()
@@ -382,10 +343,9 @@ pub fn home() -> impl IntoView {
 
                                                 <ContextForm
                                                     dimensions=dimension.to_owned().unwrap_or_default()
-                                                    context=vec![]
+                                                    context=Conditions::default()
                                                     heading_sub_text="Query your configs".to_string()
                                                     dropdown_direction=DropdownDirection::Right
-                                                    is_standalone=false
                                                     resolve_mode=true
                                                     handle_change=move |new_context| {
                                                         context_ws
@@ -396,17 +356,18 @@ pub fn home() -> impl IntoView {
                                                 />
 
                                                 <div class="card-actions mt-6 justify-end">
-                                                    { move || {
+                                                    {move || {
                                                         let loading = req_inprogess_rs.get();
                                                         view! {
                                                             <Button
-                                                            id="resolve_btn".to_string()
-                                                            text="Resolve".to_string()
-                                                            on_click=resolve_click.clone()
-                                                            loading=loading
+                                                                id="resolve_btn".to_string()
+                                                                text="Resolve".to_string()
+                                                                on_click=resolve_click.clone()
+                                                                loading=loading
                                                             />
                                                         }
                                                     }}
+
                                                 </div>
                                             </div>
                                         </div>

@@ -3,9 +3,10 @@ pub mod utils;
 use std::rc::Rc;
 
 use leptos::*;
-use serde_json::Value;
 
-use crate::components::table::Table;
+use crate::{components::table::Table, schema::HtmlDisplay};
+
+use crate::logic::{Condition, Operand};
 
 use self::utils::gen_variant_table;
 use crate::types::{Experiment, ExperimentStatusType};
@@ -157,44 +158,34 @@ where
                 <div class="card-body">
                     <h2 class="card-title">Context</h2>
                     <div class="flex flex-row flex-wrap gap-2">
-                        {move || {
-                            let mut view = Vec::new();
-                            for token in contexts.clone() {
-                                let (dimension, values) = (token.left_operand, token.right_operand);
-                                let mut value_views = Vec::new();
 
-                                for value in values.iter() {
-                                    if value.is_object() && value.get("var").is_some() {
-                                        continue;
-                                    }
-
-                                    let value_str = match value {
-                                        Value::String(s) => s.clone(),
-                                        Value::Number(n) => n.to_string(),
-                                        Value::Bool(b) => b.to_string(),
-                                        Value::Null => String::from("null"),
-                                        _ => format!("{}", value),
-                                    };
-
-                                    value_views.push(
-                                        view! {
-                                                <div class="stat-value text-base">
-                                                    {&value_str.replace('"', "")}
-                                                </div>
-                                        },
-                                    );
-
-                                }
-                                view.push(view! {
+                        {contexts
+                            .iter()
+                            .map(|condition| {
+                                let Condition { dimension, operands, .. } = condition;
+                                let operand_views = operands
+                                    .iter()
+                                    .filter_map(|op| {
+                                        match op {
+                                            Operand::Dimension(_) => None,
+                                            Operand::Value(v) => {
+                                                Some(
+                                                    view! {
+                                                        <div class="stat-value text-base">{v.html_display()}</div>
+                                                    },
+                                                )
+                                            }
+                                        }
+                                    })
+                                    .collect_view();
+                                view! {
                                     <div class="stat w-3/12">
                                         <div class="stat-title">{dimension}</div>
-                                        {value_views}
+                                        {operand_views}
                                     </div>
-                                });
-
-                            }
-                            view
-                        }}
+                                }
+                            })
+                            .collect_view()}
 
                     </div>
                 </div>

@@ -1,12 +1,12 @@
-use crate::components::condition_pills::types::ConditionOperator;
 use leptos::*;
 use serde_json::{Map, Value};
 
 use crate::{
     components::{
-        condition_pills::{types::Condition, Condition as ConditionComponent},
+        condition_pills::Condition as ConditionComponent,
         table::{types::Column, Table},
     },
+    logic::{Conditions, Operator},
     types::Context,
 };
 
@@ -25,7 +25,7 @@ pub fn context_card(
     >,
     #[prop(default=Callback::new(|_| {}))] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
-    let conditions: Vec<Condition> = (&context).try_into().unwrap_or(vec![]);
+    let conditions: Conditions = (&context).try_into().unwrap_or_default();
 
     let override_table_rows = overrides
         .clone()
@@ -50,11 +50,11 @@ pub fn context_card(
     let actions_supported = show_actions
         && !conditions
             .iter()
-            .any(|condition| condition.left_operand == "variantIds");
+            .any(|condition| condition.dimension == "variantIds");
 
     let edit_unsupported = conditions
         .iter()
-        .any(|condition| matches!(condition.operator, ConditionOperator::Other(_)));
+        .any(|condition| matches!(condition.operator, Operator::Other(_)));
 
     view! {
         <div class="rounded-lg shadow bg-base-100 p-6 flex flex-col gap-4">

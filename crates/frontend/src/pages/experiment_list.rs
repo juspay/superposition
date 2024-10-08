@@ -10,6 +10,7 @@ use crate::components::drawer::{close_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{experiment_form::ExperimentForm, stat::Stat, table::Table};
+use crate::logic::Conditions;
 
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
@@ -135,57 +136,58 @@ pub fn experiment_list() -> impl IntoView {
                                 </DrawerBtn>
                             </div>
                         </div>
-                            {move || {
-                                let value = combined_resource.get();
-                                let filters = filters.get();
-                                match value {
-                                    Some(v) => {
-                                        let data = v
-                                            .experiments
-                                            .data
-                                            .iter()
-                                            .map(|ele| {
-                                                let mut ele_map = json!(ele)
-                                                    .as_object()
-                                                    .unwrap()
-                                                    .to_owned();
-                                                ele_map
-                                                    .insert(
-                                                        "created_at".to_string(),
-                                                        json!(ele.created_at.format("%v").to_string()),
-                                                    );
-                                                ele_map
-                                                    .insert(
-                                                        "last_modified".to_string(),
-                                                        json!(ele.last_modified.format("%v").to_string()),
-                                                    );
-                                                ele_map
-                                            })
-                                            .collect::<Vec<Map<String, Value>>>()
-                                            .to_owned();
-                                        let pagination_props = TablePaginationProps {
-                                            enabled: true,
-                                            count: filters.count.unwrap_or_default(),
-                                            current_page: filters.page.unwrap_or_default(),
-                                            total_pages: v.experiments.total_pages,
-                                            on_next: handle_next_click,
-                                            on_prev: handle_prev_click,
-                                        };
-                                        view! {
-                                            <ConditionCollapseProvider>
-                                                <Table
-                                                    cell_class="min-w-48 font-mono".to_string()
-                                                    rows=data
-                                                    key_column="id".to_string()
-                                                    columns=table_columns.get_value()
-                                                    pagination=pagination_props
-                                                />
-                                            </ConditionCollapseProvider>
-                                        }
+                        {move || {
+                            let value = combined_resource.get();
+                            let filters = filters.get();
+                            match value {
+                                Some(v) => {
+                                    let data = v
+                                        .experiments
+                                        .data
+                                        .iter()
+                                        .map(|ele| {
+                                            let mut ele_map = json!(ele)
+                                                .as_object()
+                                                .unwrap()
+                                                .to_owned();
+                                            ele_map
+                                                .insert(
+                                                    "created_at".to_string(),
+                                                    json!(ele.created_at.format("%v").to_string()),
+                                                );
+                                            ele_map
+                                                .insert(
+                                                    "last_modified".to_string(),
+                                                    json!(ele.last_modified.format("%v").to_string()),
+                                                );
+                                            ele_map
+                                        })
+                                        .collect::<Vec<Map<String, Value>>>()
+                                        .to_owned();
+                                    let pagination_props = TablePaginationProps {
+                                        enabled: true,
+                                        count: filters.count.unwrap_or_default(),
+                                        current_page: filters.page.unwrap_or_default(),
+                                        total_pages: v.experiments.total_pages,
+                                        on_next: handle_next_click,
+                                        on_prev: handle_prev_click,
+                                    };
+                                    view! {
+                                        <ConditionCollapseProvider>
+                                            <Table
+                                                cell_class="min-w-48 font-mono".to_string()
+                                                rows=data
+                                                key_column="id".to_string()
+                                                columns=table_columns.get_value()
+                                                pagination=pagination_props
+                                            />
+                                        </ConditionCollapseProvider>
                                     }
-                                    None => view! { <div>Loading....</div> }.into_view(),
                                 }
-                            }}
+                                None => view! { <div>Loading....</div> }.into_view(),
+                            }
+                        }}
+
                     </div>
                 </div>
 
@@ -228,7 +230,7 @@ pub fn experiment_list() -> impl IntoView {
                             <EditorProvider>
                                 <ExperimentForm
                                     name="".to_string()
-                                    context=vec![]
+                                    context=Conditions::default()
                                     variants=vec![]
                                     dimensions=dim.clone()
                                     default_config=def_conf.clone()
