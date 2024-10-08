@@ -14,7 +14,7 @@ use crate::{
         skeleton::{Skeleton, SkeletonVariant},
     },
     providers::editor_provider::EditorProvider,
-    types::{DefaultConfig, Dimension, Experiment},
+    types::{DefaultConfig, Dimension, Experiment, ListFilters, PaginatedResponse},
     utils::{close_modal, show_modal},
 };
 
@@ -43,8 +43,14 @@ pub fn experiment_page() -> impl IntoView {
             // Perform all fetch operations concurrently
             let experiments_future =
                 fetch_experiment(exp_id.to_string(), tenant.to_string());
-            let dimensions_future = fetch_dimensions(tenant.to_string());
-            let config_future = fetch_default_config(tenant.to_string());
+            let empty_list_filters = ListFilters {
+                page: None,
+                count: None,
+            };
+            let dimensions_future =
+                fetch_dimensions(empty_list_filters.clone(), tenant.to_string());
+            let config_future =
+                fetch_default_config(empty_list_filters, tenant.to_string());
 
             let (experiments_result, dimensions_result, config_result) =
                 join!(experiments_future, dimensions_future, config_future);
@@ -53,11 +59,22 @@ pub fn experiment_page() -> impl IntoView {
             CombinedResource {
                 experiment: experiments_result.ok().map(|v| v.into()),
                 dimensions: dimensions_result
-                    .unwrap_or(vec![])
+                    .unwrap_or(PaginatedResponse {
+                        total_items: 0,
+                        total_pages: 0,
+                        data: vec![],
+                    })
+                    .data
                     .into_iter()
                     .filter(|d| d.dimension != "variantIds")
                     .collect(),
-                default_config: config_result.unwrap_or(vec![]),
+                default_config: config_result
+                    .unwrap_or(PaginatedResponse {
+                        total_items: 0,
+                        total_pages: 0,
+                        data: vec![],
+                    })
+                    .data,
             }
         });
 

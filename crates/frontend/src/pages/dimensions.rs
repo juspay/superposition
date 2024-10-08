@@ -4,9 +4,14 @@ use crate::components::skeleton::Skeleton;
 use crate::components::{
     delete_modal::DeleteModal,
     stat::Stat,
-    table::{types::Column, Table},
+    table::{
+        types::{Column, TablePaginationProps},
+        Table,
+    },
 };
+use crate::types::{ListFilters, PaginatedResponse};
 use leptos::*;
+
 use serde_json::{json, Map, Value};
 
 use crate::api::{delete_dimension, fetch_dimensions};
@@ -25,12 +30,20 @@ pub fn dimensions() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
+    let (filters, set_filters) = create_signal(ListFilters {
+        page: Some(1),
+        count: Some(10),
+    });
     let dimensions_resource = create_blocking_resource(
-        move || tenant_rs.get(),
-        |current_tenant| async move {
-            match fetch_dimensions(current_tenant).await {
+        move || (tenant_rs.get(), filters.get()),
+        |(current_tenant, filters)| async move {
+            match fetch_dimensions(filters, current_tenant).await {
                 Ok(data) => data,
-                Err(_) => vec![],
+                Err(_) => PaginatedResponse {
+                    total_items: 0,
+                    total_pages: 0,
+                    data: vec![],
+                },
             }
         },
     );
@@ -53,6 +66,25 @@ pub fn dimensions() -> impl IntoView {
         }
         delete_id_ws.set(None);
         delete_modal_visible_ws.set(false);
+    });
+    let handle_next_click = Callback::new(move |total_pages: i64| {
+        set_filters.update(|f| {
+            f.page = match f.page {
+                Some(p) if p < total_pages => Some(p + 1),
+                Some(p) => Some(p),
+                None => None,
+            }
+        });
+    });
+
+    let handle_prev_click = Callback::new(move |_| {
+        set_filters.update(|f| {
+            f.page = match f.page {
+                Some(p) if p > 1 => Some(p - 1),
+                Some(p) => Some(p),
+                None => None,
+            }
+        });
     });
 
     let selected_dimension = create_rw_signal::<Option<RowData>>(None);
@@ -175,9 +207,16 @@ pub fn dimensions() -> impl IntoView {
                 view! { <Skeleton/> }
             }>
                 {move || {
-                    let value = dimensions_resource.get().unwrap_or(vec![]);
-                    let total_items = value.len().to_string();
+                    let value = dimensions_resource
+                        .get()
+                        .unwrap_or(PaginatedResponse {
+                            total_items: 0,
+                            total_pages: 0,
+                            data: vec![],
+                        });
+                    let total_items = value.data.len().to_string();
                     let table_rows = value
+                        .data
                         .iter()
                         .map(|ele| {
                             let mut ele_map = json!(ele).as_object().unwrap().clone();
@@ -189,6 +228,15 @@ pub fn dimensions() -> impl IntoView {
                             ele_map
                         })
                         .collect::<Vec<Map<String, Value>>>();
+                    let filters = filters.get();
+                    let pagination_props = TablePaginationProps {
+                        enabled: true,
+                        count: filters.count.unwrap_or_default(),
+                        current_page: filters.page.unwrap_or_default(),
+                        total_pages: value.total_pages,
+                        on_next: handle_next_click,
+                        on_prev: handle_prev_click,
+                    };
                     view! {
                         <div class="pb-4">
                             <Stat heading="Dimensions" icon="ri-ruler-2-fill" number=total_items/>
@@ -209,18 +257,19 @@ pub fn dimensions() -> impl IntoView {
                                     rows=table_rows
                                     key_column="id".to_string()
                                     columns=table_columns.get()
+                                    pagination=pagination_props
                                 />
                             </div>
                         </div>
                     }
                 }}
-            <DeleteModal
-                modal_visible=delete_modal_visible_rs
-                confirm_delete=confirm_delete
-                set_modal_visible=delete_modal_visible_ws
-                header_text="Are you sure you want to delete this dimension? Action is irreversible."
-                    .to_string()
-            />
+                <DeleteModal
+                    modal_visible=delete_modal_visible_rs
+                    confirm_delete=confirm_delete
+                    set_modal_visible=delete_modal_visible_ws
+                    header_text="Are you sure you want to delete this dimension? Action is irreversible."
+                        .to_string()
+                />
             </Suspense>
         </div>
     }

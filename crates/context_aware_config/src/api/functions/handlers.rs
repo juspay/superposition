@@ -8,13 +8,13 @@ use crate::{
     db::{
         self,
         models::Function,
-        schema::functions::{dsl, dsl::functions, function_name},
+        schema::functions::{dsl, dsl::functions, function_name, last_modified_at},
     },
     validation_functions,
 };
 use actix_web::{
     delete, get, patch, post, put,
-    web::{self, Json, Path},
+    web::{self, Json, Path, Query},
     HttpResponse, Result, Scope,
 };
 use chrono::Utc;
@@ -23,7 +23,7 @@ use serde_json::json;
 use service_utils::service::types::DbConnection;
 
 use superposition_macros::{bad_argument, not_found, unexpected_error};
-use superposition_types::{result as superposition, User};
+use superposition_types::{result as superposition, QueryFilters, User};
 
 use validation_functions::{compile_fn, execute_fn};
 
@@ -170,13 +170,31 @@ async fn get(
 #[get("")]
 async fn list_functions(
     db_conn: DbConnection,
-) -> superposition::Result<Json<Vec<Function>>> {
+    filters: Query<QueryFilters>,
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let mut function_list = functions.get_results(&mut conn)?;
-    for function in function_list.iter_mut() {
+
+    let n_default_configs: i64 = functions.count().get_result(&mut conn)?;
+    let mut builder = functions.into_boxed().order(last_modified_at.desc());
+    if let Some(limit) = filters.count {
+        builder = builder.limit(limit);
+    }
+    if let Some(page) = filters.page {
+        let offset = (page - 1) * filters.count.unwrap_or(10);
+        builder = builder.offset(offset);
+    }
+    let limit = filters.count.unwrap_or(10);
+    let mut result: Vec<Function> = builder.load(&mut conn)?;
+    let total_pages = (n_default_configs as f64 / limit as f64).ceil() as u64;
+
+    for function in result.iter_mut() {
         decode_function(function)?;
     }
-    Ok(Json(function_list))
+    Ok(HttpResponse::Ok().json(json!({
+    "total_pages": total_pages,
+    "total_items": n_default_configs,
+    "data": result
+    })))
 }
 
 #[delete("/{function_name}")]

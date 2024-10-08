@@ -1,6 +1,5 @@
 use leptos::*;
 
-use chrono::{prelude::Utc, TimeZone};
 use leptos_router::A;
 use serde::{Deserialize, Serialize};
 
@@ -8,7 +7,7 @@ use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{stat::Stat, table::Table};
 
-use crate::types::{FunctionResponse, ListFilters};
+use crate::types::{FunctionResponse, ListFilters, PaginatedResponse};
 
 use super::utils::function_table_columns;
 use crate::api::fetch_functions;
@@ -16,29 +15,30 @@ use serde_json::{json, Map, Value};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct CombinedResource {
-    functions: Vec<FunctionResponse>,
+    functions: PaginatedResponse<FunctionResponse>,
 }
 
 #[component]
 pub fn function_list() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let (filters, set_filters) = create_signal(ListFilters {
-        status: None,
-        from_date: Utc.timestamp_opt(0, 0).single(),
-        to_date: Utc.timestamp_opt(4130561031, 0).single(),
         page: Some(1),
         count: Some(10),
     });
     let table_columns = create_memo(move |_| function_table_columns());
 
-    let combined_resource: Resource<String, CombinedResource> = create_blocking_resource(
-        move || (tenant_rs.get()),
-        |current_tenant| async move {
-            let functions_future = fetch_functions(current_tenant.to_string());
+    let combined_resource = create_blocking_resource(
+        move || (tenant_rs.get(), filters.get()),
+        |(current_tenant, filters)| async move {
+            let functions_future = fetch_functions(filters, current_tenant.to_string());
 
             let functions_result = functions_future.await;
             CombinedResource {
-                functions: functions_result.unwrap_or_else(|_| vec![]),
+                functions: functions_result.unwrap_or(PaginatedResponse {
+                    total_items: 0,
+                    total_pages: 0,
+                    data: vec![],
+                }),
             }
         },
     );
@@ -69,11 +69,16 @@ pub fn function_list() -> impl IntoView {
                 <div class="pb-4">
 
                     {move || {
-                        let value = combined_resource.get();
-                        let total_items = match value {
-                            Some(v) => std::vec::Vec::len(&v.functions).to_string(),
-                            _ => "0".to_string(),
-                        };
+                        let value = combined_resource
+                            .get()
+                            .unwrap_or(CombinedResource {
+                                functions: PaginatedResponse {
+                                    total_items: 0,
+                                    total_pages: 0,
+                                    data: vec![],
+                                },
+                            });
+                        let total_items = value.functions.total_items.to_string();
                         view! {
                             <Stat heading="Functions" icon="ri-code-box-fill" number=total_items/>
                         }
@@ -105,6 +110,7 @@ pub fn function_list() -> impl IntoView {
                                     Some(v) => {
                                         let data = v
                                             .functions
+                                            .data
                                             .iter()
                                             .map(|ele| {
                                                 let mut ele_map = json!(ele)
@@ -123,8 +129,7 @@ pub fn function_list() -> impl IntoView {
                                             })
                                             .collect::<Vec<Map<String, Value>>>()
                                             .to_owned();
-                                        let total_pages = (v.functions.len() as f64 / 10_f64).ceil()
-                                            as i64;
+                                        let total_pages = v.functions.total_pages;
                                         let pagination_props = TablePaginationProps {
                                             enabled: true,
                                             count: filters.count.unwrap_or_default(),

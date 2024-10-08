@@ -180,7 +180,7 @@ pub struct StatusTypes(
 );
 
 #[derive(Deserialize, Debug)]
-pub struct ListFilters {
+pub struct ExpListFilters {
     pub status: Option<StatusTypes>,
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,

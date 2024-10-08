@@ -1,19 +1,22 @@
 use std::borrow::Cow;
 use std::time::Duration;
 
-use crate::components::condition_pills::{
-    types::{Condition, ConditionOperator},
-    Condition as ConditionComponent,
-};
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
-use crate::types::Config;
+use crate::types::{Config, ListFilters};
 use crate::{
     api::{fetch_config, fetch_dimensions},
     components::{
         button::Button, context_form::ContextForm, dropdown::DropdownDirection,
     },
     utils::{check_url_and_return_val, get_element_by_id, get_host},
+};
+use crate::{
+    components::condition_pills::{
+        types::{Condition, ConditionOperator},
+        Condition as ConditionComponent,
+    },
+    types::PaginatedResponse,
 };
 use leptos::*;
 use serde_json::{Map, Value};
@@ -104,45 +107,45 @@ fn all_context_view(config: Config) -> impl IntoView {
     view! {
         <div class="flex flex-col w-full gap-y-6 p-6">
             <ConditionCollapseProvider>
-                {
-                    contexts
-                        .iter()
-                        .map(|context| {
-                            let rows: Vec<_> = context
-                                .override_with_keys
-                                .iter()
-                                .filter_map(|key| overrides.get(key).map(|o| rows(key, o, true)))
-                                .collect();
-                            let conditions: Vec<Condition> = context.try_into().unwrap_or_default();
-                            view! {
-                                <div class="card bg-base-100 shadow gap-4 p-6">
-                                    <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
-                                        "Condition"
-                                    </h3>
-                                    <div class="pl-5">
-                                        <ConditionComponent
-                                            conditions=conditions
-                                            id=context.id.clone()
-                                            class="xl:w-[400px] h-fit"
-                                        />
-                                        <div class="overflow-auto pt-5">
-                                            <table class="table table-zebra">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Key</th>
-                                                        <th>Value</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>{rows}</tbody>
-                                            </table>
-                                        </div>
+
+                {contexts
+                    .iter()
+                    .map(|context| {
+                        let rows: Vec<_> = context
+                            .override_with_keys
+                            .iter()
+                            .filter_map(|key| overrides.get(key).map(|o| rows(key, o, true)))
+                            .collect();
+                        let conditions: Vec<Condition> = context.try_into().unwrap_or_default();
+                        view! {
+                            <div class="card bg-base-100 shadow gap-4 p-6">
+                                <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
+                                    "Condition"
+                                </h3>
+                                <div class="pl-5">
+                                    <ConditionComponent
+                                        conditions=conditions
+                                        id=context.id.clone()
+                                        class="xl:w-[400px] h-fit"
+                                    />
+                                    <div class="overflow-auto pt-5">
+                                        <table class="table table-zebra">
+                                            <thead>
+                                                <tr>
+                                                    <th>Key</th>
+                                                    <th>Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>{rows}</tbody>
+                                        </table>
                                     </div>
                                 </div>
-                            }
-                        })
-                        .rev()
-                        .collect::<Vec<_>>()
-                }
+                            </div>
+                        }
+                    })
+                    .rev()
+                    .collect::<Vec<_>>()}
+
             </ConditionCollapseProvider>
             <div class="card bg-base-100 shadow m-6">
                 <div class="card-body">
@@ -176,9 +179,21 @@ pub fn home() -> impl IntoView {
     let dimension_resource = create_resource(
         move || tenant_rs.get(),
         |tenant| async {
-            match fetch_dimensions(tenant).await {
+            match fetch_dimensions(
+                ListFilters {
+                    page: None,
+                    count: None,
+                },
+                tenant,
+            )
+            .await
+            {
                 Ok(data) => data,
-                Err(_) => vec![],
+                Err(_) => PaginatedResponse {
+                    total_items: 0,
+                    total_pages: 0,
+                    data: vec![],
+                },
             }
         },
     );
@@ -381,7 +396,14 @@ pub fn home() -> impl IntoView {
                                                 <h2 class="card-title">Resolve Configs</h2>
 
                                                 <ContextForm
-                                                    dimensions=dimension.to_owned().unwrap_or_default()
+                                                    dimensions=dimension
+                                                        .to_owned()
+                                                        .unwrap_or(PaginatedResponse {
+                                                            total_items: 0,
+                                                            total_pages: 0,
+                                                            data: vec![],
+                                                        })
+                                                        .data
                                                     context=vec![]
                                                     heading_sub_text="Query your configs".to_string()
                                                     dropdown_direction=DropdownDirection::Right
@@ -396,17 +418,18 @@ pub fn home() -> impl IntoView {
                                                 />
 
                                                 <div class="card-actions mt-6 justify-end">
-                                                    { move || {
+                                                    {move || {
                                                         let loading = req_inprogess_rs.get();
                                                         view! {
                                                             <Button
-                                                            id="resolve_btn".to_string()
-                                                            text="Resolve".to_string()
-                                                            on_click=resolve_click.clone()
-                                                            loading=loading
+                                                                id="resolve_btn".to_string()
+                                                                text="Resolve".to_string()
+                                                                on_click=resolve_click.clone()
+                                                                loading=loading
                                                             />
                                                         }
                                                     }}
+
                                                 </div>
                                             </div>
                                         </div>

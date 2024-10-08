@@ -59,32 +59,39 @@ pub fn condition_expression(
             } else {
                 ("condition-item-collapsed", "condition-value-collapsed")
             };
-
-            // Destructure the condition
-            let Condition { left_operand: dimension, operator, right_operand: value } = condition.get_value();
-
-            // Filter and convert values to strings for rendering
-            let filtered_vals: Vec<String> = value.into_iter().filter_map(|v|
-                if v.is_object() && v.get("var").is_some() {
-                    None
-                } else {
-                match v {
-                    Value::String(s) => Some(s.to_string()),
-                    Value::Number(n) => Some(n.to_string()),
-                    Value::Bool(b) => Some(b.to_string()),
-                    Value::Array(arr) => {
-                        Some(arr.iter().map(|v| v.to_string()).collect::<Vec<String>>().join(","))
+            let Condition { left_operand: dimension, operator, right_operand: value } = condition
+                .get_value();
+            let filtered_vals: Vec<String> = value
+                .into_iter()
+                .filter_map(|v| {
+                    if v.is_object() && v.get("var").is_some() {
+                        None
+                    } else {
+                        match v {
+                            Value::String(s) => Some(s.to_string()),
+                            Value::Number(n) => Some(n.to_string()),
+                            Value::Bool(b) => Some(b.to_string()),
+                            Value::Array(arr) => {
+                                Some(
+                                    arr
+                                        .iter()
+                                        .map(|v| v.to_string())
+                                        .collect::<Vec<String>>()
+                                        .join(","),
+                                )
+                            }
+                            Value::Object(o) => serde_json::to_string_pretty(&o).ok(),
+                            _ => None,
+                        }
                     }
-                    Value::Object(o) => {
-                        serde_json::to_string_pretty(&o).ok()
-                    }
-                    _ => None,
-                }
-              }
-            ).collect();
-
-            // Render based on the operator type
+                })
+                .collect();
             view! {
+                // Destructure the condition
+
+                // Filter and convert values to strings for rendering
+
+                // Render based on the operator type
                 <li
                     id=id.get_value()
                     class=list_item_class
@@ -102,37 +109,38 @@ pub fn condition_expression(
                         {operator.to_string()}
                     </span>
 
-                    {
-                        match operator {
-                            ConditionOperator::Between => {
-                                if filtered_vals.len() == 2 {
-                                    view! {
-                                        <>
-                                            <span class="font-mono font-semibold context_condition">
-                                                {&filtered_vals[0]}
-                                            </span>
-                                            <span class="font-mono font-medium text-gray-650 context_condition">
-                                                {"and"}
-                                            </span>
-                                            <span class="font-mono font-semibold context_condition">
-                                                {&filtered_vals[1]}
-                                            </span>
-                                        </>
-                                    }.into_view()
-                                } else {
-                                    view! { <span class="font-mono text-red-500">"Invalid between values"</span> }.into_view()
-                                }
-                            },
-                            _ => {
-                                let rendered_value = filtered_vals.join(", ");
+                    {match operator {
+                        ConditionOperator::Between => {
+                            if filtered_vals.len() == 2 {
                                 view! {
-                                    <span class=value_class>
-                                        {rendered_value}
+                                    <>
+                                        <span class="font-mono font-semibold context_condition">
+                                            {&filtered_vals[0]}
+                                        </span>
+                                        <span class="font-mono font-medium text-gray-650 context_condition">
+                                            {"and"}
+                                        </span>
+                                        <span class="font-mono font-semibold context_condition">
+                                            {&filtered_vals[1]}
+                                        </span>
+                                    </>
+                                }
+                                    .into_view()
+                            } else {
+                                view! {
+                                    <span class="font-mono text-red-500">
+                                        "Invalid between values"
                                     </span>
-                                }.into_view()
+                                }
+                                    .into_view()
                             }
                         }
-                    }
+                        _ => {
+                            let rendered_value = filtered_vals.join(", ");
+                            view! { <span class=value_class>{rendered_value}</span> }.into_view()
+                        }
+                    }}
+
                 </li>
             }
         }}

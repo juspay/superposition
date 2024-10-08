@@ -112,7 +112,7 @@ pub struct ExperimentsResponse {
 pub struct StatusTypes(pub Vec<ExperimentStatusType>);
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ListFilters {
+pub struct ExpListFilters {
     pub status: Option<StatusTypes>,
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,
@@ -313,4 +313,17 @@ pub struct FetchTypeTemplateResponse {
     pub total_items: i64,
     pub total_pages: i64,
     pub data: Vec<TypeTemplate>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ListFilters {
+    pub page: Option<i64>,
+    pub count: Option<i64>,
+}
+
+#[derive(Serialize, Debug, Clone, Deserialize)]
+pub struct PaginatedResponse<T> {
+    pub total_pages: i64,
+    pub total_items: i64,
+    pub data: Vec<T>,
 }

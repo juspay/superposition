@@ -8,7 +8,7 @@ use service_utils::{
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
-use superposition_types::{result as superposition, User};
+use superposition_types::{result as superposition, QueryFilters, User};
 
 use crate::{
     api::{
@@ -25,7 +25,7 @@ use crate::{
 };
 use actix_web::{
     delete, get, put,
-    web::{self, Data, Json, Path},
+    web::{self, Data, Path, Query},
     HttpResponse, Scope,
 };
 use chrono::Utc;
@@ -35,7 +35,7 @@ use diesel::{
 };
 use diesel::{Connection, SelectableHelper};
 use jsonschema::{Draft, JSONSchema, ValidationError};
-use serde_json::{from_value, Map, Value};
+use serde_json::{from_value, json, Map, Value};
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create).service(get).service(delete)
@@ -204,11 +204,31 @@ fn fetch_default_key(
 }
 
 #[get("")]
-async fn get(db_conn: DbConnection) -> superposition::Result<Json<Vec<DefaultConfig>>> {
+async fn get(
+    db_conn: DbConnection,
+    filters: Query<QueryFilters>,
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
-    let result: Vec<DefaultConfig> = dsl::default_configs.get_results(&mut conn)?;
-    Ok(Json(result))
+    let n_default_configs: i64 = dsl::default_configs.count().get_result(&mut conn)?;
+    let mut builder = dsl::default_configs
+        .into_boxed()
+        .order(dsl::created_at.desc());
+    if let Some(limit) = filters.count {
+        builder = builder.limit(limit);
+    }
+    if let Some(page) = filters.page {
+        let offset = (page - 1) * filters.count.unwrap_or(10);
+        builder = builder.offset(offset);
+    }
+    let limit = filters.count.unwrap_or(10);
+    let result: Vec<DefaultConfig> = builder.load(&mut conn)?;
+    let total_pages = (n_default_configs as f64 / limit as f64).ceil() as u64;
+    Ok(HttpResponse::Ok().json(json!({
+    "total_pages": total_pages,
+    "total_items": n_default_configs,
+    "data": result
+    })))
 }
 
 pub fn get_key_usage_context_ids(
