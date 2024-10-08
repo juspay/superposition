@@ -1,25 +1,10 @@
 pub mod types;
 
-use crate::components::pagination::Pagination;
+use crate::{components::pagination::Pagination, schema::HtmlDisplay};
 
 use self::types::{Column, TablePaginationProps};
 use leptos::*;
 use serde_json::{json, Map, Value};
-
-fn generate_table_row_str(row: &Value) -> String {
-    match row {
-        Value::Null => "null".to_string(),
-        Value::String(rstr) => rstr.to_string(),
-        Value::Number(rnum) => rnum.to_string(),
-        Value::Bool(rbool) => rbool.to_string(),
-        Value::Array(rarr) => rarr
-            .iter()
-            .map(generate_table_row_str)
-            .collect::<Vec<String>>()
-            .join(","),
-        Value::Object(robj) => json!(robj).to_string(),
-    }
-}
 
 #[component]
 pub fn table(
@@ -80,9 +65,8 @@ pub fn table(
                                         .filter(|column| !column.hidden)
                                         .map(|column| {
                                             let cname = &column.name;
-                                            let value: String = generate_table_row_str(
-                                                row.get(cname).unwrap_or(&Value::String("".to_string())),
-                                            );
+                                            let value: String =
+                                                row.get(cname).unwrap_or(&Value::String(String::new())).html_display();
                                             view! {
                                                 <td class=cell_class
                                                     .to_string()>{(column.formatter)(&value, row)}</td>
