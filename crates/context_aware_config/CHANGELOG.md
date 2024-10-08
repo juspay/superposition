@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.40.0 - 2024-10-08
+#### Bug Fixes
+- add prefix filter in resolve endpoint (#259) - (4e47d08) - Ankit Kumar Mahato
+#### Features
+- get config-versions api (#248) - (260392c) - Ankit Kumar Mahato
+
+- - -
+
 ## context_aware_config-v0.39.0 - 2024-09-30
 #### Bug Fixes
 - Dependency pruning (#250) - (8b68900) - Ayush Jain

@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.5.0 - 2024-10-08
+#### Features
+- custom query-param extractor for platform queries (#242) - (3031e48) - Shubhranshu Sanjeev
+- get config-versions api (#248) - (260392c) - Ankit Kumar Mahato
+
+- - -
+
 ## superposition_types-v0.4.0 - 2024-09-30
 #### Bug Fixes
 - Dependency pruning (#250) - (8b68900) - Ayush Jain
