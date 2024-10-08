@@ -1614,6 +1614,7 @@ dependencies = [
  "serde",
  "serde_json",
  "service_utils",
+ "superposition_derives",
  "superposition_macros",
  "superposition_types",
  "uuid",
@@ -3843,6 +3844,15 @@ dependencies = [
  "awc",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "superposition_derives"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.48",
 ]
 
 [[package]]

@@ -9,7 +9,7 @@ pre_bump_hooks = []
 
 pre_package_bump_hooks = [
   "echo 'upgrading {{package}}' to {{version}}",
-  "cargo set-version --package {{package}} {{version}}"
+  "cargo set-version --package {{package}} {{version}}",
 ]
 
 post_package_bump_hooks = []
@@ -36,3 +36,4 @@ superposition_types = { path = "crates/superposition_types" }
 js_client = { path = "clients/js" }
 haskell_client = { path = "clients/haskell" }
 superposition_macros = { path = "crates/superposition_macros" }
+superposition_derives = { path = "crates/superposition_derives" }

@@ -18,6 +18,7 @@ reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 service_utils = { path = "../service_utils" }
+superposition_derives = { path = "../superposition_derives" }
 superposition_macros = { path = "../superposition_macros" }
 superposition_types = { path = "../superposition_types", features = ["result"] }
 uuid = { workspace = true }

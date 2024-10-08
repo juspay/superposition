@@ -2,10 +2,13 @@ use crate::db::schema::*;
 use chrono::{DateTime, NaiveDateTime, Utc};
 
 use diesel::{
-    query_builder::QueryId, Insertable, Queryable, QueryableByName, Selectable,
+    deserialize::FromSqlRow, expression::AsExpression, query_builder::QueryId,
+    sql_types::Json, Insertable, Queryable, QueryableByName, Selectable,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use superposition_derives::{JsonFromSql, JsonToSql};
+use superposition_types::{Exp, Overrides};
 
 #[derive(
     Debug,
@@ -25,6 +28,39 @@ pub enum ExperimentStatusType {
     INPROGRESS,
 }
 
+#[derive(Deserialize, Serialize, Clone, PartialEq, Debug)]
+pub enum VariantType {
+    CONTROL,
+    EXPERIMENTAL,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Variant {
+    pub id: String,
+    pub variant_type: VariantType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub override_id: Option<String>,
+    pub overrides: Exp<Overrides>,
+}
+
+#[derive(
+    Debug, Clone, Serialize, Deserialize, AsExpression, FromSqlRow, JsonFromSql, JsonToSql,
+)]
+#[diesel(sql_type = Json)]
+pub struct Variants(Vec<Variant>);
+
+impl Variants {
+    pub fn new(data: Vec<Variant>) -> Self {
+        Self(data)
+    }
+
+    pub fn into_inner(self) -> Vec<Variant> {
+        self.0
+    }
+}
+
 #[derive(QueryableByName, Queryable, Selectable, Insertable, Serialize, Clone, Debug)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(id))]
@@ -40,7 +76,7 @@ pub struct Experiment {
     pub traffic_percentage: i32,
 
     pub context: Value,
-    pub variants: Value,
+    pub variants: Variants,
     pub last_modified_by: String,
     pub chosen_variant: Option<String>,
 }

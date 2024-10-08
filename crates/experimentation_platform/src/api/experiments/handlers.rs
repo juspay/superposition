@@ -15,10 +15,9 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
-
-use service_utils::helpers::{construct_request_headers, generate_snowflake_id, request};
-
 use reqwest::{Method, Response, StatusCode};
+use serde_json::{json, Map, Value};
+use service_utils::helpers::{construct_request_headers, generate_snowflake_id, request};
 use service_utils::service::types::{
     AppHeader, AppState, CustomHeaders, DbConnection, Tenant,
 };
@@ -32,22 +31,17 @@ use super::{
         validate_experiment, validate_override_keys,
     },
     types::{
-        AuditQueryFilters, ConcludeExperimentRequest, ContextAction, ContextBulkResponse,
-        ContextMoveReq, ContextPutReq, ExperimentCreateRequest, ExperimentCreateResponse,
-        ExperimentResponse, ExperimentsResponse, ListFilters, OverrideKeysUpdateRequest,
-        RampRequest, Variant,
+        ApplicableVariantsQuery, AuditQueryFilters, ConcludeExperimentRequest,
+        ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq,
+        ExperimentCreateRequest, ExperimentCreateResponse, ExperimentResponse,
+        ExperimentsResponse, ListFilters, OverrideKeysUpdateRequest, RampRequest,
     },
 };
 
-use crate::{
-    api::experiments::types::ApplicableVariantsQuery,
-    db::{
-        models::{EventLog, Experiment, ExperimentStatusType},
-        schema::{event_log::dsl as event_log, experiments::dsl as experiments},
-    },
+use crate::db::{
+    models::{EventLog, Experiment, ExperimentStatusType, Variant, Variants},
+    schema::{event_log::dsl as event_log, experiments::dsl as experiments},
 };
-
-use serde_json::{json, Map, Value};
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
@@ -301,7 +295,7 @@ async fn create(
         traffic_percentage: 0,
         status: ExperimentStatusType::CREATED,
         context: Value::Object(req.context.clone().into_inner().into()),
-        variants: serde_json::to_value(variants).unwrap(),
+        variants: Variants::new(variants),
         last_modified_by: user.get_email(),
         chosen_variant: None,
     };
@@ -374,17 +368,9 @@ pub async fn conclude(
     })?;
 
     let mut operations: Vec<ContextAction> = vec![];
-    let experiment_variants: Vec<Variant> = serde_json::from_value(experiment.variants)
-        .map_err(|err| {
-        log::error!(
-            "failed parse eixisting experiment variant while concluding with error: {}",
-            err
-        );
-        unexpected_error!("Something went wrong, failed to conclude experiment")
-    })?;
 
     let mut is_valid_winner_variant = false;
-    for variant in experiment_variants {
+    for variant in experiment.variants.into_inner() {
         let context_id = variant.context_id.ok_or_else(|| {
             log::error!("context id not available for variant {:?}", variant.id);
             unexpected_error!("Something went wrong, failed to conclude experiment")
@@ -517,10 +503,7 @@ async fn get_applicable_variants(
     for exp in experiments {
         if let Some(v) = decide_variant(
             exp.traffic_percentage as u8,
-            serde_json::from_value(exp.variants).map_err(|e| {
-                log::error!("Unable to parse variants from DB {e}");
-                unexpected_error!("Something went wrong.")
-            })?,
+            exp.variants.into_inner(),
             query_data.toss,
         )
         .map_err(|e| {
@@ -639,15 +622,7 @@ async fn ramp(
 
     let old_traffic_percentage = experiment.traffic_percentage as u8;
     let new_traffic_percentage = req.traffic_percentage as u8;
-    let experiment_variants: Vec<Variant> = serde_json::from_value(experiment.variants)
-        .map_err(|e| {
-        log::error!(
-            "failed to parse existing experiment variants while ramping {}",
-            e
-        );
-        unexpected_error!("Something went wrong, failed to ramp traffic percentage")
-    })?;
-    let variants_count = experiment_variants.len() as u8;
+    let variants_count = experiment.variants.into_inner().len() as u8;
     let max = 100 / variants_count;
 
     if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
@@ -711,11 +686,7 @@ async fn update_overrides(
         ));
     }
 
-    let experiment_variants: Vec<Variant> = serde_json::from_value(experiment.variants)
-        .map_err(|err| {
-        log::error!("failed to parse exisiting variants with error {}", err);
-        unexpected_error!("Something went wrong, failed to update experiment")
-    })?;
+    let experiment_variants: Vec<Variant> = experiment.variants.into_inner();
 
     let id_to_existing_variant: HashMap<String, &Variant> = HashMap::from_iter(
         experiment_variants
