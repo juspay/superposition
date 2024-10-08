@@ -11,8 +11,9 @@ use context_aware_config::helpers::get_meta_schema;
 
 #[cfg(feature = "high-performance-mode")]
 use fred::{
+    clients::RedisPool,
     interfaces::ClientLike,
-    types::{ConnectionConfig, PerformanceConfig},
+    types::{ConnectionConfig, PerformanceConfig, ReconnectPolicy, RedisConfig},
 };
 use service_utils::{
     aws::kms,
@@ -67,18 +68,19 @@ pub async fn get(
                 get_from_env_or_default("REDIS_URL", String::from("http://localhost:6379"));
             let redis_pool_size = get_from_env_or_default("REDIS_POOL_SIZE", 10);
             let redis_max_attempts = get_from_env_or_default("REDIS_MAX_ATTEMPTS", 10);
-            let config = fred::types::RedisConfig::from_url(&redis_url)
+            let redis_connection_timeout = get_from_env_or_default("REDIS_CONN_TIMEOUT", 1000);
+            let config = RedisConfig::from_url(&redis_url)
                 .expect(format!("Failed to create RedisConfig from url {}", redis_url).as_str());
             let reconnect_policy =
-                fred::types::ReconnectPolicy::new_constant(redis_max_attempts, 100);
-            let redis_pool = fred::clients::RedisPool::new(
+                ReconnectPolicy::new_constant(redis_max_attempts, 100);
+            let redis_pool = RedisPool::new(
                 config,
                 Some(PerformanceConfig {
                     auto_pipeline: true,
                     ..Default::default()
                 }),
                 Some(ConnectionConfig {
-                    connection_timeout: Duration::from_millis(1000),
+                    connection_timeout: Duration::from_millis(redis_connection_timeout),
                     ..Default::default()
                 }),
                 Some(reconnect_policy),

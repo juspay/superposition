@@ -328,23 +328,23 @@ pub async fn put_config_in_redis(
     tenant: Tenant,
     db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<()> {
-    let config = generate_cac(db_conn)?;
-    let redis_config = serde_json::to_string(&json!(config)).map_err(|e| {
+    let raw_config = generate_cac(db_conn)?;
+    let parsed_config = serde_json::to_string(&json!(raw_config)).map_err(|e| {
         log::error!("failed to convert cac config to string: {}", e);
         unexpected_error!("could not convert cac config to string")
     })?;
     let config_key = format!("{}::cac_config", *tenant);
-    let max_created_key = format!("{}::cac_config::max_created_at", *tenant);
+    let last_modified_at_key = format!("{}::cac_config::last_modified_at", *tenant);
     let audit_id_key = format!("{}::cac_config::audit_id", *tenant);
     let config_version_key = format!("{}::cac_config::config_version", *tenant);
     let last_modified = DateTime::to_rfc2822(&Utc::now());
     let _ = state
         .redis
-        .set::<(), String, String>(config_key, redis_config, None, None, false)
+        .set::<(), String, String>(config_key, parsed_config, None, None, false)
         .await;
     let _ = state
         .redis
-        .set::<(), String, String>(max_created_key, last_modified, None, None, false)
+        .set::<(), String, String>(last_modified_at_key, last_modified, None, None, false)
         .await;
     if let Ok(uuid) = event_log::event_log
         .select(event_log::id)

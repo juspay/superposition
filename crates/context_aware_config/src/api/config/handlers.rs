@@ -473,7 +473,8 @@ async fn reduce_config_key(
                     if is_approve {
                         let _ = delete_context_api(cid.clone(), user.clone(), conn);
                         if let Ok(put_req) = construct_new_payload(request_payload) {
-                            let _ = put(put_req, conn, false, &user, &tenant_config);
+                            let _ =
+                                put(put_req, conn, false, &user, &tenant_config, false);
                         }
                     }
 
@@ -558,35 +559,81 @@ async fn get_config_fast(
     tenant: Tenant,
     state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
+    use fred::interfaces::MetricsInterface;
+
     log::debug!("Started redis fetch");
     let config_key = format!("{}::cac_config", *tenant);
-    let max_created_key = format!("{}::cac_config::max_created_at", *tenant);
+    let last_modified_at_key = format!("{}::cac_config::last_modified_at", *tenant);
     let audit_id_key = format!("{}::cac_config::audit_id", *tenant);
     let config_version_key = format!("{}::cac_config::config_version", *tenant);
-    match state.redis.get::<String, String>(config_key.clone()).await {
+    let client = state.redis.next_connected();
+    let config = client.get::<String, String>(config_key).await;
+    let metrics = client.take_latency_metrics();
+    let network_metrics = client.take_network_latency_metrics();
+    log::trace!(
+        "Network metrics for config fetch in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
+        network_metrics.max,
+        network_metrics.min,
+        network_metrics.avg,
+        metrics.max,
+        metrics.min,
+        metrics.avg
+    );
+    match config {
         Ok(config) => {
             let mut response = HttpResponse::Ok();
             if let Ok(max_created_at) =
-                state.redis.get::<String, String>(max_created_key).await
+                client.get::<String, String>(last_modified_at_key).await
             {
+                let metrics = client.take_latency_metrics();
+                let network_metrics = client.take_network_latency_metrics();
+                log::trace!(
+                    "Network metrics max-created-by fetch in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
+                    network_metrics.max,
+                    network_metrics.min,
+                    network_metrics.avg,
+                    metrics.max,
+                    metrics.min,
+                    metrics.avg
+                );
                 response
                     .insert_header((AppHeader::LastModified.to_string(), max_created_at));
             }
-            if let Ok(audit_id) = state.redis.get::<String, String>(audit_id_key).await {
+            if let Ok(audit_id) = client.get::<String, String>(audit_id_key).await {
+                let metrics = client.take_latency_metrics();
+                let network_metrics = client.take_network_latency_metrics();
+                log::trace!(
+                    "Network metrics for audit ID in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
+                    network_metrics.max,
+                    network_metrics.min,
+                    network_metrics.avg,
+                    metrics.max,
+                    metrics.min,
+                    metrics.avg
+                );
                 response.insert_header((AppHeader::XAuditId.to_string(), audit_id));
             }
-            if let Ok(config_version) = state
-                .redis
-                .get::<Option<i64>, String>(config_version_key)
-                .await
+            if let Ok(config_version) =
+                client.get::<Option<i64>, String>(config_version_key).await
             {
+                let metrics = client.take_latency_metrics();
+                let network_metrics = client.take_network_latency_metrics();
+                log::trace!(
+                    "Network metrics for version ID in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
+                    network_metrics.max,
+                    network_metrics.min,
+                    network_metrics.avg,
+                    metrics.max,
+                    metrics.min,
+                    metrics.avg
+                );
                 add_config_version_to_header(&config_version, &mut response);
             }
             response.insert_header(ContentType::json());
             Ok(response.body(config))
         }
         Err(err) => {
-            log::info!("Could not get config in redis due to {}", err);
+            log::error!("Could not get config in redis due to {}", err);
             Err(response_error!(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "could not fetch config, please try /config API"
