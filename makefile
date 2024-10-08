@@ -2,6 +2,7 @@ IMAGE_NAME ?= context-aware-config
 DOCKER_DNS ?= localhost
 TENANT ?= dev
 SHELL := /usr/bin/env bash
+FEATURES ?= ssr
 
 .PHONY:
 	db-init
@@ -91,10 +92,7 @@ get-password:
 	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh` && echo $$DB_PASSWORD
 
 superposition:
-	cargo run --color always --bin superposition --no-default-features --features=ssr
-
-superposition-fast:
-	cargo run --color always --bin superposition --no-default-features --features="ssr,high-performance-mode"
+	cargo run --color always --bin superposition --no-default-features --features=$(FEATURES)
 
 superposition-example:
 	cargo run --bin cac-demo-app
@@ -131,13 +129,6 @@ run: kill frontend
 		sleep 0.5; \
 		done
 	make superposition -e DOCKER_DNS=$(DOCKER_DNS)
-
-run-fast: kill frontend
-	while ! make validate-psql-connection validate-aws-connection; \
-		do echo "waiting for postgres, localstack bootup"; \
-		sleep 0.5; \
-		done
-	make superposition-fast -e DOCKER_DNS=$(DOCKER_DNS)
 
 run_legacy: kill build
 	while ! make validate-psql-connection validate-aws-connection; \
