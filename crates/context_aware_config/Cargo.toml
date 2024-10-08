@@ -28,7 +28,7 @@ strum_macros = { workspace = true }
 superposition_macros = { path = "../superposition_macros" }
 superposition_types = { path = "../superposition_types", features = ["result"] }
 uuid = { workspace = true }
-fred = { workspace = true, optional = true }
+fred = { workspace = true, optional = true, features = ["metrics"]}
 cfg-if = { workspace = true }
 
 [features]

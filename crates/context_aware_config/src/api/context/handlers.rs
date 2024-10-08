@@ -311,6 +311,7 @@ pub fn put(
     already_under_txn: bool,
     user: &User,
     tenant_config: &TenantConfig,
+    replace: bool,
 ) -> superposition::Result<PutResp> {
     use contexts::dsl::contexts;
     let new_ctx = create_ctx_from_put_req(req, conn, user, tenant_config)?;
@@ -326,7 +327,11 @@ pub fn put(
             if already_under_txn {
                 diesel::sql_query("ROLLBACK TO put_ctx_savepoint").execute(conn)?;
             }
-            update_override_of_existing_ctx(conn, new_ctx, user)
+            if replace {
+                replace_override_of_existing_ctx(conn, new_ctx, user) // no need for .map(Json)
+            } else {
+                update_override_of_existing_ctx(conn, new_ctx, user)
+            }
         }
         Err(e) => {
             log::error!("failed to update context with db error: {:?}", e);
@@ -346,58 +351,31 @@ async fn put_handler(
     tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
-    let mut version_id = 0;
-    let resp = db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        let put_response = put(req, transaction_conn, true, &user, &tenant_config)
-            .map_err(|err: superposition::AppError| {
-                log::info!("context put failed with error: {:?}", err);
-                err
-            })?;
-        version_id = add_config_version(&state, tags, transaction_conn)?;
-        let mut http_resp = HttpResponse::Ok();
+    let (put_response, version_id) = db_conn
+        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let put_response =
+                put(req, transaction_conn, true, &user, &tenant_config, false).map_err(
+                    |err: superposition::AppError| {
+                        log::info!("context put failed with error: {:?}", err);
+                        err
+                    },
+                )?;
+            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            Ok((put_response, version_id))
+        })?;
+    let mut http_resp = HttpResponse::Ok();
 
-        http_resp.insert_header((
-            AppHeader::XConfigVersion.to_string(),
-            version_id.to_string(),
-        ));
-        Ok(http_resp.json(put_response))
-    });
+    http_resp.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        version_id.to_string(),
+    ));
     cfg_if::cfg_if! {
         if #[cfg(feature = "high-performance-mode")] {
             let DbConnection(mut conn) = db_conn;
             put_config_in_redis(version_id, state, tenant, &mut conn).await?;
         }
     }
-    resp
-}
-
-fn override_helper(
-    req: Json<PutReq>,
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-    already_under_txn: bool,
-    user: &User,
-    tenant_config: &TenantConfig,
-) -> superposition::Result<PutResp> {
-    use contexts::dsl::contexts;
-    let new_ctx = create_ctx_from_put_req(req, conn, user, &tenant_config)?;
-    if already_under_txn {
-        diesel::sql_query("SAVEPOINT insert_ctx_savepoint").execute(conn)?;
-    }
-
-    let insert = diesel::insert_into(contexts).values(&new_ctx).execute(conn);
-    match insert {
-        Ok(_) => Ok(get_put_resp(new_ctx)),
-        Err(DatabaseError(UniqueViolation, _)) => {
-            if already_under_txn {
-                diesel::sql_query("ROLLBACK TO insert_ctx_savepoint").execute(conn)?;
-            }
-            replace_override_of_existing_ctx(conn, new_ctx, user) // no need for .map(Json)
-        }
-        Err(e) => {
-            log::error!("failed to update context with db error: {:?}", e);
-            Err(db_error!(e))
-        }
-    }
+    Ok(http_resp.json(put_response))
 }
 
 #[put("/overrides")]
@@ -411,31 +389,31 @@ async fn update_override_handler(
     tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
-    let mut version_id = 0;
-    let resp = db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        let override_resp =
-            override_helper(req, transaction_conn, true, &user, &tenant_config).map_err(
-                |err: superposition::AppError| {
-                    log::info!("context put failed with error: {:?}", err);
-                    err
-                },
-            )?;
-        version_id = add_config_version(&state, tags, transaction_conn)?;
-        let mut http_resp = HttpResponse::Ok();
+    let (override_resp, version_id) = db_conn
+        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let override_resp =
+                put(req, transaction_conn, true, &user, &tenant_config, true).map_err(
+                    |err: superposition::AppError| {
+                        log::info!("context put failed with error: {:?}", err);
+                        err
+                    },
+                )?;
+            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            Ok((override_resp, version_id))
+        })?;
+    let mut http_resp = HttpResponse::Ok();
 
-        http_resp.insert_header((
-            AppHeader::XConfigVersion.to_string(),
-            version_id.to_string(),
-        ));
-        Ok(http_resp.json(override_resp))
-    });
+    http_resp.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        version_id.to_string(),
+    ));
     cfg_if::cfg_if! {
         if #[cfg(feature = "high-performance-mode")] {
             let DbConnection(mut conn) = db_conn;
             put_config_in_redis(version_id, state, tenant, &mut conn).await?;
         }
     }
-    resp
+    Ok(http_resp.json(override_resp))
 }
 
 fn r#move(
@@ -540,36 +518,36 @@ async fn move_handler(
     tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
-    let mut version_id = 0;
-    let resp = db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        let move_reponse = r#move(
-            path.into_inner(),
-            req,
-            transaction_conn,
-            true,
-            &user,
-            &tenant_config,
-        )
-        .map_err(|err| {
-            log::info!("move api failed with error: {:?}", err);
-            err
+    let (move_response, version_id) = db_conn
+        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let move_response = r#move(
+                path.into_inner(),
+                req,
+                transaction_conn,
+                true,
+                &user,
+                &tenant_config,
+            )
+            .map_err(|err| {
+                log::info!("move api failed with error: {:?}", err);
+                err
+            })?;
+            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            Ok((move_response, version_id))
         })?;
-        version_id = add_config_version(&state, tags, transaction_conn)?;
-        let mut http_resp = HttpResponse::Ok();
+    let mut http_resp = HttpResponse::Ok();
 
-        http_resp.insert_header((
-            AppHeader::XConfigVersion.to_string(),
-            version_id.to_string(),
-        ));
-        Ok(http_resp.json(move_reponse))
-    });
+    http_resp.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        version_id.to_string(),
+    ));
     cfg_if::cfg_if! {
         if #[cfg(feature = "high-performance-mode")] {
             let DbConnection(mut conn) = db_conn;
             put_config_in_redis(version_id, state, tenant, &mut conn).await?;
         }
     }
-    resp
+    Ok(http_resp.json(move_response))
 }
 
 #[post("/get")]
@@ -676,24 +654,24 @@ async fn delete_context(
 ) -> superposition::Result<HttpResponse> {
     let ctx_id = path.into_inner();
     let tags = parse_config_tags(custom_headers.config_tags)?;
-    let mut version_id = 0;
-    let resp = db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        delete_context_api(ctx_id, user, transaction_conn)?;
-        version_id = add_config_version(&state, tags, transaction_conn)?;
-        Ok(HttpResponse::NoContent()
-            .insert_header((
-                AppHeader::XConfigVersion.to_string().as_str(),
-                version_id.to_string().as_str(),
-            ))
-            .finish())
-    });
+    let version_id =
+        db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            delete_context_api(ctx_id, user, transaction_conn)?;
+            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            Ok(version_id)
+        })?;
     cfg_if::cfg_if! {
         if #[cfg(feature = "high-performance-mode")] {
             let DbConnection(mut conn) = db_conn;
             put_config_in_redis(version_id, state, tenant, &mut conn).await?;
         }
     }
-    resp
+    Ok(HttpResponse::NoContent()
+        .insert_header((
+            AppHeader::XConfigVersion.to_string().as_str(),
+            version_id.to_string().as_str(),
+        ))
+        .finish())
 }
 
 #[put("/bulk-operations")]
@@ -709,79 +687,87 @@ async fn bulk_operations(
     use contexts::dsl::contexts;
     let DbConnection(mut conn) = db_conn;
     let tags = parse_config_tags(custom_headers.config_tags)?;
-    let mut version_id = 0;
-    let mut response = Vec::<ContextBulkResponse>::new();
-    let resp = conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        for action in reqs.into_inner().into_iter() {
-            match action {
-                ContextAction::Put(put_req) => {
-                    let put_resp =
-                        put(Json(put_req), transaction_conn, true, &user, &tenant_config)
-                            .map_err(|err| {
-                                log::error!(
-                                    "Failed at insert into contexts due to {:?}",
-                                    err
-                                );
+    let (response, version_id) =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let mut response = Vec::<ContextBulkResponse>::new();
+            for action in reqs.into_inner().into_iter() {
+                match action {
+                    ContextAction::Put(put_req) => {
+                        let put_resp = put(
+                            Json(put_req),
+                            transaction_conn,
+                            true,
+                            &user,
+                            &tenant_config,
+                            false,
+                        )
+                        .map_err(|err| {
+                            log::error!(
+                                "Failed at insert into contexts due to {:?}",
                                 err
-                            })?;
-                    response.push(ContextBulkResponse::Put(put_resp));
-                }
-                ContextAction::Delete(ctx_id) => {
-                    let deleted_row =
-                        delete(contexts.filter(id.eq(&ctx_id))).execute(transaction_conn);
-                    let email: String = user.get_email();
-                    match deleted_row {
-                        // Any kind of error would rollback the tranction but explicitly returning rollback tranction allows you to rollback from any point in transaction.
-                        Ok(0) => {
-                            return Err(bad_argument!(
-                                "context with id {} not found",
-                                ctx_id
-                            ))
-                        }
-                        Ok(_) => {
-                            log::info!("{ctx_id} context deleted by {email}");
-                            response.push(ContextBulkResponse::Delete(format!(
-                                "{ctx_id} deleted succesfully"
-                            )))
-                        }
-                        Err(e) => {
-                            log::error!("Delete context failed due to {:?}", e);
-                            return Err(db_error!(e));
-                        }
-                    };
-                }
-                ContextAction::Move((old_ctx_id, move_req)) => {
-                    let move_context_resp = r#move(
-                        old_ctx_id,
-                        Json(move_req),
-                        transaction_conn,
-                        true,
-                        &user,
-                        &tenant_config,
-                    )
-                    .map_err(|err| {
-                        log::error!("Failed at moving context reponse due to {:?}", err);
-                        err
-                    })?;
-                    response.push(ContextBulkResponse::Move(move_context_resp));
+                            );
+                            err
+                        })?;
+                        response.push(ContextBulkResponse::Put(put_resp));
+                    }
+                    ContextAction::Delete(ctx_id) => {
+                        let deleted_row = delete(contexts.filter(id.eq(&ctx_id)))
+                            .execute(transaction_conn);
+                        let email: String = user.get_email();
+                        match deleted_row {
+                            // Any kind of error would rollback the tranction but explicitly returning rollback tranction allows you to rollback from any point in transaction.
+                            Ok(0) => {
+                                return Err(bad_argument!(
+                                    "context with id {} not found",
+                                    ctx_id
+                                ))
+                            }
+                            Ok(_) => {
+                                log::info!("{ctx_id} context deleted by {email}");
+                                response.push(ContextBulkResponse::Delete(format!(
+                                    "{ctx_id} deleted succesfully"
+                                )))
+                            }
+                            Err(e) => {
+                                log::error!("Delete context failed due to {:?}", e);
+                                return Err(db_error!(e));
+                            }
+                        };
+                    }
+                    ContextAction::Move((old_ctx_id, move_req)) => {
+                        let move_context_resp = r#move(
+                            old_ctx_id,
+                            Json(move_req),
+                            transaction_conn,
+                            true,
+                            &user,
+                            &tenant_config,
+                        )
+                        .map_err(|err| {
+                            log::error!(
+                                "Failed at moving context reponse due to {:?}",
+                                err
+                            );
+                            err
+                        })?;
+                        response.push(ContextBulkResponse::Move(move_context_resp));
+                    }
                 }
             }
-        }
 
-        version_id = add_config_version(&state, tags, transaction_conn)?;
+            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            Ok((response, version_id))
+        })?;
+    let mut http_resp = HttpResponse::Ok();
+    http_resp.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        version_id.to_string(),
+    ));
 
-        let mut http_resp = HttpResponse::Ok();
-        http_resp.insert_header((
-            AppHeader::XConfigVersion.to_string(),
-            version_id.to_string(),
-        ));
-
-        // Commit the transaction
-        Ok(http_resp.json(response))
-    });
+    // Commit the transaction
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, tenant, &mut conn).await?;
-    resp
+    Ok(http_resp.json(response))
 }
 
 #[put("/priority/recompute")]
