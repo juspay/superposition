@@ -333,11 +333,12 @@ where
                                         handler(value.clone())
                                     }
                                 }
-                                class={if ele.is_link {
+
+                                class=if ele.is_link {
                                     "cursor-pointer text-blue-500 underline underline-offset-2"
                                 } else {
                                     ""
-                                }}
+                                }
                             >
 
                                 {ele.key.clone()}

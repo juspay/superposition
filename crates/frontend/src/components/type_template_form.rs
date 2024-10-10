@@ -113,7 +113,7 @@ where
             </div>
 
             <div class="form-control grid w-full mt-5 justify-start">
-                { move || {
+                {move || {
                     let loading = req_inprogess_rs.get();
                     view! {
                         <Button
@@ -124,6 +124,7 @@ where
                         />
                     }
                 }}
+
             </div>
             <div>
                 <p class="text-red-500">{move || error_message.get()}</p>

@@ -73,7 +73,7 @@ pub fn table(
                             };
                             view! {
                                 <tr id=row_id>
-                                    <th>{row_num}</th>
+                                    <th class="w-20">{row_num}</th>
 
                                     {columns
                                         .iter()

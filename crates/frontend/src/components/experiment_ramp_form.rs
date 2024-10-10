@@ -42,7 +42,7 @@ where
             <input
                 type="range"
                 min="0"
-                max={range_max.to_string()}
+                max=range_max.to_string()
                 value=move || traffic.get()
                 class="range"
                 on:input=move |event| {
@@ -51,12 +51,14 @@ where
                     set_traffic.set(traffic_value);
                 }
             />
-            { move || {
+
+            {move || {
                 let loading = req_inprogess_rs.get();
                 view! {
                     <Button text="Set".to_string() on_click=handle_ramp_experiment.clone() loading/>
                 }
             }}
+
         </form>
     }
 }

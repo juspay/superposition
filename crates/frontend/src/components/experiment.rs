@@ -162,12 +162,10 @@ where
                             for token in contexts.clone() {
                                 let (dimension, values) = (token.left_operand, token.right_operand);
                                 let mut value_views = Vec::new();
-
                                 for value in values.iter() {
                                     if value.is_object() && value.get("var").is_some() {
                                         continue;
                                     }
-
                                     let value_str = match value {
                                         Value::String(s) => s.clone(),
                                         Value::Number(n) => n.to_string(),
@@ -175,23 +173,23 @@ where
                                         Value::Null => String::from("null"),
                                         _ => format!("{}", value),
                                     };
-
-                                    value_views.push(
-                                        view! {
+                                    value_views
+                                        .push(
+                                            view! {
                                                 <div class="stat-value text-base">
                                                     {&value_str.replace('"', "")}
                                                 </div>
-                                        },
-                                    );
-
+                                            },
+                                        );
                                 }
-                                view.push(view! {
-                                    <div class="stat w-3/12">
-                                        <div class="stat-title">{dimension}</div>
-                                        {value_views}
-                                    </div>
-                                });
-
+                                view.push(
+                                    view! {
+                                        <div class="stat w-3/12">
+                                            <div class="stat-title">{dimension}</div>
+                                            {value_views}
+                                        </div>
+                                    },
+                                );
                             }
                             view
                         }}

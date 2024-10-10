@@ -314,3 +314,19 @@ pub struct FetchTypeTemplateResponse {
     pub total_pages: i64,
     pub data: Vec<TypeTemplate>,
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct SnapshotListResponse {
+    pub total_pages: u64,
+    pub total_items: i64,
+    pub data: Vec<Snapshot>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Snapshot {
+    pub config: Value,
+    pub config_hash: String,
+    pub created_at: String, // Consider changing to DateTime<Utc> if needed
+    pub id: u64,
+    pub tags: Option<Vec<String>>,
+}

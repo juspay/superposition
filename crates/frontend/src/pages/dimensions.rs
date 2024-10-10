@@ -214,13 +214,13 @@ pub fn dimensions() -> impl IntoView {
                         </div>
                     }
                 }}
-            <DeleteModal
-                modal_visible=delete_modal_visible_rs
-                confirm_delete=confirm_delete
-                set_modal_visible=delete_modal_visible_ws
-                header_text="Are you sure you want to delete this dimension? Action is irreversible."
-                    .to_string()
-            />
+                <DeleteModal
+                    modal_visible=delete_modal_visible_rs
+                    confirm_delete=confirm_delete
+                    set_modal_visible=delete_modal_visible_ws
+                    header_text="Are you sure you want to delete this dimension? Action is irreversible."
+                        .to_string()
+                />
             </Suspense>
         </div>
     }

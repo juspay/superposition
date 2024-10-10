@@ -4,11 +4,13 @@ use leptos_router::*;
 use serde_json::json;
 
 use crate::hoc::layout::Layout;
+use crate::pages::config_version::ConfigVersion;
 use crate::pages::dimensions::Dimensions;
 use crate::pages::experiment_list::ExperimentList;
 use crate::pages::function::{
     function_create::CreateFunctionView, function_list::FunctionList, FunctionPage,
 };
+use crate::pages::snapshot_list::SnapshotList;
 use crate::pages::{
     context_override::ContextOverride, custom_types::TypesPage,
     default_config::DefaultConfig, experiment::ExperimentPage, home::Home,
@@ -206,6 +208,30 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                     view! {
                                         <Layout>
                                             <TypesPage/>
+                                        </Layout>
+                                    }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/config-versions"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <SnapshotList/>
+                                        </Layout>
+                                    }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/config/version/:version"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <ConfigVersion/>
                                         </Layout>
                                     }
                                 }

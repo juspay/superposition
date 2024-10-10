@@ -1,3 +1,4 @@
+pub mod config_version;
 pub mod context_override;
 pub mod custom_types;
 pub mod default_config;
@@ -7,3 +8,4 @@ pub mod experiment_list;
 pub mod function;
 pub mod home;
 pub mod not_found;
+pub mod snapshot_list;

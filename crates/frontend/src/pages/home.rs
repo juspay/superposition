@@ -104,45 +104,45 @@ fn all_context_view(config: Config) -> impl IntoView {
     view! {
         <div class="flex flex-col w-full gap-y-6 p-6">
             <ConditionCollapseProvider>
-                {
-                    contexts
-                        .iter()
-                        .map(|context| {
-                            let rows: Vec<_> = context
-                                .override_with_keys
-                                .iter()
-                                .filter_map(|key| overrides.get(key).map(|o| rows(key, o, true)))
-                                .collect();
-                            let conditions: Vec<Condition> = context.try_into().unwrap_or_default();
-                            view! {
-                                <div class="card bg-base-100 shadow gap-4 p-6">
-                                    <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
-                                        "Condition"
-                                    </h3>
-                                    <div class="pl-5">
-                                        <ConditionComponent
-                                            conditions=conditions
-                                            id=context.id.clone()
-                                            class="xl:w-[400px] h-fit"
-                                        />
-                                        <div class="overflow-auto pt-5">
-                                            <table class="table table-zebra">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Key</th>
-                                                        <th>Value</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>{rows}</tbody>
-                                            </table>
-                                        </div>
+
+                {contexts
+                    .iter()
+                    .map(|context| {
+                        let rows: Vec<_> = context
+                            .override_with_keys
+                            .iter()
+                            .filter_map(|key| overrides.get(key).map(|o| rows(key, o, true)))
+                            .collect();
+                        let conditions: Vec<Condition> = context.try_into().unwrap_or_default();
+                        view! {
+                            <div class="card bg-base-100 shadow gap-4 p-6">
+                                <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
+                                    "Condition"
+                                </h3>
+                                <div class="pl-5">
+                                    <ConditionComponent
+                                        conditions=conditions
+                                        id=context.id.clone()
+                                        class="xl:w-[400px] h-fit"
+                                    />
+                                    <div class="overflow-auto pt-5">
+                                        <table class="table table-zebra">
+                                            <thead>
+                                                <tr>
+                                                    <th>Key</th>
+                                                    <th>Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>{rows}</tbody>
+                                        </table>
                                     </div>
                                 </div>
-                            }
-                        })
-                        .rev()
-                        .collect::<Vec<_>>()
-                }
+                            </div>
+                        }
+                    })
+                    .rev()
+                    .collect::<Vec<_>>()}
+
             </ConditionCollapseProvider>
             <div class="card bg-base-100 shadow m-6">
                 <div class="card-body">
@@ -172,7 +172,10 @@ fn all_context_view(config: Config) -> impl IntoView {
 #[component]
 pub fn home() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-    let config_data = create_blocking_resource(move || tenant_rs.get(), fetch_config);
+    let config_data = create_blocking_resource(
+        move || tenant_rs.get(),
+        |tenant| fetch_config(tenant, None),
+    );
     let dimension_resource = create_resource(
         move || tenant_rs.get(),
         |tenant| async {
@@ -396,17 +399,18 @@ pub fn home() -> impl IntoView {
                                                 />
 
                                                 <div class="card-actions mt-6 justify-end">
-                                                    { move || {
+                                                    {move || {
                                                         let loading = req_inprogess_rs.get();
                                                         view! {
                                                             <Button
-                                                            id="resolve_btn".to_string()
-                                                            text="Resolve".to_string()
-                                                            on_click=resolve_click.clone()
-                                                            loading=loading
+                                                                id="resolve_btn".to_string()
+                                                                text="Resolve".to_string()
+                                                                on_click=resolve_click.clone()
+                                                                loading=loading
                                                             />
                                                         }
                                                     }}
+
                                                 </div>
                                             </div>
                                         </div>

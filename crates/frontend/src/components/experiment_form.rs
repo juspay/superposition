@@ -152,7 +152,8 @@ where
                     let context = f_context.get();
                     view! {
                         <ContextForm
-                            dimensions=dimensions.get_value() // dimensions will now be a Vec<Dimension>
+                            // dimensions will now be a Vec<Dimension>
+                            dimensions=dimensions.get_value()
                             context=context
                             handle_change=handle_context_form_change
                             is_standalone=false
@@ -181,17 +182,18 @@ where
             }}
 
             <div class="flex justify-start mt-8">
-            { move || {
-                let loading = req_inprogess_rs.get();
-                view! {
-                    <Button
-                        class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                        text="Submit".to_string()
-                        on_click=on_submit.clone()
-                        loading
-                    />
-                }
-            }}
+                {move || {
+                    let loading = req_inprogess_rs.get();
+                    view! {
+                        <Button
+                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
+                            text="Submit".to_string()
+                            on_click=on_submit.clone()
+                            loading
+                        />
+                    }
+                }}
+
             </div>
         </div>
     }
