@@ -33,6 +33,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                 let favicon_href = base.to_owned() + "/assets/favicon.ico";
                 let wasm_href = base.to_owned() + "/pkg/frontend_bg.wasm";
                 let js_href = base.to_owned() + "/pkg/frontend.js";
+                let viewer_href = base.to_owned() + "/assets/json-viewer.js";
                 let import_callback = "() => mod.hydrate()";
                 view! {
                     <Stylesheet id="leptos" href=styles_href/>
@@ -43,7 +44,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                     />
                     <script
                         type_="text/javascript"
-                        src="https://cdn.jsdelivr.net/npm/@andypf/json-viewer@2.1.5/dist/iife/index.min.js"
+                        src=viewer_href
                     ></script>
                     {move || {
                         if base.is_empty() {

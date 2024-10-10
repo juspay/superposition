@@ -226,9 +226,10 @@ fn basic_input(
                                 <i class="ri-close-circle-line"></i>
                                 {err}
                             </span>
-                        }.into_view()
-                    },
-                    None => ().into_view()
+                        }
+                            .into_view()
+                    }
+                    None => ().into_view(),
                 }
             }}
 
@@ -305,6 +306,7 @@ pub fn monaco_input(
             }>
                 {move || {
                     let display_value = value_rs.get().html_display();
+
                     view! {
                         <div class="absolute top-[10px] right-[10px]">
                             <i
