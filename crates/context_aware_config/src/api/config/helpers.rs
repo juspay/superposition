@@ -1,28 +1,10 @@
-use super::types::{Config, Context};
-use actix_web::web::Query;
-use serde_json::{json, Map, Value};
 use std::collections::HashMap;
-use superposition_macros::{bad_argument, unexpected_error};
-use superposition_types::{result as superposition, Cac, Overrides};
 
-pub fn filter_context(
-    contexts: &[Context],
-    dimension_data: &Map<String, Value>,
-) -> Vec<Context> {
-    contexts
-        .iter()
-        .filter_map(|context| {
-            match jsonlogic::partial_apply(
-                &json!(context.condition),
-                &json!(dimension_data),
-            ) {
-                Ok(jsonlogic::PartialApplyOutcome::Resolved(Value::Bool(true)))
-                | Ok(jsonlogic::PartialApplyOutcome::Ambiguous) => Some(context.clone()),
-                _ => None,
-            }
-        })
-        .collect()
-}
+use serde_json::{Map, Value};
+use superposition_macros::unexpected_error;
+use superposition_types::{result as superposition, Cac, Contextual, Overrides};
+
+use super::types::{Config, Context};
 
 pub fn apply_prefix_filter_to_config(
     query_params_map: &mut Map<String, Value>,
@@ -60,23 +42,18 @@ pub fn filter_config_by_prefix(
         .collect();
 
     for (key, overrides) in &config.overrides {
-        let override_map: Map<String, Value> = overrides.to_owned().into();
-        let filtered_overrides_map: Map<String, Value> = override_map
+        let filtered_overrides_map: Map<String, Value> = overrides
+            .clone()
             .into_iter()
-            .filter(|(key, _)| filtered_default_config.contains_key(key))
+            .filter(|(key, _)| prefix_list.contains(key))
             .collect();
 
-        if !filtered_overrides_map.is_empty() {
-            filtered_overrides.insert(
-                key.clone(),
-                Cac::<Overrides>::try_from_db(filtered_overrides_map)
-                    .map_err(|err| {
-                        log::error!("filter_config_by_prefix : failed to decode overrides from db with error {}", err);
-                        unexpected_error!(err)
-                    })?
-                    .into_inner(),
-            );
-        }
+        let filtered_override_map =Cac::<Overrides>::try_from_db(filtered_overrides_map)
+        .map_err(|err| {
+            log::error!("filter_config_by_prefix : failed to decode overrides from db with error {}", err);
+            unexpected_error!(err)
+        })?;
+        filtered_overrides.insert(key.clone(), filtered_override_map.into_inner());
     }
 
     let filtered_context: Vec<Context> = config
@@ -99,7 +76,8 @@ pub fn filter_config_by_dimensions(
     config: &Config,
     dimension_data: &Map<String, Value>,
 ) -> superposition::Result<Config> {
-    let filtered_context = filter_context(&config.contexts, dimension_data);
+    let filtered_context =
+        Context::filter_by_eval(config.contexts.clone(), dimension_data);
     let filtered_overrides: HashMap<String, Overrides> = filtered_context
         .iter()
         .flat_map(|ele| {
@@ -118,27 +96,4 @@ pub fn filter_config_by_dimensions(
     };
 
     Ok(filtered_config)
-}
-
-pub fn get_query_params_map(
-    query_string: &str,
-) -> superposition::Result<Map<String, Value>> {
-    let params =
-        Query::<HashMap<String, String>>::from_query(query_string).map_err(|err| {
-            log::error!("failed to parse query params with err: {}", err);
-            bad_argument!("error getting query params")
-        })?;
-
-    let query_params_map = params
-        .0
-        .into_iter()
-        .map(|(key, value)| {
-            let parsed_value = value
-                .parse::<serde_json::Value>()
-                .unwrap_or_else(|_| json!(value));
-            (key, parsed_value)
-        })
-        .collect::<Map<String, Value>>();
-
-    Ok(query_params_map)
 }
