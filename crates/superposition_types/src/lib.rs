@@ -1,5 +1,7 @@
 #![deny(unused_crate_dependencies)]
+mod contextual;
 pub mod custom_query;
+mod overridden;
 #[cfg(feature = "result")]
 pub mod result;
 
@@ -8,10 +10,21 @@ use std::future::{ready, Ready};
 
 use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
 use derive_more::{AsRef, Deref, DerefMut, Into};
+#[cfg(feature = "diesel_derives")]
+use diesel::deserialize::FromSqlRow;
+#[cfg(feature = "diesel_derives")]
+use diesel::expression::AsExpression;
+#[cfg(feature = "diesel_derives")]
+use diesel::sql_types::Json;
 use log::error;
 use regex::Regex;
-use serde::{de, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{json, Map, Value};
+#[cfg(feature = "diesel_derives")]
+use superposition_derives::{JsonFromSql, JsonToSql};
+
+pub use crate::contextual::Contextual;
+pub use crate::overridden::Overridden;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
@@ -113,6 +126,27 @@ macro_rules! impl_try_from_map {
     };
 }
 
+#[cfg(feature = "diesel_derives")]
+#[derive(
+    Deserialize,
+    Serialize,
+    Clone,
+    AsRef,
+    Deref,
+    DerefMut,
+    Debug,
+    Eq,
+    PartialEq,
+    Into,
+    AsExpression,
+    FromSqlRow,
+    JsonFromSql,
+    JsonToSql,
+)]
+#[diesel(sql_type = Json)]
+pub struct Overrides(Map<String, Value>);
+
+#[cfg(not(feature = "diesel_derives"))]
 #[derive(
     Deserialize, Serialize, Clone, AsRef, Deref, DerefMut, Debug, Eq, PartialEq, Into,
 )]
@@ -140,7 +174,28 @@ impl IntoIterator for Overrides {
 impl_try_from_map!(Cac, Overrides, Overrides::validate_data);
 impl_try_from_map!(Exp, Overrides, Overrides::validate_data);
 
+#[cfg(feature = "diesel_derives")]
+#[derive(
+    Deserialize,
+    Serialize,
+    Clone,
+    AsRef,
+    Deref,
+    Debug,
+    Eq,
+    PartialEq,
+    Into,
+    AsExpression,
+    FromSqlRow,
+    JsonFromSql,
+    JsonToSql,
+)]
+#[diesel(sql_type = Json)]
+pub struct Condition(Map<String, Value>);
+
+#[cfg(not(feature = "diesel_derives"))]
 #[derive(Deserialize, Serialize, Clone, AsRef, Deref, Debug, Eq, PartialEq, Into)]
+
 pub struct Condition(Map<String, Value>);
 impl Condition {
     fn validate_data_for_cac(condition_map: Map<String, Value>) -> Result<Self, String> {
@@ -209,11 +264,11 @@ impl RegexEnum {
         })?;
 
         if !regex.is_match(val) {
-            return Err(format!(
+            Err(format!(
                 "{val} is invalid, it should obey the regex {regex_str}. \
                 {}",
                 self.get_error_message()
-            ));
+            ))
         } else {
             Ok(())
         }
@@ -263,6 +318,13 @@ impl FromRequest for TenantConfig {
 
         ready(result)
     }
+}
+
+#[derive(Serialize, Debug, Clone, Deserialize)]
+pub struct PaginatedResponse<T> {
+    pub total_pages: i64,
+    pub total_items: i64,
+    pub data: Vec<T>,
 }
 
 #[cfg(test)]
@@ -441,49 +503,4 @@ mod tests {
             true
         );
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct QueryFilters {
-    pub count: Option<i64>,
-    pub page: Option<i64>,
-}
-
-impl<'de> Deserialize<'de> for QueryFilters {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        #[derive(Deserialize)]
-        struct Helper {
-            count: Option<i64>,
-            page: Option<i64>,
-        }
-
-        let helper = Helper::deserialize(deserializer)?;
-
-        if let Some(count) = helper.count {
-            if count <= 0 {
-                return Err(de::Error::custom("Count should be greater than 0."));
-            }
-        }
-
-        if let Some(page) = helper.page {
-            if page <= 0 {
-                return Err(de::Error::custom("Page should be greater than 0."));
-            }
-        }
-
-        Ok(QueryFilters {
-            count: helper.count,
-            page: helper.page,
-        })
-    }
-}
-
-#[derive(Serialize, Debug, Clone, Deserialize)]
-pub struct PaginatedResponse<T> {
-    pub total_pages: i64,
-    pub total_items: i64,
-    pub data: Vec<T>,
 }

@@ -17,10 +17,12 @@ diesel = { workspace = true, optional = true }
 anyhow = { workspace = true, optional = true }
 jsonlogic = { workspace = true }
 regex = { workspace = true }
+superposition_derives = { path = "../superposition_derives", optional = true }
 
 [features]
 disable_db_data_validation = []
 result = ["dep:diesel", "dep:anyhow", "dep:thiserror"]
+diesel_derives = ["dep:diesel", "dep:superposition_derives"]
 
 [lints]
 workspace = true

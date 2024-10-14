@@ -15,21 +15,28 @@ use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
 use reqwest::{RequestBuilder, Response, StatusCode};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
+use superposition_types::{Cac, Condition, Contextual, Overrides};
 use tokio::sync::RwLock;
 use utils::core::MapError;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Context {
-    pub condition: Value,
+    pub condition: Condition,
     pub override_with_keys: [String; 1],
+}
+
+impl Contextual for Context {
+    fn get_condition(&self) -> Condition {
+        self.condition.clone()
+    }
 }
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
     pub contexts: Vec<Context>,
-    pub overrides: Map<String, Value>,
+    pub overrides: HashMap<String, Overrides>,
     pub default_configs: Map<String, Value>,
 }
 
@@ -49,9 +56,9 @@ impl Default for MergeStrategy {
 impl From<String> for MergeStrategy {
     fn from(value: String) -> Self {
         match value.to_lowercase().as_str() {
-            "replace" => MergeStrategy::REPLACE,
-            "merge" => MergeStrategy::MERGE,
-            _ => MergeStrategy::default(),
+            "replace" => Self::REPLACE,
+            "merge" => Self::MERGE,
+            _ => Self::default(),
         }
     }
 }
@@ -165,7 +172,7 @@ impl Client {
         let cac = self.config.read().await;
         let mut config = cac.to_owned();
         if let Some(prefix_list) = prefix {
-            config = filter_config_by_prefix(&config, prefix_list)?;
+            config = filter_config_by_prefix(&config, &prefix_list)?;
         }
 
         let dimension_filtered_config = query_data
@@ -206,7 +213,7 @@ impl Client {
     ) -> Result<Map<String, Value>, String> {
         let mut cac = self.eval(query_data, merge_strategy).await?;
         if let Some(keys) = filter_keys {
-            cac = filter_keys_by_prefix(cac, keys);
+            cac = filter_keys_by_prefix(cac, &keys);
         }
         Ok(cac)
     }
@@ -218,7 +225,7 @@ impl Client {
         let configs = self.config.read().await;
         let mut default_configs = configs.default_configs.clone();
         if let Some(keys) = filter_keys {
-            default_configs = filter_keys_by_prefix(default_configs, keys);
+            default_configs = filter_keys_by_prefix(default_configs, &keys);
         }
         Ok(default_configs)
     }
@@ -264,9 +271,9 @@ pub use eval::merge;
 
 pub fn filter_keys_by_prefix(
     keys: Map<String, Value>,
-    prefix_list: Vec<String>,
+    prefix_list: &Vec<String>,
 ) -> Map<String, Value> {
-    let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
+    let prefix_list: HashSet<String> = prefix_list.iter().cloned().collect();
     keys.into_iter()
         .filter(|(key, _)| {
             prefix_list
@@ -278,30 +285,26 @@ pub fn filter_keys_by_prefix(
 
 pub fn filter_config_by_prefix(
     config: &Config,
-    prefix_list: Vec<String>,
+    prefix_list: &Vec<String>,
 ) -> Result<Config, String> {
-    let mut filtered_overrides: Map<String, Value> = Map::new();
+    let mut filtered_overrides: HashMap<String, Overrides> = HashMap::new();
 
     let filtered_default_config: Map<String, Value> =
-        filter_keys_by_prefix(config.default_configs.clone(), prefix_list);
+        filter_keys_by_prefix(config.default_configs.clone(), &prefix_list);
 
     for (key, overrides) in &config.overrides {
-        let overrides_map = overrides
-            .as_object()
-            .ok_or_else(|| {
-                log::error!("failed to decode overrides.");
-                String::from("failed to decode overrides.")
-            })?
-            .clone();
-
-        let filtered_overrides_map: Map<String, Value> = overrides_map
+        let filtered_overrides_map: Map<String, Value> = overrides
+            .clone()
             .into_iter()
-            .filter(|(key, _)| filtered_default_config.contains_key(key))
+            .filter(|(key, _)| prefix_list.contains(key))
             .collect();
 
-        if !filtered_overrides_map.is_empty() {
-            filtered_overrides.insert(key.clone(), Value::Object(filtered_overrides_map));
-        }
+        let _ = Cac::<Overrides>::try_from(filtered_overrides_map).map(
+            |filtered_overrides_map| {
+                filtered_overrides
+                    .insert(key.clone(), filtered_overrides_map.into_inner())
+            },
+        );
     }
 
     let filtered_context: Vec<Context> = config
@@ -324,19 +327,10 @@ pub fn filter_config_by_dimensions(
     config: &Config,
     dimension_data: &Map<String, Value>,
 ) -> Config {
-    let filtered_context = config
-        .contexts
-        .iter()
-        .filter_map(|context| {
-            match jsonlogic::partial_apply(&context.condition, &json!(dimension_data)) {
-                Ok(jsonlogic::PartialApplyOutcome::Resolved(Value::Bool(true)))
-                | Ok(jsonlogic::PartialApplyOutcome::Ambiguous) => Some(context.clone()),
-                _ => None,
-            }
-        })
-        .collect::<Vec<Context>>();
+    let filtered_context =
+        Context::filter_by_eval(config.contexts.clone(), dimension_data);
 
-    let filtered_overrides: Map<String, Value> = filtered_context
+    let filtered_overrides: HashMap<String, Overrides> = filtered_context
         .iter()
         .flat_map(|ele| {
             let override_with_key = &ele.override_with_keys[0];

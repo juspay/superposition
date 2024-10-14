@@ -1,28 +1,17 @@
 use std::{collections::HashMap, str::FromStr};
 
-use super::helpers::{
-    apply_prefix_filter_to_config, filter_config_by_dimensions, get_query_params_map,
-};
-use super::types::{Config, Context};
-use crate::api::context::{
-    delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
-};
-use crate::api::dimension::get_all_dimension_schema_map;
-use crate::db::models::ConfigVersion;
-use crate::{
-    db::schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
-    helpers::generate_cac,
-};
 use actix_http::header::HeaderValue;
 #[cfg(feature = "high-performance-mode")]
 use actix_http::StatusCode;
-
 #[cfg(feature = "high-performance-mode")]
 use actix_web::http::header::ContentType;
 #[cfg(feature = "high-performance-mode")]
 use actix_web::web::Data;
-use actix_web::web::{Json, Query};
-use actix_web::{get, put, web, HttpRequest, HttpResponse, HttpResponseBuilder, Scope};
+use actix_web::{
+    get, put,
+    web::{self, Json, Query},
+    HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
+};
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
 use diesel::{
@@ -32,24 +21,37 @@ use diesel::{
 };
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
+use itertools::Itertools;
+use jsonschema::JSONSchema;
 use serde_json::{json, Map, Value};
 #[cfg(feature = "high-performance-mode")]
 use service_utils::service::types::{AppState, Tenant};
-#[cfg(feature = "high-performance-mode")]
-use superposition_macros::response_error;
-use superposition_macros::{bad_argument, db_error, unexpected_error};
-use superposition_types::{
-    result as superposition, Cac, Condition, Overrides, PaginatedResponse, QueryFilters,
-    TenantConfig, User,
-};
-
-use itertools::Itertools;
-use jsonschema::JSONSchema;
 use service_utils::{
     helpers::extract_dimensions,
     service::types::{AppHeader, DbConnection},
 };
+#[cfg(feature = "high-performance-mode")]
+use superposition_macros::response_error;
+use superposition_macros::{bad_argument, db_error, unexpected_error};
+use superposition_types::{
+    custom_query::{CustomQuery, DynamicQuery, QueryFilters, QueryMap},
+    result as superposition, Cac, Condition, Overrides, PaginatedResponse, TenantConfig,
+    User,
+};
 use uuid::Uuid;
+
+use crate::api::context::{
+    delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
+};
+use crate::api::dimension::get_all_dimension_schema_map;
+use crate::db::models::ConfigVersion;
+use crate::{
+    db::schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
+    helpers::generate_cac,
+};
+
+use super::helpers::{apply_prefix_filter_to_config, filter_config_by_dimensions};
+use super::types::{Config, Context};
 
 pub fn endpoints() -> Scope {
     let scope = Scope::new("")
@@ -646,6 +648,7 @@ async fn get_config_fast(
 async fn get_config(
     req: HttpRequest,
     db_conn: DbConnection,
+    query_map: DynamicQuery<QueryMap>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
@@ -661,7 +664,7 @@ async fn get_config(
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    let mut query_params_map = get_query_params_map(req.query_string())?;
+    let mut query_params_map = query_map.into_inner().into_inner();
     let mut config_version = validate_version_in_params(&mut query_params_map)?;
     let mut config = generate_config_from_version(&mut config_version, &mut conn)?;
 
@@ -682,9 +685,10 @@ async fn get_config(
 async fn get_resolved_config(
     req: HttpRequest,
     db_conn: DbConnection,
+    query_map: DynamicQuery<QueryMap>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let mut query_params_map = get_query_params_map(req.query_string())?;
+    let mut query_params_map = query_map.into_inner().into_inner();
 
     let max_created_at = get_max_created_at(&mut conn)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log : {e}"))
@@ -705,7 +709,7 @@ async fn get_resolved_config(
         .contexts
         .into_iter()
         .map(|val| cac_client::Context {
-            condition: json!(val.condition),
+            condition: val.condition,
             override_with_keys: val.override_with_keys,
         })
         .collect::<Vec<_>>();
@@ -717,9 +721,9 @@ async fn get_resolved_config(
         .and_then(|val| MergeStrategy::from_str(val).ok())
         .unwrap_or_default();
 
-    let mut override_map = Map::new();
-    for (key, val) in config.overrides.iter() {
-        override_map.insert(key.to_owned(), json!(val));
+    let mut override_map = HashMap::new();
+    for (key, val) in config.overrides {
+        override_map.insert(key, val);
     }
 
     let response = if let Some(Value::String(_)) = query_params_map.get("show_reasoning")

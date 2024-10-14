@@ -966,6 +966,7 @@ dependencies = [
  "serde_json",
  "strum",
  "strum_macros",
+ "superposition_types",
  "tokio",
 ]
 
@@ -1258,7 +1259,6 @@ dependencies = [
  "fred",
  "futures-util",
  "itertools 0.10.5",
- "jsonlogic",
  "jsonschema",
  "log",
  "serde",
@@ -1632,6 +1632,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "superposition_types",
  "tokio",
 ]
 
@@ -3994,6 +3995,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "superposition_derives",
  "thiserror",
 ]
 

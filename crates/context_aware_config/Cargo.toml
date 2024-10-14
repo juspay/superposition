@@ -18,7 +18,6 @@ derive_more = { workspace = true }
 diesel = { workspace = true }
 futures-util = "0.3.28"
 itertools = "0.10.5"
-jsonlogic = { workspace = true }
 jsonschema = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }
@@ -26,7 +25,10 @@ serde_json = { workspace = true }
 service_utils = { path = "../service_utils" }
 strum_macros = { workspace = true }
 superposition_macros = { path = "../superposition_macros" }
-superposition_types = { path = "../superposition_types", features = ["result"] }
+superposition_types = { path = "../superposition_types", features = [
+    "result",
+    "diesel_derives",
+] }
 uuid = { workspace = true }
 fred = { workspace = true, optional = true, features = ["metrics"]}
 cfg-if = { workspace = true }
