@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use superposition_types::{Exp, Overridden, Overrides};
 
 #[derive(Clone, Debug)]
 pub struct Config {
@@ -29,8 +30,14 @@ pub(crate) enum VariantType {
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Variant {
     pub id: String,
-    pub overrides: Value,
+    pub overrides: Exp<Overrides>,
     pub(crate) variant_type: VariantType,
+}
+
+impl Overridden<Exp<Overrides>> for Variant {
+    fn get_overrides(&self) -> Overrides {
+        self.overrides.clone().into_inner()
+    }
 }
 
 pub type Variants = Vec<Variant>;

@@ -11,6 +11,7 @@ once_cell = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+superposition_types = { path = "../superposition_types" }
 tokio = { version = "1.29.1", features = ["full"] }
 
 [lib]
