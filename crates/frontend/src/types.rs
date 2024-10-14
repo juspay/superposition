@@ -244,7 +244,7 @@ impl DropdownOption for Dimension {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct DefaultConfig {
     pub key: String,
     pub value: Value,
@@ -252,6 +252,31 @@ pub struct DefaultConfig {
     pub created_by: String,
     pub schema: Value,
     pub function_name: Option<String>,
+}
+
+impl DefaultConfig {
+    pub fn table_cols() -> Vec<&'static str> {
+        vec![
+            "key",
+            "value",
+            "created_at",
+            "created_by",
+            "schema",
+            "function_name",
+        ]
+    }
+
+    pub fn into_row(&self) -> Map<String, Value> {
+        let mut map = json!(self)
+            .as_object()
+            .expect("failed to generate row map from default_config")
+            .to_owned();
+        map.insert(
+            "created_at".to_string(),
+            json!(self.created_at.format("%v").to_string()),
+        );
+        map
+    }
 }
 
 impl DropdownOption for DefaultConfig {

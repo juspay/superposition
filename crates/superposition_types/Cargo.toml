@@ -21,6 +21,7 @@ regex = { workspace = true }
 [features]
 disable_db_data_validation = []
 result = ["dep:diesel", "dep:anyhow", "dep:thiserror"]
+multi-demlimiter = []
 
 [lints]
 workspace = true
