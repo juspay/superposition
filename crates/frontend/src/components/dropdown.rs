@@ -56,6 +56,8 @@ where
         DropdownBtnType::Select => "select select-bordered w-[28rem] items-center",
     };
 
+    let node_ref = create_node_ref::<html::Input>();
+
     view! {
         <div
             id=id
@@ -66,7 +68,16 @@ where
             class=("dropdown-top", dropdown_direction == DropdownDirection::Top)
             class=("dropdown-down", dropdown_direction == DropdownDirection::Down)
         >
-            <label tabindex="0" class=format!("{} {}", class, btn_class)>
+            <label
+                tabindex="0"
+                class=format!("{} {}", class, btn_class)
+                on:click:undelegated=move |_| {
+                    if let Some(element) = node_ref.get() {
+                        let _ = element.focus();
+                    }
+                }
+            >
+
                 <i class=format!("{dropdown_icon}")></i>
                 {dropdown_text}
             </label>
@@ -86,7 +97,8 @@ where
                                     type="text"
                                     class="grow"
                                     placeholder="Search"
-                                    name=name
+                                    ref_=node_ref
+                                    name=name.clone()
                                     value=search_term.get_untracked()
                                     on:input=move |event| {
                                         set_search_term.set(event_target_value(&event));
