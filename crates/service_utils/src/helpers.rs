@@ -4,15 +4,25 @@ use anyhow::anyhow;
 use jsonschema::{error::ValidationErrorKind, ValidationError};
 use log::info;
 use regex::Regex;
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use serde::de::{self, IntoDeserializer};
+use reqwest::{
+    header::{HeaderMap, HeaderName, HeaderValue},
+    StatusCode,
+};
+use serde::{
+    de::{self, IntoDeserializer},
+    Serialize,
+};
 use serde_json::{Map, Value};
 use std::{
     env::VarError,
     fmt::{self, Display},
     str::FromStr,
 };
-use superposition_types::{result, Condition};
+use superposition_types::{
+    result::{self, AppError},
+    Authorization, Condition, HeadersEnum, HttpMethod, Webhook, WebhookEvent,
+    WebhookResponse,
+};
 
 const CONFIG_TAG_REGEX: &str = "^[a-zA-Z0-9_-]{1,64}$";
 
@@ -398,6 +408,94 @@ pub fn parse_config_tags(
                 })
                 .collect::<result::Result<Vec<String>>>()?;
             Ok(Some(tags))
+        }
+    }
+}
+
+pub async fn execute_webhook_call<T>(
+    webhook_object: Value,
+    payload: T,
+    config_version_opt: &Option<String>,
+    event: WebhookEvent,
+) -> Result<(), AppError>
+where
+    T: Serialize,
+{
+    match serde_json::from_value::<Webhook>(webhook_object) {
+        Ok(webhook) => {
+            let http_client = reqwest::Client::new();
+            let mut header_array = webhook
+                .headers
+                .into_iter()
+                .filter_map(|key| match key {
+                    HeadersEnum::ConfigVersion => {
+                        if let Some(config_version) = config_version_opt {
+                            Some((
+                                "x-config-version".to_string(),
+                                config_version.to_string(),
+                            ))
+                        } else {
+                            None
+                        }
+                    }
+                })
+                .collect::<Vec<(String, String)>>();
+
+            if let Ok(auth) =
+                serde_json::from_value::<Authorization>(webhook.authorization)
+            {
+                let auth_token_value: String =
+                    get_from_env_unsafe(&auth.value).map_err(|err| {
+                        log::error!("Failed to retrieve authentication token for the webhook with error: {}", err);
+                        AppError::WebhookError(
+                            anyhow!("Failed to retrieve authentication token for the webhook. Please verify the credentials in TenantConfig.")
+                        )
+                    })?;
+                header_array.push((auth.key, auth_token_value));
+            }
+
+            let mut headers = HeaderMap::new();
+            header_array.iter().for_each(|(name, value)| {
+                let h_name = HeaderName::from_str(name);
+                let h_value = HeaderValue::from_str(value);
+
+                if let (Ok(key), Ok(value)) = (h_name, h_value) {
+                    headers.insert(key, value);
+                }
+            });
+
+            let request_builder = match webhook.method {
+                HttpMethod::Post => http_client.post(&webhook.url),
+                HttpMethod::Put => http_client.put(&webhook.url),
+                HttpMethod::Get => http_client.get(&webhook.url),
+            };
+
+            let response = request_builder
+                .headers(headers.into())
+                .json(&WebhookResponse { event, payload })
+                .send()
+                .await;
+
+            match response {
+                Ok(res) => match res.status() {
+                    StatusCode::OK => {
+                        log::info!("webhook call succeeded: {:?}", res);
+                        Ok(())
+                    }
+                    _ => {
+                        log::error!("Webhook call failed: {:?}", res);
+                        Err(AppError::WebhookError(anyhow!(format!("Webhook call failed with status code: {:?}, Please check the logs and retry.", res.status()))))
+                    }
+                },
+                Err(err) => {
+                    log::error!("Webhook call failed with error: {:?}", err);
+                    Err(AppError::WebhookError(anyhow!(err)))
+                }
+            }
+        }
+        Err(e) => {
+            log::debug!("Could not parse the webhook object: {:?}", e);
+            Ok(())
         }
     }
 }
