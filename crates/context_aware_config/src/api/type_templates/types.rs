@@ -18,7 +18,7 @@ pub struct TypeTemplateResponse {
     pub created_by: String,
 }
 #[derive(Debug, Clone, Deserialize)]
-pub struct QueryFilters {
+pub struct QueryListFilters {
     pub count: Option<i64>,
     pub page: Option<i64>,
 }

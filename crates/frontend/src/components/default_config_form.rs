@@ -16,7 +16,7 @@ use crate::{
         input_components::{BooleanToggle, EnumDropdown},
     },
     schema::{JsonSchemaType, SchemaType},
-    types::{FunctionsName, TypeTemplate},
+    types::{FunctionsName, ListFilters, TypeTemplate},
     utils::get_key_type,
 };
 
@@ -49,8 +49,16 @@ where
         create_blocking_resource(
             move || tenant_rs.get(),
             |current_tenant| async move {
-                match fetch_functions(current_tenant).await {
-                    Ok(data) => data,
+                match fetch_functions(
+                    ListFilters {
+                        page: None,
+                        count: None,
+                    },
+                    current_tenant,
+                )
+                .await
+                {
+                    Ok(data) => data.data.into_iter().collect(),
                     Err(_) => vec![],
                 }
             },
@@ -353,17 +361,18 @@ where
             </Suspense>
 
             <div class="form-control grid w-full justify-start">
-            { move || {
-                let loading = req_inprogess_rs.get();
-                view! {
-                    <Button
-                        class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                        text="Submit".to_string()
-                        on_click=on_submit.clone()
-                        loading
-                    />
-                }
-            }}
+                {move || {
+                    let loading = req_inprogess_rs.get();
+                    view! {
+                        <Button
+                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
+                            text="Submit".to_string()
+                            on_click=on_submit.clone()
+                            loading
+                        />
+                    }
+                }}
+
             </div>
 
             {

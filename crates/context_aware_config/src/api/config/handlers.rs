@@ -34,16 +34,19 @@ use service_utils::{
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    custom_query::{self as superposition_query, CustomQuery, QueryFilters, QueryMap},
+    custom_query::{self as superposition_query, CustomQuery, QueryMap},
     result as superposition, Cac, Condition, Config, Context, Overrides,
     PaginatedResponse, TenantConfig, User,
 };
 use uuid::Uuid;
 
-use crate::api::context::{
-    delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
-};
 use crate::api::dimension::get_all_dimension_schema_map;
+use crate::api::{
+    context::{
+        delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
+    },
+    type_templates::types::QueryListFilters,
+};
 use crate::db::models::ConfigVersion;
 use crate::{
     db::schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
@@ -751,7 +754,7 @@ async fn get_resolved_config(
 #[get("/versions")]
 async fn get_config_versions(
     db_conn: DbConnection,
-    filters: Query<QueryFilters>,
+    filters: Query<QueryListFilters>,
 ) -> superposition::Result<Json<PaginatedResponse<ConfigVersion>>> {
     let DbConnection(mut conn) = db_conn;
 
