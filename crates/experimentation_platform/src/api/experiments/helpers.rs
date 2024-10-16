@@ -1,5 +1,3 @@
-use super::types::{Variant, VariantType};
-use crate::db::models::{Experiment, ExperimentStatusType};
 use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
@@ -8,6 +6,8 @@ use service_utils::service::types::ExperimentationFlags;
 use std::collections::HashSet;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{result as superposition, Condition, Exp, Overrides};
+
+use crate::db::models::{Experiment, ExperimentStatusType, Variant, VariantType};
 
 pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()> {
     let mut experimental_variant_cnt = 0;
