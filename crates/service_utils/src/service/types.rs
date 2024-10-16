@@ -53,6 +53,7 @@ pub struct AppState {
     pub superposition_token: String,
     #[cfg(feature = "high-performance-mode")]
     pub redis: fred::clients::RedisPool,
+    pub http_client: reqwest::Client,
 }
 
 impl FromStr for AppEnv {

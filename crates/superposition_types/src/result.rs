@@ -21,6 +21,8 @@ pub enum AppError {
     ResponseError(#[from] ResponseError),
     #[error(transparent)]
     UnexpectedError(anyhow::Error),
+    #[error("webhook error ( `{0}` )")]
+    WebhookError(String),
 }
 
 #[derive(Debug, this_error, Display, Clone)]
@@ -70,6 +72,7 @@ impl AppError {
                 error,
             )) => error.message().to_owned(),
             AppError::DbError(_) => String::from("Something went wrong"),
+            AppError::WebhookError(error) => error.to_string(),
         }
     }
 }
@@ -118,6 +121,11 @@ impl error::ResponseError for AppError {
             AppError::DbError(_) => Self::generate_err_response(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Something went wrong",
+            ),
+
+            AppError::WebhookError(error) => Self::generate_err_response(
+                StatusCode::from_u16(512).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+                &error,
             ),
         }
     }

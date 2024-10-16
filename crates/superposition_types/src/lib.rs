@@ -6,6 +6,7 @@ pub mod custom_query;
 mod overridden;
 #[cfg(feature = "result")]
 pub mod result;
+pub mod webhook;
 
 use std::fmt::Display;
 use std::future::{ready, Ready};
@@ -14,12 +15,13 @@ use std::future::{ready, Ready};
 use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
 use log::error;
 use regex::Regex;
-use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 pub use crate::config::{Condition, Config, Context, Overrides};
 pub use crate::contextual::Contextual;
 pub use crate::overridden::Overridden;
+use serde::{de, Deserialize, Deserializer, Serialize};
+use serde_json::json;
+use webhook::WebhookConfig;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
@@ -151,9 +153,10 @@ impl Display for RegexEnum {
     }
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TenantConfig {
     pub mandatory_dimensions: Vec<String>,
+    pub experiments_webhook_config: WebhookConfig,
 }
 
 #[cfg(feature = "server")]
@@ -358,5 +361,43 @@ mod tests {
                 .contains("override should not be empty"),
             true
         );
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct QueryFilters {
+    pub count: Option<i64>,
+    pub page: Option<i64>,
+}
+
+impl<'de> Deserialize<'de> for QueryFilters {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct Helper {
+            count: Option<i64>,
+            page: Option<i64>,
+        }
+
+        let helper = Helper::deserialize(deserializer)?;
+
+        if let Some(count) = helper.count {
+            if count <= 0 {
+                return Err(de::Error::custom("Count should be greater than 0."));
+            }
+        }
+
+        if let Some(page) = helper.page {
+            if page <= 0 {
+                return Err(de::Error::custom("Page should be greater than 0."));
+            }
+        }
+
+        Ok(QueryFilters {
+            count: helper.count,
+            page: helper.page,
+        })
     }
 }
