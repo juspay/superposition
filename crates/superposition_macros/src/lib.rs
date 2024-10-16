@@ -57,3 +57,13 @@ macro_rules! response_error {
         )
     };
 }
+
+#[macro_export]
+macro_rules! webhook_error {
+    ($msg: literal, $($args: tt)*) => {
+        superposition_types::result::AppError::WebhookError(anyhow::anyhow!(format!($msg, $($args)*)))
+    };
+    ($err: tt) => {
+        superposition_types::result::AppError::WebhookError(anyhow::anyhow!($err.to_string()))
+    };
+}

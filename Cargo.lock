@@ -4046,6 +4046,7 @@ dependencies = [
  "frontend",
  "leptos",
  "leptos_actix",
+ "reqwest",
  "rs-snowflake",
  "serde_json",
  "service_utils",
