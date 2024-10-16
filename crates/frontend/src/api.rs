@@ -2,8 +2,8 @@ use leptos::ServerFnError;
 
 use crate::{
     types::{
-        Config, DefaultConfig, Dimension, ExperimentResponse, ExperimentsResponse,
-        FetchTypeTemplateResponse, FunctionResponse, ListFilters,
+        Config, ConfigVersionListResponse, DefaultConfig, Dimension, ExperimentResponse,
+        ExperimentsResponse, FetchTypeTemplateResponse, FunctionResponse, ListFilters,
     },
     utils::{
         construct_request_headers, get_host, parse_json_response, request,
@@ -39,6 +39,28 @@ pub async fn fetch_default_config(
 
     let url = format!("{}/default-config", host);
     let response: Vec<DefaultConfig> = client
+        .get(url)
+        .header("x-tenant", tenant)
+        .send()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?
+        .json()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(response)
+}
+
+pub async fn fetch_snapshots(
+    tenant: String,
+    page: i64,
+    count: i64,
+) -> Result<ConfigVersionListResponse, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = use_host_server();
+
+    let url = format!("{host}/config/versions?page={page}&count={count}");
+    let response: ConfigVersionListResponse = client
         .get(url)
         .header("x-tenant", tenant)
         .send()
@@ -160,11 +182,17 @@ pub async fn fetch_function(
 }
 
 // #[server(GetConfig, "/fxn", "GetJson")]
-pub async fn fetch_config(tenant: String) -> Result<Config, ServerFnError> {
+pub async fn fetch_config(
+    tenant: String,
+    version: Option<String>,
+) -> Result<Config, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let url = format!("{}/config", host);
+    let url = match version {
+        Some(version) => format!("{}/config?version={}", host, version),
+        None => format!("{}/config", host),
+    };
     match client.get(url).header("x-tenant", tenant).send().await {
         Ok(response) => {
             let config: Config = response

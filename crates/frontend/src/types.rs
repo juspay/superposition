@@ -324,3 +324,19 @@ pub struct FetchTypeTemplateResponse {
     pub total_pages: i64,
     pub data: Vec<TypeTemplate>,
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+pub struct ConfigVersionListResponse {
+    pub total_pages: u64,
+    pub total_items: i64,
+    pub data: Vec<ConfigVersion>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ConfigVersion {
+    pub config: Value,
+    pub config_hash: String,
+    pub created_at: String,
+    pub id: u64,
+    pub tags: Option<Vec<String>>,
+}

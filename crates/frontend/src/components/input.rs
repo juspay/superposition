@@ -226,9 +226,10 @@ fn basic_input(
                                 <i class="ri-close-circle-line"></i>
                                 {err}
                             </span>
-                        }.into_view()
-                    },
-                    None => ().into_view()
+                        }
+                            .into_view()
+                    }
+                    None => ().into_view(),
                 }
             }}
 
