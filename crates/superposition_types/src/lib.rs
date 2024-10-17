@@ -3,7 +3,8 @@ pub mod custom_query;
 #[cfg(feature = "result")]
 pub mod result;
 
-use std::fmt::Display;
+use std::collections::HashMap;
+use std::fmt::{self, Display};
 use std::future::{ready, Ready};
 
 use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
@@ -243,9 +244,57 @@ impl Display for RegexEnum {
     }
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
+pub enum HeadersEnum {
+    ConfigVersion,
+}
+
+impl fmt::Display for HeadersEnum {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            HeadersEnum::ConfigVersion => write!(f, "Config-Version"),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub enum HttpMethod {
+    Get,
+    Post,
+    Put,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Authorization {
+    pub key: String,
+    pub value: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Webhook {
+    pub url: String,
+    pub method: HttpMethod,
+    pub headers: Vec<HeadersEnum>,
+    pub authorization: Value,
+}
+
+#[derive(Serialize, Deserialize)]
+pub enum WebhookEvent {
+    ExperimentCreated,
+    ExperimentInprogress,
+    ExperimentConcluded,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct WebhookResponse<T> {
+    pub event: WebhookEvent,
+    pub payload: T,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TenantConfig {
     pub mandatory_dimensions: Vec<String>,
+    pub experiments_webhook_config: Value,
 }
 
 impl FromRequest for TenantConfig {
@@ -486,4 +535,19 @@ pub struct PaginatedResponse<T> {
     pub total_pages: i64,
     pub total_items: i64,
     pub data: Vec<T>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Config {
+    pub contexts: Vec<Context>,
+    pub overrides: HashMap<String, Overrides>,
+    pub default_configs: Map<String, Value>,
+}
+
+#[derive(Serialize, Clone, Deserialize)]
+pub struct Context {
+    pub id: String,
+    pub condition: Condition,
+    pub priority: i32,
+    pub override_with_keys: [String; 1],
 }

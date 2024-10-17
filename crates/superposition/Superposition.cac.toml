@@ -1,9 +1,12 @@
 [default-config]
 mandatory_dimensions = { "value" = [
 ], "schema" = { "type" = "array", "items" = { "type" = "number" } } }
+experiments_webhook_config = { "value" = {}, "schema" = { "type" = "object", properties = {"url" = { "type" = "string" }, "method" = { "enum" = ["Post","Put","Get"], "type" = "string" },"headers" = { "type" = "array", "items" = { "type" = "string", "enum" = ["ConfigVersion"] }}, authorization = {"type" = "object", properties = { "key" = { "type" = "string" }, "value" = { "type" = "string" }}}, "required"= ["url", "method", "headers", "authorization"], "additionalProperties" = false}}}
 
 [dimensions]
 tenant = { schema = { "type" = "string", "enum" = ["test", "dev"] } }
 
 [context."$tenant == 'dev'"]
 mandatory_dimensions = []
+# experiments_webhook_config = {"url" = "http://localhost:8080/config/test", "method" = "Post", "headers" = ["ConfigVersion"], "authorization" = { key = "Authorization", value = "TOKEN_FOR_WEBHOOK" }}
+
