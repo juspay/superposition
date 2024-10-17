@@ -21,6 +21,11 @@ serde_json = { workspace = true }
 service_utils = { path = "../service_utils" }
 superposition_types = { path = "../superposition_types" }
 toml = { workspace = true }
+fred = { workspace = true, optional = true }
+cfg-if = { workspace = true }
+
+[features]
+high-performance-mode = ["context_aware_config/high-performance-mode", "service_utils/high-performance-mode", "dep:fred"]
 
 [lints]
 workspace = true
