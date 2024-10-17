@@ -1,0 +1,17 @@
+{
+    "name": "test",
+    "version": "1.0.0",
+    "dependencies": {
+      "cac_client" : "file:./cac-client/",
+      "experimentation_client" : "file:./exp-client/"
+    },
+    "devDependencies": {
+      "express": "^4.19.2",
+      "ts-node": "^10.9.2",
+      "typescript": "^5.5.3"
+    },
+    "scripts": {
+      "test" : "npx tsc && node ./dist/index.js"
+    }
+  }
+  
