@@ -1,3 +1,5 @@
+pub mod config_version;
+pub mod config_version_list;
 pub mod context_override;
 pub mod custom_types;
 pub mod default_config;

@@ -31,9 +31,10 @@ pub fn context_card(
         .clone()
         .into_iter()
         .map(|(k, v)| {
-            let k = Value::String(k.trim_matches('"').to_string());
-            let v = Value::String(format!("{}", v).trim_matches('"').to_string());
-            Map::from_iter(vec![(String::from("KEY"), k), (String::from("VALUE"), v)])
+            Map::from_iter(vec![
+                (String::from("KEY"), Value::String(k.clone())),
+                (String::from("VALUE"), v),
+            ])
         })
         .collect::<Vec<Map<String, Value>>>();
 
@@ -70,14 +71,16 @@ pub fn context_card(
                                 on:click=move |_| {
                                     handle_edit.call((context.get_value(), overrides.get_value()));
                                 }
-                            ></i>
+                            >
+                            </i>
 
                             <i
                                 class="ri-file-copy-line ri-lg text-blue-500 cursor-pointer"
                                 on:click=move |_| {
                                     handle_clone.call((context.get_value(), overrides.get_value()));
                                 }
-                            ></i>
+                            >
+                            </i>
 
                         </Show>
                         <Show when=move || edit_unsupported>
@@ -91,7 +94,8 @@ pub fn context_card(
                                 let context_id = context_id.get_value();
                                 handle_delete.call(context_id);
                             }
-                        ></i>
+                        >
+                        </i>
 
                     </div>
                 </Show>
