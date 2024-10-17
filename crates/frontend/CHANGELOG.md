@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.16.0 - 2024-10-17
+#### Bug Fixes
+- using HtmlDisplay trait to show json in html (#245) - (2860245) - Shubhranshu Sanjeev
+#### Features
+- added config-versions UI (#249) - (f3e946a) - sauraww
+
+- - -
+
 ## frontend-v0.15.2 - 2024-09-30
 #### Bug Fixes
 - Dependency pruning (#250) - (8b68900) - Ayush Jain

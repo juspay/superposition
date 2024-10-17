@@ -1600,7 +1600,7 @@ dependencies = [
 
 [[package]]
 name = "experimentation_platform"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "actix-http",
  "actix-web",
@@ -1697,7 +1697,7 @@ dependencies = [
 
 [[package]]
 name = "frontend"
-version = "0.15.2"
+version = "0.16.0"
 dependencies = [
  "anyhow",
  "cfg-if",

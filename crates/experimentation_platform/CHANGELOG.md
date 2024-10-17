@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.20.0 - 2024-10-17
+#### Features
+- use concrete Variant type in db model (#241) - (8ca8135) - Ayush Jain
+
+- - -
+
 ## experimentation_platform-v0.19.0 - 2024-09-30
 #### Bug Fixes
 - Dependency pruning (#250) - (8b68900) - Ayush Jain

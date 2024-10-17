@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.59.0 - 2024-10-17
+### Package updates
+- frontend bumped to frontend-v0.16.0
+- superposition_derives bumped to superposition_derives-v0.1.0
+- experimentation_platform bumped to experimentation_platform-v0.20.0
+### Global changes
+#### Features
+- use concrete Variant type in db model (#241) - (8ca8135) - Ayush Jain
+
+- - -
+
 ## v0.58.0 - 1970-01-01
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.40.0
