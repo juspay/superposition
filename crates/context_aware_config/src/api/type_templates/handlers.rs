@@ -13,7 +13,7 @@ use superposition_macros::{bad_argument, db_error};
 use superposition_types::{result as superposition, User};
 
 use crate::api::type_templates::types::{
-    QueryFilters, TypeTemplateName, TypeTemplateRequest,
+    QueryListFilters, TypeTemplateName, TypeTemplateRequest,
 };
 
 pub fn endpoints() -> Scope {
@@ -119,7 +119,7 @@ async fn delete_type(
 #[get("")]
 async fn list_types(
     db_conn: DbConnection,
-    filters: Query<QueryFilters>,
+    filters: Query<QueryListFilters>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 

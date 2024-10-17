@@ -1,19 +1,22 @@
 use std::borrow::Cow;
 use std::time::Duration;
 
-use crate::components::condition_pills::{
-    types::{Condition, ConditionOperator},
-    Condition as ConditionComponent,
-};
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
-use crate::types::Config;
+use crate::types::{Config, ListFilters};
 use crate::{
     api::{fetch_config, fetch_dimensions},
     components::{
         button::Button, context_form::ContextForm, dropdown::DropdownDirection,
     },
     utils::{check_url_and_return_val, get_element_by_id, get_host},
+};
+use crate::{
+    components::condition_pills::{
+        types::{Condition, ConditionOperator},
+        Condition as ConditionComponent,
+    },
+    types::PaginatedResponse,
 };
 use leptos::*;
 use serde_json::{Map, Value};
@@ -179,9 +182,17 @@ pub fn home() -> impl IntoView {
     let dimension_resource = create_resource(
         move || tenant_rs.get(),
         |tenant| async {
-            match fetch_dimensions(tenant).await {
+            match fetch_dimensions(
+                ListFilters {
+                    page: None,
+                    count: None,
+                },
+                tenant,
+            )
+            .await
+            {
                 Ok(data) => data,
-                Err(_) => vec![],
+                Err(_) => PaginatedResponse::default(),
             }
         },
     );
@@ -384,7 +395,10 @@ pub fn home() -> impl IntoView {
                                                 <h2 class="card-title">Resolve Configs</h2>
 
                                                 <ContextForm
-                                                    dimensions=dimension.to_owned().unwrap_or_default()
+                                                    dimensions=dimension
+                                                        .to_owned()
+                                                        .unwrap_or(PaginatedResponse::default())
+                                                        .data
                                                     context=vec![]
                                                     heading_sub_text="Query your configs".to_string()
                                                     dropdown_direction=DropdownDirection::Right
