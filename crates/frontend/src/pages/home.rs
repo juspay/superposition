@@ -1,13 +1,20 @@
 use std::borrow::Cow;
 use std::time::Duration;
 
+use leptos::*;
+use serde_json::{Map, Value};
+use strum::EnumProperty;
+use strum_macros::Display;
+use superposition_types::Config;
+use wasm_bindgen::JsCast;
+use web_sys::{HtmlButtonElement, HtmlSpanElement, MouseEvent};
+
 use crate::components::condition_pills::{
-    types::{Condition, ConditionOperator},
+    types::{Condition, ConditionOperator, Conditions},
     Condition as ConditionComponent,
 };
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
-use crate::types::Config;
 use crate::{
     api::{fetch_config, fetch_dimensions},
     components::{
@@ -15,12 +22,6 @@ use crate::{
     },
     utils::{check_url_and_return_val, get_element_by_id, get_host},
 };
-use leptos::*;
-use serde_json::{Map, Value};
-use strum::EnumProperty;
-use strum_macros::Display;
-use wasm_bindgen::JsCast;
-use web_sys::{HtmlButtonElement, HtmlSpanElement, MouseEvent};
 
 #[derive(Clone, Debug, Copy, Display, strum_macros::EnumProperty, PartialEq)]
 enum ResolveTab {
@@ -111,9 +112,9 @@ fn all_context_view(config: Config) -> impl IntoView {
                         let rows: Vec<_> = context
                             .override_with_keys
                             .iter()
-                            .filter_map(|key| overrides.get(key).map(|o| rows(key, o, true)))
+                            .filter_map(|key| overrides.get(key).map(|o| rows(key, &Value::Object(o.clone().into()), true)))
                             .collect();
-                        let conditions: Vec<Condition> = context.try_into().unwrap_or_default();
+                        let conditions: Conditions = context.try_into().unwrap_or_default();
                         view! {
                             <div class="card bg-base-100 shadow gap-4 p-6">
                                 <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
@@ -121,7 +122,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                                 </h3>
                                 <div class="pl-5">
                                     <ConditionComponent
-                                        conditions=conditions
+                                        conditions=conditions.0
                                         id=context.id.clone()
                                         class="xl:w-[400px] h-fit"
                                     />

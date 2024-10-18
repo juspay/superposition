@@ -945,10 +945,10 @@ dependencies = [
  "log",
  "once_cell",
  "reqwest",
- "serde",
  "serde_json",
  "strum",
  "strum_macros",
+ "superposition_types",
  "tokio",
 ]
 
@@ -1239,7 +1239,6 @@ dependencies = [
  "diesel",
  "futures-util",
  "itertools 0.10.5",
- "jsonlogic",
  "jsonschema",
  "log",
  "serde",
@@ -1586,6 +1585,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "superposition_types",
  "tokio",
 ]
 
@@ -1716,6 +1716,7 @@ dependencies = [
  "serde_json",
  "strum",
  "strum_macros",
+ "superposition_types",
  "url",
  "wasm-bindgen",
  "web-sys",
@@ -3872,6 +3873,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "superposition_derives",
  "thiserror",
 ]
 

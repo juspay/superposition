@@ -7,7 +7,6 @@ use diesel::{
     PgConnection, RunQueryDsl,
 };
 use jsonschema::{Draft, JSONSchema};
-use serde_json::Map;
 use service_utils::helpers::extract_dimensions;
 use std::collections::HashMap;
 use superposition_macros::{db_error, unexpected_error};
@@ -44,14 +43,12 @@ pub fn get_dimension_usage_context_ids(
 
     let mut context_ids = vec![];
     for context in result.iter() {
-        let condition = Cac::<Condition>::try_from_db(
-            context.value.as_object().unwrap_or(&Map::new()).clone(),
-        )
-        .map_err(|err| {
-            log::error!("generate_cac : failed to decode context from db {}", err);
-            unexpected_error!(err)
-        })?
-        .into_inner();
+        let condition = Cac::<Condition>::try_from_db(context.value.clone().into())
+            .map_err(|err| {
+                log::error!("generate_cac : failed to decode context from db {}", err);
+                unexpected_error!(err)
+            })?
+            .into_inner();
 
         extract_dimensions(&condition)?
             .get(key)

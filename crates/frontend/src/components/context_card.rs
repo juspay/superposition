@@ -1,13 +1,11 @@
-use crate::components::condition_pills::types::ConditionOperator;
 use leptos::*;
 use serde_json::{Map, Value};
+use superposition_types::Context;
 
-use crate::{
-    components::{
-        condition_pills::{types::Condition, Condition as ConditionComponent},
-        table::{types::Column, Table},
-    },
-    types::Context,
+use crate::components::condition_pills::types::{ConditionOperator, Conditions};
+use crate::components::{
+    condition_pills::Condition as ConditionComponent,
+    table::{types::Column, Table},
 };
 
 #[component]
@@ -25,7 +23,7 @@ pub fn context_card(
     >,
     #[prop(default=Callback::new(|_| {}))] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
-    let conditions: Vec<Condition> = (&context).try_into().unwrap_or(vec![]);
+    let conditions: Conditions = (&context).try_into().unwrap_or_default();
 
     let override_table_rows = overrides
         .clone()
@@ -50,10 +48,12 @@ pub fn context_card(
 
     let actions_supported = show_actions
         && !conditions
+            .0
             .iter()
             .any(|condition| condition.left_operand == "variantIds");
 
     let edit_unsupported = conditions
+        .0
         .iter()
         .any(|condition| matches!(condition.operator, ConditionOperator::Other(_)));
 
@@ -109,7 +109,7 @@ pub fn context_card(
             <div class="pl-5">
                 <ConditionComponent
                     // Clone only once before reusing in multiple closures
-                    conditions=conditions
+                    conditions=conditions.0
                     id=context_id.get_value()
                     class="xl:w-[400px] h-fit"
                 />
