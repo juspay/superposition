@@ -2,9 +2,9 @@ use std::collections::HashSet;
 
 use serde_json::{Map, Value};
 
-use crate::Overrides;
+use crate::config::Overrides;
 
-fn filter_keys_by_prefix(
+pub(crate) fn filter_keys_by_prefix(
     overrides: Map<String, Value>,
     prefix_list: &HashSet<String>,
 ) -> Map<String, Value> {

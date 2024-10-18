@@ -609,7 +609,7 @@ async fn list_contexts(
         return Err(bad_argument!("Param 'size' has to be at least 1."));
     }
 
-    let dimension_params = dimension_params.into_inner().into_inner();
+    let dimension_params = dimension_params.into_inner();
 
     let result = if dimension_params.len() > 0 || pagination_params.prefix.is_some() {
         let mut all_contexts: Vec<Context> =

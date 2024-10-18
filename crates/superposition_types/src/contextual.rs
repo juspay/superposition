@@ -1,7 +1,7 @@
 use jsonlogic::{expression::Expression, partial_apply, PartialApplyOutcome};
 use serde_json::{Map, Value};
 
-use crate::Condition;
+use crate::config::Condition;
 
 pub trait Contextual: Clone {
     fn get_condition(&self) -> Condition;

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use actix_web::web::Query;
+use derive_more::{Deref, DerefMut};
 use regex::Regex;
 use serde::{
     de::{self, DeserializeOwned},
@@ -136,15 +137,9 @@ where
 }
 
 /// Provides struct to `Deserialize` `HashMap<String, String>` as `serde_json::Map<String, serde_json::Value>`
-#[derive(Deserialize)]
+#[derive(Deserialize, Deref, DerefMut)]
 #[serde(from = "HashMap<String,String>")]
 pub struct QueryMap(Map<String, Value>);
-
-impl QueryMap {
-    pub fn into_inner(self) -> Map<String, Value> {
-        self.0
-    }
-}
 
 impl From<HashMap<String, String>> for QueryMap {
     fn from(value: HashMap<String, String>) -> Self {

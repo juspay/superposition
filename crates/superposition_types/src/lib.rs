@@ -1,5 +1,7 @@
 #![deny(unused_crate_dependencies)]
+mod config;
 mod contextual;
+#[cfg(feature = "server")]
 pub mod custom_query;
 mod overridden;
 #[cfg(feature = "result")]
@@ -8,21 +10,14 @@ pub mod result;
 use std::fmt::Display;
 use std::future::{ready, Ready};
 
+#[cfg(feature = "server")]
 use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
-use derive_more::{AsRef, Deref, DerefMut, Into};
-#[cfg(feature = "diesel_derives")]
-use diesel::deserialize::FromSqlRow;
-#[cfg(feature = "diesel_derives")]
-use diesel::expression::AsExpression;
-#[cfg(feature = "diesel_derives")]
-use diesel::sql_types::Json;
 use log::error;
 use regex::Regex;
-use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::{json, Map, Value};
-#[cfg(feature = "diesel_derives")]
-use superposition_derives::{JsonFromSql, JsonToSql};
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 
+pub use crate::config::{Condition, Config, Context, Overrides};
 pub use crate::contextual::Contextual;
 pub use crate::overridden::Overridden;
 
@@ -63,6 +58,7 @@ impl Default for User {
     }
 }
 
+#[cfg(feature = "server")]
 impl FromRequest for User {
     type Error = actix_web::error::Error;
     type Future = Ready<Result<Self, Self::Error>>;
@@ -94,149 +90,6 @@ impl<T> Exp<T> {
         self.0
     }
 }
-
-macro_rules! impl_try_from_map {
-    ($wrapper:ident, $type:ident, $validate:expr) => {
-        impl TryFrom<Map<String, Value>> for $wrapper<$type> {
-            type Error = String;
-
-            fn try_from(map: Map<String, Value>) -> Result<Self, Self::Error> {
-                Ok(Self($validate(map)?))
-            }
-        }
-
-        impl<'de> Deserialize<'de> for $wrapper<$type> {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: Deserializer<'de>,
-            {
-                let map = Map::<String, Value>::deserialize(deserializer)?;
-                Self::try_from(map).map_err(serde::de::Error::custom)
-            }
-        }
-
-        impl $wrapper<$type> {
-            pub fn try_from_db(map: Map<String, Value>) -> Result<Self, String> {
-                #[cfg(feature = "disable_db_data_validation")]
-                return Ok(Self($type(map)));
-                #[cfg(not(feature = "disable_db_data_validation"))]
-                return Self::try_from(map);
-            }
-        }
-    };
-}
-
-#[cfg(feature = "diesel_derives")]
-#[derive(
-    Deserialize,
-    Serialize,
-    Clone,
-    AsRef,
-    Deref,
-    DerefMut,
-    Debug,
-    Eq,
-    PartialEq,
-    Into,
-    AsExpression,
-    FromSqlRow,
-    JsonFromSql,
-    JsonToSql,
-)]
-#[diesel(sql_type = Json)]
-pub struct Overrides(Map<String, Value>);
-
-#[cfg(not(feature = "diesel_derives"))]
-#[derive(
-    Deserialize, Serialize, Clone, AsRef, Deref, DerefMut, Debug, Eq, PartialEq, Into,
-)]
-pub struct Overrides(Map<String, Value>);
-
-impl Overrides {
-    fn validate_data(override_map: Map<String, Value>) -> Result<Self, String> {
-        if override_map.is_empty() {
-            log::error!("Override validation error: Override is empty");
-            return Err("Override should not be empty".to_owned());
-        }
-        Ok(Self(override_map))
-    }
-}
-
-impl IntoIterator for Overrides {
-    type Item = (String, Value);
-    type IntoIter = <Map<String, Value> as IntoIterator>::IntoIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}
-
-impl_try_from_map!(Cac, Overrides, Overrides::validate_data);
-impl_try_from_map!(Exp, Overrides, Overrides::validate_data);
-
-#[cfg(feature = "diesel_derives")]
-#[derive(
-    Deserialize,
-    Serialize,
-    Clone,
-    AsRef,
-    Deref,
-    Debug,
-    Eq,
-    PartialEq,
-    Into,
-    AsExpression,
-    FromSqlRow,
-    JsonFromSql,
-    JsonToSql,
-)]
-#[diesel(sql_type = Json)]
-pub struct Condition(Map<String, Value>);
-
-#[cfg(not(feature = "diesel_derives"))]
-#[derive(Deserialize, Serialize, Clone, AsRef, Deref, Debug, Eq, PartialEq, Into)]
-
-pub struct Condition(Map<String, Value>);
-impl Condition {
-    fn validate_data_for_cac(condition_map: Map<String, Value>) -> Result<Self, String> {
-        if condition_map.is_empty() {
-            log::error!("Condition validation error: Context is empty");
-            return Err("Context should not be empty".to_owned());
-        }
-        jsonlogic::expression::Expression::from_json(&json!(condition_map)).map_err(
-            |msg| {
-                log::error!("Condition validation error: {}", msg);
-                msg
-            },
-        )?;
-        Ok(Self(condition_map))
-    }
-
-    fn validate_data_for_exp(condition_map: Map<String, Value>) -> Result<Self, String> {
-        let condition_val = json!(condition_map);
-        let ast = jsonlogic::expression::Expression::from_json(&condition_val).map_err(
-            |msg| {
-                log::error!("Condition validation error: {}", msg);
-                msg
-            },
-        )?;
-        let dimensions = ast.get_variable_names().map_err(|msg| {
-            log::error!("Error while parsing variable names : {}", msg);
-            msg
-        })?;
-        if dimensions.contains("variantIds") {
-            log::error!("experiment's context should not contain variantIds dimension");
-            return Err(
-                "experiment's context should not contain variantIds dimension"
-                    .to_string(),
-            );
-        }
-        Ok(Self(condition_map))
-    }
-}
-
-impl_try_from_map!(Cac, Condition, Condition::validate_data_for_cac);
-impl_try_from_map!(Exp, Condition, Condition::validate_data_for_exp);
 
 const ALPHANUMERIC_WITH_DOT: &str =
     "^[a-zA-Z0-9-_]([a-zA-Z0-9-_.]{0,254}[a-zA-Z0-9-_])?$";
@@ -303,6 +156,7 @@ pub struct TenantConfig {
     pub mandatory_dimensions: Vec<String>,
 }
 
+#[cfg(feature = "server")]
 impl FromRequest for TenantConfig {
     type Error = actix_web::error::Error;
     type Future = Ready<Result<Self, Self::Error>>;
@@ -330,7 +184,7 @@ pub struct PaginatedResponse<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
+    use serde_json::{json, Map, Value};
 
     #[test]
     fn ok_test_deserialize_condition() {
