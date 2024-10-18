@@ -28,6 +28,7 @@ superposition_macros = { path = "../superposition_macros" }
 superposition_types = { path = "../superposition_types", features = [
     "result",
     "diesel_derives",
+    "server",
 ] }
 uuid = { workspace = true }
 fred = { workspace = true, optional = true, features = ["metrics"]}

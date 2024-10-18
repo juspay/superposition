@@ -1,3 +1,9 @@
+use futures::join;
+use leptos::*;
+use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
+use superposition_types::{Config, Context};
+
 use crate::api::fetch_config;
 use crate::api::{delete_context, fetch_default_config, fetch_dimensions};
 use crate::components::alert::AlertType;
@@ -14,11 +20,7 @@ use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
-use crate::types::{Config, Context, DefaultConfig, Dimension};
-use futures::join;
-use leptos::*;
-use serde::{Deserialize, Serialize};
-use serde_json::{json, Map, Value};
+use crate::types::{DefaultConfig, Dimension};
 
 #[derive(Clone, Debug, Default)]
 pub struct Data {
@@ -196,7 +198,7 @@ pub fn context_override() -> impl IntoView {
     let handle_context_edit =
         Callback::new(move |data: (Context, Map<String, Value>)| {
             let (context, overrides) = data;
-            let conditions = extract_conditions(&context.condition);
+            let conditions = extract_conditions(&Value::Object(context.condition.into()));
 
             set_selected_data.set(Some(Data {
                 context: conditions,
@@ -210,7 +212,7 @@ pub fn context_override() -> impl IntoView {
     let handle_context_clone =
         Callback::new(move |data: (Context, Map<String, Value>)| {
             let (context, overrides) = data;
-            let conditions = extract_conditions(&context.condition);
+            let conditions = extract_conditions(&Value::Object(context.condition.into()));
 
             set_selected_data.set(Some(Data {
                 context: conditions,
@@ -343,10 +345,7 @@ pub fn context_override() -> impl IntoView {
                                             .overrides
                                             .get(id)
                                             .cloned()
-                                            .unwrap_or(json!("{}"))
-                                            .as_object()
-                                            .cloned()
-                                            .unwrap_or(Map::new())
+                                            .map_or(Map::new(), |overrides| overrides.into())
                                             .into_iter()
                                             .collect::<Vec<(String, Value)>>()
                                     })

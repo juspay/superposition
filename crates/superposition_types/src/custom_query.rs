@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use actix_web::web::Query;
+use derive_more::{Deref, DerefMut};
 use regex::Regex;
 use serde::{
     de::{self, DeserializeOwned},
@@ -21,9 +21,11 @@ pub trait CustomQuery: Sized {
     fn extract_query(
         query_string: &str,
     ) -> Result<Self, actix_web::error::QueryPayloadError> {
-        let query_map = Query::<HashMap<String, String>>::from_query(query_string)?;
+        let query_map =
+            actix_web::web::Query::<HashMap<String, String>>::from_query(query_string)?;
         let filtered_query = Self::filter_and_transform_query(query_map.into_inner());
-        let inner = Query::<Self::Inner>::from_query(&filtered_query)?.into_inner();
+        let inner = actix_web::web::Query::<Self::Inner>::from_query(&filtered_query)?
+            .into_inner();
         Ok(Self::new(inner))
     }
 
@@ -94,9 +96,9 @@ where
 
 /// Provides struct to extract those query params from the request which are `not wrapped` in contrusts like `platform[param_name]`
 #[derive(Debug, Clone)]
-pub struct DynamicQuery<T: DeserializeOwned>(pub T);
+pub struct Query<T: DeserializeOwned>(pub T);
 
-impl<T> CustomQuery for DynamicQuery<T>
+impl<T> CustomQuery for Query<T>
 where
     T: DeserializeOwned,
 {
@@ -119,7 +121,7 @@ where
     }
 }
 
-impl<T> actix_web::FromRequest for DynamicQuery<T>
+impl<T> actix_web::FromRequest for Query<T>
 where
     T: DeserializeOwned,
 {
@@ -136,15 +138,9 @@ where
 }
 
 /// Provides struct to `Deserialize` `HashMap<String, String>` as `serde_json::Map<String, serde_json::Value>`
-#[derive(Deserialize)]
+#[derive(Deserialize, Deref, DerefMut)]
 #[serde(from = "HashMap<String,String>")]
 pub struct QueryMap(Map<String, Value>);
-
-impl QueryMap {
-    pub fn into_inner(self) -> Map<String, Value> {
-        self.0
-    }
-}
 
 impl From<HashMap<String, String>> for QueryMap {
     fn from(value: HashMap<String, String>) -> Self {

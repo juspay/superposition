@@ -1,13 +1,14 @@
 pub mod types;
 pub mod utils;
 
-use crate::components::condition_pills::types::ConditionOperator;
-
-use self::types::Condition;
 use leptos::{leptos_dom::helpers::WindowListenerHandle, *};
 use serde_json::Value;
 use wasm_bindgen::JsCast;
 use web_sys::Element;
+
+use crate::components::condition_pills::types::ConditionOperator;
+
+use self::types::Condition;
 
 use derive_more::{Deref, DerefMut};
 

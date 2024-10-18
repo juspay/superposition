@@ -34,9 +34,9 @@ use service_utils::{
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    custom_query::{CustomQuery, DynamicQuery, QueryFilters, QueryMap},
-    result as superposition, Cac, Condition, Overrides, PaginatedResponse, TenantConfig,
-    User,
+    custom_query::{self as superposition_query, CustomQuery, QueryFilters, QueryMap},
+    result as superposition, Cac, Condition, Config, Context, Overrides,
+    PaginatedResponse, TenantConfig, User,
 };
 use uuid::Uuid;
 
@@ -50,8 +50,7 @@ use crate::{
     helpers::generate_cac,
 };
 
-use super::helpers::{apply_prefix_filter_to_config, filter_config_by_dimensions};
-use super::types::{Config, Context};
+use super::helpers::apply_prefix_filter_to_config;
 
 pub fn endpoints() -> Scope {
     let scope = Scope::new("")
@@ -648,7 +647,7 @@ async fn get_config_fast(
 async fn get_config(
     req: HttpRequest,
     db_conn: DbConnection,
-    query_map: DynamicQuery<QueryMap>,
+    query_map: superposition_query::Query<QueryMap>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
@@ -664,14 +663,14 @@ async fn get_config(
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    let mut query_params_map = query_map.into_inner().into_inner();
+    let mut query_params_map = query_map.into_inner();
     let mut config_version = validate_version_in_params(&mut query_params_map)?;
     let mut config = generate_config_from_version(&mut config_version, &mut conn)?;
 
     config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
 
     if !query_params_map.is_empty() {
-        config = filter_config_by_dimensions(&config, &query_params_map)?
+        config = config.filter_by_dimensions(&query_params_map)
     }
 
     let mut response = HttpResponse::Ok();
@@ -685,10 +684,10 @@ async fn get_config(
 async fn get_resolved_config(
     req: HttpRequest,
     db_conn: DbConnection,
-    query_map: DynamicQuery<QueryMap>,
+    query_map: superposition_query::Query<QueryMap>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let mut query_params_map = query_map.into_inner().into_inner();
+    let mut query_params_map = query_map.into_inner();
 
     let max_created_at = get_max_created_at(&mut conn)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log : {e}"))
@@ -704,15 +703,6 @@ async fn get_resolved_config(
     let mut config = generate_config_from_version(&mut config_version, &mut conn)?;
 
     config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
-
-    let cac_client_contexts = config
-        .contexts
-        .into_iter()
-        .map(|val| cac_client::Context {
-            condition: val.condition,
-            override_with_keys: val.override_with_keys,
-        })
-        .collect::<Vec<_>>();
 
     let merge_strategy = req
         .headers()
@@ -730,7 +720,7 @@ async fn get_resolved_config(
     {
         eval_cac_with_reasoning(
             config.default_configs,
-            &cac_client_contexts,
+            &config.contexts,
             &override_map,
             &query_params_map,
             merge_strategy,
@@ -742,7 +732,7 @@ async fn get_resolved_config(
     } else {
         eval_cac(
             config.default_configs,
-            &cac_client_contexts,
+            &config.contexts,
             &override_map,
             &query_params_map,
             merge_strategy,

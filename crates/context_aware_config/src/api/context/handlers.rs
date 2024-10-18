@@ -30,8 +30,9 @@ use service_utils::service::types::Tenant;
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
+
 use superposition_types::{
-    custom_query::{CustomQuery, DynamicQuery, PlatformQuery, QueryMap},
+    custom_query::{self as superposition_query, CustomQuery, PlatformQuery, QueryMap},
     result as superposition, Cac, Contextual, Overridden, Overrides, TenantConfig, User,
 };
 
@@ -604,7 +605,7 @@ async fn get_context(
 #[get("/list")]
 async fn list_contexts(
     pagination_params: PlatformQuery<PaginationParams>,
-    dimension_params: DynamicQuery<QueryMap>,
+    dimension_params: superposition_query::Query<QueryMap>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<Vec<Context>>> {
     use crate::db::schema::contexts::dsl::*;
@@ -620,7 +621,7 @@ async fn list_contexts(
         return Err(bad_argument!("Param 'size' has to be at least 1."));
     }
 
-    let dimension_params = dimension_params.into_inner().into_inner();
+    let dimension_params = dimension_params.into_inner();
 
     let result = if dimension_params.len() > 0 || pagination_params.prefix.is_some() {
         let mut all_contexts: Vec<Context> =

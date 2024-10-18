@@ -55,11 +55,12 @@ fn get_overrides(
         }
     };
 
+    let query_data = Value::Object(query_data.clone());
+
     for context in contexts {
-        // TODO :: Add semantic version comparator in Lib
         if let Ok(Value::Bool(true)) = jsonlogic::apply(
             &Value::Object(context.condition.clone().into()),
-            &Value::Object(query_data.clone()),
+            &query_data,
         ) {
             for override_key in &context.override_with_keys {
                 if let Some(overriden_value) = overrides.get(override_key) {

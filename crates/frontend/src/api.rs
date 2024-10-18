@@ -1,8 +1,9 @@
 use leptos::ServerFnError;
+use superposition_types::Config;
 
 use crate::{
     types::{
-        Config, ConfigVersionListResponse, DefaultConfig, Dimension, ExperimentResponse,
+        ConfigVersionListResponse, DefaultConfig, Dimension, ExperimentResponse,
         ExperimentsResponse, FetchTypeTemplateResponse, FunctionResponse, ListFilters,
     },
     utils::{

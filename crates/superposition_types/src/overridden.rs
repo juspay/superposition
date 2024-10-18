@@ -2,9 +2,9 @@ use std::collections::HashSet;
 
 use serde_json::{Map, Value};
 
-use crate::Overrides;
+use crate::config::Overrides;
 
-fn filter_keys_by_prefix(
+pub(crate) fn filter_config_keys_by_prefix(
     overrides: Map<String, Value>,
     prefix_list: &HashSet<String>,
 ) -> Map<String, Value> {
@@ -26,7 +26,7 @@ pub trait Overridden<T: TryFrom<Map<String, Value>>>: Clone {
         prefix_list: &HashSet<String>,
     ) -> Result<T, <T as TryFrom<Map<String, Value>>>::Error> {
         let filtered_override =
-            filter_keys_by_prefix(context.get_overrides().into(), prefix_list);
+            filter_config_keys_by_prefix(context.get_overrides().into(), prefix_list);
 
         T::try_from(filtered_override)
     }
