@@ -14,6 +14,13 @@ use crate::{
     helpers::generate_cac,
 };
 use actix_http::header::HeaderValue;
+#[cfg(feature = "high-performance-mode")]
+use actix_http::StatusCode;
+
+#[cfg(feature = "high-performance-mode")]
+use actix_web::http::header::ContentType;
+#[cfg(feature = "high-performance-mode")]
+use actix_web::web::Data;
 use actix_web::web::{Json, Query};
 use actix_web::{get, put, web, HttpRequest, HttpResponse, HttpResponseBuilder, Scope};
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
@@ -23,7 +30,13 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
+#[cfg(feature = "high-performance-mode")]
+use fred::interfaces::KeysInterface;
 use serde_json::{json, Map, Value};
+#[cfg(feature = "high-performance-mode")]
+use service_utils::service::types::{AppState, Tenant};
+#[cfg(feature = "high-performance-mode")]
+use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     result as superposition, Cac, Condition, Overrides, PaginatedResponse, QueryFilters,
@@ -39,11 +52,14 @@ use service_utils::{
 use uuid::Uuid;
 
 pub fn endpoints() -> Scope {
-    Scope::new("")
-        .service(get)
+    let scope = Scope::new("")
+        .service(get_config)
         .service(get_resolved_config)
         .service(reduce_config)
-        .service(get_config_versions)
+        .service(get_config_versions);
+    #[cfg(feature = "high-performance-mode")]
+    let scope = scope.service(get_config_fast);
+    scope
 }
 
 fn validate_version_in_params(
@@ -457,7 +473,8 @@ async fn reduce_config_key(
                     if is_approve {
                         let _ = delete_context_api(cid.clone(), user.clone(), conn);
                         if let Ok(put_req) = construct_new_payload(request_payload) {
-                            let _ = put(put_req, conn, false, &user, &tenant_config);
+                            let _ =
+                                put(put_req, conn, false, &user, &tenant_config, false);
                         }
                     }
 
@@ -536,8 +553,97 @@ async fn reduce_config(
     Ok(HttpResponse::Ok().json(config))
 }
 
+#[cfg(feature = "high-performance-mode")]
+#[get("/fast")]
+async fn get_config_fast(
+    tenant: Tenant,
+    state: Data<AppState>,
+) -> superposition::Result<HttpResponse> {
+    use fred::interfaces::MetricsInterface;
+
+    log::debug!("Started redis fetch");
+    let config_key = format!("{}::cac_config", *tenant);
+    let last_modified_at_key = format!("{}::cac_config::last_modified_at", *tenant);
+    let audit_id_key = format!("{}::cac_config::audit_id", *tenant);
+    let config_version_key = format!("{}::cac_config::config_version", *tenant);
+    let client = state.redis.next_connected();
+    let config = client.get::<String, String>(config_key).await;
+    let metrics = client.take_latency_metrics();
+    let network_metrics = client.take_network_latency_metrics();
+    log::trace!(
+        "Network metrics for config fetch in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
+        network_metrics.max,
+        network_metrics.min,
+        network_metrics.avg,
+        metrics.max,
+        metrics.min,
+        metrics.avg
+    );
+    match config {
+        Ok(config) => {
+            let mut response = HttpResponse::Ok();
+            if let Ok(max_created_at) =
+                client.get::<String, String>(last_modified_at_key).await
+            {
+                let metrics = client.take_latency_metrics();
+                let network_metrics = client.take_network_latency_metrics();
+                log::trace!(
+                    "Network metrics max-created-by fetch in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
+                    network_metrics.max,
+                    network_metrics.min,
+                    network_metrics.avg,
+                    metrics.max,
+                    metrics.min,
+                    metrics.avg
+                );
+                response
+                    .insert_header((AppHeader::LastModified.to_string(), max_created_at));
+            }
+            if let Ok(audit_id) = client.get::<String, String>(audit_id_key).await {
+                let metrics = client.take_latency_metrics();
+                let network_metrics = client.take_network_latency_metrics();
+                log::trace!(
+                    "Network metrics for audit ID in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
+                    network_metrics.max,
+                    network_metrics.min,
+                    network_metrics.avg,
+                    metrics.max,
+                    metrics.min,
+                    metrics.avg
+                );
+                response.insert_header((AppHeader::XAuditId.to_string(), audit_id));
+            }
+            if let Ok(config_version) =
+                client.get::<Option<i64>, String>(config_version_key).await
+            {
+                let metrics = client.take_latency_metrics();
+                let network_metrics = client.take_network_latency_metrics();
+                log::trace!(
+                    "Network metrics for version ID in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
+                    network_metrics.max,
+                    network_metrics.min,
+                    network_metrics.avg,
+                    metrics.max,
+                    metrics.min,
+                    metrics.avg
+                );
+                add_config_version_to_header(&config_version, &mut response);
+            }
+            response.insert_header(ContentType::json());
+            Ok(response.body(config))
+        }
+        Err(err) => {
+            log::error!("Could not get config in redis due to {}", err);
+            Err(response_error!(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "could not fetch config, please try /config API"
+            ))
+        }
+    }
+}
+
 #[get("")]
-async fn get(
+async fn get_config(
     req: HttpRequest,
     db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {

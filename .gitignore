@@ -4,7 +4,8 @@ dist/
 
 # Log files
 *.log
-
+locust/venv
+locust/__pycache__
 # cargo
 target/
 

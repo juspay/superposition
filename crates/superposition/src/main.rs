@@ -104,7 +104,7 @@ async fn main() -> Result<()> {
                 let user = req.headers().get(header::AUTHORIZATION).and_then(|auth| auth.to_str().ok()).and_then(|auth| {
                     let mut token = auth.split(' ').into_iter();
                     match (token.next(), token.next()) {
-                        (Some("Internal"), Some(token)) if token == state.superposition_token => 
+                        (Some("Internal"), Some(token)) if token == state.superposition_token =>
                             req.headers().get("x-user").and_then(|auth| auth.to_str().ok()).and_then(|user_str| {
                                 serde_json::from_str::<User>(user_str).ok()
                             }),
