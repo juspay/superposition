@@ -6,14 +6,18 @@ use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
 use crate::components::table::{types::Column, Table};
 
+use crate::schema::HtmlDisplay;
 use crate::types::BreadCrums;
-use crate::utils::{
-    get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
-};
+use crate::utils::{get_local_storage, set_local_storage};
 use leptos::*;
 use leptos_router::{use_navigate, use_query_map};
 use serde_json::{json, Map, Value};
-use std::collections::HashSet;
+
+#[cfg(feature = "multi-delimiter")]
+const GROUPING_DELIMITER: &[char] = &['.', ':'];
+
+#[cfg(not(feature = "multi-delimiter"))]
+const GROUPING_DELIMITER: &[char] = &['.'];
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -40,7 +44,7 @@ pub fn default_config() -> impl IntoView {
     let key_prefix = create_rw_signal::<Option<String>>(None);
     let enable_grouping = create_rw_signal(false);
     let query_params = use_query_map();
-    let bread_crums = Signal::derive(move || get_bread_crums(key_prefix.get()));
+    let bread_crums = Signal::derive(move || utils::get_bread_crums(key_prefix.get()));
 
     create_effect(move |_| {
         let enable_grouping_val =
@@ -59,7 +63,7 @@ pub fn default_config() -> impl IntoView {
         }
     });
 
-    let folder_click_handler = move |key_name: Option<String>| {
+    let on_folder_click = move |key_name: Option<String>| {
         let tenant = tenant_rs.get();
         let redirect_url = match key_name {
             Some(prefix) => format!("admin/{tenant}/default-config?prefix={prefix}"),
@@ -73,27 +77,25 @@ pub fn default_config() -> impl IntoView {
     let table_columns = create_memo(move |_| {
         let grouping_enabled = enable_grouping.get();
         let actions_col_formatter = move |_: &str, row: &Map<String, Value>| {
-            let row_key = row["key"].to_string().replace('"', "");
-            let is_folder = row_key.contains('.');
-            let row_value = row["value"].to_string().replace('"', "");
+            let row_key = row["key"].html_display();
+            let row_value = row["value"].html_display();
+            let is_folder = row_key.contains(GROUPING_DELIMITER);
 
-            let schema = row["schema"].clone().to_string();
-            let schema_object =
-                serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
+            let schema = row["schema"].clone();
 
-            let function_name = row["function_name"].to_string();
+            let function_name = row["function_name"].html_display();
             let fun_name = match function_name.as_str() {
                 "null" => None,
-                _ => Some(json!(function_name.replace('"', ""))),
+                _ => Some(json!(function_name)),
             };
 
-            let key_name = StoredValue::new(row_key.clone());
+            let row_key = StoredValue::new(row_key.clone());
 
             let edit_click_handler = move |_| {
                 let row_data = RowData {
-                    key: row_key.clone(),
+                    key: row_key.get_value(),
                     value: row_value.clone(),
-                    schema: schema_object.clone(),
+                    schema: schema.clone(),
                     function_name: fun_name.clone(),
                 };
                 logging::log!("{:?}", row_data);
@@ -107,7 +109,7 @@ pub fn default_config() -> impl IntoView {
                 spawn_local({
                     async move {
                         let _ = delete_default_config(
-                            format!("{prefix}{}", key_name.get_value()),
+                            format!("{prefix}{}", row_key.get_value()),
                             tenant,
                         )
                         .await;
@@ -134,9 +136,9 @@ pub fn default_config() -> impl IntoView {
         };
 
         let expand = move |_: &str, row: &Map<String, Value>| {
-            let key_name = row["key"].to_string().replace('"', "");
+            let key_name = row["key"].html_display();
             let label = key_name.clone();
-            let is_folder = key_name.contains('.');
+            let is_folder = key_name.contains(GROUPING_DELIMITER);
 
             if is_folder && grouping_enabled {
                 view! {
@@ -147,7 +149,7 @@ pub fn default_config() -> impl IntoView {
                             if let Some(prefix_) = key_prefix.get() {
                                 key = prefix_.clone() + &key;
                             }
-                            folder_click_handler(Some(key.clone()))
+                            on_folder_click(Some(key.clone()))
                         }
                     >
 
@@ -228,47 +230,21 @@ pub fn default_config() -> impl IntoView {
                     }
                 }}
                 {move || {
-                    let default_config = default_config_resource.get().unwrap_or(vec![]);
-                    let table_rows = default_config
-                        .into_iter()
-                        .map(|config| {
-                            let mut ele_map = json!(config).as_object().unwrap().to_owned();
-                            ele_map
-                                .insert(
-                                    "created_at".to_string(),
-                                    json!(config.created_at.format("%v").to_string()),
-                                );
-                            ele_map
-                        })
-                        .collect::<Vec<Map<String, Value>>>();
-                    let mut filtered_rows = table_rows.clone();
-                    if enable_grouping.get() {
-                        let empty_map = Map::new();
-                        let cols = filtered_rows
-                            .first()
-                            .unwrap_or(&empty_map)
-                            .keys()
-                            .map(|key| key.as_str())
-                            .collect();
-                        filtered_rows = modify_rows(filtered_rows.clone(), key_prefix.get(), cols);
-                    }
-                    let total_default_config_keys = filtered_rows.len().to_string();
+                    let data = default_config_resource.get().unwrap_or(vec![]);
+                    let rows = utils::get_rows(data.clone(), key_prefix.get(), enable_grouping.get());
+                    let total_items = rows.len().to_string();
                     view! {
                         <div class="pb-4">
-                            <Stat
-                                heading="Config Keys"
-                                icon="ri-tools-line"
-                                number=total_default_config_keys
-                            />
+                            <Stat heading="Config Keys" icon="ri-tools-line" number=total_items/>
                         </div>
                         <div class="card rounded-lg w-full bg-base-100 shadow">
                             <div class="card-body">
                                 <div class="flex justify-between pb-2">
-                                    <BreadCrums bread_crums=bread_crums.get() folder_click_handler/>
+                                    <BreadCrums bread_crums=bread_crums.get() on_folder_click/>
                                     <div class="flex">
                                         <label
                                             on:click=move |_| {
-                                                folder_click_handler(None);
+                                                on_folder_click(None);
                                                 enable_grouping.set(!enable_grouping.get());
                                                 set_local_storage(
                                                     "enable_grouping",
@@ -293,7 +269,7 @@ pub fn default_config() -> impl IntoView {
                                 </div>
                                 <Table
                                     cell_class="min-w-48 font-mono".to_string()
-                                    rows=filtered_rows
+                                    rows=rows
                                     key_column="id".to_string()
                                     columns=table_columns.get()
                                 />
@@ -308,37 +284,32 @@ pub fn default_config() -> impl IntoView {
 }
 
 #[component]
-pub fn bread_crums<NF>(
+pub fn bread_crums(
     bread_crums: Vec<BreadCrums>,
-    folder_click_handler: NF,
-) -> impl IntoView
-where
-    NF: Fn(Option<String>) + 'static + Clone,
-{
+    #[prop(into)] on_folder_click: Callback<Option<String>, ()>,
+) -> impl IntoView {
     view! {
         <div class="flex justify-between pt-3">
 
             {bread_crums
-                .iter()
-                .enumerate()
-                .map(|(_, ele)| {
+                .into_iter()
+                .map(|ele| {
                     let value = ele.value.clone();
-                    let is_link = ele.is_link;
-                    let handler = folder_click_handler.clone();
+                    let item_class = if ele.is_link {
+                        "cursor-pointer text-blue-500 underline underline-offset-2"
+                    } else {
+                        ""
+                    };
                     view! {
                         <h2 class="flex after:content-['>'] after:mx-4 after:last:hidden">
                             <span
                                 on:click=move |_| {
-                                    if is_link {
-                                        handler(value.clone())
+                                    if ele.is_link {
+                                        on_folder_click.call(value.clone())
                                     }
                                 }
 
-                                class=if ele.is_link {
-                                    "cursor-pointer text-blue-500 underline underline-offset-2"
-                                } else {
-                                    ""
-                                }
+                                class=item_class
                             >
 
                                 {ele.key.clone()}
@@ -351,107 +322,119 @@ where
     }
 }
 
-pub fn get_bread_crums(key_prefix: Option<String>) -> Vec<BreadCrums> {
-    let mut default_bread_crums = vec![BreadCrums {
-        key: "Default Config".to_string(),
-        value: None,
-        is_link: true,
-    }];
+mod utils {
+    use std::collections::HashSet;
 
-    let mut bread_crums = match key_prefix {
-        Some(prefix) => {
-            let prefix_arr = prefix
-                .trim_matches('.')
-                .split('.')
-                .map(str::to_string)
-                .collect::<Vec<String>>();
-            prefix_arr
-                .into_iter()
-                .fold(String::new(), |mut prefix, ele| {
-                    prefix.push_str(&ele);
-                    prefix.push('.');
-                    default_bread_crums.push(BreadCrums {
-                        key: ele.clone(),
-                        value: Some(prefix.clone()),
-                        is_link: true,
-                    });
-                    prefix
-                });
-            default_bread_crums
-        }
-        None => default_bread_crums,
+    use serde_json::{Map, Value};
+
+    use crate::{
+        types::{BreadCrums, DefaultConfig},
+        utils::unwrap_option_or_default_with_error,
     };
-    if let Some(last_crumb) = bread_crums.last_mut() {
-        last_crumb.is_link = false;
-    }
-    bread_crums
-}
 
-pub fn modify_rows(
-    filtered_rows: Vec<Map<String, Value>>,
-    key_prefix: Option<String>,
-    cols: Vec<&str>,
-) -> Vec<Map<String, Value>> {
-    let mut groups: HashSet<String> = HashSet::new();
-    let mut grouped_rows: Vec<Map<String, Value>> = filtered_rows
-        .into_iter()
-        .filter_map(|mut ele| {
-            let key = ele.get("key").unwrap().to_owned();
+    use super::GROUPING_DELIMITER;
 
-            let key_arr = match &key_prefix {
-                Some(prefix) => key
-                    .to_string()
-                    .split(prefix)
-                    .map(str::to_string)
-                    .collect::<Vec<String>>(),
-                None => vec!["".to_string(), key.to_string()],
-            };
-            // key_arr.get(1) retrieves the remaining part of the key, after removing the prefix.
-            if let Some(filtered_key) = key_arr.get(1) {
-                let new_key = filtered_key
-                    .split('.')
-                    .map(str::to_string)
-                    .collect::<Vec<String>>();
-                let key = new_key.first().unwrap().to_owned().replace('"', "");
-                if new_key.len() == 1 {
-                    // key
-                    ele.insert("key".to_string(), json!(key));
-                } else {
-                    // folder
-                    let folder = key + ".";
-                    if !groups.contains(&folder) {
-                        cols.iter().for_each(|col| {
-                            ele.insert(
-                                col.to_string(),
-                                json!(if *col == "key" {
-                                    folder.clone()
-                                } else {
-                                    "-".to_string()
-                                }),
-                            );
-                        });
-                        groups.insert(folder);
-                    } else {
-                        return None;
-                    }
-                }
-                Some(ele)
-            } else {
-                None
+    pub fn get_bread_crums(prefix: Option<String>) -> Vec<BreadCrums> {
+        let mut bread_crums = vec![BreadCrums {
+            key: "Default Config".to_string(),
+            value: None,
+            is_link: true,
+        }];
+
+        if let Some(s) = prefix {
+            let mut acc = String::new();
+            for frag in s.split_inclusive(GROUPING_DELIMITER) {
+                acc.push_str(frag);
+                bread_crums.push(BreadCrums {
+                    key: frag.trim_matches(GROUPING_DELIMITER).to_string(),
+                    value: Some(acc.clone()),
+                    is_link: true,
+                })
             }
-        })
-        .collect();
-    grouped_rows.sort_by(|a, b| {
-        let key_a =
-            unwrap_option_or_default_with_error(a.get("key").and_then(Value::as_str), "");
-        let key_b =
-            unwrap_option_or_default_with_error(b.get("key").and_then(Value::as_str), "");
-
-        match (key_a.contains('.'), key_b.contains('.')) {
-            (true, false) => std::cmp::Ordering::Less,
-            (false, true) => std::cmp::Ordering::Greater,
-            _ => std::cmp::Ordering::Equal,
         }
-    });
-    grouped_rows
+
+        if let Some(last_crumb) = bread_crums.last_mut() {
+            last_crumb.is_link = false;
+        }
+        bread_crums
+    }
+
+    pub fn get_rows(
+        data: Vec<DefaultConfig>,
+        prefix: Option<String>,
+        enable_grouping: bool,
+    ) -> Vec<Map<String, Value>> {
+        if !enable_grouping {
+            return data.iter().map(|v| v.into_row()).collect();
+        }
+
+        let mut groups: HashSet<&str> = HashSet::new();
+        let mut rows: Vec<Map<String, Value>> = vec![];
+        for config_key in data.iter() {
+            let suffix = prefix.as_ref().map_or(Some(config_key.key.as_str()), |s| {
+                config_key.key.split(s).nth(1)
+            });
+
+            if let Some(suff) = suffix {
+                let splits = suff
+                    .split_inclusive(GROUPING_DELIMITER)
+                    .collect::<Vec<&str>>();
+                let is_leaf = splits.len() == 1;
+
+                let grp_name = splits.first().expect(
+                    format!(
+                        "invalid key name, cannot end with characters {:?}",
+                        GROUPING_DELIMITER
+                    )
+                    .as_str(),
+                );
+
+                if !is_leaf && groups.contains(grp_name) {
+                    continue;
+                }
+                groups.insert(grp_name);
+
+                let mut row_map = config_key.into_row();
+                if is_leaf {
+                    row_map
+                        .insert("key".to_string(), Value::String(grp_name.to_string()));
+                } else {
+                    DefaultConfig::table_cols().iter().for_each(|c| {
+                        if *c == "key" {
+                            row_map.insert(
+                                c.to_string(),
+                                Value::String(grp_name.to_string()),
+                            );
+                        } else {
+                            row_map.insert(c.to_string(), Value::String("-".to_string()));
+                        }
+                    })
+                }
+
+                rows.push(row_map);
+            }
+        }
+
+        rows.sort_by(|a, b| {
+            let key_a = unwrap_option_or_default_with_error(
+                a.get("key").and_then(Value::as_str),
+                "",
+            );
+            let key_b = unwrap_option_or_default_with_error(
+                b.get("key").and_then(Value::as_str),
+                "",
+            );
+
+            match (
+                key_a.contains(GROUPING_DELIMITER),
+                key_b.contains(GROUPING_DELIMITER),
+            ) {
+                (true, false) => std::cmp::Ordering::Less,
+                (false, true) => std::cmp::Ordering::Greater,
+                _ => std::cmp::Ordering::Equal,
+            }
+        });
+
+        rows
+    }
 }

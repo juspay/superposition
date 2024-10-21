@@ -43,6 +43,7 @@ hydrate = [
   "console_error_panic_hook",
 ]
 ssr = ["leptos/ssr", "leptos_meta/ssr", "leptos_router/ssr"]
+multi-delimiter = []
 
 [lints]
 workspace = true

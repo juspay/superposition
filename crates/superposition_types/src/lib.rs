@@ -183,8 +183,20 @@ impl Condition {
 impl_try_from_map!(Cac, Condition, Condition::validate_data_for_cac);
 impl_try_from_map!(Exp, Condition, Condition::validate_data_for_exp);
 
+#[cfg(feature = "multi-delimiter")]
+const ALPHANUMERIC_WITH_DOT: &str =
+    "^[a-zA-Z0-9-_]([a-zA-Z0-9-_.:]{0,254}[a-zA-Z0-9-_])?$";
+
+#[cfg(feature = "multi-delimiter")]
+const ALPHANUMERIC_WITH_DOT_WORDS: &str =
+    "It can contain the following characters only [a-zA-Z0-9-_.:] \
+                                    and it should not start or end with a ':' or '.' character.";
+
+#[cfg(not(feature = "multi-delimiter"))]
 const ALPHANUMERIC_WITH_DOT: &str =
     "^[a-zA-Z0-9-_]([a-zA-Z0-9-_.]{0,254}[a-zA-Z0-9-_])?$";
+
+#[cfg(not(feature = "multi-delimiter"))]
 const ALPHANUMERIC_WITH_DOT_WORDS: &str =
     "It can contain the following characters only [a-zA-Z0-9-_.] \
                                     and it should not start or end with a '.' character.";
