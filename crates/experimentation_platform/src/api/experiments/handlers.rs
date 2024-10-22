@@ -33,8 +33,8 @@ use super::{
     types::{
         ApplicableVariantsQuery, AuditQueryFilters, ConcludeExperimentRequest,
         ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq,
-        ExperimentCreateRequest, ExperimentCreateResponse, ExperimentResponse,
-        ExperimentsResponse, ListFilters, OverrideKeysUpdateRequest, RampRequest,
+        ExpListFilters, ExperimentCreateRequest, ExperimentCreateResponse,
+        ExperimentResponse, ExperimentsResponse, OverrideKeysUpdateRequest, RampRequest,
     },
 };
 
@@ -520,7 +520,7 @@ async fn get_applicable_variants(
 #[get("")]
 async fn list_experiments(
     req: HttpRequest,
-    filters: Query<ListFilters>,
+    filters: Query<ExpListFilters>,
     db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -544,7 +544,7 @@ async fn list_experiments(
         return Ok(HttpResponse::NotModified().finish());
     };
 
-    let query_builder = |filters: &ListFilters| {
+    let query_builder = |filters: &ExpListFilters| {
         let mut builder = experiments::experiments.into_boxed();
         if let Some(states) = filters.status.clone() {
             builder = builder.filter(experiments::status.eq_any(states.0.clone()));

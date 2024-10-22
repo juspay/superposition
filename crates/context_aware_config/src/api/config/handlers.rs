@@ -39,8 +39,8 @@ use service_utils::service::types::{AppState, Tenant};
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    result as superposition, Cac, Condition, Overrides, PaginatedResponse, QueryFilters,
-    TenantConfig, User,
+    result as superposition, Cac, Condition, Overrides, PaginatedResponse,
+    QueryListFilters, TenantConfig, User,
 };
 
 use itertools::Itertools;
@@ -759,7 +759,7 @@ async fn get_resolved_config(
 #[get("/versions")]
 async fn get_config_versions(
     db_conn: DbConnection,
-    filters: Query<QueryFilters>,
+    filters: Query<QueryListFilters>,
 ) -> superposition::Result<Json<PaginatedResponse<ConfigVersion>>> {
     let DbConnection(mut conn) = db_conn;
 

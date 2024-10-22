@@ -444,12 +444,12 @@ mod tests {
 }
 
 #[derive(Debug, Clone)]
-pub struct QueryFilters {
+pub struct QueryListFilters {
     pub count: Option<i64>,
     pub page: Option<i64>,
 }
 
-impl<'de> Deserialize<'de> for QueryFilters {
+impl<'de> Deserialize<'de> for QueryListFilters {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -474,7 +474,7 @@ impl<'de> Deserialize<'de> for QueryFilters {
             }
         }
 
-        Ok(QueryFilters {
+        Ok(QueryListFilters {
             count: helper.count,
             page: helper.page,
         })
