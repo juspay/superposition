@@ -56,7 +56,7 @@ fn create_routes(tenant: &str) -> Vec<AppRoute> {
             key: format!("{base}/admin/{tenant}/config/versions"),
             path: format!("{base}/admin/{tenant}/config/versions"),
             icon: "ri-camera-lens-fill".to_string(),
-            label: "ConfigVersions".to_string(),
+            label: "Config Versions".to_string(),
         },
     ]
 }
