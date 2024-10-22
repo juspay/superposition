@@ -8,7 +8,7 @@ use diesel::{
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use superposition_derives::{JsonFromSql, JsonToSql};
-use superposition_types::{Exp, Overrides};
+use superposition_types::{Condition, Exp, Overrides};
 
 #[derive(
     Debug,
@@ -75,7 +75,7 @@ pub struct Experiment {
     pub status: ExperimentStatusType,
     pub traffic_percentage: i32,
 
-    pub context: Value,
+    pub context: Condition,
     pub variants: Variants,
     pub last_modified_by: String,
     pub chosen_variant: Option<String>,

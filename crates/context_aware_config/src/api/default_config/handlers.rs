@@ -40,7 +40,7 @@ use diesel::{
 };
 use diesel::{Connection, SelectableHelper};
 use jsonschema::{Draft, JSONSchema, ValidationError};
-use serde_json::{Map, Value};
+use serde_json::Value;
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create).service(get).service(delete)
@@ -229,8 +229,8 @@ pub fn get_key_usage_context_ids(
 
     let mut context_ids = vec![];
     for context in result.iter() {
-        let overrides: Map<String, Value> = context.override_.clone().into();
-        overrides
+        context
+            .override_
             .get(key)
             .map_or((), |_| context_ids.push(context.id.to_owned()))
     }

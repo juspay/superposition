@@ -4,7 +4,7 @@ mod interface;
 mod utils;
 
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     convert::identity,
     sync::Arc,
     time::{Duration, UNIX_EPOCH},
@@ -151,7 +151,7 @@ impl Client {
         let cac = self.config.read().await;
         let mut config = cac.to_owned();
         if let Some(prefix_list) = prefix {
-            config = config.filter_by_prefix(&prefix_list.iter().cloned().collect());
+            config = config.filter_by_prefix(&HashSet::from_iter(prefix_list));
         }
 
         let dimension_filtered_config = query_data
@@ -178,7 +178,7 @@ impl Client {
         let cac = self.config.read().await;
         let mut config = cac.to_owned();
         if let Some(keys) = filter_keys {
-            config = config.filter_by_prefix(&keys.iter().cloned().collect());
+            config = config.filter_by_prefix(&HashSet::from_iter(keys));
         }
         eval::eval_cac(
             config.default_configs.to_owned(),
@@ -196,8 +196,7 @@ impl Client {
         let configs = self.config.read().await;
         let mut default_configs = configs.default_configs.clone();
         if let Some(keys) = filter_keys {
-            default_configs =
-                configs.filter_default_by_prefix(&keys.iter().cloned().collect());
+            default_configs = configs.filter_default_by_prefix(&HashSet::from_iter(keys));
         }
         Ok(default_configs)
     }

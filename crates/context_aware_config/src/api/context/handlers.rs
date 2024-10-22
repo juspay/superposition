@@ -31,6 +31,7 @@ use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
 
+use superposition_types::PaginatedResponse;
 use superposition_types::{
     custom_query::{self as superposition_query, CustomQuery, PlatformQuery, QueryMap},
     result as superposition, Cac, Contextual, Overridden, Overrides, TenantConfig, User,
@@ -39,8 +40,8 @@ use superposition_types::{
 use crate::{
     api::{
         context::types::{
-            ContextAction, ContextBulkResponse, DimensionCondition, MoveReq,
-            PaginationParams, PriorityRecomputeResponse, PutReq, PutResp,
+            ContextAction, ContextBulkResponse, ContextFilters, DimensionCondition,
+            MoveReq, PriorityRecomputeResponse, PutReq, PutResp,
         },
         dimension::get_all_dimension_schema_map,
     },
@@ -232,11 +233,11 @@ fn create_ctx_from_put_req(
     let context_id = hash(&condition_val);
     let override_id = hash(&ctx_override);
     Ok(Context {
-        id: context_id.clone(),
+        id: context_id,
         value: ctx_condition,
         priority,
-        override_id: override_id.to_owned(),
-        override_: r_override.to_owned(),
+        override_id: override_id,
+        override_: r_override,
         created_at: Utc::now(),
         created_by: user.get_email(),
         last_modified_at: Utc::now().naive_utc(),
@@ -265,7 +266,7 @@ fn update_override_of_existing_ctx(
     );
     let new_override_id = hash(&new_override);
     let new_ctx = Context {
-        override_: Cac::<Overrides>::try_from_db(
+        override_: Cac::<Overrides>::validate_db_data(
             new_override.as_object().cloned().unwrap_or(Map::new()),
         )
         .map_err(|err| {
@@ -604,16 +605,16 @@ async fn get_context(
 
 #[get("/list")]
 async fn list_contexts(
-    pagination_params: PlatformQuery<PaginationParams>,
+    filter_params: PlatformQuery<ContextFilters>,
     dimension_params: superposition_query::Query<QueryMap>,
     db_conn: DbConnection,
-) -> superposition::Result<Json<Vec<Context>>> {
+) -> superposition::Result<Json<PaginatedResponse<Context>>> {
     use crate::db::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
 
-    let pagination_params = pagination_params.into_inner();
-    let page = pagination_params.page.unwrap_or(1);
-    let size = pagination_params.size.unwrap_or(10);
+    let filter_params = filter_params.into_inner();
+    let page = filter_params.page.unwrap_or(1);
+    let size = filter_params.size.unwrap_or(10);
 
     if page < 1 {
         return Err(bad_argument!("Param 'page' has to be at least 1."));
@@ -623,10 +624,12 @@ async fn list_contexts(
 
     let dimension_params = dimension_params.into_inner();
 
-    let result = if dimension_params.len() > 0 || pagination_params.prefix.is_some() {
+    let (data, total_items) = if dimension_params.len() > 0
+        || filter_params.prefix.is_some()
+    {
         let mut all_contexts: Vec<Context> =
             contexts.order(created_at).load(&mut conn)?;
-        if let Some(prefix) = pagination_params.prefix {
+        if let Some(prefix) = filter_params.prefix {
             let prefix_list = prefix.split(',').map(String::from).collect::<HashSet<_>>();
             all_contexts = all_contexts
                 .into_iter()
@@ -645,20 +648,31 @@ async fn list_contexts(
             Context::filter_by_dimension(all_contexts, &dimension_keys);
         let eval_filter_contexts =
             Context::filter_by_eval(dimension_filter_contexts, &dimension_params);
+
+        let total_items = eval_filter_contexts.len();
         let start = (size * (page - 1)) as usize;
-        let end = min((size * page) as usize, eval_filter_contexts.len());
-        eval_filter_contexts
+        let end = min((size * page) as usize, total_items);
+        let data = eval_filter_contexts
             .get(start..end)
-            .map_or(vec![], |slice| slice.to_vec())
+            .map_or(vec![], |slice| slice.to_vec());
+
+        (data, total_items as i64)
     } else {
-        contexts
+        let total_items: i64 = contexts.count().get_result(&mut conn)?;
+        let data = contexts
             .order(created_at)
             .limit(i64::from(size))
             .offset(i64::from(size * (page - 1)))
-            .load::<Context>(&mut conn)?
+            .load::<Context>(&mut conn)?;
+
+        (data, total_items)
     };
 
-    Ok(Json(result))
+    Ok(Json(PaginatedResponse {
+        total_pages: (total_items as f64 / size as f64).ceil() as i64,
+        total_items,
+        data,
+    }))
 }
 
 pub fn delete_context_api(

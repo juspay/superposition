@@ -31,7 +31,7 @@ macro_rules! impl_try_from_map {
         }
 
         impl $wrapper<$type> {
-            pub fn try_from_db(map: Map<String, Value>) -> Result<Self, String> {
+            pub fn validate_db_data(map: Map<String, Value>) -> Result<Self, String> {
                 #[cfg(feature = "disable_db_data_validation")]
                 return Ok(Self($type(map)));
                 #[cfg(not(feature = "disable_db_data_validation"))]
@@ -221,7 +221,7 @@ impl Config {
                 .collect();
 
             if break_on_validate {
-                let filtered_override_map = Cac::<Overrides>::try_from_db(
+                let filtered_override_map = Cac::<Overrides>::validate_db_data(
                     filtered_overrides_map,
                 )
                 .map_err(|err| {

@@ -123,11 +123,8 @@ pub fn is_valid_experiment(
     {
         let override_keys_set = HashSet::<&String>::from_iter(override_keys);
         for active_experiment in active_experiments {
-            let active_exp_context = Exp::<Condition>::try_from_db(
-                active_experiment
-                    .context
-                    .as_object()
-                    .map_or_else(|| Map::new(), |ctx| ctx.clone())
+            let active_exp_context = Exp::<Condition>::validate_db_data(
+                active_experiment.context.clone().into()
             )
             .map_err(|err| {
                 log::error!("is_valid_experiment : failed to decode overrides from db with error {}", err);

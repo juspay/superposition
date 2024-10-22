@@ -27,7 +27,7 @@ pub struct PutResp {
 }
 
 #[derive(Deserialize)]
-pub struct PaginationParams {
+pub struct ContextFilters {
     pub page: Option<u32>,
     pub size: Option<u32>,
     pub prefix: Option<String>,

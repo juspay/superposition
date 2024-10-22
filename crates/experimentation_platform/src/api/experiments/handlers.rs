@@ -294,7 +294,7 @@ async fn create(
         override_keys: unique_override_keys.to_vec(),
         traffic_percentage: 0,
         status: ExperimentStatusType::CREATED,
-        context: Value::Object(req.context.clone().into_inner().into()),
+        context: req.context.clone().into_inner(),
         variants: Variants::new(variants),
         last_modified_by: user.get_email(),
         chosen_variant: None,
@@ -362,10 +362,7 @@ pub async fn conclude(
         ));
     }
 
-    let experiment_context = experiment.context.as_object().ok_or_else(|| {
-        log::error!("could not convert the context read from DB to JSON object");
-        unexpected_error!("Something went wrong, failed to conclude experiment")
-    })?;
+    let experiment_context: Map<String, Value> = experiment.context.into();
 
     let mut operations: Vec<ContextAction> = vec![];
 
@@ -490,13 +487,12 @@ async fn get_applicable_variants(
         .load::<Experiment>(&mut conn)?;
 
     let experiments = experiments.into_iter().filter(|exp| {
-        let is_empty = exp
-            .context
-            .as_object()
-            .map_or(false, |context| context.is_empty());
-        is_empty
-            || jsonlogic::apply(&exp.context, &Value::Object(query_data.context.clone()))
-                == Ok(Value::Bool(true))
+        let context: Map<String, Value> = exp.context.clone().into();
+        context.is_empty()
+            || jsonlogic::apply(
+                &Value::Object(context),
+                &Value::Object(query_data.context.clone()),
+            ) == Ok(Value::Bool(true))
     });
 
     let mut variants = Vec::new();
@@ -743,20 +739,16 @@ async fn update_overrides(
             )
         )?;
     }
-    let experiment_condition = Exp::<Condition>::try_from_db(
-        experiment
-            .context
-            .as_object()
-            .map_or_else(|| Map::new(), |ctx| ctx.clone()),
-    )
-    .map_err(|err| {
-        log::error!(
-            "update_overrides : failed to decode condition from db with error {}",
-            err
-        );
-        unexpected_error!(err)
-    })?
-    .into_inner();
+    let experiment_condition =
+        Exp::<Condition>::validate_db_data(experiment.context.into())
+            .map_err(|err| {
+                log::error!(
+                    "update_overrides : failed to decode condition from db with error {}",
+                    err
+                );
+                unexpected_error!(err)
+            })?
+            .into_inner();
 
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;
