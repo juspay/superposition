@@ -1,8 +1,11 @@
 //NOTE this code is copied over from sdk-config-server with small changes for compatiblity
 //TODO refactor, make eval MJOS agnostic
 
+use std::collections::HashMap;
+
 use crate::{utils::core::MapError, Context, MergeStrategy};
 use serde_json::{json, Map, Value};
+use superposition_types::Overrides;
 
 pub fn merge(doc: &mut Value, patch: &Value) {
     if !patch.is_object() {
@@ -41,7 +44,7 @@ fn replace_top_level(
 fn get_overrides(
     query_data: &Map<String, Value>,
     contexts: &[Context],
-    overrides: &Map<String, Value>,
+    overrides: &HashMap<String, Overrides>,
     merge_strategy: &MergeStrategy,
     mut on_override_select: Option<&mut dyn FnMut(Context)>,
 ) -> serde_json::Result<Value> {
@@ -52,22 +55,27 @@ fn get_overrides(
         }
     };
 
+    let query_data = Value::Object(query_data.clone());
+
     for context in contexts {
-        // TODO :: Add semantic version comparator in Lib
-        if let Ok(Value::Bool(true)) =
-            jsonlogic::apply(&context.condition, &json!(query_data))
-        {
+        if let Ok(Value::Bool(true)) = jsonlogic::apply(
+            &Value::Object(context.condition.clone().into()),
+            &query_data,
+        ) {
             for override_key in &context.override_with_keys {
                 if let Some(overriden_value) = overrides.get(override_key) {
                     match merge_strategy {
                         MergeStrategy::REPLACE => replace_top_level(
                             required_overrides.as_object_mut().unwrap(),
-                            overriden_value,
+                            &Value::Object(overriden_value.clone().into()),
                             || on_override_select(context.clone()),
                             override_key,
                         ),
                         MergeStrategy::MERGE => {
-                            merge(&mut required_overrides, overriden_value);
+                            merge(
+                                &mut required_overrides,
+                                &Value::Object(overriden_value.clone().into()),
+                            );
                             on_override_select(context.clone())
                         }
                     }
@@ -101,7 +109,7 @@ fn merge_overrides_on_default_config(
 pub fn eval_cac(
     mut default_config: Map<String, Value>,
     contexts: &[Context],
-    overrides: &Map<String, Value>,
+    overrides: &HashMap<String, Overrides>,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
 ) -> Result<Map<String, Value>, String> {
@@ -123,7 +131,7 @@ pub fn eval_cac(
 pub fn eval_cac_with_reasoning(
     mut default_config: Map<String, Value>,
     contexts: &[Context],
-    overrides: &Map<String, Value>,
+    overrides: &HashMap<String, Overrides>,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
 ) -> Result<Map<String, Value>, String> {

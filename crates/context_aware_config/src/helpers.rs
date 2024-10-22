@@ -1,17 +1,4 @@
-use crate::{
-    api::config::types::{Config, Context},
-    db::{
-        models::ConfigVersion,
-        schema::{
-            config_versions,
-            contexts::dsl::{self as ctxt},
-            default_configs::dsl as def_conf,
-        },
-    },
-};
-
-#[cfg(feature = "high-performance-mode")]
-use crate::db::schema::event_log::dsl as event_log;
+use std::collections::HashMap;
 
 use actix_web::http::header::{HeaderMap, HeaderName, HeaderValue};
 use actix_web::web::Data;
@@ -33,13 +20,23 @@ use service_utils::{
     helpers::{generate_snowflake_id, validation_err_to_str},
     service::types::AppState,
 };
-
 use superposition_macros::{db_error, unexpected_error, validation_error};
-use superposition_types::{result as superposition, Cac, Condition, Overrides};
+use superposition_types::{
+    result as superposition, Cac, Condition, Config, Context, Overrides,
+};
 #[cfg(feature = "high-performance-mode")]
 use uuid::Uuid;
 
-use std::collections::HashMap;
+#[cfg(feature = "high-performance-mode")]
+use crate::db::schema::event_log::dsl as event_log;
+use crate::db::{
+    models::ConfigVersion,
+    schema::{
+        config_versions,
+        contexts::dsl::{self as ctxt},
+        default_configs::dsl as def_conf,
+    },
+};
 
 pub fn parse_headermap_safe(headermap: &HeaderMap) -> HashMap<String, String> {
     let mut req_headers = HashMap::new();
@@ -238,7 +235,7 @@ pub fn generate_cac(
             ctxt::override_,
         ))
         .order_by((ctxt::priority.asc(), ctxt::created_at.asc()))
-        .load::<(String, Value, i32, String, Value)>(conn)
+        .load::<(String, Condition, i32, String, Overrides)>(conn)
         .map_err(|err| {
             log::error!("failed to fetch contexts with error: {}", err);
             db_error!(err)
@@ -248,23 +245,19 @@ pub fn generate_cac(
     let mut overrides: HashMap<String, Overrides> = HashMap::new();
 
     for (id, condition, priority_, override_id, override_) in contexts_vec.iter() {
-        let condition = Cac::<Condition>::try_from_db(
-            condition.as_object().unwrap_or(&Map::new()).clone(),
-        )
-        .map_err(|err| {
-            log::error!("generate_cac : failed to decode context from db {}", err);
-            unexpected_error!(err)
-        })?
-        .into_inner();
+        let condition = Cac::<Condition>::validate_db_data(condition.clone().into())
+            .map_err(|err| {
+                log::error!("generate_cac : failed to decode context from db {}", err);
+                unexpected_error!(err)
+            })?
+            .into_inner();
 
-        let override_ = Cac::<Overrides>::try_from_db(
-            override_.as_object().unwrap_or(&Map::new()).clone(),
-        )
-        .map_err(|err| {
-            log::error!("generate_cac : failed to decode overrides from db {}", err);
-            unexpected_error!(err)
-        })?
-        .into_inner();
+        let override_ = Cac::<Overrides>::validate_db_data(override_.clone().into())
+            .map_err(|err| {
+                log::error!("generate_cac : failed to decode overrides from db {}", err);
+                unexpected_error!(err)
+            })?
+            .into_inner();
         let ctxt = Context {
             id: id.to_owned(),
             condition,

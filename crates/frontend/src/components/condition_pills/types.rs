@@ -2,8 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-
-use crate::types::Context;
+use superposition_types::Context;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ConditionOperator {
@@ -70,6 +69,9 @@ pub struct Condition {
     pub right_operand: Vec<Value>,
 }
 
+#[derive(Default, Clone)]
+pub struct Conditions(pub Vec<Condition>);
+
 impl TryFrom<&Map<String, Value>> for Condition {
     type Error = &'static str;
     fn try_from(source: &Map<String, Value>) -> Result<Self, Self::Error> {
@@ -116,23 +118,21 @@ impl TryFrom<&Value> for Condition {
     }
 }
 
-impl TryFrom<&Context> for Vec<Condition> {
+impl TryFrom<&Context> for Conditions {
     type Error = &'static str;
     fn try_from(context: &Context) -> Result<Self, Self::Error> {
-        context
-            .condition
-            .as_object()
-            .ok_or("failed to parse context.condition as an object")
-            .and_then(|obj| match obj.get("and") {
-                Some(v) => v
-                    .as_array()
-                    .ok_or("failed to parse value of and as array")
-                    .and_then(|arr| {
-                        arr.iter()
-                            .map(Condition::try_from)
-                            .collect::<Result<Vec<Condition>, &'static str>>()
-                    }),
-                None => Condition::try_from(obj).map(|v| vec![v]),
-            })
+        let obj: Map<String, Value> = context.condition.clone().into();
+        match obj.get("and") {
+            Some(v) => v
+                .as_array()
+                .ok_or("failed to parse value of and as array")
+                .and_then(|arr| {
+                    arr.iter()
+                        .map(Condition::try_from)
+                        .collect::<Result<Vec<Condition>, &'static str>>()
+                }),
+            None => Condition::try_from(&obj).map(|v| vec![v]),
+        }
+        .map(Self)
     }
 }

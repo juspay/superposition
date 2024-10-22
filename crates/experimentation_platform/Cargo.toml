@@ -20,7 +20,10 @@ serde_json = { workspace = true }
 service_utils = { path = "../service_utils" }
 superposition_derives = { path = "../superposition_derives" }
 superposition_macros = { path = "../superposition_macros" }
-superposition_types = { path = "../superposition_types", features = ["result"] }
+superposition_types = { path = "../superposition_types", features = [
+    "result",
+    "diesel_derives",
+] }
 uuid = { workspace = true }
 
 [features]

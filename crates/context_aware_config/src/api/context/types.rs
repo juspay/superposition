@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use superposition_types::{Cac, Condition, Overrides};
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
@@ -28,9 +27,10 @@ pub struct PutResp {
 }
 
 #[derive(Deserialize)]
-pub struct PaginationParams {
+pub struct ContextFilters {
     pub page: Option<u32>,
     pub size: Option<u32>,
+    pub prefix: Option<String>,
 }
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
@@ -59,7 +59,7 @@ pub struct FunctionsInfo {
 #[derive(Serialize)]
 pub struct PriorityRecomputeResponse {
     pub id: String,
-    pub condition: Value,
+    pub condition: Condition,
     pub old_priority: i32,
     pub new_priority: i32,
 }

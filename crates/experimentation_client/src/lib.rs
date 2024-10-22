@@ -9,7 +9,8 @@ use std::{
 
 use chrono::{DateTime, TimeZone, Utc};
 use derive_more::{Deref, DerefMut};
-use serde_json::{Map, Value};
+use serde_json::Value;
+use superposition_types::Overridden;
 use tokio::{
     sync::RwLock,
     time::{self, Duration},
@@ -182,23 +183,12 @@ impl Client {
                     .variants
                     .into_iter()
                     .filter_map(|mut variant| {
-                        let overrides_map: Map<String, Value> =
-                            serde_json::from_value(variant.overrides.clone()).ok()?;
-                        let filtered_override: Map<String, Value> = overrides_map
-                            .into_iter()
-                            .filter(|(key, _)| {
-                                prefix_list
-                                    .iter()
-                                    .any(|prefix_str| key.starts_with(prefix_str))
+                        Variant::filter_keys_by_prefix(&variant, &prefix_list)
+                            .map(|filtered_overrides_map| {
+                                variant.overrides = filtered_overrides_map;
+                                variant
                             })
-                            .collect();
-                        if filtered_override.is_empty() {
-                            return None; // Skip this variant
-                        }
-
-                        variant.overrides =
-                            serde_json::to_value(filtered_override).ok()?;
-                        Some(variant)
+                            .ok()
                     })
                     .collect();
 

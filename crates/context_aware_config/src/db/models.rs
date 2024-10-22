@@ -6,21 +6,34 @@ use chrono::{offset::Utc, DateTime, NaiveDateTime};
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
 use serde::Serialize;
 use serde_json::Value;
+use superposition_types::{Cac, Condition, Contextual, Overridden, Overrides};
 
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Clone, Serialize, Debug)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(id))]
 pub struct Context {
     pub id: String,
-    pub value: Value,
+    pub value: Condition,
     pub override_id: String,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub priority: i32,
     #[serde(rename(serialize = "override"))]
-    pub override_: Value,
+    pub override_: Overrides,
     pub last_modified_at: NaiveDateTime,
     pub last_modified_by: String,
+}
+
+impl Contextual for Context {
+    fn get_condition(&self) -> Condition {
+        self.value.clone()
+    }
+}
+
+impl Overridden<Cac<Overrides>> for Context {
+    fn get_overrides(&self) -> Overrides {
+        self.override_.clone()
+    }
 }
 
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize)]
