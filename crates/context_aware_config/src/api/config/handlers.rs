@@ -451,19 +451,17 @@ async fn reduce_config_key(
                 Some(Value::String(cid)),
                 Some(Value::String(oid)),
                 Some(Value::Bool(to_be_deleted)),
-                Some(override_val),
+                Some(Value::Object(override_val)),
             ) => {
-                let override_val = Cac::<Overrides>::try_from_db(
-                    override_val.as_object().unwrap_or(&Map::new()).clone(),
-                )
-                .map_err(|err| {
-                    log::error!(
-                        "reduce_config_key: failed to decode overrides from db {}",
-                        err
+                let override_val =
+                    Cac::<Overrides>::validate_db_data(override_val.clone())
+                        .map_err(|err| {
+                            log::error!(
+                        "reduce_config_key: failed to decode overrides from db {err}"
                     );
-                    unexpected_error!(err)
-                })?
-                .into_inner();
+                            unexpected_error!(err)
+                        })?
+                        .into_inner();
 
                 if *to_be_deleted {
                     if is_approve {
@@ -479,8 +477,8 @@ async fn reduce_config_key(
                         }
                     }
 
-                    let new_id = hash(&json!(override_val));
-                    og_overrides.insert(new_id.clone(), override_val.clone());
+                    let new_id = hash(&Value::Object(override_val.clone().into()));
+                    og_overrides.insert(new_id.clone(), override_val);
 
                     let mut ctx_index = 0;
                     let mut delete_old_oid = true;

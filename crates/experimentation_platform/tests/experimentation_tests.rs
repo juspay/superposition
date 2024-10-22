@@ -52,7 +52,7 @@ fn multiple_dimension_ctx_gen(values: Vec<Dimensions>) -> Map<String, Value> {
 
 fn experiment_gen(
     override_keys: &[String],
-    context: &Map<String, Value>,
+    context: &Condition,
     status: ExperimentStatusType,
     variants: &Vec<Variant>,
 ) -> Experiment {
@@ -67,7 +67,7 @@ fn experiment_gen(
 
         override_keys: override_keys.to_vec(),
         status,
-        context: json!(context.clone()),
+        context: context.clone(),
         variants: Variants::new(variants.clone()),
         chosen_variant: None,
     }
@@ -268,10 +268,12 @@ fn test_is_valid_experiment_no_restrictions_non_overlapping_experiment(
 
     let active_experiments = vec![experiment_gen(
         &["key1".to_string(), "key2".to_string()],
-        &multiple_dimension_ctx_gen(vec![
+        &Exp::<Condition>::try_from(multiple_dimension_ctx_gen(vec![
             Dimensions::Os("os2".to_string()),
             Dimensions::Client("testclient2".to_string()),
-        ]),
+        ]))
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner(),
         ExperimentStatusType::CREATED,
         &vec![],
     )];
@@ -536,10 +538,12 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
 
     let active_experiments = vec![experiment_gen(
         &experiment_override_keys,
-        &multiple_dimension_ctx_gen(vec![
+        &Exp::<Condition>::try_from(multiple_dimension_ctx_gen(vec![
             Dimensions::Os("os2".to_string()),
             Dimensions::Client("testclient2".to_string()),
-        ]),
+        ]))
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner(),
         ExperimentStatusType::CREATED,
         &vec![],
     )];
@@ -576,10 +580,12 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
 
     let active_experiments = vec![experiment_gen(
         &["key1".to_string(), "key3".to_string()],
-        &multiple_dimension_ctx_gen(vec![
+        &Exp::<Condition>::try_from(multiple_dimension_ctx_gen(vec![
             Dimensions::Os("os2".to_string()),
             Dimensions::Client("testclient2".to_string()),
-        ]),
+        ]))
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner(),
         ExperimentStatusType::CREATED,
         &vec![],
     )];
@@ -616,10 +622,12 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
 
     let active_experiments = vec![experiment_gen(
         &["key3".to_string(), "key4".to_string()],
-        &multiple_dimension_ctx_gen(vec![
+        &Exp::<Condition>::try_from(multiple_dimension_ctx_gen(vec![
             Dimensions::Os("os2".to_string()),
             Dimensions::Client("testclient2".to_string()),
-        ]),
+        ]))
+        .map_err(superposition::AppError::BadArgument)?
+        .into_inner(),
         ExperimentStatusType::CREATED,
         &vec![],
     )];

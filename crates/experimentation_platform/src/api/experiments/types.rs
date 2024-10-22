@@ -46,7 +46,7 @@ pub struct ExperimentResponse {
     pub status: models::ExperimentStatusType,
     pub traffic_percentage: i32,
 
-    pub context: Value,
+    pub context: Condition,
     pub variants: Vec<Variant>,
     pub last_modified_by: String,
     pub chosen_variant: Option<String>,

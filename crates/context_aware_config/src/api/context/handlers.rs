@@ -265,7 +265,7 @@ fn update_override_of_existing_ctx(
     );
     let new_override_id = hash(&new_override);
     let new_ctx = Context {
-        override_: Cac::<Overrides>::try_from_db(
+        override_: Cac::<Overrides>::validate_db_data(
             new_override.as_object().cloned().unwrap_or(Map::new()),
         )
         .map_err(|err| {

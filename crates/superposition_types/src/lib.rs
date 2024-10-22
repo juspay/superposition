@@ -230,12 +230,12 @@ mod tests {
             ]),
         )]);
 
-        let db_condition = serde_json::from_str::<Condition>(
-            &json!(db_request_condition_map).to_string(),
-        )
+        let db_condition = serde_json::from_value::<Condition>(Value::Object(
+            db_request_condition_map.clone(),
+        ))
         .unwrap();
         let db_expected_condition =
-            Cac::<Condition>::try_from_db(db_request_condition_map)
+            Cac::<Condition>::validate_db_data(db_request_condition_map)
                 .map(|a| a.into_inner());
         assert_eq!(Ok(db_condition), db_expected_condition);
 
@@ -310,7 +310,7 @@ mod tests {
             true
         );
 
-        let db_expected_condition = Exp::<Condition>::try_from_db(exp_condition_map)
+        let db_expected_condition = Exp::<Condition>::validate_db_data(exp_condition_map)
             .map(|_| true)
             .map_err(|_| "variantIds should not be present".to_string());
 
@@ -332,9 +332,11 @@ mod tests {
         let empty_override_map = Map::new();
 
         let deserialize_overrides =
-            serde_json::from_str::<Overrides>(&json!(override_map).to_string()).unwrap();
+            serde_json::from_value::<Overrides>(Value::Object(override_map.clone()))
+                .unwrap();
         let db_expected_overrides =
-            Cac::<Overrides>::try_from_db(override_map.clone()).map(|a| a.into_inner());
+            Cac::<Overrides>::validate_db_data(override_map.clone())
+                .map(|a| a.into_inner());
         assert_eq!(Ok(deserialize_overrides.clone()), db_expected_overrides);
 
         let exp_expected_overrides =

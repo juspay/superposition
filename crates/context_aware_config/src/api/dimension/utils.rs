@@ -43,7 +43,7 @@ pub fn get_dimension_usage_context_ids(
 
     let mut context_ids = vec![];
     for context in result.iter() {
-        let condition = Cac::<Condition>::try_from_db(context.value.clone().into())
+        let condition = Cac::<Condition>::validate_db_data(context.value.clone().into())
             .map_err(|err| {
                 log::error!("generate_cac : failed to decode context from db {}", err);
                 unexpected_error!(err)
