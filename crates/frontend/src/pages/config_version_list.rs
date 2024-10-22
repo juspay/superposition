@@ -9,6 +9,7 @@ use crate::components::stat::Stat;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::table::{types::Column, Table};
 use crate::types::{ConfigVersionListResponse, ListFilters};
+use crate::utils::use_url_base;
 
 use crate::api::fetch_snapshots;
 
@@ -155,7 +156,9 @@ pub fn snapshot_table_columns(tenant: String) -> Vec<Column> {
             None,
             move |value: &str, _row: &Map<String, Value>| {
                 let id = value.to_string();
-                let href = format!("/admin/{}/config/versions/{}", tenant.clone(), id);
+                let base = use_url_base();
+                let href =
+                    format!("{}/admin/{}/config/versions/{}", base, tenant.clone(), id);
                 view! {
                     <div class="w-24">
                         <A href=href class="btn-link">{id}</A>
