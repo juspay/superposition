@@ -140,5 +140,6 @@ pub async fn get(
         superposition_token: get_superposition_token(&kms_client, &app_env).await,
         #[cfg(feature = "high-performance-mode")]
         redis: redis_pool,
+        http_client: reqwest::Client::new(),
     }
 }
