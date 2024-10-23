@@ -8,14 +8,13 @@ mod overridden;
 pub mod result;
 
 use std::fmt::Display;
+#[cfg(feature = "server")]
 use std::future::{ready, Ready};
 
 #[cfg(feature = "server")]
-use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
-use log::error;
+use actix_web::{dev::Payload, FromRequest, HttpMessage, HttpRequest};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 pub use crate::config::{Condition, Config, Context, Overrides};
 pub use crate::contextual::Contextual;
@@ -67,9 +66,9 @@ impl FromRequest for User {
         if let Some(user) = req.extensions().get::<Self>() {
             ready(Ok(user.to_owned()))
         } else {
-            error!("No user was found while validating token");
-            ready(Err(error::ErrorUnauthorized(
-                json!({"message":"invalid token provided"}),
+            log::error!("No user was found while validating token");
+            ready(Err(actix_web::error::ErrorUnauthorized(
+                serde_json::json!({"message":"invalid token provided"}),
             )))
         }
     }
@@ -167,7 +166,7 @@ impl FromRequest for TenantConfig {
     ) -> Self::Future {
         let result = req.extensions().get::<Self>().cloned().ok_or_else(|| {
             log::error!("Tenant config not found");
-            error::ErrorInternalServerError("Tenant config not found")
+            actix_web::error::ErrorInternalServerError("Tenant config not found")
         });
 
         ready(result)
