@@ -72,9 +72,9 @@ impl FromRequest for User {
         if let Some(user) = req.extensions().get::<Self>() {
             ready(Ok(user.to_owned()))
         } else {
-            error!("No user was found while validating token");
-            ready(Err(error::ErrorUnauthorized(
-                json!({"message":"invalid token provided"}),
+            log::error!("No user was found while validating token");
+            ready(Err(actix_web::error::ErrorUnauthorized(
+                serde_json::json!({"message":"invalid token provided"}),
             )))
         }
     }
@@ -173,7 +173,7 @@ impl FromRequest for TenantConfig {
     ) -> Self::Future {
         let result = req.extensions().get::<Self>().cloned().ok_or_else(|| {
             log::error!("Tenant config not found");
-            error::ErrorInternalServerError("Tenant config not found")
+            actix_web::error::ErrorInternalServerError("Tenant config not found")
         });
 
         ready(result)
