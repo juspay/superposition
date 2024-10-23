@@ -25,7 +25,10 @@ pub trait Contextual: Clone {
             .collect()
     }
 
-    fn filter_by_dimension(contexts: Vec<Self>, dimension_keys: &[String]) -> Vec<Self> {
+    fn filter_by_dimension<'a, K>(contexts: Vec<Self>, dimension_keys: &'a mut K) -> Vec<Self>
+    where
+        K: Iterator<Item = &'a String>,
+    {
         contexts
             .into_iter()
             .filter(|context| {
@@ -35,7 +38,6 @@ pub trait Contextual: Clone {
                 .and_then(|ast| ast.get_variable_names())
                 .map_or(false, |variables| {
                     dimension_keys
-                        .iter()
                         .all(|dimension| variables.contains(dimension))
                 })
             })

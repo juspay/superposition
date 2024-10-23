@@ -175,7 +175,6 @@ impl Client {
         experiments: Vec<Experiment>,
         prefix_list: Vec<String>,
     ) -> Vec<Experiment> {
-        let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
         experiments
             .into_iter()
             .filter_map(|experiment| {
@@ -183,7 +182,7 @@ impl Client {
                     .variants
                     .into_iter()
                     .filter_map(|mut variant| {
-                        Variant::filter_keys_by_prefix(&variant, &prefix_list)
+                        Variant::filter_keys_by_prefix(&variant, &mut prefix_list.iter())
                             .map(|filtered_overrides_map| {
                                 variant.overrides = filtered_overrides_map;
                                 variant

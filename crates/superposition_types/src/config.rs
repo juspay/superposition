@@ -197,27 +197,28 @@ impl Config {
         }
     }
 
-    pub fn filter_default_by_prefix(
+    pub fn filter_default_by_prefix<'a, K: Iterator<Item = &'a String>>(
         &self,
-        prefix_list: &HashSet<String>,
+        prefix_list: &'a mut K,
     ) -> Map<String, Value> {
         filter_config_keys_by_prefix(self.default_configs.clone(), prefix_list)
     }
 
-    fn filter_by_prefix_internal(
+    fn filter_by_prefix_internal<'a, K: Iterator<Item = &'a String>>(
         &self,
-        prefix_list: &HashSet<String>,
+        prefix_list: &'a mut K,
         break_on_validate: bool,
     ) -> Result<Self, String> {
         let mut filtered_overrides: HashMap<String, Overrides> = HashMap::new();
 
+        let prefix_set: HashSet<String> = HashSet::from_iter(prefix_list.cloned());
         let filtered_default_config = self.filter_default_by_prefix(prefix_list);
 
         for (key, overrides) in &self.overrides {
             let filtered_overrides_map: Map<String, Value> = overrides
                 .clone()
                 .into_iter()
-                .filter(|(key, _)| prefix_list.contains(key))
+                .filter(|(key, _)| prefix_set.contains(key))
                 .collect();
 
             if break_on_validate {
@@ -259,16 +260,19 @@ impl Config {
 
     /// To be used while filtering Config which is being `read from DB`
     /// Meant mostly for `server side usage`
-    pub fn try_filter_by_prefix(
+    pub fn try_filter_by_prefix<'a, K: Iterator<Item = &'a String>>(
         &self,
-        prefix_list: &HashSet<String>,
+        prefix_list: &'a mut K,
     ) -> Result<Self, String> {
         self.filter_by_prefix_internal(prefix_list, true)
     }
 
     /// To be used while filtering Config which is `not read from DB`
     /// Meant mostly for `client side usage`
-    pub fn filter_by_prefix(&self, prefix_list: &HashSet<String>) -> Self {
+    pub fn filter_by_prefix<'a, K: Iterator<Item = &'a String>>(
+        &self,
+        prefix_list: &'a mut K,
+    ) -> Self {
         self.filter_by_prefix_internal(prefix_list, false).unwrap()
     }
 }

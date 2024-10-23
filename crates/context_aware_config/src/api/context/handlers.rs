@@ -18,6 +18,7 @@ use diesel::{
     Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 use jsonschema::{Draft, JSONSchema, ValidationError};
+use serde_json::map::Keys;
 use serde_json::{from_value, json, Map, Value};
 use service_utils::{
     helpers::{parse_config_tags, validation_err_to_str},
@@ -232,11 +233,11 @@ fn create_ctx_from_put_req(
     let context_id = hash(&condition_val);
     let override_id = hash(&ctx_override);
     Ok(Context {
-        id: context_id.clone(),
+        id: context_id,
         value: ctx_condition,
         priority,
-        override_id: override_id.to_owned(),
-        override_: r_override.to_owned(),
+        override_id,
+        override_: r_override,
         created_at: Utc::now(),
         created_by: user.get_email(),
         last_modified_at: Utc::now().naive_utc(),
@@ -627,11 +628,11 @@ async fn list_contexts(
         let mut all_contexts: Vec<Context> =
             contexts.order(created_at).load(&mut conn)?;
         if let Some(prefix) = pagination_params.prefix {
-            let prefix_list = prefix.split(',').map(String::from).collect::<HashSet<_>>();
+            let prefix_list = prefix.split(',');
             all_contexts = all_contexts
                 .into_iter()
                 .filter_map(|mut context| {
-                    Context::filter_keys_by_prefix(&context, &prefix_list)
+                    Context::filter_keys_by_prefix(&context, &mut prefix_list)
                         .map(|filtered_overrides_map| {
                             context.override_ = filtered_overrides_map.into_inner();
                             context
@@ -640,9 +641,8 @@ async fn list_contexts(
                 })
                 .collect()
         }
-        let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
         let dimension_filter_contexts =
-            Context::filter_by_dimension(all_contexts, &dimension_keys);
+            Context::filter_by_dimension(all_contexts, &mut dimension_params.keys());
         let eval_filter_contexts =
             Context::filter_by_eval(dimension_filter_contexts, &dimension_params);
         let start = (size * (page - 1)) as usize;

@@ -151,7 +151,7 @@ impl Client {
         let cac = self.config.read().await;
         let mut config = cac.to_owned();
         if let Some(prefix_list) = prefix {
-            config = config.filter_by_prefix(&prefix_list.iter().cloned().collect());
+            config = config.filter_by_prefix(&mut prefix_list.iter());
         }
 
         let dimension_filtered_config = query_data
@@ -178,7 +178,7 @@ impl Client {
         let cac = self.config.read().await;
         let mut config = cac.to_owned();
         if let Some(keys) = filter_keys {
-            config = config.filter_by_prefix(&keys.iter().cloned().collect());
+            config = config.filter_by_prefix(&mut keys.iter());
         }
         eval::eval_cac(
             config.default_configs.to_owned(),
@@ -196,8 +196,7 @@ impl Client {
         let configs = self.config.read().await;
         let mut default_configs = configs.default_configs.clone();
         if let Some(keys) = filter_keys {
-            default_configs =
-                configs.filter_default_by_prefix(&keys.iter().cloned().collect());
+            default_configs = configs.filter_default_by_prefix(&mut keys.iter());
         }
         Ok(default_configs)
     }
