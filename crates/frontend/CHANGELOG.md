@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.17.0 - 2024-10-23
+#### Bug Fixes
+- added base for single config version page - (160070a) - Saurav Suman
+#### Features
+- Search contexts by dimension values (#264) - (12743af) - Ayush Jain
+- add high performance mode with redis - (adc2712) - Kartik
+
+- - -
+
 ## frontend-v0.16.0 - 2024-10-17
 #### Bug Fixes
 - using HtmlDisplay trait to show json in html (#245) - (2860245) - Shubhranshu Sanjeev

@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.9.0 - 2024-10-23
+#### Features
+- Search contexts by dimension values (#264) - (12743af) - Ayush Jain
+
+- - -
+
 ## experimentation_client-v0.8.2 - 2024-09-30
 #### Bug Fixes
 - Dependency pruning (#250) - (8b68900) - Ayush Jain

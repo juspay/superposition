@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.6.0 - 2024-10-23
+#### Features
+- Search contexts by dimension values (#264) - (12743af) - Ayush Jain
+
+- - -
+
 ## superposition_types-v0.5.0 - 2024-10-08
 #### Features
 - custom query-param extractor for platform queries (#242) - (3031e48) - Shubhranshu Sanjeev

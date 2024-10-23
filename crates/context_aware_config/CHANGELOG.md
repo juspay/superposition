@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.41.0 - 2024-10-23
+#### Bug Fixes
+- locust files - (2a1e4fe) - Kartik
+#### Features
+- Search contexts by dimension values (#264) - (12743af) - Ayush Jain
+- add high performance mode with redis - (adc2712) - Kartik
+
+- - -
+
 ## context_aware_config-v0.40.0 - 2024-10-08
 #### Bug Fixes
 - add prefix filter in resolve endpoint (#259) - (4e47d08) - Ankit Kumar Mahato

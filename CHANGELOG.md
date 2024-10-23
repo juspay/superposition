@@ -2,6 +2,27 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.60.0 - 2024-10-23
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.41.0
+- experimentation_client bumped to experimentation_client-v0.9.0
+- service_utils bumped to service_utils-v0.23.0
+- cac_client bumped to cac_client-v0.15.0
+- frontend bumped to frontend-v0.17.0
+- experimentation_platform bumped to experimentation_platform-v0.21.0
+- superposition_types bumped to superposition_types-v0.6.0
+### Global changes
+#### Bug Fixes
+- locust files - (2a1e4fe) - Kartik
+#### Features
+- add high performance mode with redis - (adc2712) - Kartik
+- Search contexts by dimension values (#264) - (12743af) - Ayush Jain
+#### Miscellaneous Chores
+- **(deps)** bump cryptography from 41.0.7 to 43.0.1 in /locust - (6146647) - dependabot[bot]
+- **(deps)** bump urllib3 from 1.26.18 to 1.26.19 in /locust - (24e9a9e) - dependabot[bot]
+
+- - -
+
 ## v0.59.0 - 2024-10-17
 ### Package updates
 - frontend bumped to frontend-v0.16.0

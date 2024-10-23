@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.15.0 - 2024-10-23
+#### Features
+- Search contexts by dimension values (#264) - (12743af) - Ayush Jain
+
+- - -
+
 ## cac_client-v0.14.3 - 2024-09-30
 #### Bug Fixes
 - Dependency pruning (#250) - (8b68900) - Ayush Jain

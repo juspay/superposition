@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.21.0 - 2024-10-23
+#### Features
+- Search contexts by dimension values (#264) - (12743af) - Ayush Jain
+
+- - -
+
 ## experimentation_platform-v0.20.0 - 2024-10-17
 #### Features
 - use concrete Variant type in db model (#241) - (8ca8135) - Ayush Jain
