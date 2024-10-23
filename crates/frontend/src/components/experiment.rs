@@ -67,165 +67,165 @@ where
         gen_variant_table(&experiment.with_value(|v| v.variants.clone())).unwrap();
 
     view! {
-            <div class="flex flex-col overflow-x-auto p-2 bg-transparent">
-                <h1 class="text-2xl pt-4 font-extrabold">
-                    {experiment.with_value(|v| v.name.clone())}
-                    <span class=badge_class>{experiment.with_value(|v| v.status.to_string())}</span>
-                </h1>
-                <div class="divider"></div>
-                <div class="flex flex-row justify-end join m-5">
+        <div class="flex flex-col overflow-x-auto p-2 bg-transparent">
+            <h1 class="text-2xl pt-4 font-extrabold">
+                {experiment.with_value(|v| v.name.clone())}
+                <span class=badge_class>{experiment.with_value(|v| v.status.to_string())}</span>
+            </h1>
+            <div class="divider"></div>
+            <div class="flex flex-row justify-end join m-5">
 
-                    {move || {
-                        let handle_start = handle_start.clone();
-                        let handle_conclude = handle_conclude.clone();
-                        let handle_ramp = handle_ramp.clone();
-                        let handle_edit = handle_edit.clone();
-                        match experiment.with_value(|v| v.status) {
-                            ExperimentStatusType::CREATED => {
-                                view! {
-                                    <button
-                                        class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                        on:click=move |_| { handle_edit() }
-                                    >
+                {move || {
+                    let handle_start = handle_start.clone();
+                    let handle_conclude = handle_conclude.clone();
+                    let handle_ramp = handle_ramp.clone();
+                    let handle_edit = handle_edit.clone();
+                    match experiment.with_value(|v| v.status) {
+                        ExperimentStatusType::CREATED => {
+                            view! {
+                                <button
+                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                    on:click=move |_| { handle_edit() }
+                                >
 
-                                        <i class="ri-edit-line"></i>
-                                        Edit
-                                    </button>
-                                    <button
-                                        class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                        on:click=move |_| {
-                                            handle_start(experiment.with_value(|v| v.id.clone()))
-                                        }
-                                    >
-
-                                        <i class="ri-guide-line"></i>
-                                        Start
-                                    </button>
-                                }
-                                    .into_view()
-                            }
-                            ExperimentStatusType::INPROGRESS => {
-                                view! {
-                                    <button
-                                        class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                        on:click=move |_| { handle_conclude() }
-                                    >
-
-                                        <i class="ri-stop-circle-line"></i>
-                                        Conclude
-                                    </button>
-                                    <button
-                                        class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                        on:click=move |_| { handle_ramp() }
-                                    >
-
-                                        <i class="ri-flight-takeoff-line"></i>
-                                        Ramp
-                                    </button>
-                                }
-                                    .into_view()
-                            }
-                            ExperimentStatusType::CONCLUDED => {
-                                view! {
-                                    <div class="stat">
-                                        <div class="stat-title">Chosen Variant</div>
-                                        <div class="stat-value">
-                                            {match experiment.with_value(|v| v.chosen_variant.clone()) {
-                                                Some(ref v) => v.to_string(),
-                                                None => String::new(),
-                                            }}
-
-                                        </div>
-                                    </div>
-                                }
-                                    .into_view()
-                            }
-                        }
-                    }}
-
-                </div>
-                <div class="flex bg-base-100 flex-row gap-2 justify-between flex-wrap shadow m-5">
-                    <div class="stat w-2/12">
-                        <div class="stat-title">Experiment ID</div>
-                        <div class="stat-value text-sm">{experiment.with_value(|v| v.id.clone())}</div>
-                    </div>
-                    <div class="stat w-2/12">
-                        <div class="stat-title">Current Traffic Percentage</div>
-                        <div class="stat-value text-sm">
-                            {experiment.with_value(|v| v.traffic_percentage)}
-                        </div>
-                    </div>
-                    <div class="stat w-2/12">
-                        <div class="stat-title">Created by</div>
-                        <div class="stat-value text-sm">
-                            {experiment.with_value(|v| v.created_by.clone())}
-                        </div>
-                    </div>
-                    <div class="stat w-2/12">
-                        <div class="stat-title">Created at</div>
-                        <div class="stat-value text-sm">
-                            {format!("{}", experiment.with_value(|v| v.created_at.format("%v")))}
-                        </div>
-                    </div>
-                    <div class="stat w-2/12">
-                        <div class="stat-title">Last Modified</div>
-                        <div class="stat-value text-sm">
-
-                            {format!("{}", experiment.with_value(|v| v.last_modified.format("%v")))}
-
-                        </div>
-                    </div>
-                </div>
-                <div class="card bg-base-100 max-w-screen shadow m-5">
-                    <div class="card-body">
-                        <h2 class="card-title">Context</h2>
-                        <div class="flex flex-row flex-wrap gap-2">
-
-                            {contexts
-                                .iter()
-                                .map(|condition| {
-                                    let Condition { dimension, operands, .. } = condition;
-                                    let operand_views = operands
-                                        .iter()
-                                        .filter_map(|op| {
-                                            match op {
-                                                Operand::Dimension(_) => None,
-                                                Operand::Value(v) => {
-                                                    Some(
-                                                        view! {
-                                                            <div class="stat-value text-base">{v.html_display()}</div>
-                                                        },
-                                                    )
-                                                }
-                                            }
-                                        })
-                                        .collect_view();
-                                    view! {
-                                        <div class="stat w-3/12">
-                                            <div class="stat-title">{dimension}</div>
-                                            {operand_views}
-                                        </div>
+                                    <i class="ri-edit-line"></i>
+                                    Edit
+                                </button>
+                                <button
+                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                    on:click=move |_| {
+                                        handle_start(experiment.with_value(|v| v.id.clone()))
                                     }
-                                })
-                                .collect_view()}
+                                >
 
-                        </div>
+                                    <i class="ri-guide-line"></i>
+                                    Start
+                                </button>
+                            }
+                                .into_view()
+                        }
+                        ExperimentStatusType::INPROGRESS => {
+                            view! {
+                                <button
+                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                    on:click=move |_| { handle_conclude() }
+                                >
+
+                                    <i class="ri-stop-circle-line"></i>
+                                    Conclude
+                                </button>
+                                <button
+                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                    on:click=move |_| { handle_ramp() }
+                                >
+
+                                    <i class="ri-flight-takeoff-line"></i>
+                                    Ramp
+                                </button>
+                            }
+                                .into_view()
+                        }
+                        ExperimentStatusType::CONCLUDED => {
+                            view! {
+                                <div class="stat">
+                                    <div class="stat-title">Chosen Variant</div>
+                                    <div class="stat-value">
+                                        {match experiment.with_value(|v| v.chosen_variant.clone()) {
+                                            Some(ref v) => v.to_string(),
+                                            None => String::new(),
+                                        }}
+
+                                    </div>
+                                </div>
+                            }
+                                .into_view()
+                        }
+                    }
+                }}
+
+            </div>
+            <div class="flex bg-base-100 flex-row gap-2 justify-between flex-wrap shadow m-5">
+                <div class="stat w-2/12">
+                    <div class="stat-title">Experiment ID</div>
+                    <div class="stat-value text-sm">{experiment.with_value(|v| v.id.clone())}</div>
+                </div>
+                <div class="stat w-2/12">
+                    <div class="stat-title">Current Traffic Percentage</div>
+                    <div class="stat-value text-sm">
+                        {experiment.with_value(|v| v.traffic_percentage)}
                     </div>
                 </div>
-                <div class="card bg-base-100 max-w-screen shadow m-5">
-                    <div class="card-body">
-                        <h2 class="card-title">Variants</h2>
+                <div class="stat w-2/12">
+                    <div class="stat-title">Created by</div>
+                    <div class="stat-value text-sm">
+                        {experiment.with_value(|v| v.created_by.clone())}
+                    </div>
+                </div>
+                <div class="stat w-2/12">
+                    <div class="stat-title">Created at</div>
+                    <div class="stat-value text-sm">
+                        {format!("{}", experiment.with_value(|v| v.created_at.format("%v")))}
+                    </div>
+                </div>
+                <div class="stat w-2/12">
+                    <div class="stat-title">Last Modified</div>
+                    <div class="stat-value text-sm">
 
-                        <Table
-                            cell_class="min-w-48 font-mono".to_string()
-                            rows=variant_rows
-                            key_column="overrides".to_string()
-                            columns=variant_col
-                            class="overflow-y-auto"
-                        />
+                        {format!("{}", experiment.with_value(|v| v.last_modified.format("%v")))}
 
                     </div>
                 </div>
             </div>
-        }
+            <div class="card bg-base-100 max-w-screen shadow m-5">
+                <div class="card-body">
+                    <h2 class="card-title">Context</h2>
+                    <div class="flex flex-row flex-wrap gap-2">
+
+                        {contexts
+                            .iter()
+                            .map(|condition| {
+                                let Condition { dimension, operands, .. } = condition;
+                                let operand_views = operands
+                                    .iter()
+                                    .filter_map(|op| {
+                                        match op {
+                                            Operand::Dimension(_) => None,
+                                            Operand::Value(v) => {
+                                                Some(
+                                                    view! {
+                                                        <div class="stat-value text-base">{v.html_display()}</div>
+                                                    },
+                                                )
+                                            }
+                                        }
+                                    })
+                                    .collect_view();
+                                view! {
+                                    <div class="stat w-3/12">
+                                        <div class="stat-title">{dimension}</div>
+                                        {operand_views}
+                                    </div>
+                                }
+                            })
+                            .collect_view()}
+
+                    </div>
+                </div>
+            </div>
+            <div class="card bg-base-100 max-w-screen shadow m-5">
+                <div class="card-body">
+                    <h2 class="card-title">Variants</h2>
+
+                    <Table
+                        cell_class="min-w-48 font-mono".to_string()
+                        rows=variant_rows
+                        key_column="overrides".to_string()
+                        columns=variant_col
+                        class="overflow-y-auto"
+                    />
+
+                </div>
+            </div>
+        </div>
+    }
 }
