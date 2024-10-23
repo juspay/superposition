@@ -199,7 +199,8 @@ pub fn context_override() -> impl IntoView {
 
     let on_context_edit = Callback::new(move |data: (Context, Map<String, Value>)| {
         let (context, overrides) = data;
-        let conditions = Conditions::from_context_json(&context.condition.into()).unwrap();
+        let conditions =
+            Conditions::from_context_json(&context.condition.into()).unwrap();
 
         selected_context_ws.set(Some(Data {
             context: conditions,
@@ -212,7 +213,8 @@ pub fn context_override() -> impl IntoView {
 
     let on_context_clone = Callback::new(move |data: (Context, Map<String, Value>)| {
         let (context, overrides) = data;
-        let conditions = Conditions::from_context_json(&context.condition.into()).unwrap();
+        let conditions =
+            Conditions::from_context_json(&context.condition.into()).unwrap();
 
         selected_context_ws.set(Some(Data {
             context: conditions,
