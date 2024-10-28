@@ -6,6 +6,7 @@ pub mod custom_query;
 mod overridden;
 #[cfg(feature = "result")]
 pub mod result;
+pub mod webhook;
 
 use std::fmt::Display;
 use std::future::{ready, Ready};
@@ -16,6 +17,7 @@ use log::error;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use webhook::WebhookConfig;
 
 pub use crate::config::{Condition, Config, Context, Overrides};
 pub use crate::contextual::Contextual;
@@ -154,6 +156,7 @@ impl Display for RegexEnum {
 #[derive(Clone, Deserialize)]
 pub struct TenantConfig {
     pub mandatory_dimensions: Vec<String>,
+    pub experiments_webhook_config: WebhookConfig,
 }
 
 #[cfg(feature = "server")]

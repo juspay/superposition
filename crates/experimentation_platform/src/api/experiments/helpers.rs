@@ -1,11 +1,14 @@
+use actix_http::header::{self, HeaderMap, HeaderName, HeaderValue};
+use actix_web::web::Data;
 use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
 use service_utils::helpers::extract_dimensions;
-use service_utils::service::types::ExperimentationFlags;
+use service_utils::service::types::{AppState, ExperimentationFlags, Tenant};
 use std::collections::HashSet;
+use std::str::FromStr;
 use superposition_macros::{bad_argument, unexpected_error};
-use superposition_types::{result as superposition, Condition, Exp, Overrides};
+use superposition_types::{result as superposition, Condition, Config, Exp, Overrides};
 
 use crate::db::models::{Experiment, ExperimentStatusType, Variant, VariantType};
 
@@ -264,4 +267,68 @@ pub fn decide_variant(
         .ok_or_else(|| "Unable to fetch variant's index".to_string())?;
 
     Ok(applicable_variants.get(index).cloned())
+}
+
+pub fn construct_header_map(
+    tenant: &str,
+    other_headers: Vec<(&str, String)>,
+) -> superposition::Result<HeaderMap> {
+    let mut headers = HeaderMap::new();
+    let tenant_val = HeaderValue::from_str(tenant).map_err(|err| {
+        log::error!("failed to set header: {}", err);
+        unexpected_error!("Something went wrong")
+    })?;
+    headers.insert(HeaderName::from_static("x-tenant"), tenant_val);
+    for (header, value) in other_headers {
+        let header_name = HeaderName::from_str(header).map_err(|err| {
+            log::error!("failed to set header: {}", err);
+            unexpected_error!("Something went wrong")
+        })?;
+
+        HeaderValue::from_str(value.as_str())
+            .map(|header_val| headers.insert(header_name, header_val))
+            .map_err(|err| {
+                log::error!("failed to set header: {}", err);
+                unexpected_error!("Something went wrong")
+            })?;
+    }
+
+    Ok(headers)
+}
+
+pub async fn fetch_cac_config(
+    tenant: &Tenant,
+    state: &Data<AppState>,
+) -> superposition::Result<(Config, Option<String>)> {
+    let http_client = reqwest::Client::new();
+    let url = state.cac_host.clone() + "/config";
+    let headers_map = construct_header_map(tenant.as_str(), Vec::new())?;
+
+    let response = http_client
+        .get(&url)
+        .headers(headers_map.into())
+        .header(
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
+        )
+        .send()
+        .await;
+
+    match response {
+        Ok(res) => {
+            let config_version = res
+                .headers()
+                .get("x-config-version")
+                .and_then(|val| val.to_str().ok().map(String::from));
+            let config = res.json::<Config>().await.map_err(|err| {
+                log::error!("failed to parse cac config response with error: {}", err);
+                unexpected_error!("Failed to parse cac config.")
+            })?;
+            Ok((config, config_version))
+        }
+        Err(error) => {
+            log::error!("Failed to fetch cac config with error: {:?}", error);
+            Err(unexpected_error!(error))
+        }
+    }
 }

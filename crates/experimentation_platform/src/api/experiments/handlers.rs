@@ -1,9 +1,6 @@
-use std::{
-    collections::{HashMap, HashSet},
-    str::FromStr,
-};
+use std::collections::{HashMap, HashSet};
 
-use actix_http::header::{self, HeaderMap, HeaderName, HeaderValue};
+use actix_http::header::{self};
 use actix_web::{
     get, patch, post, put,
     web::{self, Data, Json, Query},
@@ -17,18 +14,24 @@ use diesel::{
 };
 use reqwest::{Method, Response, StatusCode};
 use serde_json::{json, Map, Value};
-use service_utils::helpers::{construct_request_headers, generate_snowflake_id, request};
+use service_utils::helpers::{
+    construct_request_headers, execute_webhook_call, generate_snowflake_id, request,
+};
 use service_utils::service::types::{
     AppHeader, AppState, CustomHeaders, DbConnection, Tenant,
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
-use superposition_types::{result as superposition, Condition, Exp, Overrides, User};
+use superposition_types::{
+    result::{self as superposition},
+    webhook::{WebhookConfig, WebhookEvent},
+    Condition, Exp, Overrides, TenantConfig, User,
+};
 
 use super::{
     helpers::{
         add_variant_dimension_to_ctx, check_variant_types,
         check_variants_override_coverage, decide_variant, extract_override_keys,
-        validate_experiment, validate_override_keys,
+        fetch_cac_config, validate_experiment, validate_override_keys,
     },
     types::{
         ApplicableVariantsQuery, AuditQueryFilters, ConcludeExperimentRequest,
@@ -38,9 +41,12 @@ use super::{
     },
 };
 
-use crate::db::{
-    models::{EventLog, Experiment, ExperimentStatusType, Variant, Variants},
-    schema::{event_log::dsl as event_log, experiments::dsl as experiments},
+use crate::{
+    api::experiments::helpers::construct_header_map,
+    db::{
+        models::{EventLog, Experiment, ExperimentStatusType, Variant, Variants},
+        schema::{event_log::dsl as event_log, experiments::dsl as experiments},
+    },
 };
 
 pub fn endpoints(scope: Scope) -> Scope {
@@ -53,33 +59,6 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(get_experiment_handler)
         .service(ramp)
         .service(update_overrides)
-}
-
-fn construct_header_map(
-    tenant: &str,
-    other_headers: Vec<(&str, String)>,
-) -> superposition::Result<HeaderMap> {
-    let mut headers = HeaderMap::new();
-    let tenant_val = HeaderValue::from_str(tenant).map_err(|err| {
-        log::error!("failed to set header: {}", err);
-        unexpected_error!("Something went wrong")
-    })?;
-    headers.insert(HeaderName::from_static("x-tenant"), tenant_val);
-    for (header, value) in other_headers {
-        let header_name = HeaderName::from_str(header).map_err(|err| {
-            log::error!("failed to set header: {}", err);
-            unexpected_error!("Something went wrong")
-        })?;
-
-        HeaderValue::from_str(value.as_str())
-            .map(|header_val| headers.insert(header_name, header_val))
-            .map_err(|err| {
-                log::error!("failed to set header: {}", err);
-                unexpected_error!("Something went wrong")
-            })?;
-    }
-
-    Ok(headers)
 }
 
 fn add_config_version_to_header(
@@ -151,6 +130,7 @@ async fn create(
     db_conn: DbConnection,
     tenant: Tenant,
     user: User,
+    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     use crate::db::schema::experiments::dsl::experiments;
     let mut variants = req.variants.to_vec();
@@ -305,8 +285,19 @@ async fn create(
         .get_results(&mut conn)?;
 
     let inserted_experiment: Experiment = inserted_experiments.remove(0);
-    let response = ExperimentCreateResponse::from(inserted_experiment);
-
+    let response = ExperimentCreateResponse::from(inserted_experiment.clone());
+    if let WebhookConfig::Enabled(experiments_webhook_config) =
+        tenant_config.experiments_webhook_config
+    {
+        execute_webhook_call(
+            &experiments_webhook_config,
+            &inserted_experiment,
+            &config_version_id,
+            WebhookEvent::ExperimentCreated,
+            &state.http_client,
+        )
+        .await?;
+    }
     let mut http_resp = HttpResponse::Ok();
     add_config_version_to_header(&config_version_id, &mut http_resp);
     Ok(http_resp.json(response))
@@ -320,11 +311,12 @@ async fn conclude_handler(
     req: web::Json<ConcludeExperimentRequest>,
     db_conn: DbConnection,
     tenant: Tenant,
+    tenant_config: TenantConfig,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(conn) = db_conn;
     let (response, config_version_id) = conclude(
-        state,
+        &state,
         path.into_inner(),
         custom_headers.config_tags,
         req.into_inner(),
@@ -333,13 +325,27 @@ async fn conclude_handler(
         user,
     )
     .await?;
+
+    if let WebhookConfig::Enabled(experiments_webhook_config) =
+        tenant_config.experiments_webhook_config
+    {
+        execute_webhook_call(
+            &experiments_webhook_config,
+            &response,
+            &config_version_id,
+            WebhookEvent::ExperimentConcluded,
+            &state.http_client,
+        )
+        .await?;
+    }
+
     let mut http_resp = HttpResponse::Ok();
     add_config_version_to_header(&config_version_id, &mut http_resp);
     Ok(http_resp.json(ExperimentResponse::from(response)))
 }
 
 pub async fn conclude(
-    state: Data<AppState>,
+    state: &Data<AppState>,
     experiment_id: i64,
     config_tags: Option<String>,
     req: ConcludeExperimentRequest,
@@ -604,10 +610,13 @@ pub fn get_experiment(
 
 #[patch("/{id}/ramp")]
 async fn ramp(
+    data: Data<AppState>,
     params: web::Path<i64>,
     req: web::Json<RampRequest>,
     db_conn: DbConnection,
     user: User,
+    tenant: Tenant,
+    tenant_config: TenantConfig,
 ) -> superposition::Result<Json<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
@@ -644,6 +653,28 @@ async fn ramp(
         ))
         .get_result(&mut conn)?;
 
+    let (_, config_version_id) = fetch_cac_config(&tenant, &data).await?;
+
+    let webhook_event = if new_traffic_percentage == 0
+        && matches!(experiment.status, ExperimentStatusType::CREATED)
+    {
+        WebhookEvent::ExperimentStarted
+    } else {
+        WebhookEvent::ExperimentInprogress
+    };
+    if let WebhookConfig::Enabled(experiments_webhook_config) =
+        tenant_config.experiments_webhook_config
+    {
+        execute_webhook_call(
+            &experiments_webhook_config,
+            &updated_experiment,
+            &config_version_id,
+            webhook_event,
+            &data.http_client,
+        )
+        .await?;
+    }
+
     Ok(Json(ExperimentResponse::from(updated_experiment)))
 }
 
@@ -655,6 +686,7 @@ async fn update_overrides(
     db_conn: DbConnection,
     req: web::Json<OverrideKeysUpdateRequest>,
     tenant: Tenant,
+    tenant_config: TenantConfig,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -863,6 +895,19 @@ async fn update_overrides(
             experiments::last_modified_by.eq(user.get_email()),
         ))
         .get_result::<Experiment>(&mut conn)?;
+
+    if let WebhookConfig::Enabled(experiments_webhook_config) =
+        tenant_config.experiments_webhook_config
+    {
+        execute_webhook_call(
+            &experiments_webhook_config,
+            &updated_experiment,
+            &config_version_id,
+            WebhookEvent::ExperimentUpdated,
+            &state.http_client,
+        )
+        .await?;
+    }
 
     let mut http_resp = HttpResponse::Ok();
     add_config_version_to_header(&config_version_id, &mut http_resp);
