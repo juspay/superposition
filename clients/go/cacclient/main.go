@@ -35,8 +35,27 @@ func NewCacClient(tenantName string, pollingFrequency int, cacHostName string) (
 	if cacHostName == "" {
 		return nil, errors.New("cacHostName cannot be Empty")
 	}
+
 	client := &CacClient{tenant: tenantName, pollingFrequency: pollingFrequency, cacHostName: cacHostName, delimiter: ","}
 	resp := C.cac_new_client(C.CString(tenantName), C.ulong(pollingFrequency), C.CString(cacHostName))
+	if resp == 1 {
+		errorMessage := client.GetLastErrorMessage()
+		fmt.Printf("Some Error Occur while creating new client: %s\n", errorMessage)
+	}
+	return client, nil
+}
+
+// NewCacClientWithCacheProperties creates a new CacClient with custom cache value
+func NewCacClientWithCacheProperties(tenantName string, pollingFrequency int, cacHostName string, cacheMaxCapacity int, cacheTTL int, cacheTTI int) (*CacClient, error) {
+	if tenantName == "" {
+		return nil, errors.New("tenantName cannot be Empty")
+	}
+	if cacHostName == "" {
+		return nil, errors.New("cacHostName cannot be Empty")
+	}
+	
+	client := &CacClient{tenant: tenantName, pollingFrequency: pollingFrequency, cacHostName: cacHostName, delimiter: ","}
+	resp := C.cac_new_client_with_cache_properties(C.CString(tenantName), C.ulong(pollingFrequency), C.CString(cacHostName), cacheMaxCapacity, cacheTTL, cacheTTI)
 	if resp == 1 {
 		errorMessage := client.GetLastErrorMessage()
 		fmt.Printf("Some Error Occur while creating new client: %s\n", errorMessage)

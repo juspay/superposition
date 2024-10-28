@@ -11,7 +11,7 @@ import           Prelude
 
 main :: IO ()
 main = do
-    createCacClient "dev" 10 "http://localhost:8080" >>= \case
+    createCacClient "dev" 10 "http://localhost:8080">>= \case
         Left err -> putStrLn err
         Right _  -> pure ()
     threadId <- forkOS (cacStartPolling "dev")

@@ -38,6 +38,9 @@ class CacClient:
     rust_lib.cac_new_client.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p]
     rust_lib.cac_new_client.restype = ctypes.c_int
 
+    rust_lib.cac_new_client_with_cache_properties.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_int]
+    rust_lib.cac_new_client_with_cache_properties.restype = ctypes.c_int
+
     rust_lib.cac_get_client.argtypes = [ctypes.c_char_p]
     rust_lib.cac_get_client.restype = ctypes.c_char_p
 
@@ -65,20 +68,46 @@ class CacClient:
 
     rust_lib.cac_get_default_config.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
     rust_lib.cac_get_default_config.restype = ctypes.c_char_p
-
-    def __init__(self, tenant_name: str, polling_frequency: int, cac_host_name: str):
+    
+    @classmethod
+    def create_new_client(cls, tenant_name: str, polling_frequency: int, cac_host_name: str):
+        new_client = cls()
         if not tenant_name or not cac_host_name:
             raise ValueError("tenantName cannot be null or empty")
 
-        self.tenant = tenant_name
-        self.polling_frequency = polling_frequency
-        self.cac_host_name = cac_host_name
+        new_client.tenant = tenant_name
+        new_client.polling_frequency = polling_frequency
+        new_client.cac_host_name = cac_host_name
 
-        resp = self.rust_lib.cac_new_client(
-            self.tenant.encode(), self.polling_frequency, self.cac_host_name.encode())
+
+        resp = new_client.rust_lib.cac_new_client(
+            new_client.tenant.encode(), new_client.polling_frequency, new_client.cac_host_name.encode())
         if resp == 1:
-            error_message = self.get_cac_last_error_message()
+            error_message = new_client.get_cac_last_error_message()
             raise Exception("Error Occured while creating new client ", error_message)
+        else:
+            return new_client
+    
+    @classmethod
+    def create_new_client_with_cache_properties(cls, tenant_name: str, polling_frequency: int, cac_host_name: str, cache_max_capacity: int, cache_ttl: int, cache_tti: int):
+        new_client = cls()
+        if not tenant_name or not cac_host_name:
+            raise ValueError("tenantName cannot be null or empty")
+
+        new_client.tenant = tenant_name
+        new_client.polling_frequency = polling_frequency
+        new_client.cac_host_name = cac_host_name
+        new_client.cache_max_capacity = cache_max_capacity
+        new_client.cache_ttl = cache_ttl
+        new_client.cache_tti = cache_tti
+
+        resp = new_client.rust_lib.cac_new_client_with_cache_properties(
+            new_client.tenant.encode(), new_client.polling_frequency, new_client.cac_host_name.encode(), new_client.cache_max_capacity, new_client.cache_ttl, new_client.cache_tti)
+        if resp == 1:
+            error_message = new_client.get_cac_last_error_message()
+            raise Exception("Error Occured while creating new client ", error_message)
+        else:
+            return new_client  
 
     def get_cac_last_error_message(self) -> str:
         return self.rust_lib.cac_last_error_message().decode()
@@ -101,8 +130,6 @@ class CacClient:
         filter_query_ptr = None if filter_query is None else filter_query.encode()
         try:
             result =  self.rust_lib.cac_get_config(client_ptr, filter_query_ptr, filter_prefix_ptr).decode()
-            print("pppp", result)
-            print(ast.literal_eval(result))
             return Config(ast.literal_eval(result))
         except:
             raise Exception(self.rust_lib.get_cac_last_error_message())

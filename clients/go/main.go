@@ -17,13 +17,13 @@ func main() {
 		fmt.Println(error)
 	}
 
-	fmt.Println("\n------------Configs----------------------------\n")
+	fmt.Println("\n------------Configs----------------------------")
 
 	fmt.Println("Default Configs => ", client.GetConfig(nil, nil))
 	fmt.Println("Resolved Config => ", client.GetResolvedConfig(map[string]string{}, nil, cacclient.MERGE))
 	fmt.Println("Default Config => ", client.GetDefaultConfig(&[]string{}))
 
-	fmt.Println("\n------------Experiments----------------------------\n")
+	fmt.Println("\n------------Experiments----------------------------")
 
 	expClient, error1 := expclient.NewExperimentationClient(tenant, pollingFrequency, cachostName)
 	if error1 != nil {
