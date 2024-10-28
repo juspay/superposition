@@ -243,7 +243,7 @@ where
                                     set_context.update(|curr_context| {
                                         if let Some(elem) = curr_context[idx].right_operand.get_mut(i) {
                                             if !elem.is_object() || !elem.get("var").is_some() { // Exclude elements with "var"
-                                                *elem = Value::String(input_value); // Assign the new value to the element
+                                                *elem = input_value.parse().unwrap_or(Value::String(input_value)); // Assign the new value to the element
                                             }
                                         }
                                     });
@@ -305,7 +305,7 @@ where
                                     set_context.update(|curr_context| {
                                         if let Some(elem) = curr_context[idx].right_operand.get_mut(i) {
                                             if !elem.is_object() || !elem.get("var").is_some() { // Exclude elements with "var"
-                                                *elem = Value::String(input_value); // Assign the new value to the element
+                                                *elem = input_value.parse().unwrap_or(Value::String(input_value)); // Assign the new value to the element
                                             }
                                         }
                                     });
