@@ -18,7 +18,7 @@ public class Demo {
 
         int newClient;
         try {
-            newClient = wrapper.cacNewClient(tenant, 1, "http://localhost:8080", null, null, null);
+            newClient = wrapper.cacNewClient(tenant, 1, "http://localhost:8080");
             System.out.println("New client created successfully. Client ID: " + newClient);
         } catch (cac_client.CACClientException e) {
             System.err.println(e.getMessage());

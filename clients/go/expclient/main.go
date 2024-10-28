@@ -1,7 +1,7 @@
 package expclient
 
 /*
-#include "../../../headers/libexperimentation_client.h"
+#include "libexperimentation_client.h"
 */
 import "C"
 import (

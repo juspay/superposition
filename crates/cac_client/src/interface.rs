@@ -52,14 +52,6 @@ fn cstring_to_rstring(s: *const c_char) -> Result<String, String> {
     s.to_str().map(str::to_string).map_err_to_string()
 }
 
-fn ptr_option_ulong_to_option_u64(v: *const c_ulong) -> Option<u64> {
-    if !v.is_null() {
-        Some(unsafe { *v as u64 })
-    } else {
-        None
-    }
-}
-
 fn rstring_to_cstring(s: String) -> CString {
     CString::new(s.as_str()).unwrap_or_default()
 }
@@ -110,20 +102,41 @@ pub extern "C" fn cac_new_client(
     tenant: *const c_char,
     update_frequency: c_ulong,
     hostname: *const c_char,
-    cache_max_capacity: *const c_ulong,
-    cache_ttl: *const c_ulong,
-    cache_tti: *const c_ulong,
 ) -> c_int {
     let duration = Duration::new(update_frequency, 0);
     let tenant = unwrap_safe!(cstring_to_rstring(tenant), return 1);
     let hostname = unwrap_safe!(cstring_to_rstring(hostname), return 1);
-    let cache_max_capacity = ptr_option_ulong_to_option_u64(cache_max_capacity);
-    let cache_ttl = ptr_option_ulong_to_option_u64(cache_ttl);
-    let cache_tti = ptr_option_ulong_to_option_u64(cache_tti);
     // println!("Creating cac client thread for tenant {tenant}");
     CAC_RUNTIME.block_on(async move {
         match CLIENT_FACTORY
-            .create_client(
+            .create_client(tenant.clone(), duration, hostname)
+            .await
+        {
+            Ok(_) => 0,
+            Err(err) => {
+                update_last_error(err);
+                1
+            }
+        }
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn cac_new_client_with_cache_properties(
+    tenant: *const c_char,
+    update_frequency: c_ulong,
+    hostname: *const c_char,
+    cache_max_capacity: c_ulong,
+    cache_ttl: c_ulong,
+    cache_tti: c_ulong,
+) -> c_int {
+    let duration = Duration::new(update_frequency, 0);
+    let tenant = unwrap_safe!(cstring_to_rstring(tenant), return 1);
+    let hostname = unwrap_safe!(cstring_to_rstring(hostname), return 1);
+    // println!("Creating cac client thread for tenant {tenant}");
+    CAC_RUNTIME.block_on(async move {
+        match CLIENT_FACTORY
+            .create_client_with_cache_properties(
                 tenant.clone(),
                 duration,
                 hostname,

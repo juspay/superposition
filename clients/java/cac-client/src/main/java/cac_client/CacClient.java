@@ -10,7 +10,9 @@ public class CacClient {
     public interface RustLib {
         String cac_last_error_message();
 
-        int cac_new_client(String tenant, long updateFrequency, String hostName, Pointer cacheMaxCapacity, Pointer cacheTTL, Pointer cacheTTI);
+        int cac_new_client(String tenant, long updateFrequency, String hostName);
+        
+        int cac_new_client_with_cache_properties(String tenant, long updateFrequency, String hostName, long cacheMaxCapacity, long cacheTTL, long cacheTTI);
 
         void cac_free_client(Pointer ptr);
 
@@ -39,12 +41,20 @@ public class CacClient {
         CacClient.rustLib = LibraryLoader.create(RustLib.class).load(libraryName);
     }
 
-    public int cacNewClient(String tenant, long updateFrequency, String hostName, Long cacheMaxCapacity, Long cacheTTL, Long cacheTTI) throws CACClientException {
-        Pointer cacheMaxCapacityPointer = cacheMaxCapacity != null ? new Pointer(cacheMaxCapacity) : null;
-        Pointer cacheTTLPointer = cacheTTL != null ? new Pointer(cacheTTL) : null;
-        Pointer cacheTTIPointer = cacheTTI != null ? new Pointer(cacheTTI) : null;
+    public int cacNewClient(String tenant, long updateFrequency, String hostName) throws CACClientException {
         
-        int result = rustLib.cac_new_client(tenant, updateFrequency, hostName, cacheMaxCapacityPointer, cacheTTLPointer, cacheTTIPointer);
+        int result = rustLib.cac_new_client(tenant, updateFrequency, hostName);
+        if (result > 0) {
+            String errorMessage = rustLib.cac_last_error_message();
+            throw new CACClientException("Failed to create new CAC client: " + errorMessage);
+        }
+        return result;
+    }
+
+    public int cacNewClientWithCacheProperties(String tenant, long updateFrequency, String hostName, Long cacheMaxCapacity, Long cacheTTL, Long cacheTTI) throws CACClientException {
+       
+        
+        int result = rustLib.cac_new_client_with_cache_properties(tenant, updateFrequency, hostName, cacheMaxCapacity, cacheTTL, cacheTTI);
         if (result > 0) {
             String errorMessage = rustLib.cac_last_error_message();
             throw new CACClientException("Failed to create new CAC client: " + errorMessage);

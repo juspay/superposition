@@ -6,7 +6,7 @@ try:
     tenant_name = "dev"
     polling_frequency = 1
     cac_host_name = "http://localhost:8080"
-    cac_client = CacClient(tenant_name, polling_frequency, cac_host_name)
+    cac_client = CacClient.create_new_client(tenant_name, polling_frequency, cac_host_name)
 
     cac_client.start_cac_polling_update()
 

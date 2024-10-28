@@ -4,7 +4,7 @@ mod interface;
 pub mod utils;
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{BTreeSet, HashMap, HashSet},
     convert::identity,
     sync::Arc,
     time::{Duration, UNIX_EPOCH},
@@ -13,6 +13,7 @@ use std::{
 use actix_web::{rt::time::interval, web::Data};
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
+use itertools::Itertools;
 use mini_moka::sync::Cache;
 use reqwest::{RequestBuilder, Response, StatusCode};
 use serde_json::{Map, Value};
@@ -207,11 +208,8 @@ impl Client {
         filter_keys: Option<Vec<String>>,
         merge_strategy: MergeStrategy,
     ) -> Result<Map<String, Value>, String> {
-        let filter_string = if let Some(vec) = filter_keys.clone() {
-            let hset: HashSet<String> = HashSet::from_iter(vec);
-            let mut vec: Vec<String> = hset.iter().cloned().collect();
-            vec.sort();
-            vec.join(",")
+        let filter_keys_concat = if let Some(vec) = filter_keys.clone() {
+            BTreeSet::from_iter(vec).iter().join(",")
         } else {
             "null".to_string()
         };
@@ -219,7 +217,7 @@ impl Client {
             + "?"
             + &merge_strategy.clone().to_string()
             + "?"
-            + &filter_string;
+            + &filter_keys_concat;
         if let Some(value) = self.config_cache.get(&hash_key) {
             Ok(value)
         } else {
@@ -261,9 +259,6 @@ impl ClientFactory {
         tenant: String,
         polling_interval: Duration,
         hostname: String,
-        cache_max_capacity: Option<u64>,
-        cache_ttl: Option<u64>,
-        cache_tti: Option<u64>,
     ) -> Result<Arc<Client>, String> {
         let mut factory = self.write().await;
 
@@ -276,9 +271,39 @@ impl ClientFactory {
                 tenant.to_string(),
                 polling_interval,
                 hostname,
-                cache_max_capacity,
-                cache_ttl,
-                cache_tti,
+                None,
+                None,
+                None,
+            )
+            .await?,
+        );
+        factory.insert(tenant.to_string(), client.clone());
+        Ok(client.clone())
+    }
+
+    pub async fn create_client_with_cache_properties(
+        &self,
+        tenant: String,
+        polling_interval: Duration,
+        hostname: String,
+        cache_max_capacity: u64,
+        cache_ttl: u64,
+        cache_tti: u64,
+    ) -> Result<Arc<Client>, String> {
+        let mut factory = self.write().await;
+
+        if let Some(client) = factory.get(&tenant) {
+            return Ok(client.clone());
+        }
+
+        let client = Arc::new(
+            Client::new(
+                tenant.to_string(),
+                polling_interval,
+                hostname,
+                Some(cache_max_capacity),
+                Some(cache_ttl),
+                Some(cache_tti),
             )
             .await?,
         );

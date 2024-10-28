@@ -12,7 +12,7 @@ func main() {
 	pollingFrequency := 1
 	cachostName := "http://localhost:8080"
 
-	client, error := cacclient.NewCacClient(tenant, pollingFrequency, cachostName, nil, nil, nil)
+	client, error := cacclient.NewCacClient(tenant, pollingFrequency, cachostName)
 	if error != nil {
 		fmt.Println(error)
 	}
