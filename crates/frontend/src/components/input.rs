@@ -17,11 +17,9 @@ pub enum InputType {
     Text,
     Number,
     Integer,
-
     Toggle,
     Monaco,
     Select(EnumVariants),
-
     Disabled,
 }
 

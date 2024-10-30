@@ -6,13 +6,16 @@ use serde_json::{json, Map, Value};
 use std::str::FromStr;
 use web_sys::MouseEvent;
 
+use crate::providers::editor_provider::EditorProvider;
 use crate::{
     api::{fetch_functions, fetch_types},
     components::{
         button::Button,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        input::{Input, InputType},
         input_components::{BooleanToggle, EnumDropdown},
     },
+    schema::{JsonSchemaType, SchemaType},
     types::{FunctionsName, TypeTemplate},
     utils::get_key_type,
 };
@@ -161,11 +164,7 @@ where
                     } else {
                         config_type_rs.get()
                     };
-                    let config_textarea = if config_schema_rs.get().is_null() {
-                        String::from("")
-                    } else {
-                        format!("{}", config_schema_rs.get())
-                    };
+                    let config_type_schema = SchemaType::Single(JsonSchemaType::from(&config_schema_rs.get()));
                     view! {
                         <div class="form-control">
                             <label class="label">
@@ -184,21 +183,16 @@ where
                                     config_schema_ws.set(selected_item.type_schema);
                                 })
                             />
-
-                            <textarea
-                                type="text"
-                                placeholder="JSON schema"
-                                class="input input-bordered mt-5 rounded-md resize-y w-full max-w-md pt-3"
-                                rows=8
-                                on:change=move |ev| {
-                                    config_schema_ws
-                                        .set(string_to_value_closure(event_target_value(&ev)))
-                                }
-                            >
-
-                                {config_textarea}
-                            </textarea>
-
+                            <EditorProvider>
+                                <Input
+                                    id="type-schema"
+                                    class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
+                                    schema_type=config_type_schema
+                                    value=config_schema_rs.get()
+                                    on_change=Callback::new(move |new_config_schema| config_schema_ws.set(new_config_schema))
+                                    r#type=InputType::Monaco
+                                />
+                            </EditorProvider>
                         </div>
                     }
                 }}

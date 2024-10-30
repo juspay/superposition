@@ -1,9 +1,15 @@
 pub mod utils;
 
 use crate::components::type_template_form::utils::create_type;
-use crate::components::{button::Button, type_template_form::utils::update_type};
+use crate::components::{
+    button::Button,
+    input::{Input, InputType},
+    type_template_form::utils::update_type,
+};
+use crate::providers::editor_provider::EditorProvider;
+use crate::schema::{JsonSchemaType, SchemaType};
 use leptos::*;
-use serde_json::{from_str, json, Value};
+use serde_json::{json, Value};
 use web_sys::MouseEvent;
 
 #[component]
@@ -83,30 +89,18 @@ where
                 </label>
                 {move || {
                     let schem = type_schema_rs.get();
+                    let schema_type = SchemaType::Single(JsonSchemaType::from(&schem));
                     view! {
-                        <textarea
-                            type="text"
-                            class="input input-bordered shadow-md"
-                            name="type_schema"
-                            id="type_schema"
-                            style="min-height: 150px"
-                            placeholder="type schema"
-                            on:change=move |ev| {
-                                let value = event_target_value(&ev);
-                                match from_str::<Value>(&value) {
-                                    Ok(test_val) => {
-                                        type_schema_ws.set(test_val);
-                                        set_error_message.set("".to_string());
-                                    }
-                                    Err(err) => {
-                                        set_error_message.set(err.to_string());
-                                    }
-                                };
-                            }
-                        >
-
-                            {format!("{}", schem)}
-                        </textarea>
+                        <EditorProvider>
+                            <Input
+                                id="type-schema"
+                                class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
+                                schema_type
+                                value=schem
+                                on_change=Callback::new(move |new_type_schema| type_schema_ws.set(new_type_schema))
+                                r#type=InputType::Monaco
+                            />
+                        </EditorProvider>
                     }
                 }}
 

@@ -102,7 +102,7 @@ superposition_legacy:
 
 superposition_dev:
 	# export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`
-	cargo watch -x 'run --color always --bin superposition --no-default-features --features=ssr'
+	cargo watch -x 'run --color always --bin superposition --no-default-features --features=$(FEATURES)'
 
 
 frontend:

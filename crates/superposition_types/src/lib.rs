@@ -9,13 +9,16 @@ pub mod result;
 pub mod webhook;
 
 use std::fmt::Display;
+#[cfg(feature = "server")]
 use std::future::{ready, Ready};
 
 #[cfg(feature = "server")]
 use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
+#[cfg(feature = "server")]
 use log::error;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "server")]
 use serde_json::json;
 use webhook::WebhookConfig;
 

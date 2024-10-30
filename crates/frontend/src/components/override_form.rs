@@ -95,7 +95,7 @@ fn override_input(
                             }
                         >
 
-                            <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
+                            <i class="ri-delete-bin-2-line text-2xl font-bold"></i>
                         </button>
 
                     </div>
