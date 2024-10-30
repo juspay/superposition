@@ -4,12 +4,16 @@ pub mod utils;
 use self::types::DimensionCreateReq;
 use self::utils::create_dimension;
 use crate::api::fetch_types;
-use crate::components::dropdown::{Dropdown, DropdownBtnType, DropdownDirection};
+use crate::components::{
+    dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+    input::{Input, InputType},
+};
+use crate::providers::editor_provider::EditorProvider;
+use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{FunctionsName, TypeTemplate};
 use crate::{api::fetch_functions, components::button::Button};
 use leptos::*;
 use serde_json::{json, Value};
-use std::str::FromStr;
 use web_sys::MouseEvent;
 
 #[component]
@@ -33,15 +37,6 @@ where
     let (dimension_schema_rs, dimension_schema_ws) = create_signal(dimension_schema);
     let (function_name, set_function_name) = create_signal(function_name);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
-    let string_to_value_closure = |val: String| {
-        Value::from_str(&val).unwrap_or_else(|_| {
-            // do this for Value::String, since for some reason from_str
-            // cannot convert unquoted rust strings to Value::String
-            Value::from_str(format!("\"{}\"", val).as_str())
-                .expect("Invalid default config value")
-        })
-    };
-
     let functions_resource: Resource<String, Vec<crate::types::FunctionResponse>> =
         create_blocking_resource(
             move || tenant_rs.get(),
@@ -146,11 +141,7 @@ where
                     } else {
                         dimension_type_rs.get()
                     };
-                    let dimension_textarea = if dimension_schema_rs.get().is_null() {
-                        String::from("")
-                    } else {
-                        format!("{}", dimension_schema_rs.get())
-                    };
+                    let dimension_type_schema = SchemaType::Single(JsonSchemaType::from(&dimension_schema_rs.get()));
                     view! {
                         <div class="form-control">
                             <label class="label">
@@ -169,21 +160,16 @@ where
                                     dimension_schema_ws.set(selected_item.type_schema);
                                 })
                             />
-
-                            <textarea
-                                type="text"
-                                placeholder="Enter a JSON schema"
-                                class="input input-bordered mt-5 rounded-md resize-y w-full max-w-md pt-3"
-                                rows=8
-                                on:change=move |ev| {
-                                    dimension_schema_ws
-                                        .set(string_to_value_closure(event_target_value(&ev)))
-                                }
-                            >
-
-                                {dimension_textarea}
-                            </textarea>
-
+                            <EditorProvider>
+                                <Input
+                                    id="type-schema"
+                                    class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
+                                    schema_type=dimension_type_schema
+                                    value=dimension_schema_rs.get()
+                                    on_change=Callback::new(move |new_type_schema| dimension_schema_ws.set(new_type_schema))
+                                    r#type=InputType::Monaco
+                                />
+                            </EditorProvider>
                         </div>
                     }
                 }}
