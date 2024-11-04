@@ -27,10 +27,27 @@ pub struct PutResp {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ContextFilterSortBy {
+    CreatedAtAsc,
+    CreatedAtDesc,
+    PriorityAsc,
+    PriorityDesc,
+}
+
+impl Default for ContextFilterSortBy {
+    fn default() -> Self {
+        Self::PriorityAsc
+    }
+}
+
+#[derive(Deserialize)]
 pub struct ContextFilters {
     pub page: Option<u32>,
     pub size: Option<u32>,
     pub prefix: Option<String>,
+    pub sort_by: Option<ContextFilterSortBy>,
+    pub created_by: Option<String>,
 }
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests

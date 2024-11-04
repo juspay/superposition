@@ -41,8 +41,8 @@ use superposition_types::{
 use crate::{
     api::{
         context::types::{
-            ContextAction, ContextBulkResponse, ContextFilters, DimensionCondition,
-            MoveReq, PriorityRecomputeResponse, PutReq, PutResp,
+            ContextAction, ContextBulkResponse, ContextFilterSortBy, ContextFilters,
+            DimensionCondition, MoveReq, PriorityRecomputeResponse, PutReq, PutResp,
         },
         dimension::get_all_dimension_schema_map,
     },
@@ -624,11 +624,23 @@ async fn list_contexts(
 
     let dimension_params = dimension_params.into_inner();
 
+    let mut builder = contexts.into_boxed();
+    match filter_params.sort_by.unwrap_or_default() {
+        ContextFilterSortBy::PriorityAsc => builder = builder.order(priority.asc()),
+        ContextFilterSortBy::PriorityDesc => builder = builder.order(priority.desc()),
+        ContextFilterSortBy::CreatedAtAsc => builder = builder.order(created_at.asc()),
+        ContextFilterSortBy::CreatedAtDesc => builder = builder.order(created_at.desc()),
+    }
+
+    if let Some(created_by_filter) = filter_params.created_by.clone() {
+        builder = builder
+            .filter(created_by.eq_any(created_by_filter.split(',').map(String::from)))
+    }
+
     let (data, total_items) = if dimension_params.len() > 0
         || filter_params.prefix.is_some()
     {
-        let mut all_contexts: Vec<Context> =
-            contexts.order(created_at).load(&mut conn)?;
+        let mut all_contexts: Vec<Context> = builder.load(&mut conn)?;
         if let Some(prefix) = filter_params.prefix {
             let prefix_list = prefix.split(',').map(String::from).collect::<HashSet<_>>();
             all_contexts = all_contexts
@@ -658,9 +670,13 @@ async fn list_contexts(
 
         (data, total_items as i64)
     } else {
-        let total_items: i64 = contexts.count().get_result(&mut conn)?;
-        let data = contexts
-            .order(created_at)
+        let mut total_count_builder = contexts.into_boxed();
+        if let Some(created_bys) = filter_params.created_by {
+            total_count_builder = total_count_builder
+                .filter(created_by.eq_any(created_bys.split(',').map(String::from)))
+        }
+        let total_items: i64 = total_count_builder.count().get_result(&mut conn)?;
+        let data = builder
             .limit(i64::from(size))
             .offset(i64::from(size * (page - 1)))
             .load::<Context>(&mut conn)?;
