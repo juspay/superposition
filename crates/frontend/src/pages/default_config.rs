@@ -18,7 +18,7 @@ use std::collections::HashSet;
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
     pub key: String,
-    pub value: String,
+    pub value: Value,
     pub schema: Value,
     pub function_name: Option<Value>,
 }
@@ -75,7 +75,7 @@ pub fn default_config() -> impl IntoView {
         let actions_col_formatter = move |_: &str, row: &Map<String, Value>| {
             let row_key = row["key"].to_string().replace('"', "");
             let is_folder = row_key.contains('.');
-            let row_value = row["value"].to_string().replace('"', "");
+            let row_value = row["value"].clone();
 
             let schema = row["schema"].clone().to_string();
             let schema_object =
