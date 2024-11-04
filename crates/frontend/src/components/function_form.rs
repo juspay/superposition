@@ -27,7 +27,7 @@ pub fn function_editor<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
     let (function_name, set_function_name) = create_signal(function_name);
     let (function, set_function) = create_signal(function);
     let (runtime_version, set_runtime_version) = create_signal(runtime_version);
@@ -188,7 +188,7 @@ where
 
 #[component]
 pub fn test_form(function_name: String, stage: String) -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
     let (error_message, set_error_message) = create_signal(String::new());
     let (output_message, set_output_message) =
         create_signal::<Option<FunctionTestResponse>>(None);

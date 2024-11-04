@@ -22,7 +22,7 @@ pub fn type_template_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
 
     let (error_message, set_error_message) = create_signal("".to_string());
     let (type_name_rs, type_name_ws) = create_signal(type_name);

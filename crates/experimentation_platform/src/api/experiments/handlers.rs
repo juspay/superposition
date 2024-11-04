@@ -36,7 +36,7 @@ use super::{
     types::{
         ApplicableVariantsQuery, AuditQueryFilters, ConcludeExperimentRequest,
         ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq,
-        ExperimentCreateRequest, ExperimentCreateResponse, ExperimentResponse,
+        ExperimentCreateRequest, ExperimentResponse,
         ExperimentsResponse, ListFilters, OverrideKeysUpdateRequest, RampRequest,
     },
 };
@@ -285,7 +285,7 @@ async fn create(
         .get_results(&mut conn)?;
 
     let inserted_experiment: Experiment = inserted_experiments.remove(0);
-    let response = ExperimentCreateResponse::from(inserted_experiment.clone());
+    let response = ExperimentResponse::from(inserted_experiment.clone());
     if let WebhookConfig::Enabled(experiments_webhook_config) =
         tenant_config.experiments_webhook_config
     {

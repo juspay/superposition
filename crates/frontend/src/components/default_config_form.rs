@@ -36,7 +36,7 @@ pub fn default_config_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
 
     let (config_key_rs, config_key_ws) = create_signal(config_key);
     let (config_type_rs, config_type_ws) = create_signal(config_type);

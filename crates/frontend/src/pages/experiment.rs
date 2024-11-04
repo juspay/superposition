@@ -30,7 +30,7 @@ struct CombinedResource {
 #[component]
 pub fn experiment_page() -> impl IntoView {
     let exp_params = use_params_map();
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
     let source = move || {
         let t = tenant_rs.get();
         let exp_id =
@@ -41,10 +41,9 @@ pub fn experiment_page() -> impl IntoView {
     let combined_resource: Resource<(String, String), CombinedResource> =
         create_blocking_resource(source, |(exp_id, tenant)| async move {
             // Perform all fetch operations concurrently
-            let experiments_future =
-                fetch_experiment(exp_id.to_string(), tenant.to_string());
-            let dimensions_future = fetch_dimensions(tenant.to_string());
-            let config_future = fetch_default_config(tenant.to_string());
+            let experiments_future = fetch_experiment(&exp_id, &tenant);
+            let dimensions_future = fetch_dimensions(&tenant);
+            let config_future = fetch_default_config(&tenant);
 
             let (experiments_result, dimensions_result, config_result) =
                 join!(experiments_future, dimensions_future, config_future);
@@ -138,7 +137,7 @@ pub fn experiment_page() -> impl IntoView {
                                         variants=FromIterator::from_iter(experiment_ef.variants)
                                         default_config=default_config
                                         dimensions=dimensions
-                                        handle_submit=move || { combined_resource.refetch() }
+                                        handle_submit=move |_| { combined_resource.refetch() }
                                     />
                                 </EditorProvider>
 

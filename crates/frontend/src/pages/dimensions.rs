@@ -22,13 +22,13 @@ pub struct RowData {
 
 #[component]
 pub fn dimensions() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
     let dimensions_resource = create_blocking_resource(
         move || tenant_rs.get(),
-        |current_tenant| async move {
-            match fetch_dimensions(current_tenant).await {
+        |tenant| async move {
+            match fetch_dimensions(&tenant).await {
                 Ok(data) => data,
                 Err(_) => vec![],
             }
@@ -128,100 +128,98 @@ pub fn dimensions() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8">
-            {move || {
-                let handle_close = move || {
-                    close_drawer("dimension_drawer");
-                    selected_dimension.set(None);
-                };
-                if let Some(selected_dimension_data) = selected_dimension.get() {
-                    view! {
-                        <Drawer
-                            id="dimension_drawer".to_string()
-                            header="Edit Dimension"
-                            handle_close=handle_close
-                        >
-                            <DimensionForm
-                                edit=true
-                                priority=selected_dimension_data.priority
-                                dimension_name=selected_dimension_data.dimension
-                                dimension_schema=selected_dimension_data.schema
-                                function_name=selected_dimension_data.function_name
-                                handle_submit=move || {
-                                    dimensions_resource.refetch();
-                                    selected_dimension.set(None);
-                                    close_drawer("dimension_drawer");
-                                }
-                            />
-
-                        </Drawer>
-                    }
-                } else {
-                    view! {
-                        <Drawer
-                            id="dimension_drawer".to_string()
-                            header="Create New Dimension"
-                            handle_close=handle_close
-                        >
-                            <DimensionForm handle_submit=move || {
+        {move || {
+            let handle_close = move || {
+                close_drawer("dimension_drawer");
+                selected_dimension.set(None);
+            };
+            if let Some(selected_dimension_data) = selected_dimension.get() {
+                view! {
+                    <Drawer
+                        id="dimension_drawer".to_string()
+                        header="Edit Dimension"
+                        handle_close=handle_close
+                    >
+                        <DimensionForm
+                            edit=true
+                            priority=selected_dimension_data.priority
+                            dimension_name=selected_dimension_data.dimension
+                            dimension_schema=selected_dimension_data.schema
+                            function_name=selected_dimension_data.function_name
+                            handle_submit=move || {
                                 dimensions_resource.refetch();
+                                selected_dimension.set(None);
                                 close_drawer("dimension_drawer");
-                            }/>
-                        </Drawer>
-                    }
+                            }
+                        />
+
+                    </Drawer>
+                }
+            } else {
+                view! {
+                    <Drawer
+                        id="dimension_drawer".to_string()
+                        header="Create New Dimension"
+                        handle_close=handle_close
+                    >
+                        <DimensionForm handle_submit=move || {
+                            dimensions_resource.refetch();
+                            close_drawer("dimension_drawer");
+                        } />
+                    </Drawer>
+                }
+            }
+        }}
+        <Suspense fallback=move || {
+            view! { <Skeleton /> }
+        }>
+            {move || {
+                let value = dimensions_resource.get().unwrap_or(vec![]);
+                let total_items = value.len().to_string();
+                let table_rows = value
+                    .iter()
+                    .map(|ele| {
+                        let mut ele_map = json!(ele).as_object().unwrap().clone();
+                        ele_map
+                            .insert(
+                                "created_at".to_string(),
+                                json!(ele.created_at.format("%v").to_string()),
+                            );
+                        ele_map
+                    })
+                    .collect::<Vec<Map<String, Value>>>();
+                view! {
+                    <div class="pb-4">
+                        <Stat heading="Dimensions" icon="ri-ruler-2-fill" number=total_items />
+                    </div>
+                    <div class="card rounded-xl w-full bg-base-100 shadow">
+                        <div class="card-body">
+                            <div class="flex justify-between">
+                                <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
+                                    "Dimensions"
+                                </h2>
+                                <DrawerBtn drawer_id="dimension_drawer"
+                                    .to_string()>
+                                    Create Dimension <i class="ri-edit-2-line ml-2"></i>
+                                </DrawerBtn>
+                            </div>
+                            <Table
+                                cell_class="min-w-48 font-mono".to_string()
+                                rows=table_rows
+                                key_column="id".to_string()
+                                columns=table_columns.get()
+                            />
+                        </div>
+                    </div>
                 }
             }}
-            <Suspense fallback=move || {
-                view! { <Skeleton/> }
-            }>
-                {move || {
-                    let value = dimensions_resource.get().unwrap_or(vec![]);
-                    let total_items = value.len().to_string();
-                    let table_rows = value
-                        .iter()
-                        .map(|ele| {
-                            let mut ele_map = json!(ele).as_object().unwrap().clone();
-                            ele_map
-                                .insert(
-                                    "created_at".to_string(),
-                                    json!(ele.created_at.format("%v").to_string()),
-                                );
-                            ele_map
-                        })
-                        .collect::<Vec<Map<String, Value>>>();
-                    view! {
-                        <div class="pb-4">
-                            <Stat heading="Dimensions" icon="ri-ruler-2-fill" number=total_items/>
-                        </div>
-                        <div class="card rounded-xl w-full bg-base-100 shadow">
-                            <div class="card-body">
-                                <div class="flex justify-between">
-                                    <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
-                                        "Dimensions"
-                                    </h2>
-                                    <DrawerBtn drawer_id="dimension_drawer"
-                                        .to_string()>
-                                        Create Dimension <i class="ri-edit-2-line ml-2"></i>
-                                    </DrawerBtn>
-                                </div>
-                                <Table
-                                    cell_class="min-w-48 font-mono".to_string()
-                                    rows=table_rows
-                                    key_column="id".to_string()
-                                    columns=table_columns.get()
-                                />
-                            </div>
-                        </div>
-                    }
-                }}
-                <DeleteModal
-                    modal_visible=delete_modal_visible_rs
-                    confirm_delete=confirm_delete
-                    set_modal_visible=delete_modal_visible_ws
-                    header_text="Are you sure you want to delete this dimension? Action is irreversible."
-                        .to_string()
-                />
-            </Suspense>
-        </div>
+            <DeleteModal
+                modal_visible=delete_modal_visible_rs
+                confirm_delete=confirm_delete
+                set_modal_visible=delete_modal_visible_ws
+                header_text="Are you sure you want to delete this dimension? Action is irreversible."
+                    .to_string()
+            />
+        </Suspense>
     }
 }

@@ -28,7 +28,7 @@ const TYPE_DRAWER_ID: &str = "type_template_drawer";
 
 #[component]
 pub fn types_page() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
     let (filters_rs, _) = create_signal(TypeFilter { page: 1, count: 10 });
     let types_resource = create_blocking_resource(
         move || (tenant_rs.get(), filters_rs.get()),
@@ -131,72 +131,70 @@ pub fn types_page() -> impl IntoView {
                             types_resource.refetch();
                             selected_type.set(None);
                             close_drawer(TYPE_DRAWER_ID);
-                        }/>
+                        } />
 
                     </Drawer>
                 }
             }
         }}
 
-        <div class="p-8">
-            <Suspense fallback=move || view! { <Skeleton/> }>
-                <div class="pb-4">
-                    {move || {
-                        let types = types_resource.get().unwrap_or(vec![]);
-                        let data = types
-                            .iter()
-                            .map(|ele| {
-                                let mut ele_map = unwrap_option_or_default_with_error(
-                                        json!(ele).as_object(),
-                                        &Map::new(),
-                                    )
-                                    .to_owned();
-                                ele_map
-                                    .insert(
-                                        "created_at".to_string(),
-                                        json!(ele.created_at.format("%v").to_string()),
-                                    );
-                                ele_map
-                                    .insert(
-                                        "last_modified_at".to_string(),
-                                        json!(ele.last_modified_at.format("%v").to_string()),
-                                    );
-                                ele_map
-                            })
-                            .collect::<Vec<Map<String, Value>>>()
-                            .to_owned();
-                        view! {
-                            <div class="pb-4">
-                                <Stat
-                                    heading="Type Templates"
-                                    icon="ri-t-box-fill"
-                                    number=types.len().to_string()
+        <Suspense fallback=move || view! { <Skeleton /> }>
+            <div class="pb-4">
+                {move || {
+                    let types = types_resource.get().unwrap_or(vec![]);
+                    let data = types
+                        .iter()
+                        .map(|ele| {
+                            let mut ele_map = unwrap_option_or_default_with_error(
+                                    json!(ele).as_object(),
+                                    &Map::new(),
+                                )
+                                .to_owned();
+                            ele_map
+                                .insert(
+                                    "created_at".to_string(),
+                                    json!(ele.created_at.format("%v").to_string()),
+                                );
+                            ele_map
+                                .insert(
+                                    "last_modified_at".to_string(),
+                                    json!(ele.last_modified_at.format("%v").to_string()),
+                                );
+                            ele_map
+                        })
+                        .collect::<Vec<Map<String, Value>>>()
+                        .to_owned();
+                    view! {
+                        <div class="pb-4">
+                            <Stat
+                                heading="Type Templates"
+                                icon="ri-t-box-fill"
+                                number=types.len().to_string()
+                            />
+                        </div>
+                        <div class="card rounded-xl w-full bg-base-100 shadow">
+                            <div class="card-body">
+                                <div class="flex justify-between">
+                                    <h2 class="card-title">Type Templates</h2>
+                                    <div>
+                                        <DrawerBtn drawer_id=TYPE_DRAWER_ID
+                                            .to_string()>
+                                            Create Type <i class="ri-add-fill ml-2"></i>
+                                        </DrawerBtn>
+                                    </div>
+                                </div>
+                                <Table
+                                    cell_class="".to_string()
+                                    rows=data
+                                    key_column="id".to_string()
+                                    columns=table_columns.get()
                                 />
                             </div>
-                            <div class="card rounded-xl w-full bg-base-100 shadow">
-                                <div class="card-body">
-                                    <div class="flex justify-between">
-                                        <h2 class="card-title">Type Templates</h2>
-                                        <div>
-                                            <DrawerBtn drawer_id=TYPE_DRAWER_ID
-                                                .to_string()>
-                                                Create Type <i class="ri-add-fill ml-2"></i>
-                                            </DrawerBtn>
-                                        </div>
-                                    </div>
-                                    <Table
-                                        cell_class="".to_string()
-                                        rows=data
-                                        key_column="id".to_string()
-                                        columns=table_columns.get()
-                                    />
-                                </div>
-                            </div>
-                        }
-                    }}
+                        </div>
+                    }
+                }}
 
-                </div>
-            </Suspense>
-        </div>
+            </div>
+        </Suspense>
     }
 }

@@ -141,11 +141,11 @@ pub fn context_override() -> impl IntoView {
 
     let page_resource: Resource<String, PageResource> = create_blocking_resource(
         move || tenant_rs.get().clone(),
-        |current_tenant| async move {
+        |tenant| async move {
             let (config_result, dimensions_result, default_config_result) = join!(
-                fetch_config(current_tenant.to_string(), None),
-                fetch_dimensions(current_tenant.to_string()),
-                fetch_default_config(current_tenant.to_string())
+                fetch_config(&tenant, None),
+                fetch_dimensions(&tenant),
+                fetch_default_config(&tenant)
             );
             PageResource {
                 config: config_result.unwrap_or_default(),
@@ -251,7 +251,6 @@ pub fn context_override() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8">
             <div class="flex justify-between">
                 <h2 class="card-title">Overrides</h2>
                 <DrawerBtn
@@ -399,6 +398,5 @@ pub fn context_override() -> impl IntoView {
                 />
 
             </Suspense>
-        </div>
     }
 }

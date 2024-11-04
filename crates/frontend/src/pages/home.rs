@@ -161,15 +161,17 @@ fn all_context_view(config: Config) -> impl IntoView {
 
 #[component]
 pub fn home() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
     let config_data = create_blocking_resource(
         move || tenant_rs.get(),
-        |tenant| fetch_config(tenant, None),
+        |tenant| async move {
+            fetch_config(&tenant, None).await
+        },
     );
     let dimension_resource = create_resource(
         move || tenant_rs.get(),
-        |tenant| async {
-            match fetch_dimensions(tenant).await {
+        |tenant| async move {
+            match fetch_dimensions(&tenant).await {
                 Ok(data) => data,
                 Err(_) => vec![],
             }

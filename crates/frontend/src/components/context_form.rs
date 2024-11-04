@@ -1,6 +1,7 @@
 pub mod utils;
 use std::collections::{HashMap, HashSet};
 
+use crate::components::dropdown::DropdownBtnType;
 use crate::components::input::{Input, InputType};
 use crate::logic::{Condition, Conditions, Operand, Operands, Operator};
 use crate::schema::EnumVariants;
@@ -245,6 +246,30 @@ where
                     <span class="label-text font-semibold text-base">Context</span>
                     <span class="label-text text-slate-400">{heading_sub_text}</span>
                 </label>
+                <Show when=move || {
+                    !context_rs.get().is_empty() && !disabled
+                }>
+                    {move || {
+                        let dimensions = dimensions
+                            .get_value()
+                            .into_iter()
+                            .filter(|dimension| {
+                                !used_dimensions_rs.get().contains(&dimension.dimension)
+                            })
+                            .collect::<Vec<Dimension>>();
+                        view! {
+                            <Dropdown
+                                dropdown_icon="ri-add-line".to_string()
+                                dropdown_text="Add Context".to_string()
+                                dropdown_btn_type=DropdownBtnType::Link
+                                dropdown_options=dimensions
+                                disabled=disabled
+                                dropdown_direction
+                                on_select=on_select_dimension
+                            />
+                        }
+                    }}
+                </Show>
             </div>
             <div class="card w-full bg-slate-50">
                 <div class="card-body">
@@ -278,7 +303,6 @@ where
                         children=move |(idx, condition)| {
                             let (schema_type, enum_variants) = dimension_map
                                 .with_value(|v| {
-                                    // if this panics then something is wrong
                                     let d = v.get(&condition.dimension).unwrap();
                                     (
                                         SchemaType::try_from(d.schema.clone()),
@@ -287,10 +311,11 @@ where
                                 });
                             if schema_type.is_err() || enum_variants.is_err() {
                                 return view! {
-                                    <span class="text-sm red"> An error occured </span>
-                                }.into_view()
+                                    // if this panics then something is wrong
+                                    <span class="text-sm red">An error occured</span>
+                                }
+                                    .into_view();
                             }
-
                             let schema_type = store_value(schema_type.unwrap());
                             let allow_remove = !disabled
                                 && !mandatory_dimensions.get_value().contains(&condition.dimension);
@@ -301,7 +326,9 @@ where
                                     condition.operator.clone(),
                                 )),
                             );
-                            logging::log!("here {:?} {:?}",  input_type.get_value(), condition.operator);
+                            logging::log!(
+                                "here {:?} {:?}",  input_type.get_value(), condition.operator
+                            );
                             let condition = store_value(condition);
                             let on_remove = move |d_name| on_remove.call((idx, d_name));
                             let on_value_change = move |(operand_idx, value)| {
@@ -317,6 +344,8 @@ where
                                     ))
                             };
                             view! {
+                                // if this panics then something is wrong
+
                                 // TODO: get rid of unwraps here
 
                                 <ConditionInput
@@ -342,36 +371,10 @@ where
                                         view! {}.into_view()
                                     }
                                 }}
-                            }.into_view()
+                            }
+                                .into_view()
                         }
                     />
-
-                    <Show when=move || { !context_rs.get().is_empty() && !disabled }>
-                        <div class="mt-4">
-
-                            {move || {
-                                let dimensions = dimensions
-                                    .get_value()
-                                    .into_iter()
-                                    .filter(|dimension| {
-                                        !used_dimensions_rs.get().contains(&dimension.dimension)
-                                    })
-                                    .collect::<Vec<Dimension>>();
-                                view! {
-                                    <Dropdown
-                                        dropdown_icon="ri-add-line".to_string()
-                                        dropdown_text="Add Context".to_string()
-                                        dropdown_options=dimensions
-                                        disabled=disabled
-                                        dropdown_direction
-                                        on_select=on_select_dimension
-                                    />
-                                }
-                            }}
-
-                        </div>
-                    </Show>
-
                 </div>
             </div>
         </div>

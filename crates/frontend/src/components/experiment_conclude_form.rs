@@ -14,7 +14,7 @@ pub fn experiment_conclude_form<HS>(
 where
     HS: Fn() + 'static + Clone,
 {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
     let experiment_rc = Rc::new(experiment);
 
     let experiment_clone = experiment_rc.clone();

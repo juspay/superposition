@@ -46,7 +46,7 @@ struct CombinedResource {
 #[component]
 pub fn function_page() -> impl IntoView {
     let function_params = use_params_map();
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
     let source = move || {
         let t = tenant_rs.get();
         let function_name = function_params
