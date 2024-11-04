@@ -53,6 +53,7 @@ where
                     ListFilters {
                         page: None,
                         count: None,
+                        all: Some(true),
                     },
                     current_tenant,
                 )
@@ -67,7 +68,7 @@ where
     let type_template_resource = create_blocking_resource(
         move || tenant_rs.get(),
         |current_tenant| async move {
-            match fetch_types(current_tenant, 1, 10000).await {
+            match fetch_types(current_tenant, 1, 10000, false).await {
                 Ok(response) => response.data,
                 Err(_) => vec![],
             }

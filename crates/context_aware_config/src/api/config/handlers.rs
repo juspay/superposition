@@ -34,19 +34,18 @@ use service_utils::{
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    custom_query::{self as superposition_query, CustomQuery, QueryMap},
+    custom_query::{
+        self as superposition_query, CustomQuery, PaginationParams, QueryMap,
+    },
     result as superposition, Cac, Condition, Config, Context, Overrides,
     PaginatedResponse, TenantConfig, User,
 };
 use uuid::Uuid;
 
-use crate::api::dimension::get_all_dimension_schema_map;
-use crate::api::{
-    context::{
-        delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
-    },
-    type_templates::types::QueryListFilters,
+use crate::api::context::{
+    delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
 };
+use crate::api::dimension::get_all_dimension_schema_map;
 use crate::db::models::ConfigVersion;
 use crate::{
     db::schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
@@ -754,24 +753,33 @@ async fn get_resolved_config(
 #[get("/versions")]
 async fn get_config_versions(
     db_conn: DbConnection,
-    filters: Query<QueryListFilters>,
+    filters: Query<PaginationParams>,
 ) -> superposition::Result<Json<PaginatedResponse<ConfigVersion>>> {
     let DbConnection(mut conn) = db_conn;
+
+    if let Some(true) = filters.all {
+        let config_versions: Vec<ConfigVersion> =
+            config_versions::config_versions.get_results(&mut conn)?;
+        return Ok(Json(PaginatedResponse {
+            total_pages: 1,
+            total_items: config_versions.len() as i64,
+            data: config_versions,
+        }));
+    }
 
     let n_version: i64 = config_versions::config_versions
         .count()
         .get_result(&mut conn)?;
+
+    let limit = filters.count.unwrap_or(10);
     let mut builder = config_versions::config_versions
         .into_boxed()
-        .order(config_versions::created_at.desc());
-    if let Some(limit) = filters.count {
-        builder = builder.limit(limit);
-    }
+        .order(config_versions::created_at.desc())
+        .limit(limit);
     if let Some(page) = filters.page {
-        let offset = (page - 1) * filters.count.unwrap_or(10);
+        let offset = (page - 1) * limit;
         builder = builder.offset(offset);
     }
-    let limit = filters.count.unwrap_or(10);
     let config_versions: Vec<ConfigVersion> = builder.load(&mut conn)?;
     let total_pages = (n_version as f64 / limit as f64).ceil() as i64;
     Ok(Json(PaginatedResponse {

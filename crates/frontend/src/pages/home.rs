@@ -189,6 +189,7 @@ pub fn home() -> impl IntoView {
                 ListFilters {
                     page: None,
                     count: None,
+                    all: Some(true),
                 },
                 tenant,
             )

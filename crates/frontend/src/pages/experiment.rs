@@ -46,6 +46,7 @@ pub fn experiment_page() -> impl IntoView {
             let empty_list_filters = ListFilters {
                 page: None,
                 count: None,
+                all: Some(true),
             };
             let dimensions_future =
                 fetch_dimensions(empty_list_filters.clone(), tenant.to_string());

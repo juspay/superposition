@@ -25,6 +25,7 @@ pub fn function_list() -> impl IntoView {
     let (filters, set_filters) = create_signal(ListFilters {
         page: Some(1),
         count: Some(10),
+        all: None,
     });
     let table_columns = create_memo(move |_| function_table_columns());
 

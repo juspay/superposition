@@ -4,10 +4,7 @@ use base64::prelude::*;
 use super::helpers::{decode_function, fetch_function};
 
 use crate::{
-    api::{
-        functions::types::{Stage, TestFunctionRequest, TestParam},
-        type_templates::types::QueryListFilters,
-    },
+    api::functions::types::{Stage, TestFunctionRequest, TestParam},
     db::{
         self,
         models::Function,
@@ -26,7 +23,9 @@ use serde_json::json;
 use service_utils::service::types::DbConnection;
 
 use superposition_macros::{bad_argument, not_found, unexpected_error};
-use superposition_types::{result as superposition, User};
+use superposition_types::{
+    custom_query::PaginationParams, result as superposition, PaginatedResponse, User,
+};
 
 use validation_functions::{compile_fn, execute_fn};
 
@@ -173,31 +172,40 @@ async fn get(
 #[get("")]
 async fn list_functions(
     db_conn: DbConnection,
-    filters: Query<QueryListFilters>,
-) -> superposition::Result<HttpResponse> {
+    filters: Query<PaginationParams>,
+) -> superposition::Result<Json<PaginatedResponse<Function>>> {
     let DbConnection(mut conn) = db_conn;
 
-    let n_default_configs: i64 = functions.count().get_result(&mut conn)?;
-    let mut builder = functions.into_boxed().order(last_modified_at.desc());
-    if let Some(limit) = filters.count {
-        builder = builder.limit(limit);
-    }
-    if let Some(page) = filters.page {
-        let offset = (page - 1) * filters.count.unwrap_or(10);
-        builder = builder.offset(offset);
-    }
-    let limit = filters.count.unwrap_or(10);
-    let mut result: Vec<Function> = builder.load(&mut conn)?;
-    let total_pages = (n_default_configs as f64 / limit as f64).ceil() as u64;
+    let (total_pages, total_items, mut data) = match filters.all {
+        Some(true) => {
+            let result: Vec<Function> = functions.get_results(&mut conn)?;
+            (1, result.len() as i64, result)
+        }
+        _ => {
+            let n_functions: i64 = functions.count().get_result(&mut conn)?;
+            let limit = filters.count.unwrap_or(10);
+            let mut builder = functions
+                .into_boxed()
+                .order(last_modified_at.desc())
+                .limit(limit);
+            if let Some(page) = filters.page {
+                let offset = (page - 1) * limit;
+                builder = builder.offset(offset);
+            }
+            let result: Vec<Function> = builder.load(&mut conn)?;
+            let total_pages = (n_functions as f64 / limit as f64).ceil() as i64;
+            (total_pages, n_functions, result)
+        }
+    };
 
-    for function in result.iter_mut() {
+    for function in data.iter_mut() {
         decode_function(function)?;
     }
-    Ok(HttpResponse::Ok().json(json!({
-    "total_pages": total_pages,
-    "total_items": n_default_configs,
-    "data": result
-    })))
+    Ok(Json(PaginatedResponse {
+        total_pages,
+        total_items,
+        data,
+    }))
 }
 
 #[delete("/{function_name}")]

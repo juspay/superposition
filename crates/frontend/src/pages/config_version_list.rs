@@ -21,6 +21,7 @@ pub fn config_version_list() -> impl IntoView {
     let (filters, set_filters) = create_signal(ListFilters {
         page: Some(1),
         count: Some(10), // Limit of 10 items per page
+        all: None,
     });
 
     let table_columns = create_memo(move |_| snapshot_table_columns(tenant_rs.get()));
@@ -35,7 +36,7 @@ pub fn config_version_list() -> impl IntoView {
                 )
             },
             |(current_tenant, page, count)| async move {
-                fetch_snapshots(current_tenant.to_string(), page, count)
+                fetch_snapshots(current_tenant.to_string(), page, count, false)
                     .await
                     .unwrap_or_default()
             },

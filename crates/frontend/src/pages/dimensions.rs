@@ -34,6 +34,7 @@ pub fn dimensions() -> impl IntoView {
     let (filters, set_filters) = create_signal(ListFilters {
         page: Some(1),
         count: Some(10),
+        all: None,
     });
     let dimensions_resource = create_blocking_resource(
         move || (tenant_rs.get(), filters.get()),

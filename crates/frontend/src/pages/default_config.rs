@@ -34,6 +34,7 @@ pub fn default_config() -> impl IntoView {
     let (filters, set_filters) = create_signal(ListFilters {
         page: Some(1),
         count: Some(10),
+        all: None,
     });
     let default_config_resource = create_blocking_resource(
         move || (tenant_rs.get(), filters.get()),
@@ -54,6 +55,7 @@ pub fn default_config() -> impl IntoView {
         set_filters.set(ListFilters {
             page: None,
             count: None,
+            all: Some(true),
         })
     };
 
@@ -61,6 +63,7 @@ pub fn default_config() -> impl IntoView {
         set_filters.set(ListFilters {
             page: Some(1),
             count: Some(10),
+            all: None,
         })
     };
 
@@ -298,7 +301,7 @@ pub fn default_config() -> impl IntoView {
                             .collect();
                         filtered_rows = modify_rows(filtered_rows.clone(), key_prefix.get(), cols);
                     }
-                    let total_default_config_keys = filtered_rows.len().to_string();
+                    let total_default_config_keys = default_config.total_items.to_string();
                     let filters = filters.get();
                     let (current_page, total_pages) = if enable_grouping.get() {
                         (1, 1)

@@ -22,6 +22,7 @@ use service_utils::service::types::{
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
+    custom_query::PaginationParams,
     result::{self as superposition},
     webhook::{WebhookConfig, WebhookEvent},
     Condition, Exp, Overrides, TenantConfig, User,
@@ -522,6 +523,7 @@ async fn get_applicable_variants(
 #[get("")]
 async fn list_experiments(
     req: HttpRequest,
+    pagination_params: Query<PaginationParams>,
     filters: Query<ExpListFilters>,
     db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {
@@ -561,16 +563,24 @@ async fn list_experiments(
     };
     let filters = filters.into_inner();
     let base_query = query_builder(&filters);
-    let count_query = query_builder(&filters);
 
-    let limit = filters.count.unwrap_or(10);
-    let offset = (filters.page.unwrap_or(1) - 1) * limit;
+    if let Some(true) = pagination_params.all {
+        let result = base_query.get_results::<Experiment>(&mut conn)?;
+        return Ok(HttpResponse::Ok().json(ExperimentsResponse {
+            total_pages: 1,
+            total_items: result.len() as i64,
+            data: result.into_iter().map(ExperimentResponse::from).collect(),
+        }));
+    }
+
+    let count_query = query_builder(&filters);
+    let number_of_experiments = count_query.count().get_result(&mut conn)?;
+    let limit = pagination_params.count.unwrap_or(10);
+    let offset = (pagination_params.page.unwrap_or(1) - 1) * limit;
     let query = base_query
         .order(experiments::last_modified.desc())
         .limit(limit)
         .offset(offset);
-
-    let number_of_experiments = count_query.count().get_result(&mut conn)?;
 
     let experiment_list = query.load::<Experiment>(&mut conn)?;
 

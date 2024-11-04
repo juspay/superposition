@@ -9,14 +9,15 @@ use service_utils::{
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
-use superposition_types::{result as superposition, PaginatedResponse, User};
+use superposition_types::{
+    custom_query::PaginationParams, result as superposition, PaginatedResponse, User,
+};
 
 use crate::{
     api::{
         context::helpers::validate_value_with_function,
         default_config::types::DefaultConfigKey,
         functions::helpers::get_published_function_code,
-        type_templates::types::QueryListFilters,
     },
     db::{
         self,
@@ -214,22 +215,29 @@ fn fetch_default_key(
 #[get("")]
 async fn get(
     db_conn: DbConnection,
-    filters: Query<QueryListFilters>,
+    filters: Query<PaginationParams>,
 ) -> superposition::Result<Json<PaginatedResponse<DefaultConfig>>> {
     let DbConnection(mut conn) = db_conn;
 
+    if let Some(true) = filters.all {
+        let result: Vec<DefaultConfig> = dsl::default_configs.get_results(&mut conn)?;
+        return Ok(Json(PaginatedResponse {
+            total_pages: 1,
+            total_items: result.len() as i64,
+            data: result,
+        }));
+    }
+
     let n_default_configs: i64 = dsl::default_configs.count().get_result(&mut conn)?;
+    let limit = filters.count.unwrap_or(10);
     let mut builder = dsl::default_configs
         .into_boxed()
-        .order(dsl::created_at.desc());
-    if let Some(limit) = filters.count {
-        builder = builder.limit(limit);
-    }
+        .order(dsl::created_at.desc())
+        .limit(limit);
     if let Some(page) = filters.page {
-        let offset = (page - 1) * filters.count.unwrap_or(10);
+        let offset = (page - 1) * limit;
         builder = builder.offset(offset);
     }
-    let limit = filters.count.unwrap_or(10);
     let result: Vec<DefaultConfig> = builder.load(&mut conn)?;
     let total_pages = (n_default_configs as f64 / limit as f64).ceil() as i64;
     Ok(Json(PaginatedResponse {

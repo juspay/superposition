@@ -126,8 +126,6 @@ pub struct ExpListFilters {
     pub status: Option<StatusTypes>,
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,
-    pub page: Option<i64>,
-    pub count: Option<i64>,
 }
 
 #[derive(Deserialize, Serialize, Clone, PartialEq, Debug, strum_macros::Display)]
@@ -331,6 +329,7 @@ pub struct ConfigVersion {
 pub struct ListFilters {
     pub page: Option<i64>,
     pub count: Option<i64>,
+    pub all: Option<bool>,
 }
 
 #[derive(Serialize, Debug, Clone, Deserialize)]

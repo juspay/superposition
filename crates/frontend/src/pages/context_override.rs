@@ -150,6 +150,7 @@ pub fn context_override() -> impl IntoView {
             let empty_list_filters = ListFilters {
                 page: None,
                 count: None,
+                all: Some(true),
             };
             let (config_result, dimensions_result, default_config_result) = join!(
                 fetch_config(current_tenant.to_string(), None),
