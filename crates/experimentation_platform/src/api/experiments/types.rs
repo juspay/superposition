@@ -3,8 +3,7 @@ use std::collections::HashMap;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use service_utils::helpers::deserialize_stringified_list;
-use superposition_types::{Condition, Exp, Overrides};
+use superposition_types::{custom_query::{SortBy, deserialize_stringified_list, StringArgs}, Condition, Exp, Overrides};
 
 use crate::db::models::{self, ExperimentStatusType, Variant};
 
@@ -164,14 +163,34 @@ pub struct StatusTypes(
     pub  Vec<ExperimentStatusType>,
 );
 
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum ExperimentSortOn {
+    LastModifiedAt,
+    CreatedAt,
+    ExperimentId,
+}
+
+impl Default for ExperimentSortOn {
+    fn default() -> Self {
+        Self::LastModifiedAt
+    }
+}
+
 #[derive(Deserialize, Debug)]
 pub struct ExpListFilters {
     pub status: Option<StatusTypes>,
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,
+    pub experiment_name: Option<String>,
+    pub experiment_ids: Option<StringArgs>,
+    pub created_by: Option<StringArgs>,
+    pub sort_on: Option<ExperimentSortOn>,
+    pub sort_by: Option<SortBy>,
+    pub page: Option<i64>,
+    pub count: Option<i64>,
 }
 
-/********** Ramp API type **********/
 #[derive(Deserialize, Debug)]
 pub struct RampRequest {
     pub traffic_percentage: u64,
@@ -194,13 +213,6 @@ pub struct OverrideKeysUpdateRequest {
 pub struct ContextMoveReq {
     pub context: Map<String, Value>,
 }
-
-/*********** List Audit API Filter Type **************/
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct StringArgs(
-    #[serde(deserialize_with = "deserialize_stringified_list")] pub Vec<String>,
-);
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct AuditQueryFilters {
