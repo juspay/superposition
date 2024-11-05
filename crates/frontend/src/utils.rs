@@ -195,6 +195,10 @@ pub fn check_url_and_return_val(s: String) -> String {
 }
 
 pub enum ConfigType {
+    // Default config is not actually dead code, it's used
+    // but for some reason the compiler thinks it's dead code
+    // this gets rid of the warning
+    #[allow(dead_code)]
     DefaultConfig(DefaultConfig),
     Dimension(Dimension),
 }
