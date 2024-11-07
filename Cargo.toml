@@ -43,6 +43,7 @@ diesel = { version = "2.1.0", features = [
     "chrono",
     "uuid",
     "postgres_backend",
+    "numeric",
 ] }
 fred = { version = "9.2.1" }
 itertools = { version = "0.10.5" }

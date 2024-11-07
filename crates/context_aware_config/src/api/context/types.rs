@@ -1,3 +1,4 @@
+use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use superposition_types::{Cac, Condition, Overrides};
 
@@ -24,6 +25,7 @@ pub struct PutResp {
     pub context_id: String,
     pub override_id: String,
     pub priority: i32,
+    pub weightage: BigDecimal,
 }
 
 #[derive(Deserialize)]

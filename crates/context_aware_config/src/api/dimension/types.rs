@@ -8,6 +8,7 @@ use superposition_types::{cac::models::Dimension, RegexEnum};
 pub struct CreateReq {
     pub dimension: DimensionName,
     pub priority: Priority,
+    pub position: Position,
     pub schema: Value,
     #[serde(default, deserialize_with = "deserialize_option")]
     pub function_name: Option<Value>,
@@ -30,6 +31,36 @@ impl TryFrom<i32> for Priority {
     type Error = String;
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         Ok(Self::validate_data(value)?)
+    }
+}
+
+#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
+#[serde(try_from = "Option<i32>")]
+pub struct Position(i32);
+impl Position {
+    fn validate_data(position_val: Option<i32>) -> Result<Self, String> {
+        if let Some(val) = position_val {
+            if val <= 0 {
+                return Err("Position should be greater than 0".to_string());
+            } else {
+                Ok(Self(val))
+            }
+        } else {
+            Ok(Position::default())
+        }
+    }
+}
+
+impl TryFrom<Option<i32>> for Position {
+    type Error = String;
+    fn try_from(value: Option<i32>) -> Result<Self, Self::Error> {
+        Ok(Self::validate_data(value)?)
+    }
+}
+
+impl Default for Position {
+    fn default() -> Self {
+        Position(1)
     }
 }
 
@@ -64,6 +95,7 @@ where
 pub struct DimensionWithMandatory {
     pub dimension: String,
     pub priority: i32,
+    pub position: i32,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: Value,
@@ -78,6 +110,7 @@ impl DimensionWithMandatory {
         DimensionWithMandatory {
             dimension: value.dimension,
             priority: value.priority,
+            position: value.position,
             created_at: value.created_at,
             created_by: value.created_by,
             schema: value.schema,

@@ -1,4 +1,5 @@
 use chrono::{offset::Utc, DateTime, NaiveDateTime};
+use bigdecimal::BigDecimal;
 #[cfg(feature = "diesel_derives")]
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
 use serde::Serialize;
@@ -30,6 +31,7 @@ pub struct Context {
     pub override_: Overrides,
     pub last_modified_at: NaiveDateTime,
     pub last_modified_by: String,
+    pub weightage: BigDecimal,
 }
 
 impl Contextual for Context {
@@ -61,6 +63,7 @@ pub struct Dimension {
     pub function_name: Option<String>,
     pub last_modified_at: NaiveDateTime,
     pub last_modified_by: String,
+    pub position: i32,
 }
 
 #[derive(Serialize, Clone)]

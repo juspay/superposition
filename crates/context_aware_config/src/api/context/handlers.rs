@@ -50,10 +50,11 @@ use crate::{
             ContextAction, ContextBulkResponse, ContextFilterSortBy, ContextFilters,
             DimensionCondition, MoveReq, PriorityRecomputeResponse, PutReq, PutResp,
         },
-        dimension::get_all_dimension_schema_map,
+        dimension::{get_dimension_data, get_dimension_data_map},
     },
     helpers::{
-        add_config_version, calculate_context_priority, validate_context_jsonschema,
+        add_config_version, calculate_context_priority, calculate_context_weightage,
+        validate_context_jsonschema, DimensionData,
     },
 };
 
@@ -80,7 +81,7 @@ type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 pub fn validate_dimensions_and_calculate_priority(
     object_key: &str,
     cond: &Value,
-    dimension_schema_map: &HashMap<String, (JSONSchema, i32)>,
+    dimension_schema_map: &HashMap<String, DimensionData>,
 ) -> superposition::Result<i32> {
     let get_priority = |key: &String, val: &Value| -> superposition::Result<i32> {
         if key == "var" {
@@ -89,7 +90,7 @@ pub fn validate_dimensions_and_calculate_priority(
                 .ok_or(bad_argument!("Dimension name should be of `String` type"))?;
             dimension_schema_map
                 .get(dimension_name)
-                .map(|(_, priority)| priority)
+                .map(|dimension_val| &dimension_val.priority)
                 .ok_or(bad_argument!(
                     "No matching dimension ({}) found",
                     dimension_name
@@ -125,17 +126,17 @@ pub fn validate_dimensions_and_calculate_priority(
 
             if let (Some(dimension_value), Some(dimension_condition)) = (val, condition) {
                 let expected_dimension_name = dimension_condition.var;
-                let (dimension_value_schema, _) = dimension_schema_map
+                let dimension_data = dimension_schema_map
                     .get(&expected_dimension_name)
                     .ok_or(bad_argument!(
-                        "No matching `dimension` {} in dimension table",
-                        expected_dimension_name
-                    ))?;
+                    "No matching `dimension` {} in dimension table",
+                    expected_dimension_name
+                ))?;
 
                 validate_context_jsonschema(
                     object_key,
                     &dimension_value,
-                    dimension_value_schema,
+                    &dimension_data.schema,
                 )?;
             }
             arr.iter().try_fold(0, |acc, item| {
@@ -214,14 +215,16 @@ fn create_ctx_from_put_req(
     validate_condition_with_functions(conn, &ctx_condition)?;
     validate_override_with_functions(conn, &r_override)?;
 
-    let dimension_schema_map = get_all_dimension_schema_map(conn)?;
-
+    let dimension_data = get_dimension_data(conn)?;
+    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
     let priority = validate_dimensions_and_calculate_priority(
         "context",
         &condition_val,
-        &dimension_schema_map,
+        &dimension_data_map,
     )?;
 
+    let weightage = calculate_context_weightage(&condition_val, &dimension_data_map)
+        .map_err(|_| unexpected_error!("Something Went Wrong"))?;
     if priority == 0 {
         return Err(bad_argument!("No dimension found in context"));
     }
@@ -238,6 +241,7 @@ fn create_ctx_from_put_req(
         created_by: user.get_email(),
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
+        weightage,
     })
 }
 
@@ -317,6 +321,7 @@ fn get_put_resp(ctx: Context) -> PutResp {
         context_id: ctx.id,
         override_id: ctx.override_id,
         priority: ctx.priority,
+        weightage: ctx.weightage,
     }
 }
 
@@ -444,12 +449,18 @@ fn r#move(
     let ctx_condition = req.context.to_owned().into_inner();
     let ctx_condition_value = Value::Object(ctx_condition.clone().into());
     let new_ctx_id = hash(&ctx_condition_value);
-    let dimension_schema_map = get_all_dimension_schema_map(conn)?;
+
+    let dimension_data = get_dimension_data(conn)?;
+    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
     let priority = validate_dimensions_and_calculate_priority(
         "context",
         &ctx_condition_value,
-        &dimension_schema_map,
+        &dimension_data_map,
     )?;
+    let weightage =
+        calculate_context_weightage(&ctx_condition_value, &dimension_data_map)
+            .map_err(|_| unexpected_error!("Something Went Wrong"))?;
+
     validate_condition_with_mandatory_dimensions(
         &req.context.into_inner(),
         &tenant_config.mandatory_dimensions,
@@ -484,6 +495,7 @@ fn r#move(
         override_: ctx.override_,
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
+        weightage,
     };
 
     let handle_unique_violation =
@@ -857,7 +869,8 @@ async fn priority_recompute(
         unexpected_error!("Something went wrong")
     })?;
 
-    let dimension_schema_map = get_all_dimension_schema_map(&mut conn)?;
+    let dimension_data = get_dimension_data(&mut conn)?;
+    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
     let mut response: Vec<PriorityRecomputeResponse> = vec![];
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
@@ -868,7 +881,7 @@ async fn priority_recompute(
             let new_priority = calculate_context_priority(
                 "context",
                 &Value::Object(context.value.clone().into()),
-                &dimension_schema_map,
+                &dimension_data_map,
             )
             .map_err(|err| {
                 log::error!("failed to calculate context priority: {}", err);

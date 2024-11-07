@@ -76,6 +76,7 @@ async fn create(
     let new_dimension = Dimension {
         dimension: create_req.dimension.into(),
         priority: create_req.priority.into(),
+        position: create_req.position.into(),
         schema: schema_value,
         created_by: user.get_email(),
         created_at: Utc::now(),

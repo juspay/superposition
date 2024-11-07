@@ -443,7 +443,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"dimension\":\"clientId\",\"priority\":100,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
+              "raw": "{\"dimension\":\"clientId\",\"priority\":100,\"position\":1,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
             },
             "url": {
               "raw": "{{host}}/dimension",
@@ -989,6 +989,7 @@
                   "    \"override\": {",
                   "        \"key1\": \"value3\"",
                   "    }",
+                  "    \"weightage\": \"2\",",
                   "};",
                   "",
                   "pm.test(\"200 check\", function() {",

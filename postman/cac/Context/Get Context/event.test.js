@@ -12,7 +12,8 @@ const expected_context = {
     "priority": 100,
     "override": {
         "key1": "value3"
-    }
+    },
+    "weightage": "2"
 };
 
 pm.test("200 check", function() {
