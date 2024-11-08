@@ -10,6 +10,8 @@ use crate::{
     types::{Variant, VariantType},
 };
 
+use super::table::types::ColumnSortable;
+
 pub fn gen_variant_table(
     variants: &[Variant],
 ) -> Result<(Vec<Map<String, Value>>, Vec<Column>), String> {
@@ -20,9 +22,12 @@ pub fn gen_variant_table(
             VariantType::CONTROL => format!("{}", variant.variant_type),
             VariantType::EXPERIMENTAL => format!("Variant-{}", i),
         };
-        columns.push(Column::new(name.clone(), None, |value: &str, _| {
-            view! { <span>{value.to_string()}</span> }.into_view()
-        }));
+        columns.push(Column::new(
+            name.clone(),
+            None,
+            |value: &str, _| view! { <span>{value.to_string()}</span> }.into_view(),
+            ColumnSortable::No,
+        ));
         for (config, value) in variant.overrides.iter() {
             match row_map.get_mut(config) {
                 Some(c) => {

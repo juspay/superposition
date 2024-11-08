@@ -3,11 +3,10 @@ use std::collections::HashMap;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use service_utils::helpers::deserialize_stringified_list;
 use superposition_types::{
-    custom_query::{deserialize_stringified_list, SortBy, StringArgs},
+    custom_query::{deserialize_stringified_list, CommaSeparatedStringQParams},
     experimentation::models::{Experiment, ExperimentStatusType, Variant},
-    Condition, Exp, Overrides,
+    Condition, Exp, Overrides, SortBy,
 };
 
 #[derive(Deserialize)]
@@ -169,7 +168,6 @@ pub struct StatusTypes(
 pub enum ExperimentSortOn {
     LastModifiedAt,
     CreatedAt,
-    ExperimentId,
 }
 
 impl Default for ExperimentSortOn {
@@ -179,17 +177,16 @@ impl Default for ExperimentSortOn {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct ExpListFilters {
+pub struct ExperimentListFilters {
     pub status: Option<StatusTypes>,
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,
     pub experiment_name: Option<String>,
-    pub experiment_ids: Option<StringArgs>,
-    pub created_by: Option<StringArgs>,
+    pub experiment_ids: Option<CommaSeparatedStringQParams>,
+    pub created_by: Option<CommaSeparatedStringQParams>,
+    pub context: Option<String>,
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
-    pub page: Option<i64>,
-    pub count: Option<i64>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -219,8 +216,8 @@ pub struct ContextMoveReq {
 pub struct AuditQueryFilters {
     pub from_date: Option<NaiveDateTime>,
     pub to_date: Option<NaiveDateTime>,
-    pub table: Option<StringArgs>,
-    pub action: Option<StringArgs>,
+    pub table: Option<CommaSeparatedStringQParams>,
+    pub action: Option<CommaSeparatedStringQParams>,
     pub username: Option<String>,
     pub count: Option<i64>,
     pub page: Option<i64>,

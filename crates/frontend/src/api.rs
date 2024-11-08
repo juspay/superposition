@@ -3,7 +3,7 @@ use superposition_types::Config;
 
 use crate::{
     types::{
-        ConfigVersionListResponse, DefaultConfig, Dimension, ExpListFilters,
+        ConfigVersionListResponse, DefaultConfig, Dimension, ExperimentListFilters,
         ExperimentResponse, FetchTypeTemplateResponse, FunctionResponse, ListFilters,
         PaginatedResponse,
     },
@@ -15,24 +15,13 @@ use crate::{
 
 // #[server(GetDimensions, "/fxn", "GetJson")]
 pub async fn fetch_dimensions(
-    filters: ListFilters,
+    filters: &ListFilters,
     tenant: String,
 ) -> Result<PaginatedResponse<Dimension>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let mut query_params = vec![];
-    if let Some(page) = filters.page {
-        query_params.push(format!("page={}", page));
-    }
-    if let Some(count) = filters.count {
-        query_params.push(format!("count={}", count));
-    }
-    if let Some(all) = filters.all {
-        query_params.push(format!("all={}", all));
-    }
-
-    let url = format!("{}/dimension?{}", host, query_params.join("&"));
+    let url = format!("{}/dimension?{}", host, filters.to_string());
     let response: PaginatedResponse<Dimension> = client
         .get(url)
         .header("x-tenant", &tenant)
@@ -48,24 +37,13 @@ pub async fn fetch_dimensions(
 
 // #[server(GetDefaultConfig, "/fxn", "GetJson")]
 pub async fn fetch_default_config(
-    filters: ListFilters,
+    filters: &ListFilters,
     tenant: String,
 ) -> Result<PaginatedResponse<DefaultConfig>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let mut query_params = vec![];
-    if let Some(page) = filters.page {
-        query_params.push(format!("page={}", page));
-    }
-    if let Some(count) = filters.count {
-        query_params.push(format!("count={}", count));
-    }
-    if let Some(all) = filters.all {
-        query_params.push(format!("all={}", all));
-    }
-
-    let url = format!("{}/default-config?{}", host, query_params.join("&"));
+    let url = format!("{}/default-config?{}", host, filters.to_string());
     let response: PaginatedResponse<DefaultConfig> = client
         .get(url)
         .header("x-tenant", tenant)
@@ -129,37 +107,25 @@ pub async fn delete_context(
     }
 }
 
-// #[server(GetExperiments, "/fxn", "GetJson")]
 pub async fn fetch_experiments(
-    exp_filters: ExpListFilters,
-    pagination_filters: ListFilters,
+    filters: &ExperimentListFilters,
+    pagination: &ListFilters,
     tenant: String,
 ) -> Result<PaginatedResponse<ExperimentResponse>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
+    let pagination = pagination.to_string();
 
-    let mut query_params = vec![];
-    if let Some(status) = exp_filters.status {
-        let status: Vec<String> = status.iter().map(|val| val.to_string()).collect();
-        query_params.push(format!("status={}", status.join(",")));
-    }
-    if let Some(from_date) = exp_filters.from_date {
-        query_params.push(format!("from_date={}", from_date));
-    }
-    if let Some(to_date) = exp_filters.to_date {
-        query_params.push(format!("to_date={}", to_date));
-    }
-    if let Some(page) = pagination_filters.page {
-        query_params.push(format!("page={}", page));
-    }
-    if let Some(count) = pagination_filters.count {
-        query_params.push(format!("count={}", count));
-    }
-    if let Some(all) = pagination_filters.all {
-        query_params.push(format!("all={}", all));
-    }
-
-    let url = format!("{}/experiments?{}", host, query_params.join("&"));
+    let url = if pagination.is_empty() {
+        format!("{}/experiments?{}", host, filters.to_string())
+    } else {
+        format!(
+            "{}/experiments?{}&{}",
+            host,
+            filters.to_string(),
+            pagination
+        )
+    };
     let response: PaginatedResponse<ExperimentResponse> = client
         .get(url)
         .header("x-tenant", tenant)
@@ -180,17 +146,7 @@ pub async fn fetch_functions(
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let mut query_params = vec![];
-    if let Some(page) = filters.page {
-        query_params.push(format!("page={}", page));
-    }
-    if let Some(count) = filters.count {
-        query_params.push(format!("count={}", count));
-    }
-    if let Some(all) = filters.all {
-        query_params.push(format!("all={}", all));
-    }
-    let url = format!("{}/function?{}", host, query_params.join("&"));
+    let url = format!("{}/function?{}", host, filters.to_string());
     let response: PaginatedResponse<FunctionResponse> = client
         .get(url)
         .header("x-tenant", tenant)

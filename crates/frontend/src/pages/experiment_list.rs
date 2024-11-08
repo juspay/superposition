@@ -5,6 +5,7 @@ use leptos::*;
 
 use chrono::{prelude::Utc, TimeZone};
 use serde::{Deserialize, Serialize};
+use superposition_types::SortBy;
 
 use crate::components::drawer::{close_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
@@ -13,7 +14,9 @@ use crate::components::{experiment_form::ExperimentForm, stat::Stat, table::Tabl
 
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
-use crate::types::{ExpListFilters, ExperimentResponse, ListFilters, PaginatedResponse};
+use crate::types::{
+    ExperimentListFilters, ExperimentResponse, ListFilters, PaginatedResponse,
+};
 use crate::utils::update_page_direction;
 
 use self::utils::experiment_table_columns;
@@ -34,41 +37,48 @@ struct CombinedResource {
 pub fn experiment_list() -> impl IntoView {
     // acquire tenant
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-    let (exp_filters, _set_exp_filters) = create_signal(ExpListFilters {
+    let (filters_rs, filters_ws) = create_signal(ExperimentListFilters {
         status: None,
         from_date: Utc.timestamp_opt(0, 0).single(),
         to_date: Utc.timestamp_opt(4130561031, 0).single(),
+        experiment_name: None,
+        experiment_ids: None,
+        created_by: None,
+        context: None,
+        sort_on: Some(utils::ExperimentSortOn::LastModifiedAt),
+        sort_by: Some(SortBy::Desc),
     });
-    let (pagination_filters, set_pagination_filters) = create_signal(ListFilters {
+
+    let (pagination_filters_rs, pagination_filters_ws) = create_signal(ListFilters {
         page: Some(1),
         count: Some(10),
         all: None,
     });
 
     let (reset_exp_form, set_exp_form) = create_signal(0);
-    let table_columns = store_value(experiment_table_columns());
 
     let combined_resource: Resource<
-        (String, ExpListFilters, ListFilters),
+        (String, ExperimentListFilters, ListFilters),
         CombinedResource,
     > = create_blocking_resource(
-        move || (tenant_rs.get(), exp_filters.get(), pagination_filters.get()),
-        |(current_tenant, exp_filters, pagination_filters)| async move {
+        move || {
+            (
+                tenant_rs.get(),
+                filters_rs.get(),
+                pagination_filters_rs.get(),
+            )
+        },
+        |(current_tenant, filters, pagination_filters)| async move {
             // Perform all fetch operations concurrently
             let experiments_future = fetch_experiments(
-                exp_filters,
-                pagination_filters,
+                &filters,
+                &pagination_filters,
                 current_tenant.to_string(),
             );
-            let empty_list_filters = ListFilters {
-                page: None,
-                count: None,
-                all: Some(true),
-            };
             let dimensions_future =
-                fetch_dimensions(empty_list_filters.clone(), current_tenant.to_string());
+                fetch_dimensions(&pagination_filters, current_tenant.to_string());
             let config_future =
-                fetch_default_config(empty_list_filters, current_tenant.to_string());
+                fetch_default_config(&pagination_filters, current_tenant.to_string());
 
             let (experiments_result, dimensions_result, config_result) =
                 join!(experiments_future, dimensions_future, config_future);
@@ -97,13 +107,13 @@ pub fn experiment_list() -> impl IntoView {
     };
 
     let handle_next_click = Callback::new(move |total_pages: i64| {
-        set_pagination_filters.update(|f| {
+        pagination_filters_ws.update(|f| {
             f.page = update_page_direction(f.page, total_pages, true);
         });
     });
 
     let handle_prev_click = Callback::new(move |_| {
-        set_pagination_filters.update(|f| {
+        pagination_filters_ws.update(|f| {
             f.page = update_page_direction(f.page, 1, false);
         });
     });
@@ -111,7 +121,7 @@ pub fn experiment_list() -> impl IntoView {
     // TODO: Add filters
     view! {
         <div class="p-8">
-            <Suspense fallback=move || view! { <Skeleton/> }>
+            <Suspense fallback=move || view! { <Skeleton /> }>
                 <div class="pb-4">
 
                     {move || {
@@ -143,7 +153,8 @@ pub fn experiment_list() -> impl IntoView {
                         </div>
                         {move || {
                             let value = combined_resource.get();
-                            let pagination_filters = pagination_filters.get();
+                            let pagination = pagination_filters_rs.get();
+                            let table_columns = experiment_table_columns(filters_rs, filters_ws);
                             match value {
                                 Some(v) => {
                                     let data = v
@@ -171,8 +182,8 @@ pub fn experiment_list() -> impl IntoView {
                                         .to_owned();
                                     let pagination_props = TablePaginationProps {
                                         enabled: true,
-                                        count: pagination_filters.count.unwrap_or_default(),
-                                        current_page: pagination_filters.page.unwrap_or_default(),
+                                        count: pagination.count.unwrap_or_default(),
+                                        current_page: pagination.page.unwrap_or_default(),
                                         total_pages: v.experiments.total_pages,
                                         on_next: handle_next_click,
                                         on_prev: handle_prev_click,
@@ -183,7 +194,7 @@ pub fn experiment_list() -> impl IntoView {
                                                 cell_class="min-w-48 font-mono".to_string()
                                                 rows=data
                                                 key_column="id".to_string()
-                                                columns=table_columns.get_value()
+                                                columns=table_columns
                                                 pagination=pagination_props
                                             />
                                         </ConditionCollapseProvider>

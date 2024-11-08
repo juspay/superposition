@@ -155,19 +155,6 @@ impl From<HashMap<String, String>> for QueryMap {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
-#[serde(rename_all = "lowercase")]
-pub enum SortBy {
-    Desc,
-    Asc,
-}
-
-impl Default for SortBy {
-    fn default() -> Self {
-        Self::Desc
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct PaginationParams {
     pub count: Option<i64>,
@@ -215,7 +202,7 @@ impl<'de> Deserialize<'de> for PaginationParams {
 
 #[derive(Debug, Deserialize, Clone, Deref)]
 #[deref(forward)]
-pub struct StringArgs(
+pub struct CommaSeparatedStringQParams(
     #[serde(deserialize_with = "deserialize_stringified_list")] pub Vec<String>,
 );
 

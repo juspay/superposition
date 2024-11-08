@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use leptos::{view, Callback, IntoView, View};
 use serde_json::{Map, Value};
+use superposition_types::SortBy;
 
 pub type CellFormatter = Box<Rc<dyn Fn(&str, &Map<String, Value>) -> View>>;
 
@@ -11,10 +12,21 @@ pub struct TableSettings {
 }
 
 #[derive(Clone)]
+pub enum ColumnSortable {
+    Yes {
+        sort_fn: Callback<()>,
+        sort_by: SortBy,
+        currently_sorted: bool,
+    },
+    No,
+}
+
+#[derive(Clone)]
 pub struct Column {
     pub name: String,
     pub hidden: bool,
     pub formatter: CellFormatter,
+    pub sortable: ColumnSortable,
 }
 
 impl PartialEq for Column {
@@ -33,9 +45,23 @@ impl Column {
             name,
             hidden: false,
             formatter: Box::new(Rc::new(default_formatter)),
+            sortable: ColumnSortable::No,
         }
     }
-    pub fn new<NF>(name: String, hidden: Option<bool>, formatter: NF) -> Column
+    pub fn default_with_sort(name: String, sortable: ColumnSortable) -> Column {
+        Column {
+            name,
+            hidden: false,
+            formatter: Box::new(Rc::new(default_formatter)),
+            sortable,
+        }
+    }
+    pub fn new<NF>(
+        name: String,
+        hidden: Option<bool>,
+        formatter: NF,
+        sortable: ColumnSortable,
+    ) -> Column
     where
         NF: Fn(&str, &Map<String, Value>) -> View + 'static,
     {
@@ -43,6 +69,7 @@ impl Column {
             name,
             hidden: hidden.unwrap_or(false),
             formatter: Box::new(Rc::new(formatter)),
+            sortable,
         }
     }
 }
