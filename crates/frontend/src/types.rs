@@ -1,14 +1,18 @@
 use leptos::{ReadSignal, WriteSignal};
 use serde::{Deserialize, Serialize};
 use std::{str::FromStr, vec::Vec};
+use superposition_types::SortBy;
 
 use chrono::{DateTime, NaiveDateTime, Utc};
 use derive_more::{Deref, DerefMut};
 use serde_json::{json, Map, Value};
 
-use crate::components::{
-    condition_pills::{types::Condition, utils::extract_conditions},
-    dropdown::utils::DropdownOption,
+use crate::{
+    components::{
+        condition_pills::{types::Condition, utils::extract_conditions},
+        dropdown::utils::DropdownOption,
+    },
+    pages::experiment_list::utils::ExperimentSortOn,
 };
 
 #[derive(Clone, Debug)]
@@ -122,10 +126,71 @@ pub struct ExperimentsResponse {
 pub struct StatusTypes(pub Vec<ExperimentStatusType>);
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ExpListFilters {
+pub struct ExperimentListFilters {
     pub status: Option<StatusTypes>,
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,
+    pub all: Option<bool>,
+    pub page: Option<i64>,
+    pub count: Option<i64>,
+    pub experiment_name: Option<String>,
+    pub experiment_ids: Option<String>,
+    pub created_by: Option<String>,
+    pub context: Option<String>,
+    pub sort_on: Option<ExperimentSortOn>,
+    pub sort_by: Option<SortBy>,
+}
+
+impl ExperimentListFilters {
+    pub fn get_query_params(self) -> String {
+        let mut query_params = vec![];
+        if let Some(status) = self.status {
+            let status: Vec<String> = status.iter().map(|val| val.to_string()).collect();
+            query_params.push(format!("status={}", status.join(",")));
+        }
+        if let Some(from_date) = self.from_date {
+            query_params.push(format!("from_date={}", from_date));
+        }
+        if let Some(to_date) = self.to_date {
+            query_params.push(format!("to_date={}", to_date));
+        }
+        if let Some(page) = self.page {
+            query_params.push(format!("page={}", page));
+        }
+        if let Some(all) = self.all {
+            query_params.push(format!("all={}", all));
+        }
+        if let Some(count) = self.count {
+            query_params.push(format!("count={}", count));
+        }
+        if let Some(experiment_name) = self.experiment_name {
+            query_params.push(format!("experiment_name={}", experiment_name));
+        }
+        if let Some(experiment_ids) = self.experiment_ids {
+            query_params.push(format!("experiment_ids={}", experiment_ids));
+        }
+        if let Some(created_by) = self.created_by {
+            query_params.push(format!("created_by={}", created_by));
+        }
+        if let Some(context) = self.context {
+            query_params.push(format!("context={}", context));
+        }
+        if let Some(sort_on) = self.sort_on {
+            query_params.push(format!("sort_on={}", sort_on));
+        }
+        if let Some(sort_by) = self.sort_by {
+            query_params.push(format!("sort_by={}", sort_by));
+        }
+        query_params.join("&")
+    }
+
+    pub fn get_list_filters(&self) -> ListFilters {
+        ListFilters {
+            page: self.page,
+            count: self.count,
+            all: self.all,
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Clone, PartialEq, Debug, strum_macros::Display)]

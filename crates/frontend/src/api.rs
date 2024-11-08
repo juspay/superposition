@@ -3,7 +3,7 @@ use superposition_types::Config;
 
 use crate::{
     types::{
-        ConfigVersionListResponse, DefaultConfig, Dimension, ExpListFilters,
+        ConfigVersionListResponse, DefaultConfig, Dimension, ExperimentListFilters,
         ExperimentResponse, FetchTypeTemplateResponse, FunctionResponse, ListFilters,
         PaginatedResponse,
     },
@@ -129,37 +129,14 @@ pub async fn delete_context(
     }
 }
 
-// #[server(GetExperiments, "/fxn", "GetJson")]
 pub async fn fetch_experiments(
-    exp_filters: ExpListFilters,
-    pagination_filters: ListFilters,
+    filters: ExperimentListFilters,
     tenant: String,
 ) -> Result<PaginatedResponse<ExperimentResponse>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let mut query_params = vec![];
-    if let Some(status) = exp_filters.status {
-        let status: Vec<String> = status.iter().map(|val| val.to_string()).collect();
-        query_params.push(format!("status={}", status.join(",")));
-    }
-    if let Some(from_date) = exp_filters.from_date {
-        query_params.push(format!("from_date={}", from_date));
-    }
-    if let Some(to_date) = exp_filters.to_date {
-        query_params.push(format!("to_date={}", to_date));
-    }
-    if let Some(page) = pagination_filters.page {
-        query_params.push(format!("page={}", page));
-    }
-    if let Some(count) = pagination_filters.count {
-        query_params.push(format!("count={}", count));
-    }
-    if let Some(all) = pagination_filters.all {
-        query_params.push(format!("all={}", all));
-    }
-
-    let url = format!("{}/experiments?{}", host, query_params.join("&"));
+    let url = format!("{}/experiments?{}", host, filters.get_query_params());
     let response: PaginatedResponse<ExperimentResponse> = client
         .get(url)
         .header("x-tenant", tenant)

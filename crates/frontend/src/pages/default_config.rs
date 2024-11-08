@@ -4,6 +4,7 @@ use crate::components::default_config_form::DefaultConfigForm;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
+use crate::components::table::types::ColumnSortable;
 use crate::components::table::{
     types::{Column, TablePaginationProps},
     Table,
@@ -203,13 +204,18 @@ pub fn default_config() -> impl IntoView {
         };
 
         vec![
-            Column::new("key".to_string(), None, expand),
+            Column::new("key".to_string(), None, expand, ColumnSortable::No),
             Column::default("schema".to_string()),
             Column::default("value".to_string()),
             Column::default("function_name".to_string()),
             Column::default("created_at".to_string()),
             Column::default("created_by".to_string()),
-            Column::new("actions".to_string(), None, actions_col_formatter),
+            Column::new(
+                "actions".to_string(),
+                None,
+                actions_col_formatter,
+                ColumnSortable::No,
+            ),
         ]
     });
 
