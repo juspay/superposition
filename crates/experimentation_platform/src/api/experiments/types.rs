@@ -3,7 +3,10 @@ use std::collections::HashMap;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use superposition_types::{custom_query::{SortBy, deserialize_stringified_list, StringArgs}, Condition, Exp, Overrides};
+use superposition_types::{
+    custom_query::{deserialize_stringified_list, StringArgs},
+    Condition, Exp, Overrides, SortBy,
+};
 
 use crate::db::models::{self, ExperimentStatusType, Variant};
 
@@ -168,7 +171,6 @@ pub struct StatusTypes(
 pub enum ExperimentSortOn {
     LastModifiedAt,
     CreatedAt,
-    ExperimentId,
 }
 
 impl Default for ExperimentSortOn {
@@ -185,6 +187,7 @@ pub struct ExpListFilters {
     pub experiment_name: Option<String>,
     pub experiment_ids: Option<StringArgs>,
     pub created_by: Option<StringArgs>,
+    pub context: Option<String>,
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
     pub page: Option<i64>,

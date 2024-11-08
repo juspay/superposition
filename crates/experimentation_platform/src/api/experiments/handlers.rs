@@ -9,7 +9,9 @@ use actix_web::{
 use anyhow::anyhow;
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use diesel::{
+    dsl::sql,
     r2d2::{ConnectionManager, PooledConnection},
+    sql_types::{Bool, Text},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, TextExpressionMethods,
 };
 use reqwest::{Method, Response, StatusCode};
@@ -23,10 +25,9 @@ use service_utils::service::types::{
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
     custom_query::PaginationParams,
-    custom_query::SortBy,
     result::{self as superposition},
     webhook::{WebhookConfig, WebhookEvent},
-    Condition, Exp, Overrides, TenantConfig, User,
+    Condition, Exp, Overrides, SortBy, TenantConfig, User,
 };
 
 use super::{
@@ -554,15 +555,27 @@ async fn list_experiments(
         if let Some(ref states) = filters.status {
             builder = builder.filter(experiments::status.eq_any(states.0.clone()));
         }
-        if let Some(experiment_name) = filters.experiment_name.clone() {
-            builder = builder.filter(experiments::name.like(format!("%{}%", experiment_name)))
+        if let Some(ref experiment_name) = filters.experiment_name {
+            builder =
+                builder.filter(experiments::name.like(format!("%{}%", experiment_name)));
+        }
+        if let Some(ref context_search) = filters.context {
+            builder = builder.filter(
+                sql::<Bool>("context::text LIKE ")
+                    .bind::<Text, _>(format!("%{}%", context_search)),
+            );
         }
         if let Some(ref created_by) = filters.created_by {
-            builder = builder.filter(experiments::created_by.eq_any(created_by.0.clone()))
+            builder =
+                builder.filter(experiments::created_by.eq_any(created_by.0.clone()));
         }
         if let Some(experiment_ids) = filters.experiment_ids.clone() {
-            let experiment_ids: Vec<i64> = experiment_ids.0.iter().map(|i| i.parse::<i64>().unwrap_or_default()).collect();
-            builder = builder.filter(experiments::id.eq_any(experiment_ids))
+            let experiment_ids: HashSet<i64> = experiment_ids
+                .0
+                .iter()
+                .map(|i| i.parse::<i64>().unwrap_or_default())
+                .collect();
+            builder = builder.filter(experiments::id.eq_any(experiment_ids));
         }
         let now = Utc::now();
         builder
@@ -591,25 +604,12 @@ async fn list_experiments(
 
     let sort_by = filters.sort_by.unwrap_or_default();
     let sort_on = filters.sort_on.unwrap_or_default();
+    #[rustfmt::skip]
     let base_query = match (sort_on, sort_by) {
-        (ExperimentSortOn::LastModifiedAt, SortBy::Desc) => {
-            base_query.order(experiments::last_modified.desc())
-        }
-        (ExperimentSortOn::LastModifiedAt, SortBy::Asc) => {
-            base_query.order(experiments::last_modified.asc())
-        }
-        (ExperimentSortOn::CreatedAt, SortBy::Desc) => {
-            base_query.order(experiments::created_at.desc())
-        }
-        (ExperimentSortOn::CreatedAt, SortBy::Asc) => {
-            base_query.order(experiments::created_at.asc())
-        }
-        (ExperimentSortOn::ExperimentId, SortBy::Desc) => {
-            base_query.order(experiments::id.desc())
-        }
-        (ExperimentSortOn::ExperimentId, SortBy::Asc) => {
-            base_query.order(experiments::id.asc())
-        }
+        (ExperimentSortOn::LastModifiedAt, SortBy::Desc) => base_query.order(experiments::last_modified.desc()),
+        (ExperimentSortOn::LastModifiedAt, SortBy::Asc)  => base_query.order(experiments::last_modified.asc()),
+        (ExperimentSortOn::CreatedAt, SortBy::Desc)      => base_query.order(experiments::created_at.desc()),
+        (ExperimentSortOn::CreatedAt, SortBy::Asc)       => base_query.order(experiments::created_at.asc()),
     };
     let query = base_query.limit(limit).offset(offset);
     let experiment_list = query.load::<Experiment>(&mut conn)?;
