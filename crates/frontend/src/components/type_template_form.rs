@@ -15,6 +15,7 @@ use web_sys::MouseEvent;
 #[component]
 pub fn type_template_form<NF>(
     #[prop(default = false)] edit: bool,
+    #[prop(into, default = String::new())] class: String,
     #[prop(default = String::new())] type_name: String,
     #[prop(default = json!({"type": "number"}))] type_schema: Value,
     handle_submit: NF,
@@ -61,10 +62,10 @@ where
         });
     };
     view! {
-        <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
+        <form class=format!("relative form-control space-y-4 text-gray-700 font-mono {}", class)>
             <div class="form-control">
                 <label class="label">
-                    <span class="label-text">Type Name</span>
+                    <span class="label-text font-semibold">Type Name</span>
                 </label>
                 <input
                     disabled=edit
@@ -72,7 +73,7 @@ where
                     placeholder="Type name"
                     name="type_name"
                     id="type_name"
-                    class="input input-bordered w-full max-w-md"
+                    class="input input-bordered w-full"
                     value=move || type_name_rs.get()
                     on:change=move |ev| {
                         let value = event_target_value(&ev);
@@ -82,10 +83,9 @@ where
 
             </div>
 
-            <div class="divider"></div>
             <div class="form-control">
                 <label class="label">
-                    <span class="label-text">Type Schema</span>
+                    <span class="label-text font-semibold">Type Schema</span>
                 </label>
                 {move || {
                     let schem = type_schema_rs.get();
@@ -94,10 +94,12 @@ where
                         <EditorProvider>
                             <Input
                                 id="type-schema"
-                                class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
+                                class="rounded-md resize-y w-full"
                                 schema_type
                                 value=schem
-                                on_change=Callback::new(move |new_type_schema| type_schema_ws.set(new_type_schema))
+                                on_change=Callback::new(move |new_type_schema| {
+                                    type_schema_ws.set(new_type_schema)
+                                })
                                 r#type=InputType::Monaco
                             />
                         </EditorProvider>
@@ -106,16 +108,11 @@ where
 
             </div>
 
-            <div class="form-control grid w-full mt-5 justify-start">
+            <div class="absolute bottom-0 right-0 p-4 flex justify-end items-end w-full bg-white">
                 {move || {
                     let loading = req_inprogess_rs.get();
                     view! {
-                        <Button
-                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                            text="Submit".to_string()
-                            on_click=on_submit.clone()
-                            loading
-                        />
+                        <Button text="Submit".to_string() on_click=on_submit.clone() loading />
                     }
                 }}
 

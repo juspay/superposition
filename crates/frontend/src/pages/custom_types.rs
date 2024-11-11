@@ -1,15 +1,10 @@
+use crate::components::button::Button;
 use crate::components::type_template_form::utils::delete_type;
-use crate::components::{
-    drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
-    skeleton::Skeleton,
-    stat::Stat,
-    table::Table,
-    type_template_form::TypeTemplateForm,
-};
+use crate::components::{skeleton::Skeleton, stat::Stat, table::Table};
 use crate::utils::unwrap_option_or_default_with_error;
 use crate::{api::fetch_types, components::table::types::Column};
 use leptos::*;
-use serde::Deserialize;
+use leptos_router::A;
 use serde_json::{json, Map, Value};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -17,14 +12,6 @@ struct TypeFilter {
     pub page: i64,
     pub count: i64,
 }
-
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-struct TypeTemplateRow {
-    pub type_name: String,
-    pub type_schema: Value,
-}
-
-const TYPE_DRAWER_ID: &str = "type_template_drawer";
 
 #[component]
 pub fn types_page() -> impl IntoView {
@@ -42,7 +29,7 @@ pub fn types_page() -> impl IntoView {
             }
         },
     );
-    let selected_type = create_rw_signal::<Option<TypeTemplateRow>>(None);
+
     let table_columns = create_memo(move |_| {
         vec![
             Column::default("type_name".to_string()),
@@ -54,35 +41,28 @@ pub fn types_page() -> impl IntoView {
                 "actions".into(),
                 None,
                 move |_: &str, row: &Map<String, Value>| {
-                    let edit_row_json = json!(row);
-                    let delete_row_json = edit_row_json.clone();
-                    let edit_click = move |_| {
-                        let row_data = serde_json::from_value::<TypeTemplateRow>(
-                            edit_row_json.clone(),
-                        )
+                    let type_name = row
+                        .get("type_name")
+                        .map(|v| v.as_str().unwrap().to_string())
                         .unwrap();
-                        selected_type.set(Some(row_data));
-                        open_drawer(TYPE_DRAWER_ID);
-                    };
+
+                    let delete_type_name = type_name.clone();
                     let delete_click = move |_| {
-                        let row_data = serde_json::from_value::<TypeTemplateRow>(
-                            delete_row_json.clone(),
-                        )
-                        .unwrap();
+                        let type_name = delete_type_name.clone();
                         spawn_local({
                             async move {
                                 let tenant = tenant_rs.get();
-                                let _ =
-                                    delete_type(tenant, row_data.clone().type_name).await;
+                                let _ = delete_type(&tenant, &type_name).await;
                                 types_resource.refetch();
                             }
                         });
                     };
                     view! {
                         <div class="join">
-                            <span class="cursor-pointer" on:click=edit_click>
+                            <A href={format!("{}/update", type_name)}>
                                 <i class="ri-pencil-line ri-xl text-blue-500"></i>
-                            </span>
+                            </A>
+
                             <span class="cursor-pointer" on:click=delete_click>
                                 <i class="ri-delete-bin-line ri-xl text-red-500"></i>
                             </span>
@@ -95,49 +75,6 @@ pub fn types_page() -> impl IntoView {
     });
 
     view! {
-        {move || {
-            let handle_close = move || {
-                close_drawer(TYPE_DRAWER_ID);
-                selected_type.set(None);
-            };
-            if let Some(selected_type_data) = selected_type.get() {
-                view! {
-                    <Drawer
-                        id=TYPE_DRAWER_ID.to_string()
-                        header="Edit Type Template"
-                        handle_close=handle_close
-                    >
-                        <TypeTemplateForm
-                            edit=true
-                            type_name=selected_type_data.type_name
-                            type_schema=selected_type_data.type_schema
-                            handle_submit=move || {
-                                types_resource.refetch();
-                                selected_type.set(None);
-                                close_drawer(TYPE_DRAWER_ID);
-                            }
-                        />
-
-                    </Drawer>
-                }
-            } else {
-                view! {
-                    <Drawer
-                        id=TYPE_DRAWER_ID.to_string()
-                        header="Create New Type Template"
-                        handle_close=handle_close
-                    >
-                        <TypeTemplateForm handle_submit=move || {
-                            types_resource.refetch();
-                            selected_type.set(None);
-                            close_drawer(TYPE_DRAWER_ID);
-                        } />
-
-                    </Drawer>
-                }
-            }
-        }}
-
         <Suspense fallback=move || view! { <Skeleton /> }>
             <div class="pb-4">
                 {move || {
@@ -177,10 +114,9 @@ pub fn types_page() -> impl IntoView {
                                 <div class="flex justify-between">
                                     <h2 class="card-title">Type Templates</h2>
                                     <div>
-                                        <DrawerBtn drawer_id=TYPE_DRAWER_ID
-                                            .to_string()>
-                                            Create Type <i class="ri-add-fill ml-2"></i>
-                                        </DrawerBtn>
+                                        <A href="new">
+                                            <Button text="Create Type" on_click=move |_| {} />
+                                        </A>
                                     </div>
                                 </div>
                                 <Table

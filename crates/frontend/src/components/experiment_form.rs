@@ -145,7 +145,6 @@ pub fn experiment_form(
                         let context = f_context.get();
                         view! {
                             <ContextForm
-                                // dimensions will now be a Vec<Dimension>
                                 dimensions=dimensions.get_value()
                                 context=context
                                 handle_change=handle_context_form_change

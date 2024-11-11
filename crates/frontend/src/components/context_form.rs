@@ -32,17 +32,11 @@ pub fn condition_input(
     } = condition.get_value();
 
     view! {
-        <div class="flex gap-x-6">
-            <div class="form-control">
-                <label class="label font-mono text-sm">
-                    <span class="label-text">Dimension</span>
+        <div class="flex flex-wrap gap-y-2 gap-x-6">
+            <div class="form-control w-full">
+                <label class="label font-mono font-bold">
+                    <span class="label-text underline">{dimension}</span>
                 </label>
-                <input
-                    value=dimension.clone()
-                    class="input w-full max-w-xs"
-                    name="context-dimension-name"
-                    disabled=true
-                />
             </div>
             <div class="form-control w-20">
                 <label class="label font-medium font-mono text-sm">
@@ -80,7 +74,7 @@ pub fn condition_input(
                 </select>
 
             </div>
-            <div class="form-control">
+            <div class="form-control flex-1">
                 <label class="label font-mono text-sm">
                     <span class="label-text">Value</span>
                 </label>
@@ -104,6 +98,7 @@ pub fn condition_input(
                                             }
 
                                             r#type=input_type.get_value()
+                                            width="w-full"
                                             disabled=disabled
                                             id=format!(
                                                 "{}-{}",
@@ -112,7 +107,6 @@ pub fn condition_input(
                                                 idx,
                                             )
 
-                                            class="w-100"
                                             name=""
                                             operator=Some(condition.with_value(|v| v.operator.clone()))
                                         />
@@ -241,7 +235,7 @@ where
 
     view! {
         <div class="form-control w-full">
-            <div class="gap-1">
+            <div class="flex justify-between">
                 <label class="label flex-col justify-center items-start">
                     <span class="label-text font-semibold text-base">Context</span>
                     <span class="label-text text-slate-400">{heading_sub_text}</span>

@@ -22,7 +22,7 @@ struct PageResource {
 }
 
 #[component]
-pub fn create_experiment() -> impl IntoView {
+pub fn new_experiment() -> impl IntoView {
     let tenant_rs = use_context::<Signal<String>>().unwrap();
     let navigate = use_navigate();
     let service_prefix = use_service_prefix();

@@ -9,4 +9,6 @@ pub mod experiment_list;
 pub mod function;
 pub mod home;
 pub mod not_found;
-pub mod create_experiment;
+pub mod new_experiment;
+pub mod new_custom_types;
+pub mod update_custom_types;

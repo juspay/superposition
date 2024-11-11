@@ -6,12 +6,14 @@ use serde_json::json;
 use crate::hoc::layout::Layout;
 use crate::pages::config_version::ConfigVersion;
 use crate::pages::config_version_list::ConfigVersionList;
-use crate::pages::create_experiment::CreateExperiment;
 use crate::pages::dimensions::Dimensions;
 use crate::pages::experiment_list::ExperimentList;
 use crate::pages::function::{
     function_create::CreateFunctionView, function_list::FunctionList, FunctionPage,
 };
+use crate::pages::new_custom_types::NewCustomTypes;
+use crate::pages::new_experiment::NewExperiment;
+use crate::pages::update_custom_types::UpdateCustomTypes;
 use crate::pages::{
     context_override::ContextOverride, custom_types::TypesPage,
     default_config::DefaultConfig, experiment::ExperimentPage, home::Home,
@@ -107,6 +109,18 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                             <Route
                                 ssr=SsrMode::Async
+                                path="/admin/:tenant/dimensions/new"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <Dimensions />
+                                        </Layout>
+                                    }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
                                 path="/admin/:tenant/function"
                                 view=move || {
                                     view! {
@@ -159,7 +173,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout>
-                                            <CreateExperiment />
+                                            <NewExperiment />
                                         </Layout>
                                     }
                                 }
@@ -180,6 +194,18 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                             <Route
                                 ssr=SsrMode::Async
                                 path="/admin/:tenant/default-config"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <DefaultConfig />
+                                        </Layout>
+                                    }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/default-config/new"
                                 view=move || {
                                     view! {
                                         <Layout>
@@ -220,6 +246,30 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                     view! {
                                         <Layout>
                                             <TypesPage />
+                                        </Layout>
+                                    }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/types/new"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <NewCustomTypes />
+                                        </Layout>
+                                    }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:tenant/types/:type_name/update"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <UpdateCustomTypes />
                                         </Layout>
                                     }
                                 }

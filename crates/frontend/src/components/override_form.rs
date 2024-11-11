@@ -61,7 +61,7 @@ fn override_input(
                 <label class="label justify-start font-mono text-sm gap-2">
                     <span class="label-text font-bold text-gray-500">{key.get_value()} ":"</span>
                     <div class="flex gap-1">
-                        <TypeBadge r#type=r#type.clone()/>
+                        <TypeBadge r#type=r#type.clone() />
                     </div>
                 </label>
             </div>
@@ -72,6 +72,7 @@ fn override_input(
                         <Input
                             id=id
                             class=input_class
+                            width="w-full"
                             r#type=input_type.unwrap()
                             value=value
                             schema_type=r#type.unwrap()
@@ -83,21 +84,17 @@ fn override_input(
                         .into_view()
                 } else {
                     view! { <p>"An Error Occured"</p> }.into_view()
-                }}
-                <Show when=move || { allow_remove }>
-                    <div class="w-1/5">
-                        <button
-                            class="btn btn-ghost btn-circle btn-sm"
-                            on:click=move |ev| {
-                                ev.prevent_default();
-                                on_remove.call(key.get_value());
-                            }
-                        >
+                }} <Show when=move || { allow_remove }>
+                    <button
+                        class="btn btn-ghost btn-circle btn-sm"
+                        on:click=move |ev| {
+                            ev.prevent_default();
+                            on_remove.call(key.get_value());
+                        }
+                    >
 
-                            <i class="ri-delete-bin-2-line text-2xl font-bold"></i>
-                        </button>
-
-                    </div>
+                        <i class="ri-delete-bin-2-line text-2xl font-bold"></i>
+                    </button>
                 </Show>
             </div>
 
