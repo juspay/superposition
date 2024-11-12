@@ -1,7 +1,7 @@
 pub mod config_version;
 pub mod config_version_list;
 pub mod context_override;
-pub mod custom_types;
+pub mod template_types;
 pub mod default_config;
 pub mod dimensions;
 pub mod experiment;
@@ -10,5 +10,5 @@ pub mod function;
 pub mod home;
 pub mod not_found;
 pub mod new_experiment;
-pub mod new_custom_types;
-pub mod update_custom_types;
+pub mod new_template_type;
+pub mod update_template_type;

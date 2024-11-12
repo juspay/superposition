@@ -132,7 +132,8 @@ fn form(
 
 #[component]
 pub fn context_override() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    // TODO: check if all use_context try to get Signal<String>
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
 
     let (selected_context_rs, selected_context_ws) = create_signal::<Option<Data>>(None);
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);

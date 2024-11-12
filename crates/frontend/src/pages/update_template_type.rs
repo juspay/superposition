@@ -26,7 +26,7 @@ impl Params for PageParams {
 }
 
 #[component]
-pub fn update_custom_types() -> impl IntoView {
+pub fn update_template_type() -> impl IntoView {
     let tenant_rs = use_context::<Signal<String>>().unwrap();
     let path_params = use_params::<PageParams>();
     let page_resource = create_blocking_resource(
