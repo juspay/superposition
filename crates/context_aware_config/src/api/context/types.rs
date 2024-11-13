@@ -83,6 +83,14 @@ pub struct PriorityRecomputeResponse {
     pub new_priority: i32,
 }
 
+#[derive(Serialize)]
+pub struct WeightageRecomputeResponse {
+    pub id: String,
+    pub condition: Condition,
+    pub old_weightage: BigDecimal,
+    pub new_weightage: BigDecimal,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,0 +1,31 @@
+{
+    "method": "PUT",
+    "header": [
+      {
+        "key": "Authorization",
+        "value": "Bearer {{token}}",
+        "type": "text"
+      },
+      {
+        "key": "Content-Type",
+        "value": "application/json",
+        "type": "text"
+      },
+      {
+          "key": "x-tenant",
+          "value": "test",
+          "type": "default"
+      }
+    ],
+    "url": {
+      "raw": "{{host}}/context/weightage/recompute",
+      "host": [
+        "{{host}}"
+      ],
+      "path": [
+        "context",
+        "weightage",
+        "recompute"
+      ]
+    }
+  }

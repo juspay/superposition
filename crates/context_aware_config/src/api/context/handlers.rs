@@ -49,6 +49,7 @@ use crate::{
         context::types::{
             ContextAction, ContextBulkResponse, ContextFilterSortBy, ContextFilters,
             DimensionCondition, MoveReq, PriorityRecomputeResponse, PutReq, PutResp,
+            WeightageRecomputeResponse,
         },
         dimension::{get_dimension_data, get_dimension_data_map},
     },
@@ -74,6 +75,7 @@ pub fn endpoints() -> Scope {
         .service(get_context_from_condition)
         .service(get_context)
         .service(priority_recompute)
+        .service(weightage_recompute)
 }
 
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
@@ -913,6 +915,87 @@ async fn priority_recompute(
                 .on_conflict(id)
                 .do_update()
                 .set(priority.eq(excluded(priority)))
+                .execute(transaction_conn);
+            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            match insert {
+                Ok(_) => Ok(version_id),
+                Err(err) => {
+                    log::error!(
+                    "Failed to execute query while recomputing priority, error: {err}"
+                );
+                    Err(db_error!(err))
+                }
+            }
+        })?;
+    #[cfg(feature = "high-performance-mode")]
+    put_config_in_redis(config_version_id, state, tenant, &mut conn).await?;
+    let mut http_resp = HttpResponse::Ok();
+    http_resp.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        config_version_id.to_string(),
+    ));
+    Ok(http_resp.json(response))
+}
+
+#[put("/weightage/recompute")]
+async fn weightage_recompute(
+    state: Data<AppState>,
+    custom_headers: CustomHeaders,
+    db_conn: DbConnection,
+    #[cfg(feature = "high-performance-mode")] tenant: Tenant,
+    _user: User,
+) -> superposition::Result<HttpResponse> {
+    use crate::db::schema::contexts::dsl::*;
+    let DbConnection(mut conn) = db_conn;
+
+    let result: Vec<Context> = contexts.load(&mut conn).map_err(|err| {
+        log::error!("failed to fetch contexts with error: {}", err);
+        unexpected_error!("Something went wrong")
+    })?;
+
+    let dimension_data = get_dimension_data(&mut conn)?;
+    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
+    let mut response: Vec<WeightageRecomputeResponse> = vec![];
+    let tags = parse_config_tags(custom_headers.config_tags)?;
+
+    let update_contexts = result
+        .clone()
+        .into_iter()
+        .map(|context| {
+            let new_weightage = calculate_context_weightage(
+                &Value::Object(context.value.clone().into()),
+                &dimension_data_map,
+            )
+            .map_err(|err| {
+                log::error!("failed to calculate context priority: {}", err);
+                unexpected_error!("Something went wrong")
+            });
+
+            match new_weightage {
+                Ok(val) => {
+                    response.push(WeightageRecomputeResponse {
+                        id: context.id.clone(),
+                        condition: context.value.clone(),
+                        old_weightage: context.weightage.clone(),
+                        new_weightage: val.clone(),
+                    });
+                    Ok(Context {
+                        weightage: val,
+                        ..context.clone()
+                    })
+                }
+                Err(e) => Err(e),
+            }
+        })
+        .collect::<superposition::Result<Vec<Context>>>()?;
+
+    let config_version_id =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let insert = diesel::insert_into(contexts)
+                .values(&update_contexts)
+                .on_conflict(id)
+                .do_update()
+                .set(weightage.eq(excluded(weightage)))
                 .execute(transaction_conn);
             let version_id = add_config_version(&state, tags, transaction_conn)?;
             match insert {

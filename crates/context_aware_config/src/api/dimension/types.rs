@@ -40,8 +40,8 @@ pub struct Position(i32);
 impl Position {
     fn validate_data(position_val: Option<i32>) -> Result<Self, String> {
         if let Some(val) = position_val {
-            if val <= 0 {
-                return Err("Position should be greater than 0".to_string());
+            if val < 0 {
+                return Err("Position should be greater than equal to 0".to_string());
             } else {
                 Ok(Self(val))
             }

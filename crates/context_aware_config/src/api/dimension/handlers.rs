@@ -72,11 +72,18 @@ async fn create(
             ));
         }
     };
+    let n_dimensions: i64 = dimensions.count().get_result(&mut conn)?;
+    if Into::<i32>::into(create_req.position.clone()) > n_dimensions.clone() as i32 {
+        return Err(bad_argument!(
+            "Expected psoition value less than {}",
+            n_dimensions
+        ));
+    }
 
     let new_dimension = Dimension {
         dimension: create_req.dimension.into(),
         priority: create_req.priority.into(),
-        position: create_req.position.into(),
+        position: create_req.position.clone().into(),
         schema: schema_value,
         created_by: user.get_email(),
         created_at: Utc::now(),
@@ -85,40 +92,47 @@ async fn create(
         last_modified_by: user.get_email(),
     };
 
-    let upsert = diesel::insert_into(dimensions)
-        .values(&new_dimension)
-        .on_conflict(dimensions::dimension)
-        .do_update()
-        .set(&new_dimension)
-        .get_result::<Dimension>(&mut conn);
+    conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        diesel::update(dimensions::dsl::dimensions)
+            .filter(dimensions::position.ge(create_req.position.clone() as i32))
+            .set(dimensions::position.eq(dimensions::position + 1))
+            .execute(transaction_conn)?;
 
-    match upsert {
-        Ok(upserted_dimension) => {
-            let is_mandatory = tenant_config
-                .mandatory_dimensions
-                .contains(&upserted_dimension.dimension);
-            Ok(HttpResponse::Created().json(DimensionWithMandatory::new(
-                upserted_dimension,
-                is_mandatory,
-            )))
+        let upsert = diesel::insert_into(dimensions)
+            .values(&new_dimension)
+            .on_conflict(dimensions::dimension)
+            .do_update()
+            .set(&new_dimension)
+            .get_result::<Dimension>(transaction_conn);
+
+        match upsert {
+            Ok(upserted_dimension) => {
+                let is_mandatory = tenant_config
+                    .mandatory_dimensions
+                    .contains(&upserted_dimension.dimension);
+                Ok(HttpResponse::Created().json(DimensionWithMandatory::new(
+                    upserted_dimension,
+                    is_mandatory,
+                )))
+            }
+            Err(diesel::result::Error::DatabaseError(
+                diesel::result::DatabaseErrorKind::ForeignKeyViolation,
+                e,
+            )) => {
+                log::error!("{fun_name:?} function not found with error: {e:?}");
+                Err(bad_argument!(
+                    "Function {} doesn't exists",
+                    fun_name.unwrap_or(String::new())
+                ))
+            }
+            Err(e) => {
+                log::error!("Dimension upsert failed with error: {e}");
+                Err(unexpected_error!(
+                    "Something went wrong, failed to create/update dimension"
+                ))
+            }
         }
-        Err(diesel::result::Error::DatabaseError(
-            diesel::result::DatabaseErrorKind::ForeignKeyViolation,
-            e,
-        )) => {
-            log::error!("{fun_name:?} function not found with error: {e:?}");
-            Err(bad_argument!(
-                "Function {} doesn't exists",
-                fun_name.unwrap_or(String::new())
-            ))
-        }
-        Err(e) => {
-            log::error!("Dimension upsert failed with error: {e}");
-            Err(unexpected_error!(
-                "Something went wrong, failed to create/update dimension"
-            ))
-        }
-    }
+    })
 }
 
 #[get("")]
