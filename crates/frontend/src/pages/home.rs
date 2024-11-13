@@ -9,18 +9,23 @@ use superposition_types::Config;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlButtonElement, HtmlSpanElement, MouseEvent};
 
-use crate::components::condition_pills::{
-    types::{Condition, ConditionOperator, Conditions},
-    Condition as ConditionComponent,
-};
+use crate::components::condition_pills::types::Conditions;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
+use crate::types::ListFilters;
 use crate::{
     api::{fetch_config, fetch_dimensions},
     components::{
         button::Button, context_form::ContextForm, dropdown::DropdownDirection,
     },
     utils::{check_url_and_return_val, get_element_by_id, get_host},
+};
+use crate::{
+    components::condition_pills::{
+        types::{Condition, ConditionOperator},
+        Condition as ConditionComponent,
+    },
+    types::PaginatedResponse,
 };
 
 #[derive(Clone, Debug, Copy, Display, strum_macros::EnumProperty, PartialEq)]
@@ -180,9 +185,18 @@ pub fn home() -> impl IntoView {
     let dimension_resource = create_resource(
         move || tenant_rs.get(),
         |tenant| async {
-            match fetch_dimensions(tenant).await {
+            match fetch_dimensions(
+                ListFilters {
+                    page: None,
+                    count: None,
+                    all: Some(true),
+                },
+                tenant,
+            )
+            .await
+            {
                 Ok(data) => data,
-                Err(_) => vec![],
+                Err(_) => PaginatedResponse::default(),
             }
         },
     );
@@ -385,7 +399,10 @@ pub fn home() -> impl IntoView {
                                                 <h2 class="card-title">Resolve Configs</h2>
 
                                                 <ContextForm
-                                                    dimensions=dimension.to_owned().unwrap_or_default()
+                                                    dimensions=dimension
+                                                        .to_owned()
+                                                        .unwrap_or(PaginatedResponse::default())
+                                                        .data
                                                     context=vec![]
                                                     heading_sub_text="Query your configs".to_string()
                                                     dropdown_direction=DropdownDirection::Right

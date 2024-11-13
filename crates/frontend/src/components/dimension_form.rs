@@ -10,7 +10,7 @@ use crate::components::{
 };
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{JsonSchemaType, SchemaType};
-use crate::types::{FunctionsName, TypeTemplate};
+use crate::types::{FunctionsName, ListFilters, TypeTemplate};
 use crate::{api::fetch_functions, components::button::Button};
 use leptos::*;
 use serde_json::{json, Value};
@@ -41,8 +41,17 @@ where
         create_blocking_resource(
             move || tenant_rs.get(),
             |current_tenant| async move {
-                match fetch_functions(current_tenant).await {
-                    Ok(data) => data,
+                match fetch_functions(
+                    ListFilters {
+                        page: None,
+                        count: None,
+                        all: Some(true),
+                    },
+                    current_tenant,
+                )
+                .await
+                {
+                    Ok(list) => list.data.into_iter().collect(),
                     Err(_) => vec![],
                 }
             },
@@ -51,7 +60,7 @@ where
     let type_template_resource = create_blocking_resource(
         move || tenant_rs.get(),
         |current_tenant| async move {
-            match fetch_types(current_tenant, 1, 10000).await {
+            match fetch_types(current_tenant, 1, 10000, false).await {
                 Ok(response) => response.data,
                 Err(_) => vec![],
             }

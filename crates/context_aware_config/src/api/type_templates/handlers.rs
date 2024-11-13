@@ -7,14 +7,14 @@ use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 
 use jsonschema::JSONSchema;
-use serde_json::{json, Value};
+use serde_json::Value;
 use service_utils::service::types::DbConnection;
 use superposition_macros::{bad_argument, db_error};
-use superposition_types::{result as superposition, User};
-
-use crate::api::type_templates::types::{
-    QueryFilters, TypeTemplateName, TypeTemplateRequest,
+use superposition_types::{
+    custom_query::PaginationParams, result as superposition, PaginatedResponse, User,
 };
+
+use crate::api::type_templates::types::{TypeTemplateName, TypeTemplateRequest};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -119,29 +119,37 @@ async fn delete_type(
 #[get("")]
 async fn list_types(
     db_conn: DbConnection,
-    filters: Query<QueryFilters>,
-) -> superposition::Result<HttpResponse> {
+    filters: Query<PaginationParams>,
+) -> superposition::Result<Json<PaginatedResponse<TypeTemplates>>> {
     let DbConnection(mut conn) = db_conn;
+
+    if let Some(true) = filters.all {
+        let result: Vec<TypeTemplates> =
+            type_templates::dsl::type_templates.get_results(&mut conn)?;
+        return Ok(Json(PaginatedResponse {
+            total_pages: 1,
+            total_items: result.len() as i64,
+            data: result,
+        }));
+    };
 
     let n_types: i64 = type_templates::dsl::type_templates
         .count()
         .get_result(&mut conn)?;
+    let limit = filters.count.unwrap_or(10);
     let mut builder = type_templates::dsl::type_templates
         .into_boxed()
-        .order(type_templates::dsl::created_at.desc());
-    if let Some(limit) = filters.count {
-        builder = builder.limit(limit);
-    }
+        .order(type_templates::dsl::created_at.desc())
+        .limit(limit);
     if let Some(page) = filters.page {
-        let offset = (page - 1) * filters.count.unwrap_or(10);
+        let offset = (page - 1) * limit;
         builder = builder.offset(offset);
     }
-    let limit = filters.count.unwrap_or(10);
     let custom_types: Vec<TypeTemplates> = builder.load(&mut conn)?;
-    let total_pages = (n_types as f64 / limit as f64).ceil() as u64;
-    Ok(HttpResponse::Ok().json(json!({
-    "total_pages": total_pages,
-    "total_items": n_types,
-    "data": custom_types
-    })))
+    let total_pages = (n_types as f64 / limit as f64).ceil() as i64;
+    Ok(Json(PaginatedResponse {
+        total_pages,
+        total_items: n_types,
+        data: custom_types,
+    }))
 }

@@ -17,11 +17,6 @@ pub struct TypeTemplateResponse {
     pub last_modified: String,
     pub created_by: String,
 }
-#[derive(Debug, Clone, Deserialize)]
-pub struct QueryFilters {
-    pub count: Option<i64>,
-    pub page: Option<i64>,
-}
 
 #[derive(Debug, Deserialize, Serialize, AsRef, Deref, DerefMut, Into, Clone)]
 #[serde(try_from = "String")]

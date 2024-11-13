@@ -13,7 +13,8 @@ use crate::components::{experiment_form::ExperimentForm, stat::Stat, table::Tabl
 
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
-use crate::types::{ExperimentsResponse, ListFilters};
+use crate::types::{ExpListFilters, ExperimentResponse, ListFilters, PaginatedResponse};
+use crate::utils::update_page_direction;
 
 use self::utils::experiment_table_columns;
 use crate::{
@@ -24,7 +25,7 @@ use serde_json::{json, Map, Value};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct CombinedResource {
-    experiments: ExperimentsResponse,
+    experiments: PaginatedResponse<ExperimentResponse>,
     dimensions: Vec<Dimension>,
     default_config: Vec<DefaultConfig>,
 }
@@ -33,46 +34,59 @@ struct CombinedResource {
 pub fn experiment_list() -> impl IntoView {
     // acquire tenant
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-    let (filters, set_filters) = create_signal(ListFilters {
+    let (exp_filters, _set_exp_filters) = create_signal(ExpListFilters {
         status: None,
         from_date: Utc.timestamp_opt(0, 0).single(),
         to_date: Utc.timestamp_opt(4130561031, 0).single(),
+    });
+    let (pagination_filters, set_pagination_filters) = create_signal(ListFilters {
         page: Some(1),
         count: Some(10),
+        all: None,
     });
 
     let (reset_exp_form, set_exp_form) = create_signal(0);
     let table_columns = store_value(experiment_table_columns());
 
-    let combined_resource: Resource<(String, ListFilters), CombinedResource> =
-        create_blocking_resource(
-            move || (tenant_rs.get(), filters.get()),
-            |(current_tenant, filters)| async move {
-                // Perform all fetch operations concurrently
-                let experiments_future =
-                    fetch_experiments(filters, current_tenant.to_string());
-                let dimensions_future = fetch_dimensions(current_tenant.to_string());
-                let config_future = fetch_default_config(current_tenant.to_string());
+    let combined_resource: Resource<
+        (String, ExpListFilters, ListFilters),
+        CombinedResource,
+    > = create_blocking_resource(
+        move || (tenant_rs.get(), exp_filters.get(), pagination_filters.get()),
+        |(current_tenant, exp_filters, pagination_filters)| async move {
+            // Perform all fetch operations concurrently
+            let experiments_future = fetch_experiments(
+                exp_filters,
+                pagination_filters,
+                current_tenant.to_string(),
+            );
+            let empty_list_filters = ListFilters {
+                page: None,
+                count: None,
+                all: Some(true),
+            };
+            let dimensions_future =
+                fetch_dimensions(empty_list_filters.clone(), current_tenant.to_string());
+            let config_future =
+                fetch_default_config(empty_list_filters, current_tenant.to_string());
 
-                let (experiments_result, dimensions_result, config_result) =
-                    join!(experiments_future, dimensions_future, config_future);
-
-                // Construct the combined result, handling errors as needed
-                CombinedResource {
-                    experiments: experiments_result.unwrap_or(ExperimentsResponse {
-                        total_items: 0,
-                        total_pages: 0,
-                        data: vec![],
-                    }),
-                    dimensions: dimensions_result
-                        .unwrap_or(vec![])
-                        .into_iter()
-                        .filter(|d| d.dimension != "variantIds")
-                        .collect(),
-                    default_config: config_result.unwrap_or(vec![]),
-                }
-            },
-        );
+            let (experiments_result, dimensions_result, config_result) =
+                join!(experiments_future, dimensions_future, config_future);
+            // Construct the combined result, handling errors as needed
+            CombinedResource {
+                experiments: experiments_result.unwrap_or(PaginatedResponse::default()),
+                dimensions: dimensions_result
+                    .unwrap_or(PaginatedResponse::default())
+                    .data
+                    .into_iter()
+                    .filter(|d| d.dimension != "variantIds")
+                    .collect(),
+                default_config: config_result
+                    .unwrap_or(PaginatedResponse::default())
+                    .data,
+            }
+        },
+    );
 
     let handle_submit_experiment_form = move || {
         combined_resource.refetch();
@@ -83,22 +97,14 @@ pub fn experiment_list() -> impl IntoView {
     };
 
     let handle_next_click = Callback::new(move |total_pages: i64| {
-        set_filters.update(|f| {
-            f.page = match f.page {
-                Some(p) if p < total_pages => Some(p + 1),
-                Some(p) => Some(p),
-                None => None,
-            }
+        set_pagination_filters.update(|f| {
+            f.page = update_page_direction(f.page, total_pages, true);
         });
     });
 
     let handle_prev_click = Callback::new(move |_| {
-        set_filters.update(|f| {
-            f.page = match f.page {
-                Some(p) if p > 1 => Some(p - 1),
-                Some(p) => Some(p),
-                None => None,
-            }
+        set_pagination_filters.update(|f| {
+            f.page = update_page_direction(f.page, 1, false);
         });
     });
 
@@ -137,7 +143,7 @@ pub fn experiment_list() -> impl IntoView {
                         </div>
                         {move || {
                             let value = combined_resource.get();
-                            let filters = filters.get();
+                            let pagination_filters = pagination_filters.get();
                             match value {
                                 Some(v) => {
                                     let data = v
@@ -165,8 +171,8 @@ pub fn experiment_list() -> impl IntoView {
                                         .to_owned();
                                     let pagination_props = TablePaginationProps {
                                         enabled: true,
-                                        count: filters.count.unwrap_or_default(),
-                                        current_page: filters.page.unwrap_or_default(),
+                                        count: pagination_filters.count.unwrap_or_default(),
+                                        current_page: pagination_filters.page.unwrap_or_default(),
                                         total_pages: v.experiments.total_pages,
                                         on_next: handle_next_click,
                                         on_prev: handle_prev_click,
@@ -194,11 +200,7 @@ pub fn experiment_list() -> impl IntoView {
                     let dim = combined_resource
                         .get()
                         .unwrap_or(CombinedResource {
-                            experiments: ExperimentsResponse {
-                                total_items: 0,
-                                total_pages: 0,
-                                data: vec![],
-                            },
+                            experiments: PaginatedResponse::default(),
                             dimensions: vec![],
                             default_config: vec![],
                         })
@@ -206,11 +208,7 @@ pub fn experiment_list() -> impl IntoView {
                     let def_conf = combined_resource
                         .get()
                         .unwrap_or(CombinedResource {
-                            experiments: ExperimentsResponse {
-                                total_items: 0,
-                                total_pages: 0,
-                                data: vec![],
-                            },
+                            experiments: PaginatedResponse::default(),
                             dimensions: vec![],
                             default_config: vec![],
                         })

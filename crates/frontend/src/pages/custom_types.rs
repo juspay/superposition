@@ -16,6 +16,7 @@ use serde_json::{json, Map, Value};
 struct TypeFilter {
     pub page: i64,
     pub count: i64,
+    pub all: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -29,11 +30,15 @@ const TYPE_DRAWER_ID: &str = "type_template_drawer";
 #[component]
 pub fn types_page() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-    let (filters_rs, _) = create_signal(TypeFilter { page: 1, count: 10 });
+    let (filters_rs, _) = create_signal(TypeFilter {
+        page: 1,
+        count: 10,
+        all: false,
+    });
     let types_resource = create_blocking_resource(
         move || (tenant_rs.get(), filters_rs.get()),
         |(t, filter)| async move {
-            match fetch_types(t, filter.page, filter.count).await {
+            match fetch_types(t, filter.page, filter.count, filter.all).await {
                 Ok(types) => types.data,
                 Err(err) => {
                     logging::log!("failed to get types due to: {:?}", err);

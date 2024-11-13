@@ -154,12 +154,13 @@ impl From<HashMap<String, String>> for QueryMap {
 }
 
 #[derive(Debug, Clone)]
-pub struct QueryFilters {
+pub struct PaginationParams {
     pub count: Option<i64>,
     pub page: Option<i64>,
+    pub all: Option<bool>,
 }
 
-impl<'de> Deserialize<'de> for QueryFilters {
+impl<'de> Deserialize<'de> for PaginationParams {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -168,9 +169,14 @@ impl<'de> Deserialize<'de> for QueryFilters {
         struct Helper {
             count: Option<i64>,
             page: Option<i64>,
+            all: Option<bool>,
         }
 
         let helper = Helper::deserialize(deserializer)?;
+
+        if helper.all == Some(true) && (helper.count.is_some() || helper.page.is_some()) {
+            return Err(de::Error::custom("When 'all' is true, 'count' and 'page' parameters should not be provided"));
+        }
 
         if let Some(count) = helper.count {
             if count <= 0 {
@@ -187,6 +193,7 @@ impl<'de> Deserialize<'de> for QueryFilters {
         Ok(Self {
             count: helper.count,
             page: helper.page,
+            all: helper.all,
         })
     }
 }

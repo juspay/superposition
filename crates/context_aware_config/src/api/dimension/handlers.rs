@@ -1,6 +1,14 @@
+use crate::{
+    api::dimension::{types::CreateReq, utils::get_dimension_usage_context_ids},
+    db::{
+        models::Dimension,
+        schema::{dimensions, dimensions::dsl::*},
+    },
+    helpers::validate_jsonschema,
+};
 use actix_web::{
     delete, get, put,
-    web::{self, Data, Path},
+    web::{self, Data, Json, Path, Query},
     HttpResponse, Scope,
 };
 use chrono::Utc;
@@ -11,16 +19,12 @@ use jsonschema::{Draft, JSONSchema};
 use serde_json::Value;
 use service_utils::service::types::{AppState, DbConnection};
 use superposition_macros::{bad_argument, not_found, unexpected_error};
-use superposition_types::{result as superposition, TenantConfig, User};
-
-use crate::{
-    api::dimension::{types::CreateReq, utils::get_dimension_usage_context_ids},
-    db::{
-        models::Dimension,
-        schema::{dimensions, dimensions::dsl::*},
-    },
-    helpers::validate_jsonschema,
+use superposition_types::{
+    custom_query::PaginationParams, result as superposition, PaginatedResponse,
+    TenantConfig, User,
 };
+
+extern crate base64;
 
 use super::types::{DeleteReq, DimensionWithMandatory};
 
@@ -81,7 +85,7 @@ async fn create(
 
     let upsert = diesel::insert_into(dimensions)
         .values(&new_dimension)
-        .on_conflict(dimension)
+        .on_conflict(dimensions::dimension)
         .do_update()
         .set(&new_dimension)
         .get_result::<Dimension>(&mut conn);
@@ -119,10 +123,31 @@ async fn create(
 async fn get(
     db_conn: DbConnection,
     tenant_config: TenantConfig,
-) -> superposition::Result<HttpResponse> {
+    filters: Query<PaginationParams>,
+) -> superposition::Result<Json<PaginatedResponse<DimensionWithMandatory>>> {
     let DbConnection(mut conn) = db_conn;
 
-    let result: Vec<Dimension> = dimensions.get_results(&mut conn)?;
+    let (total_pages, total_items, result) = match filters.all {
+        Some(true) => {
+            let result: Vec<Dimension> = dimensions.get_results(&mut conn)?;
+            (1, result.len() as i64, result)
+        }
+        _ => {
+            let n_dimensions: i64 = dimensions.count().get_result(&mut conn)?;
+            let limit = filters.count.unwrap_or(10);
+            let mut builder = dimensions
+                .into_boxed()
+                .order(created_at.desc())
+                .limit(limit);
+            if let Some(page) = filters.page {
+                let offset = (page - 1) * limit;
+                builder = builder.offset(offset);
+            }
+            let result: Vec<Dimension> = builder.load(&mut conn)?;
+            let total_pages = (n_dimensions as f64 / limit as f64).ceil() as i64;
+            (total_pages, n_dimensions, result)
+        }
+    };
 
     let dimensions_with_mandatory: Vec<DimensionWithMandatory> = result
         .into_iter()
@@ -133,7 +158,11 @@ async fn get(
         })
         .collect();
 
-    Ok(HttpResponse::Ok().json(dimensions_with_mandatory))
+    Ok(Json(PaginatedResponse {
+        total_pages,
+        total_items,
+        data: dimensions_with_mandatory,
+    }))
 }
 
 #[delete("/{name}")]

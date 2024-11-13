@@ -4,11 +4,15 @@ use crate::components::default_config_form::DefaultConfigForm;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
-use crate::components::table::{types::Column, Table};
+use crate::components::table::{
+    types::{Column, TablePaginationProps},
+    Table,
+};
 
-use crate::types::BreadCrums;
+use crate::types::{BreadCrums, ListFilters, PaginatedResponse};
 use crate::utils::{
     get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
+    update_page_direction,
 };
 use leptos::*;
 use leptos_router::{use_navigate, use_query_map};
@@ -26,28 +30,53 @@ pub struct RowData {
 #[component]
 pub fn default_config() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let enable_grouping = create_rw_signal(false);
+    let (filters, set_filters) = create_signal(ListFilters {
+        page: Some(1),
+        count: Some(10),
+        all: None,
+    });
     let default_config_resource = create_blocking_resource(
-        move || tenant_rs.get(),
-        |current_tenant| async move {
-            match fetch_default_config(current_tenant).await {
+        move || (tenant_rs.get(), filters.get()),
+        |(current_tenant, filters)| async move {
+            match fetch_default_config(filters, current_tenant).await {
                 Ok(data) => data,
-                Err(_) => vec![],
+                Err(_) => PaginatedResponse::default(),
             }
         },
     );
 
     let selected_config = create_rw_signal::<Option<RowData>>(None);
     let key_prefix = create_rw_signal::<Option<String>>(None);
-    let enable_grouping = create_rw_signal(false);
     let query_params = use_query_map();
     let bread_crums = Signal::derive(move || get_bread_crums(key_prefix.get()));
+
+    let set_filters_none = move || {
+        set_filters.set(ListFilters {
+            page: None,
+            count: None,
+            all: Some(true),
+        })
+    };
+
+    let set_filters_default = move || {
+        set_filters.set(ListFilters {
+            page: Some(1),
+            count: Some(10),
+            all: None,
+        })
+    };
 
     create_effect(move |_| {
         let enable_grouping_val =
             get_local_storage::<bool>("enable_grouping").unwrap_or(false);
         enable_grouping.set(enable_grouping_val);
+        if enable_grouping_val {
+            set_filters_none();
+        } else {
+            set_filters_default();
+        }
     });
-
     create_effect(move |_| {
         let query_params_map = query_params.try_get();
         if let Some(query_map) = query_params_map {
@@ -55,6 +84,7 @@ pub fn default_config() -> impl IntoView {
             key_prefix.set(opt_prefix.cloned());
             if opt_prefix.is_some() {
                 enable_grouping.set(true);
+                set_filters_none();
             }
         }
     });
@@ -69,6 +99,18 @@ pub fn default_config() -> impl IntoView {
         let navigate = use_navigate();
         navigate(redirect_url.as_str(), Default::default());
     };
+
+    let handle_next_click = Callback::new(move |total_pages: i64| {
+        set_filters.update(|f| {
+            f.page = update_page_direction(f.page, total_pages, true);
+        });
+    });
+
+    let handle_prev_click = Callback::new(move |_| {
+        set_filters.update(|f| {
+            f.page = update_page_direction(f.page, 1, false);
+        });
+    });
 
     let table_columns = create_memo(move |_| {
         let grouping_enabled = enable_grouping.get();
@@ -228,8 +270,15 @@ pub fn default_config() -> impl IntoView {
                     }
                 }}
                 {move || {
-                    let default_config = default_config_resource.get().unwrap_or(vec![]);
+                    let default_config = default_config_resource
+                        .get()
+                        .unwrap_or(PaginatedResponse {
+                            total_items: 1,
+                            total_pages: 1,
+                            data: vec![],
+                        });
                     let table_rows = default_config
+                        .data
                         .into_iter()
                         .map(|config| {
                             let mut ele_map = json!(config).as_object().unwrap().to_owned();
@@ -252,7 +301,21 @@ pub fn default_config() -> impl IntoView {
                             .collect();
                         filtered_rows = modify_rows(filtered_rows.clone(), key_prefix.get(), cols);
                     }
-                    let total_default_config_keys = filtered_rows.len().to_string();
+                    let total_default_config_keys = default_config.total_items.to_string();
+                    let filters = filters.get();
+                    let (current_page, total_pages) = if enable_grouping.get() {
+                        (1, 1)
+                    } else {
+                        (filters.page.unwrap_or_default(), default_config.total_pages)
+                    };
+                    let pagination_props = TablePaginationProps {
+                        enabled: true,
+                        count: filters.count.unwrap_or_default(),
+                        current_page,
+                        total_pages,
+                        on_next: handle_next_click,
+                        on_prev: handle_prev_click,
+                    };
                     view! {
                         <div class="pb-4">
                             <Stat
@@ -274,6 +337,11 @@ pub fn default_config() -> impl IntoView {
                                                     "enable_grouping",
                                                     &enable_grouping.get().to_string(),
                                                 );
+                                                if enable_grouping.get() {
+                                                    set_filters_none();
+                                                } else {
+                                                    set_filters_default();
+                                                }
                                             }
 
                                             class="cursor-pointer label mr-10"
@@ -296,6 +364,7 @@ pub fn default_config() -> impl IntoView {
                                     rows=filtered_rows
                                     key_column="id".to_string()
                                     columns=table_columns.get()
+                                    pagination=pagination_props
                                 />
                             </div>
                         </div>

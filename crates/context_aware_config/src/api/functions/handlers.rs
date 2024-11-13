@@ -8,13 +8,13 @@ use crate::{
     db::{
         self,
         models::Function,
-        schema::functions::{dsl, dsl::functions, function_name},
+        schema::functions::{dsl, dsl::functions, function_name, last_modified_at},
     },
     validation_functions,
 };
 use actix_web::{
     delete, get, patch, post, put,
-    web::{self, Json, Path},
+    web::{self, Json, Path, Query},
     HttpResponse, Result, Scope,
 };
 use chrono::Utc;
@@ -23,7 +23,9 @@ use serde_json::json;
 use service_utils::service::types::DbConnection;
 
 use superposition_macros::{bad_argument, not_found, unexpected_error};
-use superposition_types::{result as superposition, User};
+use superposition_types::{
+    custom_query::PaginationParams, result as superposition, PaginatedResponse, User,
+};
 
 use validation_functions::{compile_fn, execute_fn};
 
@@ -170,13 +172,40 @@ async fn get(
 #[get("")]
 async fn list_functions(
     db_conn: DbConnection,
-) -> superposition::Result<Json<Vec<Function>>> {
+    filters: Query<PaginationParams>,
+) -> superposition::Result<Json<PaginatedResponse<Function>>> {
     let DbConnection(mut conn) = db_conn;
-    let mut function_list = functions.get_results(&mut conn)?;
-    for function in function_list.iter_mut() {
+
+    let (total_pages, total_items, mut data) = match filters.all {
+        Some(true) => {
+            let result: Vec<Function> = functions.get_results(&mut conn)?;
+            (1, result.len() as i64, result)
+        }
+        _ => {
+            let n_functions: i64 = functions.count().get_result(&mut conn)?;
+            let limit = filters.count.unwrap_or(10);
+            let mut builder = functions
+                .into_boxed()
+                .order(last_modified_at.desc())
+                .limit(limit);
+            if let Some(page) = filters.page {
+                let offset = (page - 1) * limit;
+                builder = builder.offset(offset);
+            }
+            let result: Vec<Function> = builder.load(&mut conn)?;
+            let total_pages = (n_functions as f64 / limit as f64).ceil() as i64;
+            (total_pages, n_functions, result)
+        }
+    };
+
+    for function in data.iter_mut() {
         decode_function(function)?;
     }
-    Ok(Json(function_list))
+    Ok(Json(PaginatedResponse {
+        total_pages,
+        total_items,
+        data,
+    }))
 }
 
 #[delete("/{function_name}")]
