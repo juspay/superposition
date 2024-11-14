@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 use crate::{
     components::{side_nav::SideNav, toast::Toast},
-    hoc::nav_breadcrums::{BreadcrumbCtx, Breadcrumbs},
+    hoc::nav_breadcrums::Breadcrumbs,
     providers::alert_provider::AlertQueue,
     utils::{use_tenants, use_url_base},
 };
@@ -21,29 +21,19 @@ impl AsRef<str> for PageHeading {
 }
 
 #[component]
-pub fn Layout() -> impl IntoView {
+pub fn layout() -> impl IntoView {
     let params_map = use_params_map();
     let tenant = Signal::derive(move || match params_map.get().get("tenant") {
         Some(tenant) => tenant.clone(),
         None => String::from("no-tenant"),
     });
-    let breadcrumbs = create_rw_signal(BreadcrumbCtx {
-        current_path: String::new(),
-        params: ParamsMap::new()
-    });
-    provide_context(breadcrumbs);
     provide_context(tenant);
 
     view! {
         <div class="relative p-4 flex min-h-screen bg-surface">
             <SideNav />
 
-            <section class="relative w-full h-full ml-[366px] overflow-y-auto px-4">
-                <Header tenant />
-                <main class="py-8 min-h-[calc(100vh-16px-12px-12px-16px-36px)]">
-                    <Outlet />
-                </main>
-            </section>
+            <Outlet />
 
             {move || {
                 let alert_queue = use_context::<ReadSignal<AlertQueue>>();
@@ -55,6 +45,17 @@ pub fn Layout() -> impl IntoView {
             }}
 
         </div>
+    }
+}
+
+#[component]
+pub fn page(children: Children) -> impl IntoView {
+    let tenant = use_context::<Signal<String>>().unwrap();
+    view! {
+        <section class="relative w-full h-full ml-[366px] overflow-y-auto px-4">
+            <Header tenant />
+            <main class="py-8 min-h-[calc(100vh-16px-12px-12px-16px-36px)]">{children()}</main>
+        </section>
     }
 }
 

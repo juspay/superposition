@@ -2,7 +2,7 @@ use leptos::*;
 use leptos_router::{Route, SsrMode};
 
 use crate::{
-    hoc::{layout::Layout, nav_breadcrums::WithBreadcrumbs},
+    hoc::layout::{Layout, Page},
     pages::{
         config_version::ConfigVersion,
         config_version_list::ConfigVersionList,
@@ -38,9 +38,9 @@ pub fn app_routes() -> impl IntoView {
                 path="/experiments"
                 view=move || {
                     view! {
-                        <WithBreadcrumbs>
+                        <Page>
                             <ExperimentList />
-                        </WithBreadcrumbs>
+                        </Page>
                     }
                 }
             />
@@ -50,9 +50,9 @@ pub fn app_routes() -> impl IntoView {
                 path="/experiments/new"
                 view=move || {
                     view! {
-                        <WithBreadcrumbs>
+                        <Page>
                             <NewExperiment />
-                        </WithBreadcrumbs>
+                        </Page>
                     }
                 }
             />
@@ -62,9 +62,9 @@ pub fn app_routes() -> impl IntoView {
                 path="/experiments/:id"
                 view=move || {
                     view! {
-                        <WithBreadcrumbs>
+                        <Page>
                             <ExperimentPage />
-                        </WithBreadcrumbs>
+                        </Page>
                     }
                 }
             />
@@ -74,9 +74,9 @@ pub fn app_routes() -> impl IntoView {
                 path="/function"
                 view=move || {
                     view! {
-                        <WithBreadcrumbs>
+                        <Page>
                             <FunctionList />
-                        </WithBreadcrumbs>
+                        </Page>
                     }
                 }
             />
@@ -86,9 +86,9 @@ pub fn app_routes() -> impl IntoView {
                 path="/function/create"
                 view=move || {
                     view! {
-                        <WithBreadcrumbs>
+                        <Page>
                             <CreateFunctionView />
-                        </WithBreadcrumbs>
+                        </Page>
                     }
                 }
             />
@@ -98,9 +98,9 @@ pub fn app_routes() -> impl IntoView {
                 path="/function/:function_name"
                 view=move || {
                     view! {
-                        <WithBreadcrumbs>
+                        <Page>
                             <FunctionPage />
-                        </WithBreadcrumbs>
+                        </Page>
                     }
                 }
             />
@@ -110,9 +110,9 @@ pub fn app_routes() -> impl IntoView {
                 path="/types"
                 view=move || {
                     view! {
-                        <WithBreadcrumbs>
+                        <Page>
                             <TypesPage />
-                        </WithBreadcrumbs>
+                        </Page>
                     }
                 }
             />
@@ -122,9 +122,9 @@ pub fn app_routes() -> impl IntoView {
                 path="/types/new"
                 view=move || {
                     view! {
-                        <WithBreadcrumbs>
+                        <Page>
                             <NewTemplateType />
-                        </WithBreadcrumbs>
+                        </Page>
                     }
                 }
             />
@@ -134,26 +134,34 @@ pub fn app_routes() -> impl IntoView {
                 path="/types/:type_name/update"
                 view=move || {
                     view! {
-                        <WithBreadcrumbs>
+                        <Page>
                             <UpdateTemplateType />
-                        </WithBreadcrumbs>
+                        </Page>
                     }
                 }
             />
 
             <Route
                 ssr=SsrMode::Async
-                path="/config/version"
+                path="/config/versions"
                 view=move || {
-                    view! { <ConfigVersionList /> }
+                    view! {
+                        <Page>
+                            <ConfigVersionList />
+                        </Page>
+                    }
                 }
             />
 
             <Route
                 ssr=SsrMode::Async
-                path="/config/version/:version"
+                path="/config/versions/:version"
                 view=move || {
-                    view! { <ConfigVersion /> }
+                    view! {
+                        <Page>
+                            <ConfigVersion />
+                        </Page>
+                    }
                 }
             />
 
@@ -162,9 +170,9 @@ pub fn app_routes() -> impl IntoView {
                 path="/dimensions"
                 view=move || {
                     view! {
-                        <WithBreadcrumbs>
+                        <Page>
                             <Dimensions />
-                        </WithBreadcrumbs>
+                        </Page>
                     }
                 }
             />
@@ -174,9 +182,9 @@ pub fn app_routes() -> impl IntoView {
                 path="/default-config"
                 view=move || {
                     view! {
-                        <WithBreadcrumbs>
+                        <Page>
                             <DefaultConfig />
-                        </WithBreadcrumbs>
+                        </Page>
                     }
                 }
             />
@@ -186,9 +194,9 @@ pub fn app_routes() -> impl IntoView {
                 path="/overrides"
                 view=move || {
                     view! {
-                        <WithBreadcrumbs>
+                        <Page>
                             <ContextOverride />
-                        </WithBreadcrumbs>
+                        </Page>
                     }
                 }
             />
@@ -198,9 +206,9 @@ pub fn app_routes() -> impl IntoView {
                 path="/resolve"
                 view=move || {
                     view! {
-                        <WithBreadcrumbs>
+                        <Page>
                             <Home />
-                        </WithBreadcrumbs>
+                        </Page>
                     }
                 }
             />

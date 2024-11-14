@@ -16,12 +16,6 @@ struct RouteMetadata {
 
 type DynamicLabelFn = Box<Arc<dyn Fn(&ParamsMap) -> Option<String> + Send + Sync>>;
 
-#[derive(Clone)]
-pub struct BreadcrumbCtx {
-    pub current_path: String,
-    pub params: ParamsMap,
-}
-
 static BREADCRUMB_STORE: Lazy<HashMap<String, RouteMetadata>> = Lazy::new(|| {
     let mut routes = HashMap::new();
 
@@ -229,39 +223,15 @@ pub fn get_breadcrumbs(
     breadcrumbs
 }
 
-// Components
-#[component]
-pub fn with_breadcrumbs(children: Children) -> impl IntoView {
-    let params = use_params_map();
-    let service_prefix = use_url_base();
-    let breadcrumb_ctx = use_context::<RwSignal<BreadcrumbCtx>>()
-        .expect("BreadcrumbContext not found");
-
-    create_effect(move |_| {
-        let base = format!("{service_prefix}/admin/:tenant");
-        let current_path = use_route().original_path().replace(&base, "");
-        let params = params.get();
-        logging::log!("{current_path} {}", use_route().original_path());
-        logging::log!("{:?}", params.0);
-        breadcrumb_ctx.set(BreadcrumbCtx {
-            current_path,
-            params,
-        });
-    });
-
-    children()
-}
-
 #[component]
 pub fn breadcrumbs() -> impl IntoView {
-    let breadcrumb_ctx =
-        use_context::<RwSignal<BreadcrumbCtx>>().expect("BreadcrumbStore not found");
+    let params = use_params_map();
+    let tenant = use_context::<Signal<String>>().unwrap();
 
     let breadcrumbs = create_memo(move |_| {
-        let BreadcrumbCtx {
-            current_path,
-            params,
-        } = breadcrumb_ctx.get();
+        let base = format!("{}/admin/:tenant", use_url_base());
+        let current_path = use_route().original_path().replace(&base, "");
+        let params = params.get();
         logging::log!("BREAD {current_path}");
         logging::log!("BREAD {:?}", params.0);
         get_breadcrumbs(&current_path, &params)
@@ -278,7 +248,8 @@ pub fn breadcrumbs() -> impl IntoView {
                         .map(|(index, (path, label, icon))| {
                             let is_last = index == breadcrumbs.get().len() - 1;
                             let show_separator = index > 0;
-                            let path = path.trim_matches('/').to_string();
+                            let base = format!("{}/admin/{}", use_url_base(), tenant.get());
+                            let path = format!("{}{}", base, path);
                             view! {
                                 <li class="flex items-center">
                                     {if show_separator {
