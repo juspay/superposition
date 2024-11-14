@@ -17,7 +17,7 @@ where
     NF: Fn() + 'static + Clone,
 {
     let (traffic, set_traffic) = create_signal(experiment.traffic_percentage);
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let range_max = 100 / experiment.variants.len();
     let experiment_rc = Rc::new(experiment);

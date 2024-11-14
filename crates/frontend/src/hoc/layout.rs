@@ -1,44 +1,39 @@
+use std::ops::Deref;
+
 use crate::{
     components::{side_nav::SideNav, toast::Toast},
+    hoc::nav_breadcrums::Breadcrumbs,
     providers::alert_provider::AlertQueue,
+    utils::{use_tenants, use_url_base},
 };
+
+use derive_more::Deref;
 use leptos::*;
 use leptos_router::*;
+use web_sys::Event;
 
-pub fn use_tenant() -> String {
-    let params_map = use_params_map();
-    let route_context = use_route();
-    logging::log!("use_route-params_map {:?}", params_map.get_untracked());
-    logging::log!(
-        "use_route-original_path {:?}",
-        route_context.original_path()
-    );
-    logging::log!("use_route-path {:?}", route_context.path());
-
-    match params_map.get_untracked().get("tenant") {
-        Some(tenant) => tenant.clone(),
-        None => String::from("no-tenant"),
+#[derive(Clone, Deref)]
+pub struct PageHeading(String);
+impl AsRef<str> for PageHeading {
+    fn as_ref(&self) -> &str {
+        self.deref().as_ref()
     }
 }
 
 #[component]
-pub fn Layout(children: Children) -> impl IntoView {
-    let (tenant_rs, tenant_ws) = create_signal(use_tenant());
-    provide_context(tenant_rs);
-    provide_context(tenant_ws);
-
-    let route_context = use_route();
-    let original_path = route_context.original_path();
-    let path = route_context.path();
-    // let params_map = route_context.params();
+pub fn layout() -> impl IntoView {
+    let params_map = use_params_map();
+    let tenant = Signal::derive(move || match params_map.get().get("tenant") {
+        Some(tenant) => tenant.clone(),
+        None => String::from("no-tenant"),
+    });
+    provide_context(tenant);
 
     view! {
-        <div>
-            <SideNav resolved_path=path original_path=original_path.to_string()/>
-            // params_map=params_map
-            <main class="ease-soft-in-out xl:ml-[350px] relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto">
-                {children()}
-            </main>
+        <div class="relative p-4 flex min-h-screen bg-surface">
+            <SideNav />
+
+            <Outlet />
 
             {move || {
                 let alert_queue = use_context::<ReadSignal<AlertQueue>>();
@@ -46,9 +41,64 @@ pub fn Layout(children: Children) -> impl IntoView {
                     Some(queue) => queue.get().alerts,
                     None => Vec::new(),
                 };
-                view! { <Toast alerts/> }
+                view! { <Toast alerts /> }
             }}
 
         </div>
+    }
+}
+
+#[component]
+pub fn page(children: Children) -> impl IntoView {
+    let tenant = use_context::<Signal<String>>().unwrap();
+    view! {
+        <section class="relative w-full h-full ml-[366px] overflow-y-auto px-4">
+            <Header tenant />
+            <main class="py-8 min-h-[calc(100vh-16px-12px-12px-16px-36px)]">{children()}</main>
+        </section>
+    }
+}
+
+#[component]
+fn header(tenant: Signal<String>) -> impl IntoView {
+    view! {
+        <header class="flex justify-between border-b-2 pb-3 pt-3">
+            <Breadcrumbs />
+            <select
+                value=tenant.get()
+                on:change=move |event: Event| {
+                    let service_prefix = use_url_base();
+                    let current_tenant = tenant.get();
+                    let selected_tenant = event_target_value(&event);
+                    let current_base = format!("admin/{current_tenant}");
+                    let new_base = format!("admin/{selected_tenant}");
+                    let current_pathname = use_location()
+                        .pathname
+                        .get()
+                        .replace(&service_prefix, "");
+                    let redirect_url = current_pathname.replace(&current_base, &new_base);
+                    let navigate = use_navigate();
+                    navigate(redirect_url.as_str(), Default::default())
+                }
+
+                class="select w-full max-w-xs bg-surface-2 py-1 h-[2.25rem] min-h-[2.25rem]"
+            >
+
+                {move || {
+                    let tenants = use_tenants();
+                    if tenants.is_empty() {
+                        return view! { <option disabled=true>{"Loading tenants..."}</option> }
+                            .into_view();
+                    }
+                    tenants
+                        .iter()
+                        .map(|t| {
+                            view! { <option selected=t == &tenant.get()>{t}</option> }
+                        })
+                        .collect_view()
+                }}
+
+            </select>
+        </header>
     }
 }

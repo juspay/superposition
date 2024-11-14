@@ -15,7 +15,7 @@ use crate::api::fetch_snapshots;
 
 #[component]
 pub fn config_version_list() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
 
     // Signals for filters
     let (filters, set_filters) = create_signal(ListFilters {
@@ -65,40 +65,39 @@ pub fn config_version_list() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8">
-            <Suspense fallback=move || view! { <Skeleton/> }>
-                <div class="pb-4">
-                    {move || {
-                        let snapshot_res = snapshots_resource.get();
-                        let total_items = match snapshot_res {
-                            Some(snapshot_resp) => snapshot_resp.total_items.to_string(),
-                            _ => "0".to_string(),
-                        };
-                        view! {
-                            <Stat
-                                heading="Config Versions"
-                                icon="ri-camera-lens-fill"
-                                number=total_items
-                            />
-                        }
-                    }}
+        <Suspense fallback=move || view! { <Skeleton /> }>
+            <div class="pb-4">
+                {move || {
+                    let snapshot_res = snapshots_resource.get();
+                    let total_items = match snapshot_res {
+                        Some(snapshot_resp) => snapshot_resp.total_items.to_string(),
+                        _ => "0".to_string(),
+                    };
+                    view! {
+                        <Stat
+                            heading="Config Versions"
+                            icon="ri-camera-lens-fill"
+                            number=total_items
+                        />
+                    }
+                }}
 
-                </div>
-                <div class="card rounded-xl w-full bg-base-100 shadow">
-                    <div class="card-body">
-                        <div class="flex justify-between">
-                            <h2 class="card-title">Config Versions</h2>
-                        </div>
-                        <div>
-                            {move || {
-                                let value = snapshots_resource.get();
-                                let filters = filters.get();
-                                match value {
-                                    Some(snapshot_resp) => {
-                                        let page = filters.page.unwrap_or(1);
-                                        let count = filters.count.unwrap_or(10);
-                                        let total_pages = snapshot_resp.clone().total_pages as i64;
-                                        let resp = snapshot_resp
+            </div>
+            <div class="card rounded-xl w-full bg-base-100 shadow">
+                <div class="card-body">
+                    <div class="flex justify-between">
+                        <h2 class="card-title">Config Versions</h2>
+                    </div>
+                    <div>
+                        {move || {
+                            let value = snapshots_resource.get();
+                            let filters = filters.get();
+                            match value {
+                                Some(snapshot_resp) => {
+                                    let page = filters.page.unwrap_or(1);
+                                    let count = filters.count.unwrap_or(10);
+                                    let total_pages = snapshot_resp.clone().total_pages as i64;
+                                    let resp = snapshot_resp
                                         .data
                                         .into_iter()
                                         .map(|config_version| {
@@ -115,37 +114,34 @@ pub fn config_version_list() -> impl IntoView {
                                             map
                                         })
                                         .collect();
-                                        let pagination_props = TablePaginationProps {
-                                            enabled: true,
-                                            count,
-                                            current_page: page,
-                                            total_pages,
-                                            on_next: handle_next_click,
-                                            on_prev: handle_prev_click,
-                                        };
-                                        view! {
-                                            <Table
-                                                cell_class="px-4 py-2 text-sm".to_string()
-                                                rows= resp
-                                                key_column="id".to_string()
-                                                columns=table_columns.get()
-                                                pagination=pagination_props
-                                            />
-                                        }
-                                    }
-                                    None => {
-                                        view! {
-                                            <Skeleton/>
-                                        }
+                                    let pagination_props = TablePaginationProps {
+                                        enabled: true,
+                                        count,
+                                        current_page: page,
+                                        total_pages,
+                                        on_next: handle_next_click,
+                                        on_prev: handle_prev_click,
+                                    };
+                                    view! {
+                                        <Table
+                                            cell_class="px-4 py-2 text-sm".to_string()
+                                            rows=resp
+                                            key_column="id".to_string()
+                                            columns=table_columns.get()
+                                            pagination=pagination_props
+                                        />
                                     }
                                 }
-                            }}
+                                None => {
+                                    view! { <Skeleton /> }
+                                }
+                            }
+                        }}
 
-                        </div>
                     </div>
                 </div>
-            </Suspense>
-        </div>
+            </div>
+        </Suspense>
     }
 }
 

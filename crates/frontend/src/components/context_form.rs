@@ -1,6 +1,7 @@
 pub mod utils;
 use std::collections::{HashMap, HashSet};
 
+use crate::components::dropdown::DropdownBtnType;
 use crate::components::input::{Input, InputType};
 use crate::logic::{Condition, Conditions, Operand, Operands, Operator};
 use crate::schema::EnumVariants;
@@ -31,17 +32,11 @@ pub fn condition_input(
     } = condition.get_value();
 
     view! {
-        <div class="flex gap-x-6">
-            <div class="form-control">
-                <label class="label font-mono text-sm">
-                    <span class="label-text">Dimension</span>
+        <div class="flex flex-wrap gap-y-2 gap-x-6">
+            <div class="form-control w-full">
+                <label class="label font-mono font-bold">
+                    <span class="label-text underline">{dimension}</span>
                 </label>
-                <input
-                    value=dimension.clone()
-                    class="input w-full max-w-xs"
-                    name="context-dimension-name"
-                    disabled=true
-                />
             </div>
             <div class="form-control w-20">
                 <label class="label font-medium font-mono text-sm">
@@ -79,7 +74,7 @@ pub fn condition_input(
                 </select>
 
             </div>
-            <div class="form-control">
+            <div class="form-control flex-1">
                 <label class="label font-mono text-sm">
                     <span class="label-text">Value</span>
                 </label>
@@ -103,6 +98,7 @@ pub fn condition_input(
                                             }
 
                                             r#type=input_type.get_value()
+                                            width="w-full"
                                             disabled=disabled
                                             id=format!(
                                                 "{}-{}",
@@ -111,7 +107,6 @@ pub fn condition_input(
                                                 idx,
                                             )
 
-                                            class="w-100"
                                             name=""
                                             operator=Some(condition.with_value(|v| v.operator.clone()))
                                         />
@@ -146,7 +141,7 @@ pub fn context_form<NF>(
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] resolve_mode: bool,
     #[prop(default = String::new())] heading_sub_text: String,
-    #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
+    #[prop(default = DropdownDirection::Left)] dropdown_direction: DropdownDirection,
 ) -> impl IntoView
 where
     NF: Fn(Conditions) + 'static,
@@ -240,20 +235,46 @@ where
 
     view! {
         <div class="form-control w-full">
-            <div class="gap-1">
+            <div class="flex justify-between">
                 <label class="label flex-col justify-center items-start">
                     <span class="label-text font-semibold text-base">Context</span>
                     <span class="label-text text-slate-400">{heading_sub_text}</span>
                 </label>
+                <Show when=move || {
+                    !context_rs.get().is_empty() && !disabled
+                }>
+                    {move || {
+                        let dimensions = dimensions
+                            .get_value()
+                            .into_iter()
+                            .filter(|dimension| {
+                                !used_dimensions_rs.get().contains(&dimension.dimension)
+                            })
+                            .collect::<Vec<Dimension>>();
+                        view! {
+                            <Dropdown
+                                dropdown_icon="ri-add-line".to_string()
+                                dropdown_text="Add Context".to_string()
+                                dropdown_width="w-fit"
+                                dropdown_btn_type=DropdownBtnType::Link
+                                dropdown_options=dimensions
+                                disabled=disabled
+                                dropdown_direction
+                                on_select=on_select_dimension
+                            />
+                        }
+                    }}
+                </Show>
             </div>
             <div class="card w-full bg-slate-50">
                 <div class="card-body">
                     <Show when=move || context_rs.get().is_empty()>
                         <div class="flex justify-center">
                             <Dropdown
-                                dropdown_width="w-80"
+                                dropdown_width="w-fit"
                                 dropdown_icon="ri-add-line".to_string()
                                 dropdown_text="Add Context".to_string()
+                                dropdown_btn_type=DropdownBtnType::Link
                                 dropdown_direction
                                 dropdown_options=dimensions.get_value()
                                 disabled=disabled
@@ -278,7 +299,6 @@ where
                         children=move |(idx, condition)| {
                             let (schema_type, enum_variants) = dimension_map
                                 .with_value(|v| {
-                                    // if this panics then something is wrong
                                     let d = v.get(&condition.dimension).unwrap();
                                     (
                                         SchemaType::try_from(d.schema.clone()),
@@ -287,10 +307,11 @@ where
                                 });
                             if schema_type.is_err() || enum_variants.is_err() {
                                 return view! {
-                                    <span class="text-sm red"> An error occured </span>
-                                }.into_view()
+                                    // if this panics then something is wrong
+                                    <span class="text-sm red">An error occured</span>
+                                }
+                                    .into_view();
                             }
-
                             let schema_type = store_value(schema_type.unwrap());
                             let allow_remove = !disabled
                                 && !mandatory_dimensions.get_value().contains(&condition.dimension);
@@ -301,7 +322,9 @@ where
                                     condition.operator.clone(),
                                 )),
                             );
-                            logging::log!("here {:?} {:?}",  input_type.get_value(), condition.operator);
+                            logging::log!(
+                                "here {:?} {:?}",  input_type.get_value(), condition.operator
+                            );
                             let condition = store_value(condition);
                             let on_remove = move |d_name| on_remove.call((idx, d_name));
                             let on_value_change = move |(operand_idx, value)| {
@@ -317,6 +340,8 @@ where
                                     ))
                             };
                             view! {
+                                // if this panics then something is wrong
+
                                 // TODO: get rid of unwraps here
 
                                 <ConditionInput
@@ -342,36 +367,10 @@ where
                                         view! {}.into_view()
                                     }
                                 }}
-                            }.into_view()
+                            }
+                                .into_view()
                         }
                     />
-
-                    <Show when=move || { !context_rs.get().is_empty() && !disabled }>
-                        <div class="mt-4">
-
-                            {move || {
-                                let dimensions = dimensions
-                                    .get_value()
-                                    .into_iter()
-                                    .filter(|dimension| {
-                                        !used_dimensions_rs.get().contains(&dimension.dimension)
-                                    })
-                                    .collect::<Vec<Dimension>>();
-                                view! {
-                                    <Dropdown
-                                        dropdown_icon="ri-add-line".to_string()
-                                        dropdown_text="Add Context".to_string()
-                                        dropdown_options=dimensions
-                                        disabled=disabled
-                                        dropdown_direction
-                                        on_select=on_select_dimension
-                                    />
-                                }
-                            }}
-
-                        </div>
-                    </Show>
-
                 </div>
             </div>
         </div>

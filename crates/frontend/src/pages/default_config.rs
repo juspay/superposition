@@ -25,11 +25,11 @@ pub struct RowData {
 
 #[component]
 pub fn default_config() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
     let default_config_resource = create_blocking_resource(
         move || tenant_rs.get(),
-        |current_tenant| async move {
-            match fetch_default_config(current_tenant).await {
+        |tenant| async move {
+            match fetch_default_config(&tenant).await {
                 Ok(data) => data,
                 Err(_) => vec![],
             }
@@ -177,133 +177,131 @@ pub fn default_config() -> impl IntoView {
     };
 
     view! {
-        <div class="p-8">
-            <Suspense fallback=move || {
-                view! { <Skeleton/> }
-            }>
+        <Suspense fallback=move || {
+            view! { <Skeleton /> }
+        }>
 
-                {move || {
-                    let prefix = key_prefix.get();
-                    if let Some(selected_config_data) = selected_config.get() {
-                        view! {
-                            <Drawer
-                                id="default_config_drawer".to_string()
-                                header="Edit Key"
-                                handle_close=handle_close
-                            >
-                                <DefaultConfigForm
-                                    edit=true
-                                    config_key=selected_config_data.key
-                                    config_value=selected_config_data.value
-                                    type_schema=selected_config_data.schema
-                                    function_name=selected_config_data.function_name
-                                    prefix
-                                    handle_submit=move || {
-                                        default_config_resource.refetch();
-                                        selected_config.set(None);
-                                        close_drawer("default_config_drawer");
-                                    }
-                                />
-
-                            </Drawer>
-                        }
-                    } else {
-                        view! {
-                            <Drawer
-                                id="default_config_drawer".to_string()
-                                header="Create New Key"
-                                handle_close=handle_close
-                            >
-                                <DefaultConfigForm
-                                    prefix
-                                    handle_submit=move || {
-                                        default_config_resource.refetch();
-                                        selected_config.set(None);
-                                        close_drawer("default_config_drawer");
-                                    }
-                                />
-
-                            </Drawer>
-                        }
-                    }
-                }}
-                {move || {
-                    let default_config = default_config_resource.get().unwrap_or(vec![]);
-                    let table_rows = default_config
-                        .into_iter()
-                        .map(|config| {
-                            let mut ele_map = json!(config).as_object().unwrap().to_owned();
-                            ele_map
-                                .insert(
-                                    "created_at".to_string(),
-                                    json!(config.created_at.format("%v").to_string()),
-                                );
-                            ele_map
-                        })
-                        .collect::<Vec<Map<String, Value>>>();
-                    let mut filtered_rows = table_rows.clone();
-                    if enable_grouping.get() {
-                        let empty_map = Map::new();
-                        let cols = filtered_rows
-                            .first()
-                            .unwrap_or(&empty_map)
-                            .keys()
-                            .map(|key| key.as_str())
-                            .collect();
-                        filtered_rows = modify_rows(filtered_rows.clone(), key_prefix.get(), cols);
-                    }
-                    let total_default_config_keys = filtered_rows.len().to_string();
+            {move || {
+                let prefix = key_prefix.get();
+                if let Some(selected_config_data) = selected_config.get() {
                     view! {
-                        <div class="pb-4">
-                            <Stat
-                                heading="Config Keys"
-                                icon="ri-tools-line"
-                                number=total_default_config_keys
+                        <Drawer
+                            id="default_config_drawer".to_string()
+                            header="Edit Key"
+                            handle_close=handle_close
+                        >
+                            <DefaultConfigForm
+                                edit=true
+                                config_key=selected_config_data.key
+                                config_value=selected_config_data.value
+                                type_schema=selected_config_data.schema
+                                function_name=selected_config_data.function_name
+                                prefix
+                                handle_submit=move || {
+                                    default_config_resource.refetch();
+                                    selected_config.set(None);
+                                    close_drawer("default_config_drawer");
+                                }
+                            />
+
+                        </Drawer>
+                    }
+                } else {
+                    view! {
+                        <Drawer
+                            id="default_config_drawer".to_string()
+                            header="Create New Key"
+                            handle_close=handle_close
+                        >
+                            <DefaultConfigForm
+                                prefix
+                                handle_submit=move || {
+                                    default_config_resource.refetch();
+                                    selected_config.set(None);
+                                    close_drawer("default_config_drawer");
+                                }
+                            />
+
+                        </Drawer>
+                    }
+                }
+            }}
+            {move || {
+                let default_config = default_config_resource.get().unwrap_or(vec![]);
+                let table_rows = default_config
+                    .into_iter()
+                    .map(|config| {
+                        let mut ele_map = json!(config).as_object().unwrap().to_owned();
+                        ele_map
+                            .insert(
+                                "created_at".to_string(),
+                                json!(config.created_at.format("%v").to_string()),
+                            );
+                        ele_map
+                    })
+                    .collect::<Vec<Map<String, Value>>>();
+                let mut filtered_rows = table_rows.clone();
+                if enable_grouping.get() {
+                    let empty_map = Map::new();
+                    let cols = filtered_rows
+                        .first()
+                        .unwrap_or(&empty_map)
+                        .keys()
+                        .map(|key| key.as_str())
+                        .collect();
+                    filtered_rows = modify_rows(filtered_rows.clone(), key_prefix.get(), cols);
+                }
+                let total_default_config_keys = filtered_rows.len().to_string();
+                view! {
+                    <div class="pb-4">
+                        <Stat
+                            heading="Config Keys"
+                            icon="ri-tools-line"
+                            number=total_default_config_keys
+                        />
+                    </div>
+                    <div class="card rounded-lg w-full bg-base-100 shadow">
+                        <div class="card-body">
+                            <div class="flex justify-between pb-2">
+                                <BreadCrums bread_crums=bread_crums.get() folder_click_handler />
+                                <div class="flex">
+                                    <label
+                                        on:click=move |_| {
+                                            folder_click_handler(None);
+                                            enable_grouping.set(!enable_grouping.get());
+                                            set_local_storage(
+                                                "enable_grouping",
+                                                &enable_grouping.get().to_string(),
+                                            );
+                                        }
+
+                                        class="cursor-pointer label mr-10"
+                                    >
+                                        <span class="label-text mr-4">Enable Grouping</span>
+                                        <input
+                                            type="checkbox"
+                                            class="toggle toggle-primary"
+                                            checked=enable_grouping.get()
+                                        />
+                                    </label>
+                                    <DrawerBtn drawer_id="default_config_drawer"
+                                        .to_string()>
+                                        Create Key <i class="ri-edit-2-line ml-2"></i>
+                                    </DrawerBtn>
+                                </div>
+                            </div>
+                            <Table
+                                cell_class="min-w-48 font-mono".to_string()
+                                rows=filtered_rows
+                                key_column="id".to_string()
+                                columns=table_columns.get()
                             />
                         </div>
-                        <div class="card rounded-lg w-full bg-base-100 shadow">
-                            <div class="card-body">
-                                <div class="flex justify-between pb-2">
-                                    <BreadCrums bread_crums=bread_crums.get() folder_click_handler/>
-                                    <div class="flex">
-                                        <label
-                                            on:click=move |_| {
-                                                folder_click_handler(None);
-                                                enable_grouping.set(!enable_grouping.get());
-                                                set_local_storage(
-                                                    "enable_grouping",
-                                                    &enable_grouping.get().to_string(),
-                                                );
-                                            }
+                    </div>
+                }
+            }}
 
-                                            class="cursor-pointer label mr-10"
-                                        >
-                                            <span class="label-text mr-4">Enable Grouping</span>
-                                            <input
-                                                type="checkbox"
-                                                class="toggle toggle-primary"
-                                                checked=enable_grouping.get()
-                                            />
-                                        </label>
-                                        <DrawerBtn drawer_id="default_config_drawer"
-                                            .to_string()>
-                                            Create Key <i class="ri-edit-2-line ml-2"></i>
-                                        </DrawerBtn>
-                                    </div>
-                                </div>
-                                <Table
-                                    cell_class="min-w-48 font-mono".to_string()
-                                    rows=filtered_rows
-                                    key_column="id".to_string()
-                                    columns=table_columns.get()
-                                />
-                            </div>
-                        </div>
-                    }
-                }}
-
-            </Suspense>
-        </div>
+        </Suspense>
     }
 }
 

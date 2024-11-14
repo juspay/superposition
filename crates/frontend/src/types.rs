@@ -225,6 +225,21 @@ impl From<ExperimentResponse> for Experiment {
 
 /*************************** Context-Override types ********************************/
 
+
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
+pub struct Context {
+    pub id: String,
+    pub value: Map<String, Value>,
+    pub override_id: String,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub priority: i32,
+    #[serde(rename(deserialize = "override"))]
+    pub override_: Map<String, Value>,
+    pub last_modified_at: NaiveDateTime,
+    pub last_modified_by: String,
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Dimension {
     pub dimension: String,

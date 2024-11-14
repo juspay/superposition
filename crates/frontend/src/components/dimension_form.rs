@@ -29,7 +29,7 @@ pub fn dimension_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
 
     let (priority, set_priority) = create_signal(priority);
     let (dimension_name_rs, dimension_name_ws) = create_signal(dimension_name);

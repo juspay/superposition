@@ -89,7 +89,7 @@ pub fn get_host() -> String {
     add_prefix(&host, &service_prefix)
 }
 
-pub fn get_tenants() -> Vec<String> {
+pub fn use_tenants() -> Vec<String> {
     let context = use_context::<Envs>();
     context
         .map(|ctx: Envs| ctx.tenants)

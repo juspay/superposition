@@ -11,7 +11,7 @@ struct CombinedResource {
 
 #[component]
 pub fn create_function_view() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
     view! {
         <div>
 

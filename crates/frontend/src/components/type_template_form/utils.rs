@@ -34,7 +34,7 @@ pub async fn update_type(
     response.json().await.map_err(|e| e.to_string())
 }
 
-pub async fn delete_type(tenant: String, type_name: String) -> Result<Value, String> {
+pub async fn delete_type(tenant: &str, type_name: &str) -> Result<Value, String> {
     let host = get_host();
     let url = format!("{host}/types/{type_name}");
 

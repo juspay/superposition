@@ -4,6 +4,7 @@ pub mod utils;
 use self::utils::{create_experiment, update_experiment};
 use crate::components::button::Button;
 use crate::components::context_form::ContextForm;
+use crate::components::dropdown::DropdownDirection;
 use crate::components::variant_form::VariantForm;
 use crate::types::{DefaultConfig, Dimension, VariantFormT, VariantType};
 use leptos::*;
@@ -46,22 +47,21 @@ fn get_init_state(variants: &[VariantFormT]) -> Vec<(String, VariantFormT)> {
 }
 
 #[component]
-pub fn experiment_form<NF>(
+pub fn experiment_form(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] id: String,
     name: String,
     context: Conditions,
     variants: Vec<VariantFormT>,
-    handle_submit: NF,
+    #[prop(into)] handle_submit: Callback<String, ()>,
+    #[prop(into, default = String::new())] class: String,
     default_config: Vec<DefaultConfig>,
     dimensions: Vec<Dimension>,
 ) -> impl IntoView
-where
-    NF: Fn() + 'static + Clone,
 {
     let init_variants = get_init_state(&variants);
     let default_config = StoredValue::new(default_config);
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<String>>().unwrap();
 
     let (experiment_name, set_experiment_name) = create_signal(name);
     let (f_context, set_context) = create_signal(context.clone());
@@ -93,7 +93,6 @@ where
             .collect::<Vec<VariantFormT>>();
         let tenant = tenant_rs.get();
         let experiment_id = id.clone();
-        let handle_submit_clone = handle_submit.clone();
 
         logging::log!("Experiment name {:?}", f_experiment_name);
         logging::log!("Context Experiment form {:?}", f_context);
@@ -108,8 +107,8 @@ where
                 };
 
                 match result {
-                    Ok(_) => {
-                        handle_submit_clone();
+                    Ok(experiment) => {
+                        handle_submit.call(experiment.id);
                     }
                     Err(_) => {
                         // Handle error
@@ -122,67 +121,68 @@ where
     };
 
     view! {
-        <div>
-            <div class="form-control w-full">
-                <label class="label">
-                    <span class="label-text">Experiment Name</span>
-                </label>
-                <input
-                    disabled=edit
-                    value=move || experiment_name.get()
-                    on:input=move |ev| set_experiment_name.set(event_target_value(&ev))
-                    type="text"
-                    name="expName"
-                    id="expName"
-                    placeholder="ex: testing hyperpay release"
-                    class="input input-bordered w-full max-w-md"
-                />
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="my-4">
-                {move || {
-                    let context = f_context.get();
-                    view! {
-                        <ContextForm
-                            dimensions=dimensions.get_value()
-                            context=context
-                            handle_change=handle_context_form_change
+        <div class="relative">
+            <div class=format!("flex flex-wrap item-center {}", class)>
+                <div class="flex flex-col gap-4 w-[45%]">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold text-base">Experiment Name</span>
+                        </label>
+                        <input
                             disabled=edit
-                            heading_sub_text=String::from(
-                                "Define rules under which this experiment would run",
-                            )
+                            value=move || experiment_name.get()
+                            on:input=move |ev| set_experiment_name.set(event_target_value(&ev))
+                            type="text"
+                            name="expName"
+                            id="expName"
+                            placeholder="ex: testing hyperpay release"
+                            class="input input-bordered w-full max-w-md"
                         />
-                    }
-                }}
+                    </div>
 
+                    <div class="divider"></div>
+
+                    {move || {
+                        let context = f_context.get();
+                        view! {
+                            <ContextForm
+                                dimensions=dimensions.get_value()
+                                context=context
+                                handle_change=handle_context_form_change
+                                disabled=edit
+                                dropdown_direction=DropdownDirection::Down
+                                heading_sub_text=String::from(
+                                    "Define rules under which this experiment would run",
+                                )
+                            />
+                        }
+                    }}
+
+                </div>
+
+                <div class="divider divider-horizontal"></div>
+
+                <div class="flex-1">
+                    {move || {
+                        let variants = f_variants.get();
+                        view! {
+                            <VariantForm
+                                edit=edit
+                                variants=variants
+                                default_config=default_config.get_value()
+                                handle_change=handle_variant_form_change
+                            />
+                        }
+                    }}
+                </div>
+
+                <div class="w-full h-10" />
             </div>
-
-            <div class="divider"></div>
-
-            {move || {
-                let variants = f_variants.get();
-                view! {
-                    <VariantForm
-                        edit=edit
-                        variants=variants
-                        default_config=default_config.get_value()
-                        handle_change=handle_variant_form_change
-                    />
-                }
-            }}
-
-            <div class="flex justify-start mt-8">
+            <div class="absolute bottom-0 right-0 p-4 flex justify-end items-end w-full bg-white border-r border-b border-l rounded-2xl rounded-t-none">
                 {move || {
                     let loading = req_inprogess_rs.get();
                     view! {
-                        <Button
-                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                            text="Submit".to_string()
-                            on_click=on_submit.clone()
-                            loading
-                        />
+                        <Button text="Submit".to_string() on_click=on_submit.clone() loading />
                     }
                 }}
 
