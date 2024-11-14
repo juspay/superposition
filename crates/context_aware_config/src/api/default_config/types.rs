@@ -10,6 +10,8 @@ pub struct CreateReq {
     pub schema: Option<Map<String, Value>>,
     #[serde(default, deserialize_with = "deserialize_option")]
     pub function_name: Option<Value>,
+    pub description: Option<String>,
+    pub change_reason: String,
 }
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]

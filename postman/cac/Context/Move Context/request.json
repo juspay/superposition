@@ -35,7 +35,9 @@
           },
           "tamatar"
         ]
-      }
+      }, 
+      "description": "",
+      "change_reason": ""
     }
   },
   "url": {

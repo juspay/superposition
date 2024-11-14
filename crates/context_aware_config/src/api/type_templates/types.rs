@@ -7,6 +7,8 @@ use superposition_types::RegexEnum;
 pub struct TypeTemplateRequest {
     pub type_schema: Value,
     pub type_name: TypeTemplateName,
+    pub description: Option<String>,
+    pub change_reason: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -16,6 +18,8 @@ pub struct TypeTemplateResponse {
     pub created_at: String,
     pub last_modified: String,
     pub created_by: String,
+    pub description: Option<String>,
+    pub change_reason: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, AsRef, Deref, DerefMut, Into, Clone)]
