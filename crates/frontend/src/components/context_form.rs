@@ -141,7 +141,7 @@ pub fn context_form<NF>(
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] resolve_mode: bool,
     #[prop(default = String::new())] heading_sub_text: String,
-    #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
+    #[prop(default = DropdownDirection::Left)] dropdown_direction: DropdownDirection,
 ) -> impl IntoView
 where
     NF: Fn(Conditions) + 'static,
@@ -255,6 +255,7 @@ where
                             <Dropdown
                                 dropdown_icon="ri-add-line".to_string()
                                 dropdown_text="Add Context".to_string()
+                                dropdown_width="w-fit"
                                 dropdown_btn_type=DropdownBtnType::Link
                                 dropdown_options=dimensions
                                 disabled=disabled
@@ -270,9 +271,10 @@ where
                     <Show when=move || context_rs.get().is_empty()>
                         <div class="flex justify-center">
                             <Dropdown
-                                dropdown_width="w-80"
+                                dropdown_width="w-fit"
                                 dropdown_icon="ri-add-line".to_string()
                                 dropdown_text="Add Context".to_string()
+                                dropdown_btn_type=DropdownBtnType::Link
                                 dropdown_direction
                                 dropdown_options=dimensions.get_value()
                                 disabled=disabled

@@ -4,7 +4,7 @@ use superposition_types::Config;
 use crate::{
     types::{
         ConfigVersionListResponse, DefaultConfig, Dimension, ExperimentResponse,
-        ExperimentsResponse, FetchTypeTemplateResponse, FunctionResponse, ListFilters, TypeTemplate,
+        ExperimentsResponse, FetchTypeTemplateResponse, FunctionResponse, ListFilters, TypeTemplate, Context,
     },
     utils::{
         construct_request_headers, get_host, parse_json_response, request,
@@ -294,6 +294,26 @@ pub async fn fetch_type(
     .await
     .map_err(err_handler)?;
     parse_json_response::<TypeTemplate>(response)
+        .await
+        .map_err(err_handler)
+}
+
+pub async fn fetch_context(
+    tenant: &str,
+    id: &str,
+) -> Result<Context, ServerFnError> {
+    let host = use_host_server();
+    let url = format!("{host}/context/{id}");
+    let err_handler = |e: String| ServerFnError::new(e.to_string());
+    let response = request::<()>(
+        url,
+        reqwest::Method::GET,
+        None,
+        construct_request_headers(&[("x-tenant", &tenant)]).map_err(err_handler)?,
+    )
+    .await
+    .map_err(err_handler)?;
+    parse_json_response::<Context>(response)
         .await
         .map_err(err_handler)
 }
