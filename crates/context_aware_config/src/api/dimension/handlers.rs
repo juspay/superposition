@@ -1,5 +1,7 @@
-extern crate base64;
-
+use crate::{
+    api::dimension::{types::CreateReq, utils::get_dimension_usage_context_ids},
+    helpers::validate_jsonschema,
+};
 use actix_web::{
     delete, get, put,
     web::{self, Data, Json, Path, Query},
@@ -7,7 +9,8 @@ use actix_web::{
 };
 use chrono::Utc;
 use diesel::{
-    delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
+    delete, Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
+    SelectableHelper,
 };
 use jsonschema::{Draft, JSONSchema};
 use serde_json::Value;
@@ -16,15 +19,16 @@ use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
     cac::{
         models::Dimension,
-        schema::{dimensions, dimensions::dsl::*},
+        schema::{
+            dimensions,
+            dimensions::dsl::{
+                created_at, dimension, dimensions as dimension_table, last_modified_at,
+                last_modified_by, position, priority,
+            },
+        },
     },
     custom_query::PaginationParams,
     result as superposition, PaginatedResponse, TenantConfig, User,
-};
-
-use crate::{
-    api::dimension::{types::CreateReq, utils::get_dimension_usage_context_ids},
-    helpers::validate_jsonschema,
 };
 
 use super::types::{DeleteReq, DimensionWithMandatory};
@@ -74,6 +78,44 @@ async fn create(
         }
     };
 
+    let dimension_name = create_req.dimension.to_string();
+
+    let existing_dimension = match dimension_table
+        .filter(dimension.eq(&dimension_name))
+        .first::<Dimension>(&mut conn)
+        .optional()
+    {
+        Ok(dim) => dim,
+        Err(e) => {
+            log::warn!(
+                "Failed to fetch dimension {}: {:?}. Proceeding as if it does not exist.",
+                dimension_name,
+                e
+            );
+            None
+        }
+    };
+
+    let description = match &create_req.description {
+        Some(desc) if !desc.trim().is_empty() => desc.clone(),
+        _ => {
+            if let Some(existing_dim) = &existing_dimension {
+                existing_dim.description.clone()
+            } else {
+                // No description provided and no existing dimension
+                // Return an error
+                log::error!(
+                    "No description provided and no existing dimension for {}.",
+                    dimension_name
+                );
+                return Err(bad_argument!(
+                    "No description provided for the new dimension {}.",
+                    dimension_name
+                ));
+            }
+        }
+    };
+
     let new_dimension = Dimension {
         dimension: create_req.dimension.into(),
         priority: create_req.priority.into(),
@@ -84,11 +126,13 @@ async fn create(
         function_name: fun_name.clone(),
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
+        description,
+        change_reason: create_req.change_reason,
     };
 
-    let upsert = diesel::insert_into(dimensions)
+    let upsert = diesel::insert_into(dimension_table)
         .values(&new_dimension)
-        .on_conflict(dimensions::dimension)
+        .on_conflict(dimension)
         .do_update()
         .set(&new_dimension)
         .get_result::<Dimension>(&mut conn);
@@ -132,13 +176,13 @@ async fn get(
 
     let (total_pages, total_items, result) = match filters.all {
         Some(true) => {
-            let result: Vec<Dimension> = dimensions.get_results(&mut conn)?;
+            let result: Vec<Dimension> = dimension_table.get_results(&mut conn)?;
             (1, result.len() as i64, result)
         }
         _ => {
-            let n_dimensions: i64 = dimensions.count().get_result(&mut conn)?;
+            let n_dimensions: i64 = dimension_table.count().get_result(&mut conn)?;
             let limit = filters.count.unwrap_or(10);
-            let mut builder = dimensions
+            let mut builder = dimension_table
                 .into_boxed()
                 .order(created_at.desc())
                 .limit(limit);
@@ -176,27 +220,26 @@ async fn delete_dimension(
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.into_inner().into();
     let DbConnection(mut conn) = db_conn;
-    let dimension_data: Dimension = dimensions::dsl::dimensions
-        .filter(dimensions::dimension.eq(&name))
+    let dimension_data = dimension_table
+        .filter(dimension.eq(&name))
         .select(Dimension::as_select())
         .get_result(&mut conn)?;
     let context_ids = get_dimension_usage_context_ids(&name, &mut conn)
         .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            use dimensions::dsl;
-            diesel::update(dsl::dimensions)
-                .filter(dsl::dimension.eq(&name))
+            diesel::update(dimension_table)
+                .filter(dimension.eq(&name))
                 .set((
-                    dsl::last_modified_at.eq(Utc::now().naive_utc()),
-                    dsl::last_modified_by.eq(user.get_email()),
+                    last_modified_at.eq(Utc::now().naive_utc()),
+                    last_modified_by.eq(user.get_email()),
                 ))
                 .execute(transaction_conn)?;
             diesel::update(dimensions::dsl::dimensions)
                 .filter(dimensions::position.gt(dimension_data.position))
                 .set(dimensions::position.eq(dimensions::position - 1))
                 .execute(transaction_conn)?;
-            let deleted_row = delete(dsl::dimensions.filter(dsl::dimension.eq(&name)))
+            let deleted_row = delete(dimension_table.filter(dimension.eq(&name)))
                 .execute(transaction_conn);
             match deleted_row {
                 Ok(0) => Err(not_found!("Dimension `{}` doesn't exists", name)),
@@ -221,7 +264,7 @@ async fn temp_position_update(
     db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let results: Vec<String> = dimensions
+    let results: Vec<String> = dimension_table
         .order(priority.asc())
         .select(dimension)
         .load::<String>(&mut conn)
@@ -231,7 +274,7 @@ async fn temp_position_update(
         })?;
 
     let _ = for (index, dimension_name) in results.iter().enumerate() {
-        diesel::update(dimensions)
+        diesel::update(dimension_table)
             .filter(dimension.eq(dimension_name))
             .set((
                 position.eq(index as i32),
