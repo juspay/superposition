@@ -32,6 +32,8 @@ pub fn default_config_form<NF>(
     #[prop(default = Value::Null)] config_value: Value,
     #[prop(default = None)] function_name: Option<Value>,
     #[prop(default = None)] prefix: Option<String>,
+    #[prop(default = String::new())] description: String,
+    #[prop(default = String::new())] comment: String,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -45,6 +47,8 @@ where
     let (config_value_rs, config_value_ws) = create_signal(config_value);
     let (function_name_rs, function_name_ws) = create_signal(function_name);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
+    let (description_rs, description_ws) = create_signal(description);
+    let (comment_rs, comment_ws) = create_signal(comment);
 
     let functions_resource: Resource<String, Vec<crate::types::FunctionResponse>> =
         create_blocking_resource(
@@ -100,11 +104,15 @@ where
         let f_value = config_value_rs.get();
 
         let fun_name = function_name_rs.get();
+        let description = description_rs.get();
+        let comment = comment_rs.get();
 
         let payload = DefaultConfigCreateReq {
             schema: f_schema,
             value: f_value,
             function_name: fun_name,
+            description,
+            comment,
         };
 
         let handle_submit_clone = handle_submit.clone();
@@ -156,6 +164,40 @@ where
                         }
                     />
 
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Description</span>
+                    </label>
+                    <textarea
+                        placeholder="Enter description"
+                        class="textarea textarea-bordered w-full max-w-md"
+                        value=description_rs.get_untracked()
+                        on:change=move |ev| {
+                            let value = event_target_value(&ev);
+                            description_ws.set(value);
+                        }
+                    />
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Comment</span>
+                    </label>
+                    <textarea
+                        placeholder="Enter comment"
+                        class="textarea textarea-bordered w-full max-w-md"
+                        value=comment_rs.get_untracked()
+                        on:change=move |ev| {
+                            let value = event_target_value(&ev);
+                            comment_ws.set(value);
+                        }
+                    />
                 </div>
 
                 <div class="divider"></div>

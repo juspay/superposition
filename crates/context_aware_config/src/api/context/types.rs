@@ -7,12 +7,16 @@ use superposition_types::{Cac, Condition, Overrides};
 pub struct PutReq {
     pub context: Cac<Condition>,
     pub r#override: Cac<Overrides>,
+    pub description: Option<String>,
+    pub change_reason: String,
 }
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
 #[derive(Deserialize, Clone)]
 pub struct MoveReq {
     pub context: Cac<Condition>,
+    pub description: Option<String>,
+    pub change_reason: String,
 }
 
 #[derive(Deserialize, Clone)]
@@ -26,6 +30,8 @@ pub struct PutResp {
     pub override_id: String,
     pub priority: i32,
     pub weight: BigDecimal,
+    pub description: String,
+    pub change_reason: String,
 }
 
 #[derive(Deserialize)]
@@ -81,6 +87,8 @@ pub struct PriorityRecomputeResponse {
     pub condition: Condition,
     pub old_priority: i32,
     pub new_priority: i32,
+    pub description: String,
+    pub change_reason: String,
 }
 
 #[derive(Serialize)]
@@ -89,6 +97,8 @@ pub struct WeightRecomputeResponse {
     pub condition: Condition,
     pub old_weight: BigDecimal,
     pub new_weight: BigDecimal,
+    pub description: String,
+    pub change_reason: String,
 }
 
 #[cfg(test)]
@@ -108,7 +118,9 @@ mod tests {
             },
             "override": {
                 "foo": "baz"
-            }
+            },
+            "description": "",
+            "comment": ""
         });
 
         let action_str = json!({
@@ -130,6 +142,8 @@ mod tests {
         let expected_action = ContextAction::Put(PutReq {
             context: context,
             r#override: override_,
+            description: None,
+            change_reason: "".to_string(),
         });
 
         let action_deserialized =

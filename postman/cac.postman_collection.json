@@ -161,22 +161,62 @@
                   "            console.log(\"Failed to fetch config\");",
                   "            throw error;",
                   "        }",
-                  "",
                   "        const resp_obj = response.json();",
                   "        const default_configs = resp_obj.default_configs;",
-                  "",
+                  "        ",
+                  "        // Original checks for key-value",
                   "        console.log(`Checking if key=${key} with value=${value} in default_configs`);",
+                  "        pm.expect(default_configs).to.have.property(key);",
                   "        pm.expect(default_configs[key]).to.be.eq(value);",
                   "    });",
                   "}",
                   "",
+                  "// Original test cases",
                   "pm.test(\"201 check\", function () {",
                   "    pm.response.to.have.status(200);",
-                  "})",
+                  "});",
                   "",
                   "pm.test(\"Check if key added to default config\", function () {",
                   "    const key = \"key1\", value = \"value1\";",
                   "    getConfigAndTest(key, value);",
+                  "});",
+                  "",
+                  "// New test case for description and comment fields",
+                  "pm.test(\"Check if description and comment fields exist\", function () {",
+                  "    const getRequest = {",
+                  "        url: `${host}/config`,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "        }",
+                  "    };",
+                  "",
+                  "    pm.sendRequest(getRequest, (error, response) => {",
+                  "        if(error) {",
+                  "            console.log(\"Failed to fetch config\");",
+                  "            throw error;",
+                  "        }",
+                  "        const resp_obj = response.json();",
+                  "        console.log(\"Response:\", JSON.stringify(resp_obj, null, 2));",
+                  "        ",
+                  "        // Verify the structure of the response",
+                  "        pm.expect(resp_obj).to.have.property('default_configs');",
+                  "        const configItem = resp_obj.default_configs.key1;",
+                  "        ",
+                  "        // If the config is returned as an object",
+                  "        if (typeof configItem === 'object') {",
+                  "            pm.expect(configItem).to.have.property('value');",
+                  "            pm.expect(configItem).to.have.property('description');",
+                  "            pm.expect(configItem).to.have.property('change_reason');",
+                  "        }",
+                  "        // If it's just the value directly",
+                  "        else {",
+                  "            // The original format is maintained",
+                  "            pm.expect(resp_obj.default_configs).to.have.property('description');",
+                  "            pm.expect(resp_obj.default_configs).to.have.property('change_reason');",
+                  "        }",
+                  "    });",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -209,7 +249,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
+              "raw": "{\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"},\"description\":\"\",\"change_reason\":\"\"}"
             },
             "url": {
               "raw": "{{host}}/default-config/key1",
@@ -248,7 +288,9 @@
                   "                \"schema\": {",
                   "                    \"type\": \"string\",",
                   "                    \"pattern\": \".*\"",
-                  "                }",
+                  "                }, ",
+                  "                \"description\": \"\",",
+                  "                \"change_reason\": \"\"",
                   "            })",
                   "        }",
                   "    };",
@@ -443,7 +485,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"dimension\":\"clientId\",\"priority\":100,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
+              "raw": "{\"dimension\":\"clientId\",\"priority\":100,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"},\"description\":\"\",\"change_reason\":\"\"}"
             },
             "url": {
               "raw": "{{host}}/dimension",
@@ -477,12 +519,14 @@
                   "        \"body\": {",
                   "            \"mode\": \"raw\",",
                   "            \"raw\": JSON.stringify({",
-                  "               \"dimension\": \"dim1\",",
+                  "                \"dimension\": \"dim1\",",
                   "                \"priority\": 4,",
                   "                \"schema\": {",
                   "                    \"type\": \"string\",",
                   "                    \"pattern\": \".*\"",
-                  "                }",
+                  "                }, ",
+                  "                \"description\": \"\",",
+                  "                \"change_reason\": \"\"",
                   "            })",
                   "        }",
                   "    };",
@@ -514,20 +558,21 @@
                   "})",
                   "",
                   "pm.test(\"404 check\", function () {",
-                  "  const deleteRequest = {",
-                  "      url: `${host}/dimension/dim1`,",
-                  "      method: 'DELETE',",
-                  "      header: {",
-                  "          'Content-Type': 'application/json',",
-                  "          'x-tenant': 'test',",
-                  "          'Authorization': `Bearer ${token}`",
-                  "      }",
-                  "  };",
+                  "    const deleteRequest = {",
+                  "        url: `${host}/dimension/dim1`,",
+                  "        method: 'DELETE',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "            'Authorization': `Bearer ${token}`",
+                  "        }",
+                  "    };",
                   "",
-                  "  pm.sendRequest(deleteRequest, (error, response) => {",
-                  "      response.to.have.status(404);",
-                  "  });",
-                  "})"
+                  "    pm.sendRequest(deleteRequest, (error, response) => {",
+                  "        response.to.have.status(404);",
+                  "    });",
+                  "})",
+                  ""
                 ],
                 "type": "text/javascript"
               }
@@ -562,8 +607,7 @@
                 "dim1"
               ]
             }
-          },
-          "response": []
+          }
         }
       ]
     },
@@ -686,7 +730,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"override\":{\"key1\":\"value2\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]}}"
+              "raw": "{\"override\":{\"key1\":\"value2\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]},\"description\":\"\",\"change_reason\":\"\"}"
             },
             "url": {
               "raw": "{{host}}/context",
@@ -816,7 +860,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]}}"
+              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]},\"description\":\"\",\"change_reason\":\"\"}"
             },
             "url": {
               "raw": "{{host}}/context",
@@ -951,7 +995,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"tamatar\"]}}"
+              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"tamatar\"]},\"description\":\"\",\"change_reason\":\"\"}"
             },
             "url": {
               "raw": "{{host}}/context/move/{{context_id}}",
@@ -988,8 +1032,8 @@
                   "    \"priority\": 100,",
                   "    \"override\": {",
                   "        \"key1\": \"value3\"",
-                  "    }",
-                  "    \"weight\": \"1\",",
+                  "    },",
+                  "    \"weight\": \"1\"",
                   "};",
                   "",
                   "pm.test(\"200 check\", function() {",
@@ -1003,6 +1047,8 @@
                   "    delete response.created_by;",
                   "    delete response.last_modified_at;",
                   "    delete response.last_modified_by;",
+                  "    delete response.description;",
+                  "    delete response.change_reason;",
                   "",
                   "    pm.expect(JSON.stringify(response)).to.be.eq(JSON.stringify(expected_context));",
                   "});",
@@ -1236,7 +1282,6 @@
                   "                    \"type\": \"string\",",
                   "                    \"pattern\": \"^[a-z0-9].*$\"",
                   "                }",
-                  "                \"position\": 0,",
                   "            })",
                   "        }",
                   "    };",
@@ -1291,7 +1336,7 @@
                   "});",
                   "",
                   "",
-                  "pm.test(\"Check weight update\", function () {",
+                  "pm.test(\"Check priority update\", function () {",
                   "    getContextAndTest()",
                   "});"
                 ],
@@ -1456,46 +1501,55 @@
                   "pm.test('expect response be 200', function () {",
                   "    pm.response.to.be.ok;",
                   "    const response = pm.response.json();",
-                  "    const modified_response = response.data.map(({ created_at, last_modified, ...rest }) => rest);",
+                  "    const modified_response = response.data.map(({ created_at, last_modified_at, last_modified_by, ...rest }) => rest);",
                   "    console.log(\"The API returned the response\", modified_response);",
                   "    pm.expect(JSON.stringify(modified_response)).to.be.eq(JSON.stringify([",
                   "        {",
-                  "            \"created_by\": \"user@superposition.io\",",
-                  "            \"type_name\": \"Number\",",
-                  "            \"type_schema\": {",
-                  "                \"type\": \"integer\"",
-                  "            }",
-                  "        },",
-                  "        {",
-                  "            \"created_by\": \"user@superposition.io\",",
-                  "            \"type_name\": \"Decimal\",",
-                  "            \"type_schema\": {",
-                  "                \"type\": \"number\"",
-                  "            }",
-                  "        },",
-                  "        {",
-                  "            \"created_by\": \"user@superposition.io\",",
-                  "            \"type_name\": \"Boolean\",",
-                  "            \"type_schema\": {",
-                  "                \"type\": \"boolean\"",
-                  "            }",
-                  "        },",
-                  "        {",
-                  "            \"created_by\": \"user@superposition.io\",",
-                  "            \"type_name\": \"Enum\",",
-                  "            \"type_schema\": {",
-                  "                \"enum\": [\"android\", \"ios\"],",
-                  "                \"type\": \"string\"",
-                  "            }",
-                  "        },",
-                  "",
-                  "        {",
-                  "            \"created_by\": \"user@superposition.io\",",
                   "            \"type_name\": \"Pattern\",",
                   "            \"type_schema\": {",
                   "                \"pattern\": \".*\",",
                   "                \"type\": \"string\"",
-                  "            }",
+                  "            },",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "            \"description\": \"\",",
+                  "            \"change_reason\": \"\"",
+                  "        },",
+                  "        {",
+                  "            \"type_name\": \"Enum\",",
+                  "            \"type_schema\": {",
+                  "                \"enum\": [\"android\", \"ios\"],",
+                  "                \"type\": \"string\"",
+                  "            },",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "            \"description\": \"\",",
+                  "            \"change_reason\": \"\"",
+                  "        },",
+                  "        {",
+                  "            \"type_name\": \"Boolean\",",
+                  "            \"type_schema\": {",
+                  "                \"type\": \"boolean\"",
+                  "            },",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "            \"description\": \"\",",
+                  "            \"change_reason\": \"\"",
+                  "        },",
+                  "        {",
+                  "            \"type_name\": \"Decimal\",",
+                  "            \"type_schema\": {",
+                  "                \"type\": \"number\"",
+                  "            },",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "            \"description\": \"\",",
+                  "            \"change_reason\": \"\"",
+                  "        },",
+                  "        {",
+                  "            \"type_name\": \"Number\",",
+                  "            \"type_schema\": {",
+                  "                \"type\": \"integer\"",
+                  "            },",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "            \"description\": \"\",",
+                  "            \"change_reason\": \"\"",
                   "        }",
                   "    ]))",
                   "});",
@@ -1561,7 +1615,7 @@
                   "            throw error;",
                   "        }",
                   "        const resp = response.json();",
-                  "        const modified_response = resp.map(({ created_at, last_modified, ...rest }) => rest).sort((a, b) => {",
+                  "        const modified_response = resp.map(({ created_at, last_modified_at, last_modified_by, ...rest }) => rest).sort((a, b) => {",
                   "            return a.type_name > b.type_name;",
                   "        });",
                   "        pm.expect(JSON.stringify(modified_response)).to.be.eq(JSON.stringify([",
@@ -1644,7 +1698,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"type_schema\":{\"type\":\"number\"},\"type_name\":\"Integer\"}"
+              "raw": "{\"type_schema\":{\"type\":\"number\"},\"type_name\":\"Integer\",\"description\":\"\",\"change_reason\":\"\"}"
             },
             "url": {
               "raw": "{{host}}/types",
@@ -1802,7 +1856,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"type_schema\":{\"type\":\"integer\"},\"type_name\":\"Integer\"}"
+              "raw": "{\"type_schema\":{\"type\":\"integer\"},\"type_name\":\"Integer\",\"description\":\"\",\"change_reason\":\"\"}"
             },
             "url": {
               "raw": "{{host}}/types/{{type_name}}",

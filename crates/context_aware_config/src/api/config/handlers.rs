@@ -380,10 +380,31 @@ fn construct_new_payload(
             },
         )?;
 
-    return Ok(web::Json(PutReq {
-        context: context,
+    let description = match res.get("description") {
+        Some(Value::String(s)) => Some(s.clone()),
+        Some(_) => {
+            log::error!("construct new payload: Description is not a valid string");
+            return Err(bad_argument!("Description must be a string"));
+        }
+        None => None,
+    };
+
+    // Handle change_reason
+    let change_reason = res
+        .get("change_reason")
+        .and_then(|val| val.as_str())
+        .map(|s| s.to_string())
+        .ok_or_else(|| {
+            log::error!("construct new payload: Change reason not present or invalid");
+            bad_argument!("Change reason is required and must be a string")
+        })?;
+
+    Ok(web::Json(PutReq {
+        context,
         r#override: override_,
-    }));
+        description,
+        change_reason,
+    }))
 }
 
 #[allow(clippy::too_many_arguments)]

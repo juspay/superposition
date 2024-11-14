@@ -11,6 +11,8 @@ pub struct CreateReq {
     pub schema: Value,
     #[serde(default, deserialize_with = "deserialize_option")]
     pub function_name: Option<Value>,
+    pub description: Option<String>,
+    pub change_reason: String,
 }
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
@@ -97,6 +99,8 @@ pub struct DimensionWithMandatory {
     pub function_name: Option<String>,
     pub last_modified_at: NaiveDateTime,
     pub last_modified_by: String,
+    pub description: String,
+    pub change_reason: String,
     pub mandatory: bool,
 }
 
@@ -112,6 +116,8 @@ impl DimensionWithMandatory {
             function_name: value.function_name,
             last_modified_at: value.last_modified_at,
             last_modified_by: value.last_modified_by,
+            description: value.description,
+            change_reason: value.change_reason,
             mandatory,
         }
     }

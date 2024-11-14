@@ -15,7 +15,9 @@ function add_default_config() {
                 "schema": {
                     "type": "string",
                     "pattern": ".*"
-                }
+                }, 
+                "description": "",
+                "change_reason": ""
             })
         }
     };
