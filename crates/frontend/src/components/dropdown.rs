@@ -61,7 +61,7 @@ where
     view! {
         <div
             id=id
-            class=format!("dropdown {}", dropdown_width)
+            class=format!("relative dropdown {}", dropdown_width)
             class=("disable-click", disabled)
             class=("dropdown-right", dropdown_direction == DropdownDirection::Right)
             class=("dropdown-left", dropdown_direction == DropdownDirection::Left)
@@ -83,9 +83,7 @@ where
             </label>
             <ul
                 tabindex="0"
-                class=format!(
-                    "w-full min-w-[16rem] dropdown-content z-[1] menu flex-nowrap p-2 shadow bg-base-100 rounded-box max-h-96 overflow-y-scroll overflow-x-hidden",
-                )
+                class="w-64 dropdown-content z-[1] menu flex-nowrap p-2 shadow bg-base-100 rounded-box max-h-96 overflow-y-scroll overflow-x-hidden"
             >
 
                 {if searchable {

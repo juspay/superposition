@@ -27,3 +27,4 @@ pub mod table;
 pub mod toast;
 pub mod type_template_form;
 pub mod variant_form;
+pub mod contextual_override_form;

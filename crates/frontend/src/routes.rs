@@ -19,7 +19,7 @@ use crate::{
         new_experiment::NewExperiment,
         new_template_type::NewTemplateType,
         template_types::TypesPage,
-        update_template_type::UpdateTemplateType,
+        update_template_type::UpdateTemplateType, new_contextual_override::NewContextualOverride, update_contextual_override::UpdateContextualOverride,
     },
 };
 
@@ -196,6 +196,28 @@ pub fn app_routes() -> impl IntoView {
                     view! {
                         <Page>
                             <ContextOverride />
+                        </Page>
+                    }
+                }
+            />
+            <Route
+                ssr=SsrMode::Async
+                path="/overrides/new"
+                view=move || {
+                    view! {
+                        <Page>
+                            <NewContextualOverride />
+                        </Page>
+                    }
+                }
+            />
+            <Route
+                ssr=SsrMode::Async
+                path="/overrides/:id/update"
+                view=move || {
+                    view! {
+                        <Page>
+                            <UpdateContextualOverride />
                         </Page>
                     }
                 }

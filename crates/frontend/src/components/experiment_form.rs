@@ -4,6 +4,7 @@ pub mod utils;
 use self::utils::{create_experiment, update_experiment};
 use crate::components::button::Button;
 use crate::components::context_form::ContextForm;
+use crate::components::dropdown::DropdownDirection;
 use crate::components::variant_form::VariantForm;
 use crate::types::{DefaultConfig, Dimension, VariantFormT, VariantType};
 use leptos::*;
@@ -149,6 +150,7 @@ pub fn experiment_form(
                                 context=context
                                 handle_change=handle_context_form_change
                                 disabled=edit
+                                dropdown_direction=DropdownDirection::Down
                                 heading_sub_text=String::from(
                                     "Define rules under which this experiment would run",
                                 )

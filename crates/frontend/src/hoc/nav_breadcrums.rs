@@ -118,6 +118,31 @@ static BREADCRUMB_STORE: Lazy<HashMap<String, RouteMetadata>> = Lazy::new(|| {
             dynamic_label: None,
         },
     );
+
+    routes.insert(
+        "/overrides/new".to_string(),
+        RouteMetadata {
+            default_label: "New".to_string(),
+            parent: Some("/overrides".to_string()),
+            icon: None,
+            dynamic_label: None,
+        },
+    );
+
+    routes.insert(
+        "/overrides/:id/update".to_string(),
+        RouteMetadata {
+            default_label: "Update".to_string(),
+            parent: Some("/overrides".to_string()),
+            icon: None,
+            dynamic_label: Some(Box::new(Arc::new(|params| {
+                params
+                    .get("id")
+                    .map(|name| format!("Update {}", name))
+            }))),
+        },
+    );
+
     routes.insert(
         "/resolve".to_string(),
         RouteMetadata {
