@@ -1,6 +1,7 @@
-use crate::service::types::AppState;
+use crate::service::types::{AppState, Tenant};
 use actix_web::{error::ErrorInternalServerError, web::Data, Error};
 use anyhow::anyhow;
+use chrono::Utc;
 use jsonschema::{error::ValidationErrorKind, ValidationError};
 use log::info;
 use regex::Regex;
@@ -20,7 +21,9 @@ use std::{
 };
 use superposition_types::{
     result::{self, AppError},
-    webhook::{HeadersEnum, HttpMethod, Webhook, WebhookEvent, WebhookResponse},
+    webhook::{
+        HeadersEnum, HttpMethod, Webhook, WebhookEvent, WebhookEventInfo, WebhookResponse,
+    },
     Condition,
 };
 
@@ -416,6 +419,7 @@ pub async fn execute_webhook_call<T>(
     webhook_config: &Webhook,
     payload: &T,
     config_version_opt: &Option<String>,
+    tenant: &Tenant,
     event: WebhookEvent,
     http_client: &reqwest::Client,
 ) -> Result<(), AppError>
@@ -423,7 +427,7 @@ where
     T: Serialize,
 {
     let mut header_array = webhook_config
-        .headers
+        .service_headers
         .clone()
         .into_iter()
         .filter_map(|key| match key {
@@ -434,17 +438,26 @@ where
                     None
                 }
             }
+            HeadersEnum::TenantId => Some((key.to_string(), tenant.to_string())),
         })
         .collect::<Vec<(String, String)>>();
 
-    let auth_token_value: String =
-                get_from_env_unsafe(&webhook_config.authorization.value).map_err(|err| {
+    webhook_config
+        .custom_headers
+        .clone()
+        .into_iter()
+        .for_each(|(key, value)| header_array.push((key, value)));
+
+    if let Some(auth) = &webhook_config.authorization {
+        let auth_token_value: String =
+                get_from_env_unsafe(&auth.value).map_err(|err| {
                     log::error!("Failed to retrieve authentication token for the webhook with error: {}", err);
                     AppError::WebhookError(
                         String::from("Failed to retrieve authentication token for the webhook. Please verify the credentials in TenantConfig.")
                     )
                 })?;
-    header_array.push((webhook_config.authorization.key.clone(), auth_token_value));
+        header_array.push((auth.key.clone(), auth_token_value));
+    }
 
     let mut headers = HeaderMap::new();
     header_array.iter().for_each(|(name, value)| {
@@ -463,7 +476,15 @@ where
 
     let response = request_builder
         .headers(headers.into())
-        .json(&WebhookResponse { event, payload })
+        .json(&WebhookResponse {
+            event_info: WebhookEventInfo {
+                webhook_event: event,
+                time: Utc::now().naive_utc().to_string(),
+                tenant_id: tenant.to_string(),
+                config_version: config_version_opt.clone(),
+            },
+            payload,
+        })
         .send()
         .await;
 

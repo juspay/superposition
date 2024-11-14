@@ -294,6 +294,7 @@ async fn create(
             &experiments_webhook_config,
             &inserted_experiment,
             &config_version_id,
+            &tenant,
             WebhookEvent::ExperimentCreated,
             &state.http_client,
         )
@@ -322,7 +323,7 @@ async fn conclude_handler(
         custom_headers.config_tags,
         req.into_inner(),
         conn,
-        tenant,
+        tenant.clone(),
         user,
     )
     .await?;
@@ -334,6 +335,7 @@ async fn conclude_handler(
             &experiments_webhook_config,
             &response,
             &config_version_id,
+            &tenant,
             WebhookEvent::ExperimentConcluded,
             &state.http_client,
         )
@@ -679,6 +681,7 @@ async fn ramp(
             &experiments_webhook_config,
             &updated_experiment,
             &config_version_id,
+            &tenant,
             webhook_event,
             &data.http_client,
         )
@@ -913,6 +916,7 @@ async fn update_overrides(
             &experiments_webhook_config,
             &updated_experiment,
             &config_version_id,
+            &tenant,
             WebhookEvent::ExperimentUpdated,
             &state.http_client,
         )
