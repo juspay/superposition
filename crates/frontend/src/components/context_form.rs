@@ -79,60 +79,62 @@ pub fn condition_input(
                 </select>
 
             </div>
-            <div class="form-control">
-                <label class="label font-mono text-sm">
-                    <span class="label-text">Value</span>
-                </label>
-                <div class="flex gap-x-6 items-center">
+        </div>
+        <div class="form-control">
+            <label class="label font-mono text-sm">
+                <span class="label-text">Value</span>
+            </label>
 
-                    {operands
-                        .0
-                        .clone()
-                        .into_iter()
-                        .enumerate()
-                        .map(|(idx, operand): (usize, Operand)| {
-                            match operand {
-                                Operand::Dimension(_) => view! {}.into_view(),
-                                Operand::Value(v) => {
-                                    view! {
-                                        <Input
-                                            value=v
-                                            schema_type=schema_type.get_value()
-                                            on_change=move |value: Value| {
-                                                on_value_change.call((idx, value));
-                                            }
+            <div class="flex gap-x-6 items-center">
 
-                                            r#type=input_type.get_value()
-                                            disabled=disabled
-                                            id=format!(
-                                                "{}-{}",
-                                                condition
-                                                    .with_value(|v| format!("{}-{}", v.dimension, v.operator)),
-                                                idx,
-                                            )
+                {operands
+                    .0
+                    .clone()
+                    .into_iter()
+                    .enumerate()
+                    .map(|(idx, operand): (usize, Operand)| {
+                        match operand {
+                            Operand::Dimension(_) => view! {}.into_view(),
+                            Operand::Value(v) => {
+                                view! {
+                                    <Input
+                                        value=v
+                                        schema_type=schema_type.get_value()
+                                        on_change=move |value: Value| {
+                                            on_value_change.call((idx, value));
+                                        }
 
-                                            class="w-100"
-                                            name=""
-                                            operator=Some(condition.with_value(|v| v.operator.clone()))
-                                        />
-                                    }
-                                        .into_view()
+                                        r#type=input_type.get_value()
+                                        disabled=disabled
+                                        id=format!(
+                                            "{}-{}",
+                                            condition
+                                                .with_value(|v| format!("{}-{}", v.dimension, v.operator)),
+                                            idx,
+                                        )
+
+                                        class="w-[450px]"
+                                        name=""
+                                        operator=Some(condition.with_value(|v| v.operator.clone()))
+                                    />
                                 }
+                                    .into_view()
                             }
-                        })
-                        .collect_view()} <Show when=move || allow_remove>
-                        <button
-                            class="btn btn-ghost btn-circle btn-sm mt-1"
-                            disabled=disabled
-                            on:click=move |_| {
-                                on_remove.call(condition.with_value(|v| v.dimension.clone()));
-                            }
-                        >
+                        }
+                    })
+                    .collect_view()}
+                <Show when=move || allow_remove>
+                    <button
+                        class="btn btn-ghost btn-circle btn-sm mt-1"
+                        disabled=disabled
+                        on:click=move |_| {
+                            on_remove.call(condition.with_value(|v| v.dimension.clone()));
+                        }
+                    >
 
-                            <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
-                        </button>
-                    </Show>
-                </div>
+                        <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
+                    </button>
+                </Show>
             </div>
         </div>
     }
@@ -278,7 +280,6 @@ where
                         children=move |(idx, condition)| {
                             let (schema_type, enum_variants) = dimension_map
                                 .with_value(|v| {
-                                    // if this panics then something is wrong
                                     let d = v.get(&condition.dimension).unwrap();
                                     (
                                         SchemaType::try_from(d.schema.clone()),
@@ -287,10 +288,10 @@ where
                                 });
                             if schema_type.is_err() || enum_variants.is_err() {
                                 return view! {
-                                    <span class="text-sm red"> An error occured </span>
-                                }.into_view()
+                                    <span class="text-sm red">An error occured</span>
+                                }
+                                    .into_view();
                             }
-
                             let schema_type = store_value(schema_type.unwrap());
                             let allow_remove = !disabled
                                 && !mandatory_dimensions.get_value().contains(&condition.dimension);
@@ -301,7 +302,9 @@ where
                                     condition.operator.clone(),
                                 )),
                             );
-                            logging::log!("here {:?} {:?}",  input_type.get_value(), condition.operator);
+                            logging::log!(
+                                "here {:?} {:?}",  input_type.get_value(), condition.operator
+                            );
                             let condition = store_value(condition);
                             let on_remove = move |d_name| on_remove.call((idx, d_name));
                             let on_value_change = move |(operand_idx, value)| {
@@ -317,7 +320,6 @@ where
                                     ))
                             };
                             view! {
-                                // TODO: get rid of unwraps here
 
                                 <ConditionInput
                                     disabled
@@ -334,7 +336,7 @@ where
                                     if last_idx.get() != idx {
                                         view! {
                                             <div class="my-3 ml-5 ml-6 ml-7">
-                                                <span class="font-mono text-xs">"&&"</span>
+                                                <span class="font-mono text-xs font-bold">"&&"</span>
                                             </div>
                                         }
                                             .into_view()
@@ -342,7 +344,8 @@ where
                                         view! {}.into_view()
                                     }
                                 }}
-                            }.into_view()
+                            }
+                                .into_view()
                         }
                     />
 
