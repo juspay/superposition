@@ -207,30 +207,40 @@ pub fn context_override() -> impl IntoView {
 
     let on_context_edit = Callback::new(move |data: (Context, Map<String, Value>)| {
         let (context, overrides) = data;
-        let conditions =
-            Conditions::from_context_json(&context.condition.into()).unwrap();
-
-        selected_context_ws.set(Some(Data {
-            context: conditions,
-            overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
-        }));
-        set_form_mode.set(Some(FormMode::Edit));
-
-        open_drawer("context_and_override_drawer");
+        match Conditions::from_context_json(&context.condition.into()) {
+            Ok(conditions) => {
+                selected_context_ws.set(Some(Data {
+                    context: conditions,
+                    overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
+                }));
+                set_form_mode.set(Some(FormMode::Edit));
+                open_drawer("context_and_override_drawer");
+            }
+            Err(e) => {
+                logging::error!("Error parsing context: {}", e);
+                enqueue_alert(e.to_string(), AlertType::Error, 5000);
+            }
+        };
     });
 
     let on_context_clone = Callback::new(move |data: (Context, Map<String, Value>)| {
         let (context, overrides) = data;
-        let conditions =
-            Conditions::from_context_json(&context.condition.into()).unwrap();
 
-        selected_context_ws.set(Some(Data {
-            context: conditions,
-            overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
-        }));
-        set_form_mode.set(Some(FormMode::Create));
+        match Conditions::from_context_json(&context.condition.into()) {
+            Ok(conditions) => {
+                selected_context_ws.set(Some(Data {
+                    context: conditions,
+                    overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
+                }));
+                set_form_mode.set(Some(FormMode::Create));
 
-        open_drawer("context_and_override_drawer");
+                open_drawer("context_and_override_drawer");
+            }
+            Err(e) => {
+                logging::error!("Error parsing context: {}", e);
+                enqueue_alert(e.to_string(), AlertType::Error, 5000);
+            }
+        };
     });
 
     let on_context_delete = Callback::new(move |id: String| {
