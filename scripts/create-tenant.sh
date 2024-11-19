@@ -30,7 +30,7 @@ function create_schema() {
 
     rm -f ${schema}.sql
 
-    for f in $(find "crates/$service/migrations" -name "up.sql" | grep -v "diesel_initial_setup" | sort)
+    for f in $(find "crates/${service}_db_config/migrations" -name "up.sql" | grep -v "diesel_initial_setup" | sort)
     do
         OLDIFS=$IFS
         IFS=
@@ -55,8 +55,8 @@ function create_schema() {
     fi
 }
 
-create_schema "context_aware_config" $CAC_SCHEMA
-create_schema "experimentation_platform" $EXP_SCHEMA
+create_schema "cac" $CAC_SCHEMA
+create_schema "experimentation" $EXP_SCHEMA
 psql "$DB_URL" -c "INSERT INTO $CAC_SCHEMA.dimensions (dimension, priority, created_at, created_by, schema, function_name) VALUES ('variantIds', 1, CURRENT_TIMESTAMP, 'user@example.com', '{\"type\": \"string\",\"pattern\": \".*\"}'::json, null);"
 
 shopt -u extglob

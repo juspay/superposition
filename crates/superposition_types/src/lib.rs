@@ -1,8 +1,10 @@
 #![deny(unused_crate_dependencies)]
+pub mod cac_models;
 mod config;
 mod contextual;
 #[cfg(feature = "server")]
 pub mod custom_query;
+pub mod exp_models;
 mod overridden;
 #[cfg(feature = "result")]
 pub mod result;

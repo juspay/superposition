@@ -981,6 +981,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "cac_db_config"
+version = "0.1.0"
+dependencies = [
+ "diesel",
+]
+
+[[package]]
 name = "cac_toml"
 version = "0.2.0"
 dependencies = [
@@ -1278,6 +1285,7 @@ dependencies = [
  "base64 0.21.2",
  "blake3",
  "cac_client",
+ "cac_db_config",
  "cfg-if",
  "chrono",
  "derive_more",
@@ -1681,6 +1689,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "experimentation_db_config"
+version = "0.1.0"
+dependencies = [
+ "diesel",
+ "diesel-derive-enum",
+ "serde",
+]
+
+[[package]]
 name = "experimentation_example"
 version = "0.1.0"
 dependencies = [
@@ -1698,17 +1715,15 @@ dependencies = [
  "anyhow",
  "chrono",
  "diesel",
- "diesel-derive-enum",
+ "experimentation_db_config",
  "jsonlogic",
  "log",
  "reqwest",
  "serde",
  "serde_json",
  "service_utils",
- "superposition_derives",
  "superposition_macros",
  "superposition_types",
- "uuid",
 ]
 
 [[package]]
@@ -4085,8 +4100,11 @@ version = "0.7.1"
 dependencies = [
  "actix-web",
  "anyhow",
+ "cac_db_config",
+ "chrono",
  "derive_more",
  "diesel",
+ "experimentation_db_config",
  "jsonlogic",
  "log",
  "regex",
@@ -4094,6 +4112,7 @@ dependencies = [
  "serde_json",
  "superposition_derives",
  "thiserror",
+ "uuid",
 ]
 
 [[package]]
