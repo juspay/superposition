@@ -10,6 +10,10 @@ use actix_web::{
     HttpResponse, Scope,
 };
 use cac_client::utils::json_to_sorted_string;
+use cac_db_config::schema::{
+    contexts::{self, id},
+    default_configs::dsl,
+};
 use chrono::Utc;
 use diesel::{
     delete,
@@ -20,24 +24,24 @@ use diesel::{
 };
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{from_value, json, Map, Value};
+#[cfg(feature = "high-performance-mode")]
+use service_utils::service::types::Tenant;
 use service_utils::{
     helpers::{parse_config_tags, validation_err_to_str},
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection},
 };
-
-#[cfg(feature = "high-performance-mode")]
-use service_utils::service::types::Tenant;
-
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
-
 use superposition_types::PaginatedResponse;
 use superposition_types::{
+    cac_models::Context,
     custom_query::{self as superposition_query, CustomQuery, PlatformQuery, QueryMap},
     result as superposition, Cac, Contextual, Overridden, Overrides, TenantConfig, User,
 };
 
+#[cfg(feature = "high-performance-mode")]
+use crate::helpers::put_config_in_redis;
 use crate::{
     api::{
         context::types::{
@@ -46,20 +50,10 @@ use crate::{
         },
         dimension::get_all_dimension_schema_map,
     },
-    db::{
-        models::Context,
-        schema::{
-            contexts::{self, id},
-            default_configs::dsl,
-        },
-    },
     helpers::{
         add_config_version, calculate_context_priority, validate_context_jsonschema,
     },
 };
-
-#[cfg(feature = "high-performance-mode")]
-use crate::helpers::put_config_in_redis;
 
 use super::helpers::{
     validate_condition_with_functions, validate_condition_with_mandatory_dimensions,
@@ -574,7 +568,7 @@ async fn get_context_from_condition(
     db_conn: DbConnection,
     req: Json<Map<String, Value>>,
 ) -> superposition::Result<Json<Context>> {
-    use crate::db::schema::contexts::dsl::*;
+    use cac_db_config::schema::contexts::dsl::*;
 
     let context_id = hash(&Value::Object(req.into_inner()));
     let DbConnection(mut conn) = db_conn;
@@ -591,7 +585,7 @@ async fn get_context(
     path: Path<String>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<Context>> {
-    use crate::db::schema::contexts::dsl::*;
+    use cac_db_config::schema::contexts::dsl::*;
 
     let ctx_id = path.into_inner();
     let DbConnection(mut conn) = db_conn;
@@ -609,7 +603,7 @@ async fn list_contexts(
     dimension_params: superposition_query::Query<QueryMap>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<PaginatedResponse<Context>>> {
-    use crate::db::schema::contexts::dsl::*;
+    use cac_db_config::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
 
     let filter_params = filter_params.into_inner();
@@ -853,7 +847,7 @@ async fn priority_recompute(
     #[cfg(feature = "high-performance-mode")] tenant: Tenant,
     _user: User,
 ) -> superposition::Result<HttpResponse> {
-    use crate::db::schema::contexts::dsl::*;
+    use cac_db_config::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
 
     let result: Vec<Context> = contexts.load(&mut conn).map_err(|err| {

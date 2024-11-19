@@ -2,9 +2,7 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use derive_more::{AsRef, Deref, DerefMut, Into};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
-use superposition_types::RegexEnum;
-
-use crate::db::models::Dimension;
+use superposition_types::{cac_models::Dimension, RegexEnum};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateReq {

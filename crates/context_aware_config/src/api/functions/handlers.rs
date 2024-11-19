@@ -1,34 +1,32 @@
 extern crate base64;
-use base64::prelude::*;
 
-use super::helpers::{decode_function, fetch_function};
-
-use crate::{
-    api::functions::types::{Stage, TestFunctionRequest, TestParam},
-    db::{
-        self,
-        models::Function,
-        schema::functions::{dsl, dsl::functions, function_name, last_modified_at},
-    },
-    validation_functions,
-};
 use actix_web::{
     delete, get, patch, post, put,
     web::{self, Json, Path, Query},
     HttpResponse, Result, Scope,
 };
+use base64::prelude::*;
+use cac_db_config::schema::{
+    self,
+    functions::{dsl, dsl::functions, function_name, last_modified_at},
+};
 use chrono::Utc;
 use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::json;
 use service_utils::service::types::DbConnection;
-
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
-    custom_query::PaginationParams, result as superposition, PaginatedResponse, User,
+    cac_models::Function, custom_query::PaginationParams, result as superposition,
+    PaginatedResponse, User,
 };
-
 use validation_functions::{compile_fn, execute_fn};
 
+use crate::{
+    api::functions::types::{Stage, TestFunctionRequest, TestParam},
+    validation_functions,
+};
+
+use super::helpers::{decode_function, fetch_function};
 use super::types::{CreateFunctionRequest, FunctionName, UpdateFunctionRequest};
 
 pub fn endpoints() -> Scope {
@@ -148,7 +146,7 @@ async fn update(
     };
 
     let mut updated_function = diesel::update(functions)
-        .filter(db::schema::functions::function_name.eq(f_name))
+        .filter(schema::functions::function_name.eq(f_name))
         .set(new_function)
         .get_result::<Function>(&mut conn)?;
 

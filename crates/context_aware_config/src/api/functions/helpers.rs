@@ -1,21 +1,21 @@
 extern crate base64;
+
 use base64::prelude::*;
+use cac_db_config::schema::{self, functions::dsl::functions};
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 use std::str;
 use superposition_macros::unexpected_error;
-use superposition_types::result as superposition;
-
-use crate::db::{self, models::Function, schema::functions::dsl::functions};
+use superposition_types::{cac_models::Function, result as superposition};
 
 pub fn fetch_function(
     f_name: &String,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<Function> {
     Ok(functions
-        .filter(db::schema::functions::function_name.eq(f_name))
+        .filter(schema::functions::function_name.eq(f_name))
         .get_result::<Function>(conn)?)
 }
 
@@ -49,8 +49,8 @@ pub fn get_published_function_code(
     f_name: String,
 ) -> superposition::Result<Option<String>> {
     let function = functions
-        .filter(db::schema::functions::function_name.eq(f_name))
-        .select(db::schema::functions::published_code)
+        .filter(schema::functions::function_name.eq(f_name))
+        .select(schema::functions::published_code)
         .first(conn)?;
     Ok(function)
 }
@@ -60,10 +60,10 @@ pub fn get_published_functions_by_names(
     function_names: Vec<String>,
 ) -> superposition::Result<Vec<(String, Option<String>)>> {
     let function: Vec<(String, Option<String>)> = functions
-        .filter(db::schema::functions::function_name.eq_any(function_names))
+        .filter(schema::functions::function_name.eq_any(function_names))
         .select((
-            db::schema::functions::function_name,
-            db::schema::functions::published_code,
+            schema::functions::function_name,
+            schema::functions::published_code,
         ))
         .load(conn)?;
     Ok(function)

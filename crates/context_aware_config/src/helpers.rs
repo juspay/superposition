@@ -3,6 +3,13 @@ use std::collections::HashMap;
 use actix_web::http::header::{HeaderMap, HeaderName, HeaderValue};
 use actix_web::web::Data;
 #[cfg(feature = "high-performance-mode")]
+use cac_db_config::schema::event_log::dsl as event_log;
+use cac_db_config::schema::{
+    config_versions,
+    contexts::dsl::{self as ctxt},
+    default_configs::dsl as def_conf,
+};
+#[cfg(feature = "high-performance-mode")]
 use chrono::DateTime;
 use chrono::Utc;
 use diesel::{
@@ -11,7 +18,6 @@ use diesel::{
 };
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
-
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{json, Map, Value};
 #[cfg(feature = "high-performance-mode")]
@@ -21,22 +27,12 @@ use service_utils::{
     service::types::AppState,
 };
 use superposition_macros::{db_error, unexpected_error, validation_error};
+use superposition_types::cac_models::ConfigVersion;
 use superposition_types::{
     result as superposition, Cac, Condition, Config, Context, Overrides,
 };
 #[cfg(feature = "high-performance-mode")]
 use uuid::Uuid;
-
-#[cfg(feature = "high-performance-mode")]
-use crate::db::schema::event_log::dsl as event_log;
-use crate::db::{
-    models::ConfigVersion,
-    schema::{
-        config_versions,
-        contexts::dsl::{self as ctxt},
-        default_configs::dsl as def_conf,
-    },
-};
 
 pub fn parse_headermap_safe(headermap: &HeaderMap) -> HashMap<String, String> {
     let mut req_headers = HashMap::new();

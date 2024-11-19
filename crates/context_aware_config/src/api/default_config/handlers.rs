@@ -1,5 +1,19 @@
 extern crate base64;
-use super::types::CreateReq;
+
+use actix_web::{
+    delete, get, put,
+    web::{self, Data, Json, Path, Query},
+    HttpResponse, Scope,
+};
+use cac_db_config::schema::{self, contexts::dsl::contexts, default_configs::dsl};
+use chrono::Utc;
+use diesel::{
+    r2d2::{ConnectionManager, PooledConnection},
+    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
+};
+use diesel::{Connection, SelectableHelper};
+use jsonschema::{Draft, JSONSchema, ValidationError};
+use serde_json::Value;
 #[cfg(feature = "high-performance-mode")]
 use service_utils::service::types::Tenant;
 use service_utils::{
@@ -10,39 +24,23 @@ use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
 use superposition_types::{
-    custom_query::PaginationParams, result as superposition, PaginatedResponse, User,
+    cac_models::{self as models, Context, DefaultConfig},
+    custom_query::PaginationParams,
+    result as superposition, PaginatedResponse, User,
 };
 
+#[cfg(feature = "high-performance-mode")]
+use crate::helpers::put_config_in_redis;
 use crate::{
     api::{
         context::helpers::validate_value_with_function,
         default_config::types::DefaultConfigKey,
         functions::helpers::get_published_function_code,
     },
-    db::{
-        self,
-        models::{self, Context, DefaultConfig},
-        schema::{contexts::dsl::contexts, default_configs::dsl},
-    },
     helpers::add_config_version,
 };
 
-#[cfg(feature = "high-performance-mode")]
-use crate::helpers::put_config_in_redis;
-
-use actix_web::{
-    delete, get, put,
-    web::{self, Data, Json, Path, Query},
-    HttpResponse, Scope,
-};
-use chrono::Utc;
-use diesel::{
-    r2d2::{ConnectionManager, PooledConnection},
-    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
-};
-use diesel::{Connection, SelectableHelper};
-use jsonschema::{Draft, JSONSchema, ValidationError};
-use serde_json::Value;
+use super::types::CreateReq;
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(create).service(get).service(delete)
@@ -175,7 +173,7 @@ async fn create(
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let upsert = diesel::insert_into(dsl::default_configs)
                 .values(&default_config)
-                .on_conflict(db::schema::default_configs::key)
+                .on_conflict(schema::default_configs::key)
                 .do_update()
                 .set(&default_config)
                 .execute(transaction_conn);
@@ -206,7 +204,7 @@ fn fetch_default_key(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<models::DefaultConfig> {
     let res = dsl::default_configs
-        .filter(db::schema::default_configs::key.eq(key))
+        .filter(schema::default_configs::key.eq(key))
         .select(models::DefaultConfig::as_select())
         .get_result(conn)?;
     Ok(res)

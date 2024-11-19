@@ -13,6 +13,9 @@ use actix_web::{
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
+use cac_db_config::schema::{
+    config_versions::dsl as config_versions, event_log::dsl as event_log,
+};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
 use diesel::{
     dsl::max,
@@ -34,6 +37,7 @@ use service_utils::{
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
+    cac_models::ConfigVersion,
     custom_query::{
         self as superposition_query, CustomQuery, PaginationParams, QueryMap,
     },
@@ -46,11 +50,7 @@ use crate::api::context::{
     delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
 };
 use crate::api::dimension::get_all_dimension_schema_map;
-use crate::db::models::ConfigVersion;
-use crate::{
-    db::schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
-    helpers::generate_cac,
-};
+use crate::helpers::generate_cac;
 
 use super::helpers::apply_prefix_filter_to_config;
 

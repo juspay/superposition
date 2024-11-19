@@ -1,16 +1,23 @@
-use crate::db::schema::{
+#[cfg(feature = "diesel_derives")]
+use cac_db_config::schema::{
     config_versions, contexts, default_configs, dimensions, event_log, functions,
     type_templates,
 };
 use chrono::{offset::Utc, DateTime, NaiveDateTime};
+#[cfg(feature = "diesel_derives")]
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
 use serde::Serialize;
 use serde_json::Value;
-use superposition_types::{Cac, Condition, Contextual, Overridden, Overrides};
 
-#[derive(Queryable, Selectable, Insertable, AsChangeset, Clone, Serialize, Debug)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-#[diesel(primary_key(id))]
+use crate::{Cac, Condition, Contextual, Overridden, Overrides};
+
+#[derive(Clone, Serialize, Debug)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(Queryable, Selectable, Insertable, AsChangeset)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(id)))]
 pub struct Context {
     pub id: String,
     pub value: Condition,
@@ -36,10 +43,14 @@ impl Overridden<Cac<Overrides>> for Context {
     }
 }
 
-#[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-#[diesel(primary_key(dimension))]
-#[diesel(treat_none_as_null = true)]
+#[derive(Serialize)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(Queryable, Selectable, Insertable, AsChangeset)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(dimension)))]
+#[cfg_attr(feature = "diesel_derives", diesel(treat_none_as_null = true))]
 pub struct Dimension {
     pub dimension: String,
     pub priority: i32,
@@ -51,10 +62,14 @@ pub struct Dimension {
     pub last_modified_by: String,
 }
 
-#[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize, Clone)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-#[diesel(primary_key(key))]
-#[diesel(treat_none_as_null = true)]
+#[derive(Serialize, Clone)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(Queryable, Selectable, Insertable, AsChangeset)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(key)))]
+#[cfg_attr(feature = "diesel_derives", diesel(treat_none_as_null = true))]
 pub struct DefaultConfig {
     pub key: String,
     pub value: Value,
@@ -66,9 +81,13 @@ pub struct DefaultConfig {
     pub last_modified_by: String,
 }
 
-#[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize, Clone, Debug)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-#[diesel(primary_key(name))]
+#[derive(Serialize, Clone, Debug)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(Queryable, Selectable, Insertable, AsChangeset)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(name)))]
 pub struct Function {
     pub function_name: String,
     pub published_code: Option<String>,
@@ -84,10 +103,11 @@ pub struct Function {
     pub last_modified_by: String,
 }
 
-#[derive(Queryable, Selectable, Insertable, Serialize, Clone, Debug)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-#[diesel(table_name = event_log)]
-#[diesel(primary_key(id))]
+#[derive(Serialize, Clone, Debug)]
+#[cfg_attr(feature = "diesel_derives", derive(Queryable, Selectable, Insertable))]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = event_log))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(id)))]
 pub struct EventLog {
     pub id: uuid::Uuid,
     pub table_name: String,
@@ -99,9 +119,10 @@ pub struct EventLog {
     pub query: String,
 }
 
-#[derive(Queryable, Selectable, Insertable, Serialize, Clone, Debug)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-#[diesel(primary_key(id))]
+#[derive(Serialize, Clone, Debug)]
+#[cfg_attr(feature = "diesel_derives", derive(Queryable, Selectable, Insertable))]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(id)))]
 pub struct ConfigVersion {
     pub id: i64,
     pub config: Value,
@@ -110,10 +131,14 @@ pub struct ConfigVersion {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Queryable, Selectable, Insertable, AsChangeset, Clone, Serialize, Debug)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-#[diesel(table_name = type_templates)]
-#[diesel(primary_key(type_name))]
+#[derive(Serialize, Clone, Debug)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(Queryable, Selectable, Insertable, AsChangeset)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = type_templates))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(type_name)))]
 pub struct TypeTemplates {
     pub type_name: String,
     pub type_schema: Value,

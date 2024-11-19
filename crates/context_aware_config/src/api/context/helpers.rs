@@ -4,6 +4,10 @@ use std::collections::HashMap;
 use std::str;
 
 use base64::prelude::*;
+use cac_db_config::schema::{
+    default_configs::dsl,
+    dimensions::{self},
+};
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
@@ -13,15 +17,9 @@ use service_utils::helpers::extract_dimensions;
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{result as superposition, Condition};
 
+use crate::api::context::types::FunctionsInfo;
 use crate::api::functions::helpers::get_published_functions_by_names;
 use crate::validation_functions::execute_fn;
-use crate::{
-    api::context::types::FunctionsInfo,
-    db::schema::{
-        default_configs::dsl,
-        dimensions::{self},
-    },
-};
 
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
