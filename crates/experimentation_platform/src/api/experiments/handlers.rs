@@ -12,6 +12,10 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
+use experimentation_db_config::{
+    schema::{event_log::dsl as event_log, experiments::dsl as experiments},
+    ExperimentStatusType,
+};
 use reqwest::{Method, Response, StatusCode};
 use serde_json::{json, Map, Value};
 use service_utils::helpers::{
@@ -23,6 +27,7 @@ use service_utils::service::types::{
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
     custom_query::PaginationParams,
+    exp_models::{EventLog, Experiment, Variant, Variants},
     result::{self as superposition},
     webhook::{WebhookConfig, WebhookEvent},
     Condition, Exp, Overrides, TenantConfig, User,
@@ -42,13 +47,7 @@ use super::{
     },
 };
 
-use crate::{
-    api::experiments::helpers::construct_header_map,
-    db::{
-        models::{EventLog, Experiment, ExperimentStatusType, Variant, Variants},
-        schema::{event_log::dsl as event_log, experiments::dsl as experiments},
-    },
-};
+use crate::api::experiments::helpers::construct_header_map;
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
@@ -133,7 +132,7 @@ async fn create(
     user: User,
     tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
-    use crate::db::schema::experiments::dsl::experiments;
+    use experimentation_db_config::schema::experiments::dsl::experiments;
     let mut variants = req.variants.to_vec();
     let DbConnection(mut conn) = db_conn;
 
@@ -356,7 +355,7 @@ pub async fn conclude(
     tenant: Tenant,
     user: User,
 ) -> superposition::Result<(Experiment, Option<String>)> {
-    use crate::db::schema::experiments::dsl;
+    use experimentation_db_config::schema::experiments::dsl;
 
     let winner_variant_id: String = req.chosen_variant.to_owned();
 
@@ -612,7 +611,7 @@ pub fn get_experiment(
     experiment_id: i64,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<Experiment> {
-    use crate::db::schema::experiments::dsl::*;
+    use experimentation_db_config::schema::experiments::dsl::*;
     let result: Experiment = experiments
         .find(experiment_id)
         .get_result::<Experiment>(conn)?;
