@@ -317,3 +317,23 @@ pub async fn fetch_context(
         .await
         .map_err(err_handler)
 }
+
+pub async fn fetch_default_config_key(
+    tenant: &str,
+    key: &str,
+) -> Result<DefaultConfig, ServerFnError> {
+    let host = use_host_server();
+    let url = format!("{host}/default-config/{key}");
+    let err_handler = |e: String| ServerFnError::new(e.to_string());
+    let response = request::<()>(
+        url,
+        reqwest::Method::GET,
+        None,
+        construct_request_headers(&[("x-tenant", &tenant)]).map_err(err_handler)?,
+    )
+    .await
+    .map_err(err_handler)?;
+    parse_json_response::<DefaultConfig>(response)
+        .await
+        .map_err(err_handler)
+}

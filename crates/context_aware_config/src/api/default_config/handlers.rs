@@ -43,7 +43,11 @@ use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Value;
 
 pub fn endpoints() -> Scope {
-    Scope::new("").service(create).service(get).service(delete)
+    Scope::new("")
+        .service(create)
+        .service(get)
+        .service(delete)
+        .service(get_by_name)
 }
 
 #[put("/{key}")]
@@ -208,6 +212,17 @@ fn fetch_default_key(
         .select(models::DefaultConfig::as_select())
         .get_result(conn)?;
     Ok(res)
+}
+
+#[get("/{key}")]
+async fn get_by_name(
+    db_conn: DbConnection,
+    path: Path<DefaultConfigKey>,
+) -> superposition::Result<Json<models::DefaultConfig>> {
+    let DbConnection(mut conn) = db_conn;
+    let key: String = path.into_inner().into();
+    let data = fetch_default_key(&key, &mut conn)?;
+    Ok(Json(data))
 }
 
 #[get("")]

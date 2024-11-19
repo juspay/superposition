@@ -31,6 +31,7 @@ pub fn default_config_form<NF>(
     #[prop(default = Value::Null)] config_value: Value,
     #[prop(default = None)] function_name: Option<Value>,
     #[prop(default = None)] prefix: Option<String>,
+    #[prop(into, default = String::new())] class: String,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -126,255 +127,268 @@ where
     };
     view! {
         <EditorProvider>
-        <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
+            <form class=format!("relative form-control text-gray-700 font-mono {}", class)>
 
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Key Name</span>
-                </label>
-                <input
-                    disabled=edit
-                    type="text"
-                    placeholder="Key"
-                    class="input input-bordered w-full max-w-md"
-                    value=config_key_rs.get_untracked()
-                    on:change=move |ev| {
-                        let value = event_target_value(&ev);
-                        config_key_ws.set(value);
-                    }
-                />
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Key Name</span>
+                    </label>
+                    <input
+                        disabled=edit
+                        type="text"
+                        placeholder="Key"
+                        class="input input-bordered w-full max-w-md"
+                        value=config_key_rs.get_untracked()
+                        on:change=move |ev| {
+                            let value = event_target_value(&ev);
+                            config_key_ws.set(value);
+                        }
+                    />
 
-            </div>
+                </div>
 
-            <div class="divider"></div>
-            <Suspense>
+                <div class="divider"></div>
+                <Suspense>
+                    {move || {
+                        let options = type_template_resource.get().unwrap_or(vec![]);
+                        let config_t = if config_type_rs.get().is_empty() && edit {
+                            "change current type template".into()
+                        } else if config_type_rs.get().is_empty() && !edit {
+                            "Choose a type template".into()
+                        } else {
+                            config_type_rs.get()
+                        };
+                        let config_type_schema = SchemaType::Single(
+                            JsonSchemaType::from(&config_schema_rs.get()),
+                        );
+                        view! {
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Set Schema</span>
+                                </label>
+                                <Dropdown
+                                    dropdown_width="w-full max-w-md"
+                                    dropdown_icon="".to_string()
+                                    dropdown_text=config_t
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_options=options
+                                    on_select=Callback::new(move |selected_item: TypeTemplate| {
+                                        logging::log!("selected item {:?}", selected_item);
+                                        config_type_ws.set(selected_item.type_name);
+                                        config_schema_ws.set(selected_item.type_schema);
+                                    })
+                                />
+
+                                <Input
+                                    id="type-schema"
+                                    class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
+                                    schema_type=config_type_schema
+                                    value=config_schema_rs.get()
+                                    on_change=Callback::new(move |new_config_schema| {
+                                        config_schema_ws.set(new_config_schema)
+                                    })
+                                    r#type=InputType::Monaco
+                                />
+
+                            </div>
+                        }
+                    }}
+
+                </Suspense>
+                <div class="divider"></div>
+
                 {move || {
-                    let options = type_template_resource.get().unwrap_or(vec![]);
-                    let config_t = if config_type_rs.get().is_empty() && edit {
-                        "change current type template".into()
-                    } else if config_type_rs.get().is_empty() && !edit {
-                        "Choose a type template".into()
-                    } else {
-                        config_type_rs.get()
+                    let schema: Map<String, Value> = serde_json::from_value(config_schema_rs.get())
+                        .unwrap_or(Map::new());
+                    let key_type = get_key_type(&schema);
+                    let input_format = match key_type.as_str() {
+                        "ENUM" => {
+                            view! {
+                                <EnumDropdown
+                                    schema
+                                    config_value=config_value_rs
+                                        .get()
+                                        .as_str()
+                                        .map(String::from)
+                                        .unwrap_or_default()
+                                    handle_change=Callback::new(move |selected_enum: String| {
+                                        config_value_ws.set(Value::String(selected_enum));
+                                    })
+
+                                    class=String::from("mt-2")
+                                />
+                            }
+                                .into_view()
+                        }
+                        "BOOLEAN" => {
+                            let value = config_value_rs.get();
+                            if value.is_null() {
+                                config_value_ws.set(Value::Bool(false));
+                            }
+                            view! {
+                                <BooleanToggle
+                                    value=value.as_bool().unwrap_or(false)
+                                    on_change=Callback::new(move |flag: bool| {
+                                        config_value_ws.set(Value::Bool(flag))
+                                    })
+                                />
+                            }
+                                .into_view()
+                        }
+                        "INTEGER" => {
+                            view! {
+                                <input
+                                    type="number"
+                                    placeholder="Value"
+                                    class="input input-bordered w-full max-w-md"
+                                    value=config_value_rs.get().as_i64()
+                                    on:change=move |ev| {
+                                        logging::log!("{:?}", event_target_value(&ev));
+                                        let entered_integer = i64::from_str(
+                                                &event_target_value(&ev),
+                                            )
+                                            .unwrap_or(0);
+                                        config_value_ws.set(json!(entered_integer));
+                                    }
+                                />
+                            }
+                                .into_view()
+                        }
+                        "NUMBER" => {
+                            view! {
+                                <input
+                                    type="number"
+                                    placeholder="Value"
+                                    class="input input-bordered w-full max-w-md"
+                                    value=config_value_rs.get().as_f64()
+                                    on:change=move |ev| {
+                                        logging::log!("{:?}", event_target_value(&ev));
+                                        let entered_decimal = f64::from_str(
+                                                &event_target_value(&ev),
+                                            )
+                                            .unwrap_or_default();
+                                        config_value_ws.set(json!(entered_decimal));
+                                    }
+                                />
+                            }
+                                .into_view()
+                        }
+                        "OBJECT" => {
+                            let config_type_schema = SchemaType::Single(
+                                JsonSchemaType::from(&config_schema_rs.get()),
+                            );
+                            view! {
+                                <Input
+                                    id="default-config-value"
+                                    class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
+                                    schema_type=config_type_schema
+                                    value=config_value_rs.get()
+                                    on_change=Callback::new(move |new_default_config: Value| {
+                                        logging::log!("{:?}", new_default_config);
+                                        config_value_ws.set(new_default_config);
+                                    })
+                                    r#type=InputType::Monaco
+                                />
+                            }
+                                .into_view()
+                        }
+                        _ => {
+                            let config_value = match config_value_rs.get() {
+                                Value::String(s) => s,
+                                _ => String::new(),
+                            };
+                            view! {
+                                <textarea
+                                    type="text"
+                                    placeholder="Value"
+                                    class="input input-bordered w-full max-w-md pt-3"
+                                    on:change=move |ev| {
+                                        logging::log!("{:?}", event_target_value(&ev));
+                                        config_value_ws.set(Value::String(event_target_value(&ev)));
+                                    }
+                                >
+
+                                    {config_value}
+                                </textarea>
+                            }
+                                .into_view()
+                        }
                     };
-                    let config_type_schema = SchemaType::Single(JsonSchemaType::from(&config_schema_rs.get()));
                     view! {
                         <div class="form-control">
                             <label class="label">
-                                <span class="label-text">Set Schema</span>
+                                <span class="label-text">Default Value</span>
                             </label>
-                            <Dropdown
-                                dropdown_width="w-100"
-                                dropdown_icon="".to_string()
-                                dropdown_text=config_t
-                                dropdown_direction=DropdownDirection::Down
-                                dropdown_btn_type=DropdownBtnType::Select
-                                dropdown_options=options
-                                on_select=Callback::new(move |selected_item: TypeTemplate| {
-                                    logging::log!("selected item {:?}", selected_item);
-                                    config_type_ws.set(selected_item.type_name);
-                                    config_schema_ws.set(selected_item.type_schema);
-                                })
-                            />
-
-                            <Input
-                                id="type-schema"
-                                class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
-                                schema_type=config_type_schema
-                                value=config_schema_rs.get()
-                                on_change=Callback::new(move |new_config_schema| config_schema_ws.set(new_config_schema))
-                                r#type=InputType::Monaco
-                            />
-
+                            {input_format}
                         </div>
+                        <div class="divider"></div>
                     }
                 }}
 
-            </Suspense>
-            <div class="divider"></div>
+                <Suspense>
+                    {move || {
+                        let functions = functions_resource.get().unwrap_or_default();
+                        let mut function_names: Vec<FunctionsName> = vec![];
+                        functions
+                            .into_iter()
+                            .for_each(|ele| {
+                                function_names.push(ele.function_name);
+                            });
+                        function_names.sort();
+                        function_names.insert(0, "None".to_string());
+                        view! {
+                            <div class="form-control">
+                                <div class="gap-1">
+                                    <label class="label flex-col justify-center items-start">
+                                        <span class="label-text">Function Name</span>
+                                        <span class="label-text text-slate-400">
+                                            Assign Function validation to your key
+                                        </span>
+                                    </label>
+                                </div>
 
-            {move || {
-                let schema: Map<String, Value> = serde_json::from_value(config_schema_rs.get())
-                    .unwrap_or(Map::new());
-                let key_type = get_key_type(&schema);
-                let input_format = match key_type.as_str() {
-                    "ENUM" => {
-                        view! {
-                            <EnumDropdown
-                                schema
-                                config_value=config_value_rs.get().as_str().map(String::from).unwrap_or_default()
-                                handle_change=Callback::new(move |selected_enum: String| {
-                                    config_value_ws.set(Value::String(selected_enum));
-                                })
+                                <div class="mt-2">
+                                    <Dropdown
+                                        dropdown_width="w-100"
+                                        dropdown_icon="".to_string()
+                                        dropdown_text=function_name_rs
+                                            .get()
+                                            .and_then(|v| match v {
+                                                Value::String(s) => Some(s),
+                                                _ => None,
+                                            })
+                                            .map_or("Add Function".to_string(), |v| v.to_string())
+                                        dropdown_direction=DropdownDirection::Down
+                                        dropdown_btn_type=DropdownBtnType::Select
+                                        dropdown_options=function_names
+                                        on_select=handle_select_dropdown_option
+                                    />
+                                </div>
+                            </div>
+                        }
+                    }}
 
-                                class=String::from("mt-2")
-                            />
-                        }
-                            .into_view()
-                    }
-                    "BOOLEAN" => {
-                        let value = config_value_rs.get();
-                        if value.is_null() {
-                            config_value_ws.set(Value::Bool(false));
-                        }
-                        view! {
-                            <BooleanToggle
-                                value=value.as_bool().unwrap_or(false)
-                                on_change=Callback::new(move |flag: bool| config_value_ws.set(Value::Bool(flag)))
-                            />
-                        }
-                            .into_view()
-                    }
-                    "INTEGER" => {
-                        view! {
-                            <input
-                                type="number"
-                                placeholder="Value"
-                                class="input input-bordered w-full max-w-md"
-                                value=config_value_rs.get().as_i64()
-                                on:change=move |ev| {
-                                    logging::log!("{:?}", event_target_value(&ev));
-                                    let entered_integer = i64::from_str(&event_target_value(&ev)).unwrap_or(0);
-                                    config_value_ws.set(json!(entered_integer));
-                                }
-                            />
-                        }
-                            .into_view()
-                    }
-                    "NUMBER" => {
-                        view! {
-                            <input
-                                type="number"
-                                placeholder="Value"
-                                class="input input-bordered w-full max-w-md"
-                                value=config_value_rs.get().as_f64()
-                                on:change=move |ev| {
-                                    logging::log!("{:?}", event_target_value(&ev));
-                                    let entered_decimal = f64::from_str(&event_target_value(&ev)).unwrap_or_default();
-                                    config_value_ws.set(json!(entered_decimal));
-                                }
-                            />
-                        }
-                            .into_view()
-                    }
-                    "OBJECT" => {
-                        let config_type_schema = SchemaType::Single(JsonSchemaType::from(&config_schema_rs.get()));
-                        view! {
-                            <Input
-                                id="default-config-value"
-                                class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
-                                schema_type=config_type_schema
-                                value=config_value_rs.get()
-                                on_change=Callback::new(move |new_default_config: Value| {
-                                    logging::log!("{:?}", new_default_config);
-                                    config_value_ws.set(new_default_config);
-                                })
-                                r#type=InputType::Monaco
-                            />
+                </Suspense>
 
-                        }.into_view()
-                    },
-                    _ => {
-                        let config_value = match config_value_rs.get() {
-                            Value::String(s) => s,
-                            _ => String::new()
-                        };
+                <div class="absolute bottom-0 right-0 p-4 flex justify-end items-end w-full bg-white">
+                    {move || {
+                        let loading = req_inprogess_rs.get();
                         view! {
-                            <textarea
-                                type="text"
-                                placeholder="Value"
-                                class="input input-bordered w-full max-w-md pt-3"
-                                on:change=move |ev| {
-                                    logging::log!("{:?}", event_target_value(&ev));
-                                    config_value_ws.set(Value::String(event_target_value(&ev)));
-                                }
-                            >
-
-                                {config_value}
-                            </textarea>
+                            <Button text="Submit".to_string() on_click=on_submit.clone() loading />
                         }
-                            .into_view()
-                    }
-                };
-                view! {
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Default Value</span>
-                        </label>
-                        {input_format}
-                    </div>
-                    <div class="divider"></div>
-                }
-            }}
+                    }}
 
-            <Suspense>
-                {move || {
-                    let functions = functions_resource.get().unwrap_or_default();
-                    let mut function_names: Vec<FunctionsName> = vec![];
-                    functions
-                        .into_iter()
-                        .for_each(|ele| {
-                            function_names.push(ele.function_name);
-                        });
-                    function_names.sort();
-                    function_names.insert(0, "None".to_string());
+                </div>
+                {
                     view! {
-                        <div class="form-control">
-                            <div class="gap-1">
-                                <label class="label flex-col justify-center items-start">
-                                    <span class="label-text">Function Name</span>
-                                    <span class="label-text text-slate-400">
-                                        Assign Function validation to your key
-                                    </span>
-                                </label>
-                            </div>
-
-                            <div class="mt-2">
-                                <Dropdown
-                                    dropdown_width="w-100"
-                                    dropdown_icon="".to_string()
-                                    dropdown_text=function_name_rs
-                                        .get()
-                                        .and_then(|v| match v {
-                                            Value::String(s) => Some(s),
-                                            _ => None,
-                                        })
-                                        .map_or("Add Function".to_string(), |v| v.to_string())
-                                    dropdown_direction=DropdownDirection::Down
-                                    dropdown_btn_type=DropdownBtnType::Select
-                                    dropdown_options=function_names
-                                    on_select=handle_select_dropdown_option
-                                />
-                            </div>
+                        <div>
+                            <p class="text-red-500">{move || error_message.get()}</p>
                         </div>
                     }
-                }}
-
-            </Suspense>
-
-            <div class="form-control grid w-full justify-start">
-            { move || {
-                let loading = req_inprogess_rs.get();
-                view! {
-                    <Button
-                        class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                        text="Submit".to_string()
-                        on_click=on_submit.clone()
-                        loading
-                    />
                 }
-            }}
-            </div>
 
-            {
-                view! {
-                    <div>
-                        <p class="text-red-500">{move || error_message.get()}</p>
-                    </div>
-                }
-            }
-
-        </form>
+            </form>
         </EditorProvider>
     }
 }

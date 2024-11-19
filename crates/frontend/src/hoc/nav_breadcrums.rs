@@ -107,6 +107,30 @@ static BREADCRUMB_STORE: Lazy<HashMap<String, RouteMetadata>> = Lazy::new(|| {
         },
     );
 
+    routes.insert(
+        "/default-config/new".to_string(),
+        RouteMetadata {
+            default_label: "New".to_string(),
+            parent: Some("/default-config".to_string()),
+            icon: None,
+            dynamic_label: None,
+        },
+    );
+
+    routes.insert(
+        "/default-config/:key/update".to_string(),
+        RouteMetadata {
+            default_label: "Update Default Config".to_string(),
+            parent: Some("/default-config".to_string()),
+            icon: None,
+            dynamic_label: Some(Box::new(Arc::new(|params| {
+                params
+                    .get("key")
+                    .map(|name| format!("Update {}", name))
+            }))),
+        },
+    );
+
     // overrides
     routes.insert(
         "/overrides".to_string(),

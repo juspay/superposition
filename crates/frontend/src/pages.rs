@@ -14,3 +14,5 @@ pub mod new_template_type;
 pub mod update_template_type;
 pub mod new_contextual_override;
 pub mod update_contextual_override;
+pub mod new_default_config;
+pub mod update_default_config;

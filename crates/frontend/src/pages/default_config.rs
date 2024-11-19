@@ -1,7 +1,6 @@
 use crate::api::{delete_default_config, fetch_default_config};
 
-use crate::components::default_config_form::DefaultConfigForm;
-use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
+use crate::components::button::Button;
 use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
 use crate::components::table::{types::Column, Table};
@@ -11,7 +10,7 @@ use crate::utils::{
     get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
 };
 use leptos::*;
-use leptos_router::{use_navigate, use_query_map};
+use leptos_router::{use_navigate, use_query_map, A};
 use serde_json::{json, Map, Value};
 use std::collections::HashSet;
 
@@ -36,7 +35,6 @@ pub fn default_config() -> impl IntoView {
         },
     );
 
-    let selected_config = create_rw_signal::<Option<RowData>>(None);
     let key_prefix = create_rw_signal::<Option<String>>(None);
     let enable_grouping = create_rw_signal(false);
     let query_params = use_query_map();
@@ -75,31 +73,8 @@ pub fn default_config() -> impl IntoView {
         let actions_col_formatter = move |_: &str, row: &Map<String, Value>| {
             let row_key = row["key"].to_string().replace('"', "");
             let is_folder = row_key.contains('.');
-            let row_value = row["value"].clone();
-
-            let schema = row["schema"].clone().to_string();
-            let schema_object =
-                serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
-
-            let function_name = row["function_name"].to_string();
-            let fun_name = match function_name.as_str() {
-                "null" => None,
-                _ => Some(json!(function_name.replace('"', ""))),
-            };
 
             let key_name = StoredValue::new(row_key.clone());
-
-            let edit_click_handler = move |_| {
-                let row_data = RowData {
-                    key: row_key.clone(),
-                    value: row_value.clone(),
-                    schema: schema_object.clone(),
-                    function_name: fun_name.clone(),
-                };
-                logging::log!("{:?}", row_data);
-                selected_config.set(Some(row_data));
-                open_drawer("default_config_drawer");
-            };
 
             let handle_delete = move |_| {
                 let tenant = tenant_rs.get();
@@ -115,15 +90,16 @@ pub fn default_config() -> impl IntoView {
                     }
                 });
             };
+            let prefix = key_prefix.get().unwrap_or_default();
 
             if is_folder && grouping_enabled {
                 view! { <span>{"-"}</span> }.into_view()
             } else {
                 view! {
                     <div class="join">
-                        <span class="cursor-pointer" on:click=edit_click_handler>
+                        <A href=format!("{row_key}/update?prefix={prefix}")>
                             <i class="ri-pencil-line ri-xl text-blue-500"></i>
-                        </span>
+                        </A>
                         <span class="cursor-pointer text-red-500" on:click=handle_delete>
                             <i class="ri-delete-bin-5-line ri-xl text-red-500"></i>
                         </span>
@@ -171,61 +147,11 @@ pub fn default_config() -> impl IntoView {
         ]
     });
 
-    let handle_close = move || {
-        selected_config.set(None);
-        close_drawer("default_config_drawer");
-    };
-
     view! {
         <Suspense fallback=move || {
             view! { <Skeleton /> }
         }>
 
-            {move || {
-                let prefix = key_prefix.get();
-                if let Some(selected_config_data) = selected_config.get() {
-                    view! {
-                        <Drawer
-                            id="default_config_drawer".to_string()
-                            header="Edit Key"
-                            handle_close=handle_close
-                        >
-                            <DefaultConfigForm
-                                edit=true
-                                config_key=selected_config_data.key
-                                config_value=selected_config_data.value
-                                type_schema=selected_config_data.schema
-                                function_name=selected_config_data.function_name
-                                prefix
-                                handle_submit=move || {
-                                    default_config_resource.refetch();
-                                    selected_config.set(None);
-                                    close_drawer("default_config_drawer");
-                                }
-                            />
-
-                        </Drawer>
-                    }
-                } else {
-                    view! {
-                        <Drawer
-                            id="default_config_drawer".to_string()
-                            header="Create New Key"
-                            handle_close=handle_close
-                        >
-                            <DefaultConfigForm
-                                prefix
-                                handle_submit=move || {
-                                    default_config_resource.refetch();
-                                    selected_config.set(None);
-                                    close_drawer("default_config_drawer");
-                                }
-                            />
-
-                        </Drawer>
-                    }
-                }
-            }}
             {move || {
                 let default_config = default_config_resource.get().unwrap_or(vec![]);
                 let table_rows = default_config
@@ -284,10 +210,10 @@ pub fn default_config() -> impl IntoView {
                                             checked=enable_grouping.get()
                                         />
                                     </label>
-                                    <DrawerBtn drawer_id="default_config_drawer"
-                                        .to_string()>
-                                        Create Key <i class="ri-edit-2-line ml-2"></i>
-                                    </DrawerBtn>
+
+                                    <A href="new">
+                                        <Button text="Create Key" on_click=move |_| {} />
+                                    </A>
                                 </div>
                             </div>
                             <Table

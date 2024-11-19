@@ -19,7 +19,7 @@ use crate::{
         new_experiment::NewExperiment,
         new_template_type::NewTemplateType,
         template_types::TypesPage,
-        update_template_type::UpdateTemplateType, new_contextual_override::NewContextualOverride, update_contextual_override::UpdateContextualOverride,
+        update_template_type::UpdateTemplateType, new_contextual_override::NewContextualOverride, update_contextual_override::UpdateContextualOverride, new_default_config::NewDefaultConfig, update_default_config::UpdateDefaultConfig,
     },
 };
 
@@ -184,6 +184,30 @@ pub fn app_routes() -> impl IntoView {
                     view! {
                         <Page>
                             <DefaultConfig />
+                        </Page>
+                    }
+                }
+            />
+
+            <Route
+                ssr=SsrMode::Async
+                path="/default-config/new"
+                view=move || {
+                    view! {
+                        <Page>
+                            <NewDefaultConfig />
+                        </Page>
+                    }
+                }
+            />
+
+            <Route
+                ssr=SsrMode::Async
+                path="/default-config/:key/update"
+                view=move || {
+                    view! {
+                        <Page>
+                            <UpdateDefaultConfig />
                         </Page>
                     }
                 }
