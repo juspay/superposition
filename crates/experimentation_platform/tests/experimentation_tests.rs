@@ -1,12 +1,13 @@
 use chrono::Utc;
+use experimentation_db_config::ExperimentStatusType;
 use experimentation_platform::api::experiments::helpers;
-use experimentation_platform::db::models::{
-    Experiment, ExperimentStatusType, Variant, Variants,
-};
 use serde_json::{json, Map, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::ExperimentationFlags;
-use superposition_types::{result as superposition, Cac, Condition, Exp, Overrides};
+use superposition_types::{
+    exp_models::{Experiment, Variant, Variants},
+    result as superposition, Cac, Condition, Exp, Overrides,
+};
 
 enum Dimensions {
     Os(String),

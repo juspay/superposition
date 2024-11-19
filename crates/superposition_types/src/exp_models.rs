@@ -1,32 +1,18 @@
-use crate::db::schema::*;
 use chrono::{DateTime, NaiveDateTime, Utc};
-
+#[cfg(feature = "diesel_derives")]
 use diesel::{
-    deserialize::FromSqlRow, expression::AsExpression, query_builder::QueryId,
-    sql_types::Json, Insertable, Queryable, QueryableByName, Selectable,
+    deserialize::FromSqlRow, expression::AsExpression, sql_types::Json, Insertable,
+    Queryable, QueryableByName, Selectable,
 };
+#[cfg(feature = "diesel_derives")]
+use experimentation_db_config::schema::*;
+use experimentation_db_config::ExperimentStatusType;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+#[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql};
-use superposition_types::{Condition, Exp, Overrides};
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Deserialize,
-    Serialize,
-    diesel_derive_enum::DbEnum,
-    QueryId,
-)]
-#[DbValueStyle = "UPPERCASE"]
-#[ExistingTypePath = "crate::db::schema::sql_types::ExperimentStatusType"]
-pub enum ExperimentStatusType {
-    CREATED,
-    CONCLUDED,
-    INPROGRESS,
-}
+use crate::{Condition, Exp, Overrides};
 
 #[derive(Deserialize, Serialize, Clone, PartialEq, Debug)]
 pub enum VariantType {
@@ -45,10 +31,12 @@ pub struct Variant {
     pub overrides: Exp<Overrides>,
 }
 
-#[derive(
-    Debug, Clone, Serialize, Deserialize, AsExpression, FromSqlRow, JsonFromSql, JsonToSql,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql,)
 )]
-#[diesel(sql_type = Json)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
 pub struct Variants(Vec<Variant>);
 
 impl Variants {
@@ -61,9 +49,13 @@ impl Variants {
     }
 }
 
-#[derive(QueryableByName, Queryable, Selectable, Insertable, Serialize, Clone, Debug)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-#[diesel(primary_key(id))]
+#[derive(Serialize, Clone, Debug)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(QueryableByName, Queryable, Selectable, Insertable)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(id)))]
 pub struct Experiment {
     pub id: i64,
     pub created_at: DateTime<Utc>,
@@ -83,10 +75,11 @@ pub struct Experiment {
 
 pub type Experiments = Vec<Experiment>;
 
-#[derive(Queryable, Selectable, Insertable, Serialize, Clone, Debug)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-#[diesel(table_name = event_log)]
-#[diesel(primary_key(id))]
+#[derive(Clone, Serialize, Debug)]
+#[cfg_attr(feature = "diesel_derives", derive(Queryable, Selectable, Insertable))]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = event_log))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(id)))]
 pub struct EventLog {
     pub id: uuid::Uuid,
     pub table_name: String,

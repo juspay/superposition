@@ -11,20 +11,20 @@ actix-http = "3.3.1"
 anyhow = { workspace = true }
 chrono = { workspace = true }
 diesel = { workspace = true }
-diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
+experimentation_db_config = { path = "../experimentation_db_config", features = [
+    "diesel_derives",
+] }
 log = { workspace = true }
 jsonlogic = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 service_utils = { path = "../service_utils" }
-superposition_derives = { path = "../superposition_derives" }
 superposition_macros = { path = "../superposition_macros" }
 superposition_types = { path = "../superposition_types", features = [
     "result",
     "diesel_derives",
 ] }
-uuid = { workspace = true }
 
 [features]
 disable_db_data_validation = ["superposition_types/disable_db_data_validation"]

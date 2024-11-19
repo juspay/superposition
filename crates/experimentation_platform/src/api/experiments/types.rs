@@ -1,12 +1,14 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, NaiveDateTime, Utc};
+use experimentation_db_config::ExperimentStatusType;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use service_utils::helpers::deserialize_stringified_list;
-use superposition_types::{Condition, Exp, Overrides};
-
-use crate::db::models::{self, ExperimentStatusType, Variant};
+use superposition_types::{
+    exp_models::{Experiment, Variant},
+    Condition, Exp, Overrides,
+};
 
 /********** Experiment Create Req Types ************/
 
@@ -22,9 +24,9 @@ pub struct ExperimentCreateResponse {
     pub experiment_id: String,
 }
 
-impl From<models::Experiment> for ExperimentCreateResponse {
-    fn from(experiment: models::Experiment) -> Self {
-        ExperimentCreateResponse {
+impl From<Experiment> for ExperimentCreateResponse {
+    fn from(experiment: Experiment) -> Self {
+        Self {
             experiment_id: experiment.id.to_string(),
         }
     }
@@ -43,7 +45,7 @@ pub struct ExperimentResponse {
 
     pub name: String,
     pub override_keys: Vec<String>,
-    pub status: models::ExperimentStatusType,
+    pub status: ExperimentStatusType,
     pub traffic_percentage: i32,
 
     pub context: Condition,
@@ -52,9 +54,9 @@ pub struct ExperimentResponse {
     pub chosen_variant: Option<String>,
 }
 
-impl From<models::Experiment> for ExperimentResponse {
-    fn from(experiment: models::Experiment) -> Self {
-        ExperimentResponse {
+impl From<Experiment> for ExperimentResponse {
+    fn from(experiment: Experiment) -> Self {
+        Self {
             id: experiment.id.to_string(),
             created_at: experiment.created_at,
             created_by: experiment.created_by,
