@@ -1,0 +1,15 @@
+[package]
+name = "cac_db_config"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+diesel = { workspace = true, optional = true }
+
+[features]
+diesel_derives = ["dep:diesel"]
+
+[lints]
+workspace = true

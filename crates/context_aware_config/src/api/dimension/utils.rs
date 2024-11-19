@@ -1,7 +1,4 @@
-use crate::db::{
-    models::{Context, Dimension},
-    schema::{contexts::dsl::contexts, dimensions::dsl::*},
-};
+use cac_db_config::schema::{contexts::dsl::contexts, dimensions::dsl::*};
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     PgConnection, RunQueryDsl,
@@ -10,7 +7,10 @@ use jsonschema::{Draft, JSONSchema};
 use service_utils::helpers::extract_dimensions;
 use std::collections::HashMap;
 use superposition_macros::{db_error, unexpected_error};
-use superposition_types::{result as superposition, Cac, Condition};
+use superposition_types::{
+    cac_models::{Context, Dimension},
+    result as superposition, Cac, Condition,
+};
 
 pub fn get_all_dimension_schema_map(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,

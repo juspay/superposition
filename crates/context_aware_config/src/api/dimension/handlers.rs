@@ -1,16 +1,11 @@
-use crate::{
-    api::dimension::{types::CreateReq, utils::get_dimension_usage_context_ids},
-    db::{
-        models::Dimension,
-        schema::{dimensions, dimensions::dsl::*},
-    },
-    helpers::validate_jsonschema,
-};
+extern crate base64;
+
 use actix_web::{
     delete, get, put,
     web::{self, Data, Json, Path, Query},
     HttpResponse, Scope,
 };
+use cac_db_config::schema::{dimensions, dimensions::dsl::*};
 use chrono::Utc;
 use diesel::{
     delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
@@ -20,11 +15,14 @@ use serde_json::Value;
 use service_utils::service::types::{AppState, DbConnection};
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
-    custom_query::PaginationParams, result as superposition, PaginatedResponse,
-    TenantConfig, User,
+    cac_models::Dimension, custom_query::PaginationParams, result as superposition,
+    PaginatedResponse, TenantConfig, User,
 };
 
-extern crate base64;
+use crate::{
+    api::dimension::{types::CreateReq, utils::get_dimension_usage_context_ids},
+    helpers::validate_jsonschema,
+};
 
 use super::types::{DeleteReq, DimensionWithMandatory};
 
