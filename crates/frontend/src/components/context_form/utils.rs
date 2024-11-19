@@ -7,6 +7,7 @@ use crate::{
     },
 };
 use anyhow::Result;
+use leptos::logging;
 use serde_json::{json, Map, Value};
 
 pub fn get_condition_schema(
@@ -186,7 +187,15 @@ pub fn construct_context(
     } else {
         let condition_schemas = conditions
             .iter()
-            .map(|condition| get_condition_schema(condition, dimensions.clone()).unwrap())
+            .map(
+                |condition| match get_condition_schema(condition, dimensions.clone()) {
+                    Ok(ans) => ans,
+                    Err(err) => {
+                        logging::log!("Error while getting condition schema {:?}", err);
+                        Value::Null
+                    }
+                },
+            )
             .collect::<Vec<Value>>();
 
         if condition_schemas.len() == 1 {

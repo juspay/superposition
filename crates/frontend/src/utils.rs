@@ -313,6 +313,8 @@ pub fn parse_value(val: &Value, config_type: ConfigValueType) -> Result<Value, S
 
         ConfigValueType::String => match val {
             Value::String(_) => Ok(val.clone()),
+            Value::Number(i) => Ok(Value::String(i.to_string())),
+            Value::Bool(b) => Ok(Value::String(b.to_string())),
             Value::Array(arr) => {
                 if arr.iter().all(|item| item.is_string()) {
                     Ok(val.clone())
