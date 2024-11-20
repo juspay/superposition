@@ -30,6 +30,28 @@ static BREADCRUMB_STORE: Lazy<HashMap<String, RouteMetadata>> = Lazy::new(|| {
         },
     );
 
+    routes.insert(
+        "/dimensions/new".to_string(),
+        RouteMetadata {
+            default_label: "New".to_string(),
+            parent: Some("/dimensions".to_string()),
+            icon: None,
+            dynamic_label: None,
+        },
+    );
+
+    routes.insert(
+        "/dimensions/:name/update".to_string(),
+        RouteMetadata {
+            default_label: "Update Dimension".to_string(),
+            parent: Some("/dimensions".to_string()),
+            icon: None,
+            dynamic_label: Some(Box::new(Arc::new(|params| {
+                params.get("name").map(|name| format!("Update {}", name))
+            }))),
+        },
+    );
+
     // Functions
     routes.insert(
         "/function".to_string(),
@@ -124,9 +146,7 @@ static BREADCRUMB_STORE: Lazy<HashMap<String, RouteMetadata>> = Lazy::new(|| {
             parent: Some("/default-config".to_string()),
             icon: None,
             dynamic_label: Some(Box::new(Arc::new(|params| {
-                params
-                    .get("key")
-                    .map(|name| format!("Update {}", name))
+                params.get("key").map(|name| format!("Update {}", name))
             }))),
         },
     );
@@ -160,9 +180,7 @@ static BREADCRUMB_STORE: Lazy<HashMap<String, RouteMetadata>> = Lazy::new(|| {
             parent: Some("/overrides".to_string()),
             icon: None,
             dynamic_label: Some(Box::new(Arc::new(|params| {
-                params
-                    .get("id")
-                    .map(|name| format!("Update {}", name))
+                params.get("id").map(|name| format!("Update {}", name))
             }))),
         },
     );

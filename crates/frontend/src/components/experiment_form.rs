@@ -57,8 +57,7 @@ pub fn experiment_form(
     #[prop(into, default = String::new())] class: String,
     default_config: Vec<DefaultConfig>,
     dimensions: Vec<Dimension>,
-) -> impl IntoView
-{
+) -> impl IntoView {
     let init_variants = get_init_state(&variants);
     let default_config = StoredValue::new(default_config);
     let tenant_rs = use_context::<Signal<String>>().unwrap();

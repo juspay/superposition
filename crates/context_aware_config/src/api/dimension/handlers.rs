@@ -16,8 +16,12 @@ use superposition_types::{result as superposition, TenantConfig, User};
 use crate::{
     api::dimension::{types::CreateReq, utils::get_dimension_usage_context_ids},
     db::{
-        models::Dimension,
-        schema::{dimensions, dimensions::dsl::*},
+        self,
+        models::{self, Dimension},
+        schema::{
+            dimensions,
+            dimensions::dsl::{self, *},
+        },
     },
     helpers::validate_jsonschema,
 };
@@ -28,6 +32,7 @@ pub fn endpoints() -> Scope {
     Scope::new("")
         .service(create)
         .service(get)
+        .service(get_by_name)
         .service(delete_dimension)
 }
 
@@ -134,6 +139,23 @@ async fn get(
         .collect();
 
     Ok(HttpResponse::Ok().json(dimensions_with_mandatory))
+}
+
+#[get("/{name}")]
+async fn get_by_name(
+    db_conn: DbConnection,
+    path: Path<String>,
+    tenant_config: TenantConfig,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let name: String = path.into_inner().into();
+    let res = dsl::dimensions
+        .filter(db::schema::dimensions::dimension.eq(name))
+        .select(models::Dimension::as_select())
+        .get_result(&mut conn)?;
+    let is_mandatory = tenant_config.mandatory_dimensions.contains(&res.dimension);
+
+    Ok(HttpResponse::Ok().json(DimensionWithMandatory::new(res, is_mandatory)))
 }
 
 #[delete("/{name}")]

@@ -24,6 +24,7 @@ pub fn dimension_form<NF>(
     #[prop(default = String::new())] dimension_type: String,
     #[prop(default = Value::Null)] dimension_schema: Value,
     #[prop(default = None)] function_name: Option<Value>,
+    #[prop(into, default = String::new())] class: String,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -110,7 +111,7 @@ where
         });
     };
     view! {
-        <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
+        <form class=format!("relative form-control space-y-4 text-gray-700 font-mono {}", class)>
             <div class="form-control">
                 <label class="label">
                     <span class="label-text">Dimension</span>
@@ -141,14 +142,16 @@ where
                     } else {
                         dimension_type_rs.get()
                     };
-                    let dimension_type_schema = SchemaType::Single(JsonSchemaType::from(&dimension_schema_rs.get()));
+                    let dimension_type_schema = SchemaType::Single(
+                        JsonSchemaType::from(&dimension_schema_rs.get()),
+                    );
                     view! {
                         <div class="form-control">
                             <label class="label">
                                 <span class="label-text">Set Schema</span>
                             </label>
                             <Dropdown
-                                dropdown_width="w-100"
+                                dropdown_width="w-full max-w-md"
                                 dropdown_icon="".to_string()
                                 dropdown_text=dimension_t
                                 dropdown_direction=DropdownDirection::Down
@@ -166,7 +169,9 @@ where
                                     class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
                                     schema_type=dimension_type_schema
                                     value=dimension_schema_rs.get()
-                                    on_change=Callback::new(move |new_type_schema| dimension_schema_ws.set(new_type_schema))
+                                    on_change=Callback::new(move |new_type_schema| {
+                                        dimension_schema_ws.set(new_type_schema)
+                                    })
                                     r#type=InputType::Monaco
                                 />
                             </EditorProvider>
@@ -258,16 +263,11 @@ where
 
             </Suspense>
 
-            <div class="form-control grid w-full justify-start">
+            <div class="absolute bottom-0 right-0 p-4 flex justify-end items-end w-full bg-white">
                 {move || {
                     let loading = req_inprogess_rs.get();
                     view! {
-                        <Button
-                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                            text="Submit".to_string()
-                            on_click=on_submit.clone()
-                            loading
-                        />
+                        <Button text="Submit".to_string() on_click=on_submit.clone() loading />
                     }
                 }}
 

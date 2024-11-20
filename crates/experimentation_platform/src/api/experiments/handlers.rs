@@ -36,8 +36,8 @@ use super::{
     types::{
         ApplicableVariantsQuery, AuditQueryFilters, ConcludeExperimentRequest,
         ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq,
-        ExperimentCreateRequest, ExperimentResponse,
-        ExperimentsResponse, ListFilters, OverrideKeysUpdateRequest, RampRequest,
+        ExperimentCreateRequest, ExperimentResponse, ExperimentsResponse, ListFilters,
+        OverrideKeysUpdateRequest, RampRequest,
     },
 };
 

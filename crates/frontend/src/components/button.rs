@@ -9,7 +9,9 @@ pub fn button<F: Fn(MouseEvent) + 'static>(
     #[prop(default = String::new())] id: String,
     #[prop(default = false)] loading: bool,
 ) -> impl IntoView {
-    let mut button_class = format!("btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center {class}");
+    let mut button_class = format!(
+        "btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center {class}"
+    );
     if loading {
         button_class = button_class + "hover:cursor-not-allowed";
     }

@@ -8,9 +8,9 @@ pub mod hoc;
 pub mod logic;
 pub mod pages;
 pub mod providers;
+pub mod routes;
 pub mod schema;
 pub mod types;
-pub mod routes;
 mod utils;
 use cfg_if::cfg_if;
 

@@ -1,5 +1,4 @@
-use crate::components::dimension_form::DimensionForm;
-use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
+use crate::components::button::Button;
 use crate::components::skeleton::Skeleton;
 use crate::components::{
     delete_modal::DeleteModal,
@@ -7,6 +6,7 @@ use crate::components::{
     table::{types::Column, Table},
 };
 use leptos::*;
+use leptos_router::A;
 use serde_json::{json, Map, Value};
 
 use crate::api::{delete_dimension, fetch_dimensions};
@@ -55,45 +55,18 @@ pub fn dimensions() -> impl IntoView {
         delete_modal_visible_ws.set(false);
     });
 
-    let selected_dimension = create_rw_signal::<Option<RowData>>(None);
-
     let table_columns = create_memo(move |_| {
         let action_col_formatter = move |_: &str, row: &Map<String, Value>| {
             logging::log!("Dimension row: {:?}", row);
             let row_dimension = row["dimension"].to_string().replace('"', "");
-            let row_priority_str = row["priority"].to_string().replace('"', "");
-            let row_priority = row_priority_str.parse::<u32>().unwrap_or(0_u32);
-
-            let schema = row["schema"].clone().to_string();
-            let schema = serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
-
-            let function_name = row["function_name"].to_string();
-            let fun_name = match function_name.as_str() {
-                "null" => None,
-                _ => Some(json!(function_name.replace('"', ""))),
-            };
-            let mandatory = row["mandatory"].as_bool().unwrap_or(false);
             let dimension_name = row_dimension.clone();
-
-            let edit_click_handler = move |_| {
-                let row_data = RowData {
-                    dimension: row_dimension.clone(),
-                    priority: row_priority.clone(),
-                    schema: schema.clone(),
-                    function_name: fun_name.clone(),
-                    mandatory: mandatory.clone(),
-                };
-                logging::log!("{:?}", row_data);
-                selected_dimension.set(Some(row_data));
-                open_drawer("dimension_drawer");
-            };
 
             if dimension_name.clone() == String::from("variantIds") {
                 view! {
                     <div class="join">
-                        <span class="cursor-pointer" on:click=edit_click_handler>
+                        <A href=format!("{row_dimension}/update")>
                             <i class="ri-pencil-line ri-xl text-blue-500"></i>
-                        </span>
+                        </A>
                     </div>
                 }
                 .into_view()
@@ -104,9 +77,9 @@ pub fn dimensions() -> impl IntoView {
                 };
                 view! {
                     <div class="join">
-                        <span class="cursor-pointer" on:click=edit_click_handler>
+                        <A href=format!("{row_dimension}/update")>
                             <i class="ri-pencil-line ri-xl text-blue-500"></i>
-                        </span>
+                        </A>
                         <span class="cursor-pointer text-red-500" on:click=handle_dimension_delete>
                             <i class="ri-delete-bin-5-line ri-xl text-red-500"></i>
                         </span>
@@ -128,48 +101,6 @@ pub fn dimensions() -> impl IntoView {
     });
 
     view! {
-        {move || {
-            let handle_close = move || {
-                close_drawer("dimension_drawer");
-                selected_dimension.set(None);
-            };
-            if let Some(selected_dimension_data) = selected_dimension.get() {
-                view! {
-                    <Drawer
-                        id="dimension_drawer".to_string()
-                        header="Edit Dimension"
-                        handle_close=handle_close
-                    >
-                        <DimensionForm
-                            edit=true
-                            priority=selected_dimension_data.priority
-                            dimension_name=selected_dimension_data.dimension
-                            dimension_schema=selected_dimension_data.schema
-                            function_name=selected_dimension_data.function_name
-                            handle_submit=move || {
-                                dimensions_resource.refetch();
-                                selected_dimension.set(None);
-                                close_drawer("dimension_drawer");
-                            }
-                        />
-
-                    </Drawer>
-                }
-            } else {
-                view! {
-                    <Drawer
-                        id="dimension_drawer".to_string()
-                        header="Create New Dimension"
-                        handle_close=handle_close
-                    >
-                        <DimensionForm handle_submit=move || {
-                            dimensions_resource.refetch();
-                            close_drawer("dimension_drawer");
-                        } />
-                    </Drawer>
-                }
-            }
-        }}
         <Suspense fallback=move || {
             view! { <Skeleton /> }
         }>
@@ -198,10 +129,9 @@ pub fn dimensions() -> impl IntoView {
                                 <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
                                     "Dimensions"
                                 </h2>
-                                <DrawerBtn drawer_id="dimension_drawer"
-                                    .to_string()>
-                                    Create Dimension <i class="ri-edit-2-line ml-2"></i>
-                                </DrawerBtn>
+                                <A href="new">
+                                    <Button text="Create Key" on_click=move |_| {} />
+                                </A>
                             </div>
                             <Table
                                 cell_class="min-w-48 font-mono".to_string()

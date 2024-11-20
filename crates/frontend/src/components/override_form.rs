@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::{
     components::{
-        dropdown::{Dropdown, DropdownDirection, DropdownBtnType},
+        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         input::{Input, InputType},
     },
     schema::{EnumVariants, SchemaType},

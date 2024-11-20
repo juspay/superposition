@@ -10,9 +10,10 @@ use crate::{
         experiment_form::ExperimentForm,
         skeleton::{Skeleton, SkeletonVariant},
     },
+    logic::Conditions,
     providers::editor_provider::EditorProvider,
     types::{DefaultConfig, Dimension},
-    utils::{add_prefix, use_service_prefix}, logic::Conditions,
+    utils::{add_prefix, use_service_prefix},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -90,4 +91,4 @@ pub fn new_experiment() -> impl IntoView {
     }
 }
 /***
-  */
+ */

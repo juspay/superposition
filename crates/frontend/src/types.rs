@@ -225,7 +225,6 @@ impl From<ExperimentResponse> for Experiment {
 
 /*************************** Context-Override types ********************************/
 
-
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct Context {
     pub id: String,
@@ -240,7 +239,7 @@ pub struct Context {
     pub last_modified_by: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Dimension {
     pub dimension: String,
     pub priority: i32,

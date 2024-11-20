@@ -164,9 +164,7 @@ pub fn home() -> impl IntoView {
     let tenant_rs = use_context::<Signal<String>>().unwrap();
     let config_data = create_blocking_resource(
         move || tenant_rs.get(),
-        |tenant| async move {
-            fetch_config(&tenant, None).await
-        },
+        |tenant| async move { fetch_config(&tenant, None).await },
     );
     let dimension_resource = create_resource(
         move || tenant_rs.get(),

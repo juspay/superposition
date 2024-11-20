@@ -16,10 +16,16 @@ use crate::{
             FunctionPage,
         },
         home::Home,
+        new_contextual_override::NewContextualOverride,
+        new_default_config::NewDefaultConfig,
+        new_dimension::NewDimension,
         new_experiment::NewExperiment,
         new_template_type::NewTemplateType,
         template_types::TypesPage,
-        update_template_type::UpdateTemplateType, new_contextual_override::NewContextualOverride, update_contextual_override::UpdateContextualOverride, new_default_config::NewDefaultConfig, update_default_config::UpdateDefaultConfig,
+        update_contextual_override::UpdateContextualOverride,
+        update_default_config::UpdateDefaultConfig,
+        update_dimension::UpdateDimension,
+        update_template_type::UpdateTemplateType,
     },
 };
 
@@ -172,6 +178,30 @@ pub fn app_routes() -> impl IntoView {
                     view! {
                         <Page>
                             <Dimensions />
+                        </Page>
+                    }
+                }
+            />
+
+            <Route
+                ssr=SsrMode::Async
+                path="/dimensions/new"
+                view=move || {
+                    view! {
+                        <Page>
+                            <NewDimension />
+                        </Page>
+                    }
+                }
+            />
+
+            <Route
+                ssr=SsrMode::Async
+                path="/dimensions/:name/update"
+                view=move || {
+                    view! {
+                        <Page>
+                            <UpdateDimension />
                         </Page>
                     }
                 }
