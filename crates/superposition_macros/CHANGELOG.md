@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_macros-v0.2.0 - 2024-11-20
+#### Features
+- Webhook trigger for experiments (#265) - (585ee1e) - Ankit Kumar Mahato
+
+- - -
+
 ## superposition_macros-v0.1.1 - 2024-09-30
 #### Bug Fixes
 - Dependency pruning (#250) - (8b68900) - Ayush Jain

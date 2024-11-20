@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.2.0 - 2024-11-20
+#### Continuous Integration
+- **(nix)** Run Haskell clients in CI (#191) - (5eeb498) - Shivaraj B H
+#### Features
+- add cache in cac client (#268) - (0cd82dd) - PRATIK MISHRA
+
+- - -
+
 ## haskell_client-v0.1.3 - 2024-08-08
 #### Bug Fixes
 - haskell-client-doc - (291df89) - Ankit Mahato

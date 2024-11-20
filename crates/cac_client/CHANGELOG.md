@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.16.0 - 2024-11-20
+#### Features
+- add cache in cac client (#268) - (0cd82dd) - PRATIK MISHRA
+
+- - -
+
 ## cac_client-v0.15.0 - 2024-10-23
 #### Features
 - Search contexts by dimension values (#264) - (12743af) - Ayush Jain

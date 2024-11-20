@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.22.0 - 2024-11-20
+#### Bug Fixes
+- Add pagination to list APIs (#209) - (c155bb0) - Ankit Kumar Mahato
+#### Features
+- Webhook trigger for experiments (#265) - (585ee1e) - Ankit Kumar Mahato
+
+- - -
+
 ## experimentation_platform-v0.21.0 - 2024-10-23
 #### Features
 - Search contexts by dimension values (#264) - (12743af) - Ayush Jain

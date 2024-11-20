@@ -2,6 +2,28 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.61.0 - 2024-11-20
+### Package updates
+- superposition_types bumped to superposition_types-v0.7.0
+- frontend bumped to frontend-v0.18.0
+- superposition_macros bumped to superposition_macros-v0.2.0
+- cac_client bumped to cac_client-v0.16.0
+- experimentation_platform bumped to experimentation_platform-v0.22.0
+- haskell_client bumped to haskell_client-v0.2.0
+- context_aware_config bumped to context_aware_config-v0.42.0
+- service_utils bumped to service_utils-v0.24.0
+### Global changes
+#### Bug Fixes
+- Add pagination to list APIs (#209) - (c155bb0) - Ankit Kumar Mahato
+#### Features
+- add cache in cac client (#268) - (0cd82dd) - PRATIK MISHRA
+- Webhook trigger for experiments (#265) - (585ee1e) - Ankit Kumar Mahato
+- use new input type for json schema inputs as well - (e7075be) - Kartik
+#### Miscellaneous Chores
+- **(deps)** bump werkzeug from 3.0.4 to 3.0.6 in /locust - (fb2e22d) - dependabot[bot]
+
+- - -
+
 ## v0.60.0 - 2024-10-23
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.41.0

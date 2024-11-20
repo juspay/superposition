@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.7.0 - 2024-11-20
+#### Bug Fixes
+- Add pagination to list APIs (#209) - (c155bb0) - Ankit Kumar Mahato
+#### Features
+- use new input type for json schema inputs as well - (e7075be) - Kartik
+- Webhook trigger for experiments (#265) - (585ee1e) - Ankit Kumar Mahato
+
+- - -
+
 ## superposition_types-v0.6.0 - 2024-10-23
 #### Features
 - Search contexts by dimension values (#264) - (12743af) - Ayush Jain

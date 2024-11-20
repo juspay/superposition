@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.18.0 - 2024-11-20
+#### Bug Fixes
+- properly parsing numbers that are strings - (331b793) - Kartik
+- Add pagination to list APIs (#209) - (c155bb0) - Ankit Kumar Mahato
+- Override dimension input for in operator (#274) - (1117ef2) - Ayush Jain
+#### Features
+- update inputs in default config - (3f59418) - Kartik
+- use new input type for json schema inputs as well - (e7075be) - Kartik
+
+- - -
+
 ## frontend-v0.17.0 - 2024-10-23
 #### Bug Fixes
 - added base for single config version page - (160070a) - Saurav Suman

@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.42.0 - 2024-11-20
+#### Bug Fixes
+- Add pagination to list APIs (#209) - (c155bb0) - Ankit Kumar Mahato
+#### Features
+- sort_by and created_by filter params for context/list (#275) - (ed5442f) - Ayush Jain
+- add cache in cac client (#268) - (0cd82dd) - PRATIK MISHRA
+
+- - -
+
 ## context_aware_config-v0.41.0 - 2024-10-23
 #### Bug Fixes
 - locust files - (2a1e4fe) - Kartik

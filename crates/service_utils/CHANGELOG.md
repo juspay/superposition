@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.24.0 - 2024-11-20
+#### Features
+- Webhook trigger for experiments (#265) - (585ee1e) - Ankit Kumar Mahato
+
+- - -
+
 ## service_utils-v0.23.0 - 2024-10-23
 #### Features
 - add high performance mode with redis - (adc2712) - Kartik
