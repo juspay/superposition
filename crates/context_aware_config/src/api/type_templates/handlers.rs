@@ -1,13 +1,13 @@
 use actix_web::web::{Json, Path, Query};
 use actix_web::{delete, get, post, put, HttpResponse, Scope};
-use cac_db_config::schema::type_templates::{self, dsl};
+use cac_db::schema::type_templates::{self, dsl};
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use jsonschema::JSONSchema;
 use serde_json::Value;
 use service_utils::service::types::DbConnection;
 use superposition_macros::{bad_argument, db_error};
-use superposition_types::cac_models::TypeTemplates;
+use superposition_types::cac::models::TypeTemplates;
 use superposition_types::{
     custom_query::PaginationParams, result as superposition, PaginatedResponse, User,
 };

@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use actix_web::http::header::{HeaderMap, HeaderName, HeaderValue};
 use actix_web::web::Data;
 #[cfg(feature = "high-performance-mode")]
-use cac_db_config::schema::event_log::dsl as event_log;
-use cac_db_config::schema::{
+use cac_db::schema::event_log::dsl as event_log;
+use cac_db::schema::{
     config_versions,
     contexts::dsl::{self as ctxt},
     default_configs::dsl as def_conf,
@@ -27,9 +27,9 @@ use service_utils::{
     service::types::AppState,
 };
 use superposition_macros::{db_error, unexpected_error, validation_error};
-use superposition_types::cac_models::ConfigVersion;
 use superposition_types::{
-    result as superposition, Cac, Condition, Config, Context, Overrides,
+    cac::models::ConfigVersion, result as superposition, Cac, Condition, Config, Context,
+    Overrides,
 };
 #[cfg(feature = "high-performance-mode")]
 use uuid::Uuid;

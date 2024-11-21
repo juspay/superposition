@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::str;
 
 use base64::prelude::*;
-use cac_db_config::schema::{
+use cac_db::schema::{
     default_configs::dsl,
     dimensions::{self},
 };

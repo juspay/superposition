@@ -10,7 +10,7 @@ use actix_web::{
     HttpResponse, Scope,
 };
 use cac_client::utils::json_to_sorted_string;
-use cac_db_config::schema::{
+use cac_db::schema::{
     contexts::{self, id},
     default_configs::dsl,
 };
@@ -35,7 +35,7 @@ use superposition_macros::{
 };
 use superposition_types::PaginatedResponse;
 use superposition_types::{
-    cac_models::Context,
+    cac::models::Context,
     custom_query::{self as superposition_query, CustomQuery, PlatformQuery, QueryMap},
     result as superposition, Cac, Contextual, Overridden, Overrides, TenantConfig, User,
 };
@@ -568,7 +568,7 @@ async fn get_context_from_condition(
     db_conn: DbConnection,
     req: Json<Map<String, Value>>,
 ) -> superposition::Result<Json<Context>> {
-    use cac_db_config::schema::contexts::dsl::*;
+    use cac_db::schema::contexts::dsl::*;
 
     let context_id = hash(&Value::Object(req.into_inner()));
     let DbConnection(mut conn) = db_conn;
@@ -585,7 +585,7 @@ async fn get_context(
     path: Path<String>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<Context>> {
-    use cac_db_config::schema::contexts::dsl::*;
+    use cac_db::schema::contexts::dsl::*;
 
     let ctx_id = path.into_inner();
     let DbConnection(mut conn) = db_conn;
@@ -603,7 +603,7 @@ async fn list_contexts(
     dimension_params: superposition_query::Query<QueryMap>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<PaginatedResponse<Context>>> {
-    use cac_db_config::schema::contexts::dsl::*;
+    use cac_db::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
 
     let filter_params = filter_params.into_inner();
@@ -847,7 +847,7 @@ async fn priority_recompute(
     #[cfg(feature = "high-performance-mode")] tenant: Tenant,
     _user: User,
 ) -> superposition::Result<HttpResponse> {
-    use cac_db_config::schema::contexts::dsl::*;
+    use cac_db::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
 
     let result: Vec<Context> = contexts.load(&mut conn).map_err(|err| {

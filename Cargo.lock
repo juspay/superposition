@@ -981,7 +981,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "cac_db_config"
+name = "cac_db"
 version = "0.1.0"
 dependencies = [
  "diesel",
@@ -1285,7 +1285,7 @@ dependencies = [
  "base64 0.21.2",
  "blake3",
  "cac_client",
- "cac_db_config",
+ "cac_db",
  "cfg-if",
  "chrono",
  "derive_more",
@@ -1689,7 +1689,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "experimentation_db_config"
+name = "experimentation_db"
 version = "0.1.0"
 dependencies = [
  "diesel",
@@ -1715,7 +1715,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "diesel",
- "experimentation_db_config",
+ "experimentation_db",
  "jsonlogic",
  "log",
  "reqwest",
@@ -4100,11 +4100,11 @@ version = "0.7.1"
 dependencies = [
  "actix-web",
  "anyhow",
- "cac_db_config",
+ "cac_db",
  "chrono",
  "derive_more",
  "diesel",
- "experimentation_db_config",
+ "experimentation_db",
  "jsonlogic",
  "log",
  "regex",

@@ -5,7 +5,8 @@ experiments_webhook_config = { "value" = { "enabled" = false }, "schema" = { "ty
     "Post",
     "Get",
 ], "type" = "string" }, "custom_headers" = { "type" = "object" }, "service_headers" = { "type" = "array", "items" = { "type" = "string", "enum" = [
-    "ConfigVersion", "TenantId"
+    "ConfigVersion",
+    "TenantId",
 ] } }, "authorization" = { "type" = "object", "properties" = { "key" = { "type" = "string" }, "value" = { "type" = "string" } }, "required" = [
     "key",
     "value",
@@ -21,6 +22,7 @@ tenant = { schema = { "type" = "string", "enum" = ["test", "dev"] } }
 
 [context."$tenant == 'dev'"]
 mandatory_dimensions = []
-experiments_webhook_config = { "enabled" = false, "configuration" = { "url" = "http://localhost:8080/config/test", "method" = "Get", "custom_headers" = { "x-tenant" = "dev"}, "service_headers" = [
-    "ConfigVersion", "TenantId"
+experiments_webhook_config = { "enabled" = false, "configuration" = { "url" = "http://localhost:8080/config/test", "method" = "Get", "custom_headers" = { "x-tenant" = "dev" }, "service_headers" = [
+    "ConfigVersion",
+    "TenantId",
 ], "authorization" = { key = "Authorization", value = "TOKEN_FOR_WEBHOOK" } } }

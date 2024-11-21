@@ -5,7 +5,7 @@ use actix_web::{
     web::{self, Data, Json, Path, Query},
     HttpResponse, Scope,
 };
-use cac_db_config::schema::{dimensions, dimensions::dsl::*};
+use cac_db::schema::{dimensions, dimensions::dsl::*};
 use chrono::Utc;
 use diesel::{
     delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
@@ -15,7 +15,7 @@ use serde_json::Value;
 use service_utils::service::types::{AppState, DbConnection};
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
-    cac_models::Dimension, custom_query::PaginationParams, result as superposition,
+    cac::models::Dimension, custom_query::PaginationParams, result as superposition,
     PaginatedResponse, TenantConfig, User,
 };
 

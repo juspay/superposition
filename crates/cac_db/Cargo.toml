@@ -1,5 +1,5 @@
 [package]
-name = "experimentation_db_config"
+name = "cac_db"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,13 +7,9 @@ edition = "2021"
 
 [dependencies]
 diesel = { workspace = true, optional = true }
-diesel-derive-enum = { version = "2.0.1", features = [
-    "postgres",
-], optional = true }
-serde = { workspace = true }
 
 [features]
-diesel_derives = ["dep:diesel", "dep:diesel-derive-enum"]
+diesel_derives = ["dep:diesel"]
 
 [lints]
 workspace = true

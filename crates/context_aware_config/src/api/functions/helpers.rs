@@ -1,14 +1,14 @@
 extern crate base64;
 
 use base64::prelude::*;
-use cac_db_config::schema::{self, functions::dsl::functions};
+use cac_db::schema::{self, functions::dsl::functions};
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 use std::str;
 use superposition_macros::unexpected_error;
-use superposition_types::{cac_models::Function, result as superposition};
+use superposition_types::{cac::models::Function, result as superposition};
 
 pub fn fetch_function(
     f_name: &String,

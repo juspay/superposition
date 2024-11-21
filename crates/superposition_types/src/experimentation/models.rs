@@ -5,8 +5,8 @@ use diesel::{
     Queryable, QueryableByName, Selectable,
 };
 #[cfg(feature = "diesel_derives")]
-use experimentation_db_config::schema::*;
-use experimentation_db_config::ExperimentStatusType;
+use experimentation_db::schema::*;
+use experimentation_db::ExperimentStatusType;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 #[cfg(feature = "diesel_derives")]

@@ -2,7 +2,7 @@ use actix_http::header::{self, HeaderMap, HeaderName, HeaderValue};
 use actix_web::web::Data;
 use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
-use experimentation_db_config::ExperimentStatusType;
+use experimentation_db::ExperimentStatusType;
 use serde_json::{Map, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::{AppState, ExperimentationFlags, Tenant};
@@ -10,7 +10,7 @@ use std::collections::HashSet;
 use std::str::FromStr;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    exp_models::{Experiment, Variant, VariantType},
+    experimentation::models::{Experiment, Variant, VariantType},
     result as superposition, Condition, Config, Exp, Overrides,
 };
 
@@ -184,7 +184,7 @@ pub fn validate_experiment(
     flags: &ExperimentationFlags,
     conn: &mut PgConnection,
 ) -> superposition::Result<(bool, String)> {
-    use experimentation_db_config::schema::experiments::dsl as experiments_dsl;
+    use experimentation_db::schema::experiments::dsl as experiments_dsl;
 
     let active_experiments: Vec<Experiment> = experiments_dsl::experiments
         .filter(
