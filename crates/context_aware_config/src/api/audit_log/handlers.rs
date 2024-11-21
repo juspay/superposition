@@ -1,10 +1,10 @@
 use actix_web::{get, web::Query, HttpResponse, Scope};
-use cac_db_config::schema::event_log::dsl as event_log;
+use cac_db::schema::event_log::dsl as event_log;
 use chrono::{Duration, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::json;
 use service_utils::service::types::DbConnection;
-use superposition_types::{cac_models::EventLog, result as superposition};
+use superposition_types::{cac::models::EventLog, result as superposition};
 
 use crate::api::audit_log::types::AuditQueryFilters;
 

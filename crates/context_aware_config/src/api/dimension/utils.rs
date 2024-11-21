@@ -1,4 +1,4 @@
-use cac_db_config::schema::{contexts::dsl::contexts, dimensions::dsl::*};
+use cac_db::schema::{contexts::dsl::contexts, dimensions::dsl::*};
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     PgConnection, RunQueryDsl,
@@ -8,7 +8,7 @@ use service_utils::helpers::extract_dimensions;
 use std::collections::HashMap;
 use superposition_macros::{db_error, unexpected_error};
 use superposition_types::{
-    cac_models::{Context, Dimension},
+    cac::models::{Context, Dimension},
     result as superposition, Cac, Condition,
 };
 

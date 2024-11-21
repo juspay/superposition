@@ -1,5 +1,5 @@
 #[cfg(feature = "diesel_derives")]
-use cac_db_config::schema::{
+use cac_db::schema::{
     config_versions, contexts, default_configs, dimensions, event_log, functions,
     type_templates,
 };
