@@ -46,7 +46,7 @@ macro_rules! impl_try_from_map {
     feature = "diesel_derives",
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
 )]
-#[cfg_attr(feature = "diesel_derives",diesel(sql_type = Json))]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
 pub struct Overrides(Map<String, Value>);
 
 impl Overrides {
