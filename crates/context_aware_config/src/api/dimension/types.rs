@@ -36,14 +36,14 @@ impl TryFrom<i32> for Priority {
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
 #[serde(try_from = "Option<i32>")]
-pub struct Position(i32);
+pub struct Position(Option<i32>);
 impl Position {
     fn validate_data(position_val: Option<i32>) -> Result<Self, String> {
         if let Some(val) = position_val {
             if val < 0 {
                 return Err("Position should be greater than equal to 0".to_string());
             } else {
-                Ok(Self(val))
+                Ok(Self(Some(val)))
             }
         } else {
             Ok(Position::default())
@@ -60,7 +60,7 @@ impl TryFrom<Option<i32>> for Position {
 
 impl Default for Position {
     fn default() -> Self {
-        Position(1)
+        Position(None)
     }
 }
 

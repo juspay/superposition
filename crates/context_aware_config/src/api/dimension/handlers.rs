@@ -48,7 +48,7 @@ async fn create(
 
     let create_req = req.into_inner();
     let schema_value = create_req.schema;
-
+    let n_dimensions: i64 = dimensions.count().get_result(&mut conn)?;
     validate_jsonschema(&state.meta_schema, &schema_value)?;
 
     let schema_compile_result = JSONSchema::options()
@@ -72,18 +72,32 @@ async fn create(
             ));
         }
     };
-    let n_dimensions: i64 = dimensions.count().get_result(&mut conn)?;
-    if Into::<i32>::into(create_req.position.clone()) > n_dimensions.clone() as i32 {
-        return Err(bad_argument!(
-            "Expected psoition value less than {}",
-            n_dimensions
-        ));
-    }
 
-    let new_dimension = Dimension {
+    let req_priority_val: i32 = create_req.priority.clone().into();
+    let dimension_name: String = create_req.dimension.clone().into();
+    let req_position_val = Into::<Option<i32>>::into(create_req.position.clone());
+
+    let mut results: Vec<(String, i32, i32)> = dimensions
+        .order(priority.asc())
+        .select((dimension, priority, position))
+        .load::<(String, i32, i32)>(&mut conn)
+        .expect("Error loading dimensions");
+    let prev_index = results
+        .iter()
+        .position(|(name, _, _)| name.to_owned() == dimension_name.clone());
+    results.push((dimension_name.clone(), req_priority_val, 0));
+    results.sort_by_key(|&(_, val, _)| val);
+    let new_index = results
+        .iter()
+        .position(|(name, _, _)| name.to_owned() == dimension_name);
+    let mut position_val = new_index.unwrap_or(1) as i32;
+    if let Some(val) = req_position_val.clone() {
+        position_val = val;
+    }
+    let mut new_dimension = Dimension {
         dimension: create_req.dimension.into(),
-        priority: create_req.priority.into(),
-        position: create_req.position.clone().into(),
+        priority: create_req.priority.clone().into(),
+        position: position_val.clone(),
         schema: schema_value,
         created_by: user.get_email(),
         created_at: Utc::now(),
@@ -93,10 +107,50 @@ async fn create(
     };
 
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        diesel::update(dimensions::dsl::dimensions)
-            .filter(dimensions::position.ge(create_req.position.clone() as i32))
-            .set(dimensions::position.eq(dimensions::position + 1))
-            .execute(transaction_conn)?;
+        match (prev_index, new_index.clone(), req_position_val.clone()) {
+            (Some(prev_val), Some(new_val), None) => {
+                println!("1");
+                if prev_val < new_val {
+                    new_dimension.position = new_val.clone() as i32 - 1;
+                } else {
+                    new_dimension.position = new_val.clone() as i32
+                };
+                println!("2");
+                diesel::update(dimensions)
+                    .filter(position.gt(prev_val as i32))
+                    .filter(position.lt(new_val.clone() as i32))
+                    .filter(position.gt(0))
+                    .set(position.eq(position - 1))
+                    .execute(transaction_conn)?;
+
+                diesel::update(dimensions)
+                    .filter(position.ge(new_val as i32))
+                    .set(position.eq(position + 1))
+                    .execute(transaction_conn)?;
+                println!("3");
+            }
+            (None, Some(new_index), None) => {
+                println!("4");
+                new_dimension.position = new_index.clone() as i32;
+                diesel::update(dimensions)
+                    .filter(position.ge(new_index as i32))
+                    .set(position.eq(position + 1))
+                    .execute(transaction_conn)?;
+            }
+            (_, _, Some(val)) => {
+                if val > n_dimensions.clone() as i32 {
+                    return Err(bad_argument!(
+                        "Expected psoition value less than {}",
+                        n_dimensions
+                    ));
+                }
+                diesel::update(dimensions::dsl::dimensions)
+                    .filter(dimensions::position.ge(val))
+                    .set(dimensions::position.eq(dimensions::position + 1))
+                    .execute(transaction_conn)?;
+            }
+            (_, _, _) => {}
+        };
 
         let upsert = diesel::insert_into(dimensions)
             .values(&new_dimension)
@@ -189,7 +243,7 @@ async fn delete_dimension(
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.into_inner().into();
     let DbConnection(mut conn) = db_conn;
-    dimensions::dsl::dimensions
+    let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(&name))
         .select(Dimension::as_select())
         .get_result(&mut conn)?;
@@ -204,6 +258,10 @@ async fn delete_dimension(
                     dsl::last_modified_at.eq(Utc::now().naive_utc()),
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
+                .execute(transaction_conn)?;
+            diesel::update(dimensions::dsl::dimensions)
+                .filter(dimensions::position.gt(dimension_data.position))
+                .set(dimensions::position.eq(dimensions::position - 1))
                 .execute(transaction_conn)?;
             let deleted_row = delete(dsl::dimensions.filter(dsl::dimension.eq(&name)))
                 .execute(transaction_conn);

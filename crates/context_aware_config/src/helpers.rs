@@ -52,6 +52,7 @@ use crate::db::{
     },
 };
 
+#[derive(Debug)]
 pub struct DimensionData {
     pub schema: JSONSchema,
     pub priority: i32,
@@ -217,9 +218,9 @@ pub fn calculate_context_priority(
     }
 }
 
-fn calculate_2_exponenet_to_bigdecimal(exponent: u32) -> Result<BigDecimal, String> {
+fn calculate_weight_from_index(index: u32) -> Result<BigDecimal, String> {
     let base = BigUint::from(2u32);
-    let result = base.pow(exponent);
+    let result = base.pow(index);
     let biguint_str = &result.to_str_radix(10);
     BigDecimal::from_str_radix(&biguint_str, 10).map_err(|err| {
         log::error!("failed to parse bigdecimal with error: {}", err.to_string());
@@ -243,14 +244,15 @@ pub fn calculate_context_weightage(
     let mut weightage = BigDecimal::from(0);
     for dimension in dimensions {
         let position = dimension_position_map
-            .get(dimension.as_str())
+            .get(dimension.clone().as_str())
             .map(|x| x.position)
             .ok_or_else(|| {
-                let msg = String::from("Dimension not found in Dimension schema map");
+                let msg =
+                    format!("Dimension:{} not found in Dimension schema map", dimension);
                 log::error!("{}", msg);
                 msg
             })?;
-        weightage = weightage + calculate_2_exponenet_to_bigdecimal(position as u32)?;
+        weightage = weightage + calculate_weight_from_index(position as u32)?;
     }
     Ok(weightage)
 }
@@ -450,7 +452,7 @@ mod tests {
         assert!(ok_arr_context.is_ok());
     }
     #[test]
-    fn test_calculate_2_exponenet_to_bigdecimal() {
+    fn test_calculate_weight_from_index() {
         let number_2_100_str = "1267650600228229401496703205376";
         // test 2^100
         let big_decimal =
@@ -462,13 +464,7 @@ mod tests {
         let big_decimal_200 =
             BigDecimal::from_str(number_2_200_str).expect("Invalid string format");
 
-        assert_eq!(
-            Some(big_decimal),
-            calculate_2_exponenet_to_bigdecimal(100).ok()
-        );
-        assert_eq!(
-            Some(big_decimal_200),
-            calculate_2_exponenet_to_bigdecimal(200).ok()
-        );
+        assert_eq!(Some(big_decimal), calculate_weight_from_index(100).ok());
+        assert_eq!(Some(big_decimal_200), calculate_weight_from_index(200).ok());
     }
 }

@@ -3,10 +3,9 @@ use crate::db::{
     schema::{contexts::dsl::contexts, dimensions::dsl::*},
 };
 use crate::helpers::DimensionData;
-use diesel::query_dsl::RunQueryDsl;
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
-    PgConnection,
+    PgConnection, RunQueryDsl,
 };
 use jsonschema::{Draft, JSONSchema};
 use service_utils::helpers::extract_dimensions;
