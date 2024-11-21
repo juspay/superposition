@@ -13,7 +13,7 @@ cac_db_config = { path = "../cac_db_config", optional = true }
 chrono = { workspace = true }
 derive_more = { workspace = true }
 diesel = { workspace = true, optional = true }
-experimentation_db_config = { path = "../experimentation_db_config" }
+experimentation_db_config = { path = "../experimentation_db_config", optional = true }
 jsonlogic = { workspace = true }
 log = { workspace = true }
 regex = { workspace = true }
@@ -30,11 +30,12 @@ diesel_derives = [
     "dep:superposition_derives",
     "dep:cac_db_config",
     "cac_db_config/diesel_derives",
-    "experimentation_db_config/diesel_derives",
+    "experimentation_db_config?/diesel_derives",
 ]
 disable_db_data_validation = []
 result = ["dep:diesel", "dep:anyhow", "dep:thiserror", "dep:actix-web"]
 server = ["dep:actix-web"]
+experimentation = ["dep:experimentation_db_config"]
 
 [lints]
 workspace = true
