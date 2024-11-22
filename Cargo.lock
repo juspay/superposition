@@ -1691,7 +1691,7 @@ dependencies = [
 
 [[package]]
 name = "experimentation_platform"
-version = "0.22.0"
+version = "0.22.1"
 dependencies = [
  "actix-http",
  "actix-web",
@@ -1835,7 +1835,7 @@ dependencies = [
 
 [[package]]
 name = "frontend"
-version = "0.18.0"
+version = "0.18.1"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -3872,13 +3872,14 @@ dependencies = [
 
 [[package]]
 name = "service_utils"
-version = "0.24.0"
+version = "0.24.1"
 dependencies = [
  "actix-web",
  "anyhow",
  "aws-config",
  "aws-sdk-kms",
  "base64 0.21.2",
+ "chrono",
  "derive_more",
  "diesel",
  "fred",
@@ -4080,7 +4081,7 @@ version = "0.2.0"
 
 [[package]]
 name = "superposition_types"
-version = "0.7.0"
+version = "0.7.1"
 dependencies = [
  "actix-web",
  "anyhow",

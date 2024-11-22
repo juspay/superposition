@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.7.1 - 2024-11-22
+#### Bug Fixes
+- fixed and improved webhooks (#283) - (4864849) - Ankit Kumar Mahato
+
+- - -
+
 ## superposition_types-v0.7.0 - 2024-11-20
 #### Bug Fixes
 - Add pagination to list APIs (#209) - (c155bb0) - Ankit Kumar Mahato

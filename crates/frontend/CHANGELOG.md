@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.18.1 - 2024-11-22
+#### Bug Fixes
+- mandatory dimension UI - (eee9165) - Ankit Mahato
+
+- - -
+
 ## frontend-v0.18.0 - 2024-11-20
 #### Bug Fixes
 - properly parsing numbers that are strings - (331b793) - Kartik

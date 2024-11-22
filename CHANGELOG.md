@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.61.1 - 2024-11-22
+### Package updates
+- frontend bumped to frontend-v0.18.1
+- service_utils bumped to service_utils-v0.24.1
+- superposition_types bumped to superposition_types-v0.7.1
+- experimentation_platform bumped to experimentation_platform-v0.22.1
+### Global changes
+#### Bug Fixes
+- fixed and improved webhooks (#283) - (4864849) - Ankit Kumar Mahato
+
+- - -
+
 ## v0.61.0 - 2024-11-20
 ### Package updates
 - superposition_types bumped to superposition_types-v0.7.0
