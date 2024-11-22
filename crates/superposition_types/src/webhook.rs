@@ -1,15 +1,20 @@
 use serde::{Deserialize, Deserializer, Serialize};
-use std::fmt::{self};
+use std::{
+    collections::HashMap,
+    fmt::{self},
+};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum HeadersEnum {
     ConfigVersion,
+    TenantId,
 }
 
 impl fmt::Display for HeadersEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::ConfigVersion => write!(f, "x-config-version"),
+            Self::TenantId => write!(f, "x-tenant"),
         }
     }
 }
@@ -30,8 +35,9 @@ pub struct Authorization {
 pub struct Webhook {
     pub url: String,
     pub method: HttpMethod,
-    pub headers: Vec<HeadersEnum>,
-    pub authorization: Authorization,
+    pub custom_headers: HashMap<String, String>,
+    pub service_headers: Vec<HeadersEnum>,
+    pub authorization: Option<Authorization>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -44,8 +50,16 @@ pub enum WebhookEvent {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct WebhookEventInfo {
+    pub webhook_event: WebhookEvent,
+    pub time: String,
+    pub tenant_id: String,
+    pub config_version: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct WebhookResponse<T> {
-    pub event: WebhookEvent,
+    pub event_info: WebhookEventInfo,
     pub payload: T,
 }
 
