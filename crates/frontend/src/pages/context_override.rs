@@ -181,8 +181,8 @@ pub fn context_override() -> impl IntoView {
                 if dim.mandatory {
                     Some(Condition {
                         left_operand: dim.dimension,
-                        operator: ConditionOperator::Other(String::from("")),
-                        right_operand: vec![],
+                        operator: ConditionOperator::Is,
+                        right_operand: vec![Value::from("")],
                     })
                 } else {
                     None
