@@ -10,10 +10,6 @@ use actix_web::{
     HttpResponse, Scope,
 };
 use cac_client::utils::json_to_sorted_string;
-use cac_db::schema::{
-    contexts::{self, id},
-    default_configs::dsl,
-};
 use chrono::Utc;
 use diesel::{
     delete,
@@ -33,11 +29,17 @@ use service_utils::{
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
-use superposition_types::PaginatedResponse;
 use superposition_types::{
-    cac::models::Context,
+    cac::{
+        models::Context,
+        schema::{
+            contexts::{self, id},
+            default_configs::dsl,
+        },
+    },
     custom_query::{self as superposition_query, CustomQuery, PlatformQuery, QueryMap},
-    result as superposition, Cac, Contextual, Overridden, Overrides, TenantConfig, User,
+    result as superposition, Cac, Contextual, Overridden, Overrides, PaginatedResponse,
+    TenantConfig, User,
 };
 
 #[cfg(feature = "high-performance-mode")]
@@ -568,7 +570,7 @@ async fn get_context_from_condition(
     db_conn: DbConnection,
     req: Json<Map<String, Value>>,
 ) -> superposition::Result<Json<Context>> {
-    use cac_db::schema::contexts::dsl::*;
+    use superposition_types::cac::schema::contexts::dsl::*;
 
     let context_id = hash(&Value::Object(req.into_inner()));
     let DbConnection(mut conn) = db_conn;
@@ -585,7 +587,7 @@ async fn get_context(
     path: Path<String>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<Context>> {
-    use cac_db::schema::contexts::dsl::*;
+    use superposition_types::cac::schema::contexts::dsl::*;
 
     let ctx_id = path.into_inner();
     let DbConnection(mut conn) = db_conn;
@@ -603,7 +605,7 @@ async fn list_contexts(
     dimension_params: superposition_query::Query<QueryMap>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<PaginatedResponse<Context>>> {
-    use cac_db::schema::contexts::dsl::*;
+    use superposition_types::cac::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
 
     let filter_params = filter_params.into_inner();
@@ -847,7 +849,7 @@ async fn priority_recompute(
     #[cfg(feature = "high-performance-mode")] tenant: Tenant,
     _user: User,
 ) -> superposition::Result<HttpResponse> {
-    use cac_db::schema::contexts::dsl::*;
+    use superposition_types::cac::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
 
     let result: Vec<Context> = contexts.load(&mut conn).map_err(|err| {

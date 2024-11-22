@@ -6,18 +6,21 @@ use actix_web::{
     HttpResponse, Result, Scope,
 };
 use base64::prelude::*;
-use cac_db::schema::{
-    self,
-    functions::{dsl, dsl::functions, function_name, last_modified_at},
-};
 use chrono::Utc;
 use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::json;
 use service_utils::service::types::DbConnection;
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
-    cac::models::Function, custom_query::PaginationParams, result as superposition,
-    PaginatedResponse, User,
+    cac::{
+        models::Function,
+        schema::{
+            self,
+            functions::{dsl, dsl::functions, function_name, last_modified_at},
+        },
+    },
+    custom_query::PaginationParams,
+    result as superposition, PaginatedResponse, User,
 };
 use validation_functions::{compile_fn, execute_fn};
 

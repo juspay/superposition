@@ -1,6 +1,5 @@
 use actix_web::web::{Json, Path, Query};
 use actix_web::{delete, get, post, put, HttpResponse, Scope};
-use cac_db::schema::type_templates::{self, dsl};
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use jsonschema::JSONSchema;
@@ -9,7 +8,9 @@ use service_utils::service::types::DbConnection;
 use superposition_macros::{bad_argument, db_error};
 use superposition_types::cac::models::TypeTemplates;
 use superposition_types::{
-    custom_query::PaginationParams, result as superposition, PaginatedResponse, User,
+    cac::schema::type_templates::{self, dsl},
+    custom_query::PaginationParams,
+    result as superposition, PaginatedResponse, User,
 };
 
 use crate::api::type_templates::types::{TypeTemplateName, TypeTemplateRequest};

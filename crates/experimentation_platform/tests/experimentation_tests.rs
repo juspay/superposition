@@ -1,11 +1,10 @@
 use chrono::Utc;
-use experimentation_db::ExperimentStatusType;
 use experimentation_platform::api::experiments::helpers;
 use serde_json::{json, Map, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::ExperimentationFlags;
 use superposition_types::{
-    experimentation::models::{Experiment, Variant, Variants},
+    experimentation::models::{Experiment, ExperimentStatusType, Variant, Variants},
     result as superposition, Cac, Condition, Exp, Overrides,
 };
 

@@ -1,8 +1,3 @@
-#[cfg(feature = "diesel_derives")]
-use cac_db::schema::{
-    config_versions, contexts, default_configs, dimensions, event_log, functions,
-    type_templates,
-};
 use chrono::{offset::Utc, DateTime, NaiveDateTime};
 #[cfg(feature = "diesel_derives")]
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
@@ -10,6 +5,12 @@ use serde::Serialize;
 use serde_json::Value;
 
 use crate::{Cac, Condition, Contextual, Overridden, Overrides};
+
+#[cfg(feature = "diesel_derives")]
+use super::schema::{
+    config_versions, contexts, default_configs, dimensions, event_log, functions,
+    type_templates,
+};
 
 #[derive(Clone, Serialize, Debug)]
 #[cfg_attr(

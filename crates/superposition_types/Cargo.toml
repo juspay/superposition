@@ -9,11 +9,12 @@ edition = "2021"
 # env
 actix-web = { workspace = true, optional = true }
 anyhow = { workspace = true, optional = true }
-cac_db = { path = "../cac_db", optional = true }
 chrono = { workspace = true }
 derive_more = { workspace = true }
 diesel = { workspace = true, optional = true }
-experimentation_db = { path = "../experimentation_db", optional = true }
+diesel-derive-enum = { version = "2.0.1", features = [
+    "postgres",
+], optional = true }
 jsonlogic = { workspace = true }
 log = { workspace = true }
 regex = { workspace = true }
@@ -28,14 +29,12 @@ default = ["server"]
 diesel_derives = [
     "dep:diesel",
     "dep:superposition_derives",
-    "dep:cac_db",
-    "cac_db/diesel_derives",
-    "experimentation_db?/diesel_derives",
+    "dep:diesel-derive-enum",
 ]
 disable_db_data_validation = []
 result = ["dep:diesel", "dep:anyhow", "dep:thiserror", "dep:actix-web"]
 server = ["dep:actix-web"]
-experimentation = ["dep:experimentation_db"]
+experimentation = []
 
 [lints]
 workspace = true

@@ -15,8 +15,8 @@ FEATURES ?= ssr
 	cac
 
 db-init:
-	diesel migration run --locked-schema --config-file=crates/cac_db/diesel.toml
-	-diesel migration run --locked-schema --config-file=crates/experimentation_db/diesel.toml
+	diesel migration run --locked-schema --config-file=crates/superposition_types/src/cac/diesel.toml
+	-diesel migration run --locked-schema --config-file=crates/superposition_types/src/experimentation/diesel.toml
 
 cleanup:
 	-docker rm -f $$(docker container ls --filter name=^context-aware-config -a -q)
@@ -29,7 +29,7 @@ cac-migration: cleanup
 		do echo "waiting for postgres bootup"; \
 		sleep 0.5; \
 		done
-	diesel migration run --locked-schema --config-file=crates/cac_db/diesel.toml
+	diesel migration run --locked-schema --config-file=crates/superposition_types/src/cac/diesel.toml
 	docker-compose down
 
 exp-migration: cleanup
@@ -39,7 +39,7 @@ exp-migration: cleanup
 		do echo "waiting for postgres bootup"; \
 		sleep 0.5; \
 		done
-	--diesel migration run --locked-schema --config-file=crates/experimentation_db/diesel.toml
+	--diesel migration run --locked-schema --config-file=crates/superposition_types/src/experimentation/diesel.toml
 	docker-compose down
 
 migration: cac-migration exp-migration

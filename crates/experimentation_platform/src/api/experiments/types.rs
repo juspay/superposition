@@ -1,12 +1,11 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, NaiveDateTime, Utc};
-use experimentation_db::ExperimentStatusType;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use service_utils::helpers::deserialize_stringified_list;
 use superposition_types::{
-    experimentation::models::{Experiment, Variant},
+    experimentation::models::{Experiment, ExperimentStatusType, Variant},
     Condition, Exp, Overrides,
 };
 

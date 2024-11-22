@@ -17,8 +17,6 @@ members = [
     "examples/superposition-demo-app",
     "crates/superposition_macros",
     "crates/superposition_derives",
-    "crates/cac_db",
-    "crates/experimentation_db",
 ]
 
 [[workspace.metadata.leptos]]

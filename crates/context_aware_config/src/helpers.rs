@@ -3,13 +3,6 @@ use std::collections::HashMap;
 use actix_web::http::header::{HeaderMap, HeaderName, HeaderValue};
 use actix_web::web::Data;
 #[cfg(feature = "high-performance-mode")]
-use cac_db::schema::event_log::dsl as event_log;
-use cac_db::schema::{
-    config_versions,
-    contexts::dsl::{self as ctxt},
-    default_configs::dsl as def_conf,
-};
-#[cfg(feature = "high-performance-mode")]
 use chrono::DateTime;
 use chrono::Utc;
 use diesel::{
@@ -27,9 +20,18 @@ use service_utils::{
     service::types::AppState,
 };
 use superposition_macros::{db_error, unexpected_error, validation_error};
+#[cfg(feature = "high-performance-mode")]
+use superposition_types::cac::schema::event_log::dsl as event_log;
 use superposition_types::{
-    cac::models::ConfigVersion, result as superposition, Cac, Condition, Config, Context,
-    Overrides,
+    cac::{
+        models::ConfigVersion,
+        schema::{
+            config_versions,
+            contexts::dsl::{self as ctxt},
+            default_configs::dsl as def_conf,
+        },
+    },
+    result as superposition, Cac, Condition, Config, Context, Overrides,
 };
 #[cfg(feature = "high-performance-mode")]
 use uuid::Uuid;
