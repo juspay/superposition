@@ -81,16 +81,19 @@ async fn create(
         .order(priority.asc())
         .select((dimension, priority, position))
         .load::<(String, i32, i32)>(&mut conn)
-        .expect("Error loading dimensions");
-    let prev_index = results
+        .map_err(|err| {
+            log::error!("failed to fetch dimensions with error: {}", err);
+            unexpected_error!("Something went wrong")
+        })?;
+    let prev_position_index = results
         .iter()
         .position(|(name, _, _)| name.to_owned() == dimension_name.clone());
     results.push((dimension_name.clone(), req_priority_val, 0));
     results.sort_by_key(|&(_, val, _)| val);
-    let new_index = results
+    let new_position_index = results
         .iter()
         .position(|(name, _, _)| name.to_owned() == dimension_name);
-    let mut position_val = new_index.unwrap_or(1) as i32;
+    let mut position_val = new_position_index.unwrap_or(1) as i32;
     if let Some(val) = req_position_val.clone() {
         position_val = val;
     }
@@ -106,34 +109,54 @@ async fn create(
         last_modified_by: user.get_email(),
     };
 
+    /*
+    Ongoing Migration logic
+    Position will be an optional argument during migration,
+    case 1 : Create request - position value not given
+            we will sort the dimension(including current one) based on priority
+            will calculate position value based on priority value and create dimension
+    case 2 : Create/update request position value given
+             we will use the request data and insert without calculating anything on our end
+    case 3: Update request - position not given
+            get dimension list , sort on priority
+            calculate prev position
+            put update dimension priority  in list
+            then calculate new position
+            update all the row's position value according to it
+
+    In all cases we will adjust the position value for all other rows
+
+     */
+
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        match (prev_index, new_index.clone(), req_position_val.clone()) {
-            (Some(prev_val), Some(new_val), None) => {
-                println!("1");
-                if prev_val < new_val {
-                    new_dimension.position = new_val.clone() as i32 - 1;
+        match (
+            prev_position_index,
+            new_position_index.clone(),
+            req_position_val.clone(),
+        ) {
+            (Some(prev_position_val), Some(new_position_val), None) => {
+                if prev_position_val < new_position_val {
+                    new_dimension.position = new_position_val.clone() as i32 - 1;
+                // as it is calculated with 1 duplicate dimension so -1
                 } else {
-                    new_dimension.position = new_val.clone() as i32
+                    new_dimension.position = new_position_val.clone() as i32
                 };
-                println!("2");
                 diesel::update(dimensions)
-                    .filter(position.gt(prev_val as i32))
-                    .filter(position.lt(new_val.clone() as i32))
+                    .filter(position.gt(prev_position_val as i32))
+                    .filter(position.lt(new_position_val.clone() as i32))
                     .filter(position.gt(0))
                     .set(position.eq(position - 1))
                     .execute(transaction_conn)?;
 
                 diesel::update(dimensions)
-                    .filter(position.ge(new_val as i32))
+                    .filter(position.ge(new_position_val as i32))
                     .set(position.eq(position + 1))
                     .execute(transaction_conn)?;
-                println!("3");
             }
-            (None, Some(new_index), None) => {
-                println!("4");
-                new_dimension.position = new_index.clone() as i32;
+            (None, Some(new_position_index), None) => {
+                new_dimension.position = new_position_index.clone() as i32;
                 diesel::update(dimensions)
-                    .filter(position.ge(new_index as i32))
+                    .filter(position.ge(new_position_index as i32))
                     .set(position.eq(position + 1))
                     .execute(transaction_conn)?;
             }

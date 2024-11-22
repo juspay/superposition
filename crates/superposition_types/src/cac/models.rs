@@ -31,7 +31,7 @@ pub struct Context {
     pub override_: Overrides,
     pub last_modified_at: NaiveDateTime,
     pub last_modified_by: String,
-    pub weightage: BigDecimal,
+    pub weight: BigDecimal,
 }
 
 impl Contextual for Context {

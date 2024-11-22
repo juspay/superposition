@@ -18,13 +18,13 @@
       }
     ],
     "url": {
-      "raw": "{{host}}/context/weightage/recompute",
+      "raw": "{{host}}/context/weight/recompute",
       "host": [
         "{{host}}"
       ],
       "path": [
         "context",
-        "weightage",
+        "weight",
         "recompute"
       ]
     }

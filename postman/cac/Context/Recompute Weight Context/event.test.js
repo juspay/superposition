@@ -18,7 +18,7 @@ function getContextAndTest() {
             throw error;
         }
         console.log(response.json())
-        pm.expect(response.json().weightage).to.be.eq("4");
+        pm.expect(response.json().weight).to.be.eq("4");
 
     })
     

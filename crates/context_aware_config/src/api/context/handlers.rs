@@ -49,12 +49,12 @@ use crate::{
         context::types::{
             ContextAction, ContextBulkResponse, ContextFilterSortBy, ContextFilters,
             DimensionCondition, MoveReq, PriorityRecomputeResponse, PutReq, PutResp,
-            WeightageRecomputeResponse,
+            WeightRecomputeResponse,
         },
         dimension::{get_dimension_data, get_dimension_data_map},
     },
     helpers::{
-        add_config_version, calculate_context_priority, calculate_context_weightage,
+        add_config_version, calculate_context_priority, calculate_context_weight,
         validate_context_jsonschema, DimensionData,
     },
 };
@@ -75,7 +75,7 @@ pub fn endpoints() -> Scope {
         .service(get_context_from_condition)
         .service(get_context)
         .service(priority_recompute)
-        .service(weightage_recompute)
+        .service(weight_recompute)
 }
 
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
@@ -225,7 +225,7 @@ fn create_ctx_from_put_req(
         &dimension_data_map,
     )?;
 
-    let weightage = calculate_context_weightage(&condition_val, &dimension_data_map)
+    let weight = calculate_context_weight(&condition_val, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
     if priority == 0 {
         return Err(bad_argument!("No dimension found in context"));
@@ -243,7 +243,7 @@ fn create_ctx_from_put_req(
         created_by: user.get_email(),
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
-        weightage,
+        weight,
     })
 }
 
@@ -323,7 +323,7 @@ fn get_put_resp(ctx: Context) -> PutResp {
         context_id: ctx.id,
         override_id: ctx.override_id,
         priority: ctx.priority,
-        weightage: ctx.weightage,
+        weight: ctx.weight,
     }
 }
 
@@ -459,9 +459,8 @@ fn r#move(
         &ctx_condition_value,
         &dimension_data_map,
     )?;
-    let weightage =
-        calculate_context_weightage(&ctx_condition_value, &dimension_data_map)
-            .map_err(|_| unexpected_error!("Something Went Wrong"))?;
+    let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
+        .map_err(|_| unexpected_error!("Something Went Wrong"))?;
 
     validate_condition_with_mandatory_dimensions(
         &req.context.into_inner(),
@@ -497,7 +496,7 @@ fn r#move(
         override_: ctx.override_,
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
-        weightage,
+        weight,
     };
 
     let handle_unique_violation =
@@ -937,8 +936,8 @@ async fn priority_recompute(
     Ok(http_resp.json(response))
 }
 
-#[put("/weightage/recompute")]
-async fn weightage_recompute(
+#[put("/weight/recompute")]
+async fn weight_recompute(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
@@ -955,14 +954,14 @@ async fn weightage_recompute(
 
     let dimension_data = get_dimension_data(&mut conn)?;
     let dimension_data_map = get_dimension_data_map(&dimension_data)?;
-    let mut response: Vec<WeightageRecomputeResponse> = vec![];
+    let mut response: Vec<WeightRecomputeResponse> = vec![];
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let update_contexts = result
         .clone()
         .into_iter()
         .map(|context| {
-            let new_weightage = calculate_context_weightage(
+            let new_weight = calculate_context_weight(
                 &Value::Object(context.value.clone().into()),
                 &dimension_data_map,
             )
@@ -971,16 +970,16 @@ async fn weightage_recompute(
                 unexpected_error!("Something went wrong")
             });
 
-            match new_weightage {
+            match new_weight {
                 Ok(val) => {
-                    response.push(WeightageRecomputeResponse {
+                    response.push(WeightRecomputeResponse {
                         id: context.id.clone(),
                         condition: context.value.clone(),
-                        old_weightage: context.weightage.clone(),
-                        new_weightage: val.clone(),
+                        old_weight: context.weight.clone(),
+                        new_weight: val.clone(),
                     });
                     Ok(Context {
-                        weightage: val,
+                        weight: val,
                         ..context.clone()
                     })
                 }
@@ -995,7 +994,7 @@ async fn weightage_recompute(
                 .values(&update_contexts)
                 .on_conflict(id)
                 .do_update()
-                .set(weightage.eq(excluded(weightage)))
+                .set(weight.eq(excluded(weight)))
                 .execute(transaction_conn);
             let version_id = add_config_version(&state, tags, transaction_conn)?;
             match insert {

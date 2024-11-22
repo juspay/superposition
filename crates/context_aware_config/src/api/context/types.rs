@@ -25,7 +25,7 @@ pub struct PutResp {
     pub context_id: String,
     pub override_id: String,
     pub priority: i32,
-    pub weightage: BigDecimal,
+    pub weight: BigDecimal,
 }
 
 #[derive(Deserialize)]
@@ -84,11 +84,11 @@ pub struct PriorityRecomputeResponse {
 }
 
 #[derive(Serialize)]
-pub struct WeightageRecomputeResponse {
+pub struct WeightRecomputeResponse {
     pub id: String,
     pub condition: Condition,
-    pub old_weightage: BigDecimal,
-    pub new_weightage: BigDecimal,
+    pub old_weight: BigDecimal,
+    pub new_weight: BigDecimal,
 }
 
 #[cfg(test)]

@@ -990,7 +990,7 @@
                   "    \"override\": {",
                   "        \"key1\": \"value3\"",
                   "    }",
-                  "    \"weightage\": \"1\",",
+                  "    \"weight\": \"1\",",
                   "};",
                   "",
                   "pm.test(\"200 check\", function() {",
@@ -1212,7 +1212,7 @@
           }
         },
         {
-          "name": "Recompute Weightage Context",
+          "name": "Recompute Weight Context",
           "event": [
             {
               "listen": "prerequest",
@@ -1281,7 +1281,7 @@
                   "            throw error;",
                   "        }",
                   "        console.log(response.json())",
-                  "        pm.expect(response.json().weightage).to.be.eq(\"4\");",
+                  "        pm.expect(response.json().weight).to.be.eq(\"4\");",
                   "",
                   "    })",
                   "    ",
@@ -1292,7 +1292,7 @@
                   "});",
                   "",
                   "",
-                  "pm.test(\"Check weightage update\", function () {",
+                  "pm.test(\"Check weight update\", function () {",
                   "    getContextAndTest()",
                   "});"
                 ],
@@ -1320,13 +1320,13 @@
               }
             ],
             "url": {
-              "raw": "{{host}}/context/weightage/recompute",
+              "raw": "{{host}}/context/weight/recompute",
               "host": [
                 "{{host}}"
               ],
               "path": [
                 "context",
-                "weightage",
+                "weight",
                 "recompute"
               ]
             }

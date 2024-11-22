@@ -228,7 +228,7 @@ fn calculate_weight_from_index(index: u32) -> Result<BigDecimal, String> {
     })
 }
 
-pub fn calculate_context_weightage(
+pub fn calculate_context_weight(
     cond: &Value,
     dimension_position_map: &HashMap<String, DimensionData>,
 ) -> Result<BigDecimal, String> {
@@ -241,7 +241,7 @@ pub fn calculate_context_weightage(
         msg
     })?;
 
-    let mut weightage = BigDecimal::from(0);
+    let mut weight = BigDecimal::from(0);
     for dimension in dimensions {
         let position = dimension_position_map
             .get(dimension.clone().as_str())
@@ -252,9 +252,9 @@ pub fn calculate_context_weightage(
                 log::error!("{}", msg);
                 msg
             })?;
-        weightage = weightage + calculate_weight_from_index(position as u32)?;
+        weight = weight + calculate_weight_from_index(position as u32)?;
     }
-    Ok(weightage)
+    Ok(weight)
 }
 pub fn generate_cac(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,

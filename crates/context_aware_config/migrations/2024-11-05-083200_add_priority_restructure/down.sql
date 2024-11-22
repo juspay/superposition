@@ -3,6 +3,6 @@ ALTER TABLE public.dimensions
 drop column position;
 
 ALTER TABLE public.contexts
-drop column weightage;
+drop column weight;
 
-DROP INDEX IF EXISTS idx_contexts_weightage;
+DROP INDEX IF EXISTS idx_contexts_weight;
