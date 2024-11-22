@@ -4,10 +4,6 @@ use std::collections::HashMap;
 use std::str;
 
 use base64::prelude::*;
-use cac_db::schema::{
-    default_configs::dsl,
-    dimensions::{self},
-};
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
@@ -15,7 +11,13 @@ use diesel::{
 use serde_json::{Map, Value};
 use service_utils::helpers::extract_dimensions;
 use superposition_macros::{unexpected_error, validation_error};
-use superposition_types::{result as superposition, Condition};
+use superposition_types::{
+    cac::schema::{
+        default_configs::dsl,
+        dimensions::{self},
+    },
+    result as superposition, Condition,
+};
 
 use crate::api::context::types::FunctionsInfo;
 use crate::api::functions::helpers::get_published_functions_by_names;

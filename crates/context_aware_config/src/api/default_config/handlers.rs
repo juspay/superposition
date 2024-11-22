@@ -5,7 +5,6 @@ use actix_web::{
     web::{self, Data, Json, Path, Query},
     HttpResponse, Scope,
 };
-use cac_db::schema::{self, contexts::dsl::contexts, default_configs::dsl};
 use chrono::Utc;
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
@@ -24,7 +23,10 @@ use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
 use superposition_types::{
-    cac::models::{self as models, Context, DefaultConfig},
+    cac::{
+        models::{self as models, Context, DefaultConfig},
+        schema::{self, contexts::dsl::contexts, default_configs::dsl},
+    },
     custom_query::PaginationParams,
     result as superposition, PaginatedResponse, User,
 };

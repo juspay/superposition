@@ -13,9 +13,6 @@ use actix_web::{
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
-use cac_db::schema::{
-    config_versions::dsl as config_versions, event_log::dsl as event_log,
-};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
 use diesel::{
     dsl::max,
@@ -37,7 +34,10 @@ use service_utils::{
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    cac::models::ConfigVersion,
+    cac::{
+        models::ConfigVersion,
+        schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
+    },
     custom_query::{
         self as superposition_query, CustomQuery, PaginationParams, QueryMap,
     },

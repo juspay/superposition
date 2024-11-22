@@ -17,6 +17,8 @@ use std::future::{ready, Ready};
 
 #[cfg(feature = "server")]
 use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
+#[cfg(feature = "diesel_derives")]
+use diesel_derive_enum as _;
 #[cfg(feature = "server")]
 use log::error;
 use regex::Regex;

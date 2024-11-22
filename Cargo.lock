@@ -981,13 +981,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cac_db"
-version = "0.1.0"
-dependencies = [
- "diesel",
-]
-
-[[package]]
 name = "cac_toml"
 version = "0.2.0"
 dependencies = [
@@ -1285,7 +1278,6 @@ dependencies = [
  "base64 0.21.2",
  "blake3",
  "cac_client",
- "cac_db",
  "cfg-if",
  "chrono",
  "derive_more",
@@ -1689,15 +1681,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "experimentation_db"
-version = "0.1.0"
-dependencies = [
- "diesel",
- "diesel-derive-enum",
- "serde",
-]
-
-[[package]]
 name = "experimentation_example"
 version = "0.1.0"
 dependencies = [
@@ -1715,7 +1698,6 @@ dependencies = [
  "anyhow",
  "chrono",
  "diesel",
- "experimentation_db",
  "jsonlogic",
  "log",
  "reqwest",
@@ -4100,11 +4082,10 @@ version = "0.7.1"
 dependencies = [
  "actix-web",
  "anyhow",
- "cac_db",
  "chrono",
  "derive_more",
  "diesel",
- "experimentation_db",
+ "diesel-derive-enum",
  "jsonlogic",
  "log",
  "regex",

@@ -11,9 +11,6 @@ actix-http = "3.3.1"
 anyhow = { workspace = true }
 chrono = { workspace = true }
 diesel = { workspace = true }
-experimentation_db = { path = "../experimentation_db", features = [
-    "diesel_derives",
-] }
 log = { workspace = true }
 jsonlogic = { workspace = true }
 reqwest = { workspace = true }

@@ -2,17 +2,33 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 #[cfg(feature = "diesel_derives")]
 use diesel::{
     deserialize::FromSqlRow, expression::AsExpression, sql_types::Json, Insertable,
-    Queryable, QueryableByName, Selectable,
+    QueryId, Queryable, QueryableByName, Selectable,
 };
-#[cfg(feature = "diesel_derives")]
-use experimentation_db::schema::*;
-use experimentation_db::ExperimentStatusType;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql};
 
 use crate::{Condition, Exp, Overrides};
+
+#[cfg(feature = "diesel_derives")]
+use super::schema::*;
+
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize, Serialize)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(diesel_derive_enum::DbEnum, QueryId)
+)]
+#[cfg_attr(feature = "diesel_derives", DbValueStyle = "UPPERCASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    ExistingTypePath = "crate::experimentation::schema::sql_types::ExperimentStatusType"
+)]
+pub enum ExperimentStatusType {
+    CREATED,
+    CONCLUDED,
+    INPROGRESS,
+}
 
 #[derive(Deserialize, Serialize, Clone, PartialEq, Debug)]
 pub enum VariantType {

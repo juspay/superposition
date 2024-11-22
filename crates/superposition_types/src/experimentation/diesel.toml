@@ -1,0 +1,6 @@
+[print_schema]
+file = "schema.rs"
+patch_file = "schema.patch"
+
+[migrations_directory]
+dir = "../../../experimentation_platform/migrations"

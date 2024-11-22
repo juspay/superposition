@@ -13,7 +13,6 @@ anyhow = { workspace = true }
 base64 = { workspace = true }
 blake3 = "1.3.3"
 cac_client = { path = "../cac_client" }
-cac_db = { path = "../cac_db", features = ["diesel_derives"] }
 cfg-if = { workspace = true }
 chrono = { workspace = true }
 derive_more = { workspace = true }
