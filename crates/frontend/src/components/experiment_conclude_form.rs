@@ -2,9 +2,11 @@ pub mod utils;
 
 use std::rc::Rc;
 
-use self::utils::conclude_experiment;
-use crate::types::{Experiment, Variant, VariantType};
 use leptos::*;
+use superposition_types::experimentation::models::{Variant, VariantType};
+use utils::conclude_experiment;
+
+use crate::types::Experiment;
 
 #[component]
 pub fn experiment_conclude_form<HS>(

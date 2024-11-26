@@ -1,12 +1,13 @@
-use crate::components::function_form::FunctionEditor;
-use crate::types::FunctionResponse;
 use leptos::*;
 use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
+use superposition_types::cac::models::Function;
+
+use crate::components::function_form::FunctionEditor;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct CombinedResource {
-    function: Option<FunctionResponse>,
+    function: Option<Function>,
 }
 
 #[component]

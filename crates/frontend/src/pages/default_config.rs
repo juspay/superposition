@@ -9,7 +9,7 @@ use crate::components::table::{
     Table,
 };
 
-use crate::types::{BreadCrums, ListFilters, PaginatedResponse};
+use crate::types::{BreadCrums, ListFilters};
 use crate::utils::{
     get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
     update_page_direction,
@@ -39,10 +39,9 @@ pub fn default_config() -> impl IntoView {
     let default_config_resource = create_blocking_resource(
         move || (tenant_rs.get(), filters.get()),
         |(current_tenant, filters)| async move {
-            match fetch_default_config(filters, current_tenant).await {
-                Ok(data) => data,
-                Err(_) => PaginatedResponse::default(),
-            }
+            fetch_default_config(filters, current_tenant)
+                .await
+                .unwrap_or_default()
         },
     );
 
@@ -272,11 +271,7 @@ pub fn default_config() -> impl IntoView {
                 {move || {
                     let default_config = default_config_resource
                         .get()
-                        .unwrap_or(PaginatedResponse {
-                            total_items: 1,
-                            total_pages: 1,
-                            data: vec![],
-                        });
+                        .unwrap_or_default();
                     let table_rows = default_config
                         .data
                         .into_iter()
