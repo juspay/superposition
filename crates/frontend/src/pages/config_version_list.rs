@@ -3,12 +3,14 @@ use leptos::*;
 use chrono::NaiveDateTime;
 use leptos_router::A;
 use serde_json::{json, Map, Value};
+use superposition_types::{
+    cac::models::ConfigVersion, custom_query::PaginationParams, PaginatedResponse,
+};
 
 use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
 use crate::components::table::types::{ColumnSortable, TablePaginationProps};
 use crate::components::table::{types::Column, Table};
-use crate::types::{ConfigVersionListResponse, ListFilters};
 use crate::utils::use_url_base;
 
 use crate::api::fetch_snapshots;
@@ -18,29 +20,21 @@ pub fn config_version_list() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
 
     // Signals for filters
-    let (filters, set_filters) = create_signal(ListFilters {
-        page: Some(1),
-        count: Some(10), // Limit of 10 items per page
-        all: None,
-    });
+    let (filters, set_filters) = create_signal(PaginationParams::default_request());
 
     let table_columns = create_memo(move |_| snapshot_table_columns(tenant_rs.get()));
 
-    let snapshots_resource: Resource<(String, i64, i64), ConfigVersionListResponse> =
-        create_blocking_resource(
-            move || {
-                (
-                    tenant_rs.get(),
-                    filters.get().page.unwrap_or(1),
-                    filters.get().count.unwrap_or(10),
-                )
-            },
-            |(current_tenant, page, count)| async move {
-                fetch_snapshots(current_tenant.to_string(), page, count, false)
-                    .await
-                    .unwrap_or_default()
-            },
-        );
+    let snapshots_resource: Resource<
+        (String, PaginationParams),
+        PaginatedResponse<ConfigVersion>,
+    > = create_blocking_resource(
+        move || (tenant_rs.get(), filters.get()),
+        |(current_tenant, filters)| async move {
+            fetch_snapshots(&filters, current_tenant.to_string())
+                .await
+                .unwrap_or_default()
+        },
+    );
 
     let handle_next_click = Callback::new(move |total_pages: i64| {
         set_filters.update(|f| {

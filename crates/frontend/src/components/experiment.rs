@@ -1,14 +1,23 @@
-use leptos::*;
-use serde_json::{Map, Value};
 use std::collections::HashMap;
 
+use leptos::*;
+use serde_json::{Map, Value};
+use superposition_types::experimentation::models::{
+    ExperimentStatusType, Variant, VariantType,
+};
+
+use crate::components::table::types::Column;
 use crate::components::table::Table;
 use crate::schema::HtmlDisplay;
-use crate::types::{Experiment, ExperimentStatusType};
-use crate::{
-    components::table::types::Column,
-    types::{Variant, VariantType},
-};
+use crate::types::Experiment;
+
+fn badge_class(status_type: ExperimentStatusType) -> &'static str {
+    match status_type {
+        ExperimentStatusType::CREATED => "badge-info",
+        ExperimentStatusType::INPROGRESS => "badge-warning",
+        ExperimentStatusType::CONCLUDED => "badge-success",
+    }
+}
 
 use super::table::types::ColumnSortable;
 
@@ -16,7 +25,7 @@ pub fn gen_variant_table(
     variants: &[Variant],
 ) -> Result<(Vec<Map<String, Value>>, Vec<Column>), String> {
     let mut columns = vec![Column::default("Config Key".into())];
-    let mut row_map: HashMap<&String, Map<String, Value>> = HashMap::new();
+    let mut row_map: HashMap<String, Map<String, Value>> = HashMap::new();
     for (i, variant) in variants.iter().enumerate() {
         let name = match variant.variant_type {
             VariantType::CONTROL => format!("{}", variant.variant_type),
@@ -28,8 +37,8 @@ pub fn gen_variant_table(
             |value: &str, _| view! { <span>{value.to_string()}</span> }.into_view(),
             ColumnSortable::No,
         ));
-        for (config, value) in variant.overrides.iter() {
-            match row_map.get_mut(config) {
+        for (config, value) in variant.overrides.clone().into_inner().into_iter() {
+            match row_map.get_mut(&config) {
                 Some(c) => {
                     c.insert(name.clone(), value.clone());
                 }
@@ -64,7 +73,7 @@ where
     let contexts = experiment.with_value(|v| v.context.clone());
     let badge_class = format!(
         "badge text-white ml-3 mb-1 badge-xl {}",
-        experiment.with_value(|v| v.status.badge_class())
+        experiment.with_value(|v| badge_class(v.status))
     );
     let (variant_rows, variant_col) =
         gen_variant_table(&experiment.with_value(|v| v.variants.clone())).unwrap();

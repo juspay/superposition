@@ -2,6 +2,10 @@ use futures::join;
 use leptos::*;
 use leptos_router::use_params_map;
 use serde::{Deserialize, Serialize};
+use superposition_types::{
+    cac::{models::DefaultConfig, types::DimensionWithMandatory},
+    custom_query::PaginationParams,
+};
 
 use crate::{
     api::{fetch_default_config, fetch_dimensions, fetch_experiment},
@@ -14,7 +18,7 @@ use crate::{
         skeleton::{Skeleton, SkeletonVariant},
     },
     providers::editor_provider::EditorProvider,
-    types::{DefaultConfig, Dimension, Experiment, ListFilters, PaginatedResponse},
+    types::Experiment,
     utils::{close_modal, show_modal},
 };
 
@@ -23,7 +27,7 @@ use crate::components::experiment_ramp_form::ExperimentRampForm;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct CombinedResource {
     experiment: Option<Experiment>,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
     default_config: Vec<DefaultConfig>,
 }
 
@@ -43,11 +47,7 @@ pub fn experiment_page() -> impl IntoView {
             // Perform all fetch operations concurrently
             let experiments_future =
                 fetch_experiment(exp_id.to_string(), tenant.to_string());
-            let empty_list_filters = ListFilters {
-                page: None,
-                count: None,
-                all: Some(true),
-            };
+            let empty_list_filters = PaginationParams::all_entries();
             let dimensions_future =
                 fetch_dimensions(&empty_list_filters, tenant.to_string());
             let config_future =
@@ -60,14 +60,12 @@ pub fn experiment_page() -> impl IntoView {
             CombinedResource {
                 experiment: experiments_result.ok().map(|v| v.into()),
                 dimensions: dimensions_result
-                    .unwrap_or(PaginatedResponse::default())
+                    .unwrap_or_default()
                     .data
                     .into_iter()
                     .filter(|d| d.dimension != "variantIds")
                     .collect(),
-                default_config: config_result
-                    .unwrap_or(PaginatedResponse::default())
-                    .data,
+                default_config: config_result.unwrap_or_default().data,
             }
         });
 

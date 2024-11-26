@@ -1,6 +1,8 @@
-use crate::types::{Variant, VariantFormT};
 use serde::Serialize;
 use serde_json::{Map, Value};
+use superposition_types::experimentation::models::Variant;
+
+use crate::types::VariantFormT;
 
 #[derive(Serialize)]
 pub struct ExperimentCreateRequest {
@@ -18,7 +20,7 @@ pub struct VariantUpdateRequest {
 
 impl From<VariantFormT> for VariantUpdateRequest {
     fn from(value: VariantFormT) -> Self {
-        VariantUpdateRequest {
+        Self {
             id: value.id,
             overrides: Map::from_iter(value.overrides),
         }
