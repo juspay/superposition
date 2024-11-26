@@ -2,6 +2,7 @@ use futures::join;
 use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use superposition_types::cac::models::{DefaultConfig, DimensionWithMandatory};
 use superposition_types::{Config, Context};
 
 use crate::api::fetch_config;
@@ -20,7 +21,7 @@ use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
-use crate::types::{DefaultConfig, Dimension, ListFilters, PaginatedResponse};
+use crate::types::ListFilters;
 
 #[derive(Clone, Debug, Default)]
 pub struct Data {
@@ -31,7 +32,7 @@ pub struct Data {
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct PageResource {
     config: Config,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
     default_config: Vec<DefaultConfig>,
 }
 
@@ -45,7 +46,7 @@ enum FormMode {
 fn form(
     context: Vec<Condition>,
     overrides: Vec<(String, Value)>,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
     edit: bool,
     default_config: Vec<DefaultConfig>,
     handle_submit: Callback<(), ()>,
@@ -160,14 +161,12 @@ pub fn context_override() -> impl IntoView {
             PageResource {
                 config: config_result.unwrap_or_default(),
                 dimensions: dimensions_result
-                    .unwrap_or(PaginatedResponse::default())
+                    .unwrap_or_default()
                     .data
                     .into_iter()
                     .filter(|d| d.dimension != "variantIds")
                     .collect(),
-                default_config: default_config_result
-                    .unwrap_or(PaginatedResponse::default())
-                    .data,
+                default_config: default_config_result.unwrap_or_default().data,
             }
         },
     );
