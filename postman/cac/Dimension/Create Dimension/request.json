@@ -27,7 +27,6 @@
     "raw_json_formatted": {
       "dimension": "clientId",
       "priority": 100,
-      "position": 0,
       "schema": {
         "type": "string",
         "pattern": "^[a-z0-9].*$"

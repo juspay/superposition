@@ -443,7 +443,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"dimension\":\"clientId\",\"priority\":100,\"position\":0,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
+              "raw": "{\"dimension\":\"clientId\",\"priority\":100,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
             },
             "url": {
               "raw": "{{host}}/dimension",
@@ -483,7 +483,6 @@
                   "                    \"type\": \"string\",",
                   "                    \"pattern\": \".*\"",
                   "                }",
-                  "                \"position\": 1,",
                   "            })",
                   "        }",
                   "    };",
@@ -1237,7 +1236,7 @@
                   "                    \"type\": \"string\",",
                   "                    \"pattern\": \"^[a-z0-9].*$\"",
                   "                }",
-                  "                \"position\": 2,",
+                  "                \"position\": 0,",
                   "            })",
                   "        }",
                   "    };",
@@ -1281,7 +1280,7 @@
                   "            throw error;",
                   "        }",
                   "        console.log(response.json())",
-                  "        pm.expect(response.json().weight).to.be.eq(\"4\");",
+                  "        pm.expect(response.json().weight).to.be.eq(\"1\");",
                   "",
                   "    })",
                   "    ",

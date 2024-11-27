@@ -34,6 +34,7 @@ pub fn endpoints() -> Scope {
         .service(create)
         .service(get)
         .service(delete_dimension)
+        .service(temp_position_update)
 }
 
 #[put("")]
@@ -48,7 +49,7 @@ async fn create(
 
     let create_req = req.into_inner();
     let schema_value = create_req.schema;
-    let n_dimensions: i64 = dimensions.count().get_result(&mut conn)?;
+
     validate_jsonschema(&state.meta_schema, &schema_value)?;
 
     let schema_compile_result = JSONSchema::options()
@@ -73,34 +74,10 @@ async fn create(
         }
     };
 
-    let req_priority_val: i32 = create_req.priority.clone().into();
-    let dimension_name: String = create_req.dimension.clone().into();
-    let req_position_val = Into::<Option<i32>>::into(create_req.position.clone());
-
-    let mut results: Vec<(String, i32, i32)> = dimensions
-        .order(priority.asc())
-        .select((dimension, priority, position))
-        .load::<(String, i32, i32)>(&mut conn)
-        .map_err(|err| {
-            log::error!("failed to fetch dimensions with error: {}", err);
-            unexpected_error!("Something went wrong")
-        })?;
-    let prev_position_index = results
-        .iter()
-        .position(|(name, _, _)| name.to_owned() == dimension_name.clone());
-    results.push((dimension_name.clone(), req_priority_val, 0));
-    results.sort_by_key(|&(_, val, _)| val);
-    let new_position_index = results
-        .iter()
-        .position(|(name, _, _)| name.to_owned() == dimension_name);
-    let mut position_val = new_position_index.unwrap_or(1) as i32;
-    if let Some(val) = req_position_val.clone() {
-        position_val = val;
-    }
-    let mut new_dimension = Dimension {
+    let new_dimension = Dimension {
         dimension: create_req.dimension.into(),
-        priority: create_req.priority.clone().into(),
-        position: position_val.clone(),
+        priority: create_req.priority.into(),
+        position: 0, // hard coded for now till we migrate
         schema: schema_value,
         created_by: user.get_email(),
         created_at: Utc::now(),
@@ -109,107 +86,40 @@ async fn create(
         last_modified_by: user.get_email(),
     };
 
-    /*
-    Ongoing Migration logic
-    Position will be an optional argument during migration,
-    case 1 : Create request - position value not given
-            we will sort the dimension(including current one) based on priority
-            will calculate position value based on priority value and create dimension
-    case 2 : Create/update request position value given
-             we will use the request data and insert without calculating anything on our end
-    case 3: Update request - position not given
-            get dimension list , sort on priority
-            calculate prev position
-            put update dimension priority  in list
-            then calculate new position
-            update all the row's position value according to it
+    let upsert = diesel::insert_into(dimensions)
+        .values(&new_dimension)
+        .on_conflict(dimensions::dimension)
+        .do_update()
+        .set(&new_dimension)
+        .get_result::<Dimension>(&mut conn);
 
-    In all cases we will adjust the position value for all other rows
-
-     */
-
-    conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        match (
-            prev_position_index,
-            new_position_index.clone(),
-            req_position_val.clone(),
-        ) {
-            (Some(prev_position_val), Some(new_position_val), None) => {
-                if prev_position_val < new_position_val {
-                    new_dimension.position = new_position_val.clone() as i32 - 1;
-                // as it is calculated with 1 duplicate dimension so -1
-                } else {
-                    new_dimension.position = new_position_val.clone() as i32
-                };
-                diesel::update(dimensions)
-                    .filter(position.gt(prev_position_val as i32))
-                    .filter(position.lt(new_position_val.clone() as i32))
-                    .filter(position.gt(0))
-                    .set(position.eq(position - 1))
-                    .execute(transaction_conn)?;
-
-                diesel::update(dimensions)
-                    .filter(position.ge(new_position_val as i32))
-                    .set(position.eq(position + 1))
-                    .execute(transaction_conn)?;
-            }
-            (None, Some(new_position_index), None) => {
-                new_dimension.position = new_position_index.clone() as i32;
-                diesel::update(dimensions)
-                    .filter(position.ge(new_position_index as i32))
-                    .set(position.eq(position + 1))
-                    .execute(transaction_conn)?;
-            }
-            (_, _, Some(val)) => {
-                if val > n_dimensions.clone() as i32 {
-                    return Err(bad_argument!(
-                        "Expected psoition value less than {}",
-                        n_dimensions
-                    ));
-                }
-                diesel::update(dimensions::dsl::dimensions)
-                    .filter(dimensions::position.ge(val))
-                    .set(dimensions::position.eq(dimensions::position + 1))
-                    .execute(transaction_conn)?;
-            }
-            (_, _, _) => {}
-        };
-
-        let upsert = diesel::insert_into(dimensions)
-            .values(&new_dimension)
-            .on_conflict(dimensions::dimension)
-            .do_update()
-            .set(&new_dimension)
-            .get_result::<Dimension>(transaction_conn);
-
-        match upsert {
-            Ok(upserted_dimension) => {
-                let is_mandatory = tenant_config
-                    .mandatory_dimensions
-                    .contains(&upserted_dimension.dimension);
-                Ok(HttpResponse::Created().json(DimensionWithMandatory::new(
-                    upserted_dimension,
-                    is_mandatory,
-                )))
-            }
-            Err(diesel::result::Error::DatabaseError(
-                diesel::result::DatabaseErrorKind::ForeignKeyViolation,
-                e,
-            )) => {
-                log::error!("{fun_name:?} function not found with error: {e:?}");
-                Err(bad_argument!(
-                    "Function {} doesn't exists",
-                    fun_name.unwrap_or(String::new())
-                ))
-            }
-            Err(e) => {
-                log::error!("Dimension upsert failed with error: {e}");
-                Err(unexpected_error!(
-                    "Something went wrong, failed to create/update dimension"
-                ))
-            }
+    match upsert {
+        Ok(upserted_dimension) => {
+            let is_mandatory = tenant_config
+                .mandatory_dimensions
+                .contains(&upserted_dimension.dimension);
+            Ok(HttpResponse::Created().json(DimensionWithMandatory::new(
+                upserted_dimension,
+                is_mandatory,
+            )))
         }
-    })
+        Err(diesel::result::Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::ForeignKeyViolation,
+            e,
+        )) => {
+            log::error!("{fun_name:?} function not found with error: {e:?}");
+            Err(bad_argument!(
+                "Function {} doesn't exists",
+                fun_name.unwrap_or(String::new())
+            ))
+        }
+        Err(e) => {
+            log::error!("Dimension upsert failed with error: {e}");
+            Err(unexpected_error!(
+                "Something went wrong, failed to create/update dimension"
+            ))
+        }
+    }
 }
 
 #[get("")]
@@ -303,4 +213,34 @@ async fn delete_dimension(
             context_ids.join(",")
         ))
     }
+}
+
+#[put("/position/update")]
+async fn temp_position_update(
+    user: User,
+    db_conn: DbConnection,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let results: Vec<(String, i32, i32)> = dimensions
+        .order(priority.asc())
+        .select((dimension, priority, position))
+        .load::<(String, i32, i32)>(&mut conn)
+        .map_err(|err| {
+            log::error!("failed to fetch dimensions with error: {}", err);
+            unexpected_error!("Something went wrong")
+        })?;
+
+    let _ = for (index, (dim, pri, _)) in results.iter().enumerate() {
+        diesel::update(dimensions)
+            .filter(dimension.eq(dim))
+            .filter(priority.eq(*pri))
+            .set((
+                position.eq(index as i32),
+                last_modified_at.eq(Utc::now().naive_utc()),
+                last_modified_by.eq(user.get_email()),
+            ))
+            .execute(&mut conn)?;
+    };
+    Ok(HttpResponse::Ok()
+        .json(serde_json::json!({"message": "Position updated sucessfully"})))
 }

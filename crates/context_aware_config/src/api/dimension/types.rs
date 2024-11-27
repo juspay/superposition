@@ -8,7 +8,6 @@ use superposition_types::{cac::models::Dimension, RegexEnum};
 pub struct CreateReq {
     pub dimension: DimensionName,
     pub priority: Priority,
-    pub position: Position,
     pub schema: Value,
     #[serde(default, deserialize_with = "deserialize_option")]
     pub function_name: Option<Value>,
