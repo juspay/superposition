@@ -431,7 +431,7 @@ pub fn input(
             Some(ref v) => {
                 view! { <Toggle value=v.clone() on_change class name/> }.into_view()
             }
-            None => view! { <span>An error occured</span> }.into_view(),
+            None => view! { <Toggle value=false on_change class name/> }.into_view(),
         },
         InputType::Select(ref options) => view! { <Select id name class value on_change disabled options=options.0.clone()/> }
         .into_view(),
