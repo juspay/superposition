@@ -31,3 +31,63 @@ pub trait Overridden<T: TryFrom<Map<String, Value>>>: Clone {
         T::try_from(filtered_override)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashSet;
+
+    use serde_json::{json, Map};
+
+    use super::filter_config_keys_by_prefix;
+
+    #[test]
+    fn test_filter_config_keys_by_prefix() {
+        let config = json!({
+            "key1": false,
+            "test.test.test1": 1,
+            "test.test1": 12,
+            "test2.key": false,
+            "test2.test": "def_val"
+        })
+        .as_object()
+        .unwrap()
+        .clone();
+
+        let prefix_list = HashSet::from_iter(vec![String::from("test.")].into_iter());
+
+        assert_eq!(
+            filter_config_keys_by_prefix(config.clone(), &prefix_list),
+            json!({
+                "test.test.test1": 1,
+                "test.test1": 12
+            })
+            .as_object()
+            .unwrap()
+            .clone()
+        );
+
+        let prefix_list = HashSet::from_iter(
+            vec![String::from("test."), String::from("test2.")].into_iter(),
+        );
+
+        assert_eq!(
+            filter_config_keys_by_prefix(config.clone(), &prefix_list),
+            json!({
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            })
+            .as_object()
+            .unwrap()
+            .clone()
+        );
+
+        let prefix_list = HashSet::from_iter(vec![String::from("abcd")].into_iter());
+
+        assert_eq!(
+            filter_config_keys_by_prefix(config, &prefix_list),
+            Map::new()
+        );
+    }
+}
