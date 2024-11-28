@@ -171,11 +171,7 @@ impl Config {
         filter_config_keys_by_prefix(self.default_configs.clone(), prefix_list)
     }
 
-    fn filter_by_prefix_internal(
-        &self,
-        prefix_list: &HashSet<String>,
-        break_on_validate: bool,
-    ) -> Result<Self, String> {
+    pub fn filter_by_prefix(&self, prefix_list: &HashSet<String>) -> Self {
         let mut filtered_overrides: HashMap<String, Overrides> = HashMap::new();
 
         let filtered_default_config = self.filter_default_by_prefix(prefix_list);
@@ -184,23 +180,12 @@ impl Config {
             let filtered_overrides_map =
                 filter_config_keys_by_prefix(overrides.clone().into(), prefix_list);
 
-            if break_on_validate {
-                let filtered_override_map = Cac::<Overrides>::validate_db_data(
-                    filtered_overrides_map,
-                )
-                .map_err(|err| {
-                    format!("failed to decode overrides from db with error {}", err)
-                })?;
-                filtered_overrides
-                    .insert(key.clone(), filtered_override_map.into_inner());
-            } else {
-                let _ = Cac::<Overrides>::try_from(filtered_overrides_map).map(
-                    |filtered_overrides_map| {
-                        filtered_overrides
-                            .insert(key.clone(), filtered_overrides_map.into_inner())
-                    },
-                );
-            }
+            let _ = Cac::<Overrides>::try_from(filtered_overrides_map).map(
+                |filtered_overrides_map| {
+                    filtered_overrides
+                        .insert(key.clone(), filtered_overrides_map.into_inner())
+                },
+            );
         }
 
         let filtered_context: Vec<Context> = self
@@ -212,27 +197,10 @@ impl Config {
             .cloned()
             .collect();
 
-        let filtered_config = Self {
+        Self {
             contexts: filtered_context,
             overrides: filtered_overrides,
             default_configs: filtered_default_config,
-        };
-
-        Ok(filtered_config)
-    }
-
-    /// To be used while filtering Config which is being `read from DB`
-    /// Meant mostly for `server side usage`
-    pub fn try_filter_by_prefix(
-        &self,
-        prefix_list: &HashSet<String>,
-    ) -> Result<Self, String> {
-        self.filter_by_prefix_internal(prefix_list, true)
-    }
-
-    /// To be used while filtering Config which is `not read from DB`
-    /// Meant mostly for `client side usage`
-    pub fn filter_by_prefix(&self, prefix_list: &HashSet<String>) -> Self {
-        self.filter_by_prefix_internal(prefix_list, false).unwrap()
+        }
     }
 }
