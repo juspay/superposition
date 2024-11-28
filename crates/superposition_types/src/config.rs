@@ -181,11 +181,8 @@ impl Config {
         let filtered_default_config = self.filter_default_by_prefix(prefix_list);
 
         for (key, overrides) in &self.overrides {
-            let filtered_overrides_map: Map<String, Value> = overrides
-                .clone()
-                .into_iter()
-                .filter(|(key, _)| prefix_list.contains(key))
-                .collect();
+            let filtered_overrides_map =
+                filter_config_keys_by_prefix(overrides.clone().into(), prefix_list);
 
             if break_on_validate {
                 let filtered_override_map = Cac::<Overrides>::validate_db_data(
