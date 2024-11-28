@@ -1,15 +1,14 @@
 #![deny(unused_crate_dependencies)]
 mod app_state;
+mod auth;
 
 use std::{collections::HashSet, io::Result, time::Duration};
 
 use actix_files::Files;
 use actix_web::{
-    dev::Service,
-    http::header,
     middleware::Compress,
     web::{self, get, scope, Data, PathConfig},
-    App, HttpMessage, HttpResponse, HttpServer,
+    App, HttpResponse, HttpServer,
 };
 use context_aware_config::api::*;
 use experimentation_platform::api::*;
@@ -19,12 +18,8 @@ use leptos::*;
 use leptos_actix::{generate_route_list, LeptosRoutes};
 use service_utils::{
     helpers::get_from_env_unsafe,
-    middlewares::{
-        app_scope::AppExecutionScopeMiddlewareFactory, tenant::TenantMiddlewareFactory,
-    },
-    service::types::{AppScope, AppState},
+    middlewares::app_scope::AppExecutionScopeMiddlewareFactory, service::types::AppScope,
 };
-use superposition_types::User;
 
 #[actix_web::get("favicon.ico")]
 async fn favicon(
@@ -92,30 +87,33 @@ async fn main() -> Result<()> {
     let app_state =
         Data::new(app_state::get(service_prefix_str.to_owned(), &base, &tenants).await);
 
+    let auth = auth::init_auth();
+
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
         let site_root = &leptos_options.site_root;
         let leptos_envs = ui_envs.clone();
         App::new()
             .wrap(Compress::default())
+            .wrap(auth.to_owned())
             .app_data(app_state.clone())
-            .wrap_fn(|req, srv| {
-                let state = req.app_data::<Data<AppState>>().unwrap();
-                let user = req.headers().get(header::AUTHORIZATION).and_then(|auth| auth.to_str().ok()).and_then(|auth| {
-                    let mut token = auth.split(' ').into_iter();
-                    match (token.next(), token.next()) {
-                        (Some("Internal"), Some(token)) if token == state.superposition_token =>
-                            req.headers().get("x-user").and_then(|auth| auth.to_str().ok()).and_then(|user_str| {
-                                serde_json::from_str::<User>(user_str).ok()
-                            }),
-                        (_, _) => None
-                    }
-                }).unwrap_or_default();
+            // .wrap_fn(|req, srv| {
+            //     let state = req.app_data::<Data<AppState>>().unwrap();
+            //     let user = req.headers().get(header::AUTHORIZATION).and_then(|auth| auth.to_str().ok()).and_then(|auth| {
+            //         let mut token = auth.split(' ').into_iter();
+            //         match (token.next(), token.next()) {
+            //             (Some("Internal"), Some(token)) if token == state.superposition_token =>
+            //                 req.headers().get("x-user").and_then(|auth| auth.to_str().ok()).and_then(|user_str| {
+            //                     serde_json::from_str::<User>(user_str).ok()
+            //                 }),
+            //             (_, _) => None
+            //         }
+            //     }).unwrap_or_default();
 
-                req.extensions_mut().insert::<User>(user);
-                srv.call(req)
-            })
-            .wrap(TenantMiddlewareFactory)
+            //     req.extensions_mut().insert::<User>(user);
+            //     srv.call(req)
+            // })
+            // .wrap(TenantMiddlewareFactory)
             .app_data(PathConfig::default().error_handler(|err, _| {
                 actix_web::error::ErrorBadRequest(err)
             }))
@@ -124,6 +122,7 @@ async fn main() -> Result<()> {
                     .add(("X-SERVER-VERSION", app_state.cac_version.to_string()))
                     .add(("Cache-Control", "no-store".to_string()))
             )
+            .service(auth.routes())
             .service(web::redirect("/", ui_redirect_path.to_string()))
             .service(web::redirect("/admin", ui_redirect_path.to_string()))
             .service(web::redirect("/admin/{tenant}/", "default-config"))
