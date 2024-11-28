@@ -139,6 +139,7 @@ where
 
 /// Provides struct to `Deserialize` `HashMap<String, String>` as `serde_json::Map<String, serde_json::Value>`
 #[derive(Deserialize, Deref, DerefMut)]
+#[cfg_attr(test, derive(Debug, PartialEq))]
 #[serde(from = "HashMap<String,String>")]
 pub struct QueryMap(Map<String, Value>);
 
@@ -195,5 +196,43 @@ impl<'de> Deserialize<'de> for PaginationParams {
             page: helper.page,
             all: helper.all,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use serde_json::{from_value, json};
+
+    use crate::custom_query::QueryMap;
+
+    #[test]
+    fn querymap_from_hashmap() {
+        let hashmap: HashMap<String, String> = from_value(json!({
+            "key1": "123",
+            "key2": "\"123\"",
+            "key3": "test",
+            "key4": "true",
+            "key5": "\"true\"",
+            "key6": "null",
+            "key7": "\"null\""
+        }))
+        .unwrap();
+
+        let map = json!({
+            "key1": 123,
+            "key2": "123",
+            "key3": "test",
+            "key4": true,
+            "key5": "true",
+            "key6": null,
+            "key7": "null"
+        })
+        .as_object()
+        .unwrap()
+        .clone();
+
+        assert_eq!(QueryMap::from(hashmap), QueryMap(map));
     }
 }
