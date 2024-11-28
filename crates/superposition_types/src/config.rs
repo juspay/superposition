@@ -208,14 +208,14 @@ impl Config {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use std::collections::{HashMap, HashSet};
 
     use serde_json::{from_value, json, Map, Number, Value};
 
     use super::Config;
 
-    fn get_config() -> Config {
+    pub(crate) fn get_config() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -301,7 +301,32 @@ mod tests {
         from_value(config_json).unwrap()
     }
 
-    fn get_dimension_filtered_config1() -> Config {
+    pub(crate) fn get_dimension_data1() -> Map<String, Value> {
+        Map::from_iter(vec![(String::from("test3"), Value::Bool(true))].into_iter())
+    }
+
+    pub(crate) fn get_dimension_data2() -> Map<String, Value> {
+        Map::from_iter(
+            vec![
+                (String::from("test3"), Value::Bool(false)),
+                (String::from("test"), Value::String(String::from("key"))),
+            ]
+            .into_iter(),
+        )
+    }
+
+    pub(crate) fn get_dimension_data3() -> Map<String, Value> {
+        Map::from_iter(
+            vec![
+                (String::from("test3"), Value::Bool(false)),
+                (String::from("test"), Value::String(String::from("key"))),
+                (String::from("test2"), Value::Number(Number::from(12))),
+            ]
+            .into_iter(),
+        )
+    }
+
+    pub(crate) fn get_dimension_filtered_config1() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -357,7 +382,7 @@ mod tests {
         from_value(config_json).unwrap()
     }
 
-    fn get_dimension_filtered_config2() -> Config {
+    pub(crate) fn get_dimension_filtered_config2() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -394,7 +419,7 @@ mod tests {
         from_value(config_json).unwrap()
     }
 
-    fn get_dimension_filtered_config3() -> Config {
+    pub(crate) fn get_dimension_filtered_config3() -> Config {
         let config_json = json!(  {
             "contexts": [],
             "overrides": {},
@@ -410,7 +435,7 @@ mod tests {
         from_value(config_json).unwrap()
     }
 
-    fn get_prefix_filtered_config1() -> Config {
+    pub(crate) fn get_prefix_filtered_config1() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -442,7 +467,7 @@ mod tests {
         from_value(config_json).unwrap()
     }
 
-    fn get_prefix_filtered_config2() -> Config {
+    pub(crate) fn get_prefix_filtered_config2() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -500,38 +525,18 @@ mod tests {
     fn filter_by_dimensions() {
         let config = get_config();
 
-        let dimension_data =
-            Map::from_iter(vec![(String::from("test3"), Value::Bool(true))].into_iter());
-
         assert_eq!(
-            config.filter_by_dimensions(&dimension_data),
+            config.filter_by_dimensions(&get_dimension_data1()),
             get_dimension_filtered_config1()
         );
 
-        let dimension_data = Map::from_iter(
-            vec![
-                (String::from("test3"), Value::Bool(false)),
-                (String::from("test"), Value::String(String::from("key"))),
-            ]
-            .into_iter(),
-        );
-
         assert_eq!(
-            config.filter_by_dimensions(&dimension_data),
+            config.filter_by_dimensions(&get_dimension_data2()),
             get_dimension_filtered_config2()
         );
 
-        let dimension_data = Map::from_iter(
-            vec![
-                (String::from("test3"), Value::Bool(false)),
-                (String::from("test"), Value::String(String::from("key"))),
-                (String::from("test2"), Value::Number(Number::from(12))),
-            ]
-            .into_iter(),
-        );
-
         assert_eq!(
-            config.filter_by_dimensions(&dimension_data),
+            config.filter_by_dimensions(&get_dimension_data3()),
             get_dimension_filtered_config3()
         );
     }

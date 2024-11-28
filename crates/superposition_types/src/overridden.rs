@@ -36,34 +36,23 @@ pub trait Overridden<T: TryFrom<Map<String, Value>>>: Clone {
 mod tests {
     use std::collections::HashSet;
 
-    use serde_json::{json, Map};
+    use serde_json::Map;
+
+    use crate::config::tests::{
+        get_config, get_prefix_filtered_config1, get_prefix_filtered_config2,
+    };
 
     use super::filter_config_keys_by_prefix;
 
     #[test]
     fn test_filter_config_keys_by_prefix() {
-        let config = json!({
-            "key1": false,
-            "test.test.test1": 1,
-            "test.test1": 12,
-            "test2.key": false,
-            "test2.test": "def_val"
-        })
-        .as_object()
-        .unwrap()
-        .clone();
+        let config = get_config();
 
         let prefix_list = HashSet::from_iter(vec![String::from("test.")].into_iter());
 
         assert_eq!(
-            filter_config_keys_by_prefix(config.clone(), &prefix_list),
-            json!({
-                "test.test.test1": 1,
-                "test.test1": 12
-            })
-            .as_object()
-            .unwrap()
-            .clone()
+            filter_config_keys_by_prefix(config.default_configs.clone(), &prefix_list),
+            get_prefix_filtered_config1().default_configs
         );
 
         let prefix_list = HashSet::from_iter(
@@ -71,22 +60,14 @@ mod tests {
         );
 
         assert_eq!(
-            filter_config_keys_by_prefix(config.clone(), &prefix_list),
-            json!({
-                "test.test.test1": 1,
-                "test.test1": 12,
-                "test2.key": false,
-                "test2.test": "def_val"
-            })
-            .as_object()
-            .unwrap()
-            .clone()
+            filter_config_keys_by_prefix(config.default_configs.clone(), &prefix_list),
+            get_prefix_filtered_config2().default_configs
         );
 
         let prefix_list = HashSet::from_iter(vec![String::from("abcd")].into_iter());
 
         assert_eq!(
-            filter_config_keys_by_prefix(config, &prefix_list),
+            filter_config_keys_by_prefix(config.default_configs, &prefix_list),
             Map::new()
         );
     }
