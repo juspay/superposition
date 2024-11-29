@@ -31,3 +31,44 @@ pub trait Overridden<T: TryFrom<Map<String, Value>>>: Clone {
         T::try_from(filtered_override)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashSet;
+
+    use serde_json::Map;
+
+    use crate::config::tests::{
+        get_config, get_prefix_filtered_config1, get_prefix_filtered_config2,
+    };
+
+    use super::filter_config_keys_by_prefix;
+
+    #[test]
+    fn test_filter_config_keys_by_prefix() {
+        let config = get_config();
+
+        let prefix_list = HashSet::from_iter(vec![String::from("test.")].into_iter());
+
+        assert_eq!(
+            filter_config_keys_by_prefix(config.default_configs.clone(), &prefix_list),
+            get_prefix_filtered_config1().default_configs
+        );
+
+        let prefix_list = HashSet::from_iter(
+            vec![String::from("test."), String::from("test2.")].into_iter(),
+        );
+
+        assert_eq!(
+            filter_config_keys_by_prefix(config.default_configs.clone(), &prefix_list),
+            get_prefix_filtered_config2().default_configs
+        );
+
+        let prefix_list = HashSet::from_iter(vec![String::from("abcd")].into_iter());
+
+        assert_eq!(
+            filter_config_keys_by_prefix(config.default_configs, &prefix_list),
+            Map::new()
+        );
+    }
+}

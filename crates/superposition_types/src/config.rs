@@ -121,6 +121,7 @@ impl_try_from_map!(Cac, Condition, Condition::validate_data_for_cac);
 impl_try_from_map!(Exp, Condition, Condition::validate_data_for_exp);
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(test, derive(PartialEq))]
 pub struct Context {
     pub id: String,
     pub condition: Condition,
@@ -136,6 +137,7 @@ impl Contextual for Context {
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(test, derive(PartialEq))]
 pub struct Config {
     pub contexts: Vec<Context>,
     pub overrides: HashMap<String, Overrides>,
@@ -171,39 +173,21 @@ impl Config {
         filter_config_keys_by_prefix(self.default_configs.clone(), prefix_list)
     }
 
-    fn filter_by_prefix_internal(
-        &self,
-        prefix_list: &HashSet<String>,
-        break_on_validate: bool,
-    ) -> Result<Self, String> {
+    pub fn filter_by_prefix(&self, prefix_list: &HashSet<String>) -> Self {
         let mut filtered_overrides: HashMap<String, Overrides> = HashMap::new();
 
         let filtered_default_config = self.filter_default_by_prefix(prefix_list);
 
         for (key, overrides) in &self.overrides {
-            let filtered_overrides_map: Map<String, Value> = overrides
-                .clone()
-                .into_iter()
-                .filter(|(key, _)| prefix_list.contains(key))
-                .collect();
+            let filtered_overrides_map =
+                filter_config_keys_by_prefix(overrides.clone().into(), prefix_list);
 
-            if break_on_validate {
-                let filtered_override_map = Cac::<Overrides>::validate_db_data(
-                    filtered_overrides_map,
-                )
-                .map_err(|err| {
-                    format!("failed to decode overrides from db with error {}", err)
-                })?;
-                filtered_overrides
-                    .insert(key.clone(), filtered_override_map.into_inner());
-            } else {
-                let _ = Cac::<Overrides>::try_from(filtered_overrides_map).map(
-                    |filtered_overrides_map| {
-                        filtered_overrides
-                            .insert(key.clone(), filtered_overrides_map.into_inner())
-                    },
-                );
-            }
+            let _ = Cac::<Overrides>::try_from(filtered_overrides_map).map(
+                |filtered_overrides_map| {
+                    filtered_overrides
+                        .insert(key.clone(), filtered_overrides_map.into_inner())
+                },
+            );
         }
 
         let filtered_context: Vec<Context> = self
@@ -215,27 +199,399 @@ impl Config {
             .cloned()
             .collect();
 
-        let filtered_config = Self {
+        Self {
             contexts: filtered_context,
             overrides: filtered_overrides,
             default_configs: filtered_default_config,
-        };
+        }
+    }
+}
 
-        Ok(filtered_config)
+#[cfg(test)]
+pub(crate) mod tests {
+    use std::collections::{HashMap, HashSet};
+
+    use serde_json::{from_value, json, Map, Number, Value};
+
+    use super::Config;
+
+    pub(crate) fn get_config() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test3"
+                            },
+                            true
+                        ]
+                    },
+                    "priority": 1,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                },
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test2"
+                            },
+                            123
+                        ]
+                    },
+                    "priority": 2,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                },
+                {
+                    "id": "9fbf3b9fa10caaaf31f6003cbd20ed36d40efe73b5c6b238288c0a96e6933500",
+                    "condition": {
+                        "and": [
+                            {
+                                "==": [
+                                    {
+                                        "var": "test3"
+                                    },
+                                    false
+                                ]
+                            },
+                            {
+                                "==": [
+                                    {
+                                        "var": "test"
+                                    },
+                                    "test"
+                                ]
+                            }
+                        ]
+                    },
+                    "priority": 3,
+                    "override_with_keys": [
+                        "e2fa5b38c3a1448cf0e27f9d555fdb8964a686d8ae41b70b55e6ee30359b87c8"
+                    ]
+                }
+            ],
+            "overrides": {
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5,
+                    "test2.test": "testval"
+                },
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                },
+                "e2fa5b38c3a1448cf0e27f9d555fdb8964a686d8ae41b70b55e6ee30359b87c8": {
+                    "key1": true
+                }
+            },
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            }
+        });
+
+        from_value(config_json).unwrap()
     }
 
-    /// To be used while filtering Config which is being `read from DB`
-    /// Meant mostly for `server side usage`
-    pub fn try_filter_by_prefix(
-        &self,
-        prefix_list: &HashSet<String>,
-    ) -> Result<Self, String> {
-        self.filter_by_prefix_internal(prefix_list, true)
+    pub(crate) fn get_dimension_data1() -> Map<String, Value> {
+        Map::from_iter(vec![(String::from("test3"), Value::Bool(true))].into_iter())
     }
 
-    /// To be used while filtering Config which is `not read from DB`
-    /// Meant mostly for `client side usage`
-    pub fn filter_by_prefix(&self, prefix_list: &HashSet<String>) -> Self {
-        self.filter_by_prefix_internal(prefix_list, false).unwrap()
+    pub(crate) fn get_dimension_data2() -> Map<String, Value> {
+        Map::from_iter(
+            vec![
+                (String::from("test3"), Value::Bool(false)),
+                (String::from("test"), Value::String(String::from("key"))),
+            ]
+            .into_iter(),
+        )
+    }
+
+    pub(crate) fn get_dimension_data3() -> Map<String, Value> {
+        Map::from_iter(
+            vec![
+                (String::from("test3"), Value::Bool(false)),
+                (String::from("test"), Value::String(String::from("key"))),
+                (String::from("test2"), Value::Number(Number::from(12))),
+            ]
+            .into_iter(),
+        )
+    }
+
+    pub(crate) fn get_dimension_filtered_config1() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test3"
+                            },
+                            true
+                        ]
+                    },
+                    "priority": 1,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                },
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test2"
+                            },
+                            123
+                        ]
+                    },
+                    "priority": 2,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                }
+            ],
+            "overrides": {
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                },
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5,
+                    "test2.test": "testval"
+                }
+            },
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            }
+        });
+
+        from_value(config_json).unwrap()
+    }
+
+    pub(crate) fn get_dimension_filtered_config2() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test2"
+                            },
+                            123
+                        ]
+                    },
+                    "priority": 2,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                }
+            ],
+            "overrides": {
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                }
+            },
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            }
+        });
+
+        from_value(config_json).unwrap()
+    }
+
+    pub(crate) fn get_dimension_filtered_config3() -> Config {
+        let config_json = json!(  {
+            "contexts": [],
+            "overrides": {},
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            }
+        });
+
+        from_value(config_json).unwrap()
+    }
+
+    pub(crate) fn get_prefix_filtered_config1() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test3"
+                            },
+                            true
+                        ]
+                    },
+                    "priority": 1,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                }
+            ],
+            "overrides": {
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5
+                }
+            },
+            "default_configs": {
+                "test.test.test1": 1,
+                "test.test1": 12
+            }
+        });
+        from_value(config_json).unwrap()
+    }
+
+    pub(crate) fn get_prefix_filtered_config2() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test3"
+                            },
+                            true
+                        ]
+                    },
+                    "priority": 1,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                },
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test2"
+                            },
+                            123
+                        ]
+                    },
+                    "priority": 2,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                }
+            ],
+            "overrides": {
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                },
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5,
+                    "test2.test": "testval"
+                }
+            },
+            "default_configs": {
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            }
+        });
+        from_value(config_json).unwrap()
+    }
+
+    #[test]
+    fn filter_by_dimensions() {
+        let config = get_config();
+
+        assert_eq!(
+            config.filter_by_dimensions(&get_dimension_data1()),
+            get_dimension_filtered_config1()
+        );
+
+        assert_eq!(
+            config.filter_by_dimensions(&get_dimension_data2()),
+            get_dimension_filtered_config2()
+        );
+
+        assert_eq!(
+            config.filter_by_dimensions(&get_dimension_data3()),
+            get_dimension_filtered_config3()
+        );
+    }
+
+    #[test]
+    fn filter_default_by_prefix() {
+        let config = get_config();
+
+        let prefix_list = HashSet::from_iter(vec![String::from("test.")].into_iter());
+
+        assert_eq!(
+            config.filter_default_by_prefix(&prefix_list),
+            json!({
+                "test.test.test1": 1,
+                "test.test1": 12,
+            })
+            .as_object()
+            .unwrap()
+            .clone()
+        );
+
+        let prefix_list = HashSet::from_iter(vec![String::from("test3")].into_iter());
+
+        assert_eq!(config.filter_default_by_prefix(&prefix_list), Map::new());
+    }
+
+    #[test]
+    fn filter_by_prefix() {
+        let config = get_config();
+
+        let prefix_list = HashSet::from_iter(vec![String::from("test.")].into_iter());
+
+        assert_eq!(
+            config.filter_by_prefix(&prefix_list),
+            get_prefix_filtered_config1()
+        );
+
+        let prefix_list = HashSet::from_iter(
+            vec![String::from("test."), String::from("test2.")].into_iter(),
+        );
+
+        assert_eq!(
+            config.filter_by_prefix(&prefix_list),
+            get_prefix_filtered_config2()
+        );
+
+        let prefix_list = HashSet::from_iter(vec![String::from("abcd")].into_iter());
+
+        assert_eq!(
+            config.filter_by_prefix(&prefix_list),
+            Config {
+                contexts: Vec::new(),
+                overrides: HashMap::new(),
+                default_configs: Map::new(),
+            }
+        );
     }
 }
