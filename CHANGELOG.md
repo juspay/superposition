@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.62.0 - 2024-12-02
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.43.0
+- experimentation_platform bumped to experimentation_platform-v0.23.0
+- superposition_types bumped to superposition_types-v0.8.0
+### Global changes
+#### Features
+- Cac model types migration - (b15f1b7) - ayush.jain@juspay.in
+- Exp model types migration - (f0dfe8c) - ayush.jain@juspay.in
+- Common changes - (9c68567) - ayush.jain@juspay.in
+- Renaming - (e987e40) - ayush.jain@juspay.in
+- Revert seperate crate creation - (a6e905d) - ayush.jain@juspay.in
+
+- - -
+
 ## v0.61.1 - 2024-11-22
 ### Package updates
 - frontend bumped to frontend-v0.18.1

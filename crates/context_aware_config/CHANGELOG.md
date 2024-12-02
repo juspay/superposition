@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.43.0 - 2024-12-02
+#### Bug Fixes
+- Filter config by prefix (#293) - (c2e5726) - Ayush Jain
+#### Features
+- Revert seperate crate creation - (a6e905d) - ayush.jain@juspay.in
+- Renaming - (e987e40) - ayush.jain@juspay.in
+- Cac model types migration - (b15f1b7) - ayush.jain@juspay.in
+
+- - -
+
 ## context_aware_config-v0.42.0 - 2024-11-20
 #### Bug Fixes
 - Add pagination to list APIs (#209) - (c155bb0) - Ankit Kumar Mahato

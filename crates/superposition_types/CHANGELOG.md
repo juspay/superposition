@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.8.0 - 2024-12-02
+#### Bug Fixes
+- Filter config by prefix (#293) - (c2e5726) - Ayush Jain
+- Add exp feature flag - (5ff2807) - ayush.jain@juspay.in
+#### Features
+- Revert seperate crate creation - (a6e905d) - ayush.jain@juspay.in
+- Renaming - (e987e40) - ayush.jain@juspay.in
+- Common changes - (9c68567) - ayush.jain@juspay.in
+- Exp model types migration - (f0dfe8c) - ayush.jain@juspay.in
+- Cac model types migration - (b15f1b7) - ayush.jain@juspay.in
+
+- - -
+
 ## superposition_types-v0.7.1 - 2024-11-22
 #### Bug Fixes
 - fixed and improved webhooks (#283) - (4864849) - Ankit Kumar Mahato

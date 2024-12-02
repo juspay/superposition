@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.23.0 - 2024-12-02
+#### Bug Fixes
+- Add exp feature flag - (5ff2807) - ayush.jain@juspay.in
+#### Features
+- Revert seperate crate creation - (a6e905d) - ayush.jain@juspay.in
+- Renaming - (e987e40) - ayush.jain@juspay.in
+- Exp model types migration - (f0dfe8c) - ayush.jain@juspay.in
+
+- - -
+
 ## experimentation_platform-v0.22.1 - 2024-11-22
 #### Bug Fixes
 - fixed and improved webhooks (#283) - (4864849) - Ankit Kumar Mahato
