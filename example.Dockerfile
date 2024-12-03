@@ -5,7 +5,7 @@ WORKDIR /build
 # install nodeJS for functions
 ENV NVM_DIR /usr/local/nvm
 ENV NODE_VERSION 20.17.0
-RUN apt-get update; apt-get install -y libxmlsec1-dev libxml2
+RUN apt-get update; apt-get install -y libxmlsec1-dev libxml2-dev libclang-dev
 RUN mkdir -p $NVM_DIR
 RUN curl "https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh" | bash \
     && . $NVM_DIR/nvm.sh \
@@ -44,7 +44,7 @@ FROM debian:bookworm-slim as runtime
 ENV NODE_VERSION=20.17.0
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y libpq5 ca-certificates curl supervisor
+RUN apt-get update && apt-get install -y libpq5 ca-certificates curl supervisor libxmlsec1-dev
 RUN apt-get install -y postgresql-common
 RUN /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -i -v 14
 # Update the package lists:
