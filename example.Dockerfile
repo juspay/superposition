@@ -41,6 +41,8 @@ RUN cargo build --release
 
 FROM debian:bookworm-slim as runtime
 
+RUN mkdir -p /app/crates/superposition
+COPY --from=builder /build/crates/superposition/Superposition.cac.toml /app/crates/superposition/Superposition.cac.toml
 ENV NODE_VERSION=20.17.0
 WORKDIR /app
 
@@ -76,5 +78,5 @@ COPY --from=builder /build/Cargo.toml /app/Cargo.toml
 COPY --from=builder /build/target/site /app/target/site
 COPY --from=builder /build/target/node_modules /app/target/node_modules
 COPY --from=builder /build/target/.env /app/.env
-COPY --from=builder /build/target/saml-idp-metadata.xml /app/saml-idp-metadata.xml
+COPY --from=builder /build/saml-idp-meta.xml /app/saml-idp-meta.xml
 CMD ["./superposition_demo.sh"]
