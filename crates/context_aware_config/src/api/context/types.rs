@@ -1,4 +1,3 @@
-use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
     custom_query::CommaSeparatedStringQParams, Cac, Condition, Overrides, SortBy,

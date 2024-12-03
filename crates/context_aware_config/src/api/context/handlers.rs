@@ -9,7 +9,6 @@ use actix_web::{
     web::{Data, Json, Path},
     HttpResponse, Scope,
 };
-use bigdecimal::BigDecimal;
 use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{
@@ -50,7 +49,7 @@ use crate::{
             ContextAction, ContextBulkResponse, ContextFilterSortOn, ContextFilters,
             DimensionCondition, MoveReq, PutReq, PutResp, WeightRecomputeResponse,
         },
-        dimension::{get_dimension_data, get_dimension_data_map},
+        dimension::get_all_dimension_schema_map,
     },
     helpers::{
         add_config_version, calculate_context_weight, validate_context_jsonschema,
@@ -125,17 +124,17 @@ pub fn validate_dimensions(
 
             if let (Some(dimension_value), Some(dimension_condition)) = (val, condition) {
                 let expected_dimension_name = dimension_condition.var;
-                let dimension_data = dimension_schema_map
+                let (dimension_value_schema, _) = dimension_schema_map
                     .get(&expected_dimension_name)
                     .ok_or(bad_argument!(
-                    "No matching `dimension` {} in dimension table",
-                    expected_dimension_name
-                ))?;
+                        "No matching `dimension` {} in dimension table",
+                        expected_dimension_name
+                    ))?;
 
                 validate_context_jsonschema(
                     object_key,
                     &dimension_value,
-                    &dimension_data.schema,
+                    dimension_value_schema,
                 )?;
             }
             arr.iter().try_for_each(|x| {
@@ -227,7 +226,6 @@ fn create_ctx_from_put_req(
         created_by: user.get_email(),
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
-        weight,
     })
 }
 
@@ -470,7 +468,6 @@ fn r#move(
         override_: ctx.override_,
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
-        weight,
     };
 
     let handle_unique_violation =

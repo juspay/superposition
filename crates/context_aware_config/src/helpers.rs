@@ -11,11 +11,7 @@ use diesel::{
 };
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
-
-use bigdecimal::{BigDecimal, Num};
-use jsonlogic;
 use jsonschema::{Draft, JSONSchema, ValidationError};
-use num_bigint::BigUint;
 use serde_json::{json, Map, Value};
 #[cfg(feature = "high-performance-mode")]
 use service_utils::service::types::Tenant;
@@ -37,7 +33,6 @@ use superposition_types::{
     },
     result as superposition, Cac, Condition, Config, Context, Overrides,
 };
-
 #[cfg(feature = "high-performance-mode")]
 use uuid::Uuid;
 
@@ -176,44 +171,6 @@ pub fn validate_jsonschema(
     }
 }
 
-fn calculate_weight_from_index(index: u32) -> Result<BigDecimal, String> {
-    let base = BigUint::from(2u32);
-    let result = base.pow(index);
-    let biguint_str = &result.to_str_radix(10);
-    BigDecimal::from_str_radix(biguint_str, 10).map_err(|err| {
-        log::error!("failed to parse bigdecimal with error: {}", err.to_string());
-        String::from("failed to parse bigdecimal with error")
-    })
-}
-
-pub fn calculate_context_weight(
-    cond: &Value,
-    dimension_position_map: &HashMap<String, DimensionData>,
-) -> Result<BigDecimal, String> {
-    let ast = jsonlogic::expression::Expression::from_json(cond).map_err(|msg| {
-        log::error!("Condition validation error: {}", msg);
-        msg
-    })?;
-    let dimensions = ast.get_variable_names().map_err(|msg| {
-        log::error!("Error while parsing variable names : {}", msg);
-        msg
-    })?;
-
-    let mut weight = BigDecimal::from(0);
-    for dimension in dimensions {
-        let position = dimension_position_map
-            .get(dimension.clone().as_str())
-            .map(|x| x.position)
-            .ok_or_else(|| {
-                let msg =
-                    format!("Dimension:{} not found in Dimension schema map", dimension);
-                log::error!("{}", msg);
-                msg
-            })?;
-        weight = weight + calculate_weight_from_index(position as u32)?;
-    }
-    Ok(weight)
-}
 pub fn generate_cac(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<Config> {
@@ -360,8 +317,6 @@ pub async fn put_config_in_redis(
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
     use super::*;
     #[test]
     fn test_get_meta_schema() {
@@ -416,21 +371,5 @@ mod tests {
         assert!(ok_str_context.is_ok());
         assert!(err_arr_context);
         assert!(ok_arr_context.is_ok());
-    }
-    #[test]
-    fn test_calculate_weight_from_index() {
-        let number_2_100_str = "1267650600228229401496703205376";
-        // test 2^100
-        let big_decimal =
-            BigDecimal::from_str(number_2_100_str).expect("Invalid string format");
-
-        let number_2_200_str =
-            "1606938044258990275541962092341162602522202993782792835301376";
-        // test 2^100
-        let big_decimal_200 =
-            BigDecimal::from_str(number_2_200_str).expect("Invalid string format");
-
-        assert_eq!(Some(big_decimal), calculate_weight_from_index(100).ok());
-        assert_eq!(Some(big_decimal_200), calculate_weight_from_index(200).ok());
     }
 }
