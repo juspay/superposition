@@ -529,6 +529,15 @@ async fn list_experiments(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
+    if let Some(true) = pagination_params.all {
+        let result = experiments::experiments.get_results::<Experiment>(&mut conn)?;
+        return Ok(HttpResponse::Ok().json(ExperimentsResponse {
+            total_pages: 1,
+            total_items: result.len() as i64,
+            data: result.into_iter().map(ExperimentResponse::from).collect(),
+        }));
+    }
+
     let max_event_timestamp: Option<NaiveDateTime> = event_log::event_log
         .filter(event_log::table_name.eq("experiments"))
         .select(diesel::dsl::max(event_log::timestamp))
@@ -563,15 +572,6 @@ async fn list_experiments(
     };
     let filters = filters.into_inner();
     let base_query = query_builder(&filters);
-
-    if let Some(true) = pagination_params.all {
-        let result = base_query.get_results::<Experiment>(&mut conn)?;
-        return Ok(HttpResponse::Ok().json(ExperimentsResponse {
-            total_pages: 1,
-            total_items: result.len() as i64,
-            data: result.into_iter().map(ExperimentResponse::from).collect(),
-        }));
-    }
 
     let count_query = query_builder(&filters);
     let number_of_experiments = count_query.count().get_result(&mut conn)?;
