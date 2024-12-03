@@ -23,7 +23,6 @@ diesel::table! {
         last_modified_at -> Timestamp,
         #[max_length = 200]
         last_modified_by -> Varchar,
-        weight -> Numeric,
     }
 }
 
@@ -52,7 +51,6 @@ diesel::table! {
         last_modified_at -> Timestamp,
         #[max_length = 200]
         last_modified_by -> Varchar,
-        position -> Int4,
     }
 }
 

@@ -34,7 +34,6 @@ pub fn endpoints() -> Scope {
         .service(create)
         .service(get)
         .service(delete_dimension)
-        .service(temp_position_update)
 }
 
 #[put("")]
@@ -77,7 +76,6 @@ async fn create(
     let new_dimension = Dimension {
         dimension: create_req.dimension.into(),
         priority: create_req.priority.into(),
-        position: 0, // hard coded for now till we migrate
         schema: schema_value,
         created_by: user.get_email(),
         created_at: Utc::now(),
@@ -176,7 +174,7 @@ async fn delete_dimension(
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.into_inner().into();
     let DbConnection(mut conn) = db_conn;
-    let dimension_data: Dimension = dimensions::dsl::dimensions
+    dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(&name))
         .select(Dimension::as_select())
         .get_result(&mut conn)?;
@@ -191,10 +189,6 @@ async fn delete_dimension(
                     dsl::last_modified_at.eq(Utc::now().naive_utc()),
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
-                .execute(transaction_conn)?;
-            diesel::update(dimensions::dsl::dimensions)
-                .filter(dimensions::position.gt(dimension_data.position))
-                .set(dimensions::position.eq(dimensions::position - 1))
                 .execute(transaction_conn)?;
             let deleted_row = delete(dsl::dimensions.filter(dsl::dimension.eq(&name)))
                 .execute(transaction_conn);
@@ -213,33 +207,4 @@ async fn delete_dimension(
             context_ids.join(",")
         ))
     }
-}
-
-#[put("/position/update")]
-async fn temp_position_update(
-    user: User,
-    db_conn: DbConnection,
-) -> superposition::Result<HttpResponse> {
-    let DbConnection(mut conn) = db_conn;
-    let results: Vec<String> = dimensions
-        .order(priority.asc())
-        .select(dimension)
-        .load::<String>(&mut conn)
-        .map_err(|err| {
-            log::error!("failed to fetch dimensions with error: {}", err);
-            unexpected_error!("Something went wrong")
-        })?;
-
-    let _ = for (index, dimension_name) in results.iter().enumerate() {
-        diesel::update(dimensions)
-            .filter(dimension.eq(dimension_name))
-            .set((
-                position.eq(index as i32),
-                last_modified_at.eq(Utc::now().naive_utc()),
-                last_modified_by.eq(user.get_email()),
-            ))
-            .execute(&mut conn)?;
-    };
-    Ok(HttpResponse::Ok()
-        .json(serde_json::json!({"message": "Position updated sucessfully"})))
 }

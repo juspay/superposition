@@ -989,7 +989,6 @@
                   "    \"override\": {",
                   "        \"key1\": \"value3\"",
                   "    }",
-                  "    \"weight\": \"1\",",
                   "};",
                   "",
                   "pm.test(\"200 check\", function() {",
@@ -1205,127 +1204,6 @@
               "path": [
                 "context",
                 "priority",
-                "recompute"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Recompute Weight Context",
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "const host = pm.variables.get(\"host\");",
-                  "",
-                  "function update_dimension_position() {",
-                  "    const options = {",
-                  "        'method': 'PUT',",
-                  "        'url': `${host}/dimension`,",
-                  "        'header': {",
-                  "            'x-tenant': 'test',",
-                  "            'Content-Type': 'application/json'",
-                  "        },",
-                  "        \"body\": {",
-                  "            \"mode\": \"raw\",",
-                  "            \"raw\": JSON.stringify({",
-                  "                \"dimension\": \"clientId\",",
-                  "                \"priority\": 200,",
-                  "                \"schema\": {",
-                  "                    \"type\": \"string\",",
-                  "                    \"pattern\": \"^[a-z0-9].*$\"",
-                  "                }",
-                  "                \"position\": 0,",
-                  "            })",
-                  "        }",
-                  "    };",
-                  "    pm.sendRequest(options, function (error, response) {",
-                  "        if (error) {",
-                  "            console.log(`Error updating dimension: clientId`);",
-                  "            console.log(error);",
-                  "            return;",
-                  "        }",
-                  "        console.log(`Updated dimension: clientId`);",
-                  "    });",
-                  "    ",
-                  "}",
-                  "",
-                  "update_dimension_position();"
-                ],
-                "type": "text/javascript"
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const host = pm.variables.get(\"host\");",
-                  "const context_id = pm.environment.get(\"context_id\");",
-                  "",
-                  "",
-                  "function getContextAndTest() {",
-                  "    const getContext = {",
-                  "        url : `${host}/context/${context_id}`,",
-                  "        method: 'GET',",
-                  "        header: {",
-                  "            'Content-Type': 'application/json',",
-                  "            'x-tenant': 'test',",
-                  "        }",
-                  "    ",
-                  "    };",
-                  "    pm.sendRequest(getContext, (error, response) => {",
-                  "        if(error) {",
-                  "            console.log(\"Failed to fetch context\");",
-                  "            throw error;",
-                  "        }",
-                  "        console.log(response.json())",
-                  "        pm.expect(response.json().weight).to.be.eq(\"1\");",
-                  "",
-                  "    })",
-                  "    ",
-                  "}",
-                  "",
-                  "pm.test(\"200 check\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "",
-                  "pm.test(\"Check weight update\", function () {",
-                  "    getContextAndTest()",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              },
-              {
-                "key": "x-tenant",
-                "value": "test",
-                "type": "default"
-              }
-            ],
-            "url": {
-              "raw": "{{host}}/context/weight/recompute",
-              "host": [
-                "{{host}}"
-              ],
-              "path": [
-                "context",
-                "weight",
                 "recompute"
               ]
             }

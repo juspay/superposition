@@ -1,4 +1,3 @@
-use crate::helpers::DimensionData;
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     PgConnection, RunQueryDsl,
@@ -15,15 +14,11 @@ use superposition_types::{
     result as superposition, Cac, Condition,
 };
 
-pub fn get_dimension_data(
+pub fn get_all_dimension_schema_map(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-) -> superposition::Result<Vec<Dimension>> {
-    Ok(dimensions.load::<Dimension>(conn)?)
-}
+) -> superposition::Result<HashMap<String, (JSONSchema, i32)>> {
+    let dimensions_vec = dimensions.load::<Dimension>(conn)?;
 
-pub fn get_dimension_data_map(
-    dimensions_vec: &Vec<Dimension>,
-) -> superposition::Result<HashMap<String, DimensionData>> {
     let dimension_schema_map = dimensions_vec
         .into_iter()
         .filter_map(|item| {
@@ -32,14 +27,7 @@ pub fn get_dimension_data_map(
                 .compile(&item.schema)
                 .ok()?;
 
-            Some((
-                item.dimension.clone(),
-                DimensionData {
-                    schema: compiled_schema,
-                    priority: item.priority,
-                    position: item.position,
-                },
-            ))
+            Some((item.dimension, (compiled_schema, item.priority)))
         })
         .collect();
 
