@@ -429,6 +429,7 @@ where
     let mut header_array = webhook_config
         .service_headers
         .clone()
+        .unwrap_or_default()
         .into_iter()
         .filter_map(|key| match key {
             HeadersEnum::ConfigVersion => {
@@ -445,6 +446,7 @@ where
     webhook_config
         .custom_headers
         .clone()
+        .unwrap_or_default()
         .into_iter()
         .for_each(|(key, value)| header_array.push((key, value)));
 

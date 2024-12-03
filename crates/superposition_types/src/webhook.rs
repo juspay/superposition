@@ -35,8 +35,8 @@ pub struct Authorization {
 pub struct Webhook {
     pub url: String,
     pub method: HttpMethod,
-    pub custom_headers: HashMap<String, String>,
-    pub service_headers: Vec<HeadersEnum>,
+    pub custom_headers: Option<HashMap<String, String>>,
+    pub service_headers: Option<Vec<HeadersEnum>>,
     pub authorization: Option<Authorization>,
 }
 
