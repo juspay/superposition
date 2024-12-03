@@ -76,4 +76,5 @@ COPY --from=builder /build/Cargo.toml /app/Cargo.toml
 COPY --from=builder /build/target/site /app/target/site
 COPY --from=builder /build/target/node_modules /app/target/node_modules
 COPY --from=builder /build/target/.env /app/.env
+COPY --from=builder /build/target/saml-idp-metadata.xml /app/saml-idp-metadata.xml
 CMD ["./superposition_demo.sh"]
