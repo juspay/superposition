@@ -9,6 +9,7 @@ use actix_web::{
     web::{Data, Json, Path},
     HttpResponse, Scope,
 };
+use bigdecimal::BigDecimal;
 use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{
@@ -942,9 +943,9 @@ async fn weight_recompute(
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
     #[cfg(feature = "high-performance-mode")] tenant: Tenant,
-    _user: User,
+    user: User,
 ) -> superposition::Result<HttpResponse> {
-    use crate::db::schema::contexts::dsl::*;
+    use superposition_types::cac::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
 
     let result: Vec<Context> = contexts.load(&mut conn).map_err(|err| {
@@ -957,18 +958,14 @@ async fn weight_recompute(
     let mut response: Vec<WeightRecomputeResponse> = vec![];
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    let update_contexts = result
+    let contexts_new_weight: Vec<(BigDecimal, String)> = result
         .clone()
         .into_iter()
         .map(|context| {
             let new_weight = calculate_context_weight(
                 &Value::Object(context.value.clone().into()),
                 &dimension_data_map,
-            )
-            .map_err(|err| {
-                log::error!("failed to calculate context priority: {}", err);
-                unexpected_error!("Something went wrong")
-            });
+            );
 
             match new_weight {
                 Ok(val) => {
@@ -978,34 +975,31 @@ async fn weight_recompute(
                         old_weight: context.weight.clone(),
                         new_weight: val.clone(),
                     });
-                    Ok(Context {
-                        weight: val,
-                        ..context.clone()
-                    })
+                    Ok((val, context.id.clone()))
                 }
-                Err(e) => Err(e),
+                Err(e) => {
+                    log::error!("failed to calculate context priority: {}", e);
+                    Err(unexpected_error!("Something went wrong"))
+                }
             }
         })
-        .collect::<superposition::Result<Vec<Context>>>()?;
+        .collect::<superposition::Result<Vec<(BigDecimal, String)>>>()?;
 
+    let last_modified_time = Utc::now().naive_utc();
     let config_version_id =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let insert = diesel::insert_into(contexts)
-                .values(&update_contexts)
-                .on_conflict(id)
-                .do_update()
-                .set(weight.eq(excluded(weight)))
-                .execute(transaction_conn);
-            let version_id = add_config_version(&state, tags, transaction_conn)?;
-            match insert {
-                Ok(_) => Ok(version_id),
-                Err(err) => {
-                    log::error!(
-                    "Failed to execute query while recomputing priority, error: {err}"
-                );
-                    Err(db_error!(err))
-                }
+            for (context_weight, context_id) in contexts_new_weight {
+                diesel::update(contexts.filter(id.eq(context_id)))
+                    .set((weight.eq(context_weight), last_modified_at.eq(last_modified_time.clone()), last_modified_by.eq(user.get_email())))
+                    .execute(transaction_conn).map_err(|err| {
+                        log::error!(
+                            "Failed to execute query while recomputing priority, error: {err}"
+                        );
+                        db_error!(err)
+                    })?;
             }
+            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            Ok(version_id)
         })?;
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(config_version_id, state, tenant, &mut conn).await?;

@@ -41,17 +41,6 @@ use superposition_types::{
 #[cfg(feature = "high-performance-mode")]
 use uuid::Uuid;
 
-#[cfg(feature = "high-performance-mode")]
-use crate::db::schema::event_log::dsl as event_log;
-use crate::db::{
-    models::ConfigVersion,
-    schema::{
-        config_versions,
-        contexts::dsl::{self as ctxt},
-        default_configs::dsl as def_conf,
-    },
-};
-
 #[derive(Debug)]
 pub struct DimensionData {
     pub schema: JSONSchema,
@@ -222,7 +211,7 @@ fn calculate_weight_from_index(index: u32) -> Result<BigDecimal, String> {
     let base = BigUint::from(2u32);
     let result = base.pow(index);
     let biguint_str = &result.to_str_radix(10);
-    BigDecimal::from_str_radix(&biguint_str, 10).map_err(|err| {
+    BigDecimal::from_str_radix(biguint_str, 10).map_err(|err| {
         log::error!("failed to parse bigdecimal with error: {}", err.to_string());
         String::from("failed to parse bigdecimal with error")
     })

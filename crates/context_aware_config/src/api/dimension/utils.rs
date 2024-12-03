@@ -1,7 +1,3 @@
-use crate::db::{
-    models::{Context, Dimension},
-    schema::{contexts::dsl::contexts, dimensions::dsl::*},
-};
 use crate::helpers::DimensionData;
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},

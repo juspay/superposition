@@ -4101,6 +4101,7 @@ version = "0.8.0"
 dependencies = [
  "actix-web",
  "anyhow",
+ "bigdecimal",
  "chrono",
  "derive_more",
  "diesel",

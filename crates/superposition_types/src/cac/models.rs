@@ -1,5 +1,5 @@
-use chrono::{offset::Utc, DateTime, NaiveDateTime};
 use bigdecimal::BigDecimal;
+use chrono::{offset::Utc, DateTime, NaiveDateTime};
 #[cfg(feature = "diesel_derives")]
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
 use serde::Serialize;

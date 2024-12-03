@@ -1,6 +1,6 @@
 -- Your SQL goes here
 ALTER TABLE public.dimensions
-add column position integer DEFAULT 1 NOT NULL;
+add column position integer DEFAULT 0 NOT NULL;
 
 ALTER TABLE public.contexts
 add column weight numeric(1000,0) DEFAULT 1 NOT NULL;

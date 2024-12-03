@@ -45,18 +45,13 @@ use superposition_types::{
 };
 use uuid::Uuid;
 
-use crate::helpers::generate_cac;
 use crate::api::dimension::{get_dimension_data, get_dimension_data_map};
-use crate::db::models::ConfigVersion;
+use crate::helpers::generate_cac;
 use crate::{
     api::context::{
         delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
     },
     helpers::DimensionData,
-};
-use crate::{
-    db::schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
-    helpers::generate_cac,
 };
 
 use super::helpers::apply_prefix_filter_to_config;

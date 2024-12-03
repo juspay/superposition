@@ -221,19 +221,18 @@ async fn temp_position_update(
     db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let results: Vec<(String, i32, i32)> = dimensions
+    let results: Vec<String> = dimensions
         .order(priority.asc())
-        .select((dimension, priority, position))
-        .load::<(String, i32, i32)>(&mut conn)
+        .select(dimension)
+        .load::<String>(&mut conn)
         .map_err(|err| {
             log::error!("failed to fetch dimensions with error: {}", err);
             unexpected_error!("Something went wrong")
         })?;
 
-    let _ = for (index, (dim, pri, _)) in results.iter().enumerate() {
+    let _ = for (index, dimension_name) in results.iter().enumerate() {
         diesel::update(dimensions)
-            .filter(dimension.eq(dim))
-            .filter(priority.eq(*pri))
+            .filter(dimension.eq(dimension_name))
             .set((
                 position.eq(index as i32),
                 last_modified_at.eq(Utc::now().naive_utc()),
