@@ -34,6 +34,32 @@ impl TryFrom<i32> for Priority {
 }
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
+#[serde(try_from = "i32")]
+pub struct Position(i32);
+impl Position {
+    fn validate_data(position_val: i32) -> Result<Self, String> {
+        if position_val < 0 {
+            return Err("Position should be greater than equal to 0".to_string());
+        } else {
+            Ok(Self(position_val))
+        }
+    }
+}
+
+impl TryFrom<i32> for Position {
+    type Error = String;
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        Ok(Self::validate_data(value)?)
+    }
+}
+
+impl Default for Position {
+    fn default() -> Self {
+        Position(0)
+    }
+}
+
+#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
 #[serde(try_from = "String")]
 pub struct DimensionName(String);
 impl DimensionName {
@@ -64,6 +90,7 @@ where
 pub struct DimensionWithMandatory {
     pub dimension: String,
     pub priority: i32,
+    pub position: i32,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: Value,
@@ -78,6 +105,7 @@ impl DimensionWithMandatory {
         DimensionWithMandatory {
             dimension: value.dimension,
             priority: value.priority,
+            position: value.position,
             created_at: value.created_at,
             created_by: value.created_by,
             schema: value.schema,

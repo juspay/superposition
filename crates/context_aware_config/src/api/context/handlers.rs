@@ -9,6 +9,7 @@ use actix_web::{
     web::{Data, Json, Path},
     HttpResponse, Scope,
 };
+use bigdecimal::BigDecimal;
 use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{
@@ -49,11 +50,13 @@ use crate::{
         context::types::{
             ContextAction, ContextBulkResponse, ContextFilterSortBy, ContextFilters,
             DimensionCondition, MoveReq, PriorityRecomputeResponse, PutReq, PutResp,
+            WeightRecomputeResponse,
         },
-        dimension::get_all_dimension_schema_map,
+        dimension::{get_dimension_data, get_dimension_data_map},
     },
     helpers::{
-        add_config_version, calculate_context_priority, validate_context_jsonschema,
+        add_config_version, calculate_context_priority, calculate_context_weight,
+        validate_context_jsonschema, DimensionData,
     },
 };
 
@@ -73,6 +76,7 @@ pub fn endpoints() -> Scope {
         .service(get_context_from_condition)
         .service(get_context)
         .service(priority_recompute)
+        .service(weight_recompute)
 }
 
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
@@ -80,7 +84,7 @@ type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 pub fn validate_dimensions_and_calculate_priority(
     object_key: &str,
     cond: &Value,
-    dimension_schema_map: &HashMap<String, (JSONSchema, i32)>,
+    dimension_schema_map: &HashMap<String, DimensionData>,
 ) -> superposition::Result<i32> {
     let get_priority = |key: &String, val: &Value| -> superposition::Result<i32> {
         if key == "var" {
@@ -89,7 +93,7 @@ pub fn validate_dimensions_and_calculate_priority(
                 .ok_or(bad_argument!("Dimension name should be of `String` type"))?;
             dimension_schema_map
                 .get(dimension_name)
-                .map(|(_, priority)| priority)
+                .map(|dimension_val| &dimension_val.priority)
                 .ok_or(bad_argument!(
                     "No matching dimension ({}) found",
                     dimension_name
@@ -125,17 +129,17 @@ pub fn validate_dimensions_and_calculate_priority(
 
             if let (Some(dimension_value), Some(dimension_condition)) = (val, condition) {
                 let expected_dimension_name = dimension_condition.var;
-                let (dimension_value_schema, _) = dimension_schema_map
+                let dimension_data = dimension_schema_map
                     .get(&expected_dimension_name)
                     .ok_or(bad_argument!(
-                        "No matching `dimension` {} in dimension table",
-                        expected_dimension_name
-                    ))?;
+                    "No matching `dimension` {} in dimension table",
+                    expected_dimension_name
+                ))?;
 
                 validate_context_jsonschema(
                     object_key,
                     &dimension_value,
-                    dimension_value_schema,
+                    &dimension_data.schema,
                 )?;
             }
             arr.iter().try_fold(0, |acc, item| {
@@ -214,14 +218,16 @@ fn create_ctx_from_put_req(
     validate_condition_with_functions(conn, &ctx_condition)?;
     validate_override_with_functions(conn, &r_override)?;
 
-    let dimension_schema_map = get_all_dimension_schema_map(conn)?;
-
+    let dimension_data = get_dimension_data(conn)?;
+    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
     let priority = validate_dimensions_and_calculate_priority(
         "context",
         &condition_val,
-        &dimension_schema_map,
+        &dimension_data_map,
     )?;
 
+    let weight = calculate_context_weight(&condition_val, &dimension_data_map)
+        .map_err(|_| unexpected_error!("Something Went Wrong"))?;
     if priority == 0 {
         return Err(bad_argument!("No dimension found in context"));
     }
@@ -238,6 +244,7 @@ fn create_ctx_from_put_req(
         created_by: user.get_email(),
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
+        weight,
     })
 }
 
@@ -317,6 +324,7 @@ fn get_put_resp(ctx: Context) -> PutResp {
         context_id: ctx.id,
         override_id: ctx.override_id,
         priority: ctx.priority,
+        weight: ctx.weight,
     }
 }
 
@@ -444,12 +452,17 @@ fn r#move(
     let ctx_condition = req.context.to_owned().into_inner();
     let ctx_condition_value = Value::Object(ctx_condition.clone().into());
     let new_ctx_id = hash(&ctx_condition_value);
-    let dimension_schema_map = get_all_dimension_schema_map(conn)?;
+
+    let dimension_data = get_dimension_data(conn)?;
+    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
     let priority = validate_dimensions_and_calculate_priority(
         "context",
         &ctx_condition_value,
-        &dimension_schema_map,
+        &dimension_data_map,
     )?;
+    let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
+        .map_err(|_| unexpected_error!("Something Went Wrong"))?;
+
     validate_condition_with_mandatory_dimensions(
         &req.context.into_inner(),
         &tenant_config.mandatory_dimensions,
@@ -484,6 +497,7 @@ fn r#move(
         override_: ctx.override_,
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
+        weight,
     };
 
     let handle_unique_violation =
@@ -857,7 +871,8 @@ async fn priority_recompute(
         unexpected_error!("Something went wrong")
     })?;
 
-    let dimension_schema_map = get_all_dimension_schema_map(&mut conn)?;
+    let dimension_data = get_dimension_data(&mut conn)?;
+    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
     let mut response: Vec<PriorityRecomputeResponse> = vec![];
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
@@ -868,7 +883,7 @@ async fn priority_recompute(
             let new_priority = calculate_context_priority(
                 "context",
                 &Value::Object(context.value.clone().into()),
-                &dimension_schema_map,
+                &dimension_data_map,
             )
             .map_err(|err| {
                 log::error!("failed to calculate context priority: {}", err);
@@ -911,6 +926,80 @@ async fn priority_recompute(
                     Err(db_error!(err))
                 }
             }
+        })?;
+    #[cfg(feature = "high-performance-mode")]
+    put_config_in_redis(config_version_id, state, tenant, &mut conn).await?;
+    let mut http_resp = HttpResponse::Ok();
+    http_resp.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        config_version_id.to_string(),
+    ));
+    Ok(http_resp.json(response))
+}
+
+#[put("/weight/recompute")]
+async fn weight_recompute(
+    state: Data<AppState>,
+    custom_headers: CustomHeaders,
+    db_conn: DbConnection,
+    #[cfg(feature = "high-performance-mode")] tenant: Tenant,
+    user: User,
+) -> superposition::Result<HttpResponse> {
+    use superposition_types::cac::schema::contexts::dsl::*;
+    let DbConnection(mut conn) = db_conn;
+
+    let result: Vec<Context> = contexts.load(&mut conn).map_err(|err| {
+        log::error!("failed to fetch contexts with error: {}", err);
+        unexpected_error!("Something went wrong")
+    })?;
+
+    let dimension_data = get_dimension_data(&mut conn)?;
+    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
+    let mut response: Vec<WeightRecomputeResponse> = vec![];
+    let tags = parse_config_tags(custom_headers.config_tags)?;
+
+    let contexts_new_weight: Vec<(BigDecimal, String)> = result
+        .clone()
+        .into_iter()
+        .map(|context| {
+            let new_weight = calculate_context_weight(
+                &Value::Object(context.value.clone().into()),
+                &dimension_data_map,
+            );
+
+            match new_weight {
+                Ok(val) => {
+                    response.push(WeightRecomputeResponse {
+                        id: context.id.clone(),
+                        condition: context.value.clone(),
+                        old_weight: context.weight.clone(),
+                        new_weight: val.clone(),
+                    });
+                    Ok((val, context.id.clone()))
+                }
+                Err(e) => {
+                    log::error!("failed to calculate context priority: {}", e);
+                    Err(unexpected_error!("Something went wrong"))
+                }
+            }
+        })
+        .collect::<superposition::Result<Vec<(BigDecimal, String)>>>()?;
+
+    let last_modified_time = Utc::now().naive_utc();
+    let config_version_id =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            for (context_weight, context_id) in contexts_new_weight {
+                diesel::update(contexts.filter(id.eq(context_id)))
+                    .set((weight.eq(context_weight), last_modified_at.eq(last_modified_time.clone()), last_modified_by.eq(user.get_email())))
+                    .execute(transaction_conn).map_err(|err| {
+                        log::error!(
+                            "Failed to execute query while recomputing priority, error: {err}"
+                        );
+                        db_error!(err)
+                    })?;
+            }
+            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            Ok(version_id)
         })?;
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(config_version_id, state, tenant, &mut conn).await?;

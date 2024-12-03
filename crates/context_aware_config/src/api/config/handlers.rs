@@ -22,7 +22,6 @@ use diesel::{
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
 use itertools::Itertools;
-use jsonschema::JSONSchema;
 use serde_json::{json, Map, Value};
 #[cfg(feature = "high-performance-mode")]
 use service_utils::service::types::{AppState, Tenant};
@@ -46,11 +45,14 @@ use superposition_types::{
 };
 use uuid::Uuid;
 
-use crate::api::context::{
-    delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
-};
-use crate::api::dimension::get_all_dimension_schema_map;
+use crate::api::dimension::{get_dimension_data, get_dimension_data_map};
 use crate::helpers::generate_cac;
+use crate::{
+    api::context::{
+        delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
+    },
+    helpers::DimensionData,
+};
 
 use super::helpers::apply_prefix_filter_to_config;
 
@@ -392,7 +394,7 @@ async fn reduce_config_key(
     mut og_contexts: Vec<Context>,
     mut og_overrides: HashMap<String, Overrides>,
     check_key: &str,
-    dimension_schema_map: &HashMap<String, (JSONSchema, i32)>,
+    dimension_schema_map: &HashMap<String, DimensionData>,
     default_config: Map<String, Value>,
     is_approve: bool,
 ) -> superposition::Result<Config> {
@@ -527,7 +529,8 @@ async fn reduce_config(
         .and_then(|value| value.to_str().ok().and_then(|s| s.parse::<bool>().ok()))
         .unwrap_or(false);
 
-    let dimensions_schema_map = get_all_dimension_schema_map(&mut conn)?;
+    let dimensions_vec = get_dimension_data(&mut conn)?;
+    let dimensions_data_map = get_dimension_data_map(&dimensions_vec)?;
     let mut config = generate_cac(&mut conn)?;
     let default_config = (config.default_configs).clone();
     for (key, _) in default_config {
@@ -541,7 +544,7 @@ async fn reduce_config(
             contexts.clone(),
             overrides.clone(),
             key.as_str(),
-            &dimensions_schema_map,
+            &dimensions_data_map,
             default_config.clone(),
             is_approve,
         )
