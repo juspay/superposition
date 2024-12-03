@@ -37,6 +37,7 @@ RUN cp .env.example target/.env
 RUN mkdir -p target/web
 RUN cp -a examples/superposition-demo-app/web/. target/web/
 # building backend
+RUN apt-get install -y libxmlsec1-dev libxml2
 RUN cargo build --release
 
 FROM debian:bookworm-slim as runtime

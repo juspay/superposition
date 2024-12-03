@@ -96,6 +96,8 @@
                   pkgs.libiconv
                   pkgs.openssl
                   pkgs.postgresql_12
+                  pkgs.libxml2
+                  pkgs.xmlsec
                 ];
                 nativeBuildInputs = with pkgs; [
                   pkg-config
