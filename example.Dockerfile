@@ -5,7 +5,7 @@ WORKDIR /build
 # install nodeJS for functions
 ENV NVM_DIR /usr/local/nvm
 ENV NODE_VERSION 20.17.0
-
+RUN apt-get update; apt-get install -y libxmlsec1-dev libxml2
 RUN mkdir -p $NVM_DIR
 RUN curl "https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh" | bash \
     && . $NVM_DIR/nvm.sh \
@@ -37,7 +37,6 @@ RUN cp .env.example target/.env
 RUN mkdir -p target/web
 RUN cp -a examples/superposition-demo-app/web/. target/web/
 # building backend
-RUN apt-get install -y libxmlsec1-dev libxml2
 RUN cargo build --release
 
 FROM debian:bookworm-slim as runtime
