@@ -161,6 +161,7 @@ impl Client {
         let mut last_modified = self.last_modified.write().await;
         let last_modified_at = get_last_modified(&fetched_config);
         *config = fetched_config.json::<Config>().await.map_err_to_string()?;
+        self.config_cache.invalidate_all();
         if let Some(val) = last_modified_at {
             *last_modified = val;
         }
