@@ -5,6 +5,7 @@ mod api;
 pub mod app;
 pub mod components;
 pub mod hoc;
+pub mod logic;
 pub mod pages;
 pub mod providers;
 pub mod schema;
