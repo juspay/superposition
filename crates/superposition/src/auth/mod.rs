@@ -20,6 +20,9 @@ pub fn init_auth() -> saml2::SAMLAuthProvider {
         .unwrap();
     let md_xml = fs::read_to_string("saml-idp-meta.xml").unwrap();
     let md: EntityDescriptor = samael::metadata::de::from_str(md_xml.as_str()).unwrap();
+    let domain = env::var("SAML_HOST")
+        .ok()
+        .expect("Env 'SAML_HOST' not declared.");
     let sp = ServiceProviderBuilder::default()
         .entity_id("test-saml-sso-app".to_string())
         .idp_metadata(md)
@@ -29,8 +32,8 @@ pub fn init_auth() -> saml2::SAMLAuthProvider {
             sur_name: Some("Doe".to_string()),
             ..ContactPerson::default()
         })
-        .acs_url("https://test.devspaceworks.net/saml/acs".to_string())
-        .slo_url("/saml/slo".to_string())
+        .acs_url(format!("https://{}/saml/acs", domain))
+        .slo_url(format!("https://{}/saml/metadata", domain))
         .build()
         .unwrap();
     saml2::SAMLAuthProvider {
