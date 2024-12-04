@@ -12,6 +12,8 @@ use crate::{
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
 };
 
+use crate::logic::Operator;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum InputType {
     Text,
@@ -62,7 +64,20 @@ impl From<(SchemaType, EnumVariants)> for InputType {
     }
 }
 
-fn str_to_value(s: &str, type_: &JsonSchemaType) -> Result<Value, String> {
+impl From<(SchemaType, EnumVariants, Operator)> for InputType {
+    fn from(
+        (schema_type, enum_variants, operator): (SchemaType, EnumVariants, Operator),
+    ) -> Self {
+        if operator == Operator::In {
+            return InputType::Monaco;
+        }
+
+        InputType::from((schema_type, enum_variants))
+    }
+}
+
+// TODO: Also add schema validation in frontend :::::
+fn parse(s: &str, type_: &JsonSchemaType) -> Result<Value, String> {
     match type_ {
         JsonSchemaType::String => Ok(Value::String(s.to_string())),
         JsonSchemaType::Number => s
@@ -88,14 +103,55 @@ fn str_to_value(s: &str, type_: &JsonSchemaType) -> Result<Value, String> {
     }
 }
 
-fn parse_input_value(value: String, schema_type: SchemaType) -> Result<Value, String> {
+fn parse_with_operator(
+    s: &str,
+    type_: &JsonSchemaType,
+    op: &Operator,
+) -> Result<Value, String> {
+    match op {
+        Operator::In => match type_ {
+            JsonSchemaType::String => serde_json::from_str::<Vec<String>>(s)
+                .map(|v| json!(v))
+                .map_err(|_| "not a valid array of strings".to_string()),
+            JsonSchemaType::Number => serde_json::from_str::<Vec<f64>>(s)
+                .map(|v| json!(v))
+                .map_err(|_| "not a valid array of numbers".to_string()),
+            JsonSchemaType::Integer => serde_json::from_str::<Vec<i64>>(s)
+                .map(|v| json!(v))
+                .map_err(|_| "not a valid array of integers".to_string()),
+            JsonSchemaType::Boolean => serde_json::from_str::<Vec<bool>>(s)
+                .map(|v| json!(v))
+                .map_err(|_| "not a valid array of booleans".to_string()),
+            JsonSchemaType::Array => serde_json::from_str::<Vec<Value>>(s)
+                .map(|v| json!(v))
+                .map_err(|_| "not a valid array of arrays".to_string()),
+            JsonSchemaType::Object => serde_json::from_str::<Vec<Map<String, Value>>>(s)
+                .map(|v| json!(v))
+                .map_err(|_| "not a valid array of objects".to_string()),
+            JsonSchemaType::Null if s == "null" => Ok(Value::Null),
+            JsonSchemaType::Null => Err("not a null value".to_string()),
+        },
+        _ => parse(s, type_),
+    }
+}
+
+fn parse_input(
+    value: String,
+    schema_type: SchemaType,
+    op: &Option<Operator>,
+) -> Result<Value, String> {
+    let parse_single = |r#type: &JsonSchemaType| match op {
+        Some(op) => parse_with_operator(&value, r#type, op),
+        None => parse(&value, r#type),
+    };
+
     match schema_type {
-        SchemaType::Single(ref type_) => str_to_value(&value, type_),
+        SchemaType::Single(ref r#type) => parse_single(r#type),
         SchemaType::Multiple(mut types) => {
             types.sort_by(|a, b| a.precedence().cmp(&b.precedence()));
 
-            for type_ in types.iter() {
-                let v = str_to_value(&value, type_);
+            for r#type in types.iter() {
+                let v = parse_single(r#type);
                 if v.is_ok() {
                     return v;
                 }
@@ -181,6 +237,7 @@ fn basic_input(
     value: Value,
     schema_type: SchemaType,
     on_change: Callback<Value, ()>,
+    #[prop(default = None)] operator: Option<Operator>,
 ) -> impl IntoView {
     let schema_type = store_value(schema_type);
     let (error_rs, error_ws) = create_signal::<Option<String>>(None);
@@ -206,7 +263,7 @@ fn basic_input(
                 value=value.html_display()
                 on:change=move |e| {
                     let v = event_target_value(&e);
-                    match parse_input_value(v, schema_type.get_value()) {
+                    match parse_input(v, schema_type.get_value(), &operator) {
                         Ok(v) => {
                             on_change.call(v);
                             error_ws.set(None);
@@ -242,6 +299,7 @@ pub fn monaco_input(
     value: Value,
     on_change: Callback<Value, ()>,
     schema_type: SchemaType,
+    #[prop(default = None)] operator: Option<Operator>,
 ) -> impl IntoView {
     let id = store_value(id);
     let schema_type = store_value(schema_type);
@@ -271,7 +329,7 @@ pub fn monaco_input(
         logging::log!("Saving editor value: {}", editor_value);
 
         let parsed_value =
-            parse_input_value(editor_value.clone(), schema_type.get_value());
+            parse_input(editor_value.clone(), schema_type.get_value(), &operator);
         match parsed_value {
             Ok(v) => {
                 logging::log!("Saving parsed value: {}", editor_value);
@@ -419,12 +477,13 @@ pub fn monaco_input(
 pub fn input(
     value: Value,
     schema_type: SchemaType,
-    on_change: Callback<Value, ()>,
+    #[prop(into)] on_change: Callback<Value, ()>,
     #[prop(into)] r#type: InputType,
     #[prop(default = false)] disabled: bool,
     #[prop(into, default = String::new())] id: String,
     #[prop(into, default = String::new())] class: String,
     #[prop(into, default = String::new())] name: String,
+    #[prop(default = None)] operator: Option<Operator>,
 ) -> impl IntoView {
     match r#type {
         InputType::Toggle => match value.as_bool() {
@@ -436,7 +495,7 @@ pub fn input(
         InputType::Select(ref options) => view! { <Select id name class value on_change disabled options=options.0.clone()/> }
         .into_view(),
         InputType::Monaco => {
-            view! { <MonacoInput id class value on_change schema_type/> }.into_view()
+            view! { <MonacoInput id class value on_change schema_type operator/> }.into_view()
         }
         _ => {
             view! {
@@ -450,6 +509,7 @@ pub fn input(
                     value=value
                     schema_type=schema_type
                     on_change=on_change
+                    operator=operator
                 />
             }
         }
