@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.63.0 - 2024-12-04
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.23.1
+- context_aware_config bumped to context_aware_config-v0.44.0
+- superposition_types bumped to superposition_types-v0.9.0
+- service_utils bumped to service_utils-v0.24.2
+- cac_client bumped to cac_client-v0.16.1
+### Global changes
+#### Features
+- priority recompute restructure (#279) - (849063d) - PRATIK MISHRA
+
+- - -
+
 ## v0.62.0 - 2024-12-02
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.43.0

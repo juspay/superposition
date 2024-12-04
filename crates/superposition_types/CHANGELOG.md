@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.9.0 - 2024-12-04
+#### Bug Fixes
+- webhook optional field (#296) - (fe0171f) - Ankit Kumar Mahato
+#### Features
+- priority recompute restructure (#279) - (849063d) - PRATIK MISHRA
+
+- - -
+
 ## superposition_types-v0.8.0 - 2024-12-02
 #### Bug Fixes
 - Filter config by prefix (#293) - (c2e5726) - Ayush Jain

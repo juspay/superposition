@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.44.0 - 2024-12-04
+#### Features
+- priority recompute restructure (#279) - (849063d) - PRATIK MISHRA
+
+- - -
+
 ## context_aware_config-v0.43.0 - 2024-12-02
 #### Bug Fixes
 - Filter config by prefix (#293) - (c2e5726) - Ayush Jain

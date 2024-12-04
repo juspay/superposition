@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.24.2 - 2024-12-04
+#### Bug Fixes
+- webhook optional field (#296) - (fe0171f) - Ankit Kumar Mahato
+
+- - -
+
 ## service_utils-v0.24.1 - 2024-11-22
 #### Bug Fixes
 - fixed and improved webhooks (#283) - (4864849) - Ankit Kumar Mahato

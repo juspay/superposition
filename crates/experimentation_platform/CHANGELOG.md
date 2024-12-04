@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.23.1 - 2024-12-04
+#### Bug Fixes
+- disregarding experiments last-modified filter in case of (#295) - (516a2c1) - Shubhranshu Sanjeev
+
+- - -
+
 ## experimentation_platform-v0.23.0 - 2024-12-02
 #### Bug Fixes
 - Add exp feature flag - (5ff2807) - ayush.jain@juspay.in

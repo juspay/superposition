@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.16.1 - 2024-12-04
+#### Bug Fixes
+- invalidate client cache on config change (#298) - (16f4477) - PRATIK MISHRA
+
+- - -
+
 ## cac_client-v0.16.0 - 2024-11-20
 #### Features
 - add cache in cac client (#268) - (0cd82dd) - PRATIK MISHRA
