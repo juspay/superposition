@@ -192,6 +192,16 @@ pub struct PaginatedResponse<T> {
     pub data: Vec<T>,
 }
 
+impl<T> Default for PaginatedResponse<T> {
+    fn default() -> Self {
+        Self {
+            total_pages: 0,
+            total_items: 0,
+            data: Vec::new(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

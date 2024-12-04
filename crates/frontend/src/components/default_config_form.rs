@@ -3,22 +3,20 @@ pub mod utils;
 
 use leptos::*;
 use serde_json::{json, Value};
+use superposition_types::cac::models::{Function, TypeTemplates};
 use web_sys::MouseEvent;
 
-use crate::components::alert::AlertType;
-use crate::providers::alert_provider::enqueue_alert;
-use crate::providers::editor_provider::EditorProvider;
-use crate::schema::EnumVariants;
-use crate::types::ListFilters;
+use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::{
     api::{fetch_functions, fetch_types},
     components::{
+        alert::AlertType,
         button::Button,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         input::{Input, InputType},
     },
-    schema::{JsonSchemaType, SchemaType},
-    types::{FunctionsName, TypeTemplate},
+    schema::{EnumVariants, JsonSchemaType, SchemaType},
+    types::{FunctionsName, ListFilters},
 };
 
 use self::{types::DefaultConfigCreateReq, utils::create_default_config};
@@ -46,25 +44,24 @@ where
     let (function_name_rs, function_name_ws) = create_signal(function_name);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
-    let functions_resource: Resource<String, Vec<crate::types::FunctionResponse>> =
-        create_blocking_resource(
-            move || tenant_rs.get(),
-            |current_tenant| async move {
-                match fetch_functions(
-                    ListFilters {
-                        page: None,
-                        count: None,
-                        all: Some(true),
-                    },
-                    current_tenant,
-                )
-                .await
-                {
-                    Ok(data) => data.data.into_iter().collect(),
-                    Err(_) => vec![],
-                }
-            },
-        );
+    let functions_resource: Resource<String, Vec<Function>> = create_blocking_resource(
+        move || tenant_rs.get(),
+        |current_tenant| async move {
+            match fetch_functions(
+                ListFilters {
+                    page: None,
+                    count: None,
+                    all: Some(true),
+                },
+                current_tenant,
+            )
+            .await
+            {
+                Ok(data) => data.data,
+                Err(_) => vec![],
+            }
+        },
+    );
 
     let type_template_resource = create_blocking_resource(
         move || tenant_rs.get(),
@@ -184,7 +181,7 @@ where
                                     dropdown_direction=DropdownDirection::Down
                                     dropdown_btn_type=DropdownBtnType::Select
                                     dropdown_options=options
-                                    on_select=Callback::new(move |selected_item: TypeTemplate| {
+                                    on_select=Callback::new(move |selected_item: TypeTemplates| {
                                         logging::log!("selected item {:?}", selected_item);
                                         config_type_ws.set(selected_item.type_name);
                                         config_schema_ws.set(selected_item.type_schema);

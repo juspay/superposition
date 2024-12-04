@@ -3,12 +3,13 @@ use leptos::*;
 use chrono::NaiveDateTime;
 use leptos_router::A;
 use serde_json::{json, Map, Value};
+use superposition_types::{cac::models::ConfigVersion, PaginatedResponse};
 
 use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::table::{types::Column, Table};
-use crate::types::{ConfigVersionListResponse, ListFilters};
+use crate::types::ListFilters;
 use crate::utils::use_url_base;
 
 use crate::api::fetch_snapshots;
@@ -26,21 +27,23 @@ pub fn config_version_list() -> impl IntoView {
 
     let table_columns = create_memo(move |_| snapshot_table_columns(tenant_rs.get()));
 
-    let snapshots_resource: Resource<(String, i64, i64), ConfigVersionListResponse> =
-        create_blocking_resource(
-            move || {
-                (
-                    tenant_rs.get(),
-                    filters.get().page.unwrap_or(1),
-                    filters.get().count.unwrap_or(10),
-                )
-            },
-            |(current_tenant, page, count)| async move {
-                fetch_snapshots(current_tenant.to_string(), page, count, false)
-                    .await
-                    .unwrap_or_default()
-            },
-        );
+    let snapshots_resource: Resource<
+        (String, i64, i64),
+        PaginatedResponse<ConfigVersion>,
+    > = create_blocking_resource(
+        move || {
+            (
+                tenant_rs.get(),
+                filters.get().page.unwrap_or(1),
+                filters.get().count.unwrap_or(10),
+            )
+        },
+        |(current_tenant, page, count)| async move {
+            fetch_snapshots(current_tenant.to_string(), page, count, false)
+                .await
+                .unwrap_or_default()
+        },
+    );
 
     let handle_next_click = Callback::new(move |total_pages: i64| {
         set_filters.update(|f| {
