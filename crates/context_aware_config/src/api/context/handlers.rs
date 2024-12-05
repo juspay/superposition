@@ -643,56 +643,54 @@ async fn list_contexts(
     }
 
     if let Some(created_by_filter) = filter_params.created_by.clone() {
-        builder = builder
-            .filter(created_by.eq_any(created_by_filter.split(',').map(String::from)))
+        builder = builder.filter(created_by.eq_any(created_by_filter.0))
     }
 
-    let (data, total_items) = if dimension_params.len() > 0
-        || filter_params.prefix.is_some()
-    {
-        let mut all_contexts: Vec<Context> = builder.load(&mut conn)?;
-        if let Some(prefix) = filter_params.prefix {
-            let prefix_list = prefix.split(',').map(String::from).collect::<HashSet<_>>();
-            all_contexts = all_contexts
-                .into_iter()
-                .filter_map(|mut context| {
-                    Context::filter_keys_by_prefix(&context, &prefix_list)
-                        .map(|filtered_overrides_map| {
-                            context.override_ = filtered_overrides_map.into_inner();
-                            context
-                        })
-                        .ok()
-                })
-                .collect()
-        }
-        let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
-        let dimension_filter_contexts =
-            Context::filter_by_dimension(all_contexts, &dimension_keys);
-        let eval_filter_contexts =
-            Context::filter_by_eval(dimension_filter_contexts, &dimension_params);
+    let (data, total_items) =
+        if dimension_params.len() > 0 || filter_params.prefix.is_some() {
+            let mut all_contexts: Vec<Context> = builder.load(&mut conn)?;
+            if let Some(prefix) = filter_params.prefix {
+                let prefix_list = HashSet::from_iter(prefix.0);
+                all_contexts = all_contexts
+                    .into_iter()
+                    .filter_map(|mut context| {
+                        Context::filter_keys_by_prefix(&context, &prefix_list)
+                            .map(|filtered_overrides_map| {
+                                context.override_ = filtered_overrides_map.into_inner();
+                                context
+                            })
+                            .ok()
+                    })
+                    .collect()
+            }
+            let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
+            let dimension_filter_contexts =
+                Context::filter_by_dimension(all_contexts, &dimension_keys);
+            let eval_filter_contexts =
+                Context::filter_by_eval(dimension_filter_contexts, &dimension_params);
 
-        let total_items = eval_filter_contexts.len();
-        let start = (size * (page - 1)) as usize;
-        let end = min((size * page) as usize, total_items);
-        let data = eval_filter_contexts
-            .get(start..end)
-            .map_or(vec![], |slice| slice.to_vec());
+            let total_items = eval_filter_contexts.len();
+            let start = (size * (page - 1)) as usize;
+            let end = min((size * page) as usize, total_items);
+            let data = eval_filter_contexts
+                .get(start..end)
+                .map_or(vec![], |slice| slice.to_vec());
 
-        (data, total_items as i64)
-    } else {
-        let mut total_count_builder = contexts.into_boxed();
-        if let Some(created_bys) = filter_params.created_by {
-            total_count_builder = total_count_builder
-                .filter(created_by.eq_any(created_bys.split(',').map(String::from)))
-        }
-        let total_items: i64 = total_count_builder.count().get_result(&mut conn)?;
-        let data = builder
-            .limit(i64::from(size))
-            .offset(i64::from(size * (page - 1)))
-            .load::<Context>(&mut conn)?;
+            (data, total_items as i64)
+        } else {
+            let mut total_count_builder = contexts.into_boxed();
+            if let Some(created_bys) = filter_params.created_by {
+                total_count_builder =
+                    total_count_builder.filter(created_by.eq_any(created_bys.0))
+            }
+            let total_items: i64 = total_count_builder.count().get_result(&mut conn)?;
+            let data = builder
+                .limit(i64::from(size))
+                .offset(i64::from(size * (page - 1)))
+                .load::<Context>(&mut conn)?;
 
-        (data, total_items)
-    };
+            (data, total_items)
+        };
 
     Ok(Json(PaginatedResponse {
         total_pages: (total_items as f64 / size as f64).ceil() as i64,

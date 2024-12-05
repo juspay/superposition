@@ -1,11 +1,6 @@
 use chrono::NaiveDateTime;
 use serde::Deserialize;
-use service_utils::helpers::deserialize_stringified_list;
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct StringArgs(
-    #[serde(deserialize_with = "deserialize_stringified_list")] pub Vec<String>,
-);
+use superposition_types::custom_query::StringArgs;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct AuditQueryFilters {

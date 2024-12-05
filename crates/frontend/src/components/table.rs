@@ -5,6 +5,7 @@ use crate::{components::pagination::Pagination, schema::HtmlDisplay};
 use self::types::{Column, TablePaginationProps};
 use leptos::*;
 use serde_json::{json, Map, Value};
+use superposition_types::SortBy;
 
 #[component]
 pub fn table(
@@ -29,8 +30,35 @@ pub fn table(
                             .iter()
                             .filter(|column| !column.hidden)
                             .map(|column| {
-                                view! {
-                                    <th class="uppercase">{&column.name.replace('_', " ")}</th>
+                                let column_name = (&column.name).replace('_', " ");
+                                match column.sortable.clone() {
+                                    types::ColumnSortable::Yes {
+                                        sort_fn,
+                                        sort_by,
+                                        current,
+                                    } => {
+                                        view! {
+                                            <th
+                                                class="uppercase cursor-pointer"
+                                                on:click=move |_| sort_fn.call(())
+                                            >
+                                                {column_name}
+                                                    {
+                                                        if current {
+                                                            match sort_by {
+                                                                SortBy::Desc => view! { <i class="ri-arrow-down-s-line"></i> },
+                                                                SortBy::Asc => view! { <i class="ri-arrow-up-s-line"></i> },
+                                                            }
+                                                        } else {
+                                                            view! { <i class="ri-expand-up-down-line"></i> }
+                                                        }
+                                                    }
+                                            </th>
+                                        }
+                                    }
+                                    types::ColumnSortable::No => {
+                                        view! { <th class="uppercase">{column_name}</th> }
+                                    }
                                 }
                             })
                             .collect_view()}
@@ -65,8 +93,10 @@ pub fn table(
                                         .filter(|column| !column.hidden)
                                         .map(|column| {
                                             let cname = &column.name;
-                                            let value: String =
-                                                row.get(cname).unwrap_or(&Value::String(String::new())).html_display();
+                                            let value: String = row
+                                                .get(cname)
+                                                .unwrap_or(&Value::String(String::new()))
+                                                .html_display();
                                             view! {
                                                 <td class=cell_class
                                                     .to_string()>{(column.formatter)(&value, row)}</td>

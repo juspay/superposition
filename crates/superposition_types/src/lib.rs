@@ -192,6 +192,32 @@ pub struct PaginatedResponse<T> {
     pub data: Vec<T>,
 }
 
+#[derive(
+    Debug, Serialize, Deserialize, Clone, PartialEq, PartialOrd, derive_more::Display,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum SortBy {
+    #[display(fmt = "desc")]
+    Desc,
+    #[display(fmt = "asc")]
+    Asc,
+}
+
+impl SortBy {
+    pub fn flip(&self) -> Self {
+        match self {
+            SortBy::Desc => SortBy::Asc,
+            SortBy::Asc => SortBy::Desc,
+        }
+    }
+}
+
+impl Default for SortBy {
+    fn default() -> Self {
+        Self::Desc
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,6 +1,7 @@
 use crate::components::dimension_form::DimensionForm;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
+use crate::components::table::types::ColumnSortable;
 use crate::components::{
     delete_modal::DeleteModal,
     stat::Stat,
@@ -145,7 +146,12 @@ pub fn dimensions() -> impl IntoView {
             Column::default("function_name".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
-            Column::new("actions".to_string(), None, action_col_formatter),
+            Column::new(
+                "actions".to_string(),
+                None,
+                action_col_formatter,
+                ColumnSortable::No,
+            ),
         ]
     });
 
