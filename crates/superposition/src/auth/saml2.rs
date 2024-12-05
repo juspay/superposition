@@ -98,6 +98,8 @@ where
             .cookie("user")
             .and_then(|c| self.auth_provider.decode_jwt(c.value()));
         let exp = req.path().matches("saml/acs").count() > 0
+            // Implies it's a local/un-forwarded request.
+            || !req.headers().contains_key(header::X_FORWARDED_HOST)
             || req.path().matches("health").count() > 0
             || req.path().matches("ready").count() > 0;
         if td.is_some() || exp {
