@@ -113,7 +113,7 @@ async fn main() -> Result<()> {
             //     req.extensions_mut().insert::<User>(user);
             //     srv.call(req)
             // })
-            // .wrap(TenantMiddlewareFactory)
+            .wrap(TenantMiddlewareFactory)
             .app_data(PathConfig::default().error_handler(|err, _| {
                 actix_web::error::ErrorBadRequest(err)
             }))
