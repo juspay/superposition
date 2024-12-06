@@ -21,7 +21,7 @@ use crate::api::{delete_dimension, fetch_dimensions};
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
     pub dimension: String,
-    pub priority: u32,
+    pub position: u32,
     pub schema: Value,
     pub function_name: Option<Value>,
     pub mandatory: bool,
@@ -84,8 +84,8 @@ pub fn dimensions() -> impl IntoView {
         let action_col_formatter = move |_: &str, row: &Map<String, Value>| {
             logging::log!("Dimension row: {:?}", row);
             let row_dimension = row["dimension"].to_string().replace('"', "");
-            let row_priority_str = row["priority"].to_string().replace('"', "");
-            let row_priority = row_priority_str.parse::<u32>().unwrap_or(0_u32);
+            let row_position_str = row["position"].to_string().replace('"', "");
+            let row_position = row_position_str.parse::<u32>().unwrap_or(0_u32);
 
             let schema = row["schema"].clone().to_string();
             let schema = serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
@@ -101,7 +101,7 @@ pub fn dimensions() -> impl IntoView {
             let edit_click_handler = move |_| {
                 let row_data = RowData {
                     dimension: row_dimension.clone(),
-                    priority: row_priority.clone(),
+                    position: row_position.clone(),
                     schema: schema.clone(),
                     function_name: fun_name.clone(),
                     mandatory: mandatory.clone(),
@@ -140,7 +140,7 @@ pub fn dimensions() -> impl IntoView {
         };
         vec![
             Column::default("dimension".to_string()),
-            Column::default("priority".to_string()),
+            Column::default("position".to_string()),
             Column::default("schema".to_string()),
             Column::default("mandatory".to_string()),
             Column::default("function_name".to_string()),
@@ -171,7 +171,7 @@ pub fn dimensions() -> impl IntoView {
                         >
                             <DimensionForm
                                 edit=true
-                                priority=selected_dimension_data.priority
+                                position=selected_dimension_data.position
                                 dimension_name=selected_dimension_data.dimension
                                 dimension_schema=selected_dimension_data.schema
                                 function_name=selected_dimension_data.function_name

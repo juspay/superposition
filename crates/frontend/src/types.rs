@@ -271,7 +271,7 @@ impl From<ExperimentResponse> for Experiment {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Dimension {
     pub dimension: String,
-    pub priority: i32,
+    pub position: i32,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: Value,
