@@ -287,7 +287,7 @@ fn reduce(
         then that means we can't reduce this key from c1, because in resolve if we remove it from c1 it will pick the value form c3 which is different.
         So if we find this element c3 before any other element which is a subset of c1 with the same value, then we can't reduce this key for c1 so we break
         and continue with the next element.
-        Here "before" means the element with higher priority comes first with a subset of c1 but differnt override value for the key
+        Here "before" means the element with higher weight comes first with a subset of c1 but differnt override value for the key
      */
     for (c1_index, dimensions_of_c1_with_payload) in dimensions.clone().iter().enumerate()
     {
