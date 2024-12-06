@@ -12,7 +12,7 @@ function update_dimension_position() {
             "mode": "raw",
             "raw": JSON.stringify({
                 "dimension": "clientId",
-                "priority": 200,
+                "position": 2,
                 "schema": {
                     "type": "string",
                     "pattern": "^[a-z0-9].*$"
