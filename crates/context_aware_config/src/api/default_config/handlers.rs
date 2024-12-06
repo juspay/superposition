@@ -80,23 +80,51 @@ async fn create(
 
     let result = fetch_default_key(&key, &mut conn);
 
-    let (value, schema, function_name, created_at_val, created_by_val) = match result {
+    let description = match &result {
+        Ok(default_config_row) => req
+            .description
+            .clone()
+            .unwrap_or_else(|| default_config_row.description.clone()),
+        Err(superposition::AppError::DbError(diesel::NotFound)) => {
+            match req.description.clone() {
+                Some(desc) => desc,
+                None => {
+                    log::error!("No description provided and no record found for {key}.");
+                    return Err(bad_argument!(
+                        "No description provided and no record found for {}",
+                        key
+                    ));
+                }
+            }
+        }
+        Err(e) => {
+            log::error!("Failed to fetch default_config {key} with error: {e}.");
+            return Err(unexpected_error!("Something went wrong."));
+        }
+    };
+
+    let change_reason = req.change_reason.clone();
+
+    let (value, schema, function_name, created_at_val, created_by_val) = match &result {
         Ok(default_config_row) => {
-            let val = req.value.unwrap_or(default_config_row.value);
+            let val = req
+                .value
+                .clone()
+                .unwrap_or_else(|| default_config_row.value.clone());
             let schema = req
                 .schema
-                .map_or_else(|| default_config_row.schema, Value::Object);
+                .map_or_else(|| default_config_row.schema.clone(), Value::Object);
             let f_name = if req.function_name == Some(Value::Null) {
                 None
             } else {
-                func_name.or(default_config_row.function_name)
+                func_name.or_else(|| default_config_row.function_name.clone())
             };
             (
                 val,
                 schema,
                 f_name,
                 default_config_row.created_at,
-                default_config_row.created_by,
+                default_config_row.created_by.clone(),
             )
         }
         Err(superposition::AppError::DbError(diesel::NotFound)) => {
@@ -129,6 +157,8 @@ async fn create(
         created_at: created_at_val,
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
+        description: description.clone(),
+        change_reason: change_reason.clone(),
     };
 
     let schema_compile_result = JSONSchema::options()
@@ -160,7 +190,7 @@ async fn create(
         let function_code = get_published_function_code(&mut conn, f_name.to_string())
             .map_err(|e| {
                 log::info!("Function not found with error : {e}");
-                bad_argument!("Function {} doesn't exists.", f_name)
+                bad_argument!("Function {} doesn't exist.", f_name)
             })?;
         if let Some(f_code) = function_code {
             validate_value_with_function(
@@ -171,15 +201,24 @@ async fn create(
             )?;
         }
     }
+
     let version_id =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            // Borrow `default_config` to avoid moving it
             let upsert = diesel::insert_into(dsl::default_configs)
                 .values(&default_config)
                 .on_conflict(schema::default_configs::key)
                 .do_update()
                 .set(&default_config)
                 .execute(transaction_conn);
-            let version_id = add_config_version(&state, tags, transaction_conn)?;
+
+            let version_id = add_config_version(
+                &state,
+                tags.clone(),
+                transaction_conn,
+                description.clone(),
+                change_reason.clone(),
+            )?;
             match upsert {
                 Ok(_) => Ok(version_id),
                 Err(e) => {
@@ -190,6 +229,7 @@ async fn create(
                 }
             }
         })?;
+
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, tenant, &mut conn).await?;
     let mut http_resp = HttpResponse::Ok();
@@ -198,6 +238,7 @@ async fn create(
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
+
     Ok(http_resp.json(default_config))
 }
 
@@ -294,6 +335,12 @@ async fn delete(
                     ))
                     .execute(transaction_conn)?;
 
+                let default_config: DefaultConfig = dsl::default_configs
+                    .filter(dsl::key.eq(&key))
+                    .first::<DefaultConfig>(transaction_conn)?;
+                let description = default_config.description;
+                let change_reason = format!("Context Deleted by {}", user.get_email());
+
                 let deleted_row =
                     diesel::delete(dsl::default_configs.filter(dsl::key.eq(&key)))
                         .execute(transaction_conn);
@@ -302,7 +349,13 @@ async fn delete(
                         Err(not_found!("default config key `{}` doesn't exists", key))
                     }
                     Ok(_) => {
-                        version_id = add_config_version(&state, tags, transaction_conn)?;
+                        version_id = add_config_version(
+                            &state,
+                            tags,
+                            transaction_conn,
+                            description,
+                            change_reason,
+                        )?;
                         log::info!(
                             "default config key: {key} deleted by {}",
                             user.get_email()
