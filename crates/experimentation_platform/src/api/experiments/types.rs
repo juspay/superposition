@@ -105,7 +105,7 @@ pub enum ContextAction {
 pub struct ContextPutResp {
     pub context_id: String,
     pub override_id: String,
-    pub priority: i32,
+    pub weight: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

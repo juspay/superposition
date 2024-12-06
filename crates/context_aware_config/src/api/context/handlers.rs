@@ -16,7 +16,6 @@ use diesel::{
     delete,
     r2d2::{ConnectionManager, PooledConnection},
     result::{DatabaseErrorKind::*, Error::DatabaseError},
-    upsert::excluded,
     Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 use jsonschema::{Draft, JSONSchema, ValidationError};
@@ -49,14 +48,13 @@ use crate::{
     api::{
         context::types::{
             ContextAction, ContextBulkResponse, ContextFilterSortOn, ContextFilters,
-            DimensionCondition, MoveReq, PriorityRecomputeResponse, PutReq, PutResp,
-            WeightRecomputeResponse,
+            DimensionCondition, MoveReq, PutReq, PutResp, WeightRecomputeResponse,
         },
         dimension::{get_dimension_data, get_dimension_data_map},
     },
     helpers::{
-        add_config_version, calculate_context_priority, calculate_context_weight,
-        validate_context_jsonschema, DimensionData,
+        add_config_version, calculate_context_weight, validate_context_jsonschema,
+        DimensionData,
     },
 };
 
@@ -75,39 +73,37 @@ pub fn endpoints() -> Scope {
         .service(list_contexts)
         .service(get_context_from_condition)
         .service(get_context)
-        .service(priority_recompute)
         .service(weight_recompute)
 }
 
 type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
-pub fn validate_dimensions_and_calculate_priority(
+pub fn validate_dimensions(
     object_key: &str,
     cond: &Value,
     dimension_schema_map: &HashMap<String, DimensionData>,
-) -> superposition::Result<i32> {
-    let get_priority = |key: &String, val: &Value| -> superposition::Result<i32> {
+) -> superposition::Result<()> {
+    let check_dimension = |key: &String, val: &Value| -> superposition::Result<()> {
         if key == "var" {
             let dimension_name = val
                 .as_str()
                 .ok_or(bad_argument!("Dimension name should be of `String` type"))?;
             dimension_schema_map
                 .get(dimension_name)
-                .map(|dimension_val| &dimension_val.priority)
+                .map(|_| Ok(()))
                 .ok_or(bad_argument!(
                     "No matching dimension ({}) found",
                     dimension_name
-                ))
-                .copied()
+                ))?
         } else {
-            validate_dimensions_and_calculate_priority(key, val, dimension_schema_map)
+            validate_dimensions(key, val, dimension_schema_map)
         }
     };
 
     match cond {
-        Value::Object(x) => x.iter().try_fold(0, |acc, (key, val)| {
-            get_priority(key, val).map(|res| res + acc)
-        }),
+        Value::Object(x) => x
+            .iter()
+            .try_for_each(|(key, val)| check_dimension(key, val)),
         Value::Array(arr) => {
             let mut val: Option<Value> = None;
             let mut condition: Option<DimensionCondition> = None;
@@ -142,16 +138,11 @@ pub fn validate_dimensions_and_calculate_priority(
                     &dimension_data.schema,
                 )?;
             }
-            arr.iter().try_fold(0, |acc, item| {
-                validate_dimensions_and_calculate_priority(
-                    object_key,
-                    item,
-                    dimension_schema_map,
-                )
-                .map(|res| res + acc)
+            arr.iter().try_for_each(|x| {
+                validate_dimensions(object_key, x, dimension_schema_map)
             })
         }
-        _ => Ok(0),
+        _ => Ok(()),
     }
 }
 
@@ -220,24 +211,16 @@ fn create_ctx_from_put_req(
 
     let dimension_data = get_dimension_data(conn)?;
     let dimension_data_map = get_dimension_data_map(&dimension_data)?;
-    let priority = validate_dimensions_and_calculate_priority(
-        "context",
-        &condition_val,
-        &dimension_data_map,
-    )?;
+    validate_dimensions("context", &condition_val, &dimension_data_map)?;
 
     let weight = calculate_context_weight(&condition_val, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
-    if priority == 0 {
-        return Err(bad_argument!("No dimension found in context"));
-    }
 
     let context_id = hash(&condition_val);
     let override_id = hash(&ctx_override);
     Ok(Context {
         id: context_id,
         value: ctx_condition,
-        priority,
         override_id: override_id,
         override_: r_override,
         created_at: Utc::now(),
@@ -254,13 +237,13 @@ pub fn hash(val: &Value) -> String {
 }
 
 fn update_override_of_existing_ctx(
-    conn: &mut PgConnection,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     ctx: Context,
     user: &User,
 ) -> superposition::Result<PutResp> {
     use contexts::dsl;
     let mut new_override: Value = dsl::contexts
-        .filter(dsl::id.eq(&ctx.id))
+        .filter(dsl::id.eq(ctx.id.clone()))
         .select(dsl::override_)
         .first(conn)?;
     cac_client::merge(
@@ -287,7 +270,7 @@ fn update_override_of_existing_ctx(
 }
 
 fn replace_override_of_existing_ctx(
-    conn: &mut PgConnection,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     ctx: Context,
     user: &User,
 ) -> superposition::Result<PutResp> {
@@ -302,13 +285,13 @@ fn replace_override_of_existing_ctx(
 }
 
 fn db_update_override(
-    conn: &mut PgConnection,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     ctx: Context,
     user: &User,
 ) -> superposition::Result<PutResp> {
     use contexts::dsl;
     let update_resp = diesel::update(dsl::contexts)
-        .filter(dsl::id.eq(&ctx.id))
+        .filter(dsl::id.eq(ctx.id.clone()))
         .set((
             dsl::override_.eq(ctx.override_),
             dsl::override_id.eq(ctx.override_id),
@@ -323,7 +306,6 @@ fn get_put_resp(ctx: Context) -> PutResp {
     PutResp {
         context_id: ctx.id,
         override_id: ctx.override_id,
-        priority: ctx.priority,
         weight: ctx.weight,
     }
 }
@@ -455,11 +437,7 @@ fn r#move(
 
     let dimension_data = get_dimension_data(conn)?;
     let dimension_data_map = get_dimension_data_map(&dimension_data)?;
-    let priority = validate_dimensions_and_calculate_priority(
-        "context",
-        &ctx_condition_value,
-        &dimension_data_map,
-    )?;
+    validate_dimensions("context", &ctx_condition_value, &dimension_data_map)?;
     let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
 
@@ -467,10 +445,6 @@ fn r#move(
         &req.context.into_inner(),
         &tenant_config.mandatory_dimensions,
     )?;
-
-    if priority == 0 {
-        return Err(bad_argument!("no dimension found in context"));
-    }
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT update_ctx_savepoint").execute(conn)?;
@@ -481,7 +455,7 @@ fn r#move(
         .set((
             dsl::id.eq(&new_ctx_id),
             dsl::value.eq(&ctx_condition_value),
-            dsl::priority.eq(priority),
+            dsl::weight.eq(&weight),
             dsl::last_modified_at.eq(Utc::now().naive_utc()),
             dsl::last_modified_by.eq(user.get_email()),
         ))
@@ -490,7 +464,6 @@ fn r#move(
     let contruct_new_ctx_with_old_overrides = |ctx: Context| Context {
         id: new_ctx_id,
         value: ctx_condition,
-        priority,
         created_at: Utc::now(),
         created_by: user.get_email(),
         override_id: ctx.override_id,
@@ -510,7 +483,7 @@ fn r#move(
                 let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
                 update_override_of_existing_ctx(db_conn, ctx, user)
             } else {
-                db_conn.build_transaction().read_write().run(|conn| {
+                db_conn.transaction(|conn| {
                     let deleted_ctxt = diesel::delete(dsl::contexts)
                         .filter(dsl::id.eq(&old_ctx_id))
                         .get_result(conn)?;
@@ -637,11 +610,12 @@ async fn list_contexts(
 
     #[rustfmt::skip]
     let mut builder = match (filter_params.sort_on.unwrap_or_default(), filter_params.sort_by.unwrap_or(SortBy::Asc)) {
-        (ContextFilterSortOn::Priority,  SortBy::Asc)  => builder.order(priority.asc()),
-        (ContextFilterSortOn::Priority,  SortBy::Desc) => builder.order(priority.desc()),
+        (ContextFilterSortOn::Weight,  SortBy::Asc)  => builder.order(weight.asc()),
+        (ContextFilterSortOn::Weight,  SortBy::Desc) => builder.order(weight.desc()),
         (ContextFilterSortOn::CreatedAt, SortBy::Asc)  => builder.order(created_at.asc()),
         (ContextFilterSortOn::CreatedAt, SortBy::Desc) => builder.order(created_at.desc()),
     };
+
     if let Some(created_by_filter) = filter_params.created_by.clone() {
         builder = builder.filter(created_by.eq_any(created_by_filter.0))
     }
@@ -853,88 +827,6 @@ async fn bulk_operations(
     Ok(http_resp.json(response))
 }
 
-#[put("/priority/recompute")]
-async fn priority_recompute(
-    state: Data<AppState>,
-    custom_headers: CustomHeaders,
-    db_conn: DbConnection,
-    #[cfg(feature = "high-performance-mode")] tenant: Tenant,
-    _user: User,
-) -> superposition::Result<HttpResponse> {
-    use superposition_types::cac::schema::contexts::dsl::*;
-    let DbConnection(mut conn) = db_conn;
-
-    let result: Vec<Context> = contexts.load(&mut conn).map_err(|err| {
-        log::error!("failed to fetch contexts with error: {}", err);
-        unexpected_error!("Something went wrong")
-    })?;
-
-    let dimension_data = get_dimension_data(&mut conn)?;
-    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
-    let mut response: Vec<PriorityRecomputeResponse> = vec![];
-    let tags = parse_config_tags(custom_headers.config_tags)?;
-
-    let update_contexts = result
-        .clone()
-        .into_iter()
-        .map(|context| {
-            let new_priority = calculate_context_priority(
-                "context",
-                &Value::Object(context.value.clone().into()),
-                &dimension_data_map,
-            )
-            .map_err(|err| {
-                log::error!("failed to calculate context priority: {}", err);
-                unexpected_error!("Something went wrong")
-            });
-
-            match new_priority {
-                Ok(val) => {
-                    response.push(PriorityRecomputeResponse {
-                        id: context.id.clone(),
-                        condition: context.value.clone(),
-                        old_priority: context.priority,
-                        new_priority: val,
-                    });
-                    Ok(Context {
-                        priority: val,
-                        ..context.clone()
-                    })
-                }
-                Err(e) => Err(e),
-            }
-        })
-        .collect::<superposition::Result<Vec<Context>>>()?;
-
-    let config_version_id =
-        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let insert = diesel::insert_into(contexts)
-                .values(&update_contexts)
-                .on_conflict(id)
-                .do_update()
-                .set(priority.eq(excluded(priority)))
-                .execute(transaction_conn);
-            let version_id = add_config_version(&state, tags, transaction_conn)?;
-            match insert {
-                Ok(_) => Ok(version_id),
-                Err(err) => {
-                    log::error!(
-                    "Failed to execute query while recomputing priority, error: {err}"
-                );
-                    Err(db_error!(err))
-                }
-            }
-        })?;
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(config_version_id, state, tenant, &mut conn).await?;
-    let mut http_resp = HttpResponse::Ok();
-    http_resp.insert_header((
-        AppHeader::XConfigVersion.to_string(),
-        config_version_id.to_string(),
-    ));
-    Ok(http_resp.json(response))
-}
-
 #[put("/weight/recompute")]
 async fn weight_recompute(
     state: Data<AppState>,
@@ -976,7 +868,7 @@ async fn weight_recompute(
                     Ok((val, context.id.clone()))
                 }
                 Err(e) => {
-                    log::error!("failed to calculate context priority: {}", e);
+                    log::error!("failed to calculate context weight: {}", e);
                     Err(unexpected_error!("Something went wrong"))
                 }
             }
@@ -991,7 +883,7 @@ async fn weight_recompute(
                     .set((weight.eq(context_weight), last_modified_at.eq(last_modified_time.clone()), last_modified_by.eq(user.get_email())))
                     .execute(transaction_conn).map_err(|err| {
                         log::error!(
-                            "Failed to execute query while recomputing priority, error: {err}"
+                            "Failed to execute query while recomputing weight, error: {err}"
                         );
                         db_error!(err)
                     })?;

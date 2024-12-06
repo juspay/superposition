@@ -27,11 +27,12 @@ use crate::{
     helpers::validate_jsonschema,
 };
 
-use super::types::{DeleteReq, DimensionWithMandatory};
+use super::types::{DeleteReq, DimensionName, DimensionWithMandatory, UpdateReq};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(create)
+        .service(update)
         .service(get)
         .service(delete_dimension)
         .service(temp_position_update)
@@ -74,10 +75,9 @@ async fn create(
         }
     };
 
-    let new_dimension = Dimension {
+    let dimension_data = Dimension {
         dimension: create_req.dimension.into(),
-        priority: create_req.priority.into(),
-        position: 0, // hard coded for now till we migrate
+        position: create_req.position.into(),
         schema: schema_value,
         created_by: user.get_email(),
         created_at: Utc::now(),
@@ -86,39 +86,151 @@ async fn create(
         last_modified_by: user.get_email(),
     };
 
-    let upsert = diesel::insert_into(dimensions)
-        .values(&new_dimension)
-        .on_conflict(dimensions::dimension)
-        .do_update()
-        .set(&new_dimension)
-        .get_result::<Dimension>(&mut conn);
+    conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        diesel::update(dimensions)
+            .filter(dimensions::position.ge(dimension_data.position.clone()))
+            .set((
+                last_modified_at.eq(Utc::now().naive_utc()),
+                last_modified_by.eq(user.get_email()),
+                dimensions::position.eq(dimensions::position + 1),
+            ))
+            .execute(transaction_conn)?;
+        let insert_resp = diesel::insert_into(dimensions)
+            .values(&dimension_data)
+            .get_result::<Dimension>(transaction_conn);
 
-    match upsert {
-        Ok(upserted_dimension) => {
+        match insert_resp {
+            Ok(inserted_dimension) => {
+                let is_mandatory = tenant_config
+                    .mandatory_dimensions
+                    .contains(&inserted_dimension.dimension);
+                Ok(HttpResponse::Created().json(DimensionWithMandatory::new(
+                    inserted_dimension,
+                    is_mandatory,
+                )))
+            }
+            Err(diesel::result::Error::DatabaseError(
+                diesel::result::DatabaseErrorKind::ForeignKeyViolation,
+                e,
+            )) => {
+                log::error!("{fun_name:?} function not found with error: {e:?}");
+                Err(bad_argument!(
+                    "Function {} doesn't exists",
+                    fun_name.unwrap_or(String::new())
+                ))
+            }
+            Err(e) => {
+                log::error!("Dimension create failed with error: {e}");
+                Err(unexpected_error!(
+                    "Something went wrong, failed to create dimension"
+                ))
+            }
+        }
+    })
+}
+
+#[put("/{name}")]
+async fn update(
+    path: Path<DimensionName>,
+    state: Data<AppState>,
+    req: web::Json<UpdateReq>,
+    user: User,
+    db_conn: DbConnection,
+    tenant_config: TenantConfig,
+) -> superposition::Result<HttpResponse> {
+    let name: String = path.into_inner().into();
+    let DbConnection(mut conn) = db_conn;
+
+    let mut dimension_row: Dimension = dimensions.find(&name).first(&mut conn)?;
+    let update_req = req.into_inner();
+
+    if let Some(schema_value) = update_req.schema {
+        validate_jsonschema(&state.meta_schema, &schema_value)?;
+
+        let schema_compile_result = JSONSchema::options()
+            .with_draft(Draft::Draft7)
+            .compile(&schema_value);
+
+        if let Err(e) = schema_compile_result {
+            return Err(bad_argument!(
+                "Invalid JSON schema (failed to compile): {:?}",
+                e
+            ));
+        };
+        dimension_row.schema = schema_value;
+    }
+
+    let fun_name = match update_req.function_name {
+        Some(Value::String(func_name)) => Some(func_name),
+        Some(Value::Null) | None => None,
+        _ => {
+            log::error!("Expected a string or null as the function name.");
+            return Err(bad_argument!(
+                "Expected a string or null as the function name."
+            ));
+        }
+    };
+    dimension_row.function_name = fun_name.clone();
+
+    use dimensions::dsl;
+    if let Some(position_val) = update_req.position.clone() {
+        let new_position: i32 = position_val.into();
+
+        let previous_position = dimension_row.position.clone();
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            if previous_position < new_position {
+                diesel::update(dsl::dimensions)
+                    .filter(dimensions::position.gt(dimension_row.position))
+                    .filter(dimensions::position.le(new_position.clone()))
+                    .set((
+                        dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                        dsl::last_modified_by.eq(user.get_email()),
+                        dimensions::position.eq(dimensions::position - 1),
+                    ))
+                    .get_result::<Dimension>(transaction_conn)?
+            } else {
+                diesel::update(dsl::dimensions)
+                    .filter(dimensions::position.lt(dimension_row.position))
+                    .filter(dimensions::position.ge(new_position.clone()))
+                    .set((
+                        dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                        dsl::last_modified_by.eq(user.get_email()),
+                        dimensions::position.eq(dimensions::position + 1),
+                    ))
+                    .get_result::<Dimension>(transaction_conn)?
+            };
+
+            let result = diesel::update(dimensions)
+                .filter(dsl::dimension.eq(&dimension_row.dimension))
+                .set((
+                    dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                    dsl::last_modified_by.eq(user.get_email()),
+                    dimensions::function_name.eq(dimension_row.function_name),
+                    dimensions::schema.eq(dimension_row.schema),
+                    dimensions::position.eq(new_position),
+                ))
+                .get_result::<Dimension>(transaction_conn)?;
             let is_mandatory = tenant_config
                 .mandatory_dimensions
-                .contains(&upserted_dimension.dimension);
-            Ok(HttpResponse::Created().json(DimensionWithMandatory::new(
-                upserted_dimension,
-                is_mandatory,
-            )))
-        }
-        Err(diesel::result::Error::DatabaseError(
-            diesel::result::DatabaseErrorKind::ForeignKeyViolation,
-            e,
-        )) => {
-            log::error!("{fun_name:?} function not found with error: {e:?}");
-            Err(bad_argument!(
-                "Function {} doesn't exists",
-                fun_name.unwrap_or(String::new())
+                .contains(&result.dimension);
+            Ok(HttpResponse::Created()
+                .json(DimensionWithMandatory::new(result, is_mandatory)))
+        })
+    } else {
+        let result = diesel::update(dimensions)
+            .filter(dsl::dimension.eq(&dimension_row.dimension))
+            .set((
+                dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                dsl::last_modified_by.eq(user.get_email()),
+                dimensions::function_name.eq(dimension_row.function_name),
+                dimensions::schema.eq(dimension_row.schema),
             ))
-        }
-        Err(e) => {
-            log::error!("Dimension upsert failed with error: {e}");
-            Err(unexpected_error!(
-                "Something went wrong, failed to create/update dimension"
-            ))
-        }
+            .get_result::<Dimension>(&mut conn)?;
+        let is_mandatory = tenant_config
+            .mandatory_dimensions
+            .contains(&result.dimension);
+        Ok(HttpResponse::Created()
+            .json(DimensionWithMandatory::new(result, is_mandatory)))
     }
 }
 
@@ -222,7 +334,6 @@ async fn temp_position_update(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let results: Vec<String> = dimensions
-        .order(priority.asc())
         .select(dimension)
         .load::<String>(&mut conn)
         .map_err(|err| {
