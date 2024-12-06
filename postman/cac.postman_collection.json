@@ -403,6 +403,61 @@
       "name": "Dimension",
       "item": [
         {
+          "name": "Update Dimension",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"201 Check\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\"position\":1,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
+            },
+            "url": {
+              "raw": "{{host}}/dimension/clientId",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "dimension"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Create Dimension",
           "event": [
             {
@@ -443,7 +498,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"dimension\":\"clientId\",\"priority\":100,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
+              "raw": "{\"dimension\":\"clientId\",\"position\":0,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
             },
             "url": {
               "raw": "{{host}}/dimension",
@@ -477,7 +532,7 @@
                   "        \"body\": {",
                   "            \"mode\": \"raw\",",
                   "            \"raw\": JSON.stringify({",
-                  "               \"dimension\": \"dim1\",",
+                  "                \"dimension\": \"dim1\",",
                   "                \"priority\": 4,",
                   "                \"schema\": {",
                   "                    \"type\": \"string\",",
@@ -514,20 +569,21 @@
                   "})",
                   "",
                   "pm.test(\"404 check\", function () {",
-                  "  const deleteRequest = {",
-                  "      url: `${host}/dimension/dim1`,",
-                  "      method: 'DELETE',",
-                  "      header: {",
-                  "          'Content-Type': 'application/json',",
-                  "          'x-tenant': 'test',",
-                  "          'Authorization': `Bearer ${token}`",
-                  "      }",
-                  "  };",
+                  "    const deleteRequest = {",
+                  "        url: `${host}/dimension/dim1`,",
+                  "        method: 'DELETE',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "            'Authorization': `Bearer ${token}`",
+                  "        }",
+                  "    };",
                   "",
-                  "  pm.sendRequest(deleteRequest, (error, response) => {",
-                  "      response.to.have.status(404);",
-                  "  });",
-                  "})"
+                  "    pm.sendRequest(deleteRequest, (error, response) => {",
+                  "        response.to.have.status(404);",
+                  "    });",
+                  "})",
+                  ""
                 ],
                 "type": "text/javascript"
               }
@@ -562,8 +618,7 @@
                 "dim1"
               ]
             }
-          },
-          "response": []
+          }
         }
       ]
     },
@@ -985,11 +1040,10 @@
                   "        ]",
                   "    },",
                   "    \"override_id\": pm.environment.get(\"override_id\"),",
-                  "    \"priority\": 100,",
                   "    \"override\": {",
                   "        \"key1\": \"value3\"",
-                  "    }",
-                  "    \"weight\": \"1\",",
+                  "    },",
+                  "    \"weight\": \"2\"",
                   "};",
                   "",
                   "pm.test(\"200 check\", function() {",
@@ -1091,126 +1145,6 @@
           "response": []
         },
         {
-          "name": "Recompute Priority Context",
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "const host = pm.variables.get(\"host\");",
-                  "",
-                  "function update_dimension_priority() {",
-                  "    const options = {",
-                  "        'method': 'PUT',",
-                  "        'url': `${host}/dimension`,",
-                  "        'header': {",
-                  "            'x-tenant': 'test',",
-                  "            'Content-Type': 'application/json'",
-                  "        },",
-                  "        \"body\": {",
-                  "            \"mode\": \"raw\",",
-                  "            \"raw\": JSON.stringify({",
-                  "                \"dimension\": \"clientId\",",
-                  "                \"priority\": 200,",
-                  "                \"schema\": {",
-                  "                    \"type\": \"string\",",
-                  "                    \"pattern\": \"^[a-z0-9].*$\"",
-                  "                }",
-                  "            })",
-                  "        }",
-                  "    };",
-                  "    pm.sendRequest(options, function (error, response) {",
-                  "        if (error) {",
-                  "            console.log(`Error updating dimension: clientId`);",
-                  "            console.log(error);",
-                  "            return;",
-                  "        }",
-                  "        console.log(`Updated dimension: clientId`);",
-                  "    });",
-                  "    ",
-                  "}",
-                  "",
-                  "update_dimension_priority();"
-                ],
-                "type": "text/javascript"
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const host = pm.variables.get(\"host\");",
-                  "const context_id = pm.environment.get(\"context_id\");",
-                  "",
-                  "",
-                  "function getContextAndTest() {",
-                  "    const getContext = {",
-                  "        url : `${host}/context/${context_id}`,",
-                  "        method: 'GET',",
-                  "        header: {",
-                  "            'Content-Type': 'application/json',",
-                  "            'x-tenant': 'test',",
-                  "        }",
-                  "    ",
-                  "    };",
-                  "    pm.sendRequest(getContext, (error, response) => {",
-                  "        if(error) {",
-                  "            console.log(\"Failed to fetch context\");",
-                  "            throw error;",
-                  "        }",
-                  "        console.log(response.json())",
-                  "        pm.expect(response.json().priority).to.be.eq(200);",
-                  "",
-                  "    })",
-                  "    ",
-                  "}",
-                  "",
-                  "pm.test(\"200 check\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "",
-                  "pm.test(\"Check priority update\", function () {",
-                  "    getContextAndTest()",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              },
-              {
-                "key": "x-tenant",
-                "value": "test",
-                "type": "default"
-              }
-            ],
-            "url": {
-              "raw": "{{host}}/context/priority/recompute",
-              "host": [
-                "{{host}}"
-              ],
-              "path": [
-                "context",
-                "priority",
-                "recompute"
-              ]
-            }
-          }
-        },
-        {
           "name": "Recompute Weight Context",
           "event": [
             {
@@ -1231,12 +1165,11 @@
                   "            \"mode\": \"raw\",",
                   "            \"raw\": JSON.stringify({",
                   "                \"dimension\": \"clientId\",",
-                  "                \"priority\": 200,",
+                  "                \"position\": 2,",
                   "                \"schema\": {",
                   "                    \"type\": \"string\",",
                   "                    \"pattern\": \"^[a-z0-9].*$\"",
                   "                }",
-                  "                \"position\": 0,",
                   "            })",
                   "        }",
                   "    };",
@@ -1280,7 +1213,7 @@
                   "            throw error;",
                   "        }",
                   "        console.log(response.json())",
-                  "        pm.expect(response.json().weight).to.be.eq(\"1\");",
+                  "        pm.expect(response.json().weight).to.be.eq(\"4\");",
                   "",
                   "    })",
                   "    ",
@@ -1456,46 +1389,45 @@
                   "pm.test('expect response be 200', function () {",
                   "    pm.response.to.be.ok;",
                   "    const response = pm.response.json();",
-                  "    const modified_response = response.data.map(({ created_at, last_modified, ...rest }) => rest);",
+                  "    const modified_response = response.data.map(({ created_at, last_modified_at, last_modified_by, ...rest }) => rest);",
                   "    console.log(\"The API returned the response\", modified_response);",
                   "    pm.expect(JSON.stringify(modified_response)).to.be.eq(JSON.stringify([",
                   "        {",
-                  "            \"created_by\": \"user@superposition.io\",",
-                  "            \"type_name\": \"Number\",",
-                  "            \"type_schema\": {",
-                  "                \"type\": \"integer\"",
-                  "            }",
-                  "        },",
-                  "        {",
-                  "            \"created_by\": \"user@superposition.io\",",
-                  "            \"type_name\": \"Decimal\",",
-                  "            \"type_schema\": {",
-                  "                \"type\": \"number\"",
-                  "            }",
-                  "        },",
-                  "        {",
-                  "            \"created_by\": \"user@superposition.io\",",
-                  "            \"type_name\": \"Boolean\",",
-                  "            \"type_schema\": {",
-                  "                \"type\": \"boolean\"",
-                  "            }",
-                  "        },",
-                  "        {",
-                  "            \"created_by\": \"user@superposition.io\",",
-                  "            \"type_name\": \"Enum\",",
-                  "            \"type_schema\": {",
-                  "                \"enum\": [\"android\", \"ios\"],",
-                  "                \"type\": \"string\"",
-                  "            }",
-                  "        },",
-                  "",
-                  "        {",
-                  "            \"created_by\": \"user@superposition.io\",",
                   "            \"type_name\": \"Pattern\",",
                   "            \"type_schema\": {",
                   "                \"pattern\": \".*\",",
                   "                \"type\": \"string\"",
-                  "            }",
+                  "            },",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "        },",
+                  "        {",
+                  "            \"type_name\": \"Enum\",",
+                  "            \"type_schema\": {",
+                  "                \"enum\": [\"android\", \"ios\"],",
+                  "                \"type\": \"string\"",
+                  "            },",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "        },",
+                  "        {",
+                  "            \"type_name\": \"Boolean\",",
+                  "            \"type_schema\": {",
+                  "                \"type\": \"boolean\"",
+                  "            },",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "        },",
+                  "        {",
+                  "            \"type_name\": \"Decimal\",",
+                  "            \"type_schema\": {",
+                  "                \"type\": \"number\"",
+                  "            },",
+                  "            \"created_by\": \"user@superposition.io\",",
+                  "        },",
+                  "        {",
+                  "            \"type_name\": \"Number\",",
+                  "            \"type_schema\": {",
+                  "                \"type\": \"integer\"",
+                  "            },",
+                  "            \"created_by\": \"user@superposition.io\",",
                   "        }",
                   "    ]))",
                   "});",
@@ -1561,7 +1493,7 @@
                   "            throw error;",
                   "        }",
                   "        const resp = response.json();",
-                  "        const modified_response = resp.map(({ created_at, last_modified, ...rest }) => rest).sort((a, b) => {",
+                  "        const modified_response = resp.map(({ created_at, last_modified_at, last_modified_by, ...rest }) => rest).sort((a, b) => {",
                   "            return a.type_name > b.type_name;",
                   "        });",
                   "        pm.expect(JSON.stringify(modified_response)).to.be.eq(JSON.stringify([",

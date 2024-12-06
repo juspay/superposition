@@ -9,11 +9,10 @@ const expected_context = {
         ]
     },
     "override_id": pm.environment.get("override_id"),
-    "priority": 100,
     "override": {
         "key1": "value3"
     },
-    "weight": "1"
+    "weight": "2"
 };
 
 pm.test("200 check", function() {
