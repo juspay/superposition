@@ -39,10 +39,10 @@ impl InputType {
     }
 }
 
-impl From<(SchemaType, EnumVariants)> for InputType {
-    fn from((schema_type, enum_variants): (SchemaType, EnumVariants)) -> Self {
-        if !enum_variants.is_empty() {
-            return InputType::Select(enum_variants);
+impl From<(SchemaType, Option<EnumVariants>)> for InputType {
+    fn from((schema_type, enum_variants): (SchemaType, Option<EnumVariants>)) -> Self {
+        if let Some(v) = enum_variants {
+            return InputType::Select(v);
         }
 
         match schema_type {
@@ -64,9 +64,13 @@ impl From<(SchemaType, EnumVariants)> for InputType {
     }
 }
 
-impl From<(SchemaType, EnumVariants, Operator)> for InputType {
+impl From<(SchemaType, Option<EnumVariants>, Operator)> for InputType {
     fn from(
-        (schema_type, enum_variants, operator): (SchemaType, EnumVariants, Operator),
+        (schema_type, enum_variants, operator): (
+            SchemaType,
+            Option<EnumVariants>,
+            Operator,
+        ),
     ) -> Self {
         if operator == Operator::In {
             return InputType::Monaco;

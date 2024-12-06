@@ -211,8 +211,8 @@ where
 
                 {move || {
                     let input_format = match (
-                        SchemaType::try_from(config_schema_rs.get()),
-                        EnumVariants::try_from(config_schema_rs.get()),
+                        SchemaType::try_from_schema_json(config_schema_rs.get()),
+                        EnumVariants::try_from_schema_json(config_schema_rs.get()).transpose(),
                     ) {
                         (Ok(schema_type), Ok(enum_variants)) => {
                             let input_type = InputType::from((schema_type.clone(), enum_variants));

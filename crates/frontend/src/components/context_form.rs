@@ -188,7 +188,7 @@ where
     let on_select_dimension = Callback::new(move |selected_dimension: Dimension| {
         let dimension_name = selected_dimension.dimension;
 
-        if let Ok(r#type) = SchemaType::try_from(selected_dimension.schema) {
+        if let Ok(r#type) = SchemaType::try_from_schema_json(selected_dimension.schema) {
             used_dimensions_ws.update(|value: &mut HashSet<String>| {
                 value.insert(dimension_name.clone());
             });
@@ -282,8 +282,8 @@ where
                                 .with_value(|v| {
                                     let d = v.get(&condition.dimension).unwrap();
                                     (
-                                        SchemaType::try_from(d.schema.clone()),
-                                        EnumVariants::try_from(d.schema.clone()),
+                                        SchemaType::try_from_schema_json(d.schema.clone()),
+                                        EnumVariants::try_from_schema_json(d.schema.clone()).transpose(),
                                     )
                                 });
                             if schema_type.is_err() || enum_variants.is_err() {

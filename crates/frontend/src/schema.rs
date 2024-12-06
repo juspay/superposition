@@ -111,45 +111,30 @@ impl SchemaType {
             .map_err(|_| "not a valid JsonSchema type".to_string())
             .map(SchemaType::Single)
     }
-}
 
-impl TryFrom<Value> for SchemaType {
-    type Error = String;
-    fn try_from(schema: Value) -> Result<Self, Self::Error> {
-        schema
-            .as_object()
-            .ok_or("schema is not an object".to_string())
-            .and_then(|obj| {
-                let type_ = obj
-                    .get("type")
-                    .ok_or("type not defined in schema".to_string())?;
+    pub fn try_from_schema_json(schema: Map<String, Value>) -> Result<Self, String> {
+        let type_ = schema
+            .get("type")
+            .ok_or("type not defined in schema".to_string())?;
 
-                match type_ {
-                    Value::Array(arr) => SchemaType::parse_from_array(arr),
-                    Value::String(s) => SchemaType::parse_from_string(s),
-                    _ => Err("type should be either a string or an array of strings"
-                        .to_string()),
-                }
-            })
+        match type_ {
+            Value::Array(arr) => SchemaType::parse_from_array(arr),
+            Value::String(s) => SchemaType::parse_from_string(s),
+            _ => Err("type should be either a string or an array of strings".to_string()),
+        }
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Deref, DerefMut)]
 pub struct EnumVariants(pub Vec<Value>);
 
-impl TryFrom<Value> for EnumVariants {
-    type Error = String;
-    fn try_from(schema: Value) -> Result<Self, Self::Error> {
-        schema
-            .as_object()
-            .ok_or("schema is not an object".to_string())
-            .and_then(|obj| {
-                let type_ = obj.get("enum").cloned().unwrap_or(Value::Array(vec![]));
-
-                match type_ {
-                    Value::Array(arr) => Ok(EnumVariants(arr)),
-                    _ => Err("enum should be an array of options".to_string()),
-                }
-            })
+impl EnumVariants {
+    pub fn try_from_schema_json(
+        schema: Map<String, Value>,
+    ) -> Option<Result<Self, String>> {
+        schema.get("enum").map(|type_| match type_ {
+            Value::Array(arr) => Ok(EnumVariants(arr.clone())),
+            _ => Err("enum should be an array of options".to_string()),
+        })
     }
 }
