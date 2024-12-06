@@ -45,13 +45,14 @@ use superposition_types::{
 };
 use uuid::Uuid;
 
-use crate::api::dimension::{get_dimension_data, get_dimension_data_map};
 use crate::helpers::generate_cac;
 use crate::{
-    api::context::{
-        delete_context_api, hash, put, validate_dimensions_and_calculate_priority, PutReq,
-    },
+    api::context::{delete_context_api, hash, put, PutReq},
     helpers::DimensionData,
+};
+use crate::{
+    api::dimension::{get_dimension_data, get_dimension_data_map},
+    helpers::calculate_context_weight,
 };
 
 use super::helpers::apply_prefix_filter_to_config;
@@ -270,8 +271,8 @@ fn reduce(
             }
         }
 
-    We have also sorted this dimensions vector in descending order based on the priority of the dimensions in that context
-    and in this vector the default config will be at the end of the list as it has no dimensions and it's priority is the least
+    We have also sorted this dimensions vector in descending order based on the weight of the dimensions in that context
+    and in this vector the default config will be at the end of the list as it has no dimensions and it's weight is the least
 
     Now we iterate from start and then pick an element and generate all subsets of that element keys excluding the req_payload and key_val
     i.e we only generate different subsets of dimensions of that context along with the value of those dimensions in that context
@@ -419,27 +420,25 @@ async fn reduce_config_key(
         }
     }
 
-    let mut priorities = Vec::new();
+    let mut weights = Vec::new();
 
     for (index, ctx) in contexts_overrides_values.iter().enumerate() {
-        let priority = validate_dimensions_and_calculate_priority(
-            "context",
-            &json!((ctx.0).condition),
-            dimension_schema_map,
-        )?;
-        priorities.push((index, priority))
+        let weight =
+            calculate_context_weight(&json!((ctx.0).condition), dimension_schema_map)
+                .map_err(|err| bad_argument!(err))?;
+        weights.push((index, weight))
     }
 
-    // Sort the collected results based on priority
-    priorities.sort_by(|a, b| b.1.cmp(&a.1));
+    // Sort the collected results based on weight
+    weights.sort_by(|a, b| b.1.cmp(&a.1));
 
     // Use the sorted indices to reorder the original vector
-    let sorted_priority_contexts = priorities
+    let sorted_weight_contexts = weights
         .into_iter()
         .map(|(index, _)| contexts_overrides_values[index].clone())
         .collect();
 
-    let resolved_dimensions = reduce(sorted_priority_contexts, default_config_val)?;
+    let resolved_dimensions = reduce(sorted_weight_contexts, default_config_val)?;
     for rd in resolved_dimensions {
         match (
             rd.get("can_be_reduced"),

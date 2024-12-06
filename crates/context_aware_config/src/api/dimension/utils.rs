@@ -36,7 +36,6 @@ pub fn get_dimension_data_map(
                 item.dimension.clone(),
                 DimensionData {
                     schema: compiled_schema,
-                    priority: item.priority,
                     position: item.position,
                 },
             ))
