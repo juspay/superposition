@@ -19275,3 +19275,18 @@ VALUES (
 -- PostgreSQL database dump complete
 --
 
+ALTER TABLE dev_cac.dimensions
+add column position integer DEFAULT 0 NOT NULL;
+
+ALTER TABLE dev_cac.contexts
+add column weight numeric(1000,0) DEFAULT 1 NOT NULL;
+
+CREATE INDEX IF NOT EXISTS dev_cac_idx_contexts_weight ON dev_cac.contexts(weight);
+
+ALTER TABLE test_cac.dimensions
+add column position integer DEFAULT 0 NOT NULL;
+
+ALTER TABLE test_cac.contexts
+add column weight numeric(1000,0) DEFAULT 1 NOT NULL;
+
+CREATE INDEX IF NOT EXISTS test_cac_idx_contexts_weight ON test_cac.contexts(weight);
