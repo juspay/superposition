@@ -186,7 +186,7 @@ pub fn home() -> impl IntoView {
         move || tenant_rs.get(),
         |tenant| async {
             match fetch_dimensions(
-                ListFilters {
+                &ListFilters {
                     page: None,
                     count: None,
                     all: Some(true),

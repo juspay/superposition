@@ -1,15 +1,42 @@
-use crate::components::{
-    condition_pills::utils::extract_conditions,
-    condition_pills::Condition as ConditionComponent, table::types::Column,
+use crate::{
+    components::{
+        condition_pills::utils::extract_conditions,
+        condition_pills::Condition as ConditionComponent,
+        table::types::{Column, ColumnSortable},
+    },
+    types::ExperimentListFilters,
 };
 use core::time::Duration;
 use leptos::*;
 use leptos_router::A;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use std::vec::Vec;
+use strum_macros::Display;
 use web_sys::MouseEvent;
 
-pub fn experiment_table_columns() -> Vec<Column> {
+#[derive(Copy, Display, Debug, Clone, Deserialize, Serialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum ExperimentSortOn {
+    #[strum(to_string = "last_modified_at")]
+    LastModifiedAt,
+    #[strum(to_string = "created_at")]
+    CreatedAt,
+}
+
+impl Default for ExperimentSortOn {
+    fn default() -> Self {
+        Self::LastModifiedAt
+    }
+}
+
+pub fn experiment_table_columns(
+    filters_rs: ReadSignal<ExperimentListFilters>,
+    filters_ws: WriteSignal<ExperimentListFilters>,
+) -> Vec<Column> {
+    let current_filters = filters_rs.get();
+    let current_sort_on = current_filters.sort_on.unwrap_or_default();
+    let current_sort_by = current_filters.sort_by.unwrap_or_default();
     vec![
         Column::new(
             "name".to_string(),
@@ -64,6 +91,7 @@ pub fn experiment_table_columns() -> Vec<Column> {
                     }
                     .into_view()
             },
+            ColumnSortable::No,
         ),
         Column::new(
             "status".to_string(),
@@ -95,6 +123,7 @@ pub fn experiment_table_columns() -> Vec<Column> {
                 }
                 .into_view()
             },
+            ColumnSortable::No,
         ),
         Column::new(
             "context".to_string(),
@@ -115,20 +144,58 @@ pub fn experiment_table_columns() -> Vec<Column> {
                 }
                 .into_view()
             },
+            ColumnSortable::No,
         ),
-        Column::new("chosen_variant".to_string(), None, |value: &str, _| {
-            let label = match value {
-                "null" => "¯\\_(ツ)_/¯".to_string(),
-                other => other.to_string(),
-            };
+        Column::new(
+            "chosen_variant".to_string(),
+            None,
+            |value: &str, _| {
+                let label = match value {
+                    "null" => "¯\\_(ツ)_/¯".to_string(),
+                    other => other.to_string(),
+                };
 
-            view! {
-                <span>{label}</span>
-            }
-            .into_view()
-        }),
-        Column::default("created_at".to_string()),
+                view! {
+                    <span>{label}</span>
+                }
+                .into_view()
+            },
+            ColumnSortable::No,
+        ),
+        Column::default_with_sort(
+            "created_at".to_string(),
+            ColumnSortable::Yes {
+                sort_fn: Callback::new(move |_| {
+                    let filters = filters_rs.get();
+                    let sort_by = filters.sort_by.unwrap_or_default().flip();
+                    let new_filters = ExperimentListFilters {
+                        sort_on: Some(ExperimentSortOn::CreatedAt),
+                        sort_by: Some(sort_by),
+                        ..filters
+                    };
+                    filters_ws.set(new_filters);
+                }),
+                sort_by: current_sort_by.clone(),
+                currently_sorted: current_sort_on == ExperimentSortOn::CreatedAt,
+            },
+        ),
         Column::default("created_by".to_string()),
-        Column::default("last_modified".to_string()),
+        Column::default_with_sort(
+            "last_modified".to_string(),
+            ColumnSortable::Yes {
+                sort_fn: Callback::new(move |_| {
+                    let filters = filters_rs.get();
+                    let sort_by = filters.sort_by.as_ref().map(|i| i.flip());
+                    let new_filters = ExperimentListFilters {
+                        sort_on: Some(ExperimentSortOn::LastModifiedAt),
+                        sort_by,
+                        ..filters
+                    };
+                    filters_ws.set(new_filters);
+                }),
+                sort_by: current_sort_by,
+                currently_sorted: current_sort_on == ExperimentSortOn::LastModifiedAt,
+            },
+        ),
     ]
 }

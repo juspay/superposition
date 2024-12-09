@@ -1,6 +1,8 @@
 use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
-use superposition_types::{Cac, Condition, Overrides};
+use superposition_types::{
+    custom_query::CommaSeparatedStringQParams, Cac, Condition, Overrides,
+};
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
 #[derive(Deserialize, Clone)]
@@ -47,9 +49,9 @@ impl Default for ContextFilterSortBy {
 pub struct ContextFilters {
     pub page: Option<u32>,
     pub size: Option<u32>,
-    pub prefix: Option<String>,
+    pub prefix: Option<CommaSeparatedStringQParams>,
     pub sort_by: Option<ContextFilterSortBy>,
-    pub created_by: Option<String>,
+    pub created_by: Option<CommaSeparatedStringQParams>,
 }
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests

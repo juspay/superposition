@@ -1,6 +1,7 @@
 use crate::components::dimension_form::DimensionForm;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
+use crate::components::table::types::ColumnSortable;
 use crate::components::{
     delete_modal::DeleteModal,
     stat::Stat,
@@ -39,7 +40,7 @@ pub fn dimensions() -> impl IntoView {
     let dimensions_resource = create_blocking_resource(
         move || (tenant_rs.get(), filters.get()),
         |(current_tenant, filters)| async move {
-            match fetch_dimensions(filters, current_tenant).await {
+            match fetch_dimensions(&filters, current_tenant).await {
                 Ok(data) => data,
                 Err(_) => PaginatedResponse::default(),
             }
@@ -145,7 +146,12 @@ pub fn dimensions() -> impl IntoView {
             Column::default("function_name".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
-            Column::new("actions".to_string(), None, action_col_formatter),
+            Column::new(
+                "actions".to_string(),
+                None,
+                action_col_formatter,
+                ColumnSortable::No,
+            ),
         ]
     });
 

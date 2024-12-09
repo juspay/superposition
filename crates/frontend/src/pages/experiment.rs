@@ -49,9 +49,9 @@ pub fn experiment_page() -> impl IntoView {
                 all: Some(true),
             };
             let dimensions_future =
-                fetch_dimensions(empty_list_filters.clone(), tenant.to_string());
+                fetch_dimensions(&empty_list_filters, tenant.to_string());
             let config_future =
-                fetch_default_config(empty_list_filters, tenant.to_string());
+                fetch_default_config(&empty_list_filters, tenant.to_string());
 
             let (experiments_result, dimensions_result, config_result) =
                 join!(experiments_future, dimensions_future, config_future);
