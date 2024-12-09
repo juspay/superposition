@@ -23,7 +23,10 @@ use superposition_types::{
 };
 
 use crate::{
-    api::dimension::{types::CreateReq, utils::get_dimension_usage_context_ids},
+    api::dimension::{
+        types::CreateReq,
+        utils::{get_dimension_usage_context_ids, validate_dimension_position},
+    },
     helpers::validate_jsonschema,
 };
 
@@ -51,6 +54,10 @@ async fn create(
     let create_req = req.into_inner();
     let schema_value = create_req.schema;
 
+    validate_dimension_position(
+        create_req.dimension.clone(),
+        create_req.position.clone(),
+    )?;
     validate_jsonschema(&state.meta_schema, &schema_value)?;
 
     let schema_compile_result = JSONSchema::options()
@@ -138,10 +145,14 @@ async fn update(
     db_conn: DbConnection,
     tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
-    let name: String = path.into_inner().into();
+    let name: String = path.clone().into();
+    use dimensions::dsl;
     let DbConnection(mut conn) = db_conn;
 
-    let mut dimension_row: Dimension = dimensions.find(&name).first(&mut conn)?;
+    let mut dimension_row: Dimension = dsl::dimensions
+        .filter(dimensions::dimension.eq(name.clone()))
+        .get_result::<Dimension>(&mut conn)?;
+
     let update_req = req.into_inner();
 
     if let Some(schema_value) = update_req.schema {
@@ -172,9 +183,9 @@ async fn update(
     };
     dimension_row.function_name = fun_name.clone();
 
-    use dimensions::dsl;
     if let Some(position_val) = update_req.position.clone() {
-        let new_position: i32 = position_val.into();
+        let new_position: i32 = position_val.clone().into();
+        validate_dimension_position(path.into_inner(), position_val)?;
 
         let previous_position = dimension_row.position.clone();
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -187,7 +198,7 @@ async fn update(
                         dsl::last_modified_by.eq(user.get_email()),
                         dimensions::position.eq(dimensions::position - 1),
                     ))
-                    .get_result::<Dimension>(transaction_conn)?
+                    .execute(transaction_conn)?
             } else {
                 diesel::update(dsl::dimensions)
                     .filter(dimensions::position.lt(dimension_row.position))
@@ -197,7 +208,7 @@ async fn update(
                         dsl::last_modified_by.eq(user.get_email()),
                         dimensions::position.eq(dimensions::position + 1),
                     ))
-                    .get_result::<Dimension>(transaction_conn)?
+                    .execute(transaction_conn)?
             };
 
             let result = diesel::update(dimensions)
@@ -287,6 +298,9 @@ async fn delete_dimension(
     db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.into_inner().into();
+    if name == "variantIds".to_string() {
+        return Err(bad_argument!("variantIds can not be deleted"));
+    }
     let DbConnection(mut conn) = db_conn;
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(&name))

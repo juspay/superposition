@@ -47,7 +47,7 @@ pub struct UpdateReq {
     pub function_name: Option<Value>,
 }
 
-#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
+#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into, Clone)]
 #[serde(try_from = "String")]
 pub struct DimensionName(String);
 impl DimensionName {

@@ -41,9 +41,9 @@ function create_default_config_keys() {
 
 function create_dimensions() {
     const dimensions = [
-        {name: "os", priority: 10, type: "STRING"},
-        {name: "client", priority: 100, type: "STRING"},
-        {name: "variantIds", priority: 1000, type: "STRING"}
+        {name: "os", position: 0, type: "STRING"},
+        {name: "client", position: 1, type: "STRING"},
+        {name: "variantIds", position: 2, type: "STRING"}
     ];
 
     for (const dimension of dimensions) {
@@ -59,7 +59,7 @@ function create_dimensions() {
                 "mode": "raw",
                 "raw": JSON.stringify({
                     "dimension": dimension.name,
-                    "priority": dimension.priority,
+                    "position": dimension.position,
                     "type": dimension.type
                 })
             }

@@ -6,7 +6,7 @@ use diesel::{
 use jsonschema::{Draft, JSONSchema};
 use service_utils::helpers::extract_dimensions;
 use std::collections::HashMap;
-use superposition_macros::{db_error, unexpected_error};
+use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     cac::{
         models::{Context, Dimension},
@@ -14,6 +14,8 @@ use superposition_types::{
     },
     result as superposition, Cac, Condition,
 };
+
+use super::types::{DimensionName, Position};
 
 pub fn get_dimension_data(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
@@ -68,4 +70,32 @@ pub fn get_dimension_usage_context_ids(
             .map(|_| context_ids.push(context.id.to_owned()));
     }
     Ok(context_ids)
+}
+
+pub fn validate_dimension_position(
+    dimension_name: DimensionName,
+    dimension_position: Position,
+) -> superposition::Result<()> {
+    let dimension_name: String = dimension_name.into();
+    let dimension_position: i32 = dimension_position.into();
+    if dimension_name == "variantIds".to_string() {
+        if dimension_position.to_owned() != 0 {
+            log::error!(
+                "invalid position: {} for dimension: {}",
+                dimension_name,
+                dimension_position
+            );
+            return Err(bad_argument!("variantIds position should be equal to 0"));
+        }
+    } else {
+        if dimension_position.to_owned() == 0 {
+            log::error!(
+                "invalid position: {} for dimension: {}",
+                dimension_name,
+                dimension_position
+            );
+            return Err(bad_argument!("Oth position is reserved for variantIds"));
+        }
+    };
+    Ok(())
 }

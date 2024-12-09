@@ -1,7 +1,7 @@
 use bigdecimal::BigDecimal;
 use chrono::{offset::Utc, DateTime, NaiveDateTime};
 #[cfg(feature = "diesel_derives")]
-use diesel::{AsChangeset, Insertable, Queryable, Selectable};
+use diesel::{AsChangeset, Insertable, Queryable, QueryableByName, Selectable};
 use serde::Serialize;
 use serde_json::Value;
 
@@ -136,7 +136,7 @@ pub struct ConfigVersion {
 #[derive(Serialize, Clone, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
-    derive(Queryable, Selectable, Insertable, AsChangeset)
+    derive(QueryableByName, Queryable, Selectable, Insertable, AsChangeset)
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
 #[cfg_attr(feature = "diesel_derives", diesel(table_name = type_templates))]
