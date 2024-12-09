@@ -8,6 +8,7 @@ pub struct UpdateFunctionRequest {
     pub function: Option<String>,
     pub runtime_version: Option<String>,
     pub description: Option<String>,
+    pub change_reason: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -16,6 +17,7 @@ pub struct CreateFunctionRequest {
     pub function: String,
     pub runtime_version: String,
     pub description: String,
+    pub change_reason: String,
 }
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]

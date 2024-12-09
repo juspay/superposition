@@ -6,4 +6,6 @@ pub struct DefaultConfigCreateReq {
     pub schema: Value,
     pub value: Value,
     pub function_name: Option<Value>,
+    pub description: String,
+    pub comment: String,
 }

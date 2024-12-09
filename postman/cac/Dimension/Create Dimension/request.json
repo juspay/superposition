@@ -30,7 +30,8 @@
       "schema": {
         "type": "string",
         "pattern": "^[a-z0-9].*$"
-      }
+      }, 
+      "change_reason": ""
     }
   },
   "url": {
