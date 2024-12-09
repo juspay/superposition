@@ -7,33 +7,13 @@ use superposition_types::{cac::models::Dimension, RegexEnum};
 #[derive(Debug, Deserialize)]
 pub struct CreateReq {
     pub dimension: DimensionName,
-    pub priority: Priority,
+    pub position: Position,
     pub schema: Value,
     #[serde(default, deserialize_with = "deserialize_option")]
     pub function_name: Option<Value>,
 }
 
-#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
-#[serde(try_from = "i32")]
-pub struct Priority(i32);
-impl Priority {
-    fn validate_data(priority_val: i32) -> Result<Self, String> {
-        if priority_val <= 0 {
-            return Err("Priority should be greater than 0".to_string());
-        } else {
-            Ok(Self(priority_val))
-        }
-    }
-}
-
-impl TryFrom<i32> for Priority {
-    type Error = String;
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        Ok(Self::validate_data(value)?)
-    }
-}
-
-#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
+#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into, Clone)]
 #[serde(try_from = "i32")]
 pub struct Position(i32);
 impl Position {
@@ -57,6 +37,14 @@ impl Default for Position {
     fn default() -> Self {
         Position(0)
     }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct UpdateReq {
+    pub position: Option<Position>,
+    pub schema: Option<Value>,
+    #[serde(default, deserialize_with = "deserialize_option")]
+    pub function_name: Option<Value>,
 }
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
@@ -89,7 +77,6 @@ where
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DimensionWithMandatory {
     pub dimension: String,
-    pub priority: i32,
     pub position: i32,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
@@ -104,7 +91,6 @@ impl DimensionWithMandatory {
     pub fn new(value: Dimension, mandatory: bool) -> Self {
         DimensionWithMandatory {
             dimension: value.dimension,
-            priority: value.priority,
             position: value.position,
             created_at: value.created_at,
             created_by: value.created_by,

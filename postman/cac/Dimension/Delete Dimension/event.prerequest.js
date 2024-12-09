@@ -12,7 +12,7 @@ function add_dimension() {
             "mode": "raw",
             "raw": JSON.stringify({
                 "dimension": "dim1",
-                "priority": 4,
+                "position": 1,
                 "schema": {
                     "type": "string",
                     "pattern": ".*"

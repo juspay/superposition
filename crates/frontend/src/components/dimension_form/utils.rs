@@ -1,4 +1,4 @@
-use super::types::DimensionCreateReq;
+use super::types::{DimensionCreateReq, DimensionUpdateReq};
 use crate::{
     types::Dimension,
     utils::{construct_request_headers, get_host, parse_json_response, request},
@@ -10,6 +10,25 @@ pub async fn create_dimension(
 ) -> Result<Dimension, String> {
     let host = get_host();
     let url = format!("{host}/dimension");
+
+    let response = request(
+        url,
+        reqwest::Method::PUT,
+        Some(payload),
+        construct_request_headers(&[("x-tenant", &tenant)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
+
+pub async fn update_dimension(
+    tenant: String,
+    dimension_name: String,
+    payload: DimensionUpdateReq,
+) -> Result<Dimension, String> {
+    let host = get_host();
+    let url = format!("{host}/dimension/{dimension_name}");
 
     let response = request(
         url,

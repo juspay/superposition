@@ -17,7 +17,6 @@ diesel::table! {
         override_id -> Varchar,
         created_at -> Timestamptz,
         created_by -> Varchar,
-        priority -> Int4,
         #[sql_name = "override"]
         override_ -> Json,
         last_modified_at -> Timestamp,
@@ -44,7 +43,6 @@ diesel::table! {
 diesel::table! {
     dimensions (dimension) {
         dimension -> Varchar,
-        priority -> Int4,
         created_at -> Timestamptz,
         created_by -> Varchar,
         schema -> Json,

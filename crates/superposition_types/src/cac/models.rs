@@ -1,7 +1,7 @@
 use bigdecimal::BigDecimal;
 use chrono::{offset::Utc, DateTime, NaiveDateTime};
 #[cfg(feature = "diesel_derives")]
-use diesel::{AsChangeset, Insertable, Queryable, Selectable};
+use diesel::{AsChangeset, Insertable, Queryable, QueryableByName, Selectable};
 use serde::Serialize;
 use serde_json::Value;
 
@@ -26,7 +26,6 @@ pub struct Context {
     pub override_id: String,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
-    pub priority: i32,
     #[serde(rename(serialize = "override"))]
     pub override_: Overrides,
     pub last_modified_at: NaiveDateTime,
@@ -56,7 +55,6 @@ impl Overridden<Cac<Overrides>> for Context {
 #[cfg_attr(feature = "diesel_derives", diesel(treat_none_as_null = true))]
 pub struct Dimension {
     pub dimension: String,
-    pub priority: i32,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: Value,
@@ -138,7 +136,7 @@ pub struct ConfigVersion {
 #[derive(Serialize, Clone, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
-    derive(Queryable, Selectable, Insertable, AsChangeset)
+    derive(QueryableByName, Queryable, Selectable, Insertable, AsChangeset)
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
 #[cfg_attr(feature = "diesel_derives", diesel(table_name = type_templates))]

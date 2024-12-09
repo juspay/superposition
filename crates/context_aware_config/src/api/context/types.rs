@@ -24,7 +24,6 @@ pub struct DimensionCondition {
 pub struct PutResp {
     pub context_id: String,
     pub override_id: String,
-    pub priority: i32,
     pub weight: BigDecimal,
 }
 
@@ -33,13 +32,13 @@ pub struct PutResp {
 pub enum ContextFilterSortBy {
     CreatedAtAsc,
     CreatedAtDesc,
-    PriorityAsc,
-    PriorityDesc,
+    WeightAsc,
+    WeightDesc,
 }
 
 impl Default for ContextFilterSortBy {
     fn default() -> Self {
-        Self::PriorityAsc
+        Self::WeightAsc
     }
 }
 
@@ -73,14 +72,6 @@ pub enum ContextBulkResponse {
 pub struct FunctionsInfo {
     pub name: String,
     pub code: Option<String>,
-}
-
-#[derive(Serialize)]
-pub struct PriorityRecomputeResponse {
-    pub id: String,
-    pub condition: Condition,
-    pub old_priority: i32,
-    pub new_priority: i32,
 }
 
 #[derive(Serialize)]
