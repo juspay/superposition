@@ -14,7 +14,11 @@ use crate::{Condition, Exp, Overrides};
 #[cfg(feature = "diesel_derives")]
 use super::schema::*;
 
-#[derive(Debug, Clone, Copy, PartialEq, Deserialize, Serialize)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display,
+)]
+#[serde(rename_all = "UPPERCASE")]
+#[strum(serialize_all = "UPPERCASE")]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(diesel_derive_enum::DbEnum, QueryId)
@@ -30,7 +34,8 @@ pub enum ExperimentStatusType {
     INPROGRESS,
 }
 
-#[derive(Deserialize, Serialize, Clone, PartialEq, Debug)]
+#[derive(Deserialize, Serialize, Clone, PartialEq, Debug, strum_macros::Display)]
+#[strum(serialize_all = "UPPERCASE")]
 pub enum VariantType {
     CONTROL,
     EXPERIMENTAL,

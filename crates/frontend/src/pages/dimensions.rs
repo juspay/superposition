@@ -9,7 +9,7 @@ use crate::components::{
         Table,
     },
 };
-use crate::types::{ListFilters, PaginatedResponse};
+use crate::types::ListFilters;
 use crate::utils::update_page_direction;
 use leptos::*;
 
@@ -39,10 +39,9 @@ pub fn dimensions() -> impl IntoView {
     let dimensions_resource = create_blocking_resource(
         move || (tenant_rs.get(), filters.get()),
         |(current_tenant, filters)| async move {
-            match fetch_dimensions(filters, current_tenant).await {
-                Ok(data) => data,
-                Err(_) => PaginatedResponse::default(),
-            }
+            fetch_dimensions(filters, current_tenant)
+                .await
+                .unwrap_or_default()
         },
     );
 
@@ -199,7 +198,7 @@ pub fn dimensions() -> impl IntoView {
                 {move || {
                     let value = dimensions_resource
                         .get()
-                        .unwrap_or(PaginatedResponse::default());
+                        .unwrap_or_default();
                     let total_items = value.data.len().to_string();
                     let table_rows = value
                         .data

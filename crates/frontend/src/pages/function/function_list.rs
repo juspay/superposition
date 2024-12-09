@@ -2,21 +2,21 @@ use leptos::*;
 
 use leptos_router::A;
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Map, Value};
+use superposition_types::{cac::models::Function, PaginatedResponse};
 
+use crate::api::fetch_functions;
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{stat::Stat, table::Table};
-
-use crate::types::{FunctionResponse, ListFilters, PaginatedResponse};
+use crate::types::ListFilters;
 use crate::utils::update_page_direction;
 
 use super::utils::function_table_columns;
-use crate::api::fetch_functions;
-use serde_json::{json, Map, Value};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct CombinedResource {
-    functions: PaginatedResponse<FunctionResponse>,
+    functions: PaginatedResponse<Function>,
 }
 
 #[component]

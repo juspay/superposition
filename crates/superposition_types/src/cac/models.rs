@@ -2,7 +2,7 @@ use bigdecimal::BigDecimal;
 use chrono::{offset::Utc, DateTime, NaiveDateTime};
 #[cfg(feature = "diesel_derives")]
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::{Cac, Condition, Contextual, Overridden, Overrides};
@@ -46,7 +46,7 @@ impl Overridden<Cac<Overrides>> for Context {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)
@@ -66,7 +66,38 @@ pub struct Dimension {
     pub position: i32,
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DimensionWithMandatory {
+    pub dimension: String,
+    pub priority: i32,
+    pub position: i32,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub schema: Value,
+    pub function_name: Option<String>,
+    pub last_modified_at: NaiveDateTime,
+    pub last_modified_by: String,
+    pub mandatory: bool,
+}
+
+impl DimensionWithMandatory {
+    pub fn new(value: Dimension, mandatory: bool) -> Self {
+        Self {
+            dimension: value.dimension,
+            priority: value.priority,
+            position: value.position,
+            created_at: value.created_at,
+            created_by: value.created_by,
+            schema: value.schema,
+            function_name: value.function_name,
+            last_modified_at: value.last_modified_at,
+            last_modified_by: value.last_modified_by,
+            mandatory,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)
@@ -85,7 +116,7 @@ pub struct DefaultConfig {
     pub last_modified_by: String,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)
@@ -123,7 +154,7 @@ pub struct EventLog {
     pub query: String,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "diesel_derives", derive(Queryable, Selectable, Insertable))]
 #[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
 #[cfg_attr(feature = "diesel_derives", diesel(primary_key(id)))]
@@ -135,7 +166,7 @@ pub struct ConfigVersion {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)

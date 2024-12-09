@@ -11,8 +11,10 @@ anyhow = { workspace = true }
 aws-config = { version = "1.1.7", features = ["behavior-version-latest"] }
 aws-sdk-kms = { version = "1.38.0" }
 base64 = { workspace = true }
+chrono = { workspace = true }
 derive_more = { workspace = true }
 diesel = { workspace = true }
+fred = { workspace = true, optional = true }
 futures-util = "0.3.28"
 jsonschema = { workspace = true }
 log = { workspace = true }
@@ -25,8 +27,6 @@ serde_json = { workspace = true }
 strum_macros = { workspace = true }
 superposition_types = { path = "../superposition_types", features = ["result"] }
 urlencoding = "~2.1.2"
-fred = { workspace = true, optional = true }
-chrono = { workspace = true }
 
 [features]
 high-performance-mode = ["dep:fred"]

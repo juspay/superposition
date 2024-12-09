@@ -4111,6 +4111,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "strum_macros",
  "superposition_derives",
  "thiserror",
  "uuid",
