@@ -403,61 +403,6 @@
       "name": "Dimension",
       "item": [
         {
-          "name": "Update Dimension",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"201 Check\", function () {",
-                  "    pm.response.to.have.status(201);",
-                  "})"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              },
-              {
-                "key": "x-tenant",
-                "value": "test",
-                "type": "default"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              },
-              "raw": "{\"position\":1,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
-            },
-            "url": {
-              "raw": "{{host}}/dimension/clientId",
-              "host": [
-                "{{host}}"
-              ],
-              "path": [
-                "dimension"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "Create Dimension",
           "event": [
             {
@@ -513,6 +458,63 @@
           "response": []
         },
         {
+          "name": "Update Dimension",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"201 Check\", function () {",
+                  "    pm.environment.set(\"dimension_name\", \"clientId\");",
+                  "    pm.response.to.have.status(201);",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant",
+                "value": "test",
+                "type": "default"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\"position\":0,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
+            },
+            "url": {
+              "raw": "{{host}}/dimension/{{dimension_name}}",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "dimension",
+                "{{dimension_name}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Delete Dimension",
           "event": [
             {
@@ -533,7 +535,7 @@
                   "            \"mode\": \"raw\",",
                   "            \"raw\": JSON.stringify({",
                   "                \"dimension\": \"dim1\",",
-                  "                \"priority\": 4,",
+                  "                \"position\": 1,",
                   "                \"schema\": {",
                   "                    \"type\": \"string\",",
                   "                    \"pattern\": \".*\"",
@@ -1043,7 +1045,7 @@
                   "    \"override\": {",
                   "        \"key1\": \"value3\"",
                   "    },",
-                  "    \"weight\": \"2\"",
+                  "    \"weight\": \"1\"",
                   "};",
                   "",
                   "pm.test(\"200 check\", function() {",
@@ -1165,7 +1167,7 @@
                   "            \"mode\": \"raw\",",
                   "            \"raw\": JSON.stringify({",
                   "                \"dimension\": \"clientId\",",
-                  "                \"position\": 2,",
+                  "                \"position\": 1,",
                   "                \"schema\": {",
                   "                    \"type\": \"string\",",
                   "                    \"pattern\": \"^[a-z0-9].*$\"",
@@ -1213,7 +1215,7 @@
                   "            throw error;",
                   "        }",
                   "        console.log(response.json())",
-                  "        pm.expect(response.json().weight).to.be.eq(\"4\");",
+                  "        pm.expect(response.json().weight).to.be.eq(\"2\");",
                   "",
                   "    })",
                   "    ",

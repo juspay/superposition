@@ -139,9 +139,13 @@ async fn update(
     tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.into_inner().into();
+    use dimensions::dsl;
     let DbConnection(mut conn) = db_conn;
 
-    let mut dimension_row: Dimension = dimensions.find(&name).first(&mut conn)?;
+    let mut dimension_row: Dimension = dsl::dimensions
+        .filter(dimensions::dimension.eq(name.clone()))
+        .get_result::<Dimension>(&mut conn)?;
+
     let update_req = req.into_inner();
 
     if let Some(schema_value) = update_req.schema {
@@ -172,7 +176,6 @@ async fn update(
     };
     dimension_row.function_name = fun_name.clone();
 
-    use dimensions::dsl;
     if let Some(position_val) = update_req.position.clone() {
         let new_position: i32 = position_val.into();
 
@@ -187,7 +190,7 @@ async fn update(
                         dsl::last_modified_by.eq(user.get_email()),
                         dimensions::position.eq(dimensions::position - 1),
                     ))
-                    .get_result::<Dimension>(transaction_conn)?
+                    .execute(transaction_conn)?
             } else {
                 diesel::update(dsl::dimensions)
                     .filter(dimensions::position.lt(dimension_row.position))
@@ -197,7 +200,7 @@ async fn update(
                         dsl::last_modified_by.eq(user.get_email()),
                         dimensions::position.eq(dimensions::position + 1),
                     ))
-                    .get_result::<Dimension>(transaction_conn)?
+                    .execute(transaction_conn)?
             };
 
             let result = diesel::update(dimensions)
