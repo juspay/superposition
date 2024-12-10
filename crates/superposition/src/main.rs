@@ -18,7 +18,7 @@ use leptos::*;
 use leptos_actix::{generate_route_list, LeptosRoutes};
 use service_utils::{
     helpers::get_from_env_unsafe,
-    middlewares::app_scope::AppExecutionScopeMiddlewareFactory, service::types::AppScope,
+    middlewares::{app_scope::AppExecutionScopeMiddlewareFactory, tenant::TenantMiddlewareFactory}, service::types::AppScope,
 };
 
 #[actix_web::get("favicon.ico")]

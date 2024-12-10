@@ -6,6 +6,7 @@ use std::{env, fs};
 use url::Url;
 
 mod saml2;
+mod oidc;
 
 pub fn init_auth() -> saml2::SAMLAuthProvider {
     let var = env::var("AUTH_PROVIDER")

@@ -20,6 +20,7 @@ futures-util = "0.3.31"
 jsonwebtoken = "9.3.0"
 leptos = { workspace = true }
 leptos_actix = { version = "0.6.11" }
+openidconnect = "3.5.0"
 reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
 samael = { version = "0.0.17", features = ["xmlsec"] }
