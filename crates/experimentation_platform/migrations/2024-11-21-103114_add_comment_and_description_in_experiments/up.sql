@@ -1,0 +1,2 @@
+ALTER TABLE public.experiments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
+ALTER TABLE public.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;

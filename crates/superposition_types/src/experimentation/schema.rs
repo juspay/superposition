@@ -569,6 +569,8 @@ diesel::table! {
         variants -> Json,
         last_modified_by -> Text,
         chosen_variant -> Nullable<Text>,
+        description -> Text,
+        change_reason -> Text,
     }
 }
 

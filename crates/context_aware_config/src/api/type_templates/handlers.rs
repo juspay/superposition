@@ -1,11 +1,11 @@
 use actix_web::web::{Json, Path, Query};
 use actix_web::{delete, get, post, put, HttpResponse, Scope};
 use chrono::Utc;
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
 use jsonschema::JSONSchema;
 use serde_json::Value;
 use service_utils::service::types::DbConnection;
-use superposition_macros::{bad_argument, db_error};
+use superposition_macros::{bad_argument, db_error, not_found};
 use superposition_types::cac::models::TypeTemplates;
 use superposition_types::{
     cac::schema::type_templates::{self, dsl},
@@ -42,12 +42,19 @@ async fn create_type(
         )
     })?;
     let type_name: String = request.type_name.clone().into();
+    let description = match request.description.clone() {
+        Some(desc) => desc,
+        None => return Err(not_found!("Description doesn't exist")),
+    };
+    let change_reason = request.change_reason.clone();
     let type_template = diesel::insert_into(type_templates::table)
         .values((
             type_templates::type_schema.eq(request.type_schema.clone()),
             type_templates::type_name.eq(type_name),
             type_templates::created_by.eq(user.email.clone()),
             type_templates::last_modified_by.eq(user.email.clone()),
+            type_templates::description.eq(description),
+            type_templates::change_reason.eq(change_reason),
         ))
         .get_result::<TypeTemplates>(&mut conn)
         .map_err(|err| {
@@ -76,7 +83,30 @@ async fn update_type(
             err.to_string()
         )
     })?;
+
+    let description = request.get("description").cloned();
     let type_name: String = path.into_inner().into();
+    let final_description = if description.is_none() {
+        let existing_template = type_templates::table
+            .filter(type_templates::type_name.eq(&type_name))
+            .first::<TypeTemplates>(&mut conn)
+            .optional()
+            .map_err(|err| {
+                log::error!("Failed to fetch existing type template: {}", err);
+                db_error!(err)
+            })?;
+
+        match existing_template {
+            Some(template) => template.description.clone(), // Use existing description
+            None => {
+                return Err(bad_argument!(
+                    "Description is required as the type template does not exist."
+                ));
+            }
+        }
+    } else {
+        description.unwrap().to_string()
+    };
 
     let timestamp = Utc::now().naive_utc();
     let updated_type = diesel::update(type_templates::table)
@@ -85,6 +115,7 @@ async fn update_type(
             type_templates::type_schema.eq(request.clone()),
             type_templates::last_modified_at.eq(timestamp),
             type_templates::last_modified_by.eq(user.email),
+            type_templates::description.eq(final_description),
         ))
         .get_result::<TypeTemplates>(&mut conn)
         .map_err(|err| {

@@ -7,6 +7,8 @@ diesel::table! {
         config_hash -> Text,
         tags -> Nullable<Array<Varchar>>,
         created_at -> Timestamp,
+        description -> Text,
+        change_reason -> Text,
     }
 }
 
@@ -24,6 +26,8 @@ diesel::table! {
         #[max_length = 200]
         last_modified_by -> Varchar,
         weight -> Numeric,
+        description -> Text,
+        change_reason -> Text,
     }
 }
 
@@ -38,6 +42,8 @@ diesel::table! {
         last_modified_at -> Timestamp,
         #[max_length = 200]
         last_modified_by -> Varchar,
+        description -> Text,
+        change_reason -> Text,
     }
 }
 
@@ -53,6 +59,8 @@ diesel::table! {
         #[max_length = 200]
         last_modified_by -> Varchar,
         position -> Int4,
+        description -> Text,
+        change_reason -> Text,
     }
 }
 
@@ -607,7 +615,7 @@ diesel::table! {
         function_name -> Text,
         published_code -> Nullable<Text>,
         draft_code -> Text,
-        function_description -> Text,
+        description -> Text,
         #[max_length = 16]
         published_runtime_version -> Nullable<Varchar>,
         #[max_length = 16]
@@ -619,6 +627,7 @@ diesel::table! {
         last_modified_at -> Timestamp,
         #[max_length = 200]
         last_modified_by -> Varchar,
+        change_reason -> Text,
     }
 }
 
@@ -631,6 +640,8 @@ diesel::table! {
         last_modified_at -> Timestamp,
         #[max_length = 200]
         last_modified_by -> Varchar,
+        description -> Text,
+        change_reason-> Text,
     }
 }
 

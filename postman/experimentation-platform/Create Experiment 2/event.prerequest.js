@@ -23,7 +23,9 @@ function create_default_config_keys() {
                     "schema": {
                         "type": "string",
                         "pattern": ".*"
-                    }
+                    }, 
+                    "description": "",
+                    "change_reason": ""
                 })
             }
         };
@@ -41,9 +43,9 @@ function create_default_config_keys() {
 
 function create_dimensions() {
     const dimensions = [
-        {name: "os", priority: 10, type: "STRING"},
-        {name: "client", priority: 100, type: "STRING"},
-        {name: "variantIds", priority: 1000, type: "STRING"}
+        {name: "os", priority: 10, type: "STRING", description: "", change_reason: ""},
+        {name: "client", priority: 100, type: "STRING", description: "", change_reason: ""},
+        {name: "variantIds", priority: 1000, type: "STRING", description: "", change_reason: ""}
     ];
 
     for (const dimension of dimensions) {
@@ -60,7 +62,7 @@ function create_dimensions() {
                 "raw": JSON.stringify({
                     "dimension": dimension.name,
                     "priority": dimension.priority,
-                    "type": dimension.type
+                    "type": dimension.type,
                 })
             }
         };
