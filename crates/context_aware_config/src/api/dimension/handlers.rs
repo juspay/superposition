@@ -15,8 +15,8 @@ use service_utils::service::types::{AppState, DbConnection};
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
     cac::{
-        models::Dimension,
-        schema::{dimensions, dimensions::dsl::*},
+        models::{Dimension, DimensionWithMandatory},
+        schema::dimensions::{self, dsl::*},
     },
     custom_query::PaginationParams,
     result as superposition, PaginatedResponse, TenantConfig, User,
@@ -27,7 +27,7 @@ use crate::{
     helpers::validate_jsonschema,
 };
 
-use super::types::{DeleteReq, DimensionWithMandatory};
+use super::types::DeleteReq;
 
 pub fn endpoints() -> Scope {
     Scope::new("")

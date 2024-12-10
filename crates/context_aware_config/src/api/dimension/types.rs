@@ -1,8 +1,7 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
 use derive_more::{AsRef, Deref, DerefMut, Into};
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer};
 use serde_json::Value;
-use superposition_types::{cac::models::Dimension, RegexEnum};
+use superposition_types::RegexEnum;
 
 #[derive(Debug, Deserialize)]
 pub struct CreateReq {
@@ -84,37 +83,6 @@ where
 {
     let value: Value = Deserialize::deserialize(deserializer)?;
     Ok(Some(value))
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DimensionWithMandatory {
-    pub dimension: String,
-    pub priority: i32,
-    pub position: i32,
-    pub created_at: DateTime<Utc>,
-    pub created_by: String,
-    pub schema: Value,
-    pub function_name: Option<String>,
-    pub last_modified_at: NaiveDateTime,
-    pub last_modified_by: String,
-    pub mandatory: bool,
-}
-
-impl DimensionWithMandatory {
-    pub fn new(value: Dimension, mandatory: bool) -> Self {
-        DimensionWithMandatory {
-            dimension: value.dimension,
-            priority: value.priority,
-            position: value.position,
-            created_at: value.created_at,
-            created_by: value.created_by,
-            schema: value.schema,
-            function_name: value.function_name,
-            last_modified_at: value.last_modified_at,
-            last_modified_by: value.last_modified_by,
-            mandatory,
-        }
-    }
 }
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]

@@ -10,6 +10,10 @@ use wasm_bindgen::JsCast;
 use web_sys::{HtmlButtonElement, HtmlSpanElement, MouseEvent};
 
 use crate::components::condition_pills::types::Conditions;
+use crate::components::condition_pills::{
+    types::{Condition, ConditionOperator},
+    Condition as ConditionComponent,
+};
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::ListFilters;
@@ -19,13 +23,6 @@ use crate::{
         button::Button, context_form::ContextForm, dropdown::DropdownDirection,
     },
     utils::{check_url_and_return_val, get_element_by_id, get_host},
-};
-use crate::{
-    components::condition_pills::{
-        types::{Condition, ConditionOperator},
-        Condition as ConditionComponent,
-    },
-    types::PaginatedResponse,
 };
 
 #[derive(Clone, Debug, Copy, Display, strum_macros::EnumProperty, PartialEq)]
@@ -185,7 +182,7 @@ pub fn home() -> impl IntoView {
     let dimension_resource = create_resource(
         move || tenant_rs.get(),
         |tenant| async {
-            match fetch_dimensions(
+            fetch_dimensions(
                 ListFilters {
                     page: None,
                     count: None,
@@ -194,10 +191,7 @@ pub fn home() -> impl IntoView {
                 tenant,
             )
             .await
-            {
-                Ok(data) => data,
-                Err(_) => PaginatedResponse::default(),
-            }
+            .unwrap_or_default()
         },
     );
 
@@ -401,7 +395,7 @@ pub fn home() -> impl IntoView {
                                                 <ContextForm
                                                     dimensions=dimension
                                                         .to_owned()
-                                                        .unwrap_or(PaginatedResponse::default())
+                                                        .unwrap_or_default()
                                                         .data
                                                     context=vec![]
                                                     heading_sub_text="Query your configs".to_string()

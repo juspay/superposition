@@ -1,8 +1,13 @@
 pub mod types;
 pub mod utils;
 
-use self::types::DimensionCreateReq;
-use self::utils::create_dimension;
+use leptos::*;
+use serde_json::{json, Value};
+use superposition_types::cac::models::{Function, TypeTemplates};
+use types::DimensionCreateReq;
+use utils::create_dimension;
+use web_sys::MouseEvent;
+
 use crate::api::fetch_types;
 use crate::components::{
     dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
@@ -10,11 +15,8 @@ use crate::components::{
 };
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{JsonSchemaType, SchemaType};
-use crate::types::{FunctionsName, ListFilters, TypeTemplate};
+use crate::types::{FunctionsName, ListFilters};
 use crate::{api::fetch_functions, components::button::Button};
-use leptos::*;
-use serde_json::{json, Value};
-use web_sys::MouseEvent;
 
 #[component]
 pub fn dimension_form<NF>(
@@ -37,25 +39,24 @@ where
     let (dimension_schema_rs, dimension_schema_ws) = create_signal(dimension_schema);
     let (function_name, set_function_name) = create_signal(function_name);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
-    let functions_resource: Resource<String, Vec<crate::types::FunctionResponse>> =
-        create_blocking_resource(
-            move || tenant_rs.get(),
-            |current_tenant| async move {
-                match fetch_functions(
-                    ListFilters {
-                        page: None,
-                        count: None,
-                        all: Some(true),
-                    },
-                    current_tenant,
-                )
-                .await
-                {
-                    Ok(list) => list.data.into_iter().collect(),
-                    Err(_) => vec![],
-                }
-            },
-        );
+    let functions_resource: Resource<String, Vec<Function>> = create_blocking_resource(
+        move || tenant_rs.get(),
+        |current_tenant| async move {
+            match fetch_functions(
+                ListFilters {
+                    page: None,
+                    count: None,
+                    all: Some(true),
+                },
+                current_tenant,
+            )
+            .await
+            {
+                Ok(list) => list.data,
+                Err(_) => vec![],
+            }
+        },
+    );
 
     let type_template_resource = create_blocking_resource(
         move || tenant_rs.get(),
@@ -163,7 +164,7 @@ where
                                 dropdown_direction=DropdownDirection::Down
                                 dropdown_btn_type=DropdownBtnType::Select
                                 dropdown_options=options
-                                on_select=Callback::new(move |selected_item: TypeTemplate| {
+                                on_select=Callback::new(move |selected_item: TypeTemplates| {
                                     logging::log!("selected item {:?}", selected_item);
                                     dimension_type_ws.set(selected_item.type_name);
                                     dimension_schema_ws.set(selected_item.type_schema);

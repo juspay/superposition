@@ -1,10 +1,15 @@
-use leptos::{ReadSignal, WriteSignal};
-use serde::{Deserialize, Serialize};
 use std::{str::FromStr, vec::Vec};
 
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
+use leptos::{ReadSignal, WriteSignal};
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
+use superposition_types::{
+    cac::models::{DefaultConfig, DimensionWithMandatory, TypeTemplates},
+    experimentation::models::{ExperimentStatusType, Variant, VariantType},
+    Exp, Overrides,
+};
 
 use crate::components::{
     condition_pills::{types::Condition, utils::extract_conditions},
@@ -32,12 +37,12 @@ pub enum AppEnv {
 
 impl FromStr for AppEnv {
     type Err = String;
-    fn from_str(val: &str) -> Result<AppEnv, Self::Err> {
+    fn from_str(val: &str) -> Result<Self, Self::Err> {
         match val {
-            "PROD" => Ok(AppEnv::PROD),
-            "SANDBOX" => Ok(AppEnv::SANDBOX),
-            "DEV" => Ok(AppEnv::DEV),
-            "TEST" => Ok(AppEnv::TEST),
+            "PROD" => Ok(Self::PROD),
+            "SANDBOX" => Ok(Self::SANDBOX),
+            "DEV" => Ok(Self::DEV),
+            "TEST" => Ok(Self::TEST),
             _ => Err("invalid app env!!".to_string()),
         }
     }
@@ -51,21 +56,6 @@ pub struct Envs {
 }
 
 /*************************Function Type ***************************/
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct FunctionResponse {
-    pub function_name: String,
-    pub published_code: Option<String>,
-    pub draft_code: String,
-    pub function_description: String,
-    pub published_runtime_version: Option<String>,
-    pub draft_runtime_version: String,
-    pub published_at: Option<NaiveDateTime>,
-    pub draft_edited_at: NaiveDateTime,
-    pub published_by: Option<String>,
-    pub draft_edited_by: String,
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FunctionTestResponse {
     pub message: String,
@@ -73,26 +63,6 @@ pub struct FunctionTestResponse {
 }
 
 /*********************** Experimentation Types ****************************************/
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display,
-)]
-#[strum(serialize_all = "UPPERCASE")]
-pub enum ExperimentStatusType {
-    CREATED,
-    CONCLUDED,
-    INPROGRESS,
-}
-
-impl ExperimentStatusType {
-    pub fn badge_class(&self) -> &'static str {
-        match self {
-            ExperimentStatusType::CREATED => "badge-info",
-            ExperimentStatusType::INPROGRESS => "badge-warning",
-            ExperimentStatusType::CONCLUDED => "badge-success",
-        }
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ExperimentResponse {
@@ -111,13 +81,6 @@ pub struct ExperimentResponse {
     pub chosen_variant: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ExperimentsResponse {
-    pub total_items: i64,
-    pub total_pages: i64,
-    pub data: Vec<ExperimentResponse>,
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone, Deref, DerefMut, PartialEq)]
 pub struct StatusTypes(pub Vec<ExperimentStatusType>);
 
@@ -128,37 +91,24 @@ pub struct ExpListFilters {
     pub to_date: Option<DateTime<Utc>>,
 }
 
-#[derive(Deserialize, Serialize, Clone, PartialEq, Debug, strum_macros::Display)]
-#[strum(serialize_all = "UPPERCASE")]
-pub enum VariantType {
-    CONTROL,
-    EXPERIMENTAL,
-}
-
-#[derive(Deserialize, Serialize, Clone, Debug)]
-pub struct Variant {
-    pub id: String,
-    pub variant_type: VariantType,
-    pub context_id: Option<String>,
-    pub override_id: Option<String>,
-    pub overrides: Map<String, Value>,
-}
-
 impl FromIterator<VariantFormT> for Vec<Variant> {
     fn from_iter<T: IntoIterator<Item = VariantFormT>>(iter: T) -> Self {
-        iter.into_iter().map(Variant::from).collect()
+        iter.into_iter()
+            .filter_map(|v| Variant::try_from(v).ok())
+            .collect()
     }
 }
 
-impl From<VariantFormT> for Variant {
-    fn from(value: VariantFormT) -> Self {
-        Variant {
+impl TryFrom<VariantFormT> for Variant {
+    type Error = String;
+    fn try_from(value: VariantFormT) -> Result<Self, Self::Error> {
+        Ok(Self {
             id: value.id,
             variant_type: value.variant_type,
-            overrides: Map::from_iter(value.overrides),
+            overrides: Exp::<Overrides>::try_from(Map::from_iter(value.overrides))?,
             context_id: None,
             override_id: None,
-        }
+        })
     }
 }
 
@@ -171,17 +121,26 @@ pub struct VariantFormT {
 
 impl From<Variant> for VariantFormT {
     fn from(value: Variant) -> Self {
-        VariantFormT {
+        Self {
             id: value.id,
             variant_type: value.variant_type,
-            overrides: value.overrides.into_iter().collect(),
+            overrides: value.overrides.into_inner().into_iter().collect(),
         }
     }
 }
 
-impl FromIterator<Variant> for Vec<VariantFormT> {
+#[derive(Deref)]
+pub struct VariantFormTs(Vec<VariantFormT>);
+
+impl Default for VariantFormTs {
+    fn default() -> Self {
+        Self(Vec::new())
+    }
+}
+
+impl FromIterator<Variant> for VariantFormTs {
     fn from_iter<T: IntoIterator<Item = Variant>>(iter: T) -> Self {
-        iter.into_iter().map(VariantFormT::from).collect()
+        Self(iter.into_iter().map(VariantFormT::from).collect())
     }
 }
 
@@ -204,7 +163,7 @@ pub struct Experiment {
 
 impl From<ExperimentResponse> for Experiment {
     fn from(value: ExperimentResponse) -> Self {
-        Experiment {
+        Self {
             name: value.name,
             id: value.id,
             traffic_percentage: value.traffic_percentage as u8,
@@ -222,34 +181,13 @@ impl From<ExperimentResponse> for Experiment {
 
 /*************************** Context-Override types ********************************/
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct Dimension {
-    pub dimension: String,
-    pub priority: i32,
-    pub created_at: DateTime<Utc>,
-    pub created_by: String,
-    pub schema: Value,
-    pub function_name: Option<String>,
-    pub mandatory: bool,
-}
-
-impl DropdownOption for Dimension {
+impl DropdownOption for DimensionWithMandatory {
     fn key(&self) -> String {
         self.dimension.clone()
     }
     fn label(&self) -> String {
         self.dimension.clone()
     }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct DefaultConfig {
-    pub key: String,
-    pub value: Value,
-    pub created_at: DateTime<Utc>,
-    pub created_by: String,
-    pub schema: Value,
-    pub function_name: Option<String>,
 }
 
 impl DropdownOption for DefaultConfig {
@@ -283,17 +221,7 @@ pub struct ErrorResponse {
     pub message: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct TypeTemplate {
-    pub type_name: String,
-    pub type_schema: Value,
-    pub created_by: String,
-    pub created_at: NaiveDateTime,
-    pub last_modified_at: NaiveDateTime,
-    pub last_modified_by: String,
-}
-
-impl DropdownOption for TypeTemplate {
+impl DropdownOption for TypeTemplates {
     fn key(&self) -> String {
         self.type_name.clone()
     }
@@ -302,49 +230,9 @@ impl DropdownOption for TypeTemplate {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct FetchTypeTemplateResponse {
-    pub total_items: i64,
-    pub total_pages: i64,
-    pub data: Vec<TypeTemplate>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, Default)]
-pub struct ConfigVersionListResponse {
-    pub total_pages: u64,
-    pub total_items: i64,
-    pub data: Vec<ConfigVersion>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct ConfigVersion {
-    pub config: Value,
-    pub config_hash: String,
-    pub created_at: String,
-    pub id: u64,
-    pub tags: Option<Vec<String>>,
-}
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ListFilters {
     pub page: Option<i64>,
     pub count: Option<i64>,
     pub all: Option<bool>,
-}
-
-#[derive(Serialize, Debug, Clone, Deserialize)]
-pub struct PaginatedResponse<T> {
-    pub total_pages: i64,
-    pub total_items: i64,
-    pub data: Vec<T>,
-}
-
-impl<T> Default for PaginatedResponse<T> {
-    fn default() -> Self {
-        PaginatedResponse {
-            total_pages: 0,
-            total_items: 0,
-            data: Vec::new(),
-        }
-    }
 }

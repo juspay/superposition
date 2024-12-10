@@ -10,13 +10,16 @@ use std::{
 use chrono::{DateTime, TimeZone, Utc};
 use derive_more::{Deref, DerefMut};
 use serde_json::Value;
-use superposition_types::Overridden;
+use superposition_types::{
+    experimentation::models::{ExperimentStatusType, VariantType},
+    Overridden, PaginatedResponse,
+};
 use tokio::{
     sync::RwLock,
     time::{self, Duration},
 };
 pub use types::{Config, Experiment, Experiments, Variants};
-use types::{ExperimentStore, ListExperimentsResponse, Variant, VariantType};
+use types::{ExperimentStore, Variant};
 use utils::MapError;
 
 #[derive(Clone, Debug)]
@@ -32,7 +35,7 @@ pub struct Client {
 
 impl Client {
     pub fn new(config: Config) -> Self {
-        Client {
+        Self {
             client_config: Arc::new(config),
             experiments: Arc::new(RwLock::new(HashMap::new())),
             http_client: reqwest::Client::new(),
@@ -64,9 +67,7 @@ impl Client {
                 let mut exp_store = self.experiments.write().await;
                 for (exp_id, experiment) in experiments.into_iter() {
                     match experiment.status {
-                        types::ExperimentStatusType::Concluded => {
-                            exp_store.remove(&exp_id)
-                        }
+                        ExperimentStatusType::CONCLUDED => exp_store.remove(&exp_id),
                         _ => exp_store.insert(exp_id, experiment),
                     };
                 }
@@ -213,7 +214,7 @@ impl Client {
     ) -> Result<Option<Variant>, String> {
         if toss < 0 {
             for variant in applicable_variants.iter() {
-                if variant.variant_type == VariantType::Experimental {
+                if variant.variant_type == VariantType::EXPERIMENTAL {
                     return Ok(Some(variant.clone()));
                 }
             }
@@ -255,7 +256,7 @@ async fn get_experiments(
             .send()
             .await
             .map_err_to_string()?
-            .json::<ListExperimentsResponse>()
+            .json::<PaginatedResponse<Experiment>>()
             .await
             .map_err_to_string()?;
 
