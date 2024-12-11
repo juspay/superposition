@@ -126,6 +126,7 @@ pub struct Context {
     pub id: String,
     pub condition: Condition,
     pub priority: i32,
+    pub weight: i32,
     pub override_with_keys: [String; 1],
 }
 

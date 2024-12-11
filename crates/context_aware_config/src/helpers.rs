@@ -253,11 +253,12 @@ pub fn generate_cac(
             ctxt::id,
             ctxt::value,
             ctxt::priority,
+            ctxt::weight,
             ctxt::override_id,
             ctxt::override_,
         ))
         .order_by((ctxt::priority.asc(), ctxt::created_at.asc()))
-        .load::<(String, Condition, i32, String, Overrides)>(conn)
+        .load::<(String, Condition, i32, BigDecimal, String, Overrides)>(conn)
         .map_err(|err| {
             log::error!("failed to fetch contexts with error: {}", err);
             db_error!(err)
@@ -266,7 +267,7 @@ pub fn generate_cac(
     let mut contexts = Vec::new();
     let mut overrides: HashMap<String, Overrides> = HashMap::new();
 
-    for (id, condition, priority_, override_id, override_) in contexts_vec.iter() {
+    for (id, condition, priority_, _, override_id, override_) in contexts_vec.iter() {
         let condition = Cac::<Condition>::validate_db_data(condition.clone().into())
             .map_err(|err| {
                 log::error!("generate_cac : failed to decode context from db {}", err);
@@ -284,6 +285,7 @@ pub fn generate_cac(
             id: id.to_owned(),
             condition,
             priority: priority_.to_owned(),
+            weight: priority_.to_owned(),
             override_with_keys: [override_id.to_owned()],
         };
         contexts.push(ctxt);
