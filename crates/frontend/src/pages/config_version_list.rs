@@ -6,7 +6,7 @@ use serde_json::{json, Map, Value};
 
 use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
-use crate::components::table::types::TablePaginationProps;
+use crate::components::table::types::{ColumnSortable, TablePaginationProps};
 use crate::components::table::{types::Column, Table};
 use crate::types::{ConfigVersionListResponse, ListFilters};
 use crate::utils::use_url_base;
@@ -164,6 +164,7 @@ pub fn snapshot_table_columns(tenant: String) -> Vec<Column> {
                 }
                 .into_view()
             },
+            ColumnSortable::No,
         ),
         Column::new(
             "created_at".to_string(),
@@ -179,6 +180,7 @@ pub fn snapshot_table_columns(tenant: String) -> Vec<Column> {
                     };
                 view! { <span class="w-24">{formatted_date}</span> }.into_view()
             },
+            ColumnSortable::No,
         ),
         Column::new(
             "tags".to_string(),
@@ -198,6 +200,7 @@ pub fn snapshot_table_columns(tenant: String) -> Vec<Column> {
                 }
                 .into_view()
             },
+            ColumnSortable::No,
         ),
     ]
 }

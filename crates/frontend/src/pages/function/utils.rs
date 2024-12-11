@@ -1,4 +1,4 @@
-use crate::components::table::types::Column;
+use crate::components::table::types::{Column, ColumnSortable};
 use crate::utils::get_host;
 use leptos::*;
 use leptos_router::A;
@@ -23,6 +23,7 @@ pub fn function_table_columns() -> Vec<Column> {
                 }
                 .into_view()
             },
+            ColumnSortable::No,
         ),
         Column::default("function_description".to_string()),
         Column::default("published_runtime_version".to_string()),

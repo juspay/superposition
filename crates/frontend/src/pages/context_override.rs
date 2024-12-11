@@ -154,8 +154,8 @@ pub fn context_override() -> impl IntoView {
             };
             let (config_result, dimensions_result, default_config_result) = join!(
                 fetch_config(current_tenant.to_string(), None),
-                fetch_dimensions(empty_list_filters.clone(), current_tenant.to_string()),
-                fetch_default_config(empty_list_filters, current_tenant.to_string())
+                fetch_dimensions(&empty_list_filters, current_tenant.to_string()),
+                fetch_default_config(&empty_list_filters, current_tenant.to_string())
             );
             PageResource {
                 config: config_result.unwrap_or_default(),

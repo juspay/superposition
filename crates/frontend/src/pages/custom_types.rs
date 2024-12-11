@@ -1,3 +1,4 @@
+use crate::components::table::types::ColumnSortable;
 use crate::components::type_template_form::utils::delete_type;
 use crate::components::{
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
@@ -95,6 +96,7 @@ pub fn types_page() -> impl IntoView {
                     }
                     .into_view()
                 },
+                ColumnSortable::No,
             ),
         ]
     });

@@ -3,13 +3,11 @@ use std::collections::HashMap;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use service_utils::helpers::deserialize_stringified_list;
 use superposition_types::{
+    custom_query::{deserialize_stringified_list, CommaSeparatedStringQParams},
     experimentation::models::{Experiment, ExperimentStatusType, Variant},
-    Condition, Exp, Overrides,
+    Condition, Exp, Overrides, SortBy,
 };
-
-/********** Experiment Create Req Types ************/
 
 #[derive(Deserialize)]
 pub struct ExperimentCreateRequest {
@@ -165,14 +163,32 @@ pub struct StatusTypes(
     pub  Vec<ExperimentStatusType>,
 );
 
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum ExperimentSortOn {
+    LastModifiedAt,
+    CreatedAt,
+}
+
+impl Default for ExperimentSortOn {
+    fn default() -> Self {
+        Self::LastModifiedAt
+    }
+}
+
 #[derive(Deserialize, Debug)]
-pub struct ExpListFilters {
+pub struct ExperimentListFilters {
     pub status: Option<StatusTypes>,
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,
+    pub experiment_name: Option<String>,
+    pub experiment_ids: Option<CommaSeparatedStringQParams>,
+    pub created_by: Option<CommaSeparatedStringQParams>,
+    pub context: Option<String>,
+    pub sort_on: Option<ExperimentSortOn>,
+    pub sort_by: Option<SortBy>,
 }
 
-/********** Ramp API type **********/
 #[derive(Deserialize, Debug)]
 pub struct RampRequest {
     pub traffic_percentage: u64,
@@ -196,19 +212,12 @@ pub struct ContextMoveReq {
     pub context: Map<String, Value>,
 }
 
-/*********** List Audit API Filter Type **************/
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct StringArgs(
-    #[serde(deserialize_with = "deserialize_stringified_list")] pub Vec<String>,
-);
-
 #[derive(Debug, Clone, Deserialize)]
 pub struct AuditQueryFilters {
     pub from_date: Option<NaiveDateTime>,
     pub to_date: Option<NaiveDateTime>,
-    pub table: Option<StringArgs>,
-    pub action: Option<StringArgs>,
+    pub table: Option<CommaSeparatedStringQParams>,
+    pub action: Option<CommaSeparatedStringQParams>,
     pub username: Option<String>,
     pub count: Option<i64>,
     pub page: Option<i64>,
