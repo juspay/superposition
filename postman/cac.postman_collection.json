@@ -406,10 +406,53 @@
           "name": "Create Dimension",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const host = pm.variables.get(\"host\");",
+                  "",
+                  "function add_dimension() {",
+                  "    const options = {",
+                  "        'method': 'POST',",
+                  "        'url': `${host}/dimension`,",
+                  "        'header': {",
+                  "            'x-tenant': 'test',",
+                  "            'Content-Type': 'application/json'",
+                  "        },",
+                  "        \"body\": {",
+                  "            \"mode\": \"raw\",",
+                  "            \"raw\": JSON.stringify({",
+                  "                \"dimension\": \"variantIds\",",
+                  "                \"position\": 0,",
+                  "                \"schema\": {",
+                  "                    \"type\": \"string\",",
+                  "                    \"pattern\": \".*\"",
+                  "                }",
+                  "            })",
+                  "        }",
+                  "    };",
+                  "    pm.sendRequest(options, function (error, response) {",
+                  "        if (error) {",
+                  "            console.log(`Error creating dimension: dim1`);",
+                  "            console.log(error);",
+                  "            return;",
+                  "        }",
+                  "        console.log(`created dimension: dim1`);",
+                  "    });",
+                  "    ",
+                  "}",
+                  "",
+                  "add_dimension();"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
                   "pm.test(\"201 Check\", function () {",
+                  "    pm.environment.set(\"dimension_name\", \"clientId\");",
                   "    pm.response.to.have.status(201);",
                   "})"
                 ],
@@ -418,7 +461,7 @@
             }
           ],
           "request": {
-            "method": "PUT",
+            "method": "POST",
             "header": [
               {
                 "key": "Authorization",
@@ -443,7 +486,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"dimension\":\"clientId\",\"position\":0,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
+              "raw": "{\"dimension\":\"clientId\",\"position\":1,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
             },
             "url": {
               "raw": "{{host}}/dimension",
@@ -464,9 +507,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"201 Check\", function () {",
-                  "    pm.environment.set(\"dimension_name\", \"clientId\");",
-                  "    pm.response.to.have.status(201);",
+                  "pm.test(\"200 Check\", function () {",
+                  "    pm.response.to.have.status(200);",
                   "})"
                 ],
                 "type": "text/javascript"
@@ -499,7 +541,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"position\":0,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
+              "raw": "{\"position\":1,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
             },
             "url": {
               "raw": "{{host}}/dimension/{{dimension_name}}",
@@ -525,7 +567,7 @@
                   "",
                   "function add_dimension() {",
                   "    const options = {",
-                  "        'method': 'PUT',",
+                  "        'method': 'POST',",
                   "        'url': `${host}/dimension`,",
                   "        'header': {",
                   "            'x-tenant': 'test',",
@@ -535,7 +577,7 @@
                   "            \"mode\": \"raw\",",
                   "            \"raw\": JSON.stringify({",
                   "                \"dimension\": \"dim1\",",
-                  "                \"position\": 1,",
+                  "                \"position\": 2,",
                   "                \"schema\": {",
                   "                    \"type\": \"string\",",
                   "                    \"pattern\": \".*\"",
@@ -1045,7 +1087,7 @@
                   "    \"override\": {",
                   "        \"key1\": \"value3\"",
                   "    },",
-                  "    \"weight\": \"1\"",
+                  "    \"weight\": \"2\"",
                   "};",
                   "",
                   "pm.test(\"200 check\", function() {",
@@ -1157,7 +1199,7 @@
                   "",
                   "function update_dimension_position() {",
                   "    const options = {",
-                  "        'method': 'PUT',",
+                  "        'method': 'POST',",
                   "        'url': `${host}/dimension`,",
                   "        'header': {",
                   "            'x-tenant': 'test',",

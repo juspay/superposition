@@ -181,10 +181,9 @@ pub fn generate_config_from_version(
         {
             Ok((latest_version, config)) => {
                 *version = Some(latest_version);
-
-                serde_json::from_value::<Config>(config).map_err(|err| {
+                serde_json::from_value::<Config>(config).or_else(|err| {
                     log::error!("failed to decode config: {}", err);
-                    unexpected_error!("failed to decode config")
+                    generate_cac(conn)
                 })
             }
             Err(err) => {

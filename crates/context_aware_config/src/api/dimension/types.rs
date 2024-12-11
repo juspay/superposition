@@ -9,8 +9,7 @@ pub struct CreateReq {
     pub dimension: DimensionName,
     pub position: Position,
     pub schema: Value,
-    #[serde(default, deserialize_with = "deserialize_option")]
-    pub function_name: Option<Value>,
+    pub function_name: Option<String>,
 }
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into, Clone)]
@@ -43,8 +42,31 @@ impl Default for Position {
 pub struct UpdateReq {
     pub position: Option<Position>,
     pub schema: Option<Value>,
-    #[serde(default, deserialize_with = "deserialize_option")]
-    pub function_name: Option<Value>,
+    pub function_name: Option<FunctionNameEnum>,
+}
+
+#[derive(Debug, Clone)]
+pub enum FunctionNameEnum {
+    Name(String),
+    Remove,
+}
+
+impl<'de> Deserialize<'de> for FunctionNameEnum {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let map: Value = Deserialize::deserialize(deserializer)?;
+        match map {
+            Value::String(func_name) => Ok(Self::Name(func_name)),
+            Value::Null => Ok(Self::Remove),
+            _ => {
+                log::error!("Expected a string or null literal as the function name.");
+                Err("Expected a string or null literal as the function name.")
+                    .map_err(serde::de::Error::custom)
+            }
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into, Clone)]
@@ -64,14 +86,6 @@ impl TryFrom<String> for DimensionName {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Ok(Self::validate_data(value)?)
     }
-}
-
-fn deserialize_option<'de, D>(deserializer: D) -> Result<Option<Value>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let value: Value = Deserialize::deserialize(deserializer)?;
-    Ok(Some(value))
 }
 
 #[derive(Debug, Serialize, Deserialize)]

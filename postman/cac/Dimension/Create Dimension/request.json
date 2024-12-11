@@ -1,5 +1,5 @@
 {
-  "method": "PUT",
+  "method": "POST",
   "header": [
     {
       "key": "Authorization",
@@ -26,7 +26,7 @@
     },
     "raw_json_formatted": {
       "dimension": "clientId",
-      "position": 0,
+      "position": 1,
       "schema": {
         "type": "string",
         "pattern": "^[a-z0-9].*$"

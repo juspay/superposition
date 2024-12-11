@@ -25,7 +25,7 @@
       }
     },
     "raw_json_formatted": {
-      "position": 0,
+      "position": 1,
       "schema": {
         "type": "string",
         "pattern": "^[a-z0-9].*$"

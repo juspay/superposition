@@ -75,27 +75,26 @@ pub fn get_dimension_usage_context_ids(
 pub fn validate_dimension_position(
     dimension_name: DimensionName,
     dimension_position: Position,
+    max_allowed: i64,
 ) -> superposition::Result<()> {
     let dimension_name: String = dimension_name.into();
     let dimension_position: i32 = dimension_position.into();
-    if dimension_name == "variantIds".to_string() {
-        if dimension_position.to_owned() != 0 {
-            log::error!(
-                "invalid position: {} for dimension: {}",
-                dimension_name,
-                dimension_position
-            );
-            return Err(bad_argument!("variantIds position should be equal to 0"));
+    match (dimension_name.as_str(), dimension_position) {
+        ("variantIds", 0) => Ok(()),
+        ("variantIds", d_position) => {
+            log::error!("invalid position: {d_position} for dimension: variantIds",);
+            Err(bad_argument!("variantIds' position should be equal to 0"))
         }
-    } else {
-        if dimension_position.to_owned() == 0 {
-            log::error!(
-                "invalid position: {} for dimension: {}",
-                dimension_name,
-                dimension_position
-            );
-            return Err(bad_argument!("Oth position is reserved for variantIds"));
+        (_, 0) => {
+            log::error!("invalid position: 0 for dimension: {dimension_name}",);
+            Err(bad_argument!("Oth position is reserved for variantIds"))
         }
-    };
-    Ok(())
+        (_, d_position) if d_position as i64 > max_allowed => {
+            log::error!("position {d_position} value exceeds total number of dimensions {max_allowed}");
+            Err(bad_argument!(
+                "position value exceeds total number of dimensions"
+            ))
+        }
+        _ => Ok(()),
+    }
 }

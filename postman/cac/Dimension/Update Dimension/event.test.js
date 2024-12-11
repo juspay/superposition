@@ -1,3 +1,3 @@
-pm.test("201 Check", function () {
-    pm.response.to.have.status(201);
+pm.test("200 Check", function () {
+    pm.response.to.have.status(200);
 })

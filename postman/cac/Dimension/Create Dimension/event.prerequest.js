@@ -1,6 +1,6 @@
 const host = pm.variables.get("host");
 
-function update_dimension_position() {
+function add_dimension() {
     const options = {
         'method': 'POST',
         'url': `${host}/dimension`,
@@ -11,24 +11,24 @@ function update_dimension_position() {
         "body": {
             "mode": "raw",
             "raw": JSON.stringify({
-                "dimension": "clientId",
-                "position": 1,
+                "dimension": "variantIds",
+                "position": 0,
                 "schema": {
                     "type": "string",
-                    "pattern": "^[a-z0-9].*$"
+                    "pattern": ".*"
                 }
             })
         }
     };
     pm.sendRequest(options, function (error, response) {
         if (error) {
-            console.log(`Error updating dimension: clientId`);
+            console.log(`Error creating dimension: dim1`);
             console.log(error);
             return;
         }
-        console.log(`Updated dimension: clientId`);
+        console.log(`created dimension: dim1`);
     });
     
 }
 
-update_dimension_position();
+add_dimension();

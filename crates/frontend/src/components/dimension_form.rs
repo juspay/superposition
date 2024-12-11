@@ -31,7 +31,7 @@ where
 {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
 
-    let (position, set_position) = create_signal(position);
+    let (position_rs, position_ws) = create_signal(position);
     let (dimension_name_rs, dimension_name_ws) = create_signal(dimension_name);
     let (dimension_type_rs, dimension_type_ws) = create_signal(dimension_type);
     let (dimension_schema_rs, dimension_schema_ws) = create_signal(dimension_schema);
@@ -85,38 +85,31 @@ where
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);
         ev.prevent_default();
-        let f_position = position.get();
-        let f_name = dimension_name_rs.get();
-        let fun_name = function_name.get();
-
-        let f_schema = dimension_schema_rs.get();
-
-        let create_payload = DimensionCreateReq {
-            dimension: f_name.clone(),
-            position: f_position.clone(),
-            schema: f_schema.clone(),
-            function_name: fun_name.clone(),
-        };
-
-        let update_payload = DimensionUpdateReq {
-            position: Some(f_position),
-            schema: Some(f_schema),
-            function_name: fun_name,
-        };
+        let function_position = position_rs.get();
+        let dimension_name = dimension_name_rs.get();
+        let function_name = function_name.get();
+        let function_schema = dimension_schema_rs.get();
 
         let handle_submit_clone = handle_submit.clone();
         spawn_local({
             let handle_submit = handle_submit_clone;
             async move {
                 let result = if edit {
-                    update_dimension(
-                        tenant_rs.get(),
-                        f_name.clone(),
-                        update_payload.clone(),
-                    )
-                    .await
+                    let update_payload = DimensionUpdateReq {
+                        position: Some(function_position),
+                        schema: Some(function_schema),
+                        function_name: function_name,
+                    };
+                    update_dimension(tenant_rs.get(), dimension_name, update_payload)
+                        .await
                 } else {
-                    create_dimension(tenant_rs.get(), create_payload.clone()).await
+                    let create_payload = DimensionCreateReq {
+                        dimension: dimension_name,
+                        position: function_position,
+                        schema: function_schema,
+                        function_name: function_name,
+                    };
+                    create_dimension(tenant_rs.get(), create_payload).await
                 };
                 match result {
                     Ok(_) => {
@@ -211,7 +204,7 @@ where
                             min=0
                             placeholder="Position"
                             class="input input-bordered w-full max-w-md"
-                            value=position.get()
+                            value=position_rs.get()
                             on:keypress=move |ev| {
                                 let char_code = ev.char_code();
                                 if char_code != 0 && char_code != 8 && char_code != 13
@@ -224,9 +217,9 @@ where
                             on:change=move |ev| {
                                 logging::log!("{:?}", event_target_value(& ev).parse::< u32 > ());
                                 match event_target_value(&ev).parse::<u32>() {
-                                    Ok(i_prio) => set_position.set(i_prio),
+                                    Ok(i_prio) => position_ws.set(i_prio),
                                     Err(e) => {
-                                        set_position.set(0);
+                                        position_ws.set(0);
                                         logging::log!("{e}");
                                     }
                                 };

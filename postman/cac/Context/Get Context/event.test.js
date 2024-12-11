@@ -12,7 +12,7 @@ const expected_context = {
     "override": {
         "key1": "value3"
     },
-    "weight": "1"
+    "weight": "2"
 };
 
 pm.test("200 check", function() {

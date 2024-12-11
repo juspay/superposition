@@ -13,7 +13,7 @@ pub async fn create_dimension(
 
     let response = request(
         url,
-        reqwest::Method::PUT,
+        reqwest::Method::POST,
         Some(payload),
         construct_request_headers(&[("x-tenant", &tenant)])?,
     )

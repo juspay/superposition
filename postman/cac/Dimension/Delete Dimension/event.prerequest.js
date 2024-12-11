@@ -2,7 +2,7 @@ const host = pm.variables.get("host");
 
 function add_dimension() {
     const options = {
-        'method': 'PUT',
+        'method': 'POST',
         'url': `${host}/dimension`,
         'header': {
             'x-tenant': 'test',
@@ -12,7 +12,7 @@ function add_dimension() {
             "mode": "raw",
             "raw": JSON.stringify({
                 "dimension": "dim1",
-                "position": 1,
+                "position": 2,
                 "schema": {
                     "type": "string",
                     "pattern": ".*"

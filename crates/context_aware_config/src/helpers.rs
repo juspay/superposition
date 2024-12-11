@@ -23,7 +23,7 @@ use service_utils::{
     helpers::{generate_snowflake_id, validation_err_to_str},
     service::types::AppState,
 };
-use superposition_macros::{db_error, unexpected_error, validation_error};
+use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
 use superposition_types::cac::schema::event_log::dsl as event_log;
 use superposition_types::{
@@ -157,7 +157,11 @@ pub fn validate_jsonschema(
     validation_schema: &JSONSchema,
     schema: &Value,
 ) -> superposition::Result<()> {
-    let res = match validation_schema.validate(schema) {
+    JSONSchema::options()
+        .with_draft(Draft::Draft7)
+        .compile(schema)
+        .map_err(|e| bad_argument!("Invalid JSON schema (failed to compile): {:?}", e))?;
+    match validation_schema.validate(schema) {
         Ok(_) => Ok(()),
         Err(e) => {
             //TODO: Try & render as json.
@@ -169,8 +173,7 @@ pub fn validate_jsonschema(
                     .unwrap_or(&String::new())
             ))
         }
-    };
-    res
+    }
 }
 
 fn calculate_weight_from_index(index: u32) -> Result<BigDecimal, String> {
@@ -214,25 +217,18 @@ pub fn calculate_context_weight(
 pub fn generate_cac(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<Config> {
-    let contexts_vec: Vec<(String, Condition, BigDecimal, String, Overrides)> =
-        ctxt::contexts
-            .select((
-                ctxt::id,
-                ctxt::value,
-                ctxt::weight,
-                ctxt::override_id,
-                ctxt::override_,
-            ))
-            .order_by((ctxt::weight.asc(), ctxt::created_at.asc()))
-            .load::<(String, Condition, BigDecimal, String, Overrides)>(conn)
-            .map_err(|err| {
-                log::error!("failed to fetch contexts with error: {}", err);
-                db_error!(err)
-            })?;
+    let contexts_vec: Vec<(String, Condition, String, Overrides)> = ctxt::contexts
+        .select((ctxt::id, ctxt::value, ctxt::override_id, ctxt::override_))
+        .order_by((ctxt::weight.asc(), ctxt::created_at.asc()))
+        .load::<(String, Condition, String, Overrides)>(conn)
+        .map_err(|err| {
+            log::error!("failed to fetch contexts with error: {}", err);
+            db_error!(err)
+        })?;
     let contexts_vec: Vec<(String, Condition, i32, String, Overrides)> = contexts_vec
         .iter()
         .enumerate()
-        .map(|(index, (id, value, _, override_id, override_))| {
+        .map(|(index, (id, value, override_id, override_))| {
             (
                 id.clone(),
                 value.clone(),
