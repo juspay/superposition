@@ -290,7 +290,7 @@ async fn create(
     {
         execute_webhook_call(
             &experiments_webhook_config,
-            &inserted_experiment,
+            &ExperimentResponse::from(inserted_experiment),
             &config_version_id,
             &tenant,
             WebhookEvent::ExperimentCreated,
@@ -326,12 +326,14 @@ async fn conclude_handler(
     )
     .await?;
 
+    let experiment_response = ExperimentResponse::from(response);
+
     if let WebhookConfig::Enabled(experiments_webhook_config) =
         tenant_config.experiments_webhook_config
     {
         execute_webhook_call(
             &experiments_webhook_config,
-            &response,
+            &experiment_response,
             &config_version_id,
             &tenant,
             WebhookEvent::ExperimentConcluded,
@@ -342,7 +344,7 @@ async fn conclude_handler(
 
     let mut http_resp = HttpResponse::Ok();
     add_config_version_to_header(&config_version_id, &mut http_resp);
-    Ok(http_resp.json(ExperimentResponse::from(response)))
+    Ok(http_resp.json(experiment_response))
 }
 
 pub async fn conclude(
@@ -664,6 +666,7 @@ async fn ramp(
         .get_result(&mut conn)?;
 
     let (_, config_version_id) = fetch_cac_config(&tenant, &data).await?;
+    let experiment_response = ExperimentResponse::from(updated_experiment);
 
     let webhook_event = if new_traffic_percentage == 0
         && matches!(experiment.status, ExperimentStatusType::CREATED)
@@ -677,7 +680,7 @@ async fn ramp(
     {
         execute_webhook_call(
             &experiments_webhook_config,
-            &updated_experiment,
+            &experiment_response,
             &config_version_id,
             &tenant,
             webhook_event,
@@ -686,7 +689,7 @@ async fn ramp(
         .await?;
     }
 
-    Ok(Json(ExperimentResponse::from(updated_experiment)))
+    Ok(Json(experiment_response))
 }
 
 #[put("/{id}/overrides")]
@@ -907,12 +910,14 @@ async fn update_overrides(
         ))
         .get_result::<Experiment>(&mut conn)?;
 
+    let experiment_response = ExperimentResponse::from(updated_experiment);
+
     if let WebhookConfig::Enabled(experiments_webhook_config) =
         tenant_config.experiments_webhook_config
     {
         execute_webhook_call(
             &experiments_webhook_config,
-            &updated_experiment,
+            &experiment_response,
             &config_version_id,
             &tenant,
             WebhookEvent::ExperimentUpdated,
@@ -923,7 +928,7 @@ async fn update_overrides(
 
     let mut http_resp = HttpResponse::Ok();
     add_config_version_to_header(&config_version_id, &mut http_resp);
-    Ok(http_resp.json(ExperimentResponse::from(updated_experiment)))
+    Ok(http_resp.json(experiment_response))
 }
 
 #[get("/audit")]
