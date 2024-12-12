@@ -52,18 +52,18 @@ pub trait CustomQuery: Sized {
     fn into_inner(self) -> Self::Inner;
 }
 
-/// Provides struct to extract those query params from the request which are `wrapped` in `platform[param_name]`
+/// Provides struct to extract those query params from the request which are `wrapped` in `dimension[param_name]`
 #[derive(Debug, Clone)]
-pub struct PlatformQuery<T: DeserializeOwned>(pub T);
+pub struct DimensionQuery<T: DeserializeOwned>(pub T);
 
-impl<T> CustomQuery for PlatformQuery<T>
+impl<T> CustomQuery for DimensionQuery<T>
 where
     T: DeserializeOwned,
 {
     type Inner = T;
 
     fn regex_pattern() -> &'static str {
-        r"platform\[(?<query_name>.*)\]"
+        r"dimension\[(?<query_name>.*)\]"
     }
 
     fn capture_group() -> &'static str {
@@ -79,7 +79,7 @@ where
     }
 }
 
-impl<T> actix_web::FromRequest for PlatformQuery<T>
+impl<T> actix_web::FromRequest for DimensionQuery<T>
 where
     T: DeserializeOwned,
 {

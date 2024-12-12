@@ -38,7 +38,7 @@ use superposition_types::{
             default_configs::dsl,
         },
     },
-    custom_query::{self as superposition_query, CustomQuery, PlatformQuery, QueryMap},
+    custom_query::{self as superposition_query, CustomQuery, DimensionQuery, QueryMap},
     result as superposition, Cac, Contextual, Overridden, Overrides, PaginatedResponse,
     TenantConfig, User,
 };
@@ -615,8 +615,8 @@ async fn get_context(
 
 #[get("/list")]
 async fn list_contexts(
-    filter_params: PlatformQuery<ContextFilters>,
-    dimension_params: superposition_query::Query<QueryMap>,
+    filter_params: superposition_query::Query<ContextFilters>,
+    dimension_params: DimensionQuery<QueryMap>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<PaginatedResponse<Context>>> {
     use superposition_types::cac::schema::contexts::dsl::*;
