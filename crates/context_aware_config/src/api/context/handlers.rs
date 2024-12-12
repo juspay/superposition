@@ -38,9 +38,9 @@ use superposition_types::{
             default_configs::dsl,
         },
     },
-    custom_query::{self as superposition_query, CustomQuery, PlatformQuery, QueryMap},
+    custom_query::{self as superposition_query, CustomQuery, DimensionQuery, QueryMap},
     result as superposition, Cac, Contextual, Overridden, Overrides, PaginatedResponse,
-    TenantConfig, User,
+    SortBy, TenantConfig, User,
 };
 
 #[cfg(feature = "high-performance-mode")]
@@ -48,7 +48,7 @@ use crate::helpers::put_config_in_redis;
 use crate::{
     api::{
         context::types::{
-            ContextAction, ContextBulkResponse, ContextFilterSortBy, ContextFilters,
+            ContextAction, ContextBulkResponse, ContextFilterSortOn, ContextFilters,
             DimensionCondition, MoveReq, PriorityRecomputeResponse, PutReq, PutResp,
             WeightRecomputeResponse,
         },
@@ -615,8 +615,8 @@ async fn get_context(
 
 #[get("/list")]
 async fn list_contexts(
-    filter_params: PlatformQuery<ContextFilters>,
-    dimension_params: superposition_query::Query<QueryMap>,
+    filter_params: superposition_query::Query<ContextFilters>,
+    dimension_params: DimensionQuery<QueryMap>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<PaginatedResponse<Context>>> {
     use superposition_types::cac::schema::contexts::dsl::*;
@@ -633,15 +633,15 @@ async fn list_contexts(
     }
 
     let dimension_params = dimension_params.into_inner();
+    let builder = contexts.into_boxed();
 
-    let mut builder = contexts.into_boxed();
-    match filter_params.sort_by.unwrap_or_default() {
-        ContextFilterSortBy::PriorityAsc => builder = builder.order(priority.asc()),
-        ContextFilterSortBy::PriorityDesc => builder = builder.order(priority.desc()),
-        ContextFilterSortBy::CreatedAtAsc => builder = builder.order(created_at.asc()),
-        ContextFilterSortBy::CreatedAtDesc => builder = builder.order(created_at.desc()),
-    }
-
+    #[rustfmt::skip]
+    let mut builder = match (filter_params.sort_on.unwrap_or_default(), filter_params.sort_by.unwrap_or(SortBy::Asc)) {
+        (ContextFilterSortOn::Priority,  SortBy::Asc)  => builder.order(priority.asc()),
+        (ContextFilterSortOn::Priority,  SortBy::Desc) => builder.order(priority.desc()),
+        (ContextFilterSortOn::CreatedAt, SortBy::Asc)  => builder.order(created_at.asc()),
+        (ContextFilterSortOn::CreatedAt, SortBy::Desc) => builder.order(created_at.desc()),
+    };
     if let Some(created_by_filter) = filter_params.created_by.clone() {
         builder = builder.filter(created_by.eq_any(created_by_filter.0))
     }

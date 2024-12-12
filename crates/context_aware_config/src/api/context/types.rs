@@ -1,7 +1,7 @@
 use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
-    custom_query::CommaSeparatedStringQParams, Cac, Condition, Overrides,
+    custom_query::CommaSeparatedStringQParams, Cac, Condition, Overrides, SortBy,
 };
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
@@ -32,16 +32,14 @@ pub struct PutResp {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum ContextFilterSortBy {
-    CreatedAtAsc,
-    CreatedAtDesc,
-    PriorityAsc,
-    PriorityDesc,
+pub enum ContextFilterSortOn {
+    CreatedAt,
+    Priority,
 }
 
-impl Default for ContextFilterSortBy {
+impl Default for ContextFilterSortOn {
     fn default() -> Self {
-        Self::PriorityAsc
+        Self::Priority
     }
 }
 
@@ -50,7 +48,8 @@ pub struct ContextFilters {
     pub page: Option<u32>,
     pub size: Option<u32>,
     pub prefix: Option<CommaSeparatedStringQParams>,
-    pub sort_by: Option<ContextFilterSortBy>,
+    pub sort_on: Option<ContextFilterSortOn>,
+    pub sort_by: Option<SortBy>,
     pub created_by: Option<CommaSeparatedStringQParams>,
 }
 
