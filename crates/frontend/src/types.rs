@@ -80,7 +80,7 @@ pub struct FunctionTestResponse {
 /*********************** Experimentation Types ****************************************/
 
 #[derive(
-    Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display,
+    Debug, Clone, Copy, Eq, Hash, PartialEq, Deserialize, Serialize, strum_macros::Display,
 )]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum ExperimentStatusType {
@@ -126,6 +126,16 @@ pub struct ExperimentsResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, Deref, DerefMut, PartialEq)]
 pub struct StatusTypes(pub Vec<ExperimentStatusType>);
 
+impl Default for StatusTypes {
+    fn default() -> Self {
+        Self(vec![
+            ExperimentStatusType::CREATED,
+            ExperimentStatusType::INPROGRESS,
+            ExperimentStatusType::CONCLUDED,
+        ])
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ExperimentListFilters {
     pub status: Option<StatusTypes>,
@@ -134,9 +144,26 @@ pub struct ExperimentListFilters {
     pub experiment_name: Option<String>,
     pub experiment_ids: Option<String>,
     pub created_by: Option<String>,
-    pub context: Option<String>,
+    pub context: Option<Value>,
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
+}
+
+impl Default for ExperimentListFilters {
+    fn default() -> Self {
+        let now = Utc::now();
+        Self {
+            status: None,
+            from_date: Some(now - chrono::Duration::days(30)),
+            to_date: Some(now),
+            experiment_name: None,
+            experiment_ids: None,
+            created_by: None,
+            context: None,
+            sort_on: None,
+            sort_by: None,
+        }
+    }
 }
 
 impl Display for ExperimentListFilters {
