@@ -1,5 +1,5 @@
 {
-  "method": "PUT",
+  "method": "POST",
   "header": [
     {
       "key": "Authorization",
@@ -24,7 +24,8 @@
         "language": "json"
       }
     },
-    "raw_json_formatted": {
+    "raw_json_formatted": { 
+      "key": "key1",
       "value": "value1",
       "schema": {
         "type": "string",
@@ -33,13 +34,12 @@
     }
   },
   "url": {
-    "raw": "{{host}}/default-config/key1",
+    "raw": "{{host}}/default-config",
     "host": [
       "{{host}}"
     ],
     "path": [
-      "default-config",
-      "key1"
+      "default-config"
     ]
   }
 }

@@ -2,15 +2,16 @@ const host = pm.variables.get("host");
 
 function add_default_config() {
     const options = {
-        'method': 'PUT',
-        'url': `${host}/default-config/key2`,
+        'method': 'POST',
+        'url': `${host}/default-config`,
         'header': {
             'x-tenant': 'test',
             'Content-Type': 'application/json'
         },
         "body": {
             "mode": "raw",
-            "raw": JSON.stringify({
+            "raw": JSON.stringify({ 
+                "key": "key2",
                 "value": "value1",
                 "schema": {
                     "type": "string",

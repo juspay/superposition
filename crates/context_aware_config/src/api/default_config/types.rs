@@ -5,11 +5,42 @@ use superposition_types::RegexEnum;
 
 #[derive(Debug, Deserialize)]
 pub struct CreateReq {
+    pub key: DefaultConfigKey,
+    pub value: Value,
+    pub schema: Map<String, Value>,
+    pub function_name: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateReq {
     #[serde(default, deserialize_with = "deserialize_option")]
     pub value: Option<Value>,
     pub schema: Option<Map<String, Value>>,
-    #[serde(default, deserialize_with = "deserialize_option")]
-    pub function_name: Option<Value>,
+    pub function_name: Option<FunctionNameEnum>,
+}
+
+#[derive(Debug, Clone)]
+pub enum FunctionNameEnum {
+    Name(String),
+    Remove,
+}
+
+impl<'de> Deserialize<'de> for FunctionNameEnum {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let map: Value = Deserialize::deserialize(deserializer)?;
+        match map {
+            Value::String(func_name) => Ok(Self::Name(func_name)),
+            Value::Null => Ok(Self::Remove),
+            _ => {
+                log::error!("Expected a string or null literal as the function name.");
+                Err("Expected a string or null literal as the function name.")
+                    .map_err(serde::de::Error::custom)
+            }
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
