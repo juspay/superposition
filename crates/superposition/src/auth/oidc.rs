@@ -1,37 +1,41 @@
-use std::future::{ready, Ready};
-
 use actix_web::{
-    body::{BoxBody, EitherBody},
-    cookie::{time::Duration, Cookie},
-    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
+    cookie::{time::Duration, Cookie, SameSite},
+    dev::ServiceRequest,
     get,
     http::header,
-    web::{Data, Query},
-    Error, HttpResponse, Responder,
+    web::{self, Data, Query}, HttpRequest, HttpResponse, Responder,
 };
-use futures_util::future::LocalBoxFuture;
+
 use oidc::{
-    core::{CoreClient, CoreErrorResponseType, CoreTokenResponse},
-    AuthorizationCode, CsrfToken, Nonce, RequestTokenError, StandardErrorResponse,
-    TokenResponse,
+    core::{CoreClient, CoreProviderMetadata, CoreResponseType, CoreTokenResponse},
+    AuthenticationFlow, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl,
+    Nonce, RedirectUrl, TokenResponse,
 };
 use openidconnect as oidc;
-use reqwest as http;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+
+use super::authenticator::Authenticator;
 
 #[derive(Clone)]
-struct OIDCAuthProvider {
-    oidc_client: CoreClient,
-    http_client: http::Client,
-    idp_url: url::Url,
-    csrf: CsrfToken,
-    nonce: Nonce,
-}
+pub struct OIDCAuthenticator(CoreClient);
 
 #[derive(Deserialize)]
 struct LoginParams {
     code: AuthorizationCode,
     state: CsrfToken,
+}
+
+#[derive(Deserialize, Serialize)]
+struct ProtectionCookie {
+    csrf: CsrfToken,
+    nonce: Nonce,
+}
+
+impl ProtectionCookie {
+    fn from_req(req: &HttpRequest) -> Option<Self> {
+        req.cookie("protection")
+            .and_then(|c| serde_json::from_str(c.value()).ok())
+    }
 }
 
 fn verify_presence(n: Option<&Nonce>) -> Result<(), String> {
@@ -42,41 +46,53 @@ fn verify_presence(n: Option<&Nonce>) -> Result<(), String> {
     }
 }
 
-type OIDCError =
-    RequestTokenError<http::Error, StandardErrorResponse<CoreErrorResponseType>>;
+impl OIDCAuthenticator {
+    pub fn new(
+        idp_url: url::Url,
+        base_url: String,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        let issuer_url = IssuerUrl::from_url(idp_url);
 
-fn to_oidc_error(error: http::Error) -> OIDCError {
-    if error.is_connect() {
-        RequestTokenError::Request(error)
-    } else if error.is_status() {
-        let se = StandardErrorResponse::new(
-            CoreErrorResponseType::Extension(error.to_string()),
-            None,
-            error.url().map(|u| u.to_string()),
-        );
-        RequestTokenError::ServerResponse(se)
-    } else {
-        RequestTokenError::Other(error.to_string())
+        // Discover OpenID Provider metadata
+        let provider_metadata =
+            CoreProviderMetadata::discover(&issuer_url, oidc::reqwest::http_client)?;
+
+        // Create client
+        let client = CoreClient::from_provider_metadata(
+            provider_metadata,
+            ClientId::new("client_id".to_string()),
+            Some(ClientSecret::new("client_secret".to_string())),
+        )
+        .set_redirect_uri(RedirectUrl::new(format!("{}/oidc/login", base_url))?);
+
+        Ok(Self(client))
     }
-}
 
-impl OIDCAuthProvider {
-    async fn request_token(
-        &self,
-        oidc_req: oidc::HttpRequest,
-    ) -> Result<oidc::HttpResponse, OIDCError> {
-        let res = self
-            .http_client
-            .request(oidc_req.method, oidc_req.url)
-            .headers(oidc_req.headers)
-            .send()
-            .await
-            .map_err(to_oidc_error)?;
-        Ok(oidc::HttpResponse {
-            status_code: res.status(),
-            headers: res.headers().clone(),
-            body: res.bytes().await.map_err(to_oidc_error)?.to_vec(),
-        })
+    fn new_redirect(&self) -> HttpResponse {
+        let (auth_url, csrf_token, nonce) = self
+            .0
+            .authorize_url(
+                AuthenticationFlow::<CoreResponseType>::AuthorizationCode,
+                CsrfToken::new_random,
+                Nonce::new_random,
+            )
+            .add_scope(oidc::Scope::new("email".to_string()))
+            .add_scope(oidc::Scope::new("profile".to_string()))
+            .url();
+        let protection = ProtectionCookie {
+            csrf: csrf_token,
+            nonce,
+        };
+        let pcookie =
+            Cookie::build("protection", serde_json::to_string(&protection).unwrap())
+                .max_age(Duration::days(7))
+                .http_only(true)
+                .same_site(SameSite::Strict)
+                .finish();
+        HttpResponse::Found()
+            .insert_header((header::LOCATION, auth_url.to_string()))
+            .cookie(pcookie)
+            .finish()
     }
 
     fn decode_token(&self, cookie: &str) -> Option<CoreTokenResponse> {
@@ -84,109 +100,81 @@ impl OIDCAuthProvider {
             .map_err(|e| eprintln!("error while decoding token: {}", e))
             .ok()?;
         ctr.id_token()?
-            .claims(&self.oidc_client.id_token_verifier(), verify_presence)
+            .claims(&self.0.id_token_verifier(), verify_presence)
             .map_err(|e| eprintln!("error while getting claims: {}", e))
             .ok()?;
         Some(ctr)
     }
 }
 
-pub struct OIDCMiddleware<S> {
-    service: S,
-    auth_provider: OIDCAuthProvider,
-}
-
-impl<S, B> Service<ServiceRequest> for OIDCMiddleware<S>
-where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
-    S::Future: 'static,
-{
-    type Response = ServiceResponse<EitherBody<B, BoxBody>>;
-    type Error = Error;
-    type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
-
-    // Generate polling fn.
-    forward_ready!(service);
-
-    fn call(&self, req: ServiceRequest) -> Self::Future {
-        let td: Option<CoreTokenResponse> = req
+impl Authenticator for OIDCAuthenticator {
+    fn authenticate(&self, request: &ServiceRequest) -> Result<(), HttpResponse> {
+        let token: Option<CoreTokenResponse> = request
             .cookie("user")
-            .and_then(|c| self.auth_provider.decode_token(c.value()));
-        let p = &req.path();
-        let exc = p.matches("login").count() > 0
-            // Implies it's a local/un-forwarded request.
-            || !req.headers().contains_key(header::X_FORWARDED_HOST)
-            || p.matches("health").count() > 0
-            || p.matches("ready").count() > 0;
-        if td.is_some() || exc {
-            let fut = self.service.call(req);
-            Box::pin(async move { fut.await.map(|sr| sr.map_into_left_body()) })
+            .and_then(|c| self.decode_token(c.value()));
+        let p = &request.path();
+        let excep = p.matches("login").count() > 0
+        // Implies it's a local/un-forwarded request.
+        || !request.headers().contains_key(header::X_FORWARDED_HOST)
+        || p.matches("health").count() > 0
+        || p.matches("ready").count() > 0;
+        if token.is_some() || excep {
+            Ok(())
         } else {
-            let url = self.auth_provider.idp_url.to_string();
-            // TODO Generate redirect.
-            Box::pin(async move {
-                let r = HttpResponse::Found()
-                    .insert_header((header::LOCATION, url))
-                    .finish()
-                    .map_into_right_body();
-                Ok(ServiceResponse::new(req.request().clone(), r))
-            })
+            Err(self.new_redirect())
         }
     }
-}
 
-impl<S, B> Transform<S, ServiceRequest> for OIDCAuthProvider
-where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
-    S::Future: 'static,
-{
-    type Response = ServiceResponse<EitherBody<B>>;
-    type Error = Error;
-    type InitError = ();
-    type Transform = OIDCMiddleware<S>;
-    type Future = Ready<Result<Self::Transform, Self::InitError>>;
-
-    fn new_transform(&self, service: S) -> Self::Future {
-        ready(Ok(OIDCMiddleware {
-            service,
-            auth_provider: self.to_owned(),
-        }))
+    fn routes(&self) -> actix_web::Scope {
+        web::scope("oidc")
+            .app_data(Data::new(self.to_owned()))
+            .service(oidc_login)
     }
 }
 
 #[get("/login")]
 async fn oidc_login(
-    auth_p: Data<OIDCAuthProvider>,
+    auth: Data<OIDCAuthenticator>,
+    req: HttpRequest,
     params: Query<LoginParams>,
 ) -> impl Responder {
-    if params.state.secret() != auth_p.csrf.secret() {
+    let pc = match ProtectionCookie::from_req(&req) {
+        Some(pc) => pc,
+        _ => {
+            eprintln!("OIDC: Missing/Bad protection-cookie, redirecting...");
+            return auth.new_redirect();
+        }
+    };
+
+    if params.state.secret() != pc.csrf.secret() {
         eprintln!(
-            "Bad csrf state, given: {:?} expected: {:?}",
-            params.state, auth_p.csrf
+            "OIDC: Bad csrf, expected: {} recieved: {}",
+            pc.csrf.secret(),
+            params.state.secret()
         );
-        return HttpResponse::Unauthorized().finish();
+        return auth.new_redirect();
     }
 
     // Exchange the code with a token.
-    let token_response = auth_p
-        .oidc_client
+    let response = auth
+        .0
         .exchange_code(params.code.clone())
-        .request_async(|rq| auth_p.request_token(rq))
+        .request_async(oidc::reqwest::async_http_client)
         .await
         .map_err(|e| eprintln!("Failed to exchange auth-code for token: {}", e))
         .and_then(|tr| {
             tr.id_token()
                 .ok_or_else(|| eprintln!("No identity-token!"))
                 .and_then(|t| {
-                    t.claims(&auth_p.oidc_client.id_token_verifier(), &auth_p.nonce)
+                    t.claims(&auth.0.id_token_verifier(), &pc.nonce)
                         .map_err(|e| eprintln!("Couldn't verify claims: {}", e))
                 })?;
             Ok(tr)
         });
 
-    match token_response {
-        Ok(tr) => {
-            let token = serde_json::to_string(&tr).unwrap();
+    match response {
+        Ok(r) => {
+            let token = serde_json::to_string(&r).unwrap();
             let cookie = Cookie::build("user", token)
                 .path("/")
                 .http_only(true)
@@ -197,6 +185,6 @@ async fn oidc_login(
                 .insert_header(("Location", "/"))
                 .finish()
         }
-        _ => HttpResponse::InternalServerError().finish(),
+        _ => auth.new_redirect(),
     }
 }

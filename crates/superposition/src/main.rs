@@ -95,7 +95,6 @@ async fn main() -> Result<()> {
         let leptos_envs = ui_envs.clone();
         App::new()
             .wrap(Compress::default())
-            .wrap(auth.to_owned())
             .app_data(app_state.clone())
             // .wrap_fn(|req, srv| {
             //     let state = req.app_data::<Data<AppState>>().unwrap();
@@ -122,6 +121,7 @@ async fn main() -> Result<()> {
                     .add(("X-SERVER-VERSION", app_state.cac_version.to_string()))
                     .add(("Cache-Control", "no-store".to_string()))
             )
+            .wrap(auth.clone())
             .service(auth.routes())
             .service(web::redirect("/", ui_redirect_path.to_string()))
             .service(web::redirect("/admin", ui_redirect_path.to_string()))

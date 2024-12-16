@@ -1,52 +1,105 @@
 use actix_web::{
-    dev::{ServiceRequest, Transform, Service},
-    Scope,
+    body::{BoxBody, EitherBody},
+    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
+    Error, Scope,
 };
+use futures_util::future::LocalBoxFuture;
 use samael::{
     metadata::{ContactPerson, ContactType, EntityDescriptor},
     service_provider::ServiceProviderBuilder,
 };
-use std::{env, fs};
+use std::{
+    env, fs,
+    future::{ready, Ready},
+    sync::Arc,
+};
 use url::Url;
 
-use self::saml2::SAMLAuthProvider;
+use self::authenticator::Authenticator;
 
+mod authenticator;
 mod oidc;
 mod saml2;
 
-trait AuthProvider
-{
-    type ActixMiddleware<S: Service<ServiceRequest>>: Transform<S, ServiceRequest>;
-    fn middleware<S: Service<ServiceRequest>>(&self) -> Self::ActixMiddleware<S>;
-    fn routes(&self) -> Scope;
+pub struct AuthMiddleware<S> {
+    service: S,
+    auth_handler: AuthHandler,
 }
 
-impl AuthProvider for saml2::SAMLAuthProvider
+impl<S, B> Service<ServiceRequest> for AuthMiddleware<S>
 where
-    S: Service<ServiceRequest>
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
 {
-    type _Service = S;
-    type ActixMiddleware = Self;
+    type Response = ServiceResponse<EitherBody<B, BoxBody>>;
+    type Error = Error;
+    type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
-    fn middleware<S>(&self) -> Self::ActixMiddleware {
-        self.clone()
-    }
+    // Generate polling fn.
+    forward_ready!(service);
 
-    fn routes(&self) -> Scope {
-        self.routes()
+    fn call(&self, request: ServiceRequest) -> Self::Future {
+        match self.auth_handler.0.authenticate(&request) {
+            Ok(()) => {
+                let fut = self.service.call(request);
+                Box::pin(async move { fut.await.map(|sr| sr.map_into_left_body()) })
+            }
+            Err(resp) => Box::pin(async move {
+                Ok(ServiceResponse::new(
+                    request.request().clone(),
+                    resp.map_into_right_body(),
+                ))
+            }),
+        }
     }
 }
 
-pub fn init_auth() -> saml2::SAMLAuthProvider {
+#[derive(Clone)]
+pub struct AuthHandler(Arc<dyn Authenticator>);
+
+impl AuthHandler {
+    pub fn routes(&self) -> Scope {
+        self.0.routes()
+    }
+}
+
+impl<S, B> Transform<S, ServiceRequest> for AuthHandler
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+{
+    type Response = ServiceResponse<EitherBody<B>>;
+    type Error = Error;
+    type Transform = AuthMiddleware<S>;
+    type InitError = ();
+    type Future = Ready<Result<Self::Transform, Self::InitError>>;
+
+    fn new_transform(&self, service: S) -> Self::Future {
+        ready(Ok(AuthMiddleware {
+            service,
+            auth_handler: self.clone(),
+        }))
+    }
+}
+
+pub fn init_auth() -> AuthHandler {
     let var = env::var("AUTH_PROVIDER")
         .ok()
         .expect("Env 'AUTH_PROVIDER' not declared, unable to initalize auth provider.");
     let mut auth = var.split('+');
     assert_eq!(auth.next(), Some("SAML2"));
-    return init_saml2_auth(auth.next().expect("Url not provided in env."));
+    let ap: Arc<dyn Authenticator> = match auth.next() {
+        Some("SAML2") => Arc::new(init_saml2_auth(auth.next().expect("Url not provided in env."))),
+        Some("OIDC") => {
+            let url = Url::parse(auth.next().unwrap()).map_err(|e| e.to_string()).unwrap();
+            Arc::new(oidc::OIDCAuthenticator::new(url, "https://superposition.devspaceworks.net".to_string()).unwrap())
+        }
+        _ => panic!("Missing/Unknown authenticator.")
+    };
+    AuthHandler(ap)
 }
 
-fn init_saml2_auth(url: &str) -> saml2::SAMLAuthProvider {
+fn init_saml2_auth(url: &str) -> saml2::SAMLAuthenticator {
     let idp_url = Url::parse(url).map_err(|e| e.to_string()).unwrap();
     let md_xml = fs::read_to_string("saml-idp-meta.xml").unwrap();
     let md: EntityDescriptor = samael::metadata::de::from_str(md_xml.as_str()).unwrap();
@@ -66,7 +119,7 @@ fn init_saml2_auth(url: &str) -> saml2::SAMLAuthProvider {
         .slo_url(format!("https://{}/saml/metadata", domain))
         .build()
         .unwrap();
-    saml2::SAMLAuthProvider {
+    saml2::SAMLAuthenticator {
         metadata: sp.metadata().unwrap(),
         idp_url: idp_url,
         service_provider: sp,

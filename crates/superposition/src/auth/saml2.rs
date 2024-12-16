@@ -1,18 +1,13 @@
 use actix_web::{
-    body::{BoxBody, EitherBody},
     cookie::{time::Duration, Cookie},
-    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    error::InternalError,
+    dev::ServiceRequest,
     get,
-    http::{
-        header::{self, ContentType},
-        StatusCode,
-    },
+    http::header::{self, ContentType},
     post,
     web::{self, Data},
-    Error, HttpResponse, Responder, Scope,
+    HttpResponse, Responder, Scope,
 };
-use futures_util::future::LocalBoxFuture;
+
 use jsonwebtoken::{
     decode, Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation,
 };
@@ -21,14 +16,13 @@ use samael::{
     service_provider::ServiceProvider, traits::ToXml,
 };
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::{HashMap, HashSet},
-    future::{ready, Ready},
-};
+use std::collections::{HashMap, HashSet};
 use url::Url;
 
+use super::authenticator::Authenticator;
+
 #[derive(Clone)]
-pub struct SAMLAuthProvider {
+pub struct SAMLAuthenticator {
     pub service_provider: ServiceProvider,
     pub idp_url: Url,
     pub metadata: EntityDescriptor,
@@ -42,8 +36,8 @@ struct User {
     email: String,
 }
 
-impl SAMLAuthProvider {
-    fn authentication_request(&self, relay: &str) -> Result<Url, String> {
+impl SAMLAuthenticator {
+    fn new_auth_request(&self, relay: &str) -> Result<Url, String> {
         let areq = self
             .service_provider
             .make_authentication_request(self.idp_url.as_str());
@@ -51,13 +45,6 @@ impl SAMLAuthProvider {
             Ok(url) => url.ok_or(String::from("DUDE WHERE IS MY REDIRECT???")),
             Err(e) => Err(e.to_string()),
         }
-    }
-
-    pub fn routes(&self) -> Scope {
-        web::scope("saml")
-            .app_data(Data::new(self.to_owned()))
-            .service(assertion_consumer_service)
-            .service(metadata)
     }
 
     fn decode_jwt(&self, cookie: &str) -> Option<TokenData<User>> {
@@ -76,74 +63,42 @@ impl SAMLAuthProvider {
     }
 }
 
-pub struct SAMLMiddleware<S> {
-    service: S,
-    auth_provider: SAMLAuthProvider,
-}
-
-impl<S, B> Service<ServiceRequest> for SAMLMiddleware<S>
-where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
-    S::Future: 'static,
-{
-    type Response = ServiceResponse<EitherBody<B, BoxBody>>;
-    type Error = Error;
-    type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
-
-    // Generate polling fn.
-    forward_ready!(service);
-
-    fn call(&self, req: ServiceRequest) -> Self::Future {
-        let td = req
-            .cookie("user")
-            .and_then(|c| self.auth_provider.decode_jwt(c.value()));
+impl Authenticator for SAMLAuthenticator {
+    fn authenticate(&self, req: &ServiceRequest) -> Result<(), HttpResponse> {
+        let td = req.cookie("user").and_then(|c| self.decode_jwt(c.value()));
         let exp = req.path().matches("saml/acs").count() > 0
             // Implies it's a local/un-forwarded request.
             || !req.headers().contains_key(header::X_FORWARDED_HOST)
             || req.path().matches("health").count() > 0
             || req.path().matches("ready").count() > 0;
         if td.is_some() || exp {
-            let fut = self.service.call(req);
-            Box::pin(async move { fut.await.map(|sr| sr.map_into_left_body()) })
+            Ok(())
         } else {
-            // TODO Add query params to relay.
-            match self.auth_provider.authentication_request(req.path()) {
-                Ok(redirect) => Box::pin(async move {
+            match self.new_auth_request(req.path()) {
+                Ok(redirect) => {
                     let resp = HttpResponse::Found()
                         .insert_header((header::LOCATION, redirect.to_string()))
-                        .finish()
-                        .map_into_right_body();
-                    Ok(ServiceResponse::new(req.request().clone(), resp))
-                }),
-                Err(e) => Box::pin(async move {
-                    Err(InternalError::new(e, StatusCode::INTERNAL_SERVER_ERROR).into())
-                }),
+                        .finish();
+                    Err(resp)
+                }
+                Err(e) => {
+                    eprintln!("SAML2: Error while constructing redirect: {}", e);
+                    Err(HttpResponse::InternalServerError().finish())
+                }
             }
         }
     }
-}
 
-impl<S, B> Transform<S, ServiceRequest> for SAMLAuthProvider
-where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
-    S::Future: 'static,
-{
-    type Response = ServiceResponse<EitherBody<B>>;
-    type Error = Error;
-    type InitError = ();
-    type Transform = SAMLMiddleware<S>;
-    type Future = Ready<Result<Self::Transform, Self::InitError>>;
-
-    fn new_transform(&self, service: S) -> Self::Future {
-        ready(Ok(SAMLMiddleware {
-            service,
-            auth_provider: self.to_owned(),
-        }))
+    fn routes(&self) -> Scope {
+        web::scope("saml")
+            .app_data(Data::new(self.to_owned()))
+            .service(assertion_consumer_service)
+            .service(metadata)
     }
 }
 
 #[get("/metadata")]
-async fn metadata(ctx: web::Data<SAMLAuthProvider>) -> impl Responder {
+async fn metadata(ctx: web::Data<SAMLAuthenticator>) -> impl Responder {
     HttpResponse::Ok()
         .content_type(ContentType::xml())
         .body(ctx.metadata.to_string().unwrap())
@@ -173,7 +128,7 @@ fn simplify_attribute_statments(
 
 #[post("/acs")]
 async fn assertion_consumer_service(
-    auth_provider: web::Data<SAMLAuthProvider>,
+    auth_provider: web::Data<SAMLAuthenticator>,
     form: web::Form<HashMap<String, String>>,
 ) -> impl Responder {
     let sr_b64 = form
