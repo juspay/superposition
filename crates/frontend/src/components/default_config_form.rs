@@ -9,7 +9,7 @@ use crate::components::alert::AlertType;
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::EnumVariants;
-use crate::types::ListFilters;
+use crate::types::PaginationFilters;
 use crate::{
     api::{fetch_functions, fetch_types},
     components::{
@@ -51,7 +51,7 @@ where
             move || tenant_rs.get(),
             |current_tenant| async move {
                 match fetch_functions(
-                    ListFilters {
+                    PaginationFilters {
                         page: None,
                         count: None,
                         all: Some(true),

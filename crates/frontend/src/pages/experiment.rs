@@ -14,7 +14,10 @@ use crate::{
         skeleton::{Skeleton, SkeletonVariant},
     },
     providers::editor_provider::EditorProvider,
-    types::{DefaultConfig, Dimension, Experiment, ListFilters, PaginatedResponse},
+    types::{
+        DefaultConfig, DefaultConfigFilters, Dimension, Experiment, PaginatedResponse,
+        PaginationFilters,
+    },
     utils::{close_modal, show_modal},
 };
 
@@ -43,15 +46,20 @@ pub fn experiment_page() -> impl IntoView {
             // Perform all fetch operations concurrently
             let experiments_future =
                 fetch_experiment(exp_id.to_string(), tenant.to_string());
-            let empty_list_filters = ListFilters {
+            let empty_list_filters = PaginationFilters {
                 page: None,
                 count: None,
                 all: Some(true),
             };
+
+            let empty_default_config_filters = DefaultConfigFilters::default();
             let dimensions_future =
                 fetch_dimensions(&empty_list_filters, tenant.to_string());
-            let config_future =
-                fetch_default_config(&empty_list_filters, tenant.to_string());
+            let config_future = fetch_default_config(
+                &empty_list_filters,
+                &empty_default_config_filters,
+                tenant.to_string(),
+            );
 
             let (experiments_result, dimensions_result, config_result) =
                 join!(experiments_future, dimensions_future, config_future);

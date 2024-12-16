@@ -10,7 +10,7 @@ use crate::components::{
         Table,
     },
 };
-use crate::types::{ListFilters, PaginatedResponse};
+use crate::types::{PaginatedResponse, PaginationFilters};
 use crate::utils::update_page_direction;
 use leptos::*;
 
@@ -32,7 +32,7 @@ pub fn dimensions() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
-    let (filters, set_filters) = create_signal(ListFilters {
+    let (filters, set_filters) = create_signal(PaginationFilters {
         page: Some(1),
         count: Some(10),
         all: None,

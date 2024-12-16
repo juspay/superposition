@@ -15,7 +15,8 @@ use crate::components::{experiment_form::ExperimentForm, stat::Stat, table::Tabl
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
 use crate::types::{
-    ExperimentListFilters, ExperimentResponse, ListFilters, PaginatedResponse,
+    DefaultConfigFilters, ExperimentListFilters, ExperimentResponse, PaginatedResponse,
+    PaginationFilters,
 };
 use crate::utils::update_page_direction;
 
@@ -49,16 +50,17 @@ pub fn experiment_list() -> impl IntoView {
         sort_by: Some(SortBy::Desc),
     });
 
-    let (pagination_filters_rs, pagination_filters_ws) = create_signal(ListFilters {
-        page: Some(1),
-        count: Some(10),
-        all: None,
-    });
+    let (pagination_filters_rs, pagination_filters_ws) =
+        create_signal(PaginationFilters {
+            page: Some(1),
+            count: Some(10),
+            all: None,
+        });
 
     let (reset_exp_form, set_exp_form) = create_signal(0);
 
     let combined_resource: Resource<
-        (String, ExperimentListFilters, ListFilters),
+        (String, ExperimentListFilters, PaginationFilters),
         CombinedResource,
     > = create_blocking_resource(
         move || {
@@ -75,10 +77,14 @@ pub fn experiment_list() -> impl IntoView {
                 &pagination_filters,
                 current_tenant.to_string(),
             );
+            let empty_defaultconfig_filters = DefaultConfigFilters::default();
             let dimensions_future =
                 fetch_dimensions(&pagination_filters, current_tenant.to_string());
-            let config_future =
-                fetch_default_config(&pagination_filters, current_tenant.to_string());
+            let config_future = fetch_default_config(
+                &pagination_filters,
+                &empty_defaultconfig_filters,
+                current_tenant.to_string(),
+            );
 
             let (experiments_result, dimensions_result, config_result) =
                 join!(experiments_future, dimensions_future, config_future);

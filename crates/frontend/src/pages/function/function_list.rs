@@ -7,7 +7,7 @@ use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{stat::Stat, table::Table};
 
-use crate::types::{FunctionResponse, ListFilters, PaginatedResponse};
+use crate::types::{FunctionResponse, PaginatedResponse, PaginationFilters};
 use crate::utils::update_page_direction;
 
 use super::utils::function_table_columns;
@@ -22,7 +22,7 @@ struct CombinedResource {
 #[component]
 pub fn function_list() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-    let (filters, set_filters) = create_signal(ListFilters {
+    let (filters, set_filters) = create_signal(PaginationFilters {
         page: Some(1),
         count: Some(10),
         all: None,

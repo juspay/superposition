@@ -3,9 +3,9 @@ use superposition_types::Config;
 
 use crate::{
     types::{
-        ConfigVersionListResponse, DefaultConfig, Dimension, ExperimentListFilters,
-        ExperimentResponse, FetchTypeTemplateResponse, FunctionResponse, ListFilters,
-        PaginatedResponse,
+        ConfigVersionListResponse, DefaultConfig, DefaultConfigFilters, Dimension,
+        ExperimentListFilters, ExperimentResponse, FetchTypeTemplateResponse,
+        FunctionResponse, PaginatedResponse, PaginationFilters,
     },
     utils::{
         construct_request_headers, get_host, parse_json_response, request,
@@ -15,7 +15,7 @@ use crate::{
 
 // #[server(GetDimensions, "/fxn", "GetJson")]
 pub async fn fetch_dimensions(
-    filters: &ListFilters,
+    filters: &PaginationFilters,
     tenant: String,
 ) -> Result<PaginatedResponse<Dimension>, ServerFnError> {
     let client = reqwest::Client::new();
@@ -37,13 +37,23 @@ pub async fn fetch_dimensions(
 
 // #[server(GetDefaultConfig, "/fxn", "GetJson")]
 pub async fn fetch_default_config(
-    filters: &ListFilters,
+    pagination_filters: &PaginationFilters,
+    filters: &DefaultConfigFilters,
     tenant: String,
 ) -> Result<PaginatedResponse<DefaultConfig>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
-
-    let url = format!("{}/default-config?{}", host, filters.to_string());
+    let filters = filters.to_string();
+    let url = if filters.is_empty() {
+        format!("{}/default-config?{}", host, pagination_filters.to_string())
+    } else {
+        format!(
+            "{}/default-config?{}&{}",
+            host,
+            pagination_filters.to_string(),
+            filters
+        )
+    };
     let response: PaginatedResponse<DefaultConfig> = client
         .get(url)
         .header("x-tenant", tenant)
@@ -109,7 +119,7 @@ pub async fn delete_context(
 
 pub async fn fetch_experiments(
     filters: &ExperimentListFilters,
-    pagination: &ListFilters,
+    pagination: &PaginationFilters,
     tenant: String,
 ) -> Result<PaginatedResponse<ExperimentResponse>, ServerFnError> {
     let client = reqwest::Client::new();
@@ -140,7 +150,7 @@ pub async fn fetch_experiments(
 }
 
 pub async fn fetch_functions(
-    filters: ListFilters,
+    filters: PaginationFilters,
     tenant: String,
 ) -> Result<PaginatedResponse<FunctionResponse>, ServerFnError> {
     let client = reqwest::Client::new();
