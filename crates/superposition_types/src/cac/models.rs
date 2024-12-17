@@ -10,7 +10,7 @@ use crate::{Cac, Condition, Contextual, Overridden, Overrides};
 #[cfg(feature = "diesel_derives")]
 use super::schema::{
     config_versions, contexts, default_configs, dimensions, event_log, functions,
-    type_templates,
+    type_templates, webhooks,
 };
 
 #[derive(Clone, Serialize, Debug)]
@@ -150,4 +150,29 @@ pub struct TypeTemplates {
     pub created_at: NaiveDateTime,
     pub last_modified_at: NaiveDateTime,
     pub last_modified_by: String,
+}
+
+#[derive(Serialize, Clone, Debug)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(Queryable, Selectable, Insertable, AsChangeset)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = webhooks))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(name)))]
+pub struct Webhooks {
+    pub name: String,
+    pub description: String,
+    pub enabled: bool,
+    pub url: String,
+    pub method: String,
+    pub version: String,
+    pub custom_headers: Option<Value>,
+    pub events: Vec<String>,
+    pub max_retries: i32,
+    pub last_triggered_at: Option<NaiveDateTime>,
+    pub created_by: String,
+    pub created_at: NaiveDateTime,
+    pub last_modified_by: String,
+    pub last_modified_at: NaiveDateTime,
 }
