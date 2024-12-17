@@ -21,7 +21,10 @@ use crate::{
     types::{FunctionsName, TypeTemplate},
 };
 
-use self::{types::DefaultConfigCreateReq, utils::create_default_config};
+use self::{
+    types::{DefaultConfigCreateReq, DefaultConfigUpdateReq},
+    utils::{create_default_config, update_default_config},
+};
 
 #[component]
 pub fn default_config_form<NF>(
@@ -101,34 +104,52 @@ where
 
         let fun_name = function_name_rs.get();
 
-        let payload = DefaultConfigCreateReq {
+        let create_payload = DefaultConfigCreateReq {
+            key: config_key_rs.get(),
+            schema: f_schema.clone(),
+            value: f_value.clone(),
+            function_name: fun_name.clone(),
+        };
+
+        let update_payload = DefaultConfigUpdateReq {
             schema: f_schema,
             value: f_value,
             function_name: fun_name,
         };
 
         let handle_submit_clone = handle_submit.clone();
+        let is_edit = edit;
         spawn_local({
             let handle_submit = handle_submit_clone;
             async move {
-                let result = create_default_config(
-                    f_name.clone(),
-                    tenant_rs.get(),
-                    payload.clone(),
-                )
-                .await;
+                let result = if is_edit {
+                    // Call update_default_config when edit is true
+                    update_default_config(f_name, tenant_rs.get(), update_payload).await
+                } else {
+                    // Call create_default_config when edit is false
+                    create_default_config(tenant_rs.get(), create_payload).await
+                };
 
                 match result {
                     Ok(_) => {
                         handle_submit();
+                        let success_message = if is_edit {
+                            "Default config updated successfully!"
+                        } else {
+                            "New default config created successfully!"
+                        };
                         enqueue_alert(
-                            String::from("New default config created successfully!"),
+                            String::from(success_message),
                             AlertType::Success,
                             5000,
                         );
                     }
                     Err(e) => {
-                        logging::error!("An error occurred while trying to create the default config {}", e);
+                        logging::error!(
+                            "An error occurred while trying to {} the default config: {}",
+                            if is_edit { "update" } else { "create" },
+                            e
+                        );
                         enqueue_alert(e, AlertType::Error, 5000);
                     }
                 }
