@@ -31,7 +31,7 @@ use superposition_types::{
     },
     result::{self as superposition},
     webhook::{WebhookConfig, WebhookEvent},
-    Condition, Exp, Overrides, SortBy, TenantConfig, User,
+    Condition, Exp, Overrides, PaginatedResponse, SortBy, TenantConfig, User,
 };
 
 use super::{
@@ -44,7 +44,7 @@ use super::{
         ApplicableVariantsQuery, AuditQueryFilters, ConcludeExperimentRequest,
         ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq,
         ExperimentCreateRequest, ExperimentCreateResponse, ExperimentListFilters,
-        ExperimentResponse, ExperimentsResponse, OverrideKeysUpdateRequest, RampRequest,
+        ExperimentResponse, OverrideKeysUpdateRequest, RampRequest,
     },
 };
 use crate::api::experiments::{helpers::construct_header_map, types::ExperimentSortOn};
@@ -534,11 +534,13 @@ async fn list_experiments(
 
     if let Some(true) = pagination_params.all {
         let result = experiments::experiments.get_results::<Experiment>(&mut conn)?;
-        return Ok(HttpResponse::Ok().json(ExperimentsResponse {
-            total_pages: 1,
-            total_items: result.len() as i64,
-            data: result.into_iter().map(ExperimentResponse::from).collect(),
-        }));
+        return Ok(
+            HttpResponse::Ok().json(PaginatedResponse::<ExperimentResponse> {
+                total_pages: 1,
+                total_items: result.len() as i64,
+                data: result.into_iter().map(ExperimentResponse::from).collect(),
+            }),
+        );
     }
 
     let max_event_timestamp: Option<NaiveDateTime> = event_log::event_log
@@ -615,14 +617,16 @@ async fn list_experiments(
     let query = base_query.limit(limit).offset(offset);
     let experiment_list = query.load::<Experiment>(&mut conn)?;
     let total_pages = (number_of_experiments as f64 / limit as f64).ceil() as i64;
-    Ok(HttpResponse::Ok().json(ExperimentsResponse {
-        total_pages,
-        total_items: number_of_experiments,
-        data: experiment_list
-            .into_iter()
-            .map(ExperimentResponse::from)
-            .collect(),
-    }))
+    Ok(
+        HttpResponse::Ok().json(PaginatedResponse::<ExperimentResponse> {
+            total_pages,
+            total_items: number_of_experiments,
+            data: experiment_list
+                .into_iter()
+                .map(ExperimentResponse::from)
+                .collect(),
+        }),
+    )
 }
 
 #[get("/{id}")]
@@ -962,7 +966,7 @@ async fn update_overrides(
 async fn get_audit_logs(
     filters: Query<AuditQueryFilters>,
     db_conn: DbConnection,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<PaginatedResponse<EventLog>>> {
     let DbConnection(mut conn) = db_conn;
 
     let query_builder = |filters: &AuditQueryFilters| {
@@ -1001,9 +1005,9 @@ async fn get_audit_logs(
 
     let total_pages = (log_count as f64 / limit as f64).ceil() as i64;
 
-    Ok(HttpResponse::Ok().json(json!({
-        "total_items": log_count,
-        "total_pages": total_pages,
-        "data": logs
-    })))
+    Ok(Json(PaginatedResponse {
+        total_items: log_count,
+        total_pages: total_pages,
+        data: logs,
+    }))
 }

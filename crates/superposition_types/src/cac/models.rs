@@ -2,7 +2,7 @@ use bigdecimal::BigDecimal;
 use chrono::{offset::Utc, DateTime, NaiveDateTime};
 #[cfg(feature = "diesel_derives")]
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::{Cac, Condition, Contextual, Overridden, Overrides};
@@ -45,7 +45,7 @@ impl Overridden<Cac<Overrides>> for Context {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)
@@ -64,7 +64,7 @@ pub struct Dimension {
     pub position: i32,
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)
@@ -83,7 +83,7 @@ pub struct DefaultConfig {
     pub last_modified_by: String,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)
@@ -121,7 +121,7 @@ pub struct EventLog {
     pub query: String,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "diesel_derives", derive(Queryable, Selectable, Insertable))]
 #[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
 #[cfg_attr(feature = "diesel_derives", diesel(primary_key(id)))]
@@ -133,15 +133,14 @@ pub struct ConfigVersion {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
-#[cfg_attr(feature = "diesel_derives", diesel(table_name = type_templates))]
 #[cfg_attr(feature = "diesel_derives", diesel(primary_key(type_name)))]
-pub struct TypeTemplates {
+pub struct TypeTemplate {
     pub type_name: String,
     pub type_schema: Value,
     pub created_by: String,

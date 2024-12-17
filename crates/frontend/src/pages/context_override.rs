@@ -2,10 +2,13 @@ use futures::join;
 use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use superposition_types::{Config, Context};
+use superposition_types::{
+    cac::{models::DefaultConfig, types::DimensionWithMandatory},
+    custom_query::PaginationParams,
+    Config, Context,
+};
 
-use crate::api::fetch_config;
-use crate::api::{delete_context, fetch_default_config, fetch_dimensions};
+use crate::api::{delete_context, fetch_config, fetch_default_config, fetch_dimensions};
 use crate::components::alert::AlertType;
 use crate::components::button::Button;
 use crate::components::condition_pills::types::{Condition, ConditionOperator};
@@ -20,7 +23,6 @@ use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
-use crate::types::{DefaultConfig, Dimension, ListFilters, PaginatedResponse};
 
 #[derive(Clone, Debug, Default)]
 pub struct Data {
@@ -31,7 +33,7 @@ pub struct Data {
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct PageResource {
     config: Config,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
     default_config: Vec<DefaultConfig>,
 }
 
@@ -45,7 +47,7 @@ enum FormMode {
 fn form(
     context: Vec<Condition>,
     overrides: Vec<(String, Value)>,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
     edit: bool,
     default_config: Vec<DefaultConfig>,
     handle_submit: Callback<(), ()>,
@@ -147,11 +149,7 @@ pub fn context_override() -> impl IntoView {
     let page_resource: Resource<String, PageResource> = create_blocking_resource(
         move || tenant_rs.get().clone(),
         |current_tenant| async move {
-            let empty_list_filters = ListFilters {
-                page: None,
-                count: None,
-                all: Some(true),
-            };
+            let empty_list_filters = PaginationParams::all_entries();
             let (config_result, dimensions_result, default_config_result) = join!(
                 fetch_config(current_tenant.to_string(), None),
                 fetch_dimensions(&empty_list_filters, current_tenant.to_string()),
@@ -160,14 +158,12 @@ pub fn context_override() -> impl IntoView {
             PageResource {
                 config: config_result.unwrap_or_default(),
                 dimensions: dimensions_result
-                    .unwrap_or(PaginatedResponse::default())
+                    .unwrap_or_default()
                     .data
                     .into_iter()
                     .filter(|d| d.dimension != "variantIds")
                     .collect(),
-                default_config: default_config_result
-                    .unwrap_or(PaginatedResponse::default())
-                    .data,
+                default_config: default_config_result.unwrap_or_default().data,
             }
         },
     );
