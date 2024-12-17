@@ -1,7 +1,7 @@
 extern crate base64;
 
 use actix_web::{
-    delete, get, put,
+    delete, get, post, put,
     web::{self, Data, Json, Path, Query},
     HttpResponse, Scope,
 };
@@ -9,10 +9,8 @@ use chrono::Utc;
 use diesel::{
     delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
-use jsonschema::{Draft, JSONSchema};
-use serde_json::Value;
 use service_utils::service::types::{AppState, DbConnection};
-use superposition_macros::{bad_argument, not_found, unexpected_error};
+use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     cac::{
         models::Dimension,
@@ -23,21 +21,24 @@ use superposition_types::{
 };
 
 use crate::{
-    api::dimension::{types::CreateReq, utils::get_dimension_usage_context_ids},
+    api::dimension::{
+        types::{CreateReq, FunctionNameEnum},
+        utils::{get_dimension_usage_context_ids, validate_dimension_position},
+    },
     helpers::validate_jsonschema,
 };
 
-use super::types::{DeleteReq, DimensionWithMandatory};
+use super::types::{DeleteReq, DimensionName, DimensionWithMandatory, UpdateReq};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(create)
+        .service(update)
         .service(get)
         .service(delete_dimension)
-        .service(temp_position_update)
 }
 
-#[put("")]
+#[post("")]
 async fn create(
     state: Data<AppState>,
     req: web::Json<CreateReq>,
@@ -50,76 +51,175 @@ async fn create(
     let create_req = req.into_inner();
     let schema_value = create_req.schema;
 
+    let num_rows = dimensions
+        .count()
+        .get_result::<i64>(&mut conn)
+        .map_err(|err| {
+            log::error!("failed to fetch number of dimension with error: {}", err);
+            db_error!(err)
+        })?;
+
+    validate_dimension_position(
+        create_req.dimension.clone(),
+        create_req.position.clone(),
+        num_rows,
+    )?;
     validate_jsonschema(&state.meta_schema, &schema_value)?;
 
-    let schema_compile_result = JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(&schema_value);
-
-    if let Err(e) = schema_compile_result {
-        return Err(bad_argument!(
-            "Invalid JSON schema (failed to compile): {:?}",
-            e
-        ));
-    };
-
-    let fun_name = match create_req.function_name {
-        Some(Value::String(func_name)) => Some(func_name),
-        Some(Value::Null) | None => None,
-        _ => {
-            log::error!("Expected a string or null as the function name.");
-            return Err(bad_argument!(
-                "Expected a string or null as the function name."
-            ));
-        }
-    };
-
-    let new_dimension = Dimension {
+    let dimension_data = Dimension {
         dimension: create_req.dimension.into(),
-        priority: create_req.priority.into(),
-        position: 0, // hard coded for now till we migrate
+        position: create_req.position.into(),
         schema: schema_value,
         created_by: user.get_email(),
         created_at: Utc::now(),
-        function_name: fun_name.clone(),
+        function_name: create_req.function_name.clone(),
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
     };
 
-    let upsert = diesel::insert_into(dimensions)
-        .values(&new_dimension)
-        .on_conflict(dimensions::dimension)
-        .do_update()
-        .set(&new_dimension)
-        .get_result::<Dimension>(&mut conn);
+    conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        diesel::update(dimensions)
+            .filter(dimensions::position.ge(dimension_data.position))
+            .set((
+                last_modified_at.eq(Utc::now().naive_utc()),
+                last_modified_by.eq(user.get_email()),
+                dimensions::position.eq(dimensions::position + 1),
+            ))
+            .execute(transaction_conn)?;
+        let insert_resp = diesel::insert_into(dimensions)
+            .values(&dimension_data)
+            .get_result::<Dimension>(transaction_conn);
 
-    match upsert {
-        Ok(upserted_dimension) => {
-            let is_mandatory = tenant_config
-                .mandatory_dimensions
-                .contains(&upserted_dimension.dimension);
-            Ok(HttpResponse::Created().json(DimensionWithMandatory::new(
-                upserted_dimension,
-                is_mandatory,
-            )))
+        match insert_resp {
+            Ok(inserted_dimension) => {
+                let is_mandatory = tenant_config
+                    .mandatory_dimensions
+                    .contains(&inserted_dimension.dimension);
+                Ok(HttpResponse::Created().json(DimensionWithMandatory::new(
+                    inserted_dimension,
+                    is_mandatory,
+                )))
+            }
+            Err(diesel::result::Error::DatabaseError(
+                diesel::result::DatabaseErrorKind::ForeignKeyViolation,
+                e,
+            )) => {
+                let fun_name = create_req.function_name;
+                log::error!("{fun_name:?} function not found with error: {e:?}");
+                Err(bad_argument!(
+                    "Function {} doesn't exists",
+                    fun_name.unwrap_or(String::new())
+                ))
+            }
+            Err(e) => {
+                log::error!("Dimension create failed with error: {e}");
+                Err(db_error!(e))
+            }
         }
-        Err(diesel::result::Error::DatabaseError(
-            diesel::result::DatabaseErrorKind::ForeignKeyViolation,
-            e,
-        )) => {
-            log::error!("{fun_name:?} function not found with error: {e:?}");
-            Err(bad_argument!(
-                "Function {} doesn't exists",
-                fun_name.unwrap_or(String::new())
-            ))
-        }
-        Err(e) => {
-            log::error!("Dimension upsert failed with error: {e}");
-            Err(unexpected_error!(
-                "Something went wrong, failed to create/update dimension"
-            ))
-        }
+    })
+}
+
+#[put("/{name}")]
+async fn update(
+    path: Path<DimensionName>,
+    state: Data<AppState>,
+    req: web::Json<UpdateReq>,
+    user: User,
+    db_conn: DbConnection,
+    tenant_config: TenantConfig,
+) -> superposition::Result<HttpResponse> {
+    let name: String = path.clone().into();
+    use dimensions::dsl;
+    let DbConnection(mut conn) = db_conn;
+
+    let mut dimension_row: Dimension = dsl::dimensions
+        .filter(dimensions::dimension.eq(name.clone()))
+        .get_result::<Dimension>(&mut conn)?;
+
+    let num_rows = dimensions
+        .count()
+        .get_result::<i64>(&mut conn)
+        .map_err(|err| {
+            log::error!("failed to fetch number of dimension with error: {}", err);
+            db_error!(err)
+        })?;
+
+    let update_req = req.into_inner();
+
+    if let Some(schema_value) = update_req.schema {
+        validate_jsonschema(&state.meta_schema, &schema_value)?;
+        dimension_row.schema = schema_value;
     }
+
+    dimension_row.function_name = match update_req.function_name {
+        Some(FunctionNameEnum::Name(func_name)) => Some(func_name),
+        Some(FunctionNameEnum::Remove) => None,
+        None => dimension_row.function_name,
+    };
+
+    let result =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let mut new_position = dimension_row.position;
+
+            if let Some(position_val) = update_req.position {
+                new_position = position_val.clone().into();
+                validate_dimension_position(
+                    path.into_inner(),
+                    position_val,
+                    num_rows - 1,
+                )?;
+                let previous_position = dimension_row.position;
+
+                diesel::update(dimensions)
+                    .filter(dsl::dimension.eq(&dimension_row.dimension))
+                    .set((
+                        dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                        dsl::last_modified_by.eq(user.get_email()),
+                        dimensions::position.eq((num_rows + 100) as i32),
+                    ))
+                    .get_result::<Dimension>(transaction_conn)?;
+
+                if previous_position < new_position {
+                    diesel::update(dsl::dimensions)
+                        .filter(dimensions::position.gt(previous_position))
+                        .filter(dimensions::position.le(new_position))
+                        .set((
+                            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                            dsl::last_modified_by.eq(user.get_email()),
+                            dimensions::position.eq(dimensions::position - 1),
+                        ))
+                        .execute(transaction_conn)?
+                } else {
+                    diesel::update(dsl::dimensions)
+                        .filter(dimensions::position.lt(previous_position))
+                        .filter(dimensions::position.ge(new_position))
+                        .set((
+                            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                            dsl::last_modified_by.eq(user.get_email()),
+                            dimensions::position.eq(dimensions::position + 1),
+                        ))
+                        .execute(transaction_conn)?
+                };
+            }
+
+            diesel::update(dimensions)
+                .filter(dsl::dimension.eq(&dimension_row.dimension))
+                .set((
+                    dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                    dsl::last_modified_by.eq(user.get_email()),
+                    dimensions::function_name.eq(dimension_row.function_name),
+                    dimensions::schema.eq(dimension_row.schema),
+                    dimensions::position.eq(new_position),
+                ))
+                .get_result::<Dimension>(transaction_conn)
+                .map_err(|err| db_error!(err))
+        })?;
+
+    let is_mandatory = tenant_config
+        .mandatory_dimensions
+        .contains(&result.dimension);
+
+    Ok(HttpResponse::Ok().json(DimensionWithMandatory::new(result, is_mandatory)))
 }
 
 #[get("")]
@@ -213,33 +313,4 @@ async fn delete_dimension(
             context_ids.join(",")
         ))
     }
-}
-
-#[put("/position/update")]
-async fn temp_position_update(
-    user: User,
-    db_conn: DbConnection,
-) -> superposition::Result<HttpResponse> {
-    let DbConnection(mut conn) = db_conn;
-    let results: Vec<String> = dimensions
-        .order(priority.asc())
-        .select(dimension)
-        .load::<String>(&mut conn)
-        .map_err(|err| {
-            log::error!("failed to fetch dimensions with error: {}", err);
-            unexpected_error!("Something went wrong")
-        })?;
-
-    let _ = for (index, dimension_name) in results.iter().enumerate() {
-        diesel::update(dimensions)
-            .filter(dimension.eq(dimension_name))
-            .set((
-                position.eq(index as i32),
-                last_modified_at.eq(Utc::now().naive_utc()),
-                last_modified_by.eq(user.get_email()),
-            ))
-            .execute(&mut conn)?;
-    };
-    Ok(HttpResponse::Ok()
-        .json(serde_json::json!({"message": "Position updated sucessfully"})))
 }

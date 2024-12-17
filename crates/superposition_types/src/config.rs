@@ -126,6 +126,7 @@ pub struct Context {
     pub id: String,
     pub condition: Condition,
     pub priority: i32,
+    pub weight: i32,
     pub override_with_keys: [String; 1],
 }
 
@@ -228,7 +229,8 @@ pub(crate) mod tests {
                             true
                         ]
                     },
-                    "priority": 1,
+                    "priority": 0,
+                    "weight": 0,
                     "override_with_keys": [
                         "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
                     ]
@@ -243,7 +245,8 @@ pub(crate) mod tests {
                             123
                         ]
                     },
-                    "priority": 2,
+                    "priority": 1,
+                    "weight": 1,
                     "override_with_keys": [
                         "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
                     ]
@@ -270,7 +273,8 @@ pub(crate) mod tests {
                             }
                         ]
                     },
-                    "priority": 3,
+                    "priority": 2,
+                    "weight": 2,
                     "override_with_keys": [
                         "e2fa5b38c3a1448cf0e27f9d555fdb8964a686d8ae41b70b55e6ee30359b87c8"
                     ]
@@ -339,7 +343,8 @@ pub(crate) mod tests {
                             true
                         ]
                     },
-                    "priority": 1,
+                    "priority": 0,
+                    "weight": 0,
                     "override_with_keys": [
                         "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
                     ]
@@ -354,7 +359,8 @@ pub(crate) mod tests {
                             123
                         ]
                     },
-                    "priority": 2,
+                    "priority": 1,
+                    "weight": 1,
                     "override_with_keys": [
                         "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
                     ]
@@ -395,7 +401,8 @@ pub(crate) mod tests {
                             123
                         ]
                     },
-                    "priority": 2,
+                    "priority": 1,
+                    "weight": 1,
                     "override_with_keys": [
                         "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
                     ]
@@ -448,7 +455,8 @@ pub(crate) mod tests {
                             true
                         ]
                     },
-                    "priority": 1,
+                    "priority": 0,
+                    "weight": 0,
                     "override_with_keys": [
                         "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
                     ]
@@ -480,7 +488,8 @@ pub(crate) mod tests {
                             true
                         ]
                     },
-                    "priority": 1,
+                    "priority": 0,
+                    "weight": 0,
                     "override_with_keys": [
                         "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
                     ]
@@ -495,7 +504,8 @@ pub(crate) mod tests {
                             123
                         ]
                     },
-                    "priority": 2,
+                    "priority": 1,
+                    "weight": 1,
                     "override_with_keys": [
                         "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
                     ]

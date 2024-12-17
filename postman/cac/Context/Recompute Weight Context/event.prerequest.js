@@ -2,7 +2,7 @@ const host = pm.variables.get("host");
 
 function update_dimension_position() {
     const options = {
-        'method': 'PUT',
+        'method': 'POST',
         'url': `${host}/dimension`,
         'header': {
             'x-tenant': 'test',
@@ -12,7 +12,7 @@ function update_dimension_position() {
             "mode": "raw",
             "raw": JSON.stringify({
                 "dimension": "clientId",
-                "priority": 200,
+                "position": 1,
                 "schema": {
                     "type": "string",
                     "pattern": "^[a-z0-9].*$"

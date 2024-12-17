@@ -1,5 +1,5 @@
 {
-  "method": "POST",
+  "method": "PUT",
   "header": [
     {
       "key": "Authorization",
@@ -25,7 +25,6 @@
       }
     },
     "raw_json_formatted": {
-      "dimension": "clientId",
       "position": 1,
       "schema": {
         "type": "string",
@@ -34,12 +33,13 @@
     }
   },
   "url": {
-    "raw": "{{host}}/dimension",
+    "raw": "{{host}}/dimension/{{dimension_name}}",
     "host": [
       "{{host}}"
     ],
     "path": [
-      "dimension"
+      "dimension",
+      "{{dimension_name}}"
     ]
   }
 }

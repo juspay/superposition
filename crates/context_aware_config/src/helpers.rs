@@ -23,7 +23,7 @@ use service_utils::{
     helpers::{generate_snowflake_id, validation_err_to_str},
     service::types::AppState,
 };
-use superposition_macros::{db_error, unexpected_error, validation_error};
+use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
 use superposition_types::cac::schema::event_log::dsl as event_log;
 use superposition_types::{
@@ -44,7 +44,6 @@ use uuid::Uuid;
 #[derive(Debug)]
 pub struct DimensionData {
     pub schema: JSONSchema,
-    pub priority: i32,
     pub position: i32,
 }
 
@@ -158,7 +157,11 @@ pub fn validate_jsonschema(
     validation_schema: &JSONSchema,
     schema: &Value,
 ) -> superposition::Result<()> {
-    let res = match validation_schema.validate(schema) {
+    JSONSchema::options()
+        .with_draft(Draft::Draft7)
+        .compile(schema)
+        .map_err(|e| bad_argument!("Invalid JSON schema (failed to compile): {:?}", e))?;
+    match validation_schema.validate(schema) {
         Ok(_) => Ok(()),
         Err(e) => {
             //TODO: Try & render as json.
@@ -170,40 +173,6 @@ pub fn validate_jsonschema(
                     .unwrap_or(&String::new())
             ))
         }
-    };
-    res
-}
-
-pub fn calculate_context_priority(
-    _object_key: &str,
-    cond: &Value,
-    dimension_schema_map: &HashMap<String, DimensionData>,
-) -> Result<i32, String> {
-    let get_priority = |key: &str, val: &Value| -> Result<i32, String> {
-        if key == "var" {
-            let dimension_name =
-                val.as_str().ok_or("failed to decode dimension as str")?;
-            dimension_schema_map
-                .get(dimension_name)
-                .map(|dimension_val| &dimension_val.priority)
-                .ok_or(String::from(
-                    "No matching `dimension` found in dimension table",
-                ))
-                .copied()
-        } else {
-            calculate_context_priority(key, val, dimension_schema_map)
-        }
-    };
-
-    match cond {
-        Value::Object(x) => x.iter().try_fold(0, |acc, (key, val)| {
-            get_priority(key, val).map(|res| res + acc)
-        }),
-        Value::Array(arr) => arr.iter().try_fold(0, |acc, item| {
-            calculate_context_priority(_object_key, item, dimension_schema_map)
-                .map(|res| res + acc)
-        }),
-        _ => Ok(0),
     }
 }
 
@@ -248,25 +217,32 @@ pub fn calculate_context_weight(
 pub fn generate_cac(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<Config> {
-    let contexts_vec = ctxt::contexts
-        .select((
-            ctxt::id,
-            ctxt::value,
-            ctxt::priority,
-            ctxt::override_id,
-            ctxt::override_,
-        ))
-        .order_by((ctxt::priority.asc(), ctxt::created_at.asc()))
-        .load::<(String, Condition, i32, String, Overrides)>(conn)
+    let contexts_vec: Vec<(String, Condition, String, Overrides)> = ctxt::contexts
+        .select((ctxt::id, ctxt::value, ctxt::override_id, ctxt::override_))
+        .order_by((ctxt::weight.asc(), ctxt::created_at.asc()))
+        .load::<(String, Condition, String, Overrides)>(conn)
         .map_err(|err| {
             log::error!("failed to fetch contexts with error: {}", err);
             db_error!(err)
         })?;
+    let contexts_vec: Vec<(String, Condition, i32, String, Overrides)> = contexts_vec
+        .iter()
+        .enumerate()
+        .map(|(index, (id, value, override_id, override_))| {
+            (
+                id.clone(),
+                value.clone(),
+                index as i32,
+                override_id.clone(),
+                override_.clone(),
+            )
+        })
+        .collect();
 
     let mut contexts = Vec::new();
     let mut overrides: HashMap<String, Overrides> = HashMap::new();
 
-    for (id, condition, priority_, override_id, override_) in contexts_vec.iter() {
+    for (id, condition, weight, override_id, override_) in contexts_vec.iter() {
         let condition = Cac::<Condition>::validate_db_data(condition.clone().into())
             .map_err(|err| {
                 log::error!("generate_cac : failed to decode context from db {}", err);
@@ -283,7 +259,8 @@ pub fn generate_cac(
         let ctxt = Context {
             id: id.to_owned(),
             condition,
-            priority: priority_.to_owned(),
+            priority: weight.to_owned(),
+            weight: weight.to_owned(),
             override_with_keys: [override_id.to_owned()],
         };
         contexts.push(ctxt);

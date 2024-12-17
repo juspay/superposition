@@ -39,16 +39,10 @@ function create_default_config_keys() {
     }
 }
 
-function create_dimensions() {
-    const dimensions = [
-        {name: "os", priority: 10, schema: { type: "string", enum: ["android", "ios", "web"] }},
-        {name: "client", priority: 100, schema: { type: "string", pattern: ".*" }},
-        {name: "variantIds", priority: 1000, schema: { type: "string", pattern: ".*" }}
-    ];
+function create_dimensions(dimension) {
 
-    for (const dimension of dimensions) {
         const options = {
-            'method': 'PUT',
+            'method': 'POST',
             'url': `${host}/dimension`,
             'header': {
                 'Authorization': `Bearer ${token}`,
@@ -59,21 +53,29 @@ function create_dimensions() {
                 "mode": "raw",
                 "raw": JSON.stringify({
                     "dimension": dimension.name,
-                    "priority": dimension.priority,
+                    "position": dimension.position,
                     "schema": dimension.schema
                 })
             }
         };
-        pm.sendRequest(options, function (error, response) {
-            if (error) {
-                console.log(`Error creating dimension: ${dimension.name}`);
-                console.log(error);
-                return;
-            }
-            console.log(`Created dimension: ${dimension.name}`);
-        });
-    }
+        
+            pm.sendRequest(options, function (error, response) {
+                if (error) {
+                    console.log(`Error creating dimension: ${dimension.name}`);
+                    console.log(error);
+                    return;
+                }
+                console.log(`Created dimension: ${dimension.name}`);
+            }).await;
 }
 
 create_default_config_keys();
-create_dimensions();
+
+const dimensions = [
+    {name: "os", position: 1, schema: { type: "string", enum: ["android", "ios", "web"] }},
+    {name: "client", position: 2, schema: { type: "string", pattern: ".*" }}
+];
+create_dimensions(dimensions[0]);
+setTimeout(() => {
+    create_dimensions(dimensions[1]);
+}, 2000);

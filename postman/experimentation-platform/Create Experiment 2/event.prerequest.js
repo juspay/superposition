@@ -39,41 +39,4 @@ function create_default_config_keys() {
     }
 }
 
-function create_dimensions() {
-    const dimensions = [
-        {name: "os", priority: 10, type: "STRING"},
-        {name: "client", priority: 100, type: "STRING"},
-        {name: "variantIds", priority: 1000, type: "STRING"}
-    ];
-
-    for (const dimension of dimensions) {
-        const options = {
-            'method': 'PUT',
-            'url': `${host}/dimension`,
-            'header': {
-                'Authorization': `Bearer ${token}`,
-                'x-tenant': 'test',
-                'Content-Type': 'application/json'
-            },
-            "body": {
-                "mode": "raw",
-                "raw": JSON.stringify({
-                    "dimension": dimension.name,
-                    "priority": dimension.priority,
-                    "type": dimension.type
-                })
-            }
-        };
-        pm.sendRequest(options, function (error, response) {
-            if (error) {
-                console.log(`Error creating dimension: ${dimension.name}`);
-                console.log(error);
-                return;
-            }
-            console.log(`Created dimension: ${dimension.name}`);
-        });
-    }
-}
-
-create_dimensions();
 create_default_config_keys();

@@ -7,33 +7,12 @@ use superposition_types::{cac::models::Dimension, RegexEnum};
 #[derive(Debug, Deserialize)]
 pub struct CreateReq {
     pub dimension: DimensionName,
-    pub priority: Priority,
+    pub position: Position,
     pub schema: Value,
-    #[serde(default, deserialize_with = "deserialize_option")]
-    pub function_name: Option<Value>,
+    pub function_name: Option<String>,
 }
 
-#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
-#[serde(try_from = "i32")]
-pub struct Priority(i32);
-impl Priority {
-    fn validate_data(priority_val: i32) -> Result<Self, String> {
-        if priority_val <= 0 {
-            return Err("Priority should be greater than 0".to_string());
-        } else {
-            Ok(Self(priority_val))
-        }
-    }
-}
-
-impl TryFrom<i32> for Priority {
-    type Error = String;
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        Ok(Self::validate_data(value)?)
-    }
-}
-
-#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
+#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into, Clone)]
 #[serde(try_from = "i32")]
 pub struct Position(i32);
 impl Position {
@@ -59,7 +38,38 @@ impl Default for Position {
     }
 }
 
-#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
+#[derive(Debug, Deserialize, Clone)]
+pub struct UpdateReq {
+    pub position: Option<Position>,
+    pub schema: Option<Value>,
+    pub function_name: Option<FunctionNameEnum>,
+}
+
+#[derive(Debug, Clone)]
+pub enum FunctionNameEnum {
+    Name(String),
+    Remove,
+}
+
+impl<'de> Deserialize<'de> for FunctionNameEnum {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let map: Value = Deserialize::deserialize(deserializer)?;
+        match map {
+            Value::String(func_name) => Ok(Self::Name(func_name)),
+            Value::Null => Ok(Self::Remove),
+            _ => {
+                log::error!("Expected a string or null literal as the function name.");
+                Err("Expected a string or null literal as the function name.")
+                    .map_err(serde::de::Error::custom)
+            }
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into, Clone)]
 #[serde(try_from = "String")]
 pub struct DimensionName(String);
 impl DimensionName {
@@ -78,18 +88,9 @@ impl TryFrom<String> for DimensionName {
     }
 }
 
-fn deserialize_option<'de, D>(deserializer: D) -> Result<Option<Value>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let value: Value = Deserialize::deserialize(deserializer)?;
-    Ok(Some(value))
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DimensionWithMandatory {
     pub dimension: String,
-    pub priority: i32,
     pub position: i32,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
@@ -104,7 +105,6 @@ impl DimensionWithMandatory {
     pub fn new(value: Dimension, mandatory: bool) -> Self {
         DimensionWithMandatory {
             dimension: value.dimension,
-            priority: value.priority,
             position: value.position,
             created_at: value.created_at,
             created_by: value.created_by,

@@ -18,7 +18,7 @@ function getContextAndTest() {
             throw error;
         }
         console.log(response.json())
-        pm.expect(response.json().weight).to.be.eq("1");
+        pm.expect(response.json().weight).to.be.eq("2");
 
     })
     
@@ -29,6 +29,6 @@ pm.test("200 check", function () {
 });
 
 
-pm.test("Check priority update", function () {
+pm.test("Check weight update", function () {
     getContextAndTest()
 });

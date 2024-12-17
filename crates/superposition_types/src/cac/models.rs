@@ -26,7 +26,6 @@ pub struct Context {
     pub override_id: String,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
-    pub priority: i32,
     #[serde(rename(serialize = "override"))]
     pub override_: Overrides,
     pub last_modified_at: NaiveDateTime,
@@ -56,7 +55,6 @@ impl Overridden<Cac<Overrides>> for Context {
 #[cfg_attr(feature = "diesel_derives", diesel(treat_none_as_null = true))]
 pub struct Dimension {
     pub dimension: String,
-    pub priority: i32,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: Value,

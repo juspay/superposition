@@ -70,7 +70,8 @@ mod tests {
                         true
                     ]
                 },
-                "priority": 1,
+                "priority": 0,
+                "weight": 0,
                 "override_with_keys": [
                     "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
                 ]
@@ -97,7 +98,8 @@ mod tests {
                         }
                     ]
                 },
-                "priority": 3,
+                "priority": 2,
+                "weight": 2,
                 "override_with_keys": [
                     "e2fa5b38c3a1448cf0e27f9d555fdb8964a686d8ae41b70b55e6ee30359b87c8"
                 ]
@@ -130,7 +132,8 @@ mod tests {
                     }
                 ]
             },
-            "priority": 3,
+            "priority": 2,
+            "weight": 2,
             "override_with_keys": [
                 "e2fa5b38c3a1448cf0e27f9d555fdb8964a686d8ae41b70b55e6ee30359b87c8"
             ]

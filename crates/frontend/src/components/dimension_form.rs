@@ -1,8 +1,8 @@
 pub mod types;
 pub mod utils;
 
-use self::types::DimensionCreateReq;
-use self::utils::create_dimension;
+use self::types::{DimensionCreateReq, DimensionUpdateReq};
+use self::utils::{create_dimension, update_dimension};
 use crate::api::fetch_types;
 use crate::components::{
     dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
@@ -19,7 +19,7 @@ use web_sys::MouseEvent;
 #[component]
 pub fn dimension_form<NF>(
     #[prop(default = false)] edit: bool,
-    #[prop(default = 0)] priority: u32,
+    #[prop(default = 0)] position: u32,
     #[prop(default = String::new())] dimension_name: String,
     #[prop(default = String::new())] dimension_type: String,
     #[prop(default = Value::Null)] dimension_schema: Value,
@@ -31,7 +31,7 @@ where
 {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
 
-    let (priority, set_priority) = create_signal(priority);
+    let (position_rs, position_ws) = create_signal(position);
     let (dimension_name_rs, dimension_name_ws) = create_signal(dimension_name);
     let (dimension_type_rs, dimension_type_ws) = create_signal(dimension_type);
     let (dimension_schema_rs, dimension_schema_ws) = create_signal(dimension_schema);
@@ -85,25 +85,32 @@ where
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);
         ev.prevent_default();
-        let f_priority = priority.get();
-        let f_name = dimension_name_rs.get();
-        let fun_name = function_name.get();
-
-        let f_schema = dimension_schema_rs.get();
-
-        let payload = DimensionCreateReq {
-            dimension: f_name,
-            priority: f_priority,
-            schema: f_schema,
-            function_name: fun_name,
-        };
+        let function_position = position_rs.get();
+        let dimension_name = dimension_name_rs.get();
+        let function_name = function_name.get();
+        let function_schema = dimension_schema_rs.get();
 
         let handle_submit_clone = handle_submit.clone();
         spawn_local({
             let handle_submit = handle_submit_clone;
             async move {
-                let result = create_dimension(tenant_rs.get(), payload.clone()).await;
-
+                let result = if edit {
+                    let update_payload = DimensionUpdateReq {
+                        position: Some(function_position),
+                        schema: Some(function_schema),
+                        function_name: function_name,
+                    };
+                    update_dimension(tenant_rs.get(), dimension_name, update_payload)
+                        .await
+                } else {
+                    let create_payload = DimensionCreateReq {
+                        dimension: dimension_name,
+                        position: function_position,
+                        schema: function_schema,
+                        function_name: function_name,
+                    };
+                    create_dimension(tenant_rs.get(), create_payload).await
+                };
                 match result {
                     Ok(_) => {
                         handle_submit();
@@ -190,14 +197,14 @@ where
                 view! {
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">Priority</span>
+                            <span class="label-text">Position</span>
                         </label>
                         <input
                             type="Number"
                             min=0
-                            placeholder="Priority"
+                            placeholder="Position"
                             class="input input-bordered w-full max-w-md"
-                            value=priority.get()
+                            value=position_rs.get()
                             on:keypress=move |ev| {
                                 let char_code = ev.char_code();
                                 if char_code != 0 && char_code != 8 && char_code != 13
@@ -210,9 +217,9 @@ where
                             on:change=move |ev| {
                                 logging::log!("{:?}", event_target_value(& ev).parse::< u32 > ());
                                 match event_target_value(&ev).parse::<u32>() {
-                                    Ok(i_prio) => set_priority.set(i_prio),
+                                    Ok(i_prio) => position_ws.set(i_prio),
                                     Err(e) => {
-                                        set_priority.set(0);
+                                        position_ws.set(0);
                                         logging::log!("{e}");
                                     }
                                 };

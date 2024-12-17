@@ -1,8 +1,8 @@
 const host = pm.variables.get("host");
 
-function update_dimension_priority() {
+function add_dimension() {
     const options = {
-        'method': 'PUT',
+        'method': 'POST',
         'url': `${host}/dimension`,
         'header': {
             'x-tenant': 'test',
@@ -11,24 +11,24 @@ function update_dimension_priority() {
         "body": {
             "mode": "raw",
             "raw": JSON.stringify({
-                "dimension": "clientId",
-                "priority": 200,
+                "dimension": "variantIds",
+                "position": 0,
                 "schema": {
                     "type": "string",
-                    "pattern": "^[a-z0-9].*$"
+                    "pattern": ".*"
                 }
             })
         }
     };
     pm.sendRequest(options, function (error, response) {
         if (error) {
-            console.log(`Error updating dimension: clientId`);
+            console.log(`Error creating dimension: dim1`);
             console.log(error);
             return;
         }
-        console.log(`Updated dimension: clientId`);
+        console.log(`created dimension: dim1`);
     });
     
 }
 
-update_dimension_priority();
+add_dimension();
