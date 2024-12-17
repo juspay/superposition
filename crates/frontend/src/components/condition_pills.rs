@@ -1,14 +1,11 @@
-pub mod types;
-pub mod utils;
+use crate::{
+    logic::{Conditions, Constant, Expression, Operator},
+    schema::HtmlDisplay,
+};
 
 use leptos::{leptos_dom::helpers::WindowListenerHandle, *};
-use serde_json::Value;
 use wasm_bindgen::JsCast;
 use web_sys::Element;
-
-use crate::components::condition_pills::types::ConditionOperator;
-
-use self::types::Condition;
 
 use derive_more::{Deref, DerefMut};
 
@@ -35,10 +32,10 @@ pub fn use_condition_collapser() -> WindowListenerHandle {
 pub fn condition_expression(
     #[prop(into)] id: String,
     #[prop(into)] list_id: String,
-    condition: Condition,
+    expression: Expression,
 ) -> impl IntoView {
     let id = store_value(id);
-    let condition = store_value(condition);
+    let expression = store_value(expression);
 
     let (expand_rs, expand_ws) = create_signal(false);
     let condition_id_rs = use_context::<ReadSignal<ConditionId>>().expect(
@@ -60,33 +57,14 @@ pub fn condition_expression(
             } else {
                 ("condition-item-collapsed", "condition-value-collapsed")
             };
-            let Condition { left_operand: dimension, operator, right_operand: value } = condition
-                .get_value();
-            let filtered_vals: Vec<String> = value
-                .into_iter()
-                .filter_map(|v| {
-                    if v.is_object() && v.get("var").is_some() {
-                        None
-                    } else {
-                        match v {
-                            Value::String(s) => Some(s.to_string()),
-                            Value::Number(n) => Some(n.to_string()),
-                            Value::Bool(b) => Some(b.to_string()),
-                            Value::Array(arr) => {
-                                Some(
-                                    arr
-                                        .iter()
-                                        .map(|v| v.to_string())
-                                        .collect::<Vec<String>>()
-                                        .join(","),
-                                )
-                            }
-                            Value::Object(o) => serde_json::to_string_pretty(&o).ok(),
-                            _ => None,
-                        }
-                    }
-                })
-                .collect();
+            let (dimension, operator, operands): (String, Operator, Vec<String>) = expression
+                .with_value(|exp| {
+                    (
+                        exp.variable_name(),
+                        exp.to_operator(),
+                        exp.to_constants_vec().iter().map(|c| c.html_display()).collect(),
+                    )
+                });
             view! {
                 <li
                     id=id.get_value()
@@ -105,34 +83,25 @@ pub fn condition_expression(
                         {operator.to_string()}
                     </span>
 
-                    {match operator {
-                        ConditionOperator::Between => {
-                            if filtered_vals.len() == 2 {
-                                view! {
-                                    <>
-                                        <span class="font-mono font-semibold context_condition">
-                                            {&filtered_vals[0]}
-                                        </span>
-                                        <span class="font-mono font-medium text-gray-650 context_condition">
-                                            {"and"}
-                                        </span>
-                                        <span class="font-mono font-semibold context_condition">
-                                            {&filtered_vals[1]}
-                                        </span>
-                                    </>
-                                }
-                                    .into_view()
-                            } else {
-                                view! {
-                                    <span class="font-mono text-red-500">
-                                        "Invalid between values"
+                    {match expression.get_value() {
+                        Expression::Between(Constant(c1), _, Constant(c2)) => {
+                            view! {
+                                <>
+                                    <span class="font-mono font-semibold context_condition">
+                                        {c1.html_display()}
                                     </span>
-                                }
-                                    .into_view()
+                                    <span class="font-mono font-medium text-gray-650 context_condition">
+                                        {"and"}
+                                    </span>
+                                    <span class="font-mono font-semibold context_condition">
+                                        {c2.html_display()}
+                                    </span>
+                                </>
                             }
+                                .into_view()
                         }
                         _ => {
-                            let rendered_value = filtered_vals.join(", ");
+                            let rendered_value = operands.join(", ");
                             view! { <span class=value_class>{rendered_value}</span> }.into_view()
                         }
                     }}
@@ -146,7 +115,7 @@ pub fn condition_expression(
 #[component]
 pub fn condition(
     #[prop(into)] id: String,
-    #[prop(into)] conditions: Vec<Condition>,
+    #[prop(into)] conditions: Conditions,
     #[prop(into, default=String::new())] class: String,
     #[prop(default = true)] grouped_view: bool,
 ) -> impl IntoView {
@@ -164,11 +133,17 @@ pub fn condition(
                 .clone()>
                 {conditions
                     .get_value()
-                    .into_iter()
+                    .iter()
                     .enumerate()
-                    .map(|(idx, condition)| {
+                    .map(|(idx, expression)| {
                         let item_id = format!("{}-{}", id, idx);
-                        view! { <ConditionExpression condition id=item_id list_id=id.clone()/> }
+                        view! {
+                            <ConditionExpression
+                                expression=expression.clone()
+                                id=item_id
+                                list_id=id.clone()
+                            />
+                        }
                     })
                     .collect::<Vec<_>>()}
             </ol>

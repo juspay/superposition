@@ -2,8 +2,8 @@ use leptos::*;
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 
-use crate::components::table::Table;
-use crate::schema::HtmlDisplay;
+use crate::{components::table::Table, schema::HtmlDisplay};
+
 use crate::types::{Experiment, ExperimentStatusType};
 use crate::{
     components::table::types::Column,
@@ -183,35 +183,28 @@ where
                 <div class="card-body">
                     <h2 class="card-title">Context</h2>
                     <div class="flex flex-row flex-wrap gap-2">
-                        {move || {
-                            let mut view = Vec::new();
-                            for token in contexts.clone() {
-                                let (dimension, values) = (token.left_operand, token.right_operand);
-                                let mut value_views = Vec::new();
-                                for value in values.iter() {
-                                    if value.is_object() && value.get("var").is_some() {
-                                        continue;
-                                    }
-                                    value_views
-                                        .push(
-                                            view! {
-                                                <div class="stat-value text-base">
-                                                    {value.html_display()}
-                                                </div>
-                                            },
-                                        );
+
+                        {contexts
+                            .iter()
+                            .map(|expression| {
+                                let dimension = expression.variable_name();
+                                let operand_views = expression
+                                    .to_constants_vec()
+                                    .iter()
+                                    .map(|c| {
+                                        view! {
+                                            <div class="stat-value text-base">{c.html_display()}</div>
+                                        }
+                                    })
+                                    .collect_view();
+                                view! {
+                                    <div class="stat w-3/12">
+                                        <div class="stat-title">{dimension}</div>
+                                        {operand_views}
+                                    </div>
                                 }
-                                view.push(
-                                    view! {
-                                        <div class="stat w-3/12">
-                                            <div class="stat-title">{dimension}</div>
-                                            {value_views}
-                                        </div>
-                                    },
-                                );
-                            }
-                            view
-                        }}
+                            })
+                            .collect_view()}
 
                     </div>
                 </div>
