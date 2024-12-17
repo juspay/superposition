@@ -8,14 +8,11 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use derive_more::{Deref, DerefMut};
 use serde_json::{json, Map, Value};
 
+use crate::logic::Conditions;
 use crate::{
-    components::{
-        condition_pills::{types::Condition, utils::extract_conditions},
-        dropdown::utils::DropdownOption,
-    },
+    components::dropdown::utils::DropdownOption,
     pages::experiment_list::utils::ExperimentSortOn,
 };
-use crate::logic::Conditions;
 
 #[derive(Clone, Debug)]
 pub struct AppRoute {

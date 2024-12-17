@@ -15,7 +15,7 @@ use crate::components::delete_modal::DeleteModal;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::override_form::OverrideForm;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
-use crate::logic::{Condition, Conditions, Operator};
+use crate::logic::{Conditions, Expression};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
@@ -178,17 +178,9 @@ pub fn context_override() -> impl IntoView {
                 return;
             }
 
-            let condition = Condition::try_from((
-                Operator::Is,
-                dim.dimension.clone(),
-                r#type.unwrap(),
-            ));
-            if let Err(_) = condition {
-                //TODO emit and alert and return
-                return;
-            }
+            let expression = Expression::is(dim.dimension.as_str(), r#type.unwrap());
 
-            default_ctx.push(condition.unwrap());
+            default_ctx.push(expression);
         }
 
         selected_context_ws.set(Some(Data {

@@ -1,5 +1,5 @@
 use crate::{
-    logic::{Condition, Conditions, Operand, Operator},
+    logic::{Conditions, Constant, Expression, Operator},
     schema::HtmlDisplay,
 };
 
@@ -32,10 +32,10 @@ pub fn use_condition_collapser() -> WindowListenerHandle {
 pub fn condition_expression(
     #[prop(into)] id: String,
     #[prop(into)] list_id: String,
-    condition: Condition,
+    expression: Expression,
 ) -> impl IntoView {
     let id = store_value(id);
-    let condition = store_value(condition);
+    let expression = store_value(expression);
 
     let (expand_rs, expand_ws) = create_signal(false);
     let condition_id_rs = use_context::<ReadSignal<ConditionId>>().expect(
@@ -57,16 +57,14 @@ pub fn condition_expression(
             } else {
                 ("condition-item-collapsed", "condition-value-collapsed")
             };
-            let Condition { dimension, operator, operands } = condition.get_value();
-            let operand_str: Vec<String> = operands
-                .iter()
-                .filter_map(|operand| {
-                    match operand {
-                        Operand::Dimension(_) => None,
-                        Operand::Value(v) => Some(v.html_display()),
-                    }
-                })
-                .collect();
+            let (dimension, operator, operands): (String, Operator, Vec<String>) = expression
+                .with_value(|exp| {
+                    (
+                        exp.variable_name(),
+                        exp.to_operator(),
+                        exp.to_constants_vec().iter().map(|c| c.html_display()).collect(),
+                    )
+                });
             view! {
                 <li
                     id=id.get_value()
@@ -85,34 +83,25 @@ pub fn condition_expression(
                         {operator.to_string()}
                     </span>
 
-                    {match operator {
-                        Operator::Between => {
-                            if operand_str.len() == 2 {
-                                view! {
-                                    <>
-                                        <span class="font-mono font-semibold context_condition">
-                                            {&operand_str[0]}
-                                        </span>
-                                        <span class="font-mono font-medium text-gray-650 context_condition">
-                                            {"and"}
-                                        </span>
-                                        <span class="font-mono font-semibold context_condition">
-                                            {&operand_str[1]}
-                                        </span>
-                                    </>
-                                }
-                                    .into_view()
-                            } else {
-                                view! {
-                                    <span class="font-mono text-red-500">
-                                        "Invalid between values"
+                    {match expression.get_value() {
+                        Expression::Between(Constant(c1), _, Constant(c2)) => {
+                            view! {
+                                <>
+                                    <span class="font-mono font-semibold context_condition">
+                                        {c1.html_display()}
                                     </span>
-                                }
-                                    .into_view()
+                                    <span class="font-mono font-medium text-gray-650 context_condition">
+                                        {"and"}
+                                    </span>
+                                    <span class="font-mono font-semibold context_condition">
+                                        {c2.html_display()}
+                                    </span>
+                                </>
                             }
+                                .into_view()
                         }
                         _ => {
-                            let rendered_value = operand_str.join(", ");
+                            let rendered_value = operands.join(", ");
                             view! { <span class=value_class>{rendered_value}</span> }.into_view()
                         }
                     }}
@@ -146,11 +135,11 @@ pub fn condition(
                     .get_value()
                     .iter()
                     .enumerate()
-                    .map(|(idx, condition)| {
+                    .map(|(idx, expression)| {
                         let item_id = format!("{}-{}", id, idx);
                         view! {
                             <ConditionExpression
-                                condition=condition.clone()
+                                expression=expression.clone()
                                 id=item_id
                                 list_id=id.clone()
                             />

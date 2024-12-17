@@ -255,15 +255,14 @@ impl Expression {
 impl From<(&str, SchemaType, Operator)> for Expression {
     fn from((dimension_name, r#type, operator): (&str, SchemaType, Operator)) -> Self {
         match operator {
-            Operator::Is => { Expression::is(dimension_name, r#type) },
-            Operator::In => { Expression::r#in(dimension_name, r#type) },
-            Operator::Has => { Expression::has(dimension_name, r#type) },
-            Operator::Between => { Expression::between(dimension_name, r#type) },
-            Operator::Other(o) => { Expression::Other(o, vec![]) }
+            Operator::Is => Expression::is(dimension_name, r#type),
+            Operator::In => Expression::r#in(dimension_name, r#type),
+            Operator::Has => Expression::has(dimension_name, r#type),
+            Operator::Between => Expression::between(dimension_name, r#type),
+            Operator::Other(o) => Expression::Other(o, vec![]),
         }
     }
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Operator {

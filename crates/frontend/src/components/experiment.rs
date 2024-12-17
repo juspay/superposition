@@ -4,8 +4,6 @@ use std::collections::HashMap;
 
 use crate::{components::table::Table, schema::HtmlDisplay};
 
-use crate::logic::{Condition, Operand};
-
 use crate::types::{Experiment, ExperimentStatusType};
 use crate::{
     components::table::types::Column,
@@ -188,20 +186,14 @@ where
 
                         {contexts
                             .iter()
-                            .map(|condition| {
-                                let Condition { dimension, operands, .. } = condition;
-                                let operand_views = operands
+                            .map(|expression| {
+                                let dimension = expression.variable_name();
+                                let operand_views = expression
+                                    .to_constants_vec()
                                     .iter()
-                                    .filter_map(|op| {
-                                        match op {
-                                            Operand::Dimension(_) => None,
-                                            Operand::Value(v) => {
-                                                Some(
-                                                    view! {
-                                                        <div class="stat-value text-base">{v.html_display()}</div>
-                                                    },
-                                                )
-                                            }
+                                    .map(|c| {
+                                        view! {
+                                            <div class="stat-value text-base">{c.html_display()}</div>
                                         }
                                     })
                                     .collect_view();

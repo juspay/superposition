@@ -7,7 +7,7 @@ use crate::{
         condition_pills::Condition as ConditionComponent,
         table::{types::Column, Table},
     },
-    logic::{Conditions, Operator},
+    logic::{Conditions, Expression},
 };
 
 #[component]
@@ -52,12 +52,12 @@ pub fn context_card(
         && !conditions
             .0
             .iter()
-            .any(|condition| condition.dimension == "variantIds");
+            .any(|expression| expression.variable_name() == "variantIds");
 
     let edit_unsupported = conditions
         .0
         .iter()
-        .any(|condition| matches!(condition.operator, Operator::Other(_)));
+        .any(|expression| matches!(expression, Expression::Other(_, _)));
 
     view! {
         <div class="rounded-lg shadow bg-base-100 p-6 flex flex-col gap-4">

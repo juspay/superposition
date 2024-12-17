@@ -2,7 +2,7 @@ pub mod utils;
 use std::collections::{HashMap, HashSet};
 
 use crate::components::input::{Input, InputType};
-use crate::logic::{Condition, Conditions, Operand, Operands, Operator};
+use crate::logic::{Conditions, Constant, Expression, Operator, Variable};
 use crate::schema::EnumVariants;
 use crate::types::Dimension;
 use crate::{
@@ -17,19 +17,72 @@ pub fn condition_input(
     disabled: bool,
     resolve_mode: bool,
     allow_remove: bool,
-    condition: StoredValue<Condition>,
+    expression: StoredValue<Expression>,
     input_type: StoredValue<InputType>,
     schema_type: StoredValue<SchemaType>,
     #[prop(into)] on_remove: Callback<String, ()>,
-    #[prop(into)] on_value_change: Callback<(usize, Value), ()>,
+    #[prop(into)] on_value_change: Callback<Expression, ()>,
     #[prop(into)] on_operator_change: Callback<Operator, ()>,
 ) -> impl IntoView {
-    let Condition {
-        dimension,
-        operator,
-        operands,
-    } = condition.get_value();
+    let (dimension, operator) =
+        expression.with_value(|v| (v.variable_name(), v.to_operator()));
 
+    let inputs: Vec<(Value, Callback<Value, ()>)> = match expression.get_value() {
+        Expression::Is(Variable(v), Constant(c)) => {
+            vec![(
+                c,
+                Callback::new(move |value: Value| {
+                    on_value_change
+                        .call(Expression::Is(Variable(v.clone()), Constant(value)));
+                }),
+            )]
+        }
+        Expression::In(Variable(v), Constant(c)) => {
+            vec![(
+                c,
+                Callback::new(move |value: Value| {
+                    on_value_change
+                        .call(Expression::In(Variable(v.clone()), Constant(value)));
+                }),
+            )]
+        }
+        Expression::Has(Constant(c), Variable(v)) => {
+            vec![(
+                c,
+                Callback::new(move |value: Value| {
+                    on_value_change
+                        .call(Expression::Has(Constant(value), Variable(v.clone())));
+                }),
+            )]
+        }
+        Expression::Between(Constant(c1), Variable(v), Constant(c2)) => {
+            let v_clone = v.clone();
+            let c2_clone = c2.clone();
+            vec![
+                (
+                    c1.clone(),
+                    Callback::new(move |value: Value| {
+                        on_value_change.call(Expression::Between(
+                            Constant(value),
+                            Variable(v_clone.clone()),
+                            Constant(c2_clone.clone()),
+                        ));
+                    }),
+                ),
+                (
+                    c2.clone(),
+                    Callback::new(move |value: Value| {
+                        on_value_change.call(Expression::Between(
+                            Constant(c1.clone()),
+                            Variable(v.clone()),
+                            Constant(value),
+                        ));
+                    }),
+                ),
+            ]
+        }
+        _ => vec![],
+    };
     view! {
         <div class="flex gap-x-6">
             <div class="form-control">
@@ -87,48 +140,39 @@ pub fn condition_input(
 
             <div class="flex gap-x-6 items-center">
 
-                {operands
-                    .0
-                    .clone()
+                {inputs
                     .into_iter()
                     .enumerate()
-                    .map(|(idx, operand): (usize, Operand)| {
-                        match operand {
-                            Operand::Dimension(_) => view! {}.into_view(),
-                            Operand::Value(v) => {
-                                view! {
-                                    <Input
-                                        value=v
-                                        schema_type=schema_type.get_value()
-                                        on_change=move |value: Value| {
-                                            on_value_change.call((idx, value));
-                                        }
+                    .map(|(idx, (value, on_change)): (usize, (Value, Callback<Value, ()>))| {
+                        view! {
+                            <Input
+                                value=value
+                                schema_type=schema_type.get_value()
+                                on_change=on_change
 
-                                        r#type=input_type.get_value()
-                                        disabled=disabled
-                                        id=format!(
-                                            "{}-{}",
-                                            condition
-                                                .with_value(|v| format!("{}-{}", v.dimension, v.operator)),
-                                            idx,
-                                        )
+                                r#type=input_type.get_value()
+                                disabled=disabled
+                                id=format!(
+                                    "{}-{}",
+                                    expression
+                                        .with_value(|v| {
+                                            format!("{}-{}", v.variable_name(), v.to_operator())
+                                        }),
+                                    idx,
+                                )
 
-                                        class="w-[450px]"
-                                        name=""
-                                        operator=Some(condition.with_value(|v| v.operator.clone()))
-                                    />
-                                }
-                                    .into_view()
-                            }
+                                class="w-[450px]"
+                                name=""
+                                operator=Some(operator.clone())
+                            />
                         }
                     })
-                    .collect_view()}
-                <Show when=move || allow_remove>
+                    .collect_view()} <Show when=move || allow_remove>
                     <button
                         class="btn btn-ghost btn-circle btn-sm mt-1"
                         disabled=disabled
                         on:click=move |_| {
-                            on_remove.call(condition.with_value(|v| v.dimension.clone()));
+                            on_remove.call(expression.with_value(|v| v.variable_name()));
                         }
                     >
 
@@ -162,7 +206,7 @@ where
     let (used_dimensions_rs, used_dimensions_ws) = create_signal(
         context
             .iter()
-            .map(|condition| condition.dimension.clone())
+            .map(|expression| expression.variable_name())
             .collect::<HashSet<String>>(),
     );
     let (context_rs, context_ws) = create_signal(context.clone());
@@ -193,43 +237,28 @@ where
                 value.insert(dimension_name.clone());
             });
             context_ws.update(|value| {
-                value.push(
-                    Condition::try_from((Operator::Is, dimension_name, r#type)).unwrap(),
-                )
+                value.push(Expression::is(dimension_name.as_str(), r#type))
             });
         }
         // TODO show alert in case of invalid dimension
     });
 
-    let on_operator_change = Callback::new(
-        move |(idx, d_name, d_type, operator): (usize, String, SchemaType, Operator)| {
-            if let Ok(operands) =
-                Operands::try_from((&operator, d_name.as_str(), &d_type))
-            {
-                context_ws.update(|v| {
-                    if idx < v.len() {
-                        v[idx].operator = operator;
-                        v[idx].operands = operands.clone();
-                    }
-                })
-            }
-            // TODO show alert in case of invalid dimension operator combinations
-        },
-    );
-
-    let on_value_change =
-        Callback::new(move |(idx, operand_idx, value): (usize, usize, Value)| {
+    let on_operator_change =
+        Callback::new(move |(idx, expression): (usize, Expression)| {
             context_ws.update(|v| {
                 if idx < v.len() {
-                    let operands = &(v[idx].operands);
-                    if operand_idx < operands.len()
-                        && matches!(operands[operand_idx], Operand::Value(_))
-                    {
-                        v[idx].operands[operand_idx] = Operand::from_operand_json(value);
-                    }
+                    v[idx] = expression;
                 }
-            })
+            });
         });
+
+    let on_value_change = Callback::new(move |(idx, expression): (usize, Expression)| {
+        context_ws.update(|v| {
+            if idx < v.len() {
+                v[idx] = expression;
+            }
+        })
+    });
 
     let on_remove = Callback::new(move |(idx, d_name): (usize, String)| {
         used_dimensions_ws.update(|value| {
@@ -270,62 +299,67 @@ where
                                 .0
                                 .into_iter()
                                 .enumerate()
-                                .collect::<Vec<(usize, Condition)>>()
+                                .collect::<Vec<(usize, Expression)>>()
                         }
 
-                        key=|(idx, condition)| {
-                            format!("{}-{}-{}", condition.dimension, idx, condition.operator)
+                        key=|(idx, expression)| {
+                            format!(
+                                "{}-{}-{}",
+                                expression.variable_name(),
+                                idx,
+                                expression.to_operator(),
+                            )
                         }
 
-                        children=move |(idx, condition)| {
+                        children=move |(idx, expression)| {
                             let (schema_type, enum_variants) = dimension_map
                                 .with_value(|v| {
-                                    let d = v.get(&condition.dimension).unwrap();
+                                    let d = v.get(&expression.variable_name()).unwrap();
                                     (
                                         SchemaType::try_from(d.schema.clone()),
                                         EnumVariants::try_from(d.schema.clone()),
                                     )
                                 });
+                            let operator = Operator::from(&expression);
+                            let dimension_name = expression.variable_name();
                             if schema_type.is_err() || enum_variants.is_err() {
-                                return view! {
-                                    <span class="text-sm red">An error occured</span>
-                                }
+                                return view! { <span class="text-sm red">An error occured</span> }
                                     .into_view();
                             }
                             let schema_type = store_value(schema_type.unwrap());
                             let allow_remove = !disabled
-                                && !mandatory_dimensions.get_value().contains(&condition.dimension);
+                                && !mandatory_dimensions
+                                    .get_value()
+                                    .contains(&expression.variable_name());
                             let input_type = store_value(
                                 InputType::from((
                                     schema_type.get_value(),
                                     enum_variants.unwrap(),
-                                    condition.operator.clone(),
+                                    operator,
                                 )),
                             );
-                            logging::log!(
-                                "here {:?} {:?}",  input_type.get_value(), condition.operator
-                            );
-                            let condition = store_value(condition);
+                            let expression = store_value(expression);
                             let on_remove = move |d_name| on_remove.call((idx, d_name));
-                            let on_value_change = move |(operand_idx, value)| {
-                                on_value_change.call((idx, operand_idx, value))
+                            let on_value_change = move |expression| {
+                                on_value_change.call((idx, expression))
                             };
                             let on_operator_change = move |operator| {
                                 on_operator_change
                                     .call((
                                         idx,
-                                        condition.with_value(|v| v.dimension.clone()),
-                                        schema_type.get_value(),
-                                        operator,
+                                        Expression::from((
+                                            dimension_name.as_str(),
+                                            schema_type.get_value(),
+                                            operator,
+                                        )),
                                     ))
                             };
                             view! {
-
                                 <ConditionInput
                                     disabled
                                     resolve_mode
                                     allow_remove
-                                    condition
+                                    expression
                                     input_type
                                     schema_type
                                     on_remove

@@ -1,6 +1,5 @@
 use crate::{
     components::{
-        condition_pills::utils::extract_conditions,
         condition_pills::Condition as ConditionComponent,
         table::types::{Column, ColumnSortable},
     },
@@ -11,7 +10,7 @@ use core::time::Duration;
 use leptos::*;
 use leptos_router::A;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use std::vec::Vec;
 use strum_macros::Display;
 use web_sys::MouseEvent;
