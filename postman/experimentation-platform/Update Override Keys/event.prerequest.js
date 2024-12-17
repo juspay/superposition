@@ -9,8 +9,8 @@ function create_default_config_keys() {
 
     for (const key of keys) {
         const options = {
-            'method': 'PUT',
-            'url': `${host}/default-config/${key}`,
+            'method': 'POST',
+            'url': `${host}/default-config`,
             "header": {
                 'Authorization': `Bearer ${token}`,
                 'x-tenant': 'test',
@@ -18,7 +18,8 @@ function create_default_config_keys() {
             },
             "body": {
                 "mode": "raw",
-                "raw": JSON.stringify({
+                "raw": JSON.stringify({ 
+                    "key": key,
                     "value": "value1",
                     "schema": {
                         "type": "string",
