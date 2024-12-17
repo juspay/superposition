@@ -1,11 +1,14 @@
-use actix_web::{get, web::Query, HttpResponse, Scope};
+use actix_web::{
+    get,
+    web::{Json, Query},
+    Scope,
+};
 use chrono::{Duration, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-use serde_json::json;
 use service_utils::service::types::DbConnection;
 use superposition_types::{
     cac::{models::EventLog, schema::event_log::dsl as event_log},
-    result as superposition,
+    result as superposition, PaginatedResponse,
 };
 
 use crate::api::audit_log::types::AuditQueryFilters;
@@ -18,7 +21,7 @@ pub fn endpoints() -> Scope {
 async fn get_audit_logs(
     filters: Query<AuditQueryFilters>,
     db_conn: DbConnection,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<PaginatedResponse<EventLog>>> {
     let DbConnection(mut conn) = db_conn;
 
     let query_builder = |filters: &AuditQueryFilters| {
@@ -57,9 +60,9 @@ async fn get_audit_logs(
 
     let total_pages = (log_count as f64 / limit as f64).ceil() as i64;
 
-    Ok(HttpResponse::Ok().json(json!({
-        "total_items": log_count,
-        "total_pages": total_pages,
-        "data": logs
-    })))
+    Ok(Json(PaginatedResponse {
+        total_items: log_count,
+        total_pages,
+        data: logs,
+    }))
 }

@@ -2,37 +2,34 @@ use leptos::*;
 
 use leptos_router::A;
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Map, Value};
+use superposition_types::{
+    cac::models::Function, custom_query::PaginationParams, PaginatedResponse,
+};
 
+use crate::api::fetch_functions;
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{stat::Stat, table::Table};
-
-use crate::types::{FunctionResponse, ListFilters, PaginatedResponse};
 use crate::utils::update_page_direction;
 
 use super::utils::function_table_columns;
-use crate::api::fetch_functions;
-use serde_json::{json, Map, Value};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct CombinedResource {
-    functions: PaginatedResponse<FunctionResponse>,
+    functions: PaginatedResponse<Function>,
 }
 
 #[component]
 pub fn function_list() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-    let (filters, set_filters) = create_signal(ListFilters {
-        page: Some(1),
-        count: Some(10),
-        all: None,
-    });
+    let (filters, set_filters) = create_signal(PaginationParams::default_request());
     let table_columns = create_memo(move |_| function_table_columns());
 
     let combined_resource = create_blocking_resource(
         move || (tenant_rs.get(), filters.get()),
         |(current_tenant, filters)| async move {
-            let functions_future = fetch_functions(filters, current_tenant.to_string());
+            let functions_future = fetch_functions(&filters, current_tenant.to_string());
 
             let functions_result = functions_future.await;
             CombinedResource {

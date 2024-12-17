@@ -6,9 +6,11 @@ use jsonschema::JSONSchema;
 use serde_json::Value;
 use service_utils::service::types::DbConnection;
 use superposition_macros::{bad_argument, db_error};
-use superposition_types::cac::models::TypeTemplates;
 use superposition_types::{
-    cac::schema::type_templates::{self, dsl},
+    cac::{
+        models::TypeTemplate,
+        schema::type_templates::{self, dsl},
+    },
     custom_query::PaginationParams,
     result as superposition, PaginatedResponse, User,
 };
@@ -49,7 +51,7 @@ async fn create_type(
             type_templates::created_by.eq(user.email.clone()),
             type_templates::last_modified_by.eq(user.email.clone()),
         ))
-        .get_result::<TypeTemplates>(&mut conn)
+        .get_result::<TypeTemplate>(&mut conn)
         .map_err(|err| {
             log::error!("failed to insert custom type with error: {}", err);
             db_error!(err)
@@ -86,7 +88,7 @@ async fn update_type(
             type_templates::last_modified_at.eq(timestamp),
             type_templates::last_modified_by.eq(user.email),
         ))
-        .get_result::<TypeTemplates>(&mut conn)
+        .get_result::<TypeTemplate>(&mut conn)
         .map_err(|err| {
             log::error!("failed to insert custom type with error: {}", err);
             db_error!(err)
@@ -111,7 +113,7 @@ async fn delete_type(
         .execute(&mut conn)?;
     let deleted_type =
         diesel::delete(dsl::type_templates.filter(dsl::type_name.eq(type_name)))
-            .get_result::<TypeTemplates>(&mut conn)?;
+            .get_result::<TypeTemplate>(&mut conn)?;
     Ok(HttpResponse::Ok().json(deleted_type))
 }
 
@@ -119,11 +121,11 @@ async fn delete_type(
 async fn list_types(
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
-) -> superposition::Result<Json<PaginatedResponse<TypeTemplates>>> {
+) -> superposition::Result<Json<PaginatedResponse<TypeTemplate>>> {
     let DbConnection(mut conn) = db_conn;
 
     if let Some(true) = filters.all {
-        let result: Vec<TypeTemplates> =
+        let result: Vec<TypeTemplate> =
             type_templates::dsl::type_templates.get_results(&mut conn)?;
         return Ok(Json(PaginatedResponse {
             total_pages: 1,
@@ -144,7 +146,7 @@ async fn list_types(
         let offset = (page - 1) * limit;
         builder = builder.offset(offset);
     }
-    let custom_types: Vec<TypeTemplates> = builder.load(&mut conn)?;
+    let custom_types: Vec<TypeTemplate> = builder.load(&mut conn)?;
     let total_pages = (n_types as f64 / limit as f64).ceil() as i64;
     Ok(Json(PaginatedResponse {
         total_pages,

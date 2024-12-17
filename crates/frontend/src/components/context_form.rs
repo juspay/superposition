@@ -1,23 +1,25 @@
 pub mod utils;
+
 use std::collections::{HashMap, HashSet};
+
+use leptos::*;
+use serde_json::{Map, Value};
+use superposition_types::cac::types::DimensionWithMandatory;
+use web_sys::MouseEvent;
 
 use crate::components::{
     condition_pills::types::ConditionOperator,
     dropdown::{Dropdown, DropdownDirection},
     input_components::{BooleanToggle, EnumDropdown},
 };
-use crate::types::Dimension;
 use crate::utils::get_key_type;
-use leptos::*;
-use serde_json::{Map, Value};
-use web_sys::MouseEvent;
 
 use super::condition_pills::types::Condition;
 
 #[component]
 pub fn context_form<NF>(
     handle_change: NF,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
     #[prop(default = false)] is_standalone: bool,
     context: Vec<Condition>,
     #[prop(default = String::new())] heading_sub_text: String,
@@ -68,7 +70,7 @@ where
     });
 
     let handle_select_dropdown_option =
-        Callback::new(move |selected_dimension: Dimension| {
+        Callback::new(move |selected_dimension: DimensionWithMandatory| {
             let dimension_name = selected_dimension.dimension;
             set_used_dimensions.update(|value: &mut HashSet<String>| {
                 value.insert(dimension_name.clone());
@@ -111,7 +113,7 @@ where
                                     .get_value()
                                     .into_iter()
                                     .map(|ele| (ele.dimension.clone(), ele))
-                                    .collect::<HashMap<String, Dimension>>();
+                                    .collect::<HashMap<String, DimensionWithMandatory>>();
                                 view! {
                                     <For
                                         each=move || {
@@ -438,7 +440,7 @@ where
                                             .filter(|dimension| {
                                                 !used_dimensions.get().contains(&dimension.dimension)
                                             })
-                                            .collect::<Vec<Dimension>>();
+                                            .collect::<Vec<DimensionWithMandatory>>();
                                         view! {
                                             <Dropdown
                                                 dropdown_icon="ri-add-line".to_string()

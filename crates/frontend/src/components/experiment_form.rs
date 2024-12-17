@@ -1,13 +1,18 @@
 pub mod types;
 pub mod utils;
 
-use self::utils::{create_experiment, update_experiment};
+use leptos::*;
+use superposition_types::{
+    cac::{models::DefaultConfig, types::DimensionWithMandatory},
+    experimentation::models::VariantType,
+};
+use utils::{create_experiment, update_experiment};
+use web_sys::MouseEvent;
+
 use crate::components::button::Button;
 use crate::components::context_form::ContextForm;
 use crate::components::variant_form::VariantForm;
-use crate::types::{DefaultConfig, Dimension, VariantFormT, VariantType};
-use leptos::*;
-use web_sys::MouseEvent;
+use crate::types::{VariantFormT, VariantFormTs};
 
 use super::condition_pills::types::Condition;
 
@@ -32,7 +37,7 @@ fn default_variants_for_form() -> Vec<(String, VariantFormT)> {
     ]
 }
 
-fn get_init_state(variants: &[VariantFormT]) -> Vec<(String, VariantFormT)> {
+fn get_init_state(variants: &VariantFormTs) -> Vec<(String, VariantFormT)> {
     let init_variants = if variants.is_empty() {
         default_variants_for_form()
     } else {
@@ -51,10 +56,10 @@ pub fn experiment_form<NF>(
     #[prop(default = String::new())] id: String,
     name: String,
     context: Vec<Condition>,
-    variants: Vec<VariantFormT>,
+    variants: VariantFormTs,
     handle_submit: NF,
     default_config: Vec<DefaultConfig>,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
 ) -> impl IntoView
 where
     NF: Fn() + 'static + Clone,

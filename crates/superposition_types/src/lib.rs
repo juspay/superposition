@@ -2,7 +2,6 @@
 pub mod cac;
 mod config;
 mod contextual;
-#[cfg(feature = "server")]
 pub mod custom_query;
 #[cfg(feature = "experimentation")]
 pub mod experimentation;
@@ -190,6 +189,16 @@ pub struct PaginatedResponse<T> {
     pub total_pages: i64,
     pub total_items: i64,
     pub data: Vec<T>,
+}
+
+impl<T> Default for PaginatedResponse<T> {
+    fn default() -> Self {
+        Self {
+            total_pages: 0,
+            total_items: 0,
+            data: Vec::new(),
+        }
+    }
 }
 
 #[derive(
