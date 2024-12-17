@@ -1,6 +1,6 @@
-use core::fmt;
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
+use core::fmt;
 use derive_more::{Deref, DerefMut};
 use regex::Regex;
 use serde::{
@@ -19,6 +19,7 @@ pub trait CustomQuery: Sized {
         Regex::new(Self::regex_pattern()).unwrap()
     }
 
+    #[cfg(feature = "server")]
     fn extract_query(
         query_string: &str,
     ) -> Result<Self, actix_web::error::QueryPayloadError> {
@@ -79,6 +80,7 @@ where
     }
 }
 
+#[cfg(feature = "server")]
 impl<T> actix_web::FromRequest for DimensionQuery<T>
 where
     T: DeserializeOwned,
@@ -122,6 +124,7 @@ where
     }
 }
 
+#[cfg(feature = "server")]
 impl<T> actix_web::FromRequest for Query<T>
 where
     T: DeserializeOwned,
@@ -155,11 +158,49 @@ impl From<HashMap<String, String>> for QueryMap {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PaginationParams {
     pub count: Option<i64>,
     pub page: Option<i64>,
     pub all: Option<bool>,
+}
+
+impl PaginationParams {
+    pub fn all_entries() -> Self {
+        Self {
+            count: None,
+            page: None,
+            all: Some(true),
+        }
+    }
+
+    pub fn default_request() -> Self {
+        Self {
+            count: Some(10),
+            page: Some(1),
+            all: None,
+        }
+    }
+}
+
+impl Display for PaginationParams {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut parts = vec![];
+
+        if let Some(page) = self.page {
+            parts.push(format!("page={}", page));
+        }
+
+        if let Some(count) = self.count {
+            parts.push(format!("count={}", count));
+        }
+
+        if let Some(all) = self.all {
+            parts.push(format!("all={}", all));
+        }
+
+        write!(f, "{}", parts.join("&"))
+    }
 }
 
 impl<'de> Deserialize<'de> for PaginationParams {

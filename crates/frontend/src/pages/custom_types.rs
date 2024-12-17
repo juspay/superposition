@@ -1,3 +1,8 @@
+use leptos::*;
+use serde::Deserialize;
+use serde_json::{json, Map, Value};
+use superposition_types::custom_query::PaginationParams;
+
 use crate::components::table::types::ColumnSortable;
 use crate::components::type_template_form::utils::delete_type;
 use crate::components::{
@@ -9,16 +14,6 @@ use crate::components::{
 };
 use crate::utils::unwrap_option_or_default_with_error;
 use crate::{api::fetch_types, components::table::types::Column};
-use leptos::*;
-use serde::Deserialize;
-use serde_json::{json, Map, Value};
-
-#[derive(Debug, Clone, PartialEq)]
-struct TypeFilter {
-    pub page: i64,
-    pub count: i64,
-    pub all: bool,
-}
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 struct TypeTemplateRow {
@@ -31,21 +26,18 @@ const TYPE_DRAWER_ID: &str = "type_template_drawer";
 #[component]
 pub fn types_page() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-    let (filters_rs, _) = create_signal(TypeFilter {
-        page: 1,
-        count: 10,
-        all: false,
-    });
     let types_resource = create_blocking_resource(
-        move || (tenant_rs.get(), filters_rs.get()),
-        |(t, filter)| async move {
-            match fetch_types(t, filter.page, filter.count, filter.all).await {
-                Ok(types) => types.data,
-                Err(err) => {
-                    logging::log!("failed to get types due to: {:?}", err);
-                    vec![]
-                }
-            }
+        move || tenant_rs.get(),
+        |t| async move {
+            fetch_types(&PaginationParams::default_request(), t)
+                .await
+                .map_or_else(
+                    |err| {
+                        logging::log!("failed to get types due to: {:?}", err);
+                        vec![]
+                    },
+                    |types| types.data,
+                )
         },
     );
     let selected_type = create_rw_signal::<Option<TypeTemplateRow>>(None);

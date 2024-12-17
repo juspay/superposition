@@ -1,18 +1,19 @@
+use anyhow::Result;
+use leptos::logging;
+use serde_json::{json, Map, Value};
+use superposition_types::cac::types::DimensionWithMandatory;
+
 use crate::{
     components::condition_pills::types::{Condition, ConditionOperator},
-    types::Dimension,
     utils::{
         construct_request_headers, get_config_value, get_host, parse_json_response,
         request, ConfigType,
     },
 };
-use anyhow::Result;
-use leptos::logging;
-use serde_json::{json, Map, Value};
 
 pub fn get_condition_schema(
     condition: &Condition,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
 ) -> Result<Value, String> {
     let var = &condition.left_operand; // Dimension name
     let op = &condition.operator; // Operator type
@@ -180,7 +181,7 @@ pub fn get_condition_schema(
 
 pub fn construct_context(
     conditions: Vec<Condition>,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
 ) -> Value {
     if conditions.is_empty() {
         json!({})
@@ -209,7 +210,7 @@ pub fn construct_context(
 pub fn construct_request_payload(
     overrides: Map<String, Value>,
     conditions: Vec<Condition>,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
 ) -> Value {
     // Construct the override section
     let override_section: Map<String, Value> = overrides;
@@ -230,7 +231,7 @@ pub async fn create_context(
     tenant: String,
     overrides: Map<String, Value>,
     conditions: Vec<Condition>,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
 ) -> Result<serde_json::Value, String> {
     let host = get_host();
     let url = format!("{host}/context");
@@ -250,7 +251,7 @@ pub async fn update_context(
     tenant: String,
     overrides: Map<String, Value>,
     conditions: Vec<Condition>,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
 ) -> Result<serde_json::Value, String> {
     let host = get_host();
     let url = format!("{host}/context/overrides");

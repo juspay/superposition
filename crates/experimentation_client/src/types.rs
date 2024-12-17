@@ -2,28 +2,16 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use superposition_types::{Exp, Overridden, Overrides};
+use superposition_types::{
+    experimentation::models::{ExperimentStatusType, VariantType},
+    Exp, Overridden, Overrides,
+};
 
 #[derive(Clone, Debug)]
 pub struct Config {
     pub tenant: String,
     pub hostname: String,
     pub poll_frequency: u64,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Deserialize, Serialize)]
-#[serde(rename_all = "UPPERCASE")]
-pub(crate) enum ExperimentStatusType {
-    Created,
-    InProgress,
-    Concluded,
-}
-
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
-#[serde(rename_all = "UPPERCASE")]
-pub(crate) enum VariantType {
-    Control,
-    Experimental,
 }
 
 #[repr(C)]
@@ -56,10 +44,3 @@ pub struct Experiment {
 pub type Experiments = Vec<Experiment>;
 
 pub(crate) type ExperimentStore = HashMap<String, Experiment>;
-
-#[derive(Serialize, Deserialize, Default)]
-pub(crate) struct ListExperimentsResponse {
-    pub(crate) total_items: i64,
-    pub(crate) total_pages: i64,
-    pub(crate) data: Experiments,
-}

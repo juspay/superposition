@@ -1,18 +1,19 @@
-use std::env;
+use std::{env, str::FromStr};
 
-use crate::{
-    components::alert::AlertType,
-    providers::alert_provider::enqueue_alert,
-    types::{DefaultConfig, Dimension, Envs, ErrorResponse},
-};
 use cfg_if::cfg_if;
 use leptos::*;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
-use std::str::FromStr;
+use superposition_types::cac::{models::DefaultConfig, types::DimensionWithMandatory};
 use url::Url;
 use wasm_bindgen::JsCast;
+
+use crate::{
+    components::alert::AlertType,
+    providers::alert_provider::enqueue_alert,
+    types::{Envs, ErrorResponse},
+};
 
 #[allow(dead_code)]
 pub fn modal_action(name: &str, action: &str) {
@@ -200,7 +201,7 @@ pub enum ConfigType {
     // this gets rid of the warning
     #[allow(dead_code)]
     DefaultConfig(DefaultConfig),
-    Dimension(Dimension),
+    Dimension(DimensionWithMandatory),
 }
 
 #[derive(Clone, Debug)]

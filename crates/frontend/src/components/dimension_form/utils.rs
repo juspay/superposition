@@ -1,8 +1,8 @@
+use superposition_types::cac::models::Dimension;
+
+use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
+
 use super::types::{DimensionCreateReq, DimensionUpdateReq};
-use crate::{
-    types::Dimension,
-    utils::{construct_request_headers, get_host, parse_json_response, request},
-};
 
 pub async fn create_dimension(
     tenant: String,

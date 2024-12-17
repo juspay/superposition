@@ -1,35 +1,31 @@
 pub mod utils;
 
+use chrono::{prelude::Utc, TimeZone};
 use futures::join;
 use leptos::*;
-
-use chrono::{prelude::Utc, TimeZone};
 use serde::{Deserialize, Serialize};
-use superposition_types::SortBy;
+use serde_json::{json, Map, Value};
+use superposition_types::{
+    cac::{models::DefaultConfig, types::DimensionWithMandatory},
+    custom_query::PaginationParams,
+    PaginatedResponse, SortBy,
+};
+use utils::experiment_table_columns;
 
+use crate::api::{fetch_default_config, fetch_dimensions, fetch_experiments};
 use crate::components::drawer::{close_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{experiment_form::ExperimentForm, stat::Stat, table::Table};
-
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
-use crate::types::{
-    ExperimentListFilters, ExperimentResponse, ListFilters, PaginatedResponse,
-};
+use crate::types::{ExperimentListFilters, ExperimentResponse, VariantFormTs};
 use crate::utils::update_page_direction;
 
-use self::utils::experiment_table_columns;
-use crate::{
-    api::{fetch_default_config, fetch_dimensions, fetch_experiments},
-    types::{DefaultConfig, Dimension},
-};
-use serde_json::{json, Map, Value};
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct CombinedResource {
     experiments: PaginatedResponse<ExperimentResponse>,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
     default_config: Vec<DefaultConfig>,
 }
 
@@ -49,16 +45,13 @@ pub fn experiment_list() -> impl IntoView {
         sort_by: Some(SortBy::Desc),
     });
 
-    let (pagination_filters_rs, pagination_filters_ws) = create_signal(ListFilters {
-        page: Some(1),
-        count: Some(10),
-        all: None,
-    });
+    let (pagination_filters_rs, pagination_filters_ws) =
+        create_signal(PaginationParams::default_request());
 
     let (reset_exp_form, set_exp_form) = create_signal(0);
 
     let combined_resource: Resource<
-        (String, ExperimentListFilters, ListFilters),
+        (String, ExperimentListFilters, PaginationParams),
         CombinedResource,
     > = create_blocking_resource(
         move || {
@@ -89,16 +82,14 @@ pub fn experiment_list() -> impl IntoView {
                 join!(experiments_future, dimensions_future, config_future);
             // Construct the combined result, handling errors as needed
             CombinedResource {
-                experiments: experiments_result.unwrap_or(PaginatedResponse::default()),
+                experiments: experiments_result.unwrap_or_default(),
                 dimensions: dimensions_result
-                    .unwrap_or(PaginatedResponse::default())
+                    .unwrap_or_default()
                     .data
                     .into_iter()
                     .filter(|d| d.dimension != "variantIds")
                     .collect(),
-                default_config: config_result
-                    .unwrap_or(PaginatedResponse::default())
-                    .data,
+                default_config: config_result.unwrap_or_default().data,
             }
         },
     );
@@ -213,22 +204,9 @@ pub fn experiment_list() -> impl IntoView {
                 </div>
 
                 {move || {
-                    let dim = combined_resource
+                    let CombinedResource {dimensions : dim, default_config : def_conf, experiments: _ } = combined_resource
                         .get()
-                        .unwrap_or(CombinedResource {
-                            experiments: PaginatedResponse::default(),
-                            dimensions: vec![],
-                            default_config: vec![],
-                        })
-                        .dimensions;
-                    let def_conf = combined_resource
-                        .get()
-                        .unwrap_or(CombinedResource {
-                            experiments: PaginatedResponse::default(),
-                            dimensions: vec![],
-                            default_config: vec![],
-                        })
-                        .default_config;
+                        .unwrap_or_default();
                     let _ = reset_exp_form.get();
                     view! {
                         <Drawer
@@ -244,7 +222,7 @@ pub fn experiment_list() -> impl IntoView {
                                 <ExperimentForm
                                     name="".to_string()
                                     context=vec![]
-                                    variants=vec![]
+                                    variants=VariantFormTs::default()
                                     dimensions=dim.clone()
                                     default_config=def_conf.clone()
                                     handle_submit=handle_submit_experiment_form
