@@ -1,7 +1,7 @@
 extern crate base64;
 
 use actix_web::{
-    delete, get, put,
+    delete, get, post, put,
     web::{self, Data, Json, Path, Query},
     HttpResponse, Scope,
 };
@@ -42,16 +42,19 @@ use crate::{
     helpers::add_config_version,
 };
 
-use super::types::CreateReq;
+use super::types::{CreateReq, FunctionNameEnum, UpdateReq};
 
 pub fn endpoints() -> Scope {
-    Scope::new("").service(create).service(get).service(delete)
+    Scope::new("")
+        .service(create_default_config)
+        .service(update_default_config)
+        .service(get)
+        .service(delete)
 }
 
-#[put("/{key}")]
-async fn create(
+#[post("")]
+async fn create_default_config(
     state: Data<AppState>,
-    key: web::Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
     request: web::Json<CreateReq>,
     db_conn: DbConnection,
@@ -60,73 +63,23 @@ async fn create(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
-    let key = key.into_inner().into();
+    let key = req.key;
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    if req.value.is_none() && req.schema.is_none() && req.function_name.is_none() {
-        log::error!("No data provided in the request body for {key}");
-        return Err(bad_argument!("Please provide data in the request body."));
+    if req.schema.is_empty() {
+        return Err(bad_argument!("Schema cannot be empty."));
     }
 
-    let func_name = match &req.function_name {
-        Some(Value::String(s)) => Some(s.clone()),
-        Some(Value::Null) | None => None,
-        Some(_) => {
-            return Err(bad_argument!(
-                "Expected a string or null as the function name.",
-            ))
-        }
-    };
-
-    let result = fetch_default_key(&key, &mut conn);
-
-    let (value, schema, function_name, created_at_val, created_by_val) = match result {
-        Ok(default_config_row) => {
-            let val = req.value.unwrap_or(default_config_row.value);
-            let schema = req
-                .schema
-                .map_or_else(|| default_config_row.schema, Value::Object);
-            let f_name = if req.function_name == Some(Value::Null) {
-                None
-            } else {
-                func_name.or(default_config_row.function_name)
-            };
-            (
-                val,
-                schema,
-                f_name,
-                default_config_row.created_at,
-                default_config_row.created_by,
-            )
-        }
-        Err(superposition::AppError::DbError(diesel::NotFound)) => {
-            match (req.value, req.schema) {
-                (Some(val), Some(schema)) => (
-                    val,
-                    Value::Object(schema),
-                    func_name,
-                    Utc::now(),
-                    user.get_email(),
-                ),
-                _ => {
-                    log::error!("No record found for {key}.");
-                    return Err(bad_argument!("No record found for {}", key));
-                }
-            }
-        }
-        Err(e) => {
-            log::error!("Failed to fetch default_config {key} with error: {e}.");
-            return Err(unexpected_error!("Something went wrong."));
-        }
-    };
+    let value = req.value;
+    let schema = Value::Object(req.schema);
 
     let default_config = DefaultConfig {
         key: key.to_owned(),
         value,
         schema,
-        function_name,
-        created_by: created_by_val,
-        created_at: created_at_val,
+        function_name: req.function_name,
+        created_by: user.get_email(),
+        created_at: Utc::now(),
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
     };
@@ -156,39 +109,29 @@ async fn create(
         ));
     }
 
-    if let Some(f_name) = &default_config.function_name {
-        let function_code = get_published_function_code(&mut conn, f_name.to_string())
-            .map_err(|e| {
-                log::info!("Function not found with error : {e}");
-                bad_argument!("Function {} doesn't exists.", f_name)
-            })?;
-        if let Some(f_code) = function_code {
-            validate_value_with_function(
-                f_name,
-                &f_code,
-                &default_config.key,
-                &default_config.value,
-            )?;
-        }
+    if let Err(e) = validate_and_get_function_code(
+        &mut conn,
+        default_config.function_name.as_ref(),
+        &default_config.key,
+        &default_config.value,
+    ) {
+        log::info!("Validation failed: {:?}", e);
+        return Err(e);
     }
+
     let version_id =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let upsert = diesel::insert_into(dsl::default_configs)
+            diesel::insert_into(dsl::default_configs)
                 .values(&default_config)
-                .on_conflict(schema::default_configs::key)
-                .do_update()
-                .set(&default_config)
-                .execute(transaction_conn);
-            let version_id = add_config_version(&state, tags, transaction_conn)?;
-            match upsert {
-                Ok(_) => Ok(version_id),
-                Err(e) => {
+                .execute(transaction_conn)
+                .map_err(|e| {
                     log::info!("DefaultConfig creation failed with error: {e}");
-                    Err(unexpected_error!(
+                    unexpected_error!(
                         "Something went wrong, failed to create DefaultConfig"
-                    ))
-                }
-            }
+                    )
+                })?;
+            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            Ok(version_id)
         })?;
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, tenant, &mut conn).await?;
@@ -199,6 +142,134 @@ async fn create(
         version_id.to_string(),
     ));
     Ok(http_resp.json(default_config))
+}
+
+#[put("/{key}")]
+async fn update_default_config(
+    state: web::Data<AppState>,
+    key: web::Path<DefaultConfigKey>,
+    custom_headers: CustomHeaders,
+    request: web::Json<UpdateReq>,
+    db_conn: DbConnection,
+    #[cfg(feature = "high-performance-mode")] tenant: Tenant,
+    user: User,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let req = request.into_inner();
+    let key_str = key.into_inner().into();
+    let tags = parse_config_tags(custom_headers.config_tags)?;
+
+    let existing = fetch_default_key(&key_str, &mut conn).map_err(|e| match e {
+        superposition::AppError::DbError(diesel::NotFound) => {
+            bad_argument!(
+                "No record found for {}. Use create endpoint instead.",
+                key_str
+            )
+        }
+        _ => {
+            log::error!("Failed to fetch {key_str}: {e}");
+            unexpected_error!("Something went wrong.")
+        }
+    })?;
+
+    let value = req.value.unwrap_or_else(|| existing.value.clone());
+    let schema = req
+        .schema
+        .map(Value::Object)
+        .unwrap_or_else(|| existing.schema.clone());
+    let function_name = match req.function_name {
+        Some(FunctionNameEnum::Name(func_name)) => Some(func_name),
+        Some(FunctionNameEnum::Remove) => None,
+        None => existing.function_name.clone(),
+    };
+    let updated_config = DefaultConfig {
+        key: key_str.to_owned(),
+        value,
+        schema,
+        function_name: function_name.clone(),
+        created_by: existing.created_by.clone(),
+        created_at: existing.created_at,
+        last_modified_at: Utc::now().naive_utc(),
+        last_modified_by: user.get_email(),
+    };
+
+    let jschema = JSONSchema::options()
+        .with_draft(Draft::Draft7)
+        .compile(&updated_config.schema)
+        .map_err(|e| {
+            log::info!("Failed to compile JSON schema: {e}");
+            bad_argument!("Invalid JSON schema.")
+        })?;
+
+    if let Err(e) = jschema.validate(&updated_config.value) {
+        let verrors = e.collect::<Vec<_>>();
+        log::info!("Validation failed: {:?}", verrors);
+        return Err(validation_error!(
+            "Schema validation failed: {}",
+            validation_err_to_str(verrors)
+                .get(0)
+                .unwrap_or(&String::new())
+        ));
+    }
+
+    if let Err(e) = validate_and_get_function_code(
+        &mut conn,
+        updated_config.function_name.as_ref(),
+        &updated_config.key,
+        &updated_config.value,
+    ) {
+        log::info!("Validation failed: {:?}", e);
+        return Err(e);
+    }
+
+    let version_id =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            diesel::insert_into(dsl::default_configs)
+                .values(&updated_config)
+                .on_conflict(dsl::key)
+                .do_update()
+                .set(&updated_config)
+                .execute(transaction_conn)
+                .map_err(|e| {
+                    log::info!("Update failed: {e}");
+                    unexpected_error!("Failed to update DefaultConfig")
+                })?;
+
+            let version_id = add_config_version(&state, tags.clone(), transaction_conn)?;
+
+            Ok(version_id)
+        })?;
+
+    #[cfg(feature = "high-performance-mode")]
+    put_config_in_redis(version_id, state, tenant, &mut conn).await?;
+
+    let mut http_resp = HttpResponse::Ok();
+    http_resp.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        version_id.to_string(),
+    ));
+    Ok(http_resp.json(updated_config))
+}
+
+fn validate_and_get_function_code(
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    function_name: Option<&String>,
+    key: &str,
+    value: &Value,
+) -> superposition::Result<()> {
+    if let Some(f_name) = function_name {
+        let function_code = get_published_function_code(conn, f_name.clone())
+            .map_err(|_| bad_argument!("Function {} doesn't exist.", f_name))?;
+        if let Some(f_code) = function_code {
+            validate_value_with_function(
+                f_name.as_str(),
+                &f_code,
+                &key.to_string(),
+                value,
+            )?;
+        }
+    }
+    Ok(())
 }
 
 fn fetch_default_key(
