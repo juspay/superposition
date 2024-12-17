@@ -8,6 +8,7 @@ use samael::{
     metadata::{ContactPerson, ContactType, EntityDescriptor},
     service_provider::ServiceProviderBuilder,
 };
+use service_utils::helpers::get_from_env_unsafe;
 use std::{
     env, fs,
     future::{ready, Ready},
@@ -82,17 +83,19 @@ where
     }
 }
 
-pub fn init_auth() -> AuthHandler {
+pub async fn init_auth() -> AuthHandler {
     let var = env::var("AUTH_PROVIDER")
         .ok()
         .expect("Env 'AUTH_PROVIDER' not declared, unable to initalize auth provider.");
     let mut auth = var.split('+');
-    assert_eq!(auth.next(), Some("SAML2"));
     let ap: Arc<dyn Authenticator> = match auth.next() {
         Some("SAML2") => Arc::new(init_saml2_auth(auth.next().expect("Url not provided in env."))),
         Some("OIDC") => {
             let url = Url::parse(auth.next().unwrap()).map_err(|e| e.to_string()).unwrap();
-            Arc::new(oidc::OIDCAuthenticator::new(url, "https://superposition.devspaceworks.net".to_string()).unwrap())
+            let base_url = get_from_env_unsafe("CAC_HOST").unwrap();
+            let cid = get_from_env_unsafe("OIDC_CLIENT_ID").unwrap();
+            let csecret = get_from_env_unsafe("OIDC_CLIENT_SECRET").unwrap();
+            Arc::new(oidc::OIDCAuthenticator::new(url, base_url, cid, csecret).await.unwrap())
         }
         _ => panic!("Missing/Unknown authenticator.")
     };

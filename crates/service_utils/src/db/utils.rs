@@ -27,16 +27,17 @@ pub async fn get_superposition_token(
 
 pub async fn get_database_url(kms_client: &Option<Client>, app_env: &AppEnv) -> String {
     let db_user: String = get_from_env_unsafe("DB_USER").unwrap();
-    let db_password: String = match app_env {
-        AppEnv::DEV | AppEnv::TEST => {
-            get_from_env_or_default("DB_PASSWORD", "docker".into())
-        }
-        _ => {
-            let kms_client = kms_client.clone().unwrap();
-            let db_password_raw = kms::decrypt(kms_client, "DB_PASSWORD").await;
-            encode(db_password_raw.as_str()).to_string()
-        }
-    };
+    // let db_password: String = match app_env {
+    //     AppEnv::DEV | AppEnv::TEST => {
+    //         get_from_env_or_default("DB_PASSWORD", "docker".into())
+    //     }
+    //     _ => {
+    //         let kms_client = kms_client.clone().unwrap();
+    //         let db_password_raw = kms::decrypt(kms_client, "DB_PASSWORD").await;
+    //         encode(db_password_raw.as_str()).to_string()
+    //     }
+    // };
+    let db_password: String = get_from_env_or_default("DB_PASSWORD", "docker".into());
     let db_host: String = get_from_env_unsafe("DB_HOST").unwrap();
     let db_name: String = get_from_env_unsafe("DB_NAME").unwrap();
     format!("postgres://{db_user}:{db_password}@{db_host}/{db_name}")

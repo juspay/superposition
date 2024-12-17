@@ -87,7 +87,7 @@ async fn main() -> Result<()> {
     let app_state =
         Data::new(app_state::get(service_prefix_str.to_owned(), &base, &tenants).await);
 
-    let auth = auth::init_auth();
+    let auth = auth::init_auth().await;
 
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
@@ -121,11 +121,10 @@ async fn main() -> Result<()> {
                     .add(("X-SERVER-VERSION", app_state.cac_version.to_string()))
                     .add(("Cache-Control", "no-store".to_string()))
             )
-            .wrap(auth.clone())
-            .service(auth.routes())
             .service(web::redirect("/", ui_redirect_path.to_string()))
             .service(web::redirect("/admin", ui_redirect_path.to_string()))
             .service(web::redirect("/admin/{tenant}/", "default-config"))
+            .service(auth.routes())
             .leptos_routes(
                 leptos_options.to_owned(),
                 routes.to_owned(),
@@ -191,6 +190,7 @@ async fn main() -> Result<()> {
                 get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
             )
             .app_data(Data::new(leptos_options.to_owned()))
+            .wrap(auth.clone())
     })
     .bind(("0.0.0.0", cac_port))?
     .workers(5)

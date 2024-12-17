@@ -137,7 +137,8 @@ pub async fn get(
         .collect::<HashSet<_>>(),
         service_prefix,
         tenant_configs,
-        superposition_token: get_superposition_token(&kms_client, &app_env).await,
+        // superposition_token: get_superposition_token(&kms_client, &app_env).await,
+        superposition_token: "chalega".to_string(),
         #[cfg(feature = "high-performance-mode")]
         redis: redis_pool,
         http_client: reqwest::Client::new(),

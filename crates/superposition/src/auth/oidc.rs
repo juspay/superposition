@@ -47,21 +47,23 @@ fn verify_presence(n: Option<&Nonce>) -> Result<(), String> {
 }
 
 impl OIDCAuthenticator {
-    pub fn new(
+    pub async fn new(
         idp_url: url::Url,
         base_url: String,
+        client_id: String,
+        client_secret: String
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let issuer_url = IssuerUrl::from_url(idp_url);
 
         // Discover OpenID Provider metadata
         let provider_metadata =
-            CoreProviderMetadata::discover(&issuer_url, oidc::reqwest::http_client)?;
+            CoreProviderMetadata::discover_async(issuer_url, oidc::reqwest::async_http_client).await?;
 
         // Create client
         let client = CoreClient::from_provider_metadata(
             provider_metadata,
-            ClientId::new("client_id".to_string()),
-            Some(ClientSecret::new("client_secret".to_string())),
+            ClientId::new(client_id),
+            Some(ClientSecret::new(client_secret)),
         )
         .set_redirect_uri(RedirectUrl::new(format!("{}/oidc/login", base_url))?);
 
@@ -86,12 +88,15 @@ impl OIDCAuthenticator {
         let pcookie =
             Cookie::build("protection", serde_json::to_string(&protection).unwrap())
                 .max_age(Duration::days(7))
-                .http_only(true)
-                .same_site(SameSite::Strict)
+                // .http_only(true)
+                // .same_site(SameSite::Strict)
+                .path("/")
                 .finish();
         HttpResponse::Found()
             .insert_header((header::LOCATION, auth_url.to_string()))
             .cookie(pcookie)
+            // Deletes the cookie.
+            .cookie(Cookie::build("user", "").max_age(Duration::seconds(0)).finish())
             .finish()
     }
 
@@ -115,7 +120,7 @@ impl Authenticator for OIDCAuthenticator {
         let p = &request.path();
         let excep = p.matches("login").count() > 0
         // Implies it's a local/un-forwarded request.
-        || !request.headers().contains_key(header::X_FORWARDED_HOST)
+        || !request.headers().contains_key(header::USER_AGENT)
         || p.matches("health").count() > 0
         || p.matches("ready").count() > 0;
         if token.is_some() || excep {
@@ -141,7 +146,7 @@ async fn oidc_login(
     let pc = match ProtectionCookie::from_req(&req) {
         Some(pc) => pc,
         _ => {
-            eprintln!("OIDC: Missing/Bad protection-cookie, redirecting...");
+            eprintln!("OIDC: Missing/Bad protection-cookie: {:?}, redirecting...", req.cookie("protection"));
             return auth.new_redirect();
         }
     };
