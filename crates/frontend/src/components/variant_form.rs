@@ -3,6 +3,9 @@ use std::collections::{HashMap, HashSet};
 use chrono::Local;
 use leptos::*;
 use serde_json::Value;
+use superposition_types::{
+    cac::models::DefaultConfig, experimentation::models::VariantType,
+};
 
 use crate::{
     components::{
@@ -10,7 +13,7 @@ use crate::{
         override_form::OverrideForm,
     },
     schema::SchemaType,
-    types::{DefaultConfig, VariantFormT, VariantType},
+    types::VariantFormT,
 };
 
 fn get_override_keys_from_variants(

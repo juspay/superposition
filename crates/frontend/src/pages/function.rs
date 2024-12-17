@@ -2,31 +2,24 @@ pub mod function_create;
 pub mod function_list;
 pub mod utils;
 
+use std::time::Duration;
+
 use leptos::*;
 use leptos_router::use_params_map;
-
-use crate::{
-    components::skeleton::{Skeleton, SkeletonVariant},
-    types::FunctionResponse,
-};
-
-use self::utils::publish_function;
-
-use crate::api::fetch_function;
-use std::time::Duration;
+use serde::{Deserialize, Serialize};
 use strum::EnumProperty;
 use strum_macros::Display;
-use web_sys::MouseEvent;
+use superposition_types::cac::models::Function;
+use utils::publish_function;
+use web_sys::{HtmlButtonElement, MouseEvent};
 
-use crate::utils::get_element_by_id;
-use web_sys::HtmlButtonElement;
-
+use crate::api::fetch_function;
 use crate::components::{
     function_form::{FunctionEditor, TestForm},
     monaco_editor::MonacoEditor,
+    skeleton::{Skeleton, SkeletonVariant},
 };
-
-use serde::{Deserialize, Serialize};
+use crate::utils::get_element_by_id;
 
 #[derive(Clone, Debug, Copy, Display, strum_macros::EnumProperty, PartialEq)]
 enum CodeTab {
@@ -38,7 +31,7 @@ enum CodeTab {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct CombinedResource {
-    function: Option<FunctionResponse>,
+    function: Option<Function>,
 }
 
 // TODO: Just rewrite this file and everything related to functions

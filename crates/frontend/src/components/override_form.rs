@@ -1,16 +1,17 @@
 use std::collections::{HashMap, HashSet};
 
+use leptos::*;
+use serde_json::Value;
+use superposition_types::cac::models::DefaultConfig;
+use web_sys::MouseEvent;
+
 use crate::{
     components::{
         dropdown::{Dropdown, DropdownDirection},
         input::{Input, InputType},
     },
     schema::{EnumVariants, SchemaType},
-    types::DefaultConfig,
 };
-use leptos::*;
-use serde_json::Value;
-use web_sys::MouseEvent;
 
 #[component]
 fn type_badge(r#type: Option<SchemaType>) -> impl IntoView {

@@ -1,8 +1,16 @@
 pub mod types;
 pub mod utils;
 
-use self::types::{DimensionCreateReq, DimensionUpdateReq};
-use self::utils::{create_dimension, update_dimension};
+use leptos::*;
+use serde_json::{json, Value};
+use superposition_types::{
+    cac::models::{Function, TypeTemplate},
+    custom_query::PaginationParams,
+};
+use types::{DimensionCreateReq, DimensionUpdateReq};
+use utils::{create_dimension, update_dimension};
+use web_sys::MouseEvent;
+
 use crate::api::fetch_types;
 use crate::components::{
     dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
@@ -10,11 +18,8 @@ use crate::components::{
 };
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{JsonSchemaType, SchemaType};
-use crate::types::{FunctionsName, ListFilters, TypeTemplate};
+use crate::types::FunctionsName;
 use crate::{api::fetch_functions, components::button::Button};
-use leptos::*;
-use serde_json::{json, Value};
-use web_sys::MouseEvent;
 
 #[component]
 pub fn dimension_form<NF>(
@@ -37,33 +42,21 @@ where
     let (dimension_schema_rs, dimension_schema_ws) = create_signal(dimension_schema);
     let (function_name, set_function_name) = create_signal(function_name);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
-    let functions_resource: Resource<String, Vec<crate::types::FunctionResponse>> =
-        create_blocking_resource(
-            move || tenant_rs.get(),
-            |current_tenant| async move {
-                match fetch_functions(
-                    ListFilters {
-                        page: None,
-                        count: None,
-                        all: Some(true),
-                    },
-                    current_tenant,
-                )
+    let functions_resource: Resource<String, Vec<Function>> = create_blocking_resource(
+        move || tenant_rs.get(),
+        |current_tenant| async move {
+            fetch_functions(&PaginationParams::all_entries(), current_tenant)
                 .await
-                {
-                    Ok(list) => list.data.into_iter().collect(),
-                    Err(_) => vec![],
-                }
-            },
-        );
+                .map_or_else(|_| vec![], |list| list.data)
+        },
+    );
 
     let type_template_resource = create_blocking_resource(
         move || tenant_rs.get(),
         |current_tenant| async move {
-            match fetch_types(current_tenant, 1, 10000, false).await {
-                Ok(response) => response.data,
-                Err(_) => vec![],
-            }
+            fetch_types(&PaginationParams::all_entries(), current_tenant)
+                .await
+                .map_or_else(|_| vec![], |response| response.data)
         },
     );
 

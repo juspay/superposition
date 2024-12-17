@@ -1,5 +1,11 @@
-use crate::api::{delete_default_config, fetch_default_config};
+use std::collections::HashSet;
 
+use leptos::*;
+use leptos_router::{use_navigate, use_query_map};
+use serde_json::{json, Map, Value};
+use superposition_types::custom_query::PaginationParams;
+
+use crate::api::{delete_default_config, fetch_default_config};
 use crate::components::default_config_form::DefaultConfigForm;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
@@ -9,16 +15,11 @@ use crate::components::table::{
     types::{Column, TablePaginationProps},
     Table,
 };
-
-use crate::types::{BreadCrums, ListFilters, PaginatedResponse};
+use crate::types::BreadCrums;
 use crate::utils::{
     get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
     update_page_direction,
 };
-use leptos::*;
-use leptos_router::{use_navigate, use_query_map};
-use serde_json::{json, Map, Value};
-use std::collections::HashSet;
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -32,18 +33,13 @@ pub struct RowData {
 pub fn default_config() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let enable_grouping = create_rw_signal(false);
-    let (filters, set_filters) = create_signal(ListFilters {
-        page: Some(1),
-        count: Some(10),
-        all: None,
-    });
+    let (filters, set_filters) = create_signal(PaginationParams::default_request());
     let default_config_resource = create_blocking_resource(
         move || (tenant_rs.get(), filters.get()),
         |(current_tenant, filters)| async move {
-            match fetch_default_config(&filters, current_tenant).await {
-                Ok(data) => data,
-                Err(_) => PaginatedResponse::default(),
-            }
+            fetch_default_config(&filters, current_tenant)
+                .await
+                .unwrap_or_default()
         },
     );
 
@@ -52,21 +48,10 @@ pub fn default_config() -> impl IntoView {
     let query_params = use_query_map();
     let bread_crums = Signal::derive(move || get_bread_crums(key_prefix.get()));
 
-    let set_filters_none = move || {
-        set_filters.set(ListFilters {
-            page: None,
-            count: None,
-            all: Some(true),
-        })
-    };
+    let set_filters_none = move || set_filters.set(PaginationParams::all_entries());
 
-    let set_filters_default = move || {
-        set_filters.set(ListFilters {
-            page: Some(1),
-            count: Some(10),
-            all: None,
-        })
-    };
+    let set_filters_default =
+        move || set_filters.set(PaginationParams::default_request());
 
     create_effect(move |_| {
         let enable_grouping_val =
@@ -278,11 +263,7 @@ pub fn default_config() -> impl IntoView {
                 {move || {
                     let default_config = default_config_resource
                         .get()
-                        .unwrap_or(PaginatedResponse {
-                            total_items: 1,
-                            total_pages: 1,
-                            data: vec![],
-                        });
+                        .unwrap_or_default();
                     let table_rows = default_config
                         .data
                         .into_iter()

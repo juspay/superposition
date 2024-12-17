@@ -1,9 +1,12 @@
-use super::types::{ExperimentCreateRequest, ExperimentUpdateRequest};
+use serde_json::Value;
+use superposition_types::cac::types::DimensionWithMandatory;
+
 use crate::components::condition_pills::types::Condition;
 use crate::components::context_form::utils::construct_context;
-use crate::types::{Dimension, VariantFormT};
+use crate::types::VariantFormT;
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
-use serde_json::Value;
+
+use super::types::{ExperimentCreateRequest, ExperimentUpdateRequest};
 
 pub fn validate_experiment(experiment: &ExperimentCreateRequest) -> Result<bool, String> {
     if experiment.name.is_empty() {
@@ -17,7 +20,7 @@ pub async fn create_experiment(
     variants: Vec<VariantFormT>,
     name: String,
     tenant: String,
-    dimensions: Vec<Dimension>,
+    dimensions: Vec<DimensionWithMandatory>,
 ) -> Result<Value, String> {
     let payload = ExperimentCreateRequest {
         name,
