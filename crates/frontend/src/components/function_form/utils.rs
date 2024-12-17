@@ -1,9 +1,12 @@
-use super::types::{FunctionCreateRequest, FunctionUpdateRequest};
+use serde_json::Value;
+use superposition_types::cac::models::Function;
+
 use crate::{
-    types::{FunctionResponse, FunctionTestResponse},
+    types::FunctionTestResponse,
     utils::{construct_request_headers, get_host, parse_json_response, request},
 };
-use serde_json::Value;
+
+use super::types::{FunctionCreateRequest, FunctionUpdateRequest};
 
 pub async fn create_function(
     function_name: String,
@@ -11,7 +14,7 @@ pub async fn create_function(
     runtime_version: String,
     description: String,
     tenant: String,
-) -> Result<FunctionResponse, String> {
+) -> Result<Function, String> {
     let payload = FunctionCreateRequest {
         function_name,
         function,
@@ -38,7 +41,7 @@ pub async fn update_function(
     runtime_version: String,
     description: String,
     tenant: String,
-) -> Result<FunctionResponse, String> {
+) -> Result<Function, String> {
     let payload = FunctionUpdateRequest {
         function,
         runtime_version,

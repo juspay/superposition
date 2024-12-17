@@ -1,3 +1,8 @@
+use leptos::*;
+use serde_json::{json, Map, Value};
+use superposition_types::custom_query::PaginationParams;
+
+use crate::api::{delete_dimension, fetch_dimensions};
 use crate::components::dimension_form::DimensionForm;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
@@ -10,13 +15,7 @@ use crate::components::{
         Table,
     },
 };
-use crate::types::{ListFilters, PaginatedResponse};
 use crate::utils::update_page_direction;
-use leptos::*;
-
-use serde_json::{json, Map, Value};
-
-use crate::api::{delete_dimension, fetch_dimensions};
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -32,18 +31,13 @@ pub fn dimensions() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
-    let (filters, set_filters) = create_signal(ListFilters {
-        page: Some(1),
-        count: Some(10),
-        all: None,
-    });
+    let (filters, set_filters) = create_signal(PaginationParams::default_request());
     let dimensions_resource = create_blocking_resource(
         move || (tenant_rs.get(), filters.get()),
         |(current_tenant, filters)| async move {
-            match fetch_dimensions(&filters, current_tenant).await {
-                Ok(data) => data,
-                Err(_) => PaginatedResponse::default(),
-            }
+            fetch_dimensions(&filters, current_tenant)
+                .await
+                .unwrap_or_default()
         },
     );
 
@@ -205,7 +199,7 @@ pub fn dimensions() -> impl IntoView {
                 {move || {
                     let value = dimensions_resource
                         .get()
-                        .unwrap_or(PaginatedResponse::default());
+                        .unwrap_or_default();
                     let total_items = value.data.len().to_string();
                     let table_rows = value
                         .data

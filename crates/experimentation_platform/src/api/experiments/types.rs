@@ -72,13 +72,6 @@ impl From<Experiment> for ExperimentResponse {
     }
 }
 
-#[derive(Serialize)]
-pub struct ExperimentsResponse {
-    pub total_items: i64,
-    pub total_pages: i64,
-    pub data: Vec<ExperimentResponse>,
-}
-
 /********** Experiment Conclude Req Types **********/
 
 #[derive(Deserialize, Debug)]
