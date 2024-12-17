@@ -22,7 +22,7 @@ use diesel_derive_enum as _;
 #[cfg(feature = "server")]
 use log::error;
 use regex::Regex;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 #[cfg(feature = "server")]
 use serde_json::json;
 use webhook::WebhookConfig;
@@ -215,6 +215,31 @@ impl SortBy {
 impl Default for SortBy {
     fn default() -> Self {
         Self::Desc
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum FunctionNameEnum {
+    Name(String),
+    Remove,
+}
+
+impl<'de> Deserialize<'de> for FunctionNameEnum {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let map: serde_json::Value = Deserialize::deserialize(deserializer)?;
+        match map {
+            serde_json::Value::String(func_name) => Ok(Self::Name(func_name)),
+            serde_json::Value::Null => Ok(Self::Remove),
+            _ => {
+                log::error!("Expected a string or null literal as the function name.");
+                Err(serde::de::Error::custom(
+                    "Expected a string or null literal as the function name.",
+                ))
+            }
+        }
     }
 }
 

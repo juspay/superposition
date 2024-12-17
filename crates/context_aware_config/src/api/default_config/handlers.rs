@@ -28,7 +28,7 @@ use superposition_types::{
         schema::{self, contexts::dsl::contexts, default_configs::dsl},
     },
     custom_query::PaginationParams,
-    result as superposition, PaginatedResponse, User,
+    result as superposition, FunctionNameEnum, PaginatedResponse, User,
 };
 
 #[cfg(feature = "high-performance-mode")]
@@ -42,7 +42,7 @@ use crate::{
     helpers::add_config_version,
 };
 
-use super::types::{CreateReq, FunctionNameEnum, UpdateReq};
+use super::types::{CreateReq, UpdateReq};
 
 pub fn endpoints() -> Scope {
     Scope::new("")

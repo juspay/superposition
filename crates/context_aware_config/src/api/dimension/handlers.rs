@@ -17,12 +17,12 @@ use superposition_types::{
         schema::{dimensions, dimensions::dsl::*},
     },
     custom_query::PaginationParams,
-    result as superposition, PaginatedResponse, TenantConfig, User,
+    result as superposition, FunctionNameEnum, PaginatedResponse, TenantConfig, User,
 };
 
 use crate::{
     api::dimension::{
-        types::{CreateReq, FunctionNameEnum},
+        types::CreateReq,
         utils::{get_dimension_usage_context_ids, validate_dimension_position},
     },
     helpers::validate_jsonschema,

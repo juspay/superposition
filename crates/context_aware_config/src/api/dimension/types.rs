@@ -1,8 +1,8 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
 use derive_more::{AsRef, Deref, DerefMut, Into};
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use superposition_types::{cac::models::Dimension, RegexEnum};
+use superposition_types::{cac::models::Dimension, FunctionNameEnum, RegexEnum};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateReq {
@@ -43,30 +43,6 @@ pub struct UpdateReq {
     pub position: Option<Position>,
     pub schema: Option<Value>,
     pub function_name: Option<FunctionNameEnum>,
-}
-
-#[derive(Debug, Clone)]
-pub enum FunctionNameEnum {
-    Name(String),
-    Remove,
-}
-
-impl<'de> Deserialize<'de> for FunctionNameEnum {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let map: Value = Deserialize::deserialize(deserializer)?;
-        match map {
-            Value::String(func_name) => Ok(Self::Name(func_name)),
-            Value::Null => Ok(Self::Remove),
-            _ => {
-                log::error!("Expected a string or null literal as the function name.");
-                Err("Expected a string or null literal as the function name.")
-                    .map_err(serde::de::Error::custom)
-            }
-        }
-    }
 }
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into, Clone)]
