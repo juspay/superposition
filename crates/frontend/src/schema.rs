@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use derive_more::{Deref, DerefMut};
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 
 pub trait HtmlDisplay: ToString {
     fn html_display(&self) -> String;
@@ -81,14 +81,18 @@ pub enum SchemaType {
 impl SchemaType {
     pub fn default_value(&self) -> Value {
         match self {
-            SchemaType::Multiple(_) => json!(""),
-            SchemaType::Single(JsonSchemaType::String) => json!(""),
+            SchemaType::Multiple(_) => Value::String(String::default()),
+            SchemaType::Single(JsonSchemaType::String) => {
+                Value::String(String::default())
+            }
             SchemaType::Single(JsonSchemaType::Number) => json!(0),
             SchemaType::Single(JsonSchemaType::Integer) => json!(0),
-            SchemaType::Single(JsonSchemaType::Boolean) => json!(false),
-            SchemaType::Single(JsonSchemaType::Object) => json!({}),
-            SchemaType::Single(JsonSchemaType::Array) => json!([]),
-            SchemaType::Single(JsonSchemaType::Null) => json!("null"),
+            SchemaType::Single(JsonSchemaType::Boolean) => Value::Bool(bool::default()),
+            SchemaType::Single(JsonSchemaType::Object) => Value::Object(Map::new()),
+            SchemaType::Single(JsonSchemaType::Array) => Value::Array(Vec::new()),
+            SchemaType::Single(JsonSchemaType::Null) => {
+                Value::String(String::from("null"))
+            }
         }
     }
     fn parse_from_array(arr: &[Value]) -> Result<Self, String> {
