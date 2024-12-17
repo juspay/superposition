@@ -8,7 +8,7 @@ use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
 use crate::components::table::types::{ColumnSortable, TablePaginationProps};
 use crate::components::table::{types::Column, Table};
-use crate::types::{ConfigVersionListResponse, ListFilters};
+use crate::types::{ConfigVersionListResponse, PaginationFilters};
 use crate::utils::use_url_base;
 
 use crate::api::fetch_snapshots;
@@ -18,7 +18,7 @@ pub fn config_version_list() -> impl IntoView {
     let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
 
     // Signals for filters
-    let (filters, set_filters) = create_signal(ListFilters {
+    let (filters, set_filters) = create_signal(PaginationFilters {
         page: Some(1),
         count: Some(10), // Limit of 10 items per page
         all: None,

@@ -174,6 +174,27 @@ impl Display for ExperimentListFilters {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DefaultConfigFilters {
+    pub name: Option<String>,
+}
+
+impl Default for DefaultConfigFilters {
+    fn default() -> Self {
+        Self { name: None }
+    }
+}
+
+impl Display for DefaultConfigFilters {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut query_params = vec![];
+        if let Some(key_name) = &self.name {
+            query_params.push(format!("name={}", key_name));
+        }
+        write!(f, "{}", query_params.join("&"))
+    }
+}
+
 #[derive(Deserialize, Serialize, Clone, PartialEq, Debug, strum_macros::Display)]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum VariantType {
@@ -265,8 +286,6 @@ impl From<ExperimentResponse> for Experiment {
         }
     }
 }
-
-/*************************** Context-Override types ********************************/
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Dimension {
@@ -373,13 +392,23 @@ pub struct ConfigVersion {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 
-pub struct ListFilters {
+pub struct PaginationFilters {
     pub page: Option<i64>,
     pub count: Option<i64>,
     pub all: Option<bool>,
 }
 
-impl Display for ListFilters {
+impl Default for PaginationFilters {
+    fn default() -> Self {
+        Self {
+            page: Some(1),
+            count: Some(10),
+            all: None,
+        }
+    }
+}
+
+impl Display for PaginationFilters {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut parts = vec![];
 

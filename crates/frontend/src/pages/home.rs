@@ -12,7 +12,7 @@ use web_sys::{HtmlButtonElement, HtmlSpanElement, MouseEvent};
 use crate::components::condition_pills::types::Conditions;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
-use crate::types::ListFilters;
+use crate::types::PaginationFilters;
 use crate::{
     api::{fetch_config, fetch_dimensions},
     components::{
@@ -186,7 +186,7 @@ pub fn home() -> impl IntoView {
         move || tenant_rs.get(),
         |tenant| async {
             match fetch_dimensions(
-                &ListFilters {
+                &PaginationFilters {
                     page: None,
                     count: None,
                     all: Some(true),

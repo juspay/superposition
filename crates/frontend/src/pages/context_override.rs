@@ -20,7 +20,9 @@ use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
-use crate::types::{DefaultConfig, Dimension, ListFilters, PaginatedResponse};
+use crate::types::{
+    DefaultConfig, DefaultConfigFilters, Dimension, PaginatedResponse, PaginationFilters,
+};
 
 #[derive(Clone, Debug, Default)]
 pub struct Data {
@@ -147,15 +149,20 @@ pub fn context_override() -> impl IntoView {
     let page_resource: Resource<String, PageResource> = create_blocking_resource(
         move || tenant_rs.get().clone(),
         |current_tenant| async move {
-            let empty_list_filters = ListFilters {
+            let empty_list_filters = PaginationFilters {
                 page: None,
                 count: None,
                 all: Some(true),
             };
+            let empty_defaultconfig_filters = DefaultConfigFilters::default();
             let (config_result, dimensions_result, default_config_result) = join!(
                 fetch_config(current_tenant.to_string(), None),
                 fetch_dimensions(&empty_list_filters, current_tenant.to_string()),
-                fetch_default_config(&empty_list_filters, current_tenant.to_string())
+                fetch_default_config(
+                    &empty_list_filters,
+                    &empty_defaultconfig_filters,
+                    current_tenant.to_string()
+                )
             );
             PageResource {
                 config: config_result.unwrap_or_default(),

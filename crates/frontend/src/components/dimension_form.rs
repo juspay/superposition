@@ -10,7 +10,7 @@ use crate::components::{
 };
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{JsonSchemaType, SchemaType};
-use crate::types::{FunctionsName, ListFilters, TypeTemplate};
+use crate::types::{FunctionsName, PaginationFilters, TypeTemplate};
 use crate::{api::fetch_functions, components::button::Button};
 use leptos::*;
 use serde_json::{json, Value};
@@ -42,7 +42,7 @@ where
             move || tenant_rs.get(),
             |current_tenant| async move {
                 match fetch_functions(
-                    ListFilters {
+                    PaginationFilters {
                         page: None,
                         count: None,
                         all: Some(true),

@@ -38,3 +38,8 @@ where
     let value: Value = Deserialize::deserialize(deserializer)?;
     Ok(Some(value))
 }
+
+#[derive(Deserialize, Debug)]
+pub struct DefaultConfigFilters {
+    pub name: Option<String>,
+}
