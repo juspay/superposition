@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use leptos::*;
 use serde_json::{Map, Value};
-use superposition_types::experimentation::models::{
+use superposition_types::database::models::experimentation::{
     ExperimentStatusType, Variant, VariantType,
 };
 

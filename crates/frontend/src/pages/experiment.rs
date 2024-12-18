@@ -3,8 +3,8 @@ use leptos::*;
 use leptos_router::use_params_map;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
-    cac::{models::DefaultConfig, types::DimensionWithMandatory},
     custom_query::PaginationParams,
+    database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
 };
 
 use crate::{

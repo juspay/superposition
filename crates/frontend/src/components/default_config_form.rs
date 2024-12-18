@@ -4,8 +4,8 @@ pub mod utils;
 use leptos::*;
 use serde_json::{json, Value};
 use superposition_types::{
-    cac::models::{Function, TypeTemplate},
     custom_query::PaginationParams,
+    database::models::cac::{Function, TypeTemplate},
 };
 use web_sys::MouseEvent;
 

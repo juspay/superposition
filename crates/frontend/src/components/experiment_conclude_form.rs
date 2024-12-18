@@ -3,7 +3,7 @@ pub mod utils;
 use std::rc::Rc;
 
 use leptos::*;
-use superposition_types::experimentation::models::{Variant, VariantType};
+use superposition_types::database::models::experimentation::{Variant, VariantType};
 use utils::conclude_experiment;
 
 use crate::types::Experiment;

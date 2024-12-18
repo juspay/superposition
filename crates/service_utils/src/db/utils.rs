@@ -50,20 +50,12 @@ pub async fn init_pool_manager(
     max_pool_size: u32,
 ) -> PgSchemaManager {
     let database_url = get_database_url(kms_client, app_env).await;
-    let namespaces = match (enable_tenant_and_scope, app_env) {
-        (true, _) => tenants
-            .iter()
-            .flat_map(|tenant| {
-                [
-                    format!("{}_cac", tenant),
-                    format!("{}_experimentation", tenant),
-                ]
-            })
-            .collect::<Vec<String>>(),
+    let workspaces = match (enable_tenant_and_scope, app_env) {
+        (true, _) => tenants.into_iter().collect::<Vec<String>>(),
         (false, _) => vec!["cac_v1".to_string()],
     };
 
-    let connection_configs = namespaces
+    let connection_configs = workspaces
         .iter()
         .map(|namespace| {
             ConnectionConfig::new(

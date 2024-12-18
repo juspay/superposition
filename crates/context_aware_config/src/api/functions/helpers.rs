@@ -8,8 +8,8 @@ use diesel::{
 use std::str;
 use superposition_macros::unexpected_error;
 use superposition_types::{
-    cac::{
-        models::Function,
+    database::{
+        models::cac::Function,
         schema::{self, functions::dsl::functions},
     },
     result as superposition,
