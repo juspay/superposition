@@ -277,7 +277,7 @@ async fn delete_dimension(
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.into_inner().into();
     let DbConnection(mut conn) = db_conn;
-    dimensions::dsl::dimensions
+    let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(&name))
         .select(Dimension::as_select())
         .get_result(&mut conn)?;
@@ -292,6 +292,10 @@ async fn delete_dimension(
                     dsl::last_modified_at.eq(Utc::now().naive_utc()),
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
+                .execute(transaction_conn)?;
+            diesel::update(dimensions::dsl::dimensions)
+                .filter(dimensions::position.gt(dimension_data.position))
+                .set(dimensions::position.eq(dimensions::position - 1))
                 .execute(transaction_conn)?;
             let deleted_row = delete(dsl::dimensions.filter(dsl::dimension.eq(&name)))
                 .execute(transaction_conn);

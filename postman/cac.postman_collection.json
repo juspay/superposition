@@ -3,14 +3,18 @@
     {
       "listen": "prerequest",
       "script": {
-        "exec": [""],
+        "exec": [
+          ""
+        ],
         "type": "text/javascript"
       }
     },
     {
       "listen": "test",
       "script": {
-        "exec": [""],
+        "exec": [
+          ""
+        ],
         "type": "text/javascript"
       }
     }
@@ -65,8 +69,13 @@
             },
             "url": {
               "raw": "{{host}}/default-config/key.",
-              "host": ["{{host}}"],
-              "path": ["default-config", "key."]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "default-config",
+                "key."
+              ]
             }
           },
           "response": []
@@ -117,8 +126,13 @@
             },
             "url": {
               "raw": "{{host}}/default-config/key!",
-              "host": ["{{host}}"],
-              "path": ["default-config", "key!"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "default-config",
+                "key!"
+              ]
             }
           },
           "response": []
@@ -199,8 +213,13 @@
             },
             "url": {
               "raw": "{{host}}/default-config/key1",
-              "host": ["{{host}}"],
-              "path": ["default-config", "key1"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "default-config",
+                "key1"
+              ]
             }
           },
           "response": []
@@ -283,8 +302,13 @@
             ],
             "url": {
               "raw": "{{host}}/default-config/key2",
-              "host": ["{{host}}"],
-              "path": ["default-config", "key2"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "default-config",
+                "key2"
+              ]
             }
           },
           "response": []
@@ -333,8 +357,12 @@
             ],
             "url": {
               "raw": "{{host}}/config",
-              "host": ["{{host}}"],
-              "path": ["config"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "config"
+              ]
             }
           },
           "response": []
@@ -352,8 +380,13 @@
             ],
             "url": {
               "raw": "{{host}}/config/resolve?clientId=zee5",
-              "host": ["{{host}}"],
-              "path": ["config", "resolve"],
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "config",
+                "resolve"
+              ],
               "query": [
                 {
                   "key": "clientId",
@@ -457,8 +490,12 @@
             },
             "url": {
               "raw": "{{host}}/dimension",
-              "host": ["{{host}}"],
-              "path": ["dimension"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "dimension"
+              ]
             }
           },
           "response": []
@@ -508,8 +545,13 @@
             },
             "url": {
               "raw": "{{host}}/dimension/{{dimension_name}}",
-              "host": ["{{host}}"],
-              "path": ["dimension", "{{dimension_name}}"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "dimension",
+                "{{dimension_name}}"
+              ]
             }
           },
           "response": []
@@ -612,8 +654,13 @@
             ],
             "url": {
               "raw": "{{host}}/dimension/dim1",
-              "host": ["{{host}}"],
-              "path": ["dimension", "dim1"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "dimension",
+                "dim1"
+              ]
             }
           }
         }
@@ -742,8 +789,12 @@
             },
             "url": {
               "raw": "{{host}}/context",
-              "host": ["{{host}}"],
-              "path": ["context"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context"
+              ]
             }
           },
           "response": []
@@ -868,8 +919,12 @@
             },
             "url": {
               "raw": "{{host}}/context",
-              "host": ["{{host}}"],
-              "path": ["context"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context"
+              ]
             }
           },
           "response": []
@@ -999,8 +1054,14 @@
             },
             "url": {
               "raw": "{{host}}/context/move/{{context_id}}",
-              "host": ["{{host}}"],
-              "path": ["context", "move", "{{context_id}}"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context",
+                "move",
+                "{{context_id}}"
+              ]
             }
           },
           "response": []
@@ -1065,8 +1126,13 @@
             ],
             "url": {
               "raw": "{{host}}/context/{{context_id}}",
-              "host": ["{{host}}"],
-              "path": ["context", "{{context_id}}"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context",
+                "{{context_id}}"
+              ]
             }
           },
           "response": []
@@ -1111,8 +1177,13 @@
             ],
             "url": {
               "raw": "{{host}}/context/list",
-              "host": ["{{host}}"],
-              "path": ["context", "list"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context",
+                "list"
+              ]
             }
           },
           "response": []
@@ -1226,8 +1297,14 @@
             ],
             "url": {
               "raw": "{{host}}/context/weight/recompute",
-              "host": ["{{host}}"],
-              "path": ["context", "weight", "recompute"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context",
+                "weight",
+                "recompute"
+              ]
             }
           }
         },
@@ -1286,8 +1363,13 @@
             ],
             "url": {
               "raw": "{{host}}/context/{{context_id}}",
-              "host": ["{{host}}"],
-              "path": ["context", "{{context_id}}"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "context",
+                "{{context_id}}"
+              ]
             }
           },
           "response": []
@@ -1324,8 +1406,12 @@
             ],
             "url": {
               "raw": "{{host}}/audit",
-              "host": ["{{host}}"],
-              "path": ["audit"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "audit"
+              ]
             }
           },
           "response": []
@@ -1416,8 +1502,12 @@
             ],
             "url": {
               "raw": "{{host}}/types",
-              "host": ["{{host}}"],
-              "path": ["types"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "types"
+              ]
             }
           }
         },
@@ -1534,8 +1624,12 @@
             },
             "url": {
               "raw": "{{host}}/types",
-              "host": ["{{host}}"],
-              "path": ["types"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "types"
+              ]
             }
           }
         },
@@ -1688,8 +1782,13 @@
             },
             "url": {
               "raw": "{{host}}/types/{{type_name}}",
-              "host": ["{{host}}"],
-              "path": ["types", "{{type_name}}"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "types",
+                "{{type_name}}"
+              ]
             }
           }
         },
@@ -1826,8 +1925,13 @@
             ],
             "url": {
               "raw": "{{host}}/types/{{type_name}}",
-              "host": ["{{host}}"],
-              "path": ["types", "{{type_name}}"]
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "types",
+                "{{type_name}}"
+              ]
             }
           }
         }
