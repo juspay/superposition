@@ -4,9 +4,6 @@ pub mod sql_types {
     #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "experiment_status_type"))]
     pub struct ExperimentStatusType;
-    #[derive(diesel::sql_types::SqlType)]
-    #[diesel(postgres_type(name = "org_status"))]
-    pub struct OrgStatus;
 }
 
 diesel::table! {
