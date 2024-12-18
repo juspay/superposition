@@ -24,7 +24,9 @@ function create_default_config_keys() {
                     "schema": {
                         "type": "string",
                         "pattern": ".*"
-                    }
+                    }, 
+                    "description": "description",
+                    "change_reason": "change_reason"
                 })
             }
         };
