@@ -1,5 +1,5 @@
 use serde_json::Value;
-use superposition_types::cac::types::DimensionWithMandatory;
+use superposition_types::database::types::DimensionWithMandatory;
 
 use crate::components::condition_pills::types::Condition;
 use crate::components::context_form::utils::construct_context;

@@ -8,7 +8,7 @@ use serde_json::Value;
 use crate::{Cac, Condition, Contextual, Overridden, Overrides};
 
 #[cfg(feature = "diesel_derives")]
-use super::schema::{
+use super::super::schema::{
     config_versions, contexts, default_configs, dimensions, event_log, functions,
     type_templates,
 };

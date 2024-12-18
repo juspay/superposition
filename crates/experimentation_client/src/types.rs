@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use superposition_types::{
-    experimentation::models::{ExperimentStatusType, VariantType},
+    database::models::experimentation::{ExperimentStatusType, VariantType},
     Exp, Overridden, Overrides,
 };
 

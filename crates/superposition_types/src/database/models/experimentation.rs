@@ -12,7 +12,7 @@ use superposition_derives::{JsonFromSql, JsonToSql};
 use crate::{Condition, Exp, Overrides};
 
 #[cfg(feature = "diesel_derives")]
-use super::schema::*;
+use super::super::schema::*;
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display,
@@ -26,7 +26,7 @@ use super::schema::*;
 #[cfg_attr(feature = "diesel_derives", DbValueStyle = "UPPERCASE")]
 #[cfg_attr(
     feature = "diesel_derives",
-    ExistingTypePath = "crate::experimentation::schema::sql_types::ExperimentStatusType"
+    ExistingTypePath = "crate::database::schema::sql_types::ExperimentStatusType"
 )]
 pub enum ExperimentStatusType {
     CREATED,

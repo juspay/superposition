@@ -7,11 +7,11 @@ use serde_json::Value;
 use service_utils::service::types::DbConnection;
 use superposition_macros::{bad_argument, db_error};
 use superposition_types::{
-    cac::{
-        models::TypeTemplate,
+    custom_query::PaginationParams,
+    database::{
+        models::cac::TypeTemplate,
         schema::type_templates::{self, dsl},
     },
-    custom_query::PaginationParams,
     result as superposition, PaginatedResponse, User,
 };
 

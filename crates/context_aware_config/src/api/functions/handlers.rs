@@ -12,14 +12,14 @@ use serde_json::json;
 use service_utils::service::types::DbConnection;
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
-    cac::{
-        models::Function,
+    custom_query::PaginationParams,
+    database::{
+        models::cac::Function,
         schema::{
             self,
             functions::{dsl, dsl::functions, function_name, last_modified_at},
         },
     },
-    custom_query::PaginationParams,
     result as superposition, PaginatedResponse, User,
 };
 use validation_functions::{compile_fn, execute_fn};

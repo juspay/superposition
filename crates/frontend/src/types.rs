@@ -7,11 +7,11 @@ use leptos::{ReadSignal, WriteSignal};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use superposition_types::{
-    cac::{
-        models::{DefaultConfig, TypeTemplate},
+    database::{
+        models::cac::{DefaultConfig, TypeTemplate},
+        models::experimentation::{ExperimentStatusType, Variant, VariantType},
         types::DimensionWithMandatory,
     },
-    experimentation::models::{ExperimentStatusType, Variant, VariantType},
     Exp, Overrides, SortBy,
 };
 

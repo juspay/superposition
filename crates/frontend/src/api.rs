@@ -1,10 +1,10 @@
 use leptos::ServerFnError;
 use superposition_types::{
-    cac::{
-        models::{ConfigVersion, DefaultConfig, Function, TypeTemplate},
+    custom_query::PaginationParams,
+    database::{
+        models::cac::{ConfigVersion, DefaultConfig, Function, TypeTemplate},
         types::DimensionWithMandatory,
     },
-    custom_query::PaginationParams,
     Config, PaginatedResponse,
 };
 
