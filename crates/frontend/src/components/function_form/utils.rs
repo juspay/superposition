@@ -1,5 +1,5 @@
 use serde_json::Value;
-use superposition_types::cac::models::Function;
+use superposition_types::database::models::cac::Function;
 
 use crate::{
     types::FunctionTestResponse,

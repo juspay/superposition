@@ -1,7 +1,7 @@
 use anyhow::Result;
 use leptos::logging;
 use serde_json::{json, Map, Value};
-use superposition_types::cac::types::DimensionWithMandatory;
+use superposition_types::database::types::DimensionWithMandatory;
 
 use crate::{
     components::condition_pills::types::{Condition, ConditionOperator},

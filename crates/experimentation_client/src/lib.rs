@@ -11,7 +11,7 @@ use chrono::{DateTime, TimeZone, Utc};
 use derive_more::{Deref, DerefMut};
 use serde_json::Value;
 use superposition_types::{
-    experimentation::models::{ExperimentStatusType, VariantType},
+    database::models::experimentation::{ExperimentStatusType, VariantType},
     Overridden, PaginatedResponse,
 };
 use tokio::{

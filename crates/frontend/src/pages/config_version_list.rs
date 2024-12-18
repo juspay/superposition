@@ -4,7 +4,8 @@ use chrono::NaiveDateTime;
 use leptos_router::A;
 use serde_json::{json, Map, Value};
 use superposition_types::{
-    cac::models::ConfigVersion, custom_query::PaginationParams, PaginatedResponse,
+    custom_query::PaginationParams, database::models::cac::ConfigVersion,
+    PaginatedResponse,
 };
 
 use crate::components::skeleton::Skeleton;

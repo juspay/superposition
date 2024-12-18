@@ -3,4 +3,4 @@ file = "schema.rs"
 patch_file = "schema.patch"
 
 [migrations_directory]
-dir = "../../../context_aware_config/migrations"
+dir = "../../migrations"

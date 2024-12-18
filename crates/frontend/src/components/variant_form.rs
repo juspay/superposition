@@ -4,7 +4,7 @@ use chrono::Local;
 use leptos::*;
 use serde_json::Value;
 use superposition_types::{
-    cac::models::DefaultConfig, experimentation::models::VariantType,
+    database::models::cac::DefaultConfig, database::models::experimentation::VariantType,
 };
 
 use crate::{

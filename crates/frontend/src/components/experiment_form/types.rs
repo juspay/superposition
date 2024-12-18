@@ -1,6 +1,6 @@
 use serde::Serialize;
 use serde_json::{Map, Value};
-use superposition_types::experimentation::models::Variant;
+use superposition_types::database::models::experimentation::Variant;
 
 use crate::types::VariantFormT;
 

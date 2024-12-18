@@ -6,8 +6,8 @@ use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use superposition_types::{
-    cac::{models::DefaultConfig, types::DimensionWithMandatory},
     custom_query::PaginationParams,
+    database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
     PaginatedResponse, SortBy,
 };
 use utils::experiment_table_columns;

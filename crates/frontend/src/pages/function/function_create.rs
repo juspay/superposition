@@ -1,7 +1,7 @@
 use leptos::*;
 use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
-use superposition_types::cac::models::Function;
+use superposition_types::database::models::cac::Function;
 
 use crate::components::function_form::FunctionEditor;
 
