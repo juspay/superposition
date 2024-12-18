@@ -1,4 +1,4 @@
-use superposition_types::cac::models::Dimension;
+use superposition_types::database::models::cac::Dimension;
 
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
 

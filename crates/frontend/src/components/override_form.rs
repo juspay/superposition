@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use leptos::*;
 use serde_json::Value;
-use superposition_types::cac::models::DefaultConfig;
+use superposition_types::database::models::cac::DefaultConfig;
 use web_sys::MouseEvent;
 
 use crate::{

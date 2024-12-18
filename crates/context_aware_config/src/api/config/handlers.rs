@@ -33,12 +33,12 @@ use service_utils::{
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    cac::{
-        models::ConfigVersion,
-        schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
-    },
     custom_query::{
         self as superposition_query, CustomQuery, PaginationParams, QueryMap,
+    },
+    database::{
+        models::cac::ConfigVersion,
+        schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
     },
     result as superposition, Cac, Condition, Config, Context, Overrides,
     PaginatedResponse, TenantConfig, User,

@@ -5,7 +5,9 @@ use leptos::*;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
-use superposition_types::cac::{models::DefaultConfig, types::DimensionWithMandatory};
+use superposition_types::database::{
+    models::cac::DefaultConfig, types::DimensionWithMandatory,
+};
 use url::Url;
 use wasm_bindgen::JsCast;
 

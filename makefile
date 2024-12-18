@@ -15,34 +15,21 @@ FEATURES ?= ssr
 	cac
 
 db-init:
-	diesel migration run --locked-schema --config-file=crates/superposition_types/src/cac/diesel.toml
-	-diesel migration run --locked-schema --config-file=crates/superposition_types/src/experimentation/diesel.toml
+	diesel migration run --locked-schema --config-file=crates/superposition_types/src/database/diesel.toml
 
 cleanup:
 	-docker rm -f $$(docker container ls --filter name=^context-aware-config -a -q)
 	-docker rmi -f $$(docker images | grep context-aware-config-postgres | cut -f 10 -d " ")
 
-cac-migration: cleanup
+migration: cleanup
 	docker-compose up -d postgres
 	cp .env.example .env
 	while ! make validate-psql-connection; \
 		do echo "waiting for postgres bootup"; \
 		sleep 0.5; \
 		done
-	diesel migration run --locked-schema --config-file=crates/superposition_types/src/cac/diesel.toml
+	diesel migration run --locked-schema --config-file=crates/superposition_types/src/database/diesel.toml
 	docker-compose down
-
-exp-migration: cleanup
-	docker-compose up -d postgres
-	cp .env.example .env
-	while ! make validate-psql-connection; \
-		do echo "waiting for postgres bootup"; \
-		sleep 0.5; \
-		done
-	--diesel migration run --locked-schema --config-file=crates/superposition_types/src/experimentation/diesel.toml
-	docker-compose down
-
-migration: cac-migration exp-migration
 
 legacy_db_setup:
 	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/legacy-db-setup.sh
