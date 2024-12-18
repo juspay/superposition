@@ -13,6 +13,8 @@ pm.test('expect response be 200', function () {
                 "type": "string"
             },
             "created_by": "user@superposition.io",
+            "description": "",
+            "change_reason": ""
         },
         {
             "type_name": "Enum",
@@ -21,6 +23,8 @@ pm.test('expect response be 200', function () {
                 "type": "string"
             },
             "created_by": "user@superposition.io",
+            "description": "",
+            "change_reason": ""
         },
         {
             "type_name": "Boolean",
@@ -28,6 +32,8 @@ pm.test('expect response be 200', function () {
                 "type": "boolean"
             },
             "created_by": "user@superposition.io",
+            "description": "",
+            "change_reason": ""
         },
         {
             "type_name": "Decimal",
@@ -35,6 +41,8 @@ pm.test('expect response be 200', function () {
                 "type": "number"
             },
             "created_by": "user@superposition.io",
+            "description": "",
+            "change_reason": ""
         },
         {
             "type_name": "Number",
@@ -42,6 +50,8 @@ pm.test('expect response be 200', function () {
                 "type": "integer"
             },
             "created_by": "user@superposition.io",
+            "description": "",
+            "change_reason": ""
         }
     ]))
 });

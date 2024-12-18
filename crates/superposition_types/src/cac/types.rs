@@ -15,6 +15,8 @@ pub struct DimensionWithMandatory {
     pub last_modified_at: NaiveDateTime,
     pub last_modified_by: String,
     pub mandatory: bool,
+    pub description: String,
+    pub change_reason: String,
 }
 
 impl DimensionWithMandatory {
@@ -29,6 +31,8 @@ impl DimensionWithMandatory {
             last_modified_at: value.last_modified_at,
             last_modified_by: value.last_modified_by,
             mandatory,
+            description: value.description,
+            change_reason: value.change_reason,
         }
     }
 }

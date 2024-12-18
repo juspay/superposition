@@ -1,6 +1,8 @@
 const host = pm.variables.get("host");
 const context_id = pm.environment.get("context_id");
 
+console.log(`context id is thiss : ${context_id}`);
+
 pm.test("204 check", function() {
     pm.response.to.have.status(204);
 })

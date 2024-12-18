@@ -26,6 +26,8 @@ pm.test("Context equality check", function() {
     delete response.created_by;
     delete response.last_modified_at;
     delete response.last_modified_by;
+    delete response.description;
+    delete response.change_reason;
 
     pm.expect(JSON.stringify(response)).to.be.eq(JSON.stringify(expected_context));
 });

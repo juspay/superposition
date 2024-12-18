@@ -28,7 +28,9 @@
             "type_schema": {
                 "type": "integer"
             },
-            "type_name": "Integer"
+            "type_name": "Integer",
+            "description": "",
+            "change_reason": ""
         }
     },
     "url": {

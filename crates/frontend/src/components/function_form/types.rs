@@ -6,6 +6,7 @@ pub struct FunctionCreateRequest {
     pub function: String,
     pub runtime_version: String,
     pub description: String,
+    pub change_reason: String,
 }
 
 #[derive(Serialize)]
@@ -13,4 +14,5 @@ pub struct FunctionUpdateRequest {
     pub function: String,
     pub runtime_version: String,
     pub description: String,
+    pub change_reason: String,
 }
