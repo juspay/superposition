@@ -36,6 +36,8 @@ pub fn default_config_form<NF>(
     #[prop(default = Value::Null)] config_value: Value,
     #[prop(default = None)] function_name: Option<Value>,
     #[prop(default = None)] prefix: Option<String>,
+    #[prop(default = String::new())] description: String,
+    #[prop(default = String::new())] change_reason: String,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -49,6 +51,8 @@ where
     let (config_value_rs, config_value_ws) = create_signal(config_value);
     let (function_name_rs, function_name_ws) = create_signal(function_name);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
+    let (description_rs, description_ws) = create_signal(description);
+    let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
 
     let functions_resource: Resource<String, Vec<Function>> = create_blocking_resource(
         move || tenant_rs.get(),
@@ -92,18 +96,24 @@ where
         let f_value = config_value_rs.get();
 
         let fun_name = function_name_rs.get();
+        let description = description_rs.get();
+        let change_reason = change_reason_rs.get();
 
         let create_payload = DefaultConfigCreateReq {
             key: config_key_rs.get(),
             schema: f_schema.clone(),
             value: f_value.clone(),
             function_name: fun_name.clone(),
+            description: description.clone(),
+            change_reason: change_reason.clone(),
         };
 
         let update_payload = DefaultConfigUpdateReq {
             schema: f_schema,
             value: f_value,
             function_name: fun_name,
+            description,
+            change_reason,
         };
 
         let handle_submit_clone = handle_submit.clone();
@@ -166,6 +176,40 @@ where
                         }
                     />
 
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Description</span>
+                    </label>
+                    <textarea
+                        placeholder="Enter description"
+                        class="textarea textarea-bordered w-full max-w-md"
+                        value=description_rs.get_untracked()
+                        on:change=move |ev| {
+                            let value = event_target_value(&ev);
+                            description_ws.set(value);
+                        }
+                    />
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">change_reason</span>
+                    </label>
+                    <textarea
+                        placeholder="Enter change_reason"
+                        class="textarea textarea-bordered w-full max-w-md"
+                        value=change_reason_rs.get_untracked()
+                        on:change=move |ev| {
+                            let value = event_target_value(&ev);
+                            change_reason_ws.set(value);
+                        }
+                    />
                 </div>
 
                 <div class="divider"></div>

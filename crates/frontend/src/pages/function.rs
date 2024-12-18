@@ -127,7 +127,13 @@ pub fn function_page() -> impl IntoView {
                                     <div class="stat w-2/12">
                                         <div class="stat-title">Function Description</div>
                                         <div>
-                                            {function_rs.get().function_description.to_string()}
+                                            {function_rs.get().description.to_string()}
+                                        </div>
+                                    </div>
+                                    <div class="stat w-2/12">
+                                        <div class="stat-title">Function Change Reason</div>
+                                        <div>
+                                            {function_rs.get().change_reason.to_string()}
                                         </div>
                                     </div>
                                     <div class="stat w-2/12">
@@ -429,7 +435,7 @@ pub fn function_page() -> impl IntoView {
                                                                                 function_name=function_rs.get().function_name
                                                                                 function=function_rs.get().draft_code
                                                                                 runtime_version=function_rs.get().draft_runtime_version
-                                                                                description=function_rs.get().function_description
+                                                                                description=function_rs.get().description
                                                                                 handle_submit=move || {
                                                                                     combined_resource.refetch();
                                                                                     editor_mode_ws.set(true)

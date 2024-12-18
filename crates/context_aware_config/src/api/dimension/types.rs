@@ -9,6 +9,8 @@ pub struct CreateReq {
     pub position: Position,
     pub schema: Value,
     pub function_name: Option<String>,
+    pub description: String,
+    pub change_reason: String,
 }
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into, Clone)]
@@ -42,6 +44,8 @@ pub struct UpdateReq {
     pub position: Option<Position>,
     pub schema: Option<Value>,
     pub function_name: Option<FunctionNameEnum>,
+    pub description: Option<String>,
+    pub change_reason: String,
 }
 
 #[derive(Debug, Clone)]

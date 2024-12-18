@@ -16,7 +16,9 @@ function update_dimension_position() {
                 "schema": {
                     "type": "string",
                     "pattern": "^[a-z0-9].*$"
-                }
+                }, 
+                "description": "description",           
+                "change_reason": "change_reason"
             })
         }
     };

@@ -65,6 +65,8 @@ async fn create_default_config(
     let req = request.into_inner();
     let key = req.key;
     let tags = parse_config_tags(custom_headers.config_tags)?;
+    let description = req.description;
+    let change_reason = req.change_reason;
 
     if req.schema.is_empty() {
         return Err(bad_argument!("Schema cannot be empty."));
@@ -82,6 +84,8 @@ async fn create_default_config(
         created_at: Utc::now(),
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
+        description: description.clone(),
+        change_reason: change_reason.clone(),
     };
 
     let schema_compile_result = JSONSchema::options()
@@ -130,9 +134,16 @@ async fn create_default_config(
                         "Something went wrong, failed to create DefaultConfig"
                     )
                 })?;
-            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            let version_id = add_config_version(
+                &state,
+                tags,
+                transaction_conn,
+                description,
+                change_reason,
+            )?;
             Ok(version_id)
         })?;
+
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, tenant, &mut conn).await?;
     let mut http_resp = HttpResponse::Ok();
@@ -141,6 +152,7 @@ async fn create_default_config(
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
+
     Ok(http_resp.json(default_config))
 }
 
@@ -172,6 +184,11 @@ async fn update_default_config(
         }
     })?;
 
+    let description = req
+        .description
+        .unwrap_or_else(|| existing.description.clone());
+    let change_reason = req.change_reason;
+
     let value = req.value.unwrap_or_else(|| existing.value.clone());
     let schema = req
         .schema
@@ -191,6 +208,8 @@ async fn update_default_config(
         created_at: existing.created_at,
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
+        description: description.clone(),
+        change_reason: change_reason.clone(),
     };
 
     let jschema = JSONSchema::options()
@@ -235,7 +254,13 @@ async fn update_default_config(
                     unexpected_error!("Failed to update DefaultConfig")
                 })?;
 
-            let version_id = add_config_version(&state, tags.clone(), transaction_conn)?;
+            let version_id = add_config_version(
+                &state,
+                tags.clone(),
+                transaction_conn,
+                description,
+                change_reason,
+            )?;
 
             Ok(version_id)
         })?;
@@ -365,6 +390,12 @@ async fn delete(
                     ))
                     .execute(transaction_conn)?;
 
+                let default_config: DefaultConfig = dsl::default_configs
+                    .filter(dsl::key.eq(&key))
+                    .first::<DefaultConfig>(transaction_conn)?;
+                let description = default_config.description;
+                let change_reason = format!("Context Deleted by {}", user.get_email());
+
                 let deleted_row =
                     diesel::delete(dsl::default_configs.filter(dsl::key.eq(&key)))
                         .execute(transaction_conn);
@@ -373,7 +404,13 @@ async fn delete(
                         Err(not_found!("default config key `{}` doesn't exists", key))
                     }
                     Ok(_) => {
-                        version_id = add_config_version(&state, tags, transaction_conn)?;
+                        version_id = add_config_version(
+                            &state,
+                            tags,
+                            transaction_conn,
+                            description,
+                            change_reason,
+                        )?;
                         log::info!(
                             "default config key: {key} deleted by {}",
                             user.get_email()

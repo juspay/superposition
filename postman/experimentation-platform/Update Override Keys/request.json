@@ -39,7 +39,9 @@
             "pmTestKey1999": "value-6930-an-test"
           }
         }
-      ]
+      ], 
+      "description": "description",
+      "change_reason": "change_reason"
     }
   },
   "url": {

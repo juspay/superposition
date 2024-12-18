@@ -25,7 +25,9 @@
       }
     },
     "raw_json_formatted": {
-      "traffic_percentage": 46
+      "traffic_percentage": 46, 
+      "description": "description",
+      "change_reason": "change_reason"
     }
   },
   "url": {

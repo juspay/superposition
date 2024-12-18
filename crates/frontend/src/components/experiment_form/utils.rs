@@ -21,11 +21,15 @@ pub async fn create_experiment(
     name: String,
     tenant: String,
     dimensions: Vec<DimensionWithMandatory>,
+    description: String,
+    change_reason: String,
 ) -> Result<Value, String> {
     let payload = ExperimentCreateRequest {
         name,
         variants: FromIterator::from_iter(variants),
         context: construct_context(conditions, dimensions.clone()),
+        description,
+        change_reason,
     };
 
     let _ = validate_experiment(&payload)?;

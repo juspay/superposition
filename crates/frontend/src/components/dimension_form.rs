@@ -29,6 +29,8 @@ pub fn dimension_form<NF>(
     #[prop(default = String::new())] dimension_type: String,
     #[prop(default = Value::Null)] dimension_schema: Value,
     #[prop(default = None)] function_name: Option<Value>,
+    #[prop(default = String::new())] description: String,
+    #[prop(default = String::new())] change_reason: String,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -41,6 +43,8 @@ where
     let (dimension_type_rs, dimension_type_ws) = create_signal(dimension_type);
     let (dimension_schema_rs, dimension_schema_ws) = create_signal(dimension_schema);
     let (function_name, set_function_name) = create_signal(function_name);
+    let (description_rs, description_ws) = create_signal(description);
+    let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let functions_resource: Resource<String, Vec<Function>> = create_blocking_resource(
         move || tenant_rs.get(),
@@ -92,6 +96,8 @@ where
                         position: Some(function_position),
                         schema: Some(function_schema),
                         function_name: function_name,
+                        description: description_rs.get(),
+                        change_reason: change_reason_rs.get(),
                     };
                     update_dimension(tenant_rs.get(), dimension_name, update_payload)
                         .await
@@ -101,6 +107,8 @@ where
                         position: function_position,
                         schema: function_schema,
                         function_name: function_name,
+                        description: description_rs.get(),
+                        change_reason: change_reason_rs.get(),
                     };
                     create_dimension(tenant_rs.get(), create_payload).await
                 };
@@ -139,6 +147,40 @@ where
             </div>
 
             <div class="divider"></div>
+
+            <div class="form-control">
+            <label class="label">
+                <span class="label-text">Description</span>
+            </label>
+            <textarea
+                placeholder="Enter description"
+                class="textarea textarea-bordered w-full max-w-md"
+                value=description_rs.get_untracked()
+                on:change=move |ev| {
+                    let value = event_target_value(&ev);
+                    description_ws.set(value);
+                }
+            />
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">change_reason</span>
+            </label>
+            <textarea
+                placeholder="Enter change_reason"
+                class="textarea textarea-bordered w-full max-w-md"
+                value=change_reason_rs.get_untracked()
+                on:change=move |ev| {
+                    let value = event_target_value(&ev);
+                    change_reason_ws.set(value);
+                }
+            />
+        </div>
+        <div class="divider"></div>
+
 
             <Suspense>
                 {move || {

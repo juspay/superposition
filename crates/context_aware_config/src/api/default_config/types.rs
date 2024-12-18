@@ -9,6 +9,8 @@ pub struct CreateReq {
     pub value: Value,
     pub schema: Map<String, Value>,
     pub function_name: Option<String>,
+    pub description: String,
+    pub change_reason: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -17,6 +19,8 @@ pub struct UpdateReq {
     pub value: Option<Value>,
     pub schema: Option<Map<String, Value>>,
     pub function_name: Option<FunctionNameEnum>,
+    pub description: Option<String>,
+    pub change_reason: String,
 }
 
 #[derive(Debug, Clone)]

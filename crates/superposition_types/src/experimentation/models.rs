@@ -92,6 +92,8 @@ pub struct Experiment {
     pub variants: Variants,
     pub last_modified_by: String,
     pub chosen_variant: Option<String>,
+    pub description: String,
+    pub change_reason: String,
 }
 
 pub type Experiments = Vec<Experiment>;

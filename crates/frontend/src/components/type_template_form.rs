@@ -18,6 +18,8 @@ pub fn type_template_form<NF>(
     #[prop(default = String::new())] type_name: String,
     #[prop(default = json!({"type": "number"}))] type_schema: Value,
     handle_submit: NF,
+    #[prop(default = String::new())] description: String,
+    #[prop(default = String::new())] change_reason: String,
 ) -> impl IntoView
 where
     NF: Fn() + 'static + Clone,
@@ -28,6 +30,8 @@ where
     let (type_name_rs, type_name_ws) = create_signal(type_name);
     let (type_schema_rs, type_schema_ws) = create_signal(type_schema);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
+    let (description_rs, description_ws) = create_signal(description);
+    let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
 
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);
@@ -42,9 +46,13 @@ where
                 let result = if edit {
                     update_type(tenant_rs.get(), type_name, type_schema).await
                 } else {
+                    let description = description_rs.get();
+                    let change_reason = change_reason_rs.get();
                     let payload = json!({
                         "type_name": type_name,
-                        "type_schema": type_schema
+                        "type_schema": type_schema,
+                        "description": description,
+                        "change_reason": change_reason
                     });
                     create_type(tenant_rs.get(), payload.clone()).await
                 };
@@ -80,6 +88,39 @@ where
                     }
                 />
 
+            </div>
+            <div class="divider"></div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Description</span>
+                </label>
+                <textarea
+                    placeholder="Enter description"
+                    class="textarea textarea-bordered w-full max-w-md"
+                    value=description_rs.get_untracked()
+                    on:change=move |ev| {
+                        let value = event_target_value(&ev);
+                        description_ws.set(value);
+                    }
+                />
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">change_reason</span>
+                </label>
+                <textarea
+                    placeholder="Enter change_reason"
+                    class="textarea textarea-bordered w-full max-w-md"
+                    value=change_reason_rs.get_untracked()
+                    on:change=move |ev| {
+                        let value = event_target_value(&ev);
+                        change_reason_ws.set(value);
+                    }
+                />
             </div>
 
             <div class="divider"></div>
