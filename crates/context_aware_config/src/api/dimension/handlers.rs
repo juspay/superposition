@@ -12,12 +12,12 @@ use diesel::{
 use service_utils::service::types::{AppState, DbConnection};
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
-    cac::{
-        models::Dimension,
+    custom_query::PaginationParams,
+    database::{
+        models::cac::Dimension,
         schema::dimensions::{self, dsl::*},
         types::DimensionWithMandatory,
     },
-    custom_query::PaginationParams,
     result as superposition, PaginatedResponse, TenantConfig, User,
 };
 

@@ -9,7 +9,9 @@ use std::collections::HashSet;
 use std::str::FromStr;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    experimentation::models::{Experiment, ExperimentStatusType, Variant, VariantType},
+    database::models::experimentation::{
+        Experiment, ExperimentStatusType, Variant, VariantType,
+    },
     result as superposition, Condition, Config, Exp, Overrides,
 };
 
@@ -183,7 +185,7 @@ pub fn validate_experiment(
     flags: &ExperimentationFlags,
     conn: &mut PgConnection,
 ) -> superposition::Result<(bool, String)> {
-    use superposition_types::experimentation::schema::experiments::dsl as experiments_dsl;
+    use superposition_types::database::schema::experiments::dsl as experiments_dsl;
 
     let active_experiments: Vec<Experiment> = experiments_dsl::experiments
         .filter(

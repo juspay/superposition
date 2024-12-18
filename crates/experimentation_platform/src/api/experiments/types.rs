@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
     custom_query::{deserialize_stringified_list, CommaSeparatedStringQParams},
-    experimentation::models::{Experiment, ExperimentStatusType, Variant},
+    database::models::experimentation::{Experiment, ExperimentStatusType, Variant},
     Condition, Exp, Overrides, SortBy,
 };
 

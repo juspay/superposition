@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 
 use leptos::*;
 use serde_json::{Map, Value};
-use superposition_types::cac::types::DimensionWithMandatory;
+use superposition_types::database::types::DimensionWithMandatory;
 use web_sys::MouseEvent;
 
 use crate::components::{

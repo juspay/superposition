@@ -7,6 +7,60 @@ pub mod sql_types {
 }
 
 diesel::table! {
+    config_versions (id) {
+        id -> Int8,
+        config -> Json,
+        config_hash -> Text,
+        tags -> Nullable<Array<Varchar>>,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    contexts (id) {
+        id -> Varchar,
+        value -> Json,
+        override_id -> Varchar,
+        created_at -> Timestamptz,
+        created_by -> Varchar,
+        #[sql_name = "override"]
+        override_ -> Json,
+        last_modified_at -> Timestamp,
+        #[max_length = 200]
+        last_modified_by -> Varchar,
+        weight -> Numeric,
+    }
+}
+
+diesel::table! {
+    default_configs (key) {
+        key -> Varchar,
+        value -> Json,
+        created_at -> Timestamptz,
+        created_by -> Varchar,
+        schema -> Json,
+        function_name -> Nullable<Text>,
+        last_modified_at -> Timestamp,
+        #[max_length = 200]
+        last_modified_by -> Varchar,
+    }
+}
+
+diesel::table! {
+    dimensions (dimension) {
+        dimension -> Varchar,
+        created_at -> Timestamptz,
+        created_by -> Varchar,
+        schema -> Json,
+        function_name -> Nullable<Text>,
+        last_modified_at -> Timestamp,
+        #[max_length = 200]
+        last_modified_by -> Varchar,
+        position -> Int4,
+    }
+}
+
+diesel::table! {
     event_log (id, timestamp) {
         id -> Uuid,
         table_name -> Text,
@@ -572,7 +626,46 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    functions (function_name) {
+        function_name -> Text,
+        published_code -> Nullable<Text>,
+        draft_code -> Text,
+        function_description -> Text,
+        #[max_length = 16]
+        published_runtime_version -> Nullable<Varchar>,
+        #[max_length = 16]
+        draft_runtime_version -> Varchar,
+        published_at -> Nullable<Timestamp>,
+        draft_edited_at -> Timestamp,
+        published_by -> Nullable<Text>,
+        draft_edited_by -> Text,
+        last_modified_at -> Timestamp,
+        #[max_length = 200]
+        last_modified_by -> Varchar,
+    }
+}
+
+diesel::table! {
+    type_templates (type_name) {
+        type_name -> Text,
+        type_schema -> Json,
+        created_by -> Text,
+        created_at -> Timestamp,
+        last_modified_at -> Timestamp,
+        #[max_length = 200]
+        last_modified_by -> Varchar,
+    }
+}
+
+diesel::joinable!(default_configs -> functions (function_name));
+diesel::joinable!(dimensions -> functions (function_name));
+
 diesel::allow_tables_to_appear_in_same_query!(
+    config_versions,
+    contexts,
+    default_configs,
+    dimensions,
     event_log,
     event_log_y2023m08,
     event_log_y2023m09,
@@ -616,4 +709,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     event_log_y2026m11,
     event_log_y2026m12,
     experiments,
+    functions,
+    type_templates,
 );

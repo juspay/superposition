@@ -21,8 +21,7 @@ echo "Tenant ID ==> $TENANT"
 echo "DB URL ==> $DB_URL"
 
 # Creating schemas
-CAC_SCHEMA="${TENANT}_cac"
-EXP_SCHEMA="${TENANT}_experimentation"
+TENANT_SCHEMA="${TENANT}"
 
 function create_schema() {
     service=$1
@@ -55,8 +54,7 @@ function create_schema() {
     fi
 }
 
-create_schema "context_aware_config" $CAC_SCHEMA
-create_schema "experimentation_platform" $EXP_SCHEMA
-psql "$DB_URL" -c "INSERT INTO $CAC_SCHEMA.dimensions (dimension, priority, created_at, created_by, schema, function_name) VALUES ('variantIds', 1, CURRENT_TIMESTAMP, 'user@example.com', '{\"type\": \"string\",\"pattern\": \".*\"}'::json, null);"
+create_schema "superposition_types" $TENANT_SCHEMA
+psql "$DB_URL" -c "INSERT INTO $TENANT_SCHEMA.dimensions (dimension, priority, created_at, created_by, schema, function_name) VALUES ('variantIds', 1, CURRENT_TIMESTAMP, 'user@example.com', '{\"type\": \"string\",\"pattern\": \".*\"}'::json, null);"
 
 shopt -u extglob

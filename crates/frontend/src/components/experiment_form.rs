@@ -3,8 +3,8 @@ pub mod utils;
 
 use leptos::*;
 use superposition_types::{
-    cac::{models::DefaultConfig, types::DimensionWithMandatory},
-    experimentation::models::VariantType,
+    database::models::experimentation::VariantType,
+    database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
 };
 use utils::{create_experiment, update_experiment};
 use web_sys::MouseEvent;
