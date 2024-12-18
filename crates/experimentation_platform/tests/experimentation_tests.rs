@@ -4,7 +4,9 @@ use serde_json::{json, Map, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::ExperimentationFlags;
 use superposition_types::{
-    experimentation::models::{Experiment, ExperimentStatusType, Variant, Variants},
+    database::models::experimentation::{
+        Experiment, ExperimentStatusType, Variant, Variants,
+    },
     result as superposition, Cac, Condition, Exp, Overrides,
 };
 

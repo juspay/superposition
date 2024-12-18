@@ -12,7 +12,7 @@ use serde_json::{Map, Value};
 use service_utils::helpers::extract_dimensions;
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
-    cac::schema::{
+    database::schema::{
         default_configs::dsl,
         dimensions::{self},
     },

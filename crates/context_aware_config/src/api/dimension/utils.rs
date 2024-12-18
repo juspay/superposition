@@ -8,8 +8,8 @@ use service_utils::helpers::extract_dimensions;
 use std::collections::HashMap;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    cac::{
-        models::{Context, Dimension},
+    database::{
+        models::cac::{Context, Dimension},
         schema::{contexts::dsl::contexts, dimensions::dsl::*},
     },
     result as superposition, Cac, Condition,

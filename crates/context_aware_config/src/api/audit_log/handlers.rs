@@ -7,7 +7,7 @@ use chrono::{Duration, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::DbConnection;
 use superposition_types::{
-    cac::{models::EventLog, schema::event_log::dsl as event_log},
+    database::{models::cac::EventLog, schema::event_log::dsl as event_log},
     result as superposition, PaginatedResponse,
 };
 

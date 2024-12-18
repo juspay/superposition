@@ -25,10 +25,10 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
-use superposition_types::cac::schema::event_log::dsl as event_log;
+use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
-    cac::{
-        models::ConfigVersion,
+    database::{
+        models::cac::ConfigVersion,
         schema::{
             config_versions,
             contexts::dsl::{self as ctxt},

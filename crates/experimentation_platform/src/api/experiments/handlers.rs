@@ -25,8 +25,10 @@ use service_utils::service::types::{
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
     custom_query::PaginationParams,
-    experimentation::{
-        models::{EventLog, Experiment, ExperimentStatusType, Variant, Variants},
+    database::{
+        models::experimentation::{
+            EventLog, Experiment, ExperimentStatusType, Variant, Variants,
+        },
         schema::{event_log::dsl as event_log, experiments::dsl as experiments},
     },
     result::{self as superposition},
@@ -132,7 +134,7 @@ async fn create(
     user: User,
     tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
-    use superposition_types::experimentation::schema::experiments::dsl::experiments;
+    use superposition_types::database::schema::experiments::dsl::experiments;
     let mut variants = req.variants.to_vec();
     let DbConnection(mut conn) = db_conn;
 
@@ -361,7 +363,7 @@ pub async fn conclude(
     tenant: Tenant,
     user: User,
 ) -> superposition::Result<(Experiment, Option<String>)> {
-    use superposition_types::experimentation::schema::experiments::dsl;
+    use superposition_types::database::schema::experiments::dsl;
 
     let winner_variant_id: String = req.chosen_variant.to_owned();
 
@@ -647,7 +649,7 @@ pub fn get_experiment(
     experiment_id: i64,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<Experiment> {
-    use superposition_types::experimentation::schema::experiments::dsl::*;
+    use superposition_types::database::schema::experiments::dsl::*;
     let result: Experiment = experiments
         .find(experiment_id)
         .get_result::<Experiment>(conn)?;
