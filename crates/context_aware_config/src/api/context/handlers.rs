@@ -30,14 +30,14 @@ use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
 use superposition_types::{
-    cac::{
-        models::Context,
+    custom_query::{self as superposition_query, CustomQuery, DimensionQuery, QueryMap},
+    database::{
+        models::cac::Context,
         schema::{
             contexts::{self, id},
             default_configs::dsl,
         },
     },
-    custom_query::{self as superposition_query, CustomQuery, DimensionQuery, QueryMap},
     result as superposition, Cac, Contextual, Overridden, Overrides, PaginatedResponse,
     SortBy, TenantConfig, User,
 };
@@ -557,7 +557,7 @@ async fn get_context_from_condition(
     db_conn: DbConnection,
     req: Json<Map<String, Value>>,
 ) -> superposition::Result<Json<Context>> {
-    use superposition_types::cac::schema::contexts::dsl::*;
+    use superposition_types::database::schema::contexts::dsl::*;
 
     let context_id = hash(&Value::Object(req.into_inner()));
     let DbConnection(mut conn) = db_conn;
@@ -574,7 +574,7 @@ async fn get_context(
     path: Path<String>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<Context>> {
-    use superposition_types::cac::schema::contexts::dsl::*;
+    use superposition_types::database::schema::contexts::dsl::*;
 
     let ctx_id = path.into_inner();
     let DbConnection(mut conn) = db_conn;
@@ -592,7 +592,7 @@ async fn list_contexts(
     dimension_params: DimensionQuery<QueryMap>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<PaginatedResponse<Context>>> {
-    use superposition_types::cac::schema::contexts::dsl::*;
+    use superposition_types::database::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
 
     let filter_params = filter_params.into_inner();
@@ -835,7 +835,7 @@ async fn weight_recompute(
     #[cfg(feature = "high-performance-mode")] tenant: Tenant,
     user: User,
 ) -> superposition::Result<HttpResponse> {
-    use superposition_types::cac::schema::contexts::dsl::*;
+    use superposition_types::database::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
 
     let result: Vec<Context> = contexts.load(&mut conn).map_err(|err| {

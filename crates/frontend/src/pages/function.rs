@@ -9,7 +9,7 @@ use leptos_router::use_params_map;
 use serde::{Deserialize, Serialize};
 use strum::EnumProperty;
 use strum_macros::Display;
-use superposition_types::cac::models::Function;
+use superposition_types::database::models::cac::Function;
 use utils::publish_function;
 use web_sys::{HtmlButtonElement, MouseEvent};
 

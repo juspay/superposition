@@ -4,7 +4,7 @@ use leptos_router::A;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use superposition_types::{
-    cac::models::Function, custom_query::PaginationParams, PaginatedResponse,
+    custom_query::PaginationParams, database::models::cac::Function, PaginatedResponse,
 };
 
 use crate::api::fetch_functions;
