@@ -13,6 +13,7 @@ pub async fn create_function(
     function: String,
     runtime_version: String,
     description: String,
+    change_reason: String,
     tenant: String,
 ) -> Result<Function, String> {
     let payload = FunctionCreateRequest {
@@ -20,6 +21,7 @@ pub async fn create_function(
         function,
         runtime_version,
         description,
+        change_reason,
     };
 
     let host = get_host();
@@ -40,12 +42,14 @@ pub async fn update_function(
     function: String,
     runtime_version: String,
     description: String,
+    change_reason: String,
     tenant: String,
 ) -> Result<Function, String> {
     let payload = FunctionUpdateRequest {
         function,
         runtime_version,
         description,
+        change_reason,
     };
 
     let host = get_host();

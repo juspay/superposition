@@ -15,8 +15,10 @@ function add_dimension() {
                 "position": 0,
                 "schema": {
                     "type": "string",
-                    "pattern": ".*"
-                }
+                    "pattern": "^[a-z0-9].*$"
+                }, 
+                "description": "change_reason",
+                "change_reason": "change_reason"
             })
         }
     };

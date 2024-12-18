@@ -64,9 +64,10 @@ async fn create(
         published_at: None,
         published_by: None,
         published_runtime_version: None,
-        function_description: req.description,
+        description: req.description,
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
+        change_reason: req.change_reason,
     };
 
     let insert: Result<Function, diesel::result::Error> = diesel::insert_into(functions)
@@ -137,7 +138,7 @@ async fn update(
         draft_runtime_version: req
             .runtime_version
             .unwrap_or(result.draft_runtime_version),
-        function_description: req.description.unwrap_or(result.function_description),
+        description: req.description.unwrap_or(result.description),
         draft_edited_by: user.get_email(),
         draft_edited_at: Utc::now().naive_utc(),
         published_code: result.published_code,
@@ -146,6 +147,7 @@ async fn update(
         published_runtime_version: result.published_runtime_version,
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
+        change_reason: req.change_reason,
     };
 
     let mut updated_function = diesel::update(functions)
