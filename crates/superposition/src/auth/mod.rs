@@ -89,15 +89,23 @@ pub async fn init_auth() -> AuthHandler {
         .expect("Env 'AUTH_PROVIDER' not declared, unable to initalize auth provider.");
     let mut auth = var.split('+');
     let ap: Arc<dyn Authenticator> = match auth.next() {
-        Some("SAML2") => Arc::new(init_saml2_auth(auth.next().expect("Url not provided in env."))),
+        Some("SAML2") => Arc::new(init_saml2_auth(
+            auth.next().expect("Url not provided in env."),
+        )),
         Some("OIDC") => {
-            let url = Url::parse(auth.next().unwrap()).map_err(|e| e.to_string()).unwrap();
+            let url = Url::parse(auth.next().unwrap())
+                .map_err(|e| e.to_string())
+                .unwrap();
             let base_url = get_from_env_unsafe("CAC_HOST").unwrap();
             let cid = get_from_env_unsafe("OIDC_CLIENT_ID").unwrap();
             let csecret = get_from_env_unsafe("OIDC_CLIENT_SECRET").unwrap();
-            Arc::new(oidc::OIDCAuthenticator::new(url, base_url, cid, csecret).await.unwrap())
+            Arc::new(
+                oidc::OIDCAuthenticator::new(url, base_url, cid, csecret)
+                    .await
+                    .unwrap(),
+            )
         }
-        _ => panic!("Missing/Unknown authenticator.")
+        _ => panic!("Missing/Unknown authenticator."),
     };
     AuthHandler(ap)
 }
