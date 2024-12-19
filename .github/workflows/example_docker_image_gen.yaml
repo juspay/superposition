@@ -26,8 +26,8 @@ jobs:
               id: git_tag
               shell: bash
               run: |
-                docker_tag=`git tag -l --sort=-creatordate | grep "^v" | head -n 1 | sed 's/^v//'`
-                echo "docker_tag=$docker_tag" >> $GITHUB_OUTPUT
+                  docker_tag=`git tag -l --sort=-creatordate | grep "^v" | head -n 1 | sed 's/^v//'`
+                  echo "docker_tag=$docker_tag" >> $GITHUB_OUTPUT
 
             - name: Login to Docker Hub
               uses: docker/login-action@v3
