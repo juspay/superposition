@@ -42,6 +42,8 @@ RUN ls -l target
 
 FROM debian:bookworm-slim as runtime
 
+RUN mkdir -p /app/crates/superposition
+COPY --from=builder /build/crates/superposition/Superposition.cac.toml /app/crates/superposition/Superposition.cac.toml
 ENV NODE_VERSION=18.19.0
 WORKDIR /app
 

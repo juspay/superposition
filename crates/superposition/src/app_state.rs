@@ -16,7 +16,6 @@ use fred::{
     types::{ConnectionConfig, PerformanceConfig, ReconnectPolicy, RedisConfig},
 };
 use service_utils::{
-    aws::kms,
     db::utils::{get_superposition_token, init_pool_manager},
     helpers::{get_from_env_or_default, get_from_env_unsafe},
     service::types::{AppEnv, AppState, ExperimentationFlags},
@@ -27,6 +26,8 @@ use superposition_types::TenantConfig;
 const TENANT_CONFIG_FILE: &str = "crates/superposition/Superposition.cac.toml";
 
 pub async fn get(
+    app_env: AppEnv,
+    kms_client: &Option<aws_sdk_kms::Client>,
     service_prefix: String,
     base: &String,
     tenants: &HashSet<String>,
@@ -34,7 +35,6 @@ pub async fn get(
     let cac_host =
         get_from_env_unsafe::<String>("CAC_HOST").expect("CAC host is not set") + base;
     let max_pool_size = get_from_env_or_default("MAX_DB_CONNECTION_POOL_SIZE", 2);
-    let app_env = get_from_env_unsafe("APP_ENV").expect("APP_ENV is not set");
     let enable_tenant_and_scope = get_from_env_unsafe("ENABLE_TENANT_AND_SCOPE")
         .expect("ENABLE_TENANT_AND_SCOPE is not set");
 
@@ -56,11 +56,6 @@ pub async fn get(
         .collect::<HashMap<_, _>>();
 
     let snowflake_generator = Arc::new(Mutex::new(SnowflakeIdGenerator::new(1, 1)));
-
-    let kms_client = match app_env {
-        AppEnv::DEV | AppEnv::TEST => None,
-        _ => Some(kms::new_client().await),
-    };
 
     cfg_if::cfg_if! {
         if #[cfg(feature = "high-performance-mode")] {
