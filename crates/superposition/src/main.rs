@@ -2,6 +2,7 @@
 mod app_state;
 mod auth;
 mod organisation;
+mod workspace;
 
 use idgenerator::{IdGeneratorOptions, IdInstance};
 use std::{collections::HashSet, io::Result, time::Duration};
@@ -196,6 +197,11 @@ async fn main() -> Result<()> {
                         scope("/organisation")
                             .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION))
                             .service(organisation::endpoints()),
+                    )
+                    .service(
+                        scope("/workspace")
+                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION))
+                            .service(workspace::endpoints(scope("/workspaces"))),
                     )
                     /***************************** UI Routes ******************************/
                     .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())
