@@ -41,6 +41,8 @@ RUN cargo build --release
 
 FROM debian:bookworm-slim as runtime
 
+RUN mkdir -p /app/crates/superposition
+COPY --from=builder /build/crates/superposition/Superposition.cac.toml /app/crates/superposition/Superposition.cac.toml
 ENV NODE_VERSION=20.17.0
 WORKDIR /app
 
