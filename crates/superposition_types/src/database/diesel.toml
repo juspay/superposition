@@ -2,5 +2,9 @@
 file = "schema.rs"
 patch_file = "schema.patch"
 
+[print_schema.superposition]
+file = "src/superposition_schema.rs"
+patch_file = "schema.patch"
+
 [migrations_directory]
 dir = "../../migrations"
