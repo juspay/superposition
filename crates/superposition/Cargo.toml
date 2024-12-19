@@ -8,21 +8,28 @@ edition = "2021"
 [dependencies]
 actix-files = { version = "0.6" }
 actix-web = { workspace = true }
+anyhow = { workspace = true }
 cac_toml = { path = "../cac_toml" }
 cfg-if = { workspace = true }
+chrono = { workspace = true }
 context_aware_config = { path = "../context_aware_config" }
 dotenv = "0.15.0"
+diesel = { workspace = true }
 env_logger = "0.8"
 experimentation_platform = { path = "../experimentation_platform" }
 fred = { workspace = true, optional = true }
 frontend = { path = "../frontend" }
 leptos = { workspace = true }
 leptos_actix = { version = "0.6.11" }
+log = { workspace = true }
+regex = { workspace = true }
 reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 service_utils = { path = "../service_utils" }
-superposition_types = { path = "../superposition_types" }
+superposition_macros = { path = "../superposition_macros" }
+superposition_types = { path = "../superposition_types", features = ["diesel_derives"]}
 toml = { workspace = true }
 
 [features]

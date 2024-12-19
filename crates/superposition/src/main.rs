@@ -1,5 +1,6 @@
 #![deny(unused_crate_dependencies)]
 mod app_state;
+mod workspace;
 
 use std::{collections::HashSet, io::Result, time::Duration};
 
@@ -177,6 +178,11 @@ async fn main() -> Result<()> {
                     .service(
                         experiments::endpoints(scope("/experiments")).wrap(
                             AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION),
+                        ),
+                    )
+                    .service(
+                        workspace::endpoints(scope("/workspaces")).wrap(
+                            AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION),
                         ),
                     )
                     /***************************** UI Routes ******************************/
