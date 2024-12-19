@@ -257,6 +257,23 @@ pub async fn delete_dimension(name: String, tenant: String) -> Result<(), String
     Ok(())
 }
 
+pub async fn fetch_organisations() -> Result<Vec<String>, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = use_host_server();
+    let url = format!("{host}/oidc/organisations");
+
+    match client.get(url).send().await {
+        Ok(organisations) => {
+            let organisations = organisations
+                .json()
+                .await
+                .map_err(|err| ServerFnError::new(err.to_string()))?;
+            Ok(organisations)
+        }
+        Err(e) => Err(ServerFnError::new(e.to_string())),
+    }
+}
+
 pub async fn fetch_types(
     filters: &PaginationParams,
     tenant: String,
