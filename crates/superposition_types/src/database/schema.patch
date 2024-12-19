@@ -1,19 +1,18 @@
 diff --git a/crates/superposition_types/src/database/schema.rs b/crates/superposition_types/src/database/schema.rs
-index 8359708e..c1c0b01e 100644
+index 3d66e604..c4cb4f9c 100644
 --- a/crates/superposition_types/src/database/schema.rs
 +++ b/crates/superposition_types/src/database/schema.rs
-@@ -5,10 +5,6 @@ pub mod sql_types {
+@@ -5,9 +5,6 @@ pub mod sql_types {
      #[diesel(postgres_type(name = "experiment_status_type"))]
      pub struct ExperimentStatusType;
- 
+
 -    #[derive(diesel::sql_types::SqlType)]
 -    #[diesel(postgres_type(name = "not_null_text"))]
 -    pub struct NotNullText;
--
-     #[derive(diesel::sql_types::SqlType)]
-     #[diesel(postgres_type(name = "workspace_status"))]
-     pub struct WorkspaceStatus;
-@@ -38,7 +34,7 @@ diesel::table! {
+ }
+
+ diesel::table! {
+@@ -15,7 +12,7 @@ diesel::table! {
          id -> Int8,
          config -> Json,
          config_hash -> Text,
@@ -22,15 +21,15 @@ index 8359708e..c1c0b01e 100644
          created_at -> Timestamp,
      }
  }
-@@ -637,7 +633,6 @@ diesel::table! {
- 
+@@ -614,7 +611,6 @@ diesel::table! {
+
  diesel::table! {
      use diesel::sql_types::*;
 -    use super::sql_types::NotNullText;
      use super::sql_types::ExperimentStatusType;
- 
+
      experiments (id) {
-@@ -646,7 +641,7 @@ diesel::table! {
+@@ -623,7 +619,7 @@ diesel::table! {
          created_by -> Text,
          last_modified -> Timestamptz,
          name -> Text,
@@ -39,3 +38,16 @@ index 8359708e..c1c0b01e 100644
          status -> ExperimentStatusType,
          traffic_percentage -> Int4,
          context -> Json,
+diff --git a/crates/superposition_types/src/database/superposition_schema.rs b/crates/superposition_types/src/database/superposition_schema.rs
+index bd298000..4772a860 100644
+--- a/crates/superposition_types/src/database/superposition_schema.rs
++++ b/crates/superposition_types/src/database/superposition_schema.rs
+@@ -22,7 +22,7 @@ pub mod superposition {
+             last_modified_by -> Text,
+             last_modified_at -> Timestamp,
+             created_at -> Timestamp,
+-            mandatory_dimensions -> Nullable<Array<Nullable<Text>>>,
++            mandatory_dimensions -> Nullable<Array<Text>>,
+         }
+     }
+ }

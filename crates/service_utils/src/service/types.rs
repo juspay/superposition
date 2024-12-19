@@ -74,6 +74,7 @@ impl FromStr for AppEnv {
 pub enum AppScope {
     CAC,
     EXPERIMENTATION,
+    SUPERPOSITION,
 }
 impl FromRequest for AppScope {
     type Error = Error;
