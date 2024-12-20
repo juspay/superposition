@@ -1,6 +1,6 @@
 use chrono::NaiveDateTime;
 #[cfg(feature = "diesel_derives")]
-use diesel::{Insertable, QueryId, Queryable, Selectable, AsChangeset};
+use diesel::{AsChangeset, Insertable, QueryId, Queryable, Selectable};
 
 use serde::{Deserialize, Serialize};
 
@@ -10,6 +10,48 @@ pub mod experimentation;
 
 #[cfg(feature = "diesel_derives")]
 use super::superposition_schema::superposition::*;
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(diesel_derive_enum::DbEnum, QueryId)
+)]
+#[cfg_attr(feature = "diesel_derives", DbValueStyle = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    ExistingTypePath = "crate::database::superposition_schema::superposition::sql_types::OrgStatus"
+)]
+pub enum OrgStatus {
+    Active,
+    Inactive,
+    PendingKyb,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(Queryable, Selectable, Insertable, AsChangeset)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(id)))]
+#[cfg_attr(feature = "diesel_derives", diesel(treat_none_as_null = true))]
+pub struct Organisation {
+    pub id: String,
+    pub name: String,
+    pub country_code: Option<String>,
+    pub contact_email: Option<String>,
+    pub contact_phone: Option<String>,
+    pub created_by: String,
+    pub admin_email: String,
+    pub status: OrgStatus,
+    pub sector: Option<String>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub updated_by: String,
+}
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display,
@@ -30,7 +72,7 @@ pub enum WorkspaceStatus {
     DISABLED,
 }
 
-#[derive(Clone, Serialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)
@@ -38,11 +80,11 @@ pub enum WorkspaceStatus {
 #[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
 #[cfg_attr(
     feature = "diesel_derives",
-    diesel(primary_key(organization_id, workspace_name))
+    diesel(primary_key(organisation_id, workspace_name))
 )]
 pub struct Workspace {
-    pub organization_id: String,
-    pub organization_name: String,
+    pub organisation_id: String,
+    pub organisation_name: String,
     pub workspace_name: String,
     pub workspace_schema_name: String,
     pub workspace_status: WorkspaceStatus,

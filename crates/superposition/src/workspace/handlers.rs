@@ -11,13 +11,13 @@ use diesel::{
     TextExpressionMethods,
 };
 use regex::Regex;
-use service_utils::service::types::DbConnection;
+use service_utils::service::types::{DbConnection, OrganisationId};
 use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::{
     custom_query::PaginationParams,
     database::{
-        models::{Workspace, WorkspaceStatus},
-        superposition_schema::superposition::workspaces,
+        models::{Organisation, Workspace, WorkspaceStatus},
+        superposition_schema::superposition::{organisations, workspaces},
     },
     result as superposition, PaginatedResponse, User,
 };
@@ -37,19 +37,21 @@ pub fn endpoints(scope: Scope) -> Scope {
 async fn create_workspace(
     request: web::Json<CreateWorkspaceRequest>,
     db_conn: DbConnection,
+    org_id: OrganisationId,
     user: User,
 ) -> superposition::Result<Json<Workspace>> {
     let DbConnection(mut conn) = db_conn;
+    let org_info: Organisation = organisations::dsl::organisations
+        .filter(organisations::id.eq(&org_id.0))
+        .get_result::<Organisation>(&mut conn)?;
     let timestamp = Utc::now().naive_utc();
     let request = request.into_inner();
     let email = user.get_email();
-    let organization_id = String::from("org");
     validate_workspace_name(&request.workspace_name)?;
-    let workspace_schema_name =
-        format!("{}_{}", organization_id, &request.workspace_name);
+    let workspace_schema_name = format!("{}_{}", &org_info.id, &request.workspace_name);
     let workspace = Workspace {
-        organization_id: organization_id,
-        organization_name: String::from("org"),
+        organisation_id: org_info.id,
+        organisation_name: org_info.name,
         workspace_name: request.workspace_name,
         workspace_schema_name: workspace_schema_name.clone(),
         workspace_status: WorkspaceStatus::ENABLED,
@@ -98,6 +100,7 @@ async fn update_workspace(
     workspace_name: web::Path<String>,
     request: web::Json<UpdateWorkspaceRequest>,
     db_conn: DbConnection,
+    org_id: OrganisationId,
     user: User,
 ) -> superposition::Result<Json<Workspace>> {
     let request = request.into_inner();
@@ -105,6 +108,7 @@ async fn update_workspace(
     let timestamp = Utc::now().naive_utc();
     let DbConnection(mut conn) = db_conn;
     let mut updated_workspace = diesel::update(workspaces::table)
+        .filter(workspaces::organisation_id.eq(&org_id.0))
         .filter(workspaces::workspace_name.eq(workspace_name.clone()))
         .set((
             workspaces::workspace_admin_email.eq(request.workspace_admin_email),
@@ -119,6 +123,7 @@ async fn update_workspace(
         })?;
     if let Some(workspace_status) = request.workspace_status {
         updated_workspace = diesel::update(workspaces::table)
+            .filter(workspaces::organisation_id.eq(&org_id.0))
             .filter(workspaces::workspace_name.eq(workspace_name))
             .set((
                 workspaces::workspace_status.eq(workspace_status),
@@ -138,13 +143,12 @@ async fn list_workspaces(
     db_conn: DbConnection,
     pagination_filters: Query<PaginationParams>,
     filters: Query<WorkspaceListFilters>,
+    org_id: OrganisationId,
 ) -> superposition::Result<Json<PaginatedResponse<Workspace>>> {
-    // TODO: filter by org ID
-    let organization_id = String::from("org");
     let DbConnection(mut conn) = db_conn;
     if let Some(true) = pagination_filters.all {
         let result: Vec<Workspace> = workspaces::dsl::workspaces
-            .filter(workspaces::organization_id.eq(&organization_id))
+            .filter(workspaces::organisation_id.eq(&org_id.0))
             .get_results(&mut conn)?;
         return Ok(Json(PaginatedResponse {
             total_pages: 1,
@@ -155,7 +159,9 @@ async fn list_workspaces(
 
     let filters = filters.into_inner();
     let query_builder = |filters: &WorkspaceListFilters| {
-        let mut builder = workspaces::dsl::workspaces.filter(workspaces::organization_id.eq(&organization_id)).into_boxed();
+        let mut builder = workspaces::dsl::workspaces
+            .filter(workspaces::organisation_id.eq(&org_id.0))
+            .into_boxed();
         if let Some(ref workspace_name) = filters.workspace_name {
             builder = builder.filter(
                 workspaces::dsl::workspace_name.like(format!("%{}%", workspace_name)),
