@@ -9,7 +9,7 @@ use base64::prelude::*;
 use chrono::Utc;
 use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::json;
-use service_utils::service::types::DbConnection;
+use service_utils::service::types::{DbConnection, Tenant};
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
     custom_query::PaginationParams,
@@ -48,6 +48,7 @@ async fn create(
     request: web::Json<CreateFunctionRequest>,
     db_conn: DbConnection,
     user: User,
+    tenant: Tenant,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -71,6 +72,7 @@ async fn create(
 
     let insert: Result<Function, diesel::result::Error> = diesel::insert_into(functions)
         .values(&function)
+        .schema_name(&tenant)
         .get_result(&mut conn);
 
     match insert {
@@ -106,12 +108,13 @@ async fn update(
     request: web::Json<UpdateFunctionRequest>,
     db_conn: DbConnection,
     user: User,
+    tenant: Tenant,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
     let f_name: String = params.into_inner().into();
 
-    let result = match fetch_function(&f_name, &mut conn) {
+    let result = match fetch_function(&f_name, &mut conn, &tenant) {
         Ok(val) => val,
         Err(superposition::AppError::DbError(diesel::result::Error::NotFound)) => {
             log::error!("Function not found.");
@@ -151,6 +154,7 @@ async fn update(
     let mut updated_function = diesel::update(functions)
         .filter(schema::functions::function_name.eq(f_name))
         .set(new_function)
+        .schema_name(&tenant)
         .get_result::<Function>(&mut conn)?;
 
     decode_function(&mut updated_function)?;
@@ -161,10 +165,11 @@ async fn update(
 async fn get(
     params: web::Path<FunctionName>,
     db_conn: DbConnection,
+    tenant: Tenant,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let f_name: String = params.into_inner().into();
-    let mut function = fetch_function(&f_name, &mut conn)?;
+    let mut function = fetch_function(&f_name, &mut conn, &tenant)?;
 
     decode_function(&mut function)?;
     Ok(Json(function))
@@ -174,21 +179,27 @@ async fn get(
 async fn list_functions(
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
+    tenant: Tenant,
 ) -> superposition::Result<Json<PaginatedResponse<Function>>> {
     let DbConnection(mut conn) = db_conn;
 
     let (total_pages, total_items, mut data) = match filters.all {
         Some(true) => {
-            let result: Vec<Function> = functions.get_results(&mut conn)?;
+            let result: Vec<Function> =
+                functions.schema_name(&tenant).get_results(&mut conn)?;
             (1, result.len() as i64, result)
         }
         _ => {
-            let n_functions: i64 = functions.count().get_result(&mut conn)?;
+            let n_functions: i64 = functions
+                .count()
+                .schema_name(&tenant)
+                .get_result(&mut conn)?;
             let limit = filters.count.unwrap_or(10);
             let mut builder = functions
-                .into_boxed()
                 .order(last_modified_at.desc())
-                .limit(limit);
+                .limit(limit)
+                .schema_name(&tenant)
+                .into_boxed();
             if let Some(page) = filters.page {
                 let offset = (page - 1) * limit;
                 builder = builder.offset(offset);
@@ -214,6 +225,7 @@ async fn delete_function(
     params: web::Path<FunctionName>,
     db_conn: DbConnection,
     user: User,
+    tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let f_name: String = params.into_inner().into();
@@ -224,9 +236,11 @@ async fn delete_function(
             dsl::last_modified_at.eq(Utc::now().naive_utc()),
             dsl::last_modified_by.eq(user.get_email()),
         ))
+        .schema_name(&tenant)
         .execute(&mut conn)?;
-    let deleted_row =
-        delete(functions.filter(function_name.eq(&f_name))).execute(&mut conn);
+    let deleted_row = delete(functions.filter(function_name.eq(&f_name)))
+        .schema_name(&tenant)
+        .execute(&mut conn);
     match deleted_row {
         Ok(0) => Err(not_found!("Function {} doesn't exists", f_name)),
         Ok(_) => {
@@ -247,12 +261,13 @@ async fn test(
     params: Path<TestParam>,
     request: web::Json<TestFunctionRequest>,
     db_conn: DbConnection,
+    tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let path_params = params.into_inner();
     let fun_name: &String = &path_params.function_name.into();
     let req = request.into_inner();
-    let mut function = match fetch_function(fun_name, &mut conn) {
+    let mut function = match fetch_function(fun_name, &mut conn, &tenant) {
         Ok(val) => val,
         Err(superposition::AppError::DbError(diesel::result::Error::NotFound)) => {
             log::error!("Function not found.");
@@ -293,11 +308,12 @@ async fn publish(
     params: web::Path<FunctionName>,
     db_conn: DbConnection,
     user: User,
+    tenant: Tenant,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let fun_name: String = params.into_inner().into();
 
-    let function = match fetch_function(&fun_name, &mut conn) {
+    let function = match fetch_function(&fun_name, &mut conn, &tenant) {
         Ok(val) => val,
         Err(superposition::AppError::DbError(diesel::result::Error::NotFound)) => {
             log::error!("Function {} not found.", fun_name);
@@ -320,6 +336,7 @@ async fn publish(
             dsl::published_by.eq(Some(user.get_email())),
             dsl::published_at.eq(Some(Utc::now().naive_utc())),
         ))
+        .schema_name(&tenant)
         .get_result::<Function>(&mut conn)?;
 
     Ok(Json(updated_function))
