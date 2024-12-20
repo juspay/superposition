@@ -5,9 +5,7 @@ use actix_web::web::Data;
 #[cfg(feature = "high-performance-mode")]
 use chrono::DateTime;
 use chrono::Utc;
-use diesel::{
-    ExpressionMethods, QueryDsl, RunQueryDsl,
-};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
 
