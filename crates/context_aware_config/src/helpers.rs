@@ -15,15 +15,13 @@ use jsonschema::{Draft, JSONSchema, ValidationError};
 use num_bigint::BigUint;
 use serde_json::{json, Map, Value};
 use service_utils::service::types::Tenant;
-#[cfg(feature = "high-performance-mode")]
-use service_utils::service::types::Tenant;
 use service_utils::{
     helpers::{generate_snowflake_id, validation_err_to_str},
     service::types::AppState,
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
-use superposition_types::cac::schema::event_log::dsl as event_log;
+use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::DBConnection;
 use superposition_types::{
     database::{
@@ -322,9 +320,9 @@ pub async fn put_config_in_redis(
     version_id: i64,
     state: Data<AppState>,
     tenant: Tenant,
-    db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    db_conn: &mut DBConnection,
 ) -> superposition::Result<()> {
-    let raw_config = generate_cac(db_conn)?;
+    let raw_config = generate_cac(db_conn, &tenant)?;
     let parsed_config = serde_json::to_string(&json!(raw_config)).map_err(|e| {
         log::error!("failed to convert cac config to string: {}", e);
         unexpected_error!("could not convert cac config to string")

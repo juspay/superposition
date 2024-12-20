@@ -24,7 +24,8 @@ use service_utils::{
     aws::kms,
     helpers::get_from_env_unsafe,
     middlewares::{
-        app_scope::AppExecutionScopeMiddlewareFactory, tenant::TenantMiddlewareFactory,
+        app_scope::AppExecutionScopeMiddlewareFactory,
+        tenant::OrgWorkspaceMiddlewareFactory,
     },
     service::types::{AppEnv, AppScope},
 };
@@ -127,7 +128,6 @@ async fn main() -> Result<()> {
         App::new()
             .wrap(Compress::default())
             .app_data(app_state.clone())
-            .wrap(TenantMiddlewareFactory)
             .app_data(PathConfig::default().error_handler(|err, _| {
                 actix_web::error::ErrorBadRequest(err)
             }))
@@ -155,53 +155,62 @@ async fn main() -> Result<()> {
                     /***************************** V1 Routes *****************************/
                     .service(
                         scope("/context")
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(context::endpoints()),
                     )
                     .service(
                         scope("/dimension")
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(dimension::endpoints()),
                     )
                     .service(
                         scope("/default-config")
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(default_config::endpoints()),
                     )
                     .service(
                         scope("/config")
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(config::endpoints()),
                     )
                     .service(
                         scope("/audit")
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(audit_log::endpoints()),
                     )
                     .service(
                         scope("/function")
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(functions::endpoints()),
                     )
                     .service(
                         scope("/types")
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(type_templates::endpoints()),
                     )
                     .service(
-                        experiments::endpoints(scope("/experiments")).wrap(
+                        experiments::endpoints(scope("/experiments"))
+                        .wrap(
                             AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION),
-                        ),
+                        )
+                        .wrap(OrgWorkspaceMiddlewareFactory::new(true, true)),
                     )
                     .service(
-                        scope("/organisation")
+                        scope("/superposition/organisations")
                             .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION))
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
                             .service(organisation::endpoints()),
                     )
-                    .service(
-                        scope("/workspace")
-                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION))
-                            .service(workspace::endpoints(scope("/workspaces"))),
+                    .service(workspace::endpoints(scope("/workspaces"))
+                        .wrap(OrgWorkspaceMiddlewareFactory::new(true, false))
+                        .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION)),
                     )
                     /***************************** UI Routes ******************************/
                     .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())
