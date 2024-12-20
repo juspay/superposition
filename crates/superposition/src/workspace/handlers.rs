@@ -155,7 +155,9 @@ async fn list_workspaces(
 
     let filters = filters.into_inner();
     let query_builder = |filters: &WorkspaceListFilters| {
-        let mut builder = workspaces::dsl::workspaces.filter(workspaces::organization_id.eq(&organization_id)).into_boxed();
+        let mut builder = workspaces::dsl::workspaces
+            .filter(workspaces::organization_id.eq(&organization_id))
+            .into_boxed();
         if let Some(ref workspace_name) = filters.workspace_name {
             builder = builder.filter(
                 workspaces::dsl::workspace_name.like(format!("%{}%", workspace_name)),
