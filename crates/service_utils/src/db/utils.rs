@@ -1,10 +1,9 @@
-use std::collections::HashSet;
-
 use aws_sdk_kms::Client;
+use diesel::r2d2::{ConnectionManager, Pool};
+use diesel::PgConnection;
 use urlencoding::encode;
 
 use crate::aws::kms;
-use crate::db::pgschema_manager::{ConnectionConfig, PgSchemaManager};
 use crate::helpers::{get_from_env_or_default, get_from_env_unsafe};
 use crate::service::types::AppEnv;
 
@@ -60,29 +59,14 @@ pub async fn get_database_url(kms_client: &Option<Client>, app_env: &AppEnv) -> 
 }
 
 pub async fn init_pool_manager(
-    tenants: HashSet<String>,
-    enable_tenant_and_scope: bool,
     kms_client: &Option<Client>,
     app_env: &AppEnv,
     max_pool_size: u32,
-) -> PgSchemaManager {
+) -> Pool<ConnectionManager<PgConnection>> {
     let database_url = get_database_url(kms_client, app_env).await;
-    let workspaces = match (enable_tenant_and_scope, app_env) {
-        (true, _) => tenants.into_iter().collect::<Vec<String>>(),
-        (false, _) => vec!["cac_v1".to_string()],
-    };
-
-    let connection_configs = workspaces
-        .iter()
-        .map(|namespace| {
-            ConnectionConfig::new(
-                namespace.to_string(),
-                database_url.clone(),
-                namespace.to_string(),
-                max_pool_size,
-            )
-        })
-        .collect::<Vec<ConnectionConfig>>();
-
-    PgSchemaManager::from(connection_configs)
+    let manager = ConnectionManager::<PgConnection>::new(database_url);
+    Pool::builder()
+        .max_size(max_pool_size)
+        .build(manager)
+        .unwrap()
 }
