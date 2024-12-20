@@ -12,7 +12,8 @@ use diesel::{
     dsl::sql,
     r2d2::{ConnectionManager, PooledConnection},
     sql_types::{Bool, Text},
-    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, TextExpressionMethods,
+    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
+    TextExpressionMethods,
 };
 use reqwest::{Method, Response, StatusCode};
 use serde_json::{json, Map, Value};
@@ -182,8 +183,14 @@ async fn create(
 
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;
-    let (valid, reason) =
-        validate_experiment(&exp_context, &unique_override_keys, None, flags, &mut conn)?;
+    let (valid, reason) = validate_experiment(
+        &exp_context,
+        &unique_override_keys,
+        None,
+        flags,
+        &tenant,
+        &mut conn,
+    )?;
     if !valid {
         return Err(bad_argument!(reason));
     }
@@ -290,6 +297,8 @@ async fn create(
 
     let mut inserted_experiments = diesel::insert_into(experiments)
         .values(&new_experiment)
+        .returning(Experiment::as_returning())
+        .schema_name(&tenant)
         .get_results(&mut conn)?;
 
     let inserted_experiment: Experiment = inserted_experiments.remove(0);
@@ -373,6 +382,7 @@ pub async fn conclude(
 
     let experiment: Experiment = dsl::experiments
         .find(experiment_id)
+        .schema_name(&tenant)
         .get_result::<Experiment>(&mut conn)?;
 
     let description = match req.description.clone() {
@@ -495,6 +505,7 @@ pub async fn conclude(
             dsl::last_modified_by.eq(user.get_email()),
             dsl::chosen_variant.eq(Some(winner_variant_id)),
         ))
+        .schema_name(&tenant)
         .get_result::<Experiment>(&mut conn)?;
 
     Ok((updated_experiment, config_version_id))
@@ -504,12 +515,14 @@ pub async fn conclude(
 async fn get_applicable_variants(
     db_conn: DbConnection,
     query_data: Query<ApplicableVariantsQuery>,
+    tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let query_data = query_data.into_inner();
 
     let experiments = experiments::experiments
         .filter(experiments::status.ne(ExperimentStatusType::CONCLUDED))
+        .schema_name(&tenant)
         .load::<Experiment>(&mut conn)?;
 
     let experiments = experiments.into_iter().filter(|exp| {
@@ -545,11 +558,14 @@ async fn list_experiments(
     pagination_params: Query<PaginationParams>,
     filters: Query<ExperimentListFilters>,
     db_conn: DbConnection,
+    tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
     if let Some(true) = pagination_params.all {
-        let result = experiments::experiments.get_results::<Experiment>(&mut conn)?;
+        let result = experiments::experiments
+            .schema_name(&tenant)
+            .get_results::<Experiment>(&mut conn)?;
         return Ok(
             HttpResponse::Ok().json(PaginatedResponse::<ExperimentResponse> {
                 total_pages: 1,
@@ -562,6 +578,7 @@ async fn list_experiments(
     let max_event_timestamp: Option<NaiveDateTime> = event_log::event_log
         .filter(event_log::table_name.eq("experiments"))
         .select(diesel::dsl::max(event_log::timestamp))
+        .schema_name(&tenant)
         .first(&mut conn)?;
 
     let last_modified = req
@@ -579,7 +596,7 @@ async fn list_experiments(
     };
 
     let query_builder = |filters: &ExperimentListFilters| {
-        let mut builder = experiments::experiments.into_boxed();
+        let mut builder = experiments::experiments.schema_name(&tenant).into_boxed();
         if let Some(ref states) = filters.status {
             builder = builder.filter(experiments::status.eq_any(states.0.clone()));
         }
@@ -649,19 +666,22 @@ async fn list_experiments(
 async fn get_experiment_handler(
     params: web::Path<i64>,
     db_conn: DbConnection,
+    tenant: Tenant,
 ) -> superposition::Result<Json<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
-    let response = get_experiment(params.into_inner(), &mut conn)?;
+    let response = get_experiment(params.into_inner(), &mut conn, &tenant)?;
     Ok(Json(ExperimentResponse::from(response)))
 }
 
 pub fn get_experiment(
     experiment_id: i64,
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    conn: &mut DBConnection,
+    tenant: &Tenant,
 ) -> superposition::Result<Experiment> {
     use superposition_types::database::schema::experiments::dsl::*;
     let result: Experiment = experiments
         .find(experiment_id)
+        .schema_name(&tenant)
         .get_result::<Experiment>(conn)?;
 
     Ok(result)
@@ -684,6 +704,7 @@ async fn ramp(
 
     let experiment: Experiment = experiments::experiments
         .find(exp_id)
+        .schema_name(&tenant)
         .get_result::<Experiment>(&mut conn)?;
 
     let old_traffic_percentage = experiment.traffic_percentage as u8;
@@ -714,6 +735,7 @@ async fn ramp(
             experiments::description.eq(description),
             experiments::change_reason.eq(change_reason),
         ))
+        .schema_name(&tenant)
         .get_result(&mut conn)?;
 
     let (_, config_version_id) = fetch_cac_config(&tenant, &data).await?;
@@ -773,6 +795,7 @@ async fn update_overrides(
     // fetch the current variants of the experiment
     let experiment = experiments::experiments
         .find(experiment_id)
+        .schema_name(&tenant)
         .first::<Experiment>(&mut conn)?;
 
     if experiment.status != ExperimentStatusType::CREATED {
@@ -856,6 +879,7 @@ async fn update_overrides(
         &override_keys,
         Some(experiment_id),
         flags,
+        &tenant,
         &mut conn,
     )?;
     if !valid {
@@ -963,6 +987,7 @@ async fn update_overrides(
             experiments::last_modified.eq(Utc::now()),
             experiments::last_modified_by.eq(user.get_email()),
         ))
+        .schema_name(&tenant)
         .get_result::<Experiment>(&mut conn)?;
 
     let experiment_response = ExperimentResponse::from(updated_experiment);
@@ -990,11 +1015,12 @@ async fn update_overrides(
 async fn get_audit_logs(
     filters: Query<AuditQueryFilters>,
     db_conn: DbConnection,
+    tenant: Tenant,
 ) -> superposition::Result<Json<PaginatedResponse<EventLog>>> {
     let DbConnection(mut conn) = db_conn;
 
     let query_builder = |filters: &AuditQueryFilters| {
-        let mut builder = event_log::event_log.into_boxed();
+        let mut builder = event_log::event_log.schema_name(&tenant).into_boxed();
         if let Some(tables) = filters.table.clone() {
             builder = builder.filter(event_log::table_name.eq_any(tables.0));
         }
