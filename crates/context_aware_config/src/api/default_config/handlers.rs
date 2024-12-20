@@ -6,18 +6,12 @@ use actix_web::{
     HttpResponse, Scope,
 };
 use chrono::Utc;
-use diesel::{
-    r2d2::{ConnectionManager, PooledConnection},
-    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
-};
-use diesel::{Connection, SelectableHelper};
+use diesel::{Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Value;
-#[cfg(feature = "high-performance-mode")]
-use service_utils::service::types::Tenant;
 use service_utils::{
     helpers::{parse_config_tags, validation_err_to_str},
-    service::types::{AppHeader, AppState, CustomHeaders, DbConnection},
+    service::types::{AppHeader, AppState, CustomHeaders, DbConnection, Tenant},
 };
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
@@ -28,7 +22,7 @@ use superposition_types::{
         models::cac::{self as models, Context, DefaultConfig},
         schema::{self, contexts::dsl::contexts, default_configs::dsl},
     },
-    result as superposition, PaginatedResponse, User,
+    result as superposition, DBConnection, PaginatedResponse, User,
 };
 
 #[cfg(feature = "high-performance-mode")]
@@ -58,7 +52,7 @@ async fn create_default_config(
     custom_headers: CustomHeaders,
     request: web::Json<CreateReq>,
     db_conn: DbConnection,
-    #[cfg(feature = "high-performance-mode")] tenant: Tenant,
+    tenant: Tenant,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -114,6 +108,7 @@ async fn create_default_config(
         default_config.function_name.as_ref(),
         &default_config.key,
         &default_config.value,
+        &tenant,
     ) {
         log::info!("Validation failed: {:?}", e);
         return Err(e);
@@ -123,6 +118,7 @@ async fn create_default_config(
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             diesel::insert_into(dsl::default_configs)
                 .values(&default_config)
+                .schema_name(&tenant)
                 .execute(transaction_conn)
                 .map_err(|e| {
                     log::info!("DefaultConfig creation failed with error: {e}");
@@ -130,7 +126,14 @@ async fn create_default_config(
                         "Something went wrong, failed to create DefaultConfig"
                     )
                 })?;
-            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            let version_id = add_config_version(
+                &state,
+                tags,
+                description,
+                change_reason,
+                transaction_conn,
+                &tenant,
+            )?;
             Ok(version_id)
         })?;
     #[cfg(feature = "high-performance-mode")]
@@ -151,7 +154,7 @@ async fn update_default_config(
     custom_headers: CustomHeaders,
     request: web::Json<UpdateReq>,
     db_conn: DbConnection,
-    #[cfg(feature = "high-performance-mode")] tenant: Tenant,
+    tenant: Tenant,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -159,18 +162,19 @@ async fn update_default_config(
     let key_str = key.into_inner().into();
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    let existing = fetch_default_key(&key_str, &mut conn).map_err(|e| match e {
-        superposition::AppError::DbError(diesel::NotFound) => {
-            bad_argument!(
-                "No record found for {}. Use create endpoint instead.",
-                key_str
-            )
-        }
-        _ => {
-            log::error!("Failed to fetch {key_str}: {e}");
-            unexpected_error!("Something went wrong.")
-        }
-    })?;
+    let existing =
+        fetch_default_key(&key_str, &mut conn, &tenant).map_err(|e| match e {
+            superposition::AppError::DbError(diesel::NotFound) => {
+                bad_argument!(
+                    "No record found for {}. Use create endpoint instead.",
+                    key_str
+                )
+            }
+            _ => {
+                log::error!("Failed to fetch {key_str}: {e}");
+                unexpected_error!("Something went wrong.")
+            }
+        })?;
 
     let value = req.value.unwrap_or_else(|| existing.value.clone());
     let schema = req
@@ -217,6 +221,7 @@ async fn update_default_config(
         updated_config.function_name.as_ref(),
         &updated_config.key,
         &updated_config.value,
+        &tenant,
     ) {
         log::info!("Validation failed: {:?}", e);
         return Err(e);
@@ -235,7 +240,14 @@ async fn update_default_config(
                     unexpected_error!("Failed to update DefaultConfig")
                 })?;
 
-            let version_id = add_config_version(&state, tags.clone(), transaction_conn)?;
+            let version_id = add_config_version(
+                &state,
+                tags.clone(),
+                description,
+                change_reason,
+                transaction_conn,
+                &tenant,
+            )?;
 
             Ok(version_id)
         })?;
@@ -252,13 +264,14 @@ async fn update_default_config(
 }
 
 fn validate_and_get_function_code(
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    conn: &mut DBConnection,
     function_name: Option<&String>,
     key: &str,
     value: &Value,
+    tenant: &Tenant,
 ) -> superposition::Result<()> {
     if let Some(f_name) = function_name {
-        let function_code = get_published_function_code(conn, f_name.clone())
+        let function_code = get_published_function_code(conn, f_name.clone(), &tenant)
             .map_err(|_| bad_argument!("Function {} doesn't exist.", f_name))?;
         if let Some(f_code) = function_code {
             validate_value_with_function(
@@ -274,11 +287,13 @@ fn validate_and_get_function_code(
 
 fn fetch_default_key(
     key: &String,
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    conn: &mut DBConnection,
+    tenant: &Tenant,
 ) -> superposition::Result<models::DefaultConfig> {
     let res = dsl::default_configs
         .filter(schema::default_configs::key.eq(key))
         .select(models::DefaultConfig::as_select())
+        .schema_name(tenant)
         .get_result(conn)?;
     Ok(res)
 }
@@ -287,11 +302,14 @@ fn fetch_default_key(
 async fn get(
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
+    tenant: Tenant,
 ) -> superposition::Result<Json<PaginatedResponse<DefaultConfig>>> {
     let DbConnection(mut conn) = db_conn;
 
     if let Some(true) = filters.all {
-        let result: Vec<DefaultConfig> = dsl::default_configs.get_results(&mut conn)?;
+        let result: Vec<DefaultConfig> = dsl::default_configs
+            .schema_name(&tenant)
+            .get_results(&mut conn)?;
         return Ok(Json(PaginatedResponse {
             total_pages: 1,
             total_items: result.len() as i64,
@@ -299,12 +317,16 @@ async fn get(
         }));
     }
 
-    let n_default_configs: i64 = dsl::default_configs.count().get_result(&mut conn)?;
+    let n_default_configs: i64 = dsl::default_configs
+        .count()
+        .schema_name(&tenant)
+        .get_result(&mut conn)?;
     let limit = filters.count.unwrap_or(10);
     let mut builder = dsl::default_configs
-        .into_boxed()
         .order(dsl::created_at.desc())
-        .limit(limit);
+        .limit(limit)
+        .schema_name(&tenant)
+        .into_boxed();
     if let Some(page) = filters.page {
         let offset = (page - 1) * limit;
         builder = builder.offset(offset);
@@ -320,12 +342,14 @@ async fn get(
 
 pub fn get_key_usage_context_ids(
     key: &str,
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    conn: &mut DBConnection,
+    tenant: &Tenant,
 ) -> superposition::Result<Vec<String>> {
-    let result: Vec<Context> = contexts.load(conn).map_err(|err| {
-        log::error!("failed to fetch contexts with error: {}", err);
-        db_error!(err)
-    })?;
+    let result: Vec<Context> =
+        contexts.schema_name(tenant).load(conn).map_err(|err| {
+            log::error!("failed to fetch contexts with error: {}", err);
+            db_error!(err)
+        })?;
 
     let mut context_ids = vec![];
     for context in result.iter() {
@@ -343,7 +367,7 @@ async fn delete(
     path: Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
-    #[cfg(feature = "high-performance-mode")] tenant: Tenant,
+    tenant: Tenant,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -351,8 +375,10 @@ async fn delete(
 
     let key: String = path.into_inner().into();
     let mut version_id = 0;
-    fetch_default_key(&key, &mut conn)?;
-    let context_ids = get_key_usage_context_ids(&key, &mut conn)
+
+    fetch_default_key(&key, &mut conn, &tenant)?;
+
+    let context_ids = get_key_usage_context_ids(&key, &mut conn, &tenant)
         .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
         let resp =
@@ -363,17 +389,27 @@ async fn delete(
                         dsl::last_modified_at.eq(Utc::now().naive_utc()),
                         dsl::last_modified_by.eq(user.get_email()),
                     ))
+                    .returning(DefaultConfig::as_returning())
+                    .schema_name(&tenant)
                     .execute(transaction_conn)?;
 
                 let deleted_row =
                     diesel::delete(dsl::default_configs.filter(dsl::key.eq(&key)))
+                        .schema_name(&tenant)
                         .execute(transaction_conn);
                 match deleted_row {
                     Ok(0) => {
                         Err(not_found!("default config key `{}` doesn't exists", key))
                     }
                     Ok(_) => {
-                        version_id = add_config_version(&state, tags, transaction_conn)?;
+                        version_id = add_config_version(
+                            &state,
+                            tags,
+                            description,
+                            change_reason,
+                            transaction_conn,
+                            &tenant,
+                        )?;
                         log::info!(
                             "default config key: {key} deleted by {}",
                             user.get_email()
