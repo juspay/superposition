@@ -4,6 +4,9 @@ pub mod sql_types {
     #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "experiment_status_type"))]
     pub struct ExperimentStatusType;
+    #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "org_status"))]
+    pub struct OrgStatus;
 }
 
 diesel::table! {
@@ -647,6 +650,34 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::OrgStatus;
+
+    organisations (id) {
+        #[max_length = 30]
+        id -> Varchar,
+        name -> Text,
+        #[max_length = 10]
+        country_code -> Nullable<Varchar>,
+        #[max_length = 255]
+        contact_email -> Nullable<Varchar>,
+        #[max_length = 15]
+        contact_phone -> Nullable<Varchar>,
+        #[max_length = 255]
+        created_by -> Varchar,
+        #[max_length = 255]
+        admin_email -> Varchar,
+        status -> OrgStatus,
+        #[max_length = 100]
+        sector -> Nullable<Varchar>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+        #[max_length = 255]
+        updated_by -> Varchar,
+    }
+}
+
+diesel::table! {
     type_templates (type_name) {
         type_name -> Text,
         type_schema -> Json,
@@ -710,5 +741,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     event_log_y2026m12,
     experiments,
     functions,
+    organisations,
     type_templates,
 );
