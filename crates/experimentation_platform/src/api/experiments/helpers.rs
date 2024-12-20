@@ -183,6 +183,7 @@ pub fn validate_experiment(
     override_keys: &[String],
     experiment_id: Option<i64>,
     flags: &ExperimentationFlags,
+    tenant: &Tenant,
     conn: &mut PgConnection,
 ) -> superposition::Result<(bool, String)> {
     use superposition_types::database::schema::experiments::dsl as experiments_dsl;
@@ -196,6 +197,7 @@ pub fn validate_experiment(
                         .or(experiments_dsl::status.eq(ExperimentStatusType::INPROGRESS)),
                 ),
         )
+        .schema_name(tenant)
         .load(conn)?;
 
     is_valid_experiment(context, override_keys, flags, &active_experiments)

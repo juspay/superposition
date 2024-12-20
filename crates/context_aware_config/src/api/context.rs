@@ -1,9 +1,11 @@
 mod handlers;
 pub mod helpers;
+pub mod operations;
 mod types;
-pub use handlers::delete_context_api;
+pub mod validations;
 pub use handlers::endpoints;
-pub use handlers::hash;
-pub use handlers::put;
-pub use handlers::validate_dimensions;
+pub use helpers::hash;
+pub use operations::delete;
+pub use operations::put;
 pub use types::PutReq;
+pub use validations::validate_dimensions;

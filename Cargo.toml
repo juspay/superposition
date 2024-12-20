@@ -38,7 +38,7 @@ bigdecimal = { version = "0.3.1", features = ["serde"] }
 cfg-if = "1.0.0"
 chrono = { version = "0.4.26", features = ["serde"] }
 derive_more = "^0.99"
-diesel = { version = "2.1.0", features = [
+diesel = { git = "https://github.com/juspay/diesel.git", branch = "dynamic-schema", features = [
     "postgres",
     "r2d2",
     "serde_json",

@@ -5,10 +5,7 @@ use actix_web::web::Data;
 #[cfg(feature = "high-performance-mode")]
 use chrono::DateTime;
 use chrono::Utc;
-use diesel::{
-    r2d2::{ConnectionManager, PooledConnection},
-    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
-};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
 
@@ -17,6 +14,7 @@ use jsonlogic;
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use num_bigint::BigUint;
 use serde_json::{json, Map, Value};
+use service_utils::service::types::Tenant;
 #[cfg(feature = "high-performance-mode")]
 use service_utils::service::types::Tenant;
 use service_utils::{
@@ -25,7 +23,8 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
-use superposition_types::database::schema::event_log::dsl as event_log;
+use superposition_types::cac::schema::event_log::dsl as event_log;
+use superposition_types::DBConnection;
 use superposition_types::{
     database::{
         models::cac::ConfigVersion,
@@ -215,11 +214,13 @@ pub fn calculate_context_weight(
     Ok(weight)
 }
 pub fn generate_cac(
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    conn: &mut DBConnection,
+    tenant: &Tenant,
 ) -> superposition::Result<Config> {
     let contexts_vec: Vec<(String, Condition, String, Overrides)> = ctxt::contexts
         .select((ctxt::id, ctxt::value, ctxt::override_id, ctxt::override_))
         .order_by((ctxt::weight.asc(), ctxt::created_at.asc()))
+        .schema_name(tenant)
         .load::<(String, Condition, String, Overrides)>(conn)
         .map_err(|err| {
             log::error!("failed to fetch contexts with error: {}", err);
@@ -269,6 +270,7 @@ pub fn generate_cac(
 
     let default_config_vec = def_conf::default_configs
         .select((def_conf::key, def_conf::value))
+        .schema_name(&tenant)
         .load::<(String, Value)>(conn)
         .map_err(|err| {
             log::error!("failed to fetch default_configs with error: {}", err);
@@ -293,11 +295,12 @@ pub fn generate_cac(
 pub fn add_config_version(
     state: &Data<AppState>,
     tags: Option<Vec<String>>,
-    db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    db_conn: &mut DBConnection,
+    tenant: &Tenant,
 ) -> superposition::Result<i64> {
     use config_versions::dsl::config_versions;
     let version_id = generate_snowflake_id(state)?;
-    let config = generate_cac(db_conn)?;
+    let config = generate_cac(db_conn, tenant)?;
     let json_config = json!(config);
     let config_hash = blake3::hash(json_config.to_string().as_bytes()).to_string();
     let config_version = ConfigVersion {
@@ -309,6 +312,7 @@ pub fn add_config_version(
     };
     diesel::insert_into(config_versions)
         .values(&config_version)
+        .schema_name(tenant)
         .execute(db_conn)?;
     Ok(version_id)
 }
