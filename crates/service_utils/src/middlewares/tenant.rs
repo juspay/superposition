@@ -94,13 +94,15 @@ where
             };
 
             let request_path = req.uri().path().replace(&base, "");
+            let request_pattern =
+                req.match_pattern().unwrap_or_else(|| request_path.clone());
             let pkg_regex = Regex::new(".*/pkg/.+")
                 .map_err(|err| error::ErrorInternalServerError(err.to_string()))?;
             let assets_regex = Regex::new(".*/assets/.+")
                 .map_err(|err| error::ErrorInternalServerError(err.to_string()))?;
             let is_excluded: bool = app_state
                 .tenant_middleware_exclusion_list
-                .contains(&request_path)
+                .contains(&request_pattern)
                 || pkg_regex.is_match(&request_path)
                 || assets_regex.is_match(&request_path);
 

@@ -25,6 +25,23 @@ pub async fn get_superposition_token(
     }
 }
 
+pub async fn get_oidc_client_secret(
+    kms_client: &Option<Client>,
+    app_env: &AppEnv,
+) -> String {
+    match app_env {
+        AppEnv::DEV | AppEnv::TEST | AppEnv::SANDBOX => {
+            get_from_env_or_default("OIDC_CLIENT_SECRET", "123456".into())
+        }
+        _ => {
+            let kms_client = kms_client.clone().unwrap();
+            let superposition_token_raw =
+                kms::decrypt(kms_client, "OIDC_CLIENT_SECRET").await;
+            encode(superposition_token_raw.as_str()).to_string()
+        }
+    }
+}
+
 pub async fn get_database_url(kms_client: &Option<Client>, app_env: &AppEnv) -> String {
     let db_user: String = get_from_env_unsafe("DB_USER").unwrap();
     let db_password: String = match app_env {

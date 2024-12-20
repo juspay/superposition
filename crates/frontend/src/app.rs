@@ -14,6 +14,7 @@ use crate::pages::function::{
 use crate::pages::{
     context_override::ContextOverride, custom_types::TypesPage,
     default_config::DefaultConfig, experiment::ExperimentPage, home::Home,
+    organisations::Organisations,
 };
 use crate::providers::alert_provider::AlertProvider;
 use crate::types::Envs;
@@ -93,6 +94,15 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                 <body class="m-0 min-h-screen bg-gray-50 font-mono">
                     <AlertProvider>
                         <Routes base=service_prefix.to_string()>
+                            <Route
+                                ssr=SsrMode::InOrder
+                                path="/admin/organisations"
+                                view=move || {
+                                    view! {
+                                        <Organisations/>
+                                    }
+                                }
+                            />
                             <Route
                                 ssr=SsrMode::Async
                                 path="/admin/:tenant/dimensions"
