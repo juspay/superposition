@@ -1,7 +1,7 @@
 use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
-    custom_query::CommaSeparatedStringQParams, Cac, Condition, Overrides, SortBy,
+    custom_query::CommaSeparatedStringQParams, database::models::cac::Context, Cac, Condition, Overrides, SortBy
 };
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
@@ -33,6 +33,18 @@ pub struct PutResp {
     pub weight: BigDecimal,
     pub description: String,
     pub change_reason: String,
+}
+
+impl From<Context> for PutResp {
+    fn from(value: Context) -> Self {
+        PutResp {
+            context_id: value.id,
+            override_id: value.override_id,
+            weight: value.weight,
+            description: value.description,
+            change_reason: value.change_reason,
+        }
+    }
 }
 
 #[derive(Deserialize)]
