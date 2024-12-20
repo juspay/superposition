@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 actix-files = { version = "0.6" }
 actix-web = { workspace = true }
-aws-sdk-kms.workspace = true
+aws-sdk-kms = { workspace = true }
 cac_toml = { path = "../cac_toml" }
 cfg-if = { workspace = true }
 context_aware_config = { path = "../context_aware_config" }
@@ -17,19 +17,19 @@ env_logger = "0.8"
 experimentation_platform = { path = "../experimentation_platform" }
 fred = { workspace = true, optional = true }
 frontend = { path = "../frontend" }
-futures-util.workspace = true
+futures-util = { workspace = true }
 leptos = { workspace = true }
 leptos_actix = { version = "0.6.11" }
 log = { workspace = true }
 openidconnect = "3.5.0"
 reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
-serde.workspace = true
-serde_json.workspace = true
+serde = { workspace = true }
+serde_json = { workspace = true }
 service_utils = { path = "../service_utils" }
 superposition_types = { path = "../superposition_types" }
 toml = { workspace = true }
-url.workspace = true
+url = { workspace = true }
 
 [features]
 high-performance-mode = [

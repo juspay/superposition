@@ -49,8 +49,3 @@ pub(super) struct LoginParams {
     pub(super) code: AuthorizationCode,
     pub(super) state: CsrfToken,
 }
-
-#[derive(Deserialize)]
-pub(super) struct SwitchOrgParams {
-    pub(super) organisation_id: String,
-}

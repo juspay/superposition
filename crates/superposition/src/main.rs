@@ -10,6 +10,7 @@ use actix_web::{
     web::{self, get, scope, Data, PathConfig},
     App, HttpResponse, HttpServer,
 };
+use auth::AuthHandler;
 use context_aware_config::api::*;
 use experimentation_platform::api::*;
 use frontend::app::*;
@@ -105,7 +106,7 @@ async fn main() -> Result<()> {
         .await,
     );
 
-    let auth = auth::init_auth(&kms_client, &app_env).await;
+    let auth = AuthHandler::init(&kms_client, &app_env).await;
 
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
@@ -127,6 +128,7 @@ async fn main() -> Result<()> {
             .service(web::redirect("/admin", ui_redirect_path.to_string()))
             .service(web::redirect("/admin/{tenant}/", "default-config"))
             .service(auth.routes())
+            .service(auth.org_routes())
             .leptos_routes(
                 leptos_options.to_owned(),
                 routes.to_owned(),

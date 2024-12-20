@@ -22,7 +22,7 @@ pub fn organisations() -> impl IntoView {
                 {move || {
                     view! {
                         <form action=format!(
-                            "{}/oidc/organisations/switch/{}",
+                            "{}/organisations/switch/{}",
                             host.get_value(),
                             organisation_rs.get().unwrap_or_default(),
                         )>

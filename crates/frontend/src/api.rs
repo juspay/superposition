@@ -260,7 +260,7 @@ pub async fn delete_dimension(name: String, tenant: String) -> Result<(), String
 pub async fn fetch_organisations() -> Result<Vec<String>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
-    let url = format!("{host}/oidc/organisations");
+    let url = format!("{host}/organisations");
 
     match client.get(url).send().await {
         Ok(organisations) => {

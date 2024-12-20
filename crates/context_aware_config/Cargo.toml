@@ -19,7 +19,7 @@ chrono = { workspace = true }
 derive_more = { workspace = true }
 diesel = { workspace = true, features = ["numeric"] }
 fred = { workspace = true, optional = true, features = ["metrics"] }
-futures-util.workspace = true
+futures-util = { workspace = true }
 itertools = { workspace = true }
 jsonlogic = { workspace = true }
 jsonschema = { workspace = true }

@@ -10,6 +10,7 @@ use actix_web::{
     web::{self, Data, Path, Query},
     HttpRequest, HttpResponse,
 };
+use futures_util::future::LocalBoxFuture;
 use openidconnect::{
     self as oidcrs,
     core::{CoreClient, CoreProviderMetadata, CoreResponseType},
@@ -18,10 +19,10 @@ use openidconnect::{
 };
 use service_utils::helpers::get_from_env_unsafe;
 use superposition_types::User;
-use types::{
-    LoginParams, ProtectionCookie, SwitchOrgParams, UserClaims, UserTokenResponse,
-};
+use types::{LoginParams, ProtectionCookie, UserClaims, UserTokenResponse};
 use utils::{presence_no_check, try_user_from, verify_presence};
+
+use crate::auth::authenticator::SwitchOrgParams;
 
 use super::authenticator::Authenticator;
 
@@ -32,6 +33,8 @@ pub struct OIDCAuthenticator {
     client_id: String,
     client_secret: String,
     base_url: String,
+    issuer_endpoint_format: String,
+    token_endpoint_format: String,
 }
 
 impl OIDCAuthenticator {
@@ -41,6 +44,11 @@ impl OIDCAuthenticator {
         client_id: String,
         client_secret: String,
     ) -> Result<Self, Box<dyn std::error::Error>> {
+        let issuer_endpoint_format =
+            get_from_env_unsafe::<String>("OIDC_ISSUER_ENDPOINT_FORMAT").unwrap();
+        let token_endpoint_format =
+            get_from_env_unsafe::<String>("OIDC_TOKEN_ENDPOINT_FORMAT").unwrap();
+
         let issuer_url = IssuerUrl::from_url(idp_url);
 
         // Discover OpenID Provider metadata
@@ -64,7 +72,29 @@ impl OIDCAuthenticator {
             client_id,
             client_secret,
             base_url,
+            issuer_endpoint_format,
+            token_endpoint_format,
         })
+    }
+
+    fn get_issuer_url(
+        &self,
+        organisation_id: &String,
+    ) -> Result<IssuerUrl, url::ParseError> {
+        let issuer_endpoint = self
+            .issuer_endpoint_format
+            .replace("<organisation>", organisation_id);
+        IssuerUrl::new(issuer_endpoint)
+    }
+
+    fn get_token_url(
+        &self,
+        organisation_id: &String,
+    ) -> Result<TokenUrl, url::ParseError> {
+        let token_endpoint = self
+            .token_endpoint_format
+            .replace("<organisation>", organisation_id);
+        TokenUrl::new(token_endpoint)
     }
 
     fn new_redirect(&self) -> HttpResponse {
@@ -153,33 +183,163 @@ impl Authenticator for OIDCAuthenticator {
     fn routes(&self) -> actix_web::Scope {
         web::scope("oidc")
             .app_data(Data::new(self.to_owned()))
-            .service(oidc_login)
-            .service(get_organisations)
-            .service(switch_organisation)
+            .service(login)
+    }
+
+    fn get_organisations(&self, req: &HttpRequest) -> HttpResponse {
+        let organisations = req
+            .cookie("user")
+            .and_then(|user_cookie| {
+                self.decode_token(user_cookie.value())
+                    .map_err(|e| log::error!("Error in decoding user : {e}"))
+                    .ok()
+            })
+            .map(|claims| claims.additional_claims().organisations.clone());
+
+        match organisations {
+            Some(organisations) => {
+                HttpResponse::Ok().json(serde_json::json!(organisations))
+            }
+            None => self.new_redirect(),
+        }
+    }
+
+    fn switch_organisation(
+        &self,
+        req: &HttpRequest,
+        path: &Path<SwitchOrgParams>,
+    ) -> LocalBoxFuture<'static, actix_web::Result<HttpResponse>> {
+        let issuer_url = match self.get_issuer_url(&path.organisation_id) {
+            Ok(issuer_url) => issuer_url,
+            Err(e) => {
+                log::error!("Unable to create issuer url {e}");
+                return Box::pin(async move {
+                    Err(ErrorBadRequest(String::from("Unable to create issuer url")))
+                });
+            }
+        };
+
+        let token_url = match self.get_token_url(&path.organisation_id) {
+            Ok(token_url) => token_url,
+            Err(e) => {
+                log::error!("Unable to create token url {e}");
+                return Box::pin(async move {
+                    Err(ErrorInternalServerError("Unable to create token url"))
+                });
+            }
+        };
+
+        let redirect_url = match RedirectUrl::new(format!("{}/", self.base_url.clone())) {
+            Ok(redirect_url) => redirect_url,
+            Err(e) => {
+                log::error!("Unable to create redirect url {e}");
+                return Box::pin(async move {
+                    Err(ErrorInternalServerError("Unable to create redirect url"))
+                });
+            }
+        };
+
+        let provider = self
+            .provider_metadata
+            .clone()
+            .set_issuer(issuer_url)
+            .set_token_endpoint(Some(token_url));
+
+        let client = CoreClient::from_provider_metadata(
+            provider,
+            ClientId::new(self.client_id.clone()),
+            Some(ClientSecret::new(self.client_secret.clone())),
+        )
+        .set_redirect_uri(redirect_url);
+
+        let user = req
+            .cookie("user")
+            .and_then(|user_cookie| {
+                self.decode_token(user_cookie.value())
+                    .map_err(|e| log::error!("Error in decoding user : {e}"))
+                    .ok()
+            })
+            .map(|claims| {
+                (
+                    claims.preferred_username().cloned(),
+                    claims.additional_claims().switch_pass.clone(),
+                )
+            });
+        let (username, switch_pass) = if let Some(user) = user {
+            user
+        } else {
+            return Box::pin(async move { Err(ErrorBadRequest("Cookie incorrect")) });
+        };
+
+        let username = if let Some(u) = username {
+            u
+        } else {
+            return Box::pin(async move { Err(ErrorBadRequest("Username not found")) });
+        };
+
+        let user = ResourceOwnerUsername::new(username.to_string());
+        let pass = ResourceOwnerPassword::new(switch_pass);
+        let redirect = self.new_redirect();
+
+        Box::pin(async move {
+            let response = client
+                .exchange_password(&user, &pass)
+                .add_scope(Scope::new(String::from("openid")))
+                .request_async(oidcrs::reqwest::async_http_client)
+                .await
+                .map_err(|e| log::error!("Failed to switch organisation for token: {e}"))
+                .and_then(|tr| {
+                    tr.id_token()
+                        .ok_or_else(|| eprintln!("No identity-token!"))
+                        .and_then(|t| {
+                            t.claims(&client.id_token_verifier(), presence_no_check)
+                                .map_err(|e| log::error!("Couldn't verify claims: {e}"))
+                        })?;
+                    Ok(tr)
+                });
+
+            match response {
+                Ok(r) => {
+                    let token = serde_json::to_string(&r).map_err(|err| {
+                        log::error!("Unable to stringify data: {err}");
+                        ErrorInternalServerError(format!("Unable to stringify data"))
+                    })?;
+                    let cookie = Cookie::build("org_user", token)
+                        .path("/")
+                        .http_only(true)
+                        .max_age(Duration::days(1))
+                        .finish();
+                    Ok(HttpResponse::Found()
+                        .cookie(cookie)
+                        .insert_header(("Location", "/"))
+                        .finish())
+                }
+                Err(()) => Ok(redirect),
+            }
+        })
     }
 }
 
 #[get("/login")]
-async fn oidc_login(
-    auth: Data<OIDCAuthenticator>,
+async fn login(
+    data: Data<OIDCAuthenticator>,
     req: HttpRequest,
     params: Query<LoginParams>,
 ) -> actix_web::Result<HttpResponse> {
-    let pc = match ProtectionCookie::from_req(&req) {
-        Some(pc) => pc,
-        _ => {
-            log::error!("OIDC: Missing/Bad protection-cookie, redirecting...",);
-            return Ok(auth.new_redirect());
-        }
+    let p_cookie = if let Some(p_cookie) = ProtectionCookie::from_req(&req) {
+        p_cookie
+    } else {
+        log::error!("OIDC: Missing/Bad protection-cookie, redirecting...");
+        return Ok(data.new_redirect());
     };
 
-    if params.state.secret() != pc.csrf.secret() {
+    if params.state.secret() != p_cookie.csrf.secret() {
         log::error!("OIDC: Bad csrf",);
-        return Ok(auth.new_redirect());
+        return Ok(data.new_redirect());
     }
 
     // Exchange the code with a token.
-    let response = auth
+    let response = data
         .client
         .exchange_code(params.code.clone())
         .request_async(oidcrs::reqwest::async_http_client)
@@ -189,7 +349,7 @@ async fn oidc_login(
             tr.id_token()
                 .ok_or_else(|| log::error!("No identity-token!"))
                 .and_then(|t| {
-                    t.claims(&auth.client.id_token_verifier(), &pc.nonce)
+                    t.claims(&data.client.id_token_verifier(), &p_cookie.nonce)
                         .map_err(|e| log::error!("Couldn't verify claims: {e}"))
                 })?;
             Ok(tr)
@@ -211,117 +371,6 @@ async fn oidc_login(
                 .insert_header(("Location", "/admin/organisations"))
                 .finish())
         }
-        Err(()) => Ok(auth.new_redirect()),
-    }
-}
-
-#[get("/organisations")]
-async fn get_organisations(
-    auth: Data<OIDCAuthenticator>,
-    req: HttpRequest,
-) -> HttpResponse {
-    let organisations = req
-        .cookie("user")
-        .and_then(|user_cookie| {
-            auth.decode_token(user_cookie.value())
-                .map_err(|e| log::error!("Error in decoding user : {e}"))
-                .ok()
-        })
-        .map(|claims| claims.additional_claims().organisations.clone());
-
-    match organisations {
-        Some(organisations) => HttpResponse::Ok().json(serde_json::json!(organisations)),
-        None => auth.new_redirect(),
-    }
-}
-
-#[get("/organisations/switch/{organisation_id}")]
-async fn switch_organisation(
-    auth: Data<OIDCAuthenticator>,
-    req: HttpRequest,
-    path: Path<SwitchOrgParams>,
-) -> actix_web::Result<HttpResponse> {
-    let issuer_endpoint = get_from_env_unsafe::<String>("OIDC_ISSUER_ENDPOINT_FORMAT")
-        .unwrap()
-        .replace("<organisation>", &path.organisation_id);
-    let token_endpoint = get_from_env_unsafe::<String>("OIDC_TOKEN_ENDPOINT_FORMAT")
-        .unwrap()
-        .replace("<organisation>", &path.organisation_id);
-
-    let provider = auth
-        .provider_metadata
-        .clone()
-        .set_issuer(IssuerUrl::new(issuer_endpoint).map_err(|e| {
-            log::error!("Unable to create issuer url {e}");
-            ErrorBadRequest(String::from("Unable to create issuer url"))
-        })?)
-        .set_token_endpoint(TokenUrl::new(token_endpoint).ok());
-
-    let client = CoreClient::from_provider_metadata(
-        provider,
-        ClientId::new(auth.client_id.clone()),
-        Some(ClientSecret::new(auth.client_secret.clone())),
-    )
-    .set_redirect_uri(
-        RedirectUrl::new(format!("{}/", auth.base_url.clone())).map_err(|e| {
-            log::error!("Unable to create redirect url {e}");
-            ErrorInternalServerError("Unable to create redirect url")
-        })?,
-    );
-
-    let (username, switch_pass) = req
-        .cookie("user")
-        .and_then(|user_cookie| {
-            auth.decode_token(user_cookie.value())
-                .map_err(|e| log::error!("Error in decoding user : {e}"))
-                .ok()
-        })
-        .map(|claims| {
-            (
-                claims.preferred_username().cloned(),
-                claims.additional_claims().switch_pass.clone(),
-            )
-        })
-        .ok_or_else(|| ErrorBadRequest("Cookie incorrect"))?;
-
-    let user = ResourceOwnerUsername::new(
-        username
-            .ok_or_else(|| ErrorBadRequest("Username not found"))?
-            .to_string(),
-    );
-    let pass = ResourceOwnerPassword::new(switch_pass);
-    let response = client
-        .exchange_password(&user, &pass)
-        .add_scope(Scope::new(String::from("openid")))
-        .request_async(oidcrs::reqwest::async_http_client)
-        .await
-        .map_err(|e| log::error!("Failed to switch organisation for token: {e}"))
-        .and_then(|tr| {
-            tr.id_token()
-                .ok_or_else(|| eprintln!("No identity-token!"))
-                .and_then(|t| {
-                    t.claims(&client.id_token_verifier(), presence_no_check)
-                        .map_err(|e| log::error!("Couldn't verify claims: {e}"))
-                })?;
-            Ok(tr)
-        });
-
-    match response {
-        Ok(r) => {
-            let token = serde_json::to_string(&r).map_err(|err| {
-                log::error!("Unable to stringify data: {err}");
-                ErrorInternalServerError(format!("Unable to stringify data"))
-            })?;
-            let cookie = Cookie::build("org_user", token)
-                .path("/")
-                .http_only(true)
-                .max_age(Duration::days(1))
-                .finish();
-            Ok(HttpResponse::Found()
-                .cookie(cookie)
-                .insert_header(("Location", "/"))
-                .finish())
-        }
-        Err(()) => Ok(auth.new_redirect()),
+        Err(()) => Ok(data.new_redirect()),
     }
 }
