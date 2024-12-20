@@ -2,7 +2,10 @@ use leptos::ServerFnError;
 use superposition_types::{
     custom_query::PaginationParams,
     database::{
-        models::cac::{ConfigVersion, DefaultConfig, Function, TypeTemplate},
+        models::{
+            cac::{ConfigVersion, DefaultConfig, Function, TypeTemplate},
+            Workspace,
+        },
         types::DimensionWithMandatory,
     },
     Config, PaginatedResponse,
@@ -56,7 +59,6 @@ pub async fn fetch_default_config(
         .json()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-
     Ok(response)
 }
 
@@ -292,4 +294,21 @@ pub async fn fetch_types(
     parse_json_response::<PaginatedResponse<TypeTemplate>>(response)
         .await
         .map_err(err_handler)
+}
+
+pub async fn fetch_workspaces(
+    filters: &PaginationParams,
+) -> Result<PaginatedResponse<Workspace>, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = use_host_server();
+    let url = format!("{}/workspaces?{}", host, filters.to_string());
+    let response: PaginatedResponse<Workspace> = client
+        .get(url)
+        .send()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?
+        .json()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    Ok(response)
 }

@@ -170,6 +170,15 @@ impl FromRequest for TenantConfig {
     }
 }
 
+impl Default for TenantConfig {
+    fn default() -> Self {
+        Self {
+            mandatory_dimensions: Default::default(),
+            experiments_webhook_config: WebhookConfig::Disbled,
+        }
+    }
+}
+
 #[derive(Serialize, Debug, Clone, Deserialize)]
 pub struct PaginatedResponse<T> {
     pub total_pages: i64,

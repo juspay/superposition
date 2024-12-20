@@ -83,7 +83,7 @@ async fn create(
     };
 
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        diesel::update(dimensions)
+        diesel::update(dimensions::table)
             .filter(dimensions::position.ge(dimension_data.position))
             .set((
                 last_modified_at.eq(Utc::now().naive_utc()),
@@ -92,10 +92,11 @@ async fn create(
             ))
             .schema_name(&tenant)
             .execute(transaction_conn)?;
-        let insert_resp = diesel::insert_into(dimensions)
+        let insert_resp = diesel::insert_into(dimensions::table)
             .values(&dimension_data)
+            .returning(Dimension::as_returning())
             .schema_name(&tenant)
-            .get_result::<Dimension>(transaction_conn);
+            .get_result(transaction_conn);
 
         match insert_resp {
             Ok(inserted_dimension) => {

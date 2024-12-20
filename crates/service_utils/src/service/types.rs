@@ -9,12 +9,14 @@ use std::{
 use actix_web::{error, web::Data, Error, FromRequest, HttpMessage};
 use aws_sdk_kms::Client;
 use derive_more::{Deref, DerefMut};
+use diesel::r2d2::{ConnectionManager, PooledConnection};
+use diesel::PgConnection;
 use jsonschema::JSONSchema;
 use serde_json::json;
 use snowflake::SnowflakeIdGenerator;
 use superposition_types::TenantConfig;
 
-use crate::db::pgschema_manager::{PgSchemaConnection, PgSchemaManager};
+use crate::db::PgSchemaConnectionPool;
 
 pub struct ExperimentationFlags {
     pub allow_same_keys_overlapping_ctx: bool,
@@ -43,7 +45,7 @@ pub struct AppState {
     pub app_env: AppEnv,
     pub tenants: HashSet<String>,
     pub cac_version: String,
-    pub db_pool: PgSchemaManager,
+    pub db_pool: PgSchemaConnectionPool,
     pub meta_schema: JSONSchema,
     pub experimentation_flags: ExperimentationFlags,
     pub snowflake_generator: Arc<Mutex<SnowflakeIdGenerator>>,
@@ -174,7 +176,7 @@ impl FromRequest for Tenant {
                         "message": "tenant was not set. Please ensure you are passing in the x-tenant header"
                     })))
                 } else {
-                    Ok(Tenant("mjos".into()))
+                    Ok(Tenant("public".into()))
                 }
             }
         };
@@ -183,7 +185,7 @@ impl FromRequest for Tenant {
 }
 
 #[derive(Deref, DerefMut)]
-pub struct DbConnection(pub PgSchemaConnection);
+pub struct DbConnection(pub PooledConnection<ConnectionManager<PgConnection>>);
 impl FromRequest for DbConnection {
     type Error = Error;
     type Future = Ready<Result<DbConnection, Self::Error>>;
@@ -192,12 +194,6 @@ impl FromRequest for DbConnection {
         req: &actix_web::HttpRequest,
         _: &mut actix_web::dev::Payload,
     ) -> Self::Future {
-        let namespace = match AppExecutionNamespace::from_request_sync(req) {
-            Ok(val) => val.as_str().to_string(),
-            Err(e) => {
-                return ready(Err(e));
-            }
-        };
 
         let app_state = match req.app_data::<Data<AppState>>() {
             Some(state) => state,
@@ -209,7 +205,7 @@ impl FromRequest for DbConnection {
             }
         };
 
-        let result = match app_state.db_pool.get_conn(namespace) {
+        let result = match app_state.db_pool.get() {
             Ok(conn) => Ok(DbConnection(conn)),
             Err(e) => {
                 log::info!("Unable to get db connection from pool, error: {e}");
@@ -239,5 +235,41 @@ impl FromRequest for CustomHeaders {
             }),
         };
         ready(Ok(val))
+    }
+}
+
+#[derive(Deref, DerefMut, Clone, Debug)]
+pub struct OrganisationId(pub String);
+impl FromRequest for OrganisationId {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        let organisation = req.extensions().get::<OrganisationId>().cloned();
+        let result = match organisation {
+            Some(v) => Ok(v),
+            None => {
+                let app_state = match req.app_data::<Data<AppState>>() {
+                    Some(val) => val,
+                    None => {
+                        log::error!("app state not set");
+                        return ready(Err(error::ErrorInternalServerError(json!({
+                            "message": "an unknown error occurred with the app. Please contact an admin"
+                        }))));
+                    }
+                };
+                if app_state.enable_tenant_and_scope {
+                    Err(error::ErrorInternalServerError(json!({
+                        "message": "x-org-id was not set. Please ensure you are passing in the x-tenant header"
+                    })))
+                } else {
+                    Ok(OrganisationId("juspay".into()))
+                }
+            }
+        };
+        ready(result)
     }
 }
