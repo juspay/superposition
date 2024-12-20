@@ -10,3 +10,4 @@ pub mod function;
 pub mod home;
 pub mod not_found;
 pub mod organisations;
+pub mod workspace;

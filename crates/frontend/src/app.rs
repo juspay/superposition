@@ -14,7 +14,7 @@ use crate::pages::function::{
 use crate::pages::{
     context_override::ContextOverride, custom_types::TypesPage,
     default_config::DefaultConfig, experiment::ExperimentPage, home::Home,
-    organisations::Organisations,
+    organisations::Organisations, workspace::Workspace,
 };
 use crate::providers::alert_provider::AlertProvider;
 use crate::types::Envs;
@@ -244,6 +244,14 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                             <ConfigVersion/>
                                         </Layout>
                                     }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:org_id/workspace"
+                                view=move || {
+                                    view! { <Workspace/> }
                                 }
                             />
 

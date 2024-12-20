@@ -93,14 +93,7 @@ pub async fn get(
     }
 
     AppState {
-        db_pool: init_pool_manager(
-            tenants.clone(),
-            enable_tenant_and_scope,
-            &kms_client,
-            &app_env,
-            max_pool_size,
-        )
-        .await,
+        db_pool: init_pool_manager(&kms_client, &app_env, max_pool_size).await,
         cac_host,
         cac_version: get_from_env_unsafe("SUPERPOSITION_VERSION")
             .expect("SUPERPOSITION_VERSION is not set"),
