@@ -62,6 +62,7 @@ pub fn experiment_list() -> impl IntoView {
             )
         },
         |(current_tenant, filters, pagination_filters)| async move {
+            let fetch_all_filters = PaginationParams::all_entries();
             // Perform all fetch operations concurrently
             let experiments_future = fetch_experiments(
                 &filters,
@@ -69,9 +70,9 @@ pub fn experiment_list() -> impl IntoView {
                 current_tenant.to_string(),
             );
             let dimensions_future =
-                fetch_dimensions(&pagination_filters, current_tenant.to_string());
+                fetch_dimensions(&fetch_all_filters, current_tenant.to_string());
             let config_future =
-                fetch_default_config(&pagination_filters, current_tenant.to_string());
+                fetch_default_config(&fetch_all_filters, current_tenant.to_string());
 
             let (experiments_result, dimensions_result, config_result) =
                 join!(experiments_future, dimensions_future, config_future);
