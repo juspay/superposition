@@ -1,7 +1,8 @@
 use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
-    custom_query::CommaSeparatedStringQParams, database::models::cac::Context, Cac, Condition, Overrides, SortBy
+    custom_query::CommaSeparatedStringQParams, database::models::cac::Context, Cac,
+    Condition, Overrides, SortBy,
 };
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
