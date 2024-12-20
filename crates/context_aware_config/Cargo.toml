@@ -17,9 +17,9 @@ cac_client = { path = "../cac_client" }
 cfg-if = { workspace = true }
 chrono = { workspace = true }
 derive_more = { workspace = true }
-diesel = { workspace = true , features = ["numeric"]}
+diesel = { workspace = true, features = ["numeric"] }
 fred = { workspace = true, optional = true, features = ["metrics"] }
-futures-util = "0.3.28"
+futures-util = { workspace = true }
 itertools = { workspace = true }
 jsonlogic = { workspace = true }
 jsonschema = { workspace = true }
