@@ -32,9 +32,10 @@ use superposition_types::{
         },
         schema::{event_log::dsl as event_log, experiments::dsl as experiments},
     },
-    result::{self as superposition},
+    result as superposition,
     webhook::{WebhookConfig, WebhookEvent},
-    Condition, Exp, Overrides, PaginatedResponse, SortBy, TenantConfig, User,
+    Condition, DBConnection, Exp, Overrides, PaginatedResponse, SortBy, TenantConfig,
+    User,
 };
 
 use super::{
