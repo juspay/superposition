@@ -14,6 +14,8 @@ use std::future::{ready, Ready};
 
 #[cfg(feature = "server")]
 use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
+use diesel::r2d2::{ConnectionManager, PooledConnection};
+use diesel::PgConnection;
 #[cfg(feature = "diesel_derives")]
 use diesel_derive_enum as _;
 #[cfg(feature = "server")]
@@ -212,6 +214,8 @@ impl Default for SortBy {
         Self::Desc
     }
 }
+
+pub type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
 #[cfg(test)]
 mod tests {

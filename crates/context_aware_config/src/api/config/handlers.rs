@@ -14,17 +14,14 @@ use actix_web::{
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
-use diesel::{
-    dsl::max,
-    r2d2::{ConnectionManager, PooledConnection},
-    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
-};
+use diesel::{dsl::max, ExpressionMethods, QueryDsl, RunQueryDsl};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
 use itertools::Itertools;
 use serde_json::{json, Map, Value};
 #[cfg(feature = "high-performance-mode")]
-use service_utils::service::types::{AppState, Tenant};
+use service_utils::service::types::AppState;
+use service_utils::service::types::Tenant;
 use service_utils::{
     helpers::extract_dimensions,
     service::types::{AppHeader, DbConnection},
@@ -40,16 +37,13 @@ use superposition_types::{
         models::cac::ConfigVersion,
         schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
     },
-    result as superposition, Cac, Condition, Config, Context, Overrides,
+    result as superposition, Cac, Condition, Config, Context, DBConnection, Overrides,
     PaginatedResponse, TenantConfig, User,
 };
 use uuid::Uuid;
 
 use crate::helpers::generate_cac;
-use crate::{
-    api::context::{delete_context_api, hash, put, PutReq},
-    helpers::DimensionData,
-};
+use crate::{api::context, helpers::DimensionData};
 use crate::{
     api::dimension::{get_dimension_data, get_dimension_data_map},
     helpers::calculate_context_weight,
@@ -85,13 +79,15 @@ fn validate_version_in_params(
 }
 
 pub fn add_audit_id_to_header(
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    conn: &mut DBConnection,
     resp_builder: &mut HttpResponseBuilder,
+    tenant: &Tenant,
 ) {
     if let Ok(uuid) = event_log::event_log
         .select(event_log::id)
         .filter(event_log::table_name.eq("contexts"))
         .order_by(event_log::timestamp.desc())
+        .schema_name(tenant)
         .first::<Uuid>(conn)
     {
         resp_builder.insert_header((AppHeader::XAuditId.to_string(), uuid.to_string()));
@@ -129,11 +125,13 @@ fn add_config_version_to_header(
 }
 
 fn get_max_created_at(
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    conn: &mut DBConnection,
+    tenant: &Tenant,
 ) -> Result<NaiveDateTime, diesel::result::Error> {
     event_log::event_log
         .select(max(event_log::timestamp))
         .filter(event_log::table_name.eq_any(vec!["contexts", "default_configs"]))
+        .schema_name(tenant)
         .first::<Option<NaiveDateTime>>(conn)
         .and_then(|res| res.ok_or(diesel::result::Error::NotFound))
 }
@@ -157,13 +155,15 @@ fn is_not_modified(max_created_at: Option<NaiveDateTime>, req: &HttpRequest) -> 
 
 pub fn generate_config_from_version(
     version: &mut Option<i64>,
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    conn: &mut DBConnection,
+    tenant: &Tenant,
 ) -> superposition::Result<Config> {
     if let Some(val) = version {
         let val = val.clone();
         let config = config_versions::config_versions
             .select(config_versions::config)
             .filter(config_versions::id.eq(val))
+            .schema_name(tenant)
             .get_result::<Value>(conn)
             .map_err(|err| {
                 log::error!("failed to fetch config with error: {}", err);
@@ -177,18 +177,19 @@ pub fn generate_config_from_version(
         match config_versions::config_versions
             .select((config_versions::id, config_versions::config))
             .order(config_versions::created_at.desc())
+            .schema_name(tenant)
             .first::<(i64, Value)>(conn)
         {
             Ok((latest_version, config)) => {
                 *version = Some(latest_version);
                 serde_json::from_value::<Config>(config).or_else(|err| {
                     log::error!("failed to decode config: {}", err);
-                    generate_cac(conn)
+                    generate_cac(conn, tenant)
                 })
             }
             Err(err) => {
                 log::error!("failed to find latest config: {err}");
-                generate_cac(conn)
+                generate_cac(conn, tenant)
             }
         }
     }
@@ -342,7 +343,7 @@ fn get_contextids_from_overrideid(
 
 fn construct_new_payload(
     req_payload: &Map<String, Value>,
-) -> superposition::Result<web::Json<PutReq>> {
+) -> superposition::Result<web::Json<context::PutReq>> {
     let mut res = req_payload.clone();
     res.remove("to_be_deleted");
     res.remove("override_id");
@@ -410,7 +411,7 @@ fn construct_new_payload(
 #[allow(clippy::too_many_arguments)]
 async fn reduce_config_key(
     user: User,
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    conn: &mut DBConnection,
     tenant_config: &TenantConfig,
     mut og_contexts: Vec<Context>,
     mut og_overrides: HashMap<String, Overrides>,
@@ -418,6 +419,7 @@ async fn reduce_config_key(
     dimension_schema_map: &HashMap<String, DimensionData>,
     default_config: Map<String, Value>,
     is_approve: bool,
+    tenant: Tenant,
 ) -> superposition::Result<Config> {
     let default_config_val =
         default_config
@@ -488,19 +490,37 @@ async fn reduce_config_key(
 
                 if *to_be_deleted {
                     if is_approve {
-                        let _ = delete_context_api(cid.clone(), user.clone(), conn);
+                        let _ = context::delete(
+                            cid.clone(),
+                            user.clone(),
+                            conn,
+                            tenant.clone(),
+                        );
                     }
                     og_contexts.retain(|x| x.id != *cid);
                 } else {
                     if is_approve {
-                        let _ = delete_context_api(cid.clone(), user.clone(), conn);
+                        let _ = context::delete(
+                            cid.clone(),
+                            user.clone(),
+                            conn,
+                            tenant.clone(),
+                        );
                         if let Ok(put_req) = construct_new_payload(request_payload) {
-                            let _ =
-                                put(put_req, conn, false, &user, &tenant_config, false);
+                            let _ = context::put(
+                                put_req,
+                                conn,
+                                false,
+                                &user,
+                                tenant.clone(),
+                                &tenant_config,
+                                false,
+                            );
                         }
                     }
 
-                    let new_id = hash(&Value::Object(override_val.clone().into()));
+                    let new_id =
+                        context::hash(&Value::Object(override_val.clone().into()));
                     og_overrides.insert(new_id.clone(), override_val);
 
                     let mut ctx_index = 0;
@@ -540,6 +560,7 @@ async fn reduce_config(
     user: User,
     db_conn: DbConnection,
     tenant_config: TenantConfig,
+    tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let is_approve = req
@@ -548,9 +569,9 @@ async fn reduce_config(
         .and_then(|value| value.to_str().ok().and_then(|s| s.parse::<bool>().ok()))
         .unwrap_or(false);
 
-    let dimensions_vec = get_dimension_data(&mut conn)?;
+    let dimensions_vec = get_dimension_data(&mut conn, &tenant)?;
     let dimensions_data_map = get_dimension_data_map(&dimensions_vec)?;
-    let mut config = generate_cac(&mut conn)?;
+    let mut config = generate_cac(&mut conn, &tenant)?;
     let default_config = (config.default_configs).clone();
     for (key, _) in default_config {
         let contexts = config.contexts;
@@ -566,10 +587,11 @@ async fn reduce_config(
             &dimensions_data_map,
             default_config.clone(),
             is_approve,
+            tenant.clone(),
         )
         .await?;
         if is_approve {
-            config = generate_cac(&mut conn)?;
+            config = generate_cac(&mut conn, &tenant)?;
         }
     }
 
@@ -670,10 +692,11 @@ async fn get_config(
     req: HttpRequest,
     db_conn: DbConnection,
     query_map: superposition_query::Query<QueryMap>,
+    tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
-    let max_created_at = get_max_created_at(&mut conn)
+    let max_created_at = get_max_created_at(&mut conn, &tenant)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log: {e}"))
         .ok();
 
@@ -687,7 +710,8 @@ async fn get_config(
 
     let mut query_params_map = query_map.into_inner();
     let mut config_version = validate_version_in_params(&mut query_params_map)?;
-    let mut config = generate_config_from_version(&mut config_version, &mut conn)?;
+    let mut config =
+        generate_config_from_version(&mut config_version, &mut conn, &tenant)?;
 
     config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
 
@@ -697,7 +721,7 @@ async fn get_config(
 
     let mut response = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, &mut response);
-    add_audit_id_to_header(&mut conn, &mut response);
+    add_audit_id_to_header(&mut conn, &mut response, &tenant);
     add_config_version_to_header(&config_version, &mut response);
     Ok(response.json(config))
 }
@@ -707,11 +731,12 @@ async fn get_resolved_config(
     req: HttpRequest,
     db_conn: DbConnection,
     query_map: superposition_query::Query<QueryMap>,
+    tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let mut query_params_map = query_map.into_inner();
 
-    let max_created_at = get_max_created_at(&mut conn)
+    let max_created_at = get_max_created_at(&mut conn, &tenant)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log : {e}"))
         .ok();
 
@@ -722,7 +747,8 @@ async fn get_resolved_config(
     }
 
     let mut config_version = validate_version_in_params(&mut query_params_map)?;
-    let mut config = generate_config_from_version(&mut config_version, &mut conn)?;
+    let mut config =
+        generate_config_from_version(&mut config_version, &mut conn, &tenant)?;
 
     config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
 
@@ -766,7 +792,7 @@ async fn get_resolved_config(
     };
     let mut resp = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, &mut resp);
-    add_audit_id_to_header(&mut conn, &mut resp);
+    add_audit_id_to_header(&mut conn, &mut resp, &tenant);
     add_config_version_to_header(&config_version, &mut resp);
 
     Ok(resp.json(response))
@@ -776,12 +802,14 @@ async fn get_resolved_config(
 async fn get_config_versions(
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
+    tenant: Tenant,
 ) -> superposition::Result<Json<PaginatedResponse<ConfigVersion>>> {
     let DbConnection(mut conn) = db_conn;
 
     if let Some(true) = filters.all {
-        let config_versions: Vec<ConfigVersion> =
-            config_versions::config_versions.get_results(&mut conn)?;
+        let config_versions: Vec<ConfigVersion> = config_versions::config_versions
+            .schema_name(&tenant)
+            .get_results(&mut conn)?;
         return Ok(Json(PaginatedResponse {
             total_pages: 1,
             total_items: config_versions.len() as i64,
@@ -791,10 +819,12 @@ async fn get_config_versions(
 
     let n_version: i64 = config_versions::config_versions
         .count()
+        .schema_name(&tenant)
         .get_result(&mut conn)?;
 
     let limit = filters.count.unwrap_or(10);
     let mut builder = config_versions::config_versions
+        .schema_name(&tenant)
         .into_boxed()
         .order(config_versions::created_at.desc())
         .limit(limit);

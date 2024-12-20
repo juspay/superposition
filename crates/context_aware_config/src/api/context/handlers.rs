@@ -1,7 +1,5 @@
 extern crate base64;
 
-use std::collections::HashMap;
-use std::str;
 use std::{cmp::min, collections::HashSet};
 
 use actix_web::{
@@ -10,37 +8,26 @@ use actix_web::{
     HttpResponse, Scope,
 };
 use bigdecimal::BigDecimal;
-use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
-use diesel::{
-    delete,
-    r2d2::{ConnectionManager, PooledConnection},
-    result::{DatabaseErrorKind::*, Error::DatabaseError},
-    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
-};
-use jsonschema::{Draft, JSONSchema, ValidationError};
-use serde_json::{from_value, json, Map, Value};
-#[cfg(feature = "high-performance-mode")]
+use diesel::{delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl};
+use serde_json::{Map, Value};
 use service_utils::service::types::Tenant;
 use service_utils::{
-    helpers::{parse_config_tags, validation_err_to_str},
+    helpers::parse_config_tags,
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection},
 };
-use superposition_macros::{
-    bad_argument, db_error, not_found, unexpected_error, validation_error,
-};
+use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     custom_query::{self as superposition_query, CustomQuery, DimensionQuery, QueryMap},
     database::{
         models::cac::Context,
-        schema::{
-            contexts::{self, id},
-            default_configs::dsl,
-        },
+        schema::contexts::{self, id},
     },
-    result as superposition, Cac, Contextual, Overridden, Overrides, PaginatedResponse,
-    SortBy, TenantConfig, User,
+    result as superposition, Contextual, Overridden, PaginatedResponse, SortBy,
+    TenantConfig, User,
 };
+
+use super::{helpers::hash, operations::r#move};
 
 #[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
@@ -48,27 +35,21 @@ use crate::{
     api::{
         context::types::{
             ContextAction, ContextBulkResponse, ContextFilterSortOn, ContextFilters,
-            DimensionCondition, MoveReq, PutReq, PutResp, WeightRecomputeResponse,
+            MoveReq, PutReq, WeightRecomputeResponse,
         },
         dimension::{get_dimension_data, get_dimension_data_map},
     },
-    helpers::{
-        add_config_version, calculate_context_weight, validate_context_jsonschema,
-        DimensionData,
-    },
+    helpers::{add_config_version, calculate_context_weight},
 };
 
-use super::helpers::{
-    validate_condition_with_functions, validate_condition_with_mandatory_dimensions,
-    validate_override_with_functions,
-};
+use super::operations;
 
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(put_handler)
         .service(update_override_handler)
         .service(move_handler)
-        .service(delete_context)
+        .service(delete_context_handler)
         .service(bulk_operations)
         .service(list_contexts)
         .service(get_context_from_condition)
@@ -393,7 +374,7 @@ async fn put_handler(
     req: Json<PutReq>,
     mut db_conn: DbConnection,
     user: User,
-    #[cfg(feature = "high-performance-mode")] tenant: Tenant,
+    tenant: Tenant,
     tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
@@ -456,7 +437,7 @@ async fn update_override_handler(
     req: Json<PutReq>,
     mut db_conn: DbConnection,
     user: User,
-    #[cfg(feature = "high-performance-mode")] tenant: Tenant,
+    tenant: Tenant,
     tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
@@ -484,9 +465,10 @@ async fn update_override_handler(
             let version_id = add_config_version(
                 &state,
                 tags,
-                transaction_conn,
                 req_mut.description.unwrap().clone(),
                 req_mut.change_reason.clone(),
+                transaction_conn,
+                &tenant,
             )?;
             Ok((override_resp, version_id))
         })?;
@@ -613,7 +595,7 @@ async fn move_handler(
     req: Json<MoveReq>,
     mut db_conn: DbConnection,
     user: User,
-    #[cfg(feature = "high-performance-mode")] tenant: Tenant,
+    tenant: Tenant,
     tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
@@ -625,6 +607,7 @@ async fn move_handler(
                 transaction_conn,
                 true,
                 &user,
+                tenant.clone(),
                 &tenant_config,
             )
             .map_err(|err| {
@@ -634,9 +617,10 @@ async fn move_handler(
             let version_id = add_config_version(
                 &state,
                 tags,
-                transaction_conn,
                 move_response.description.clone(),
                 move_response.change_reason.clone(),
+                transaction_conn,
+                &tenant,
             )?;
 
             Ok((move_response, version_id))
@@ -660,6 +644,7 @@ async fn move_handler(
 async fn get_context_from_condition(
     db_conn: DbConnection,
     req: Json<Map<String, Value>>,
+    tenant: Tenant,
 ) -> superposition::Result<Json<Context>> {
     use superposition_types::database::schema::contexts::dsl::*;
 
@@ -668,6 +653,7 @@ async fn get_context_from_condition(
 
     let ctx: Context = contexts
         .filter(id.eq(context_id))
+        .schema_name(&tenant)
         .get_result::<Context>(&mut conn)?;
 
     Ok(Json(ctx))
@@ -677,6 +663,7 @@ async fn get_context_from_condition(
 async fn get_context(
     path: Path<String>,
     db_conn: DbConnection,
+    tenant: Tenant,
 ) -> superposition::Result<Json<Context>> {
     use superposition_types::database::schema::contexts::dsl::*;
 
@@ -685,6 +672,7 @@ async fn get_context(
 
     let ctx: Context = contexts
         .filter(id.eq(ctx_id))
+        .schema_name(&tenant)
         .get_result::<Context>(&mut conn)?;
 
     Ok(Json(ctx))
@@ -695,6 +683,7 @@ async fn list_contexts(
     filter_params: superposition_query::Query<ContextFilters>,
     dimension_params: DimensionQuery<QueryMap>,
     db_conn: DbConnection,
+    tenant: Tenant,
 ) -> superposition::Result<Json<PaginatedResponse<Context>>> {
     use superposition_types::database::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
@@ -710,7 +699,7 @@ async fn list_contexts(
     }
 
     let dimension_params = dimension_params.into_inner();
-    let builder = contexts.into_boxed();
+    let builder = contexts.schema_name(&tenant).into_boxed();
 
     #[rustfmt::skip]
     let mut builder = match (filter_params.sort_on.unwrap_or_default(), filter_params.sort_by.unwrap_or(SortBy::Asc)) {
@@ -756,7 +745,7 @@ async fn list_contexts(
 
             (data, total_items as i64)
         } else {
-            let mut total_count_builder = contexts.into_boxed();
+            let mut total_count_builder = contexts.schema_name(&tenant).into_boxed();
             if let Some(created_bys) = filter_params.created_by {
                 total_count_builder =
                     total_count_builder.filter(created_by.eq_any(created_bys.0))
@@ -777,40 +766,13 @@ async fn list_contexts(
     }))
 }
 
-pub fn delete_context_api(
-    ctx_id: String,
-    user: User,
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-) -> superposition::Result<()> {
-    use contexts::dsl;
-    diesel::update(dsl::contexts)
-        .filter(dsl::id.eq(&ctx_id))
-        .set((
-            dsl::last_modified_at.eq(Utc::now().naive_utc()),
-            dsl::last_modified_by.eq(user.get_email()),
-        ))
-        .execute(conn)?;
-    let deleted_row = delete(dsl::contexts.filter(dsl::id.eq(&ctx_id))).execute(conn);
-    match deleted_row {
-        Ok(0) => Err(not_found!("Context Id `{}` doesn't exists", ctx_id)),
-        Ok(_) => {
-            log::info!("{ctx_id} context deleted by {}", user.get_email());
-            Ok(())
-        }
-        Err(e) => {
-            log::error!("context delete query failed with error: {e}");
-            Err(unexpected_error!("Something went wrong."))
-        }
-    }
-}
-
 #[delete("/{ctx_id}")]
-async fn delete_context(
+async fn delete_context_handler(
     state: Data<AppState>,
     path: Path<String>,
     custom_headers: CustomHeaders,
     user: User,
-    #[cfg(feature = "high-performance-mode")] tenant: Tenant,
+    tenant: Tenant,
     mut db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::contexts::dsl::{
@@ -829,9 +791,10 @@ async fn delete_context(
             let version_id = add_config_version(
                 &state,
                 tags,
-                transaction_conn,
                 description,
                 change_reason,
+                transaction_conn,
+                &tenant
             )?;
             Ok(version_id)
         })?;
@@ -856,7 +819,7 @@ async fn bulk_operations(
     reqs: Json<Vec<ContextAction>>,
     db_conn: DbConnection,
     user: User,
-    #[cfg(feature = "high-performance-mode")] tenant: Tenant,
+    tenant: Tenant,
     tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
@@ -876,6 +839,7 @@ async fn bulk_operations(
                             transaction_conn,
                             true,
                             &user,
+                            tenant.clone(),
                             &tenant_config,
                             false,
                         )
@@ -946,6 +910,7 @@ async fn bulk_operations(
                             transaction_conn,
                             true,
                             &user,
+                            tenant.clone(),
                             &tenant_config,
                         )
                         .map_err(|err| {
@@ -970,9 +935,10 @@ async fn bulk_operations(
             let version_id = add_config_version(
                 &state,
                 tags,
-                transaction_conn,
                 combined_description,
                 combined_change_reasons,
+                transaction_conn,
+                &tenant,
             )?;
             Ok((response, version_id))
         })?;
@@ -993,7 +959,7 @@ async fn weight_recompute(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
-    #[cfg(feature = "high-performance-mode")] tenant: Tenant,
+    tenant: Tenant,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::contexts::dsl::{
@@ -1001,14 +967,16 @@ async fn weight_recompute(
     };
     let DbConnection(mut conn) = db_conn;
 
-    // Fetch all contexts from the database
-    let result: Vec<Context> = contexts.load(&mut conn).map_err(|err| {
-        log::error!("Failed to fetch contexts with error: {}", err);
-        unexpected_error!("Something went wrong")
-    })?;
+    let result: Vec<Context> =
+        contexts
+            .schema_name(&tenant)
+            .load(&mut conn)
+            .map_err(|err| {
+                log::error!("failed to fetch contexts with error: {}", err);
+                unexpected_error!("Something went wrong")
+            })?;
 
-    // Get dimension data and map for weight calculation
-    let dimension_data = get_dimension_data(&mut conn)?;
+    let dimension_data = get_dimension_data(&mut conn, &tenant)?;
     let dimension_data_map = get_dimension_data_map(&dimension_data)?;
     let mut response: Vec<WeightRecomputeResponse> = vec![];
     let tags = parse_config_tags(custom_headers.config_tags)?;
@@ -1057,19 +1025,19 @@ async fn weight_recompute(
                     .set((
                         weight.eq(context_weight),
                         last_modified_at.eq(last_modified_time.clone()),
-                        last_modified_by.eq(user.get_email()),
+                        last_modified_by.eq(user.get_email())
                     ))
-                    .execute(transaction_conn)
-                    .map_err(|err| {
+                    .schema_name(&tenant)
+                    .execute(transaction_conn).map_err(|err| {
                         log::error!(
                             "Failed to execute query while recomputing weight, error: {err}"
                         );
                         db_error!(err)
                     })?;
             }
-            let description = "Recomputed weight".to_string(); 
+            let description = "Recomputed weight".to_string();
             let change_reason = "Recomputed weight".to_string();
-            let version_id = add_config_version(&state, tags, transaction_conn, description, change_reason)?;
+            let version_id = add_config_version(&state, tags, description, change_reason, transaction_conn, &tenant)?;
             Ok(version_id)
         })?;
     #[cfg(feature = "high-performance-mode")]
