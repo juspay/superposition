@@ -1,7 +1,9 @@
 #![deny(unused_crate_dependencies)]
 mod app_state;
 mod auth;
+mod organisation;
 
+use idgenerator::{IdGeneratorOptions, IdInstance};
 use std::{collections::HashSet, io::Result, time::Duration};
 
 use actix_files::Files;
@@ -43,6 +45,15 @@ async fn main() -> Result<()> {
     env_logger::init();
     let service_prefix: String =
         get_from_env_unsafe("SERVICE_PREFIX").expect("SERVICE_PREFIX is not set");
+
+    let worker_id: u32 = get_from_env_unsafe("WORKER_ID").expect("WORKER_ID is not set");
+
+    let options = IdGeneratorOptions::new()
+        .worker_id(worker_id)
+        .worker_id_bit_len(8)
+        .seq_bit_len(12);
+
+    IdInstance::init(options).expect("Failed to initialize ID generator");
 
     /*
         Reading from a env returns a String at best we cannot obtain a &'static str from it,
@@ -180,6 +191,11 @@ async fn main() -> Result<()> {
                         experiments::endpoints(scope("/experiments")).wrap(
                             AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION),
                         ),
+                    )
+                    .service(
+                        scope("/organisation")
+                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION))
+                            .service(organisation::endpoints()),
                     )
                     /***************************** UI Routes ******************************/
                     .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())
