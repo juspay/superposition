@@ -1,16 +1,16 @@
 #![deny(unused_crate_dependencies)]
 mod app_state;
+mod auth;
 
 use std::{collections::HashSet, io::Result, time::Duration};
 
 use actix_files::Files;
 use actix_web::{
-    dev::Service,
-    http::header,
     middleware::Compress,
     web::{self, get, scope, Data, PathConfig},
-    App, HttpMessage, HttpResponse, HttpServer,
+    App, HttpResponse, HttpServer,
 };
+use auth::AuthHandler;
 use context_aware_config::api::*;
 use experimentation_platform::api::*;
 use frontend::app::*;
@@ -18,13 +18,13 @@ use frontend::types::Envs as UIEnvs;
 use leptos::*;
 use leptos_actix::{generate_route_list, LeptosRoutes};
 use service_utils::{
+    aws::kms,
     helpers::get_from_env_unsafe,
     middlewares::{
         app_scope::AppExecutionScopeMiddlewareFactory, tenant::TenantMiddlewareFactory,
     },
-    service::types::{AppScope, AppState},
+    service::types::{AppEnv, AppScope},
 };
-use superposition_types::User;
 
 #[actix_web::get("favicon.ico")]
 async fn favicon(
@@ -89,8 +89,24 @@ async fn main() -> Result<()> {
         view! { <App app_envs=routes_ui_envs.clone()/> }
     });
 
-    let app_state =
-        Data::new(app_state::get(service_prefix_str.to_owned(), &base, &tenants).await);
+    let app_env = get_from_env_unsafe("APP_ENV").expect("APP_ENV is not set");
+    let kms_client = match app_env {
+        AppEnv::DEV | AppEnv::TEST => None,
+        _ => Some(kms::new_client().await),
+    };
+
+    let app_state = Data::new(
+        app_state::get(
+            app_env,
+            &kms_client,
+            service_prefix_str.to_owned(),
+            &base,
+            &tenants,
+        )
+        .await,
+    );
+
+    let auth = AuthHandler::init(&kms_client, &app_env).await;
 
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
@@ -99,22 +115,6 @@ async fn main() -> Result<()> {
         App::new()
             .wrap(Compress::default())
             .app_data(app_state.clone())
-            .wrap_fn(|req, srv| {
-                let state = req.app_data::<Data<AppState>>().unwrap();
-                let user = req.headers().get(header::AUTHORIZATION).and_then(|auth| auth.to_str().ok()).and_then(|auth| {
-                    let mut token = auth.split(' ').into_iter();
-                    match (token.next(), token.next()) {
-                        (Some("Internal"), Some(token)) if token == state.superposition_token =>
-                            req.headers().get("x-user").and_then(|auth| auth.to_str().ok()).and_then(|user_str| {
-                                serde_json::from_str::<User>(user_str).ok()
-                            }),
-                        (_, _) => None
-                    }
-                }).unwrap_or_default();
-
-                req.extensions_mut().insert::<User>(user);
-                srv.call(req)
-            })
             .wrap(TenantMiddlewareFactory)
             .app_data(PathConfig::default().error_handler(|err, _| {
                 actix_web::error::ErrorBadRequest(err)
@@ -127,6 +127,8 @@ async fn main() -> Result<()> {
             .service(web::redirect("/", ui_redirect_path.to_string()))
             .service(web::redirect("/admin", ui_redirect_path.to_string()))
             .service(web::redirect("/admin/{tenant}/", "default-config"))
+            .service(auth.routes())
+            .service(auth.org_routes())
             .leptos_routes(
                 leptos_options.to_owned(),
                 routes.to_owned(),
@@ -192,6 +194,7 @@ async fn main() -> Result<()> {
                 get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
             )
             .app_data(Data::new(leptos_options.to_owned()))
+            .wrap(auth.clone())
     })
     .bind(("0.0.0.0", cac_port))?
     .workers(5)

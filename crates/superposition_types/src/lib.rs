@@ -32,8 +32,6 @@ pub use crate::overridden::Overridden;
 pub struct User {
     pub email: String,
     pub username: String,
-    pub auth_token: String,
-    pub auth_type: String,
 }
 
 impl User {
@@ -44,14 +42,6 @@ impl User {
     pub fn get_username(&self) -> String {
         self.username.clone()
     }
-
-    pub fn get_auth_token(&self) -> String {
-        self.auth_token.clone()
-    }
-
-    pub fn get_auth_type(&self) -> String {
-        self.auth_type.clone()
-    }
 }
 
 impl Default for User {
@@ -59,8 +49,6 @@ impl Default for User {
         Self {
             email: "user@superposition.io".into(),
             username: "superposition".into(),
-            auth_token: "1234abcd".into(),
-            auth_type: "Bearer".into(),
         }
     }
 }
