@@ -1,6 +1,6 @@
 use chrono::NaiveDateTime;
 #[cfg(feature = "diesel_derives")]
-use diesel::{Insertable, QueryId, Queryable, Selectable, AsChangeset};
+use diesel::{AsChangeset, Insertable, QueryId, Queryable, Selectable};
 
 use serde::{Deserialize, Serialize};
 
@@ -30,7 +30,7 @@ pub enum WorkspaceStatus {
     DISABLED,
 }
 
-#[derive(Clone, Serialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)
