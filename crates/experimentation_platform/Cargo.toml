@@ -23,6 +23,7 @@ superposition_types = { path = "../superposition_types", features = [
     "result",
     "diesel_derives",
 ] }
+superposition_proc_macros = { version = "0.1.0", path = "../superposition_proc_macros" }
 
 [features]
 disable_db_data_validation = ["superposition_types/disable_db_data_validation"]

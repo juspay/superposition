@@ -1909,6 +1909,7 @@ dependencies = [
  "serde_json",
  "service_utils",
  "superposition_macros",
+ "superposition_proc_macros",
  "superposition_types",
 ]
 
@@ -4649,6 +4650,7 @@ dependencies = [
  "serde_json",
  "strum_macros",
  "superposition_derives",
+ "superposition_proc_macros",
  "thiserror",
  "uuid",
 ]

@@ -7,7 +7,7 @@ use diesel::{
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 #[cfg(feature = "diesel_derives")]
-use superposition_derives::{JsonFromSql, JsonToSql};
+use superposition_derives::{JsonFromSql, JsonToSql, Fetch};
 
 use crate::{Condition, Exp, Overrides};
 
@@ -73,7 +73,7 @@ impl Variants {
 #[derive(Serialize, Clone, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
-    derive(QueryableByName, Queryable, Selectable, Insertable)
+    derive(QueryableByName, Queryable, Selectable, Insertable, Fetch)
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
 #[cfg_attr(feature = "diesel_derives", diesel(primary_key(id)))]

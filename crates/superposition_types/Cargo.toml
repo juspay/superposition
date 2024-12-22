@@ -21,8 +21,10 @@ log = { workspace = true }
 regex = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+service_utils = { version = "0.24.2", path = "../service_utils" }
 strum_macros = { workspace = true, optional = true }
 superposition_derives = { path = "../superposition_derives", optional = true }
+superposition_proc_macros = { path = "../superposition_proc_macros", optional = true }
 thiserror = { version = "1.0.57", optional = true }
 uuid = { workspace = true }
 
