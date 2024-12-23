@@ -298,12 +298,14 @@ pub async fn fetch_types(
 
 pub async fn fetch_workspaces(
     filters: &PaginationParams,
+    org_id: &String,
 ) -> Result<PaginatedResponse<Workspace>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
     let url = format!("{}/workspaces?{}", host, filters.to_string());
     let response: PaginatedResponse<Workspace> = client
         .get(url)
+        .header("x-org-id", org_id)
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?

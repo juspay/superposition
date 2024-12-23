@@ -405,7 +405,7 @@ where
                                                                     }
                                                                 >
 
-                                                                    <i class="ri-delete-bin-2-line text-xl text-2xl font-bold"></i>
+                                                                    <i class="ri-delete-bin-2-line text-2xl font-bold"></i>
                                                                 </button>
                                                             </Show>
                                                         </div>
@@ -415,7 +415,7 @@ where
                                                 {move || {
                                                     if last_idx.get() != idx {
                                                         view! {
-                                                            <div class="my-3 ml-5 ml-6 ml-7">
+                                                            <div class="my-3 ml-7">
                                                                 <span class="font-mono text-xs">"&&"</span>
                                                             </div>
                                                         }
