@@ -9,7 +9,6 @@ edition = "2021"
 actix-files = { version = "0.6" }
 actix-web = { workspace = true }
 anyhow = { workspace = true }
-aws-sdk-kms = { workspace = true }
 cac_toml = { path = "../cac_toml" }
 cfg-if = { workspace = true }
 chrono = { workspace = true }
@@ -33,7 +32,9 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 service_utils = { path = "../service_utils" }
 superposition_macros = { path = "../superposition_macros" }
-superposition_types = { path = "../superposition_types", features = ["diesel_derives"]}
+superposition_types = { path = "../superposition_types", features = [
+    "diesel_derives",
+] }
 toml = { workspace = true }
 url = { workspace = true }
 

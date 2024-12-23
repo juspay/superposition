@@ -16,13 +16,11 @@ use actix_web::{
     Error, HttpMessage, HttpRequest, HttpResponse, Scope,
 };
 use authenticator::{Authenticator, SwitchOrgParams};
-use aws_sdk_kms::Client;
 use futures_util::future::LocalBoxFuture;
 use no_auth::DisabledAuthenticator;
 use service_utils::{
-    db::utils::get_oidc_client_secret,
-    helpers::get_from_env_unsafe,
-    service::types::{AppEnv, AppState},
+    db::utils::get_oidc_client_secret, helpers::get_from_env_unsafe,
+    service::types::AppState,
 };
 use superposition_types::User;
 use url::Url;
@@ -99,7 +97,7 @@ impl AuthHandler {
         routes(self.clone())
     }
 
-    pub async fn init(kms_client: &Option<Client>, app_env: &AppEnv) -> Self {
+    pub async fn init() -> Self {
         let auth_provider: String = get_from_env_unsafe("AUTH_PROVIDER").unwrap();
         let mut auth = auth_provider.split('+');
 
@@ -117,7 +115,7 @@ impl AuthHandler {
                     .unwrap();
                 let base_url = get_from_env_unsafe("CAC_HOST").unwrap();
                 let cid = get_from_env_unsafe("OIDC_CLIENT_ID").unwrap();
-                let csecret = get_oidc_client_secret(kms_client, app_env).await;
+                let csecret = get_oidc_client_secret().await;
                 Arc::new(
                     oidc::OIDCAuthenticator::new(url, base_url, cid, csecret)
                         .await

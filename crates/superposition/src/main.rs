@@ -21,13 +21,12 @@ use frontend::types::Envs as UIEnvs;
 use leptos::*;
 use leptos_actix::{generate_route_list, LeptosRoutes};
 use service_utils::{
-    aws::kms,
     helpers::get_from_env_unsafe,
     middlewares::{
         app_scope::AppExecutionScopeMiddlewareFactory,
         tenant::OrgWorkspaceMiddlewareFactory,
     },
-    service::types::{AppEnv, AppScope},
+    service::types::AppScope,
 };
 
 #[actix_web::get("favicon.ico")]
@@ -103,23 +102,12 @@ async fn main() -> Result<()> {
     });
 
     let app_env = get_from_env_unsafe("APP_ENV").expect("APP_ENV is not set");
-    let kms_client = match app_env {
-        AppEnv::DEV | AppEnv::TEST => None,
-        _ => Some(kms::new_client().await),
-    };
 
     let app_state = Data::new(
-        app_state::get(
-            app_env,
-            &kms_client,
-            service_prefix_str.to_owned(),
-            &base,
-            &tenants,
-        )
-        .await,
+        app_state::get(app_env, service_prefix_str.to_owned(), &base, &tenants).await,
     );
 
-    let auth = AuthHandler::init(&kms_client, &app_env).await;
+    let auth = AuthHandler::init().await;
 
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;

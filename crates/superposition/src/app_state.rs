@@ -27,7 +27,6 @@ const TENANT_CONFIG_FILE: &str = "crates/superposition/Superposition.cac.toml";
 
 pub async fn get(
     app_env: AppEnv,
-    kms_client: &Option<aws_sdk_kms::Client>,
     service_prefix: String,
     base: &String,
     tenants: &HashSet<String>,
@@ -93,7 +92,7 @@ pub async fn get(
     }
 
     AppState {
-        db_pool: init_pool_manager(&kms_client, &app_env, max_pool_size).await,
+        db_pool: init_pool_manager(max_pool_size).await,
         cac_host,
         cac_version: get_from_env_unsafe("SUPERPOSITION_VERSION")
             .expect("SUPERPOSITION_VERSION is not set"),
@@ -125,7 +124,7 @@ pub async fn get(
         .collect::<HashSet<_>>(),
         service_prefix,
         tenant_configs,
-        superposition_token: get_superposition_token(&kms_client, &app_env).await,
+        superposition_token: get_superposition_token().await,
         #[cfg(feature = "high-performance-mode")]
         redis: redis_pool,
         http_client: reqwest::Client::new(),
