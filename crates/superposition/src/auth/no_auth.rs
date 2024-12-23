@@ -9,7 +9,13 @@ use superposition_types::User;
 
 use super::authenticator::{Authenticator, SwitchOrgParams};
 
-pub struct DisabledAuthenticator;
+pub struct DisabledAuthenticator(Vec<String>);
+
+impl DisabledAuthenticator {
+    pub fn new(organisations: Vec<String>) -> Self {
+        Self(organisations)
+    }
+}
 
 impl Authenticator for DisabledAuthenticator {
     fn authenticate(&self, _: &ServiceRequest) -> Result<User, actix_web::HttpResponse> {
@@ -21,13 +27,13 @@ impl Authenticator for DisabledAuthenticator {
     }
 
     fn get_organisations(&self, _: &actix_web::HttpRequest) -> HttpResponse {
-        HttpResponse::Ok().json(serde_json::json!(vec!["superposition"]))
+        HttpResponse::Ok().json(serde_json::json!(self.0))
     }
 
     fn switch_organisation(
         &self,
         _: &HttpRequest,
-        _: &Path<SwitchOrgParams>,
+        path: &Path<SwitchOrgParams>,
     ) -> LocalBoxFuture<'static, actix_web::Result<HttpResponse>> {
         let cookie = Cookie::build("org_user", "org_token")
             .path("/")
@@ -35,10 +41,12 @@ impl Authenticator for DisabledAuthenticator {
             .max_age(Duration::days(1))
             .finish();
 
+        let org_id = path.organisation_id.clone();
+
         Box::pin(async move {
             Ok(HttpResponse::Found()
                 .cookie(cookie)
-                .insert_header(("Location", "/"))
+                .insert_header(("Location", format!("/admin/{org_id}/workspaces")))
                 .finish())
         })
     }
