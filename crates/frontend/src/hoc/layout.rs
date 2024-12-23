@@ -1,11 +1,12 @@
 use crate::{
     components::{side_nav::SideNav, toast::Toast},
     providers::alert_provider::AlertQueue,
+    types::{OrganisationId, Tenant},
 };
 use leptos::*;
 use leptos_router::*;
 
-pub fn use_tenant() -> String {
+pub fn use_tenant() -> Tenant {
     let params_map = use_params_map();
     let route_context = use_route();
     logging::log!("use_route-params_map {:?}", params_map.get_untracked());
@@ -16,27 +17,57 @@ pub fn use_tenant() -> String {
     logging::log!("use_route-path {:?}", route_context.path());
 
     match params_map.get_untracked().get("tenant") {
-        Some(tenant) => tenant.clone(),
-        None => String::from("no-tenant"),
+        Some(tenant) => Tenant(tenant.clone()),
+        None => Tenant("no-tenant".into()),
+    }
+}
+
+pub fn use_org() -> OrganisationId {
+    let params_map = use_params_map();
+    let route_context = use_route();
+    logging::log!("use_route-params_map {:?}", params_map.get_untracked());
+    logging::log!(
+        "use_route-original_path {:?}",
+        route_context.original_path()
+    );
+    logging::log!("use_route-path {:?}", route_context.path());
+
+    match params_map.get_untracked().get("org_id") {
+        Some(org) => OrganisationId(org.clone()),
+        None => OrganisationId("no-org".into()),
     }
 }
 
 #[component]
-pub fn Layout(children: Children) -> impl IntoView {
-    let (tenant_rs, tenant_ws) = create_signal(use_tenant());
-    provide_context(tenant_rs);
-    provide_context(tenant_ws);
+pub fn layout(
+    #[prop(default = true)] show_side_nav: bool,
+    children: Children,
+) -> impl IntoView {
+    let tenant_rws = create_rw_signal(use_tenant());
+    let org_rws = create_rw_signal(use_org());
+    provide_context(tenant_rws);
+    provide_context(org_rws);
 
     let route_context = use_route();
-    let original_path = route_context.original_path();
+    let original_path = String::from(route_context.original_path());
     let path = route_context.path();
     // let params_map = route_context.params();
 
     view! {
         <div>
-            <SideNav resolved_path=path original_path=original_path.to_string()/>
+            <Show
+            when=move || show_side_nav
+            >
+                <SideNav resolved_path=path.clone() original_path=original_path.clone()/>
+            </Show>
             // params_map=params_map
-            <main class="ease-soft-in-out xl:ml-[350px] relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto">
+            <main class={
+                if show_side_nav {
+                    "ease-soft-in-out xl:ml-[350px] relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto"
+                } else {
+                    "ease-soft-in-out p-10 relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto"
+                }
+            }>
                 {children()}
             </main>
 

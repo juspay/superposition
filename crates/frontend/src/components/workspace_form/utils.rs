@@ -3,6 +3,7 @@ use crate::utils::{construct_request_headers, get_host, parse_json_response, req
 use serde_json::Value;
 
 pub async fn create_workspace(
+    org_id: String,
     payload: CreateWorkspaceRequest,
 ) -> Result<serde_json::Value, String> {
     let host = get_host();
@@ -12,7 +13,7 @@ pub async fn create_workspace(
         url,
         reqwest::Method::POST,
         Some(payload),
-        construct_request_headers(&[])?,
+        construct_request_headers(&[("x-org-id", org_id.as_str())])?,
     )
     .await?;
 
@@ -21,6 +22,7 @@ pub async fn create_workspace(
 
 pub async fn update_workspace(
     key: String,
+    org_id: String,
     payload: UpdateWorkspaceRequest,
 ) -> Result<serde_json::Value, String> {
     let host = get_host();
@@ -30,7 +32,7 @@ pub async fn update_workspace(
         url,
         reqwest::Method::PUT,
         Some(payload),
-        construct_request_headers(&[])?,
+        construct_request_headers(&[("x-org-id", org_id.as_str())])?,
     )
     .await?;
 

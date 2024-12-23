@@ -105,7 +105,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                             />
                             <Route
                                 ssr=SsrMode::Async
-                                path="/admin/:tenant/dimensions"
+                                path="/admin/:org_id/:tenant/dimensions"
                                 view=move || {
                                     view! {
                                         <Layout>
@@ -117,7 +117,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                             <Route
                                 ssr=SsrMode::Async
-                                path="/admin/:tenant/function"
+                                path="/admin/:org_id/:tenant/function"
                                 view=move || {
                                     view! {
                                         <Layout>
@@ -129,7 +129,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                             <Route
                                 ssr=SsrMode::Async
-                                path="/admin/:tenant/function/create"
+                                path="/admin/:org_id/:tenant/function/create"
                                 view=move || {
                                     view! {
                                         <Layout>
@@ -141,7 +141,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                             <Route
                                 ssr=SsrMode::Async
-                                path="/admin/:tenant/function/:function_name"
+                                path="/admin/:org_id/:tenant/function/:function_name"
                                 view=move || {
                                     view! {
                                         <Layout>
@@ -153,7 +153,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                             <Route
                                 ssr=SsrMode::Async
-                                path="/admin/:tenant/experiments"
+                                path="/admin/:org_id/:tenant/experiments"
                                 view=move || {
                                     view! {
                                         <Layout>
@@ -165,7 +165,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                             <Route
                                 ssr=SsrMode::Async
-                                path="/admin/:tenant/experiments/:id"
+                                path="/admin/:org_id/:tenant/experiments/:id"
                                 view=move || {
                                     view! {
                                         <Layout>
@@ -177,7 +177,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                             <Route
                                 ssr=SsrMode::Async
-                                path="/admin/:tenant/default-config"
+                                path="/admin/:org_id/:tenant/default-config"
                                 view=move || {
                                     view! {
                                         <Layout>
@@ -189,7 +189,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                             <Route
                                 ssr=SsrMode::Async
-                                path="/admin/:tenant/overrides"
+                                path="/admin/:org_id/:tenant/overrides"
                                 view=move || {
                                     view! {
                                         <Layout>
@@ -201,7 +201,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                             <Route
                                 ssr=SsrMode::Async
-                                path="/admin/:tenant/resolve"
+                                path="/admin/:org_id/:tenant/resolve"
                                 view=move || {
                                     view! {
                                         <Layout>
@@ -213,7 +213,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                             <Route
                                 ssr=SsrMode::Async
-                                path="/admin/:tenant/types"
+                                path="/admin/:org_id/:tenant/types"
                                 view=move || {
                                     view! {
                                         <Layout>
@@ -225,7 +225,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                             <Route
                                 ssr=SsrMode::Async
-                                path="/admin/:tenant/config/versions"
+                                path="/admin/:org_id/:tenant/config/versions"
                                 view=move || {
                                     view! {
                                         <Layout>
@@ -237,7 +237,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                             <Route
                                 ssr=SsrMode::Async
-                                path="/admin/:tenant/config/versions/:version"
+                                path="/admin/:org_id/:tenant/config/versions/:version"
                                 view=move || {
                                     view! {
                                         <Layout>
@@ -249,9 +249,13 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                             <Route
                                 ssr=SsrMode::Async
-                                path="/admin/:org_id/workspace"
+                                path="/admin/:org_id/workspaces"
                                 view=move || {
-                                    view! { <Workspace/> }
+                                    view! {
+                                        <Layout show_side_nav=false>
+                                            <Workspace/>
+                                        </Layout>
+                                        }
                                 }
                             />
 
