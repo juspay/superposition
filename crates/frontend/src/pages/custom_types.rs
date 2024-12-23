@@ -12,6 +12,7 @@ use crate::components::{
     table::Table,
     type_template_form::TypeTemplateForm,
 };
+use crate::types::{OrganisationId, Tenant};
 use crate::utils::unwrap_option_or_default_with_error;
 use crate::{api::fetch_types, components::table::types::Column};
 
@@ -25,11 +26,12 @@ const TYPE_DRAWER_ID: &str = "type_template_drawer";
 
 #[component]
 pub fn types_page() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let types_resource = create_blocking_resource(
-        move || tenant_rs.get(),
-        |t| async move {
-            fetch_types(&PaginationParams::default_request(), t)
+        move || (tenant_rws.get().0, org_rws.get().0),
+        |(t, org_id)| async move {
+            fetch_types(&PaginationParams::default_request(), t, org_id)
                 .await
                 .map_or_else(
                     |err| {
@@ -69,9 +71,10 @@ pub fn types_page() -> impl IntoView {
                         .unwrap();
                         spawn_local({
                             async move {
-                                let tenant = tenant_rs.get();
+                                let tenant = tenant_rws.get().0;
+                                let org = org_rws.get().0;
                                 let _ =
-                                    delete_type(tenant, row_data.clone().type_name).await;
+                                    delete_type(tenant, row_data.clone().type_name, org).await;
                                 types_resource.refetch();
                             }
                         });

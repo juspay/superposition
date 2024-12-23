@@ -11,6 +11,7 @@ use crate::api::fetch_functions;
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{stat::Stat, table::Table};
+use crate::types::{OrganisationId, Tenant};
 use crate::utils::update_page_direction;
 
 use super::utils::function_table_columns;
@@ -22,14 +23,16 @@ struct CombinedResource {
 
 #[component]
 pub fn function_list() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let (filters, set_filters) = create_signal(PaginationParams::default_request());
     let table_columns = create_memo(move |_| function_table_columns());
 
     let combined_resource = create_blocking_resource(
-        move || (tenant_rs.get(), filters.get()),
-        |(current_tenant, filters)| async move {
-            let functions_future = fetch_functions(&filters, current_tenant.to_string());
+        move || (tenant_rws.get().0, filters.get(), org_rws.get().0),
+        |(current_tenant, filters, org)| async move {
+            let functions_future =
+                fetch_functions(&filters, current_tenant.to_string(), org);
 
             let functions_result = functions_future.await;
             CombinedResource {

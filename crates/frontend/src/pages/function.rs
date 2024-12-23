@@ -19,6 +19,7 @@ use crate::components::{
     monaco_editor::MonacoEditor,
     skeleton::{Skeleton, SkeletonVariant},
 };
+use crate::types::{OrganisationId, Tenant};
 use crate::utils::get_element_by_id;
 
 #[derive(Clone, Debug, Copy, Display, strum_macros::EnumProperty, PartialEq)]
@@ -39,12 +40,14 @@ struct CombinedResource {
 #[component]
 pub fn function_page() -> impl IntoView {
     let function_params = use_params_map();
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let source = move || {
-        let t = tenant_rs.get();
+        let t = tenant_rws.get().0;
+        let org = org_rws.get().0;
         let function_name = function_params
             .with(|params| params.get("function_name").cloned().unwrap_or("1".into()));
-        (function_name, t)
+        (function_name, t, org)
     };
 
     let (selected_tab_rs, selected_tab_ws) = create_signal(CodeTab::PublishedCode);
@@ -53,10 +56,10 @@ pub fn function_page() -> impl IntoView {
     let (show_publish_rs, show_publish_ws) = create_signal(false);
     let (publish_error_rs, publish_error_ws) = create_signal("".to_string());
 
-    let combined_resource: Resource<(String, String), CombinedResource> =
-        create_blocking_resource(source, |(function_name, tenant)| async move {
+    let combined_resource: Resource<(String, String, String), CombinedResource> =
+        create_blocking_resource(source, |(function_name, tenant, org_id)| async move {
             let function_result =
-                fetch_function(function_name.to_string(), tenant.to_string()).await;
+                fetch_function(function_name.to_string(), tenant.to_string(), org_id).await;
 
             CombinedResource {
                 function: function_result.ok(),
@@ -90,11 +93,12 @@ pub fn function_page() -> impl IntoView {
                         let publish_click = move |event: MouseEvent| {
                             event.prevent_default();
                             logging::log!("Submitting function form");
-                            let tenant = tenant_rs.get();
+                            let tenant = tenant_rws.get().0;
+                            let org = org_rws.get().0;
                             let f_function_name = function_rs.get().function_name;
                             spawn_local({
                                 async move {
-                                    let result = publish_function(f_function_name, tenant).await;
+                                    let result = publish_function(f_function_name, tenant, org).await;
                                     match result {
                                         Ok(_) => {
                                             publish_error_ws.set("".to_string());
@@ -108,7 +112,7 @@ pub fn function_page() -> impl IntoView {
                             });
                         };
                         view! {
-                            <div class="flex flex-col flex-row overflow-x-auto p-2 bg-transparent">
+                            <div class="flex flex-row overflow-x-auto p-2 bg-transparent">
 
                                 <div class="flex bg-base-100 flex-row gap-3 justify-between flex-wrap shadow m-5">
                                     <div class="stat w-2/12">

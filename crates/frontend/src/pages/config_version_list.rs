@@ -12,26 +12,29 @@ use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
 use crate::components::table::types::{ColumnSortable, TablePaginationProps};
 use crate::components::table::{types::Column, Table};
+use crate::types::{OrganisationId, Tenant};
 use crate::utils::use_url_base;
 
 use crate::api::fetch_snapshots;
 
 #[component]
 pub fn config_version_list() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
 
     // Signals for filters
     let (filters, set_filters) = create_signal(PaginationParams::default_request());
 
-    let table_columns = create_memo(move |_| snapshot_table_columns(tenant_rs.get()));
+    let table_columns =
+        create_memo(move |_| snapshot_table_columns(tenant_rws.get().0, org_rws.get().0));
 
     let snapshots_resource: Resource<
-        (String, PaginationParams),
+        (String, PaginationParams, String),
         PaginatedResponse<ConfigVersion>,
     > = create_blocking_resource(
-        move || (tenant_rs.get(), filters.get()),
-        |(current_tenant, filters)| async move {
-            fetch_snapshots(&filters, current_tenant.to_string())
+        move || (tenant_rws.get().0, filters.get(), org_rws.get().0),
+        |(current_tenant, filters, org_id)| async move {
+            fetch_snapshots(&filters, current_tenant.to_string(), org_id)
                 .await
                 .unwrap_or_default()
         },
@@ -142,7 +145,7 @@ pub fn config_version_list() -> impl IntoView {
     }
 }
 
-pub fn snapshot_table_columns(tenant: String) -> Vec<Column> {
+pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
     vec![
         Column::new(
             "id".to_string(),
@@ -150,8 +153,13 @@ pub fn snapshot_table_columns(tenant: String) -> Vec<Column> {
             move |value: &str, _row: &Map<String, Value>| {
                 let id = value.to_string();
                 let base = use_url_base();
-                let href =
-                    format!("{}/admin/{}/config/versions/{}", base, tenant.clone(), id);
+                let href = format!(
+                    "{}/admin/{}/{}/config/versions/{}",
+                    base,
+                    org_id.clone(),
+                    tenant.clone(),
+                    id
+                );
                 view! {
                     <div class="w-24">
                         <A href=href class="btn-link">{id}</A>
