@@ -90,6 +90,7 @@ async fn create(
                 last_modified_by.eq(user.get_email()),
                 dimensions::position.eq(dimensions::position + 1),
             ))
+            .returning(Dimension::as_returning())
             .schema_name(&tenant)
             .execute(transaction_conn)?;
         let insert_resp = diesel::insert_into(dimensions::table)
@@ -193,6 +194,7 @@ async fn update(
                         dsl::last_modified_by.eq(user.get_email()),
                         dimensions::position.eq((num_rows + 100) as i32),
                     ))
+                    .returning(Dimension::as_returning())
                     .schema_name(&tenant)
                     .get_result::<Dimension>(transaction_conn)?;
 
@@ -205,6 +207,7 @@ async fn update(
                             dsl::last_modified_by.eq(user.get_email()),
                             dimensions::position.eq(dimensions::position - 1),
                         ))
+                        .returning(Dimension::as_returning())
                         .schema_name(&tenant)
                         .execute(transaction_conn)?
                 } else {
@@ -216,6 +219,7 @@ async fn update(
                             dsl::last_modified_by.eq(user.get_email()),
                             dimensions::position.eq(dimensions::position + 1),
                         ))
+                        .returning(Dimension::as_returning())
                         .schema_name(&tenant)
                         .execute(transaction_conn)?
                 };
@@ -230,6 +234,7 @@ async fn update(
                     dimensions::schema.eq(dimension_row.schema),
                     dimensions::position.eq(new_position),
                 ))
+                .returning(Dimension::as_returning())
                 .schema_name(&tenant)
                 .get_result::<Dimension>(transaction_conn)
                 .map_err(|err| db_error!(err))
@@ -319,11 +324,13 @@ async fn delete_dimension(
                     dsl::last_modified_at.eq(Utc::now().naive_utc()),
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
+                .returning(Dimension::as_returning())
                 .schema_name(&tenant)
                 .execute(transaction_conn)?;
             diesel::update(dimensions::dsl::dimensions)
                 .filter(dimensions::position.gt(dimension_data.position))
                 .set(dimensions::position.eq(dimensions::position - 1))
+                .returning(Dimension::as_returning())
                 .schema_name(&tenant)
                 .execute(transaction_conn)?;
             let deleted_row = delete(dsl::dimensions.filter(dsl::dimension.eq(&name)))

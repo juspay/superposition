@@ -112,6 +112,7 @@ pub fn r#move(
             dsl::last_modified_at.eq(Utc::now().naive_utc()),
             dsl::last_modified_by.eq(user.get_email()),
         ))
+        .returning(Context::as_returning())
         .schema_name(&tenant)
         .get_result::<Context>(conn);
 
@@ -177,6 +178,7 @@ pub fn delete(
             dsl::last_modified_at.eq(Utc::now().naive_utc()),
             dsl::last_modified_by.eq(user.get_email()),
         ))
+        .returning(Context::as_returning())
         .schema_name(&tenant)
         .execute(conn)?;
     let deleted_row = diesel::delete(dsl::contexts.filter(dsl::id.eq(&ctx_id)))
