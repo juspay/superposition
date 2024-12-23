@@ -1,60 +1,60 @@
 use crate::components::nav_item::NavItem;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
-use crate::types::AppRoute;
+use crate::types::{AppRoute, OrganisationId, Tenant};
 use crate::utils::{get_tenants, use_url_base};
 
 use leptos::*;
 use leptos_router::{use_location, use_navigate, A};
 use web_sys::Event;
 
-fn create_routes(tenant: &str) -> Vec<AppRoute> {
+fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
     let base = use_url_base();
     vec![
         AppRoute {
-            key: format!("{base}/admin/{tenant}/experiments"),
-            path: format!("{base}/admin/{tenant}/experiments"),
+            key: format!("{base}/admin/{org}/{tenant}/experiments"),
+            path: format!("{base}/admin/{org}/{tenant}/experiments"),
             icon: "ri-test-tube-fill".to_string(),
             label: "Experiments".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{tenant}/function"),
-            path: format!("{base}/admin/{tenant}/function"),
+            key: format!("{base}/admin/{org}/{tenant}/function"),
+            path: format!("{base}/admin/{org}/{tenant}/function"),
             icon: "ri-code-box-fill".to_string(),
             label: "Functions".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{tenant}/dimensions"),
-            path: format!("{base}/admin/{tenant}/dimensions"),
+            key: format!("{base}/admin/{org}/{tenant}/dimensions"),
+            path: format!("{base}/admin/{org}/{tenant}/dimensions"),
             icon: "ri-ruler-2-fill".to_string(),
             label: "Dimensions".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{tenant}/default-config"),
-            path: format!("{base}/admin/{tenant}/default-config"),
+            key: format!("{base}/admin/{org}/{tenant}/default-config"),
+            path: format!("{base}/admin/{org}/{tenant}/default-config"),
             icon: "ri-tools-line".to_string(),
             label: "Default Config".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{tenant}/overrides"),
-            path: format!("{base}/admin/{tenant}/overrides"),
+            key: format!("{base}/admin/{org}/{tenant}/overrides"),
+            path: format!("{base}/admin/{org}/{tenant}/overrides"),
             icon: "ri-guide-fill".to_string(),
             label: "Overrides".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{tenant}/resolve"),
-            path: format!("{base}/admin/{tenant}/resolve"),
+            key: format!("{base}/admin/{org}/{tenant}/resolve"),
+            path: format!("{base}/admin/{org}/{tenant}/resolve"),
             icon: "ri-equalizer-fill".to_string(),
             label: "Resolve".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{tenant}/types"),
-            path: format!("{base}/admin/{tenant}/types"),
+            key: format!("{base}/admin/{org}/{tenant}/types"),
+            path: format!("{base}/admin/{org}/{tenant}/types"),
             icon: "ri-t-box-fill".to_string(),
             label: "Type Templates".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{tenant}/config/versions"),
-            path: format!("{base}/admin/{tenant}/config/versions"),
+            key: format!("{base}/admin/{org}/{tenant}/config/versions"),
+            path: format!("{base}/admin/{org}/{tenant}/config/versions"),
             icon: "ri-camera-lens-fill".to_string(),
             label: "Config Versions".to_string(),
         },
@@ -68,10 +68,12 @@ pub fn side_nav(
     //params_map: Memo<ParamsMap>,
 ) -> impl IntoView {
     let location = use_location();
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-    let tenant_ws = use_context::<WriteSignal<String>>().unwrap();
-    let (app_routes, set_app_routes) =
-        create_signal(create_routes(tenant_rs.get_untracked().as_str()));
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let (app_routes, set_app_routes) = create_signal(create_routes(
+        org_rws.get_untracked().as_str(),
+        tenant_rws.get_untracked().as_str(),
+    ));
 
     let resolved_path = create_rw_signal(resolved_path);
     let original_path = create_rw_signal(original_path);
@@ -106,7 +108,7 @@ pub fn side_nav(
                 view! { <Skeleton variant=SkeletonVariant::Content/> }
             }>
                 <select
-                    value=tenant_rs.get()
+                    value=tenant_rws.get().0
                     on:change=move |event: Event| {
                         let selected_tenant = event_target_value(&event);
                         let base = use_url_base();
@@ -123,8 +125,8 @@ pub fn side_nav(
                             })
                             .collect::<Vec<String>>()
                             .join("/");
-                        tenant_ws.set(selected_tenant.clone());
-                        set_app_routes.set(create_routes(selected_tenant.as_str()));
+                        tenant_rws.set(Tenant(selected_tenant.clone()));
+                        set_app_routes.set(create_routes(org_rws.get_untracked().as_str(), selected_tenant.as_str()));
                         let navigate = use_navigate();
                         navigate(redirect_url.as_str(), Default::default())
                     }
@@ -141,7 +143,7 @@ pub fn side_nav(
                                     .map(|tenant| {
                                         view! {
                                             <option selected=tenant
-                                                == &tenant_rs.get()>{tenant}</option>
+                                                == tenant_rws.get().as_str()>{tenant}</option>
                                         }
                                     })
                                     .collect::<Vec<_>>()
