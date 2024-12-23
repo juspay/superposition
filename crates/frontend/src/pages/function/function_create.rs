@@ -3,7 +3,7 @@ use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
 use superposition_types::database::models::cac::Function;
 
-use crate::components::function_form::FunctionEditor;
+use crate::{components::function_form::FunctionEditor, types::{OrganisationId, Tenant}};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct CombinedResource {
@@ -12,7 +12,8 @@ struct CombinedResource {
 
 #[component]
 pub fn create_function_view() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     view! {
         <div>
 
@@ -20,8 +21,9 @@ pub fn create_function_view() -> impl IntoView {
             <FunctionEditor
                 edit=false
                 handle_submit=move || {
-                    let tenant = tenant_rs.get();
-                    let redirect_url = format!("admin/{tenant}/function");
+                    let tenant = tenant_rws.get().0;
+                    let org = org_rws.get().0;
+                    let redirect_url = format!("admin/{org}/{tenant}/function");
                     let navigate = use_navigate();
                     navigate(redirect_url.as_str(), Default::default())
                 }

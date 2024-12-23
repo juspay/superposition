@@ -18,7 +18,7 @@ use crate::{
         skeleton::{Skeleton, SkeletonVariant},
     },
     providers::editor_provider::EditorProvider,
-    types::Experiment,
+    types::{Experiment, OrganisationId, Tenant},
     utils::{close_modal, show_modal},
 };
 
@@ -34,24 +34,29 @@ struct CombinedResource {
 #[component]
 pub fn experiment_page() -> impl IntoView {
     let exp_params = use_params_map();
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let source = move || {
-        let t = tenant_rs.get();
+        let t = tenant_rws.get().0;
+        let org = org_rws.get().0;
         let exp_id =
             exp_params.with(|params| params.get("id").cloned().unwrap_or("1".into()));
-        (exp_id, t)
+        (exp_id, t, org)
     };
 
-    let combined_resource: Resource<(String, String), CombinedResource> =
-        create_blocking_resource(source, |(exp_id, tenant)| async move {
+    let combined_resource: Resource<(String, String, String), CombinedResource> =
+        create_blocking_resource(source, |(exp_id, tenant, org_id)| async move {
             // Perform all fetch operations concurrently
             let experiments_future =
-                fetch_experiment(exp_id.to_string(), tenant.to_string());
+                fetch_experiment(exp_id.to_string(), tenant.to_string(), org_id.clone());
             let empty_list_filters = PaginationParams::all_entries();
             let dimensions_future =
-                fetch_dimensions(&empty_list_filters, tenant.to_string());
-            let config_future =
-                fetch_default_config(&empty_list_filters, tenant.to_string());
+                fetch_dimensions(&empty_list_filters, tenant.to_string(), org_id.clone());
+            let config_future = fetch_default_config(
+                &empty_list_filters,
+                tenant.to_string(),
+                org_id.clone(),
+            );
 
             let (experiments_result, dimensions_result, config_result) =
                 join!(experiments_future, dimensions_future, config_future);
@@ -71,8 +76,9 @@ pub fn experiment_page() -> impl IntoView {
 
     let handle_start = move |experiment_id: String| {
         spawn_local(async move {
-            let tenant = tenant_rs.get();
-            let _ = ramp_experiment(&experiment_id, 0, &tenant).await;
+            let tenant = tenant_rws.get().0;
+            let org = org_rws.get().0;
+            let _ = ramp_experiment(&experiment_id, 0, &tenant, &org).await;
             combined_resource.refetch();
         })
     };

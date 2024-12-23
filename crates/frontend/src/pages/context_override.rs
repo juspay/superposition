@@ -8,7 +8,6 @@ use superposition_types::{
     Config, Context,
 };
 
-use crate::api::{delete_context, fetch_config, fetch_default_config, fetch_dimensions};
 use crate::components::alert::AlertType;
 use crate::components::button::Button;
 use crate::components::condition_pills::types::{Condition, ConditionOperator};
@@ -23,6 +22,10 @@ use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
+use crate::{
+    api::{delete_context, fetch_config, fetch_default_config, fetch_dimensions},
+    types::{OrganisationId, Tenant},
+};
 
 #[derive(Clone, Debug, Default)]
 pub struct Data {
@@ -54,7 +57,8 @@ fn form(
     #[prop(default = String::new())] description: String,
     #[prop(default = String::new())] change_reason: String,
 ) -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let (context, set_context) = create_signal(context);
     let (overrides, set_overrides) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
@@ -70,22 +74,24 @@ fn form(
             let dimensions = dimensions.get_value().clone();
             let result = if edit {
                 update_context(
-                    tenant_rs.get().clone(),
+                    tenant_rws.get().0,
                     Map::from_iter(f_overrides),
                     f_context,
                     dimensions.clone(),
                     description_rs.get(),
                     change_reason_rs.get(),
+                    org_rws.get().0,
                 )
                 .await
             } else {
                 create_context(
-                    tenant_rs.get().clone(),
+                    tenant_rws.get().0,
                     Map::from_iter(f_overrides),
                     f_context,
                     dimensions.clone(),
                     description_rs.get(),
                     change_reason_rs.get(),
+                    org_rws.get().0,
                 )
                 .await
             };
@@ -182,21 +188,21 @@ fn form(
 
 #[component]
 pub fn context_override() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
-
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let (selected_data, set_selected_data) = create_signal::<Option<Data>>(None);
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
     let (modal_visible, set_modal_visible) = create_signal(false);
     let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
 
-    let page_resource: Resource<String, PageResource> = create_blocking_resource(
-        move || tenant_rs.get().clone(),
-        |current_tenant| async move {
+    let page_resource: Resource<(String, String), PageResource> = create_blocking_resource(
+        move || (tenant_rws.get().0, org_rws.get().0),
+        |(current_tenant, org_id)| async move {
             let empty_list_filters = PaginationParams::all_entries();
             let (config_result, dimensions_result, default_config_result) = join!(
-                fetch_config(current_tenant.to_string(), None),
-                fetch_dimensions(&empty_list_filters, current_tenant.to_string()),
-                fetch_default_config(&empty_list_filters, current_tenant.to_string())
+                fetch_config(current_tenant.to_string(), None, org_id.clone()),
+                fetch_dimensions(&empty_list_filters, current_tenant.to_string(), org_id.clone()),
+                fetch_default_config(&empty_list_filters, current_tenant.to_string(), org_id.clone())
             );
             PageResource {
                 config: config_result.unwrap_or_default(),
@@ -278,7 +284,7 @@ pub fn context_override() -> impl IntoView {
     let confirm_delete = Callback::new(move |_| {
         if let Some(id) = delete_id.get().clone() {
             spawn_local(async move {
-                let result = delete_context(tenant_rs.get(), id).await;
+                let result = delete_context(tenant_rws.get().0, id, org_rws.get().0).await;
 
                 match result {
                     Ok(_) => {
