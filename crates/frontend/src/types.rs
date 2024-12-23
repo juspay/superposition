@@ -271,3 +271,9 @@ impl DropdownOption for TypeTemplate {
         self.type_name.clone()
     }
 }
+
+#[derive(Deref, DerefMut, Clone, Debug)]
+pub struct Tenant(pub String);
+
+#[derive(Deref, DerefMut, Clone, Debug)]
+pub struct OrganisationId(pub String);
