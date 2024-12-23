@@ -12,6 +12,7 @@ use crate::components::condition_pills::Condition as ConditionComponent;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::logic::Conditions;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
+use crate::types::{OrganisationId, Tenant};
 use crate::{
     api::{fetch_config, fetch_dimensions},
     components::{
@@ -30,7 +31,11 @@ enum ResolveTab {
     AllConfig,
 }
 
-async fn resolve_config(tenant: String, context: String) -> Result<Value, String> {
+async fn resolve_config(
+    tenant: String,
+    context: String,
+    org_id: String,
+) -> Result<Value, String> {
     let client = reqwest::Client::new();
     let host = get_host();
     let url = format!("{host}/config/resolve?{context}");
@@ -38,6 +43,7 @@ async fn resolve_config(tenant: String, context: String) -> Result<Value, String
         .get(url)
         .query(&[("show_reasoning", "true")])
         .header("x-tenant", tenant)
+        .header("x-org-id", org_id)
         .send()
         .await
     {
@@ -161,15 +167,16 @@ fn all_context_view(config: Config) -> impl IntoView {
 
 #[component]
 pub fn home() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let config_data = create_blocking_resource(
-        move || tenant_rs.get(),
-        |tenant| fetch_config(tenant, None),
+        move || (tenant_rws.get().0, org_rws.get().0),
+        |(tenant, org)| fetch_config(tenant, None, org),
     );
     let dimension_resource = create_resource(
-        move || tenant_rs.get(),
-        |tenant| async {
-            fetch_dimensions(&PaginationParams::all_entries(), tenant)
+        move || (tenant_rws.get().0, org_rws.get().0),
+        |(tenant, org)| async {
+            fetch_dimensions(&PaginationParams::all_entries(), tenant, org)
                 .await
                 .unwrap_or_default()
         },
@@ -261,9 +268,13 @@ pub fn home() -> impl IntoView {
         // resolve the context and get the config that would apply
         spawn_local(async move {
             let context = context_updated.to_query_string();
-            let mut config = match resolve_config(tenant_rs.get_untracked(), context)
-                .await
-                .unwrap()
+            let mut config = match resolve_config(
+                tenant_rws.get_untracked().0,
+                context,
+                org_rws.get_untracked().0,
+            )
+            .await
+            .unwrap()
             {
                 Value::Object(m) => m,
                 _ => Map::new(),

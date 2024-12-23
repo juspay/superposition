@@ -23,6 +23,7 @@ use crate::{
 pub async fn fetch_dimensions(
     filters: &PaginationParams,
     tenant: String,
+    org_id: String
 ) -> Result<PaginatedResponse<DimensionWithMandatory>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
@@ -31,6 +32,7 @@ pub async fn fetch_dimensions(
     let response: PaginatedResponse<DimensionWithMandatory> = client
         .get(url)
         .header("x-tenant", &tenant)
+        .header("x-org-id", org_id)
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -45,6 +47,7 @@ pub async fn fetch_dimensions(
 pub async fn fetch_default_config(
     filters: &PaginationParams,
     tenant: String,
+    org_id: String,
 ) -> Result<PaginatedResponse<DefaultConfig>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
@@ -53,6 +56,7 @@ pub async fn fetch_default_config(
     let response: PaginatedResponse<DefaultConfig> = client
         .get(url)
         .header("x-tenant", tenant)
+        .header("x-org-id", org_id)
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -65,6 +69,7 @@ pub async fn fetch_default_config(
 pub async fn fetch_snapshots(
     filters: &PaginationParams,
     tenant: String,
+    org_id: String,
 ) -> Result<PaginatedResponse<ConfigVersion>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
@@ -73,6 +78,7 @@ pub async fn fetch_snapshots(
     let response: PaginatedResponse<ConfigVersion> = client
         .get(url)
         .header("x-tenant", tenant)
+        .header("x-org-id", org_id)
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -86,6 +92,7 @@ pub async fn fetch_snapshots(
 pub async fn delete_context(
     tenant: String,
     context_id: String,
+    org_id: String,
 ) -> Result<(), ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
@@ -96,6 +103,7 @@ pub async fn delete_context(
     let response = client
         .delete(&url) // Make sure to pass the URL by reference here
         .header("x-tenant", tenant)
+        .header("x-org-id", org_id)
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -114,6 +122,7 @@ pub async fn fetch_experiments(
     filters: &ExperimentListFilters,
     pagination: &PaginationParams,
     tenant: String,
+    org_id: String,
 ) -> Result<PaginatedResponse<ExperimentResponse>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
@@ -132,6 +141,7 @@ pub async fn fetch_experiments(
     let response: PaginatedResponse<ExperimentResponse> = client
         .get(url)
         .header("x-tenant", tenant)
+        .header("x-org-id", org_id)
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -145,6 +155,7 @@ pub async fn fetch_experiments(
 pub async fn fetch_functions(
     filters: &PaginationParams,
     tenant: String,
+    org_id: String,
 ) -> Result<PaginatedResponse<Function>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
@@ -153,6 +164,7 @@ pub async fn fetch_functions(
     let response: PaginatedResponse<Function> = client
         .get(url)
         .header("x-tenant", tenant)
+        .header("x-org-id", org_id)
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -166,6 +178,7 @@ pub async fn fetch_functions(
 pub async fn fetch_function(
     function_name: String,
     tenant: String,
+    org_id: String,
 ) -> Result<Function, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
@@ -174,6 +187,7 @@ pub async fn fetch_function(
     let response: Function = client
         .get(url)
         .header("x-tenant", tenant)
+        .header("x-org-id", org_id)
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -188,6 +202,7 @@ pub async fn fetch_function(
 pub async fn fetch_config(
     tenant: String,
     version: Option<String>,
+    org_id: String,
 ) -> Result<Config, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
@@ -196,7 +211,13 @@ pub async fn fetch_config(
         Some(version) => format!("{}/config?version={}", host, version),
         None => format!("{}/config", host),
     };
-    match client.get(url).header("x-tenant", tenant).send().await {
+    match client
+        .get(url)
+        .header("x-tenant", tenant)
+        .header("x-org-id", org_id)
+        .send()
+        .await
+    {
         Ok(response) => {
             let config: Config = response
                 .json()
@@ -212,12 +233,19 @@ pub async fn fetch_config(
 pub async fn fetch_experiment(
     exp_id: String,
     tenant: String,
+    org_id: String,
 ) -> Result<ExperimentResponse, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
     let url = format!("{}/experiments/{}", host, exp_id);
 
-    match client.get(url).header("x-tenant", tenant).send().await {
+    match client
+        .get(url)
+        .header("x-tenant", tenant)
+        .header("x-org-id", org_id)
+        .send()
+        .await
+    {
         Ok(experiment) => {
             let experiment = experiment
                 .json()
@@ -229,7 +257,11 @@ pub async fn fetch_experiment(
     }
 }
 
-pub async fn delete_default_config(key: String, tenant: String) -> Result<(), String> {
+pub async fn delete_default_config(
+    key: String,
+    tenant: String,
+    org_id: String,
+) -> Result<(), String> {
     let host = get_host();
     let url = format!("{host}/default-config/{key}");
 
@@ -237,14 +269,18 @@ pub async fn delete_default_config(key: String, tenant: String) -> Result<(), St
         url,
         reqwest::Method::DELETE,
         None::<serde_json::Value>,
-        construct_request_headers(&[("x-tenant", &tenant)])?,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;
 
     Ok(())
 }
 
-pub async fn delete_dimension(name: String, tenant: String) -> Result<(), String> {
+pub async fn delete_dimension(
+    name: String,
+    tenant: String,
+    org_id: String,
+) -> Result<(), String> {
     let host = get_host();
     let url = format!("{host}/dimension/{name}");
 
@@ -252,7 +288,7 @@ pub async fn delete_dimension(name: String, tenant: String) -> Result<(), String
         url,
         reqwest::Method::DELETE,
         None::<serde_json::Value>,
-        construct_request_headers(&[("x-tenant", &tenant)])?,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;
 
@@ -279,6 +315,7 @@ pub async fn fetch_organisations() -> Result<Vec<String>, ServerFnError> {
 pub async fn fetch_types(
     filters: &PaginationParams,
     tenant: String,
+    org_id: String,
 ) -> Result<PaginatedResponse<TypeTemplate>, ServerFnError> {
     let host = use_host_server();
     let url = format!("{host}/types?{}", filters.to_string());
@@ -287,7 +324,8 @@ pub async fn fetch_types(
         url,
         reqwest::Method::GET,
         None,
-        construct_request_headers(&[("x-tenant", &tenant)]).map_err(err_handler)?,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])
+            .map_err(err_handler)?,
     )
     .await
     .map_err(err_handler)?;
