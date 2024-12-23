@@ -15,15 +15,20 @@ use crate::components::table::{
 use crate::components::workspace_form::types::RowData;
 use crate::components::workspace_form::types::WorkspaceStatus;
 use crate::components::workspace_form::WorkspaceForm;
+use crate::types::OrganisationId;
 use crate::utils::update_page_direction;
 
 #[component]
 pub fn workspace() -> impl IntoView {
+    let org_id: RwSignal<OrganisationId> =
+        use_context::<RwSignal<OrganisationId>>().unwrap();
     let (filters, set_filters) = create_signal(PaginationParams::default_request());
     let workspace_resource = create_blocking_resource(
-        move || (filters.get()),
-        |filters: PaginationParams| async move {
-            fetch_workspaces(&filters).await.unwrap_or_default()
+        move || (filters.get(), org_id.get().0),
+        |(filters, org_id)| async move {
+            fetch_workspaces(&filters, &org_id)
+                .await
+                .unwrap_or_default()
         },
     );
     let selected_workspace = create_rw_signal::<Option<RowData>>(None);
@@ -93,21 +98,21 @@ pub fn workspace() -> impl IntoView {
             .into_view()
         };
 
-        let navigate_to_workspace = move |workspace_name: String| {
-            let redirect_url = format!("admin/{workspace_name}/default-config");
+        let navigate_to_workspace = move |org_id: String, workspace_name: String| {
+            let redirect_url = format!("admin/{org_id}/{workspace_name}/default-config");
             logging::log!("redirecting to {:?}", redirect_url.clone());
             let navigate = use_navigate();
             navigate(redirect_url.as_str(), Default::default());
         };
 
         let navigate = move |_: &str, row: &Map<String, Value>| {
-            let workspace_schema_name =
-                row["workspace_schema_name"].to_string().replace('"', "");
+            let org_id = org_id.get().0;
             let workspace_name = row["workspace_name"].to_string().replace('"', "");
+            let navigated_workspace_name = workspace_name.clone();
             view! {
                 <span
                     class="cursor-pointer text-blue-500"
-                    on:click=move |_| { navigate_to_workspace(workspace_schema_name.clone()) }
+                    on:click=move |_| { navigate_to_workspace(org_id.clone(), navigated_workspace_name.clone()) }
                 >
 
                     {workspace_name}
@@ -151,6 +156,7 @@ pub fn workspace() -> impl IntoView {
                             >
                                 <WorkspaceForm
                                     edit=true
+                                    org_id=org_id
                                     workspace_admin_email=selected_workspace_data
                                         .workspace_admin_email
                                     workspace_name=selected_workspace_data.workspace_name
@@ -174,11 +180,14 @@ pub fn workspace() -> impl IntoView {
                                 header="Create Workspace"
                                 handle_close=handle_close
                             >
-                                <WorkspaceForm handle_submit=move || {
-                                    workspace_resource.refetch();
-                                    selected_workspace.set(None);
-                                    close_drawer("workspace_drawer");
-                                } />
+                                <WorkspaceForm
+                                    org_id=org_id
+                                    handle_submit=move || {
+                                        workspace_resource.refetch();
+                                        selected_workspace.set(None);
+                                        close_drawer("workspace_drawer");
+                                    }
+                                />
 
                             </Drawer>
                         }

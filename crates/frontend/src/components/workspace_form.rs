@@ -5,10 +5,10 @@ use leptos::*;
 use serde_json::to_string;
 use web_sys::MouseEvent;
 
-use self::types::WorkspaceStatus;
 use crate::components::input_components::BooleanToggle;
 use crate::components::workspace_form::utils::string_to_vec;
 use crate::components::{alert::AlertType, button::Button};
+use crate::types::OrganisationId;
 use crate::{
     components::workspace_form::{
         types::{CreateWorkspaceRequest, UpdateWorkspaceRequest},
@@ -17,8 +17,11 @@ use crate::{
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
 };
 
+use self::types::WorkspaceStatus;
+
 #[component]
 pub fn workspace_form<NF>(
+    org_id: RwSignal<OrganisationId>,
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] workspace_admin_email: String,
     #[prop(default = String::new())] workspace_name: String,
@@ -58,9 +61,9 @@ where
             let handle_submit = handle_submit_clone;
             async move {
                 let result = if is_edit {
-                    update_workspace(workspace_name_rs.get(), update_payload).await
+                    update_workspace(workspace_name_rs.get(), org_id.get().to_string(), update_payload).await
                 } else {
-                    create_workspace(create_payload).await
+                    create_workspace(org_id.get().to_string(), create_payload).await
                 };
 
                 match result {
