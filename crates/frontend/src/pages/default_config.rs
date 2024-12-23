@@ -15,7 +15,7 @@ use crate::components::table::{
     types::{Column, TablePaginationProps},
     Table,
 };
-use crate::types::BreadCrums;
+use crate::types::{BreadCrums, OrganisationId, Tenant};
 use crate::utils::{
     get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
     update_page_direction,
@@ -31,13 +31,14 @@ pub struct RowData {
 
 #[component]
 pub fn default_config() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let enable_grouping = create_rw_signal(false);
     let (filters, set_filters) = create_signal(PaginationParams::default_request());
     let default_config_resource = create_blocking_resource(
-        move || (tenant_rs.get(), filters.get()),
-        |(current_tenant, filters)| async move {
-            fetch_default_config(&filters, current_tenant)
+        move || (tenant_rws.get().0, filters.get(), org_rws.get().0),
+        |(current_tenant, filters, org_id)| async move {
+            fetch_default_config(&filters, current_tenant, org_id)
                 .await
                 .unwrap_or_default()
         },
@@ -76,7 +77,7 @@ pub fn default_config() -> impl IntoView {
     });
 
     let folder_click_handler = move |key_name: Option<String>| {
-        let tenant = tenant_rs.get();
+        let tenant = tenant_rws.get().0;
         let redirect_url = match key_name {
             Some(prefix) => format!("admin/{tenant}/default-config?prefix={prefix}"),
             None => format!("admin/{tenant}/default-config"),
@@ -130,13 +131,15 @@ pub fn default_config() -> impl IntoView {
             };
 
             let handle_delete = move |_| {
-                let tenant = tenant_rs.get();
+                let tenant = tenant_rws.get().0;
+                let org = org_rws.get().0;
                 let prefix = key_prefix.get().unwrap_or_default();
                 spawn_local({
                     async move {
                         let _ = delete_default_config(
                             format!("{prefix}{}", key_name.get_value()),
                             tenant,
+                            org,
                         )
                         .await;
                         default_config_resource.refetch();
