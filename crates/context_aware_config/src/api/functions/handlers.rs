@@ -7,7 +7,7 @@ use actix_web::{
 };
 use base64::prelude::*;
 use chrono::Utc;
-use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::json;
 use service_utils::service::types::{DbConnection, Tenant};
 use superposition_macros::{bad_argument, not_found, unexpected_error};
@@ -72,6 +72,7 @@ async fn create(
 
     let insert: Result<Function, diesel::result::Error> = diesel::insert_into(functions)
         .values(&function)
+        .returning(Function::as_returning())
         .schema_name(&tenant)
         .get_result(&mut conn);
 
@@ -154,6 +155,7 @@ async fn update(
     let mut updated_function = diesel::update(functions)
         .filter(schema::functions::function_name.eq(f_name))
         .set(new_function)
+        .returning(Function::as_returning())
         .schema_name(&tenant)
         .get_result::<Function>(&mut conn)?;
 
@@ -236,6 +238,7 @@ async fn delete_function(
             dsl::last_modified_at.eq(Utc::now().naive_utc()),
             dsl::last_modified_by.eq(user.get_email()),
         ))
+        .returning(Function::as_returning())
         .schema_name(&tenant)
         .execute(&mut conn)?;
     let deleted_row = delete(functions.filter(function_name.eq(&f_name)))
@@ -336,6 +339,7 @@ async fn publish(
             dsl::published_by.eq(Some(user.get_email())),
             dsl::published_at.eq(Some(Utc::now().naive_utc())),
         ))
+        .returning(Function::as_returning())
         .schema_name(&tenant)
         .get_result::<Function>(&mut conn)?;
 

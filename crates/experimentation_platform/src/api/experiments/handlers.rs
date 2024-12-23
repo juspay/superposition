@@ -492,6 +492,7 @@ pub async fn conclude(
             dsl::last_modified_by.eq(user.get_email()),
             dsl::chosen_variant.eq(Some(winner_variant_id)),
         ))
+        .returning(Experiment::as_returning())
         .schema_name(&tenant)
         .get_result::<Experiment>(&mut conn)?;
 
@@ -718,6 +719,7 @@ async fn ramp(
             experiments::last_modified_by.eq(user.get_email()),
             experiments::status.eq(ExperimentStatusType::INPROGRESS),
         ))
+        .returning(Experiment::as_returning())
         .schema_name(&tenant)
         .get_result(&mut conn)?;
 
@@ -966,6 +968,7 @@ async fn update_overrides(
             experiments::last_modified.eq(Utc::now()),
             experiments::last_modified_by.eq(user.get_email()),
         ))
+        .returning(Experiment::as_returning())
         .schema_name(&tenant)
         .get_result::<Experiment>(&mut conn)?;
 

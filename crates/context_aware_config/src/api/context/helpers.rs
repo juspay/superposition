@@ -69,6 +69,7 @@ pub fn validate_condition_with_functions(
     let keys_function_array: Vec<(String, Option<String>)> = dsl::dimensions
         .filter(dsl::dimension.eq_any(dimensions_list))
         .select((dsl::dimension, dsl::function_name))
+        .schema_name(tenant)
         .load(conn)?;
     let new_keys_function_array: Vec<(String, String)> = keys_function_array
         .into_iter()
@@ -266,6 +267,7 @@ pub fn update_override_of_existing_ctx(
     let mut new_override: Value = dsl::contexts
         .filter(dsl::id.eq(ctx.id.clone()))
         .select(dsl::override_)
+        .schema_name(&tenant)
         .first(conn)?;
     cac_client::merge(
         &mut new_override,
