@@ -9,7 +9,6 @@ use superposition_types::{
 };
 use web_sys::MouseEvent;
 
-use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::{
     api::{fetch_functions, fetch_types},
     components::{
@@ -20,6 +19,10 @@ use crate::{
     },
     schema::{EnumVariants, JsonSchemaType, SchemaType},
     types::FunctionsName,
+};
+use crate::{
+    providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
+    types::{OrganisationId, Tenant},
 };
 
 use self::{
@@ -43,7 +46,8 @@ pub fn default_config_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
 
     let (config_key_rs, config_key_ws) = create_signal(config_key);
     let (config_type_rs, config_type_ws) = create_signal(config_type);
@@ -54,19 +58,20 @@ where
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
 
-    let functions_resource: Resource<String, Vec<Function>> = create_blocking_resource(
-        move || tenant_rs.get(),
-        |current_tenant| async move {
-            fetch_functions(&PaginationParams::all_entries(), current_tenant)
-                .await
-                .map_or_else(|_| vec![], |data| data.data)
-        },
-    );
+    let functions_resource: Resource<(String, String), Vec<Function>> =
+        create_blocking_resource(
+            move || (tenant_rws.get().0, org_rws.get().0),
+            |(current_tenant, org)| async move {
+                fetch_functions(&PaginationParams::all_entries(), current_tenant, org)
+                    .await
+                    .map_or_else(|_| vec![], |data| data.data)
+            },
+        );
 
     let type_template_resource = create_blocking_resource(
-        move || tenant_rs.get(),
-        |current_tenant| async move {
-            fetch_types(&PaginationParams::all_entries(), current_tenant)
+        move || (tenant_rws.get().0, org_rws.get().0),
+        |(current_tenant, org)| async move {
+            fetch_types(&PaginationParams::all_entries(), current_tenant, org)
                 .await
                 .map_or_else(|_| vec![], |response| response.data)
         },
@@ -123,10 +128,21 @@ where
             async move {
                 let result = if is_edit {
                     // Call update_default_config when edit is true
-                    update_default_config(f_name, tenant_rs.get(), update_payload).await
+                    update_default_config(
+                        f_name,
+                        tenant_rws.get().0,
+                        update_payload,
+                        org_rws.get().0,
+                    )
+                    .await
                 } else {
                     // Call create_default_config when edit is false
-                    create_default_config(tenant_rs.get(), create_payload).await
+                    create_default_config(
+                        tenant_rws.get().0,
+                        create_payload,
+                        org_rws.get().0,
+                    )
+                    .await
                 };
 
                 match result {

@@ -28,6 +28,7 @@ pub async fn create_context(
     conditions: Conditions,
     description: String,
     change_reason: String,
+    org_id: String,
 ) -> Result<Value, String> {
     let host = get_host();
     let url = format!("{host}/context");
@@ -37,7 +38,7 @@ pub async fn create_context(
         url,
         reqwest::Method::PUT,
         Some(request_payload),
-        construct_request_headers(&[("x-tenant", &tenant)])?,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;
 
@@ -50,6 +51,7 @@ pub async fn update_context(
     conditions: Conditions,
     description: String,
     change_reason: String,
+    org_id: String,
 ) -> Result<serde_json::Value, String> {
     let host = get_host();
     let url = format!("{host}/context/overrides");
@@ -59,7 +61,7 @@ pub async fn update_context(
         url,
         reqwest::Method::PUT,
         Some(request_payload),
-        construct_request_headers(&[("x-tenant", &tenant)])?,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;
 

@@ -15,6 +15,7 @@ use crate::components::{
         Table,
     },
 };
+use crate::types::{OrganisationId, Tenant};
 use crate::utils::update_page_direction;
 
 #[derive(Clone, Debug, Default)]
@@ -28,14 +29,15 @@ pub struct RowData {
 
 #[component]
 pub fn dimensions() -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
     let (filters, set_filters) = create_signal(PaginationParams::default_request());
     let dimensions_resource = create_blocking_resource(
-        move || (tenant_rs.get(), filters.get()),
-        |(current_tenant, filters)| async move {
-            fetch_dimensions(&filters, current_tenant)
+        move || (tenant_rws.get().0, filters.get(), org_rws.get().0),
+        |(current_tenant, filters, org_id)| async move {
+            fetch_dimensions(&filters, current_tenant, org_id)
                 .await
                 .unwrap_or_default()
         },
@@ -44,7 +46,8 @@ pub fn dimensions() -> impl IntoView {
     let confirm_delete = Callback::new(move |_| {
         if let Some(id) = delete_id_rs.get().clone() {
             spawn_local(async move {
-                let result = delete_dimension(id, tenant_rs.get()).await;
+                let result =
+                    delete_dimension(id, tenant_rws.get().0, org_rws.get().0).await;
 
                 match result {
                     Ok(_) => {
