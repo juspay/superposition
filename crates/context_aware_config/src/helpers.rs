@@ -5,7 +5,7 @@ use actix_web::web::Data;
 #[cfg(feature = "high-performance-mode")]
 use chrono::DateTime;
 use chrono::Utc;
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
 
@@ -310,6 +310,7 @@ pub fn add_config_version(
     };
     diesel::insert_into(config_versions)
         .values(&config_version)
+        .returning(ConfigVersion::as_returning())
         .schema_name(tenant)
         .execute(db_conn)?;
     Ok(version_id)

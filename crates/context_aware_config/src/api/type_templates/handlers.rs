@@ -1,7 +1,7 @@
 use actix_web::web::{Json, Path, Query};
 use actix_web::{delete, get, post, put, HttpResponse, Scope};
 use chrono::Utc;
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use jsonschema::JSONSchema;
 use serde_json::Value;
 use service_utils::service::types::{DbConnection, Tenant};
@@ -52,6 +52,7 @@ async fn create_type(
             type_templates::created_by.eq(user.email.clone()),
             type_templates::last_modified_by.eq(user.email.clone()),
         ))
+        .returning(TypeTemplate::as_returning())
         .schema_name(&tenant)
         .get_result::<TypeTemplate>(&mut conn)
         .map_err(|err| {
@@ -91,6 +92,7 @@ async fn update_type(
             type_templates::last_modified_at.eq(timestamp),
             type_templates::last_modified_by.eq(user.email),
         ))
+        .returning(TypeTemplate::as_returning())
         .schema_name(&tenant)
         .get_result::<TypeTemplate>(&mut conn)
         .map_err(|err| {
@@ -115,6 +117,7 @@ async fn delete_type(
             dsl::last_modified_at.eq(Utc::now().naive_utc()),
             dsl::last_modified_by.eq(user.email),
         ))
+        .returning(TypeTemplate::as_returning())
         .schema_name(&tenant)
         .execute(&mut conn)?;
     let deleted_type =

@@ -118,6 +118,7 @@ async fn create_default_config(
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             diesel::insert_into(dsl::default_configs)
                 .values(&default_config)
+                .returning(DefaultConfig::as_returning())
                 .schema_name(&tenant)
                 .execute(transaction_conn)
                 .map_err(|e| {
