@@ -6,7 +6,10 @@ use leptos::{logging::log, *};
 use web_sys::MouseEvent;
 
 use self::utils::ramp_experiment;
-use crate::{components::button::Button, types::Experiment};
+use crate::{
+    components::button::Button,
+    types::{Experiment, OrganisationId, Tenant},
+};
 
 #[component]
 pub fn experiment_ramp_form<NF>(
@@ -17,7 +20,8 @@ where
     NF: Fn() + 'static + Clone,
 {
     let (traffic, set_traffic) = create_signal(experiment.traffic_percentage);
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let range_max = 100 / experiment.variants.len();
     let experiment_rc = Rc::new(experiment);
@@ -27,9 +31,11 @@ where
         let experiment_clone = experiment_rc.clone();
         let handle_submit_clone = handle_submit.clone();
         spawn_local(async move {
-            let tenant = tenant_rs.get();
+            let tenant = tenant_rws.get().0;
+            let org = org_rws.get().0;
             let traffic_value = traffic.get();
-            let _ = ramp_experiment(&experiment_clone.id, traffic_value, &tenant).await;
+            let _ =
+                ramp_experiment(&experiment_clone.id, traffic_value, &tenant, &org).await;
             req_inprogress_ws.set(false);
             handle_submit_clone()
         });

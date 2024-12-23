@@ -8,6 +8,7 @@ use crate::components::{
 };
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{JsonSchemaType, SchemaType};
+use crate::types::{OrganisationId, Tenant};
 use leptos::*;
 use serde_json::{json, Value};
 use web_sys::MouseEvent;
@@ -22,7 +23,8 @@ pub fn type_template_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
 
     let (error_message, set_error_message) = create_signal("".to_string());
     let (type_name_rs, type_name_ws) = create_signal(type_name);
@@ -40,13 +42,20 @@ where
             let handle_submit = handle_submit_clone;
             async move {
                 let result = if edit {
-                    update_type(tenant_rs.get(), type_name, type_schema).await
+                    update_type(
+                        tenant_rws.get().0,
+                        type_name,
+                        type_schema,
+                        org_rws.get().0,
+                    )
+                    .await
                 } else {
                     let payload = json!({
                         "type_name": type_name,
                         "type_schema": type_schema
                     });
-                    create_type(tenant_rs.get(), payload.clone()).await
+                    create_type(tenant_rws.get().0, payload.clone(), org_rws.get().0)
+                        .await
                 };
                 match result {
                     Ok(_) => {

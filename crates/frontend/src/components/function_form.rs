@@ -4,7 +4,7 @@ pub mod utils;
 use self::utils::{create_function, test_function, update_function};
 use crate::{
     components::{button::Button, monaco_editor::MonacoEditor},
-    types::FunctionTestResponse,
+    types::{FunctionTestResponse, OrganisationId, Tenant},
 };
 use leptos::*;
 use serde_json::{from_str, json, Value};
@@ -27,7 +27,8 @@ pub fn function_editor<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let (function_name, set_function_name) = create_signal(function_name);
     let (function, set_function) = create_signal(function);
     let (runtime_version, set_runtime_version) = create_signal(runtime_version);
@@ -42,7 +43,8 @@ where
         event.prevent_default();
         logging::log!("Submitting function form");
 
-        let tenant = tenant_rs.get();
+        let tenant = tenant_rws.get().0;
+        let org = org_rws.get().0;
         let f_function_name = function_name.get();
         let f_function = function.get();
         let f_runtime_version = runtime_version.get();
@@ -60,6 +62,7 @@ where
                         f_runtime_version,
                         f_description,
                         tenant,
+                        org,
                     )
                     .await
                 } else {
@@ -69,6 +72,7 @@ where
                         f_runtime_version,
                         f_description,
                         tenant,
+                        org,
                     )
                     .await
                 };
@@ -188,7 +192,8 @@ where
 
 #[component]
 pub fn test_form(function_name: String, stage: String) -> impl IntoView {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let (error_message, set_error_message) = create_signal(String::new());
     let (output_message, set_output_message) =
         create_signal::<Option<FunctionTestResponse>>(None);
@@ -200,7 +205,8 @@ pub fn test_form(function_name: String, stage: String) -> impl IntoView {
         event.prevent_default();
         logging::log!("Submitting function form");
 
-        let tenant = tenant_rs.get();
+        let tenant = tenant_rws.get().0;
+        let org = org_rws.get().0;
         let f_function_name = function_name.clone();
         let f_val = json!({
             "key": key.get(),
@@ -213,7 +219,8 @@ pub fn test_form(function_name: String, stage: String) -> impl IntoView {
 
         spawn_local({
             async move {
-                let result = test_function(f_function_name, f_stage, f_val, tenant).await;
+                let result =
+                    test_function(f_function_name, f_stage, f_val, tenant, org).await;
 
                 match result {
                     Ok(resp) => {

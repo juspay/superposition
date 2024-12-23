@@ -7,12 +7,14 @@ pub async fn conclude_experiment(
     exp_id: String,
     variant_id: String,
     tenant: &String,
+    org_id: &String
 ) -> Result<Experiment, String> {
     let client = reqwest::Client::new();
     let host = get_host();
     match client
         .patch(format!("{host}/experiments/{}/conclude", exp_id))
         .header("x-tenant", tenant)
+        .header("x-org-id", org_id)
         .json(&json!({ "chosen_variant": variant_id }))
         .send()
         .await

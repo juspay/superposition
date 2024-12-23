@@ -11,7 +11,6 @@ use types::{DimensionCreateReq, DimensionUpdateReq};
 use utils::{create_dimension, update_dimension};
 use web_sys::MouseEvent;
 
-use crate::api::fetch_types;
 use crate::components::{
     dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
     input::{Input, InputType},
@@ -20,6 +19,10 @@ use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::FunctionsName;
 use crate::{api::fetch_functions, components::button::Button};
+use crate::{
+    api::fetch_types,
+    types::{OrganisationId, Tenant},
+};
 
 #[component]
 pub fn dimension_form<NF>(
@@ -34,7 +37,8 @@ pub fn dimension_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
 
     let (position_rs, position_ws) = create_signal(position);
     let (dimension_name_rs, dimension_name_ws) = create_signal(dimension_name);
@@ -42,19 +46,20 @@ where
     let (dimension_schema_rs, dimension_schema_ws) = create_signal(dimension_schema);
     let (function_name, set_function_name) = create_signal(function_name);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
-    let functions_resource: Resource<String, Vec<Function>> = create_blocking_resource(
-        move || tenant_rs.get(),
-        |current_tenant| async move {
-            fetch_functions(&PaginationParams::all_entries(), current_tenant)
-                .await
-                .map_or_else(|_| vec![], |list| list.data)
-        },
-    );
+    let functions_resource: Resource<(String, String), Vec<Function>> =
+        create_blocking_resource(
+            move || (tenant_rws.get().0, org_rws.get().0),
+            |(current_tenant, org)| async move {
+                fetch_functions(&PaginationParams::all_entries(), current_tenant, org)
+                    .await
+                    .map_or_else(|_| vec![], |list| list.data)
+            },
+        );
 
     let type_template_resource = create_blocking_resource(
-        move || tenant_rs.get(),
-        |current_tenant| async move {
-            fetch_types(&PaginationParams::all_entries(), current_tenant)
+        move || (tenant_rws.get().0, org_rws.get().0),
+        |(current_tenant, org)| async move {
+            fetch_types(&PaginationParams::all_entries(), current_tenant, org)
                 .await
                 .map_or_else(|_| vec![], |response| response.data)
         },
@@ -93,8 +98,13 @@ where
                         schema: Some(function_schema),
                         function_name: function_name,
                     };
-                    update_dimension(tenant_rs.get(), dimension_name, update_payload)
-                        .await
+                    update_dimension(
+                        tenant_rws.get().0,
+                        dimension_name,
+                        update_payload,
+                        org_rws.get().0,
+                    )
+                    .await
                 } else {
                     let create_payload = DimensionCreateReq {
                         dimension: dimension_name,
@@ -102,7 +112,8 @@ where
                         schema: function_schema,
                         function_name: function_name,
                     };
-                    create_dimension(tenant_rs.get(), create_payload).await
+                    create_dimension(tenant_rws.get().0, create_payload, org_rws.get().0)
+                        .await
                 };
                 match result {
                     Ok(_) => {

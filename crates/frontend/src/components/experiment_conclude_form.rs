@@ -6,7 +6,7 @@ use leptos::*;
 use superposition_types::database::models::experimentation::{Variant, VariantType};
 use utils::conclude_experiment;
 
-use crate::types::Experiment;
+use crate::types::{Experiment, OrganisationId, Tenant};
 
 #[component]
 pub fn experiment_conclude_form<HS>(
@@ -16,7 +16,8 @@ pub fn experiment_conclude_form<HS>(
 where
     HS: Fn() + 'static + Clone,
 {
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let experiment_rc = Rc::new(experiment);
 
     let experiment_clone = experiment_rc.clone();
@@ -24,9 +25,11 @@ where
         let handle_submit_clone = handle_submit.clone();
         spawn_local(async move {
             let experiment = experiment_clone.clone();
-            let tenant = tenant_rs.get();
+            let tenant = tenant_rws.get().0;
+            let org = org_rws.get().0;
             let _ =
-                conclude_experiment(experiment.id.to_string(), variant_id, &tenant).await;
+                conclude_experiment(experiment.id.to_string(), variant_id, &tenant, &org)
+                    .await;
             handle_submit_clone();
         })
     };

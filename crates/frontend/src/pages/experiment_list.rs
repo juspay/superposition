@@ -12,7 +12,6 @@ use superposition_types::{
 };
 use utils::experiment_table_columns;
 
-use crate::api::{fetch_default_config, fetch_dimensions, fetch_experiments};
 use crate::components::drawer::{close_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
@@ -21,6 +20,10 @@ use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
 use crate::types::{ExperimentListFilters, ExperimentResponse, VariantFormTs};
 use crate::utils::update_page_direction;
+use crate::{
+    api::{fetch_default_config, fetch_dimensions, fetch_experiments},
+    types::{OrganisationId, Tenant},
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct CombinedResource {
@@ -32,7 +35,8 @@ struct CombinedResource {
 #[component]
 pub fn experiment_list() -> impl IntoView {
     // acquire tenant
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let (filters_rs, filters_ws) = create_signal(ExperimentListFilters {
         status: None,
         from_date: Utc.timestamp_opt(0, 0).single(),
@@ -51,32 +55,35 @@ pub fn experiment_list() -> impl IntoView {
     let (reset_exp_form, set_exp_form) = create_signal(0);
 
     let combined_resource: Resource<
-        (String, ExperimentListFilters, PaginationParams),
+        (String, ExperimentListFilters, PaginationParams, String),
         CombinedResource,
     > = create_blocking_resource(
         move || {
             (
-                tenant_rs.get(),
+                tenant_rws.get().0,
                 filters_rs.get(),
                 pagination_filters_rs.get(),
+                org_rws.get().0,
             )
         },
-        |(current_tenant, filters, pagination_filters)| async move {
-            let fetch_all_filters = ListFilters {
-                page: None,
-                count: None,
-                all: Some(true),
-            };
+        |(current_tenant, filters, pagination_filters, org_id)| async move {
             // Perform all fetch operations concurrently
             let experiments_future = fetch_experiments(
                 &filters,
                 &pagination_filters,
                 current_tenant.to_string(),
+                org_id.clone(),
             );
-            let dimensions_future =
-                fetch_dimensions(&fetch_all_filters, current_tenant.to_string());
-            let config_future =
-                fetch_default_config(&fetch_all_filters, current_tenant.to_string());
+            let dimensions_future = fetch_dimensions(
+                &pagination_filters,
+                current_tenant.to_string(),
+                org_id.clone(),
+            );
+            let config_future = fetch_default_config(
+                &pagination_filters,
+                current_tenant.to_string(),
+                org_id.clone(),
+            );
 
             let (experiments_result, dimensions_result, config_result) =
                 join!(experiments_future, dimensions_future, config_future);

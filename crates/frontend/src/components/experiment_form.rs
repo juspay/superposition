@@ -9,10 +9,13 @@ use superposition_types::{
 use utils::{create_experiment, update_experiment};
 use web_sys::MouseEvent;
 
-use crate::components::button::Button;
 use crate::components::context_form::ContextForm;
 use crate::components::variant_form::VariantForm;
 use crate::types::{VariantFormT, VariantFormTs};
+use crate::{
+    components::button::Button,
+    types::{OrganisationId, Tenant},
+};
 
 use super::condition_pills::types::Condition;
 
@@ -66,7 +69,8 @@ where
 {
     let init_variants = get_init_state(&variants);
     let default_config = StoredValue::new(default_config);
-    let tenant_rs = use_context::<ReadSignal<String>>().unwrap();
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
 
     let (experiment_name, set_experiment_name) = create_signal(name);
     let (f_context, set_context) = create_signal(context.clone());
@@ -96,7 +100,8 @@ where
             .into_iter()
             .map(|(_, variant)| variant)
             .collect::<Vec<VariantFormT>>();
-        let tenant = tenant_rs.get();
+        let tenant = tenant_rws.get().0;
+        let org = org_rws.get().0;
         let experiment_id = id.clone();
         let handle_submit_clone = handle_submit.clone();
 
@@ -106,7 +111,7 @@ where
         spawn_local({
             async move {
                 let result = if edit {
-                    update_experiment(experiment_id, f_variants, tenant).await
+                    update_experiment(experiment_id, f_variants, tenant, org).await
                 } else {
                     create_experiment(
                         f_context,
@@ -114,6 +119,7 @@ where
                         f_experiment_name,
                         tenant,
                         dimensions.get_value().clone(),
+                        org,
                     )
                     .await
                 };
