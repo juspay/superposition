@@ -36,6 +36,7 @@ pub fn function_table_columns() -> Vec<Column> {
 pub async fn publish_function(
     function_name: String,
     tenant: String,
+    org_id: String,
 ) -> Result<String, String> {
     let client = reqwest::Client::new();
     let host = get_host();
@@ -43,6 +44,7 @@ pub async fn publish_function(
     let response = client
         .put(url)
         .header("x-tenant", tenant)
+        .header("x-org-id", org_id)
         .send()
         .await
         .map_err(|e| e.to_string())?;

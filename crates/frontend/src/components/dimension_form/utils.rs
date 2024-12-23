@@ -7,6 +7,7 @@ use super::types::{DimensionCreateReq, DimensionUpdateReq};
 pub async fn create_dimension(
     tenant: String,
     payload: DimensionCreateReq,
+    org_id: String,
 ) -> Result<Dimension, String> {
     let host = get_host();
     let url = format!("{host}/dimension");
@@ -15,7 +16,7 @@ pub async fn create_dimension(
         url,
         reqwest::Method::POST,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant)])?,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;
 
@@ -26,6 +27,7 @@ pub async fn update_dimension(
     tenant: String,
     dimension_name: String,
     payload: DimensionUpdateReq,
+    org_id: String,
 ) -> Result<Dimension, String> {
     let host = get_host();
     let url = format!("{host}/dimension/{dimension_name}");
@@ -34,7 +36,7 @@ pub async fn update_dimension(
         url,
         reqwest::Method::PUT,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant)])?,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;
 

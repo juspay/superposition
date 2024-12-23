@@ -21,6 +21,7 @@ pub async fn create_experiment(
     name: String,
     tenant: String,
     dimensions: Vec<DimensionWithMandatory>,
+    org_id: String,
 ) -> Result<Value, String> {
     let payload = ExperimentCreateRequest {
         name,
@@ -36,7 +37,7 @@ pub async fn create_experiment(
         url,
         reqwest::Method::POST,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant)])?,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;
 
@@ -47,6 +48,7 @@ pub async fn update_experiment(
     experiment_id: String,
     variants: Vec<VariantFormT>,
     tenant: String,
+    org_id: String,
 ) -> Result<Value, String> {
     let payload = ExperimentUpdateRequest {
         variants: FromIterator::from_iter(variants),
@@ -59,7 +61,7 @@ pub async fn update_experiment(
         url,
         reqwest::Method::PUT,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant)])?,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;
 

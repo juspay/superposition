@@ -9,11 +9,12 @@ use leptos_router::use_params_map;
 pub fn config_version() -> impl IntoView {
     let params = use_params_map();
     let tenant = params.with(|p| p.get("tenant").cloned().unwrap_or_default());
+    let org_id = params.with(|p| p.get("org_id").cloned().unwrap_or_default());
     let version = params.with(|p| p.get("version").cloned());
 
     let config_resource = create_blocking_resource(
-        move || (tenant.clone(), version.clone()),
-        |(tenant, version)| async move { fetch_config(tenant, version).await },
+        move || (tenant.clone(), version.clone(), org_id.clone()),
+        |(tenant, version, org_id)| async move { fetch_config(tenant, version, org_id).await },
     );
 
     view! {

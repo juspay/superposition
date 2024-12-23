@@ -14,6 +14,7 @@ pub async fn create_function(
     runtime_version: String,
     description: String,
     tenant: String,
+    org_id: String
 ) -> Result<Function, String> {
     let payload = FunctionCreateRequest {
         function_name,
@@ -28,7 +29,7 @@ pub async fn create_function(
         url,
         reqwest::Method::POST,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant)])?,
+        construct_request_headers(&[("x-tenant", &tenant),("x-org-id", &org_id)])?,
     )
     .await?;
 
@@ -41,6 +42,7 @@ pub async fn update_function(
     runtime_version: String,
     description: String,
     tenant: String,
+    org_id: String,
 ) -> Result<Function, String> {
     let payload = FunctionUpdateRequest {
         function,
@@ -55,7 +57,7 @@ pub async fn update_function(
         url,
         reqwest::Method::PATCH,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant)])?,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;
     parse_json_response(response).await
@@ -66,6 +68,7 @@ pub async fn test_function(
     stage: String,
     val: Value,
     tenant: String,
+    org_id: String,
 ) -> Result<FunctionTestResponse, String> {
     let host = get_host();
     let url = format!("{host}/function/{function_name}/{stage}/test");
@@ -74,7 +77,7 @@ pub async fn test_function(
         url,
         reqwest::Method::PUT,
         Some(val),
-        construct_request_headers(&[("x-tenant", &tenant)])?,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;
 
