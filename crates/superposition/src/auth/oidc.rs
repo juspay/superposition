@@ -277,6 +277,7 @@ impl Authenticator for OIDCAuthenticator {
             return Box::pin(async move { Err(ErrorBadRequest("Username not found")) });
         };
 
+        let org_id = path.organisation_id.clone();
         let user = ResourceOwnerUsername::new(username.to_string());
         let pass = ResourceOwnerPassword::new(switch_pass);
         let redirect = self.new_redirect();
@@ -311,7 +312,10 @@ impl Authenticator for OIDCAuthenticator {
                         .finish();
                     Ok(HttpResponse::Found()
                         .cookie(cookie)
-                        .insert_header(("Location", "/"))
+                        .insert_header((
+                            "Location",
+                            format!("/admin/{org_id}/workspaces"),
+                        ))
                         .finish())
                 }
                 Err(()) => Ok(redirect),
