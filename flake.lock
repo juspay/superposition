@@ -159,6 +159,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-wbcli": {
+      "locked": {
+        "lastModified": 1707588924,
+        "narHash": "sha256-0e1ce6X5ghapv6cAF9rxLZKeNyFHHXsLbGxN2cQQE8U=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "10b813040df67c4039086db0f6eaf65c536886c6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "10b813040df67c4039086db0f6eaf65c536886c6",
+        "type": "github"
+      }
+    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1719082008,
@@ -233,6 +249,7 @@
         "flake-parts": "flake-parts",
         "haskell-flake": "haskell-flake",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-wbcli": "nixpkgs-wbcli",
         "pre-commit-hooks": "pre-commit-hooks",
         "rust-flake": "rust-flake",
         "systems": "systems_2"
