@@ -36,15 +36,15 @@
         }:
         {
           formatter = pkgs.nixpkgs-fmt;
-          packages.frontend-assets = pkgs.buildNpmPackage {
-            name = "frontend-assets";
+          packages.static-assets = pkgs.buildNpmPackage {
+            name = "static-assets";
             version = "1.0.0";
             src = ./.;
             nativeBuildInputs = with pkgs; [
               tailwindcss
             ];
             makeCacheWritable = true;
-            # Will have to update this whenever we add a new dep.
+            ## We will have to update this whenever we add a new node dependency.
             npmDepsHash = "sha256-nav8cgHvfDNQyUBoFnqiT/YmWBpjdl7/+EZm3CZODW4=";
             buildPhase = ''
               cd crates/frontend
@@ -60,59 +60,6 @@
             '';
             installPhase = "true";
           };
-          packages.frontend-wasm =
-            let
-              rustToolchain = pkgs.rust-bin.stable.latest.default.override {
-                targets = [ "wasm32-unknown-unknown" ];
-              };
-              wasm-bg-cli = inputs.nixpkgs-wbcli.legacyPackages.${system}.wasm-bindgen-cli;
-            in
-            pkgs.rustPlatform.buildRustPackage {
-              pname = "frontend-wasm";
-              version = "0.1.0";
-
-              src = ./.;
-              cargoHash = "sha256-jtBw4ahSl88L0iuCXxQgZVm1EcboWRJMNtjxLVTtzts=";
-
-              cargoLock = {
-                lockFile = ./Cargo.lock;
-                outputHashes = {
-                  "jsonlogic-0.5.3" = "sha256-fU1CuPWQd4wb1O0jLyPHkg/kBRwdsaKT7QTNJ7SIT74=";
-                  "monaco-0.5.0" = "sha256-hflU+w4ZyPG12xM1t6fhL7FWP1Ne4U4gb1o9kl1vPYE=";
-                };
-              };
-              nativeBuildInputs = with pkgs; [
-                wasm-pack
-                rustToolchain
-                pkg-config
-                wasm-bg-cli
-              ];
-              buildPhase = ''
-                export RUSTUP_TOOLCHAIN="${rustToolchain}"
-                ls -la
-                cd crates/frontend
-                # Create the output directory first
-                mkdir -p $out/pkg
-
-                # Use a temporary directory for the build
-                export HOME=$TMPDIR
-                export RUST_LOG=info
-
-                # Run wasm-pack build with the temporary directory
-                wasm-pack build \
-                  --locked \
-                  --target=web \
-                  --mode no-install \
-                  --no-default-features --features=hydrate
-
-                # Copy the results to the output directory
-                mkdir -p $out/bin/target/site
-                cp -r ./pkg $out/bin/target/site
-              '';
-              installPhase = "true";
-              doCheck = false;
-              doCrossCheck = false;
-            };
           packages.image = pkgs.dockerTools.buildImage {
             name = "superposition";
             tag = "latest";
@@ -122,10 +69,9 @@
               name = "image-root";
               paths = [
                 self'.packages.superposition
-                self'.packages.frontend-wasm
-                self'.packages.frontend-assets
+                self'.packages.frontend
+                self'.packages.static-assets
                 pkgs.nodejs_20
-                pkgs.coreutils
               ];
               pathsToLink = [ "/bin" ];
             };
@@ -133,7 +79,7 @@
             # Configuration
             config = {
               WorkingDir = "/bin";
-              Cmd = [ "/bin/superposition" ];
+              Cmd = [ "superposition" ];
               ExposedPorts = {
                 "8080/tcp" = { };
               };
@@ -161,6 +107,8 @@
               leptosfmt
               wasm-pack
               tailwindcss
+              ## For inspecting OCI(docker) images.
+              dive
               # go client
               # go
             ];
