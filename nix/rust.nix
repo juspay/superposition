@@ -1,7 +1,15 @@
 { inputs, ... }:
 {
   debug = true;
-  perSystem = { config, self', pkgs, lib, system, ... }:
+  perSystem =
+    {
+      config,
+      self',
+      pkgs,
+      lib,
+      system,
+      ...
+    }:
     let
       inherit (pkgs.stdenv) isDarwin;
       inherit (pkgs.darwin) apple_sdk;
@@ -19,14 +27,15 @@
             autoWire = true; # Used by Haskell client
             crane = {
               args = {
-                buildInputs = lib.optionals isDarwin
-                  ([
+                buildInputs =
+                  lib.optionals isDarwin ([
                     apple_sdk.frameworks.Security
                     pkgs.fixDarwinDylibNames
-                  ]) ++ [
-                  pkgs.postgresql_12
-                  pkgs.openssl
-                ];
+                  ])
+                  ++ [
+                    pkgs.postgresql_12
+                    pkgs.openssl
+                  ];
               };
               extraBuildArgs = {
                 # https://discourse.nixos.org/t/how-to-use-install-name-tool-on-darwin/9931/2
@@ -40,14 +49,15 @@
             autoWire = true; # Used by Haskell client
             crane = {
               args = {
-                buildInputs = lib.optionals isDarwin
-                  ([
+                buildInputs =
+                  lib.optionals isDarwin ([
                     apple_sdk.frameworks.Security
                     pkgs.fixDarwinDylibNames
-                  ]) ++ [
-                  pkgs.postgresql_12
-                  pkgs.openssl
-                ];
+                  ])
+                  ++ [
+                    pkgs.postgresql_12
+                    pkgs.openssl
+                  ];
               };
               extraBuildArgs = {
                 # https://discourse.nixos.org/t/how-to-use-install-name-tool-on-darwin/9931/2
@@ -60,12 +70,13 @@
           "experimentation_example" = {
             crane = {
               args = {
-                buildInputs = lib.optionals isDarwin
-                  ([
+                buildInputs =
+                  lib.optionals isDarwin ([
                     apple_sdk.frameworks.Security
-                  ]) ++ [
-                  pkgs.openssl
-                ];
+                  ])
+                  ++ [
+                    pkgs.openssl
+                  ];
               };
             };
           };
@@ -73,13 +84,14 @@
             imports = [ globalCrateConfig ];
             crane = {
               args = {
-                buildInputs = lib.optionals isDarwin
-                  ([
+                buildInputs =
+                  lib.optionals isDarwin ([
                     apple_sdk.frameworks.Security
-                  ]) ++ [
-                  pkgs.openssl
-                  pkgs.postgresql_12
-                ];
+                  ])
+                  ++ [
+                    pkgs.openssl
+                    pkgs.postgresql_12
+                  ];
               };
             };
           };
@@ -87,16 +99,17 @@
             imports = [ globalCrateConfig ];
             crane = {
               args = {
-                buildInputs = lib.optionals isDarwin
-                  ([
+                buildInputs =
+                  lib.optionals isDarwin ([
                     apple_sdk.frameworks.Security
                     apple_sdk.frameworks.SystemConfiguration
                     pkgs.fixDarwinDylibNames
-                  ]) ++ [
-                  pkgs.libiconv
-                  pkgs.openssl
-                  pkgs.postgresql_12
-                ];
+                  ])
+                  ++ [
+                    pkgs.libiconv
+                    pkgs.openssl
+                    pkgs.postgresql_12
+                  ];
                 nativeBuildInputs = with pkgs; [
                   pkg-config
                 ];
@@ -106,6 +119,47 @@
                 postInstall = ''
                   ${if isDarwin then "fixDarwinDylibNames" else ""}
                 '';
+              };
+            };
+          };
+          "frontend" = {
+            imports = [ globalCrateConfig ];
+            autoWire = true;
+            crane = {
+              args = {
+                buildInputs =
+                  lib.optionals isDarwin ([
+                    apple_sdk.frameworks.Security
+                    apple_sdk.frameworks.SystemConfiguration
+                    pkgs.fixDarwinDylibNames
+                  ])
+                  ++ [
+                    pkgs.libiconv
+                    pkgs.openssl
+                    pkgs.postgresql_12
+                  ];
+                nativeBuildInputs = with pkgs; [
+                  wasm-pack
+                  pkg-config
+                  inputs.nixpkgs-wbcli.legacyPackages.${system}.wasm-bindgen-cli
+                ];
+              };
+              extraBuildArgs = {
+                doCheck = false;
+                ## REVIEW Is this needed?
+                CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
+                buildPhaseCargoCommand = ''
+                  cd crates/frontend
+                  export HOME=$TMPDIR
+                  wasm-pack build \
+                            --locked \
+                            --target=web \
+                            --mode no-install \
+                            --no-default-features --features=hydrate
+                  mkdir -p $out/bin/target/site
+                  cp -r ./pkg $out/bin/target/site
+                '';
+                installPhaseCommand = "true";
               };
             };
           };
