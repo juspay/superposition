@@ -138,11 +138,17 @@
                     pkgs.openssl
                     pkgs.postgresql_12
                   ];
-                nativeBuildInputs = with pkgs; [
-                  wasm-pack
-                  pkg-config
-                  inputs.nixpkgs-wbcli.legacyPackages.${system}.wasm-bindgen-cli
-                ];
+                nativeBuildInputs =
+                  let
+                      wasm-bindgen-cli-0-2-89 =
+                          inputs.old-nixpkgs.legacyPackages.${system}.wasm-bindgen-cli;
+                  in
+                  with pkgs;
+                  [
+                    wasm-pack
+                    pkg-config
+                    wasm-bindgen-cli-0-2-89
+                  ];
               };
               extraBuildArgs = {
                 doCheck = false;

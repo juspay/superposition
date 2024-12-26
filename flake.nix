@@ -1,7 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-wbcli.url = "github:NixOS/nixpkgs/10b813040df67c4039086db0f6eaf65c536886c6";
+    old-nixpkgs.url = "github:NixOS/nixpkgs/10b813040df67c4039086db0f6eaf65c536886c6";
     flake-parts.url = "github:hercules-ci/flake-parts";
     systems.url = "github:nix-systems/default";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
@@ -46,6 +46,7 @@
             makeCacheWritable = true;
             ## We will have to update this whenever we add a new node dependency.
             npmDepsHash = "sha256-nav8cgHvfDNQyUBoFnqiT/YmWBpjdl7/+EZm3CZODW4=";
+            nodejs = pkgs.nodejs-18_x;
             buildPhase = ''
               cd crates/frontend
               tailwindcss -i ./styles/tailwind.css -o ../../style.css
@@ -71,7 +72,8 @@
                 self'.packages.superposition
                 self'.packages.frontend
                 self'.packages.static-assets
-                pkgs.nodejs_20
+                pkgs.nodejs-18_x
+                pkgs.cacert
               ];
               pathsToLink = [ "/bin" ];
             };
@@ -83,6 +85,9 @@
               ExposedPorts = {
                 "8080/tcp" = { };
               };
+              Env = [
+                  "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+              ];
             };
           };
           devShells.default = pkgs.mkShell {
