@@ -19,12 +19,15 @@ use openidconnect::{
 };
 use service_utils::helpers::get_from_env_unsafe;
 use superposition_types::User;
-use types::{LoginParams, ProtectionCookie, UserClaims, UserTokenResponse};
+use types::{
+    GlobalUserClaims, GlobalUserTokenResponse, LoginParams, OrgUserClaims,
+    OrgUserTokenResponse, ProtectionCookie,
+};
 use utils::{presence_no_check, try_user_from, verify_presence};
 
 use crate::auth::authenticator::SwitchOrgParams;
 
-use super::authenticator::Authenticator;
+use super::authenticator::{Authenticator, Login};
 
 #[derive(Clone)]
 pub struct OIDCAuthenticator {
@@ -33,6 +36,7 @@ pub struct OIDCAuthenticator {
     client_id: String,
     client_secret: String,
     base_url: String,
+    path_prefix: String,
     issuer_endpoint_format: String,
     token_endpoint_format: String,
 }
@@ -41,6 +45,7 @@ impl OIDCAuthenticator {
     pub async fn new(
         idp_url: url::Url,
         base_url: String,
+        path_prefix: String,
         client_id: String,
         client_secret: String,
     ) -> Result<Self, Box<dyn std::error::Error>> {
@@ -64,7 +69,9 @@ impl OIDCAuthenticator {
             ClientId::new(client_id.clone()),
             Some(ClientSecret::new(client_secret.clone())),
         )
-        .set_redirect_uri(RedirectUrl::new(format!("{}/oidc/login", base_url))?);
+        .set_redirect_uri(RedirectUrl::new(format!(
+            "{base_url}{path_prefix}/oidc/login"
+        ))?);
 
         Ok(Self {
             client,
@@ -72,9 +79,44 @@ impl OIDCAuthenticator {
             client_id,
             client_secret,
             base_url,
+            path_prefix,
             issuer_endpoint_format,
             token_endpoint_format,
         })
+    }
+
+    fn get_org_client(&self, org_id: &String) -> Result<CoreClient, String> {
+        let issuer_url = match self.get_issuer_url(org_id) {
+            Ok(issuer_url) => issuer_url,
+            Err(e) => return Err(format!("Unable to create issuer url: {e}")),
+        };
+
+        let token_url = match self.get_token_url(org_id) {
+            Ok(token_url) => token_url,
+            Err(e) => return Err(format!("Unable to create token url: {e}")),
+        };
+
+        let redirect_url = match RedirectUrl::new(format!(
+            "{}{}/",
+            self.base_url.clone(),
+            self.path_prefix
+        )) {
+            Ok(redirect_url) => redirect_url,
+            Err(e) => return Err(format!("Unable to create redirect url: {e}")),
+        };
+
+        let provider = self
+            .provider_metadata
+            .clone()
+            .set_issuer(issuer_url)
+            .set_token_endpoint(Some(token_url));
+
+        Ok(CoreClient::from_provider_metadata(
+            provider,
+            ClientId::new(self.client_id.clone()),
+            Some(ClientSecret::new(self.client_secret.clone())),
+        )
+        .set_redirect_uri(redirect_url))
     }
 
     fn get_issuer_url(
@@ -97,7 +139,15 @@ impl OIDCAuthenticator {
         TokenUrl::new(token_endpoint)
     }
 
-    fn new_redirect(&self) -> HttpResponse {
+    fn get_cookie_path(&self) -> String {
+        if self.path_prefix.as_str() == "" {
+            String::from('/')
+        } else {
+            self.path_prefix.clone()
+        }
+    }
+
+    fn new_redirect(&self, cookie_name: &str) -> HttpResponse {
         let (auth_url, csrf_token, nonce) = self
             .client
             .authorize_url(
@@ -115,8 +165,8 @@ impl OIDCAuthenticator {
         };
 
         let cookie_result = serde_json::to_string(&protection)
-            .map_err(|err| {
-                log::error!("Unable to stringify data: {err}");
+            .map_err(|e| {
+                log::error!("Unable to stringify data: {e}");
                 ErrorInternalServerError(format!("Unable to stringify data"))
             })
             .map(|cookie| {
@@ -124,7 +174,7 @@ impl OIDCAuthenticator {
                     .max_age(Duration::days(7))
                     // .http_only(true)
                     // .same_site(SameSite::Strict)
-                    .path("/")
+                    .path(self.get_cookie_path())
                     .finish()
             });
 
@@ -134,7 +184,7 @@ impl OIDCAuthenticator {
                 .cookie(p_cookie)
                 // Deletes the cookie.
                 .cookie(
-                    Cookie::build("user", "")
+                    Cookie::build(cookie_name, "")
                         .max_age(Duration::seconds(0))
                         .finish(),
                 )
@@ -143,40 +193,88 @@ impl OIDCAuthenticator {
         }
     }
 
-    fn decode_token(&self, cookie: &str) -> Result<UserClaims, String> {
-        let ctr = serde_json::from_str::<UserTokenResponse>(cookie)
-            .map_err(|e| format!("Error while decoding token {e}"))?;
+    fn decode_global_token(&self, cookie: &str) -> Result<GlobalUserClaims, String> {
+        let ctr = serde_json::from_str::<GlobalUserTokenResponse>(cookie)
+            .map_err(|e| format!("Error while decoding token: {e}"))?;
         ctr.id_token()
             .ok_or(String::from("Id Token not found"))?
             .claims(&self.client.id_token_verifier(), verify_presence)
-            .map_err(|err| format!("Error in claims verification {err}"))
+            .map_err(|e| format!("Error in claims verification: {e}"))
             .cloned()
+    }
+
+    fn get_global_user(&self, request: &ServiceRequest) -> Result<User, HttpResponse> {
+        let token = request.cookie(&Login::Global.to_string()).and_then(|c| {
+            self.decode_global_token(c.value())
+                .map_err(|e| log::error!("Error in decoding user : {e}"))
+                .ok()
+        });
+        if let Some(token_response) = token {
+            Ok(try_user_from(&token_response).map_err(|e| {
+                log::error!("Unable to get user: {e}");
+                ErrorBadRequest(String::from("Unable to get user"))
+            })?)
+        } else {
+            log::error!("Error user not found in cookies");
+            Err(self.new_redirect(&Login::Global.to_string()))
+        }
+    }
+
+    fn decode_org_token(
+        &self,
+        org_id: &String,
+        cookie: &str,
+    ) -> Result<OrgUserClaims, String> {
+        let client = self
+            .get_org_client(org_id)
+            .map_err(|e| format!("Error in getting Org specific client: {e}"))?;
+        let id_token_verifier = client.id_token_verifier();
+
+        let ctr = serde_json::from_str::<OrgUserTokenResponse>(cookie)
+            .map_err(|e| format!("Error while decoding token: {e}"))?;
+        ctr.id_token()
+            .ok_or(String::from("Id Token not found"))?
+            .claims(&id_token_verifier, presence_no_check)
+            .map_err(|e| format!("Error in claims verification: {e}"))
+            .cloned()
+    }
+
+    fn get_org_user(&self, request: &ServiceRequest) -> Result<User, HttpResponse> {
+        let org_id = self.get_org_id(request);
+        let token = request.cookie(&Login::Org.to_string()).and_then(|c| {
+            self.decode_org_token(&org_id.0, c.value())
+                .map_err(|e| log::error!("Error in decoding org_user : {e}"))
+                .ok()
+        });
+        if let Some(token_response) = token {
+            Ok(try_user_from(&token_response).map_err(|e| {
+                log::error!("Unable to get org_user: {e}");
+                ErrorBadRequest(String::from("Unable to get user"))
+            })?)
+        } else {
+            log::error!("Error org_user not found in cookies");
+            Err(self.new_redirect(&Login::Org.to_string()))
+        }
     }
 }
 
 impl Authenticator for OIDCAuthenticator {
-    fn authenticate(&self, request: &ServiceRequest) -> Result<User, HttpResponse> {
-        let token = request.cookie("user").and_then(|c| {
-            self.decode_token(c.value())
-                .map_err(|e| log::error!("Error in decoding user : {e}"))
-                .ok()
-        });
-        let path = &request.path();
-        let excep = path.matches("login").count() > 0
-        // Implies it's a local/un-forwarded request.
-        || !request.headers().contains_key(header::USER_AGENT)
-        || path.matches("health").count() > 0
-        || path.matches("ready").count() > 0;
+    fn get_path_prefix(&self) -> String {
+        self.path_prefix.clone()
+    }
 
-        if excep {
-            Ok(User::default())
-        } else if let Some(token_response) = token {
-            Ok(try_user_from(&token_response).map_err(|err| {
-                log::error!("Unable to get user {err}");
-                ErrorBadRequest(String::from("Unable to get user"))
-            })?)
-        } else {
-            Err(self.new_redirect())
+    fn authenticate(
+        &self,
+        request: &ServiceRequest,
+        login_type: &Login,
+    ) -> Result<User, HttpResponse> {
+        match login_type {
+            Login::None => Ok(User::default()),
+            Login::Global => self.get_global_user(request),
+            Login::Org => match self.get_global_user(request) {
+                Err(e) => Err(e),
+                Ok(_) => self.get_org_user(request),
+            },
         }
     }
 
@@ -188,9 +286,9 @@ impl Authenticator for OIDCAuthenticator {
 
     fn get_organisations(&self, req: &HttpRequest) -> HttpResponse {
         let organisations = req
-            .cookie("user")
+            .cookie(&Login::Global.to_string())
             .and_then(|user_cookie| {
-                self.decode_token(user_cookie.value())
+                self.decode_global_token(user_cookie.value())
                     .map_err(|e| log::error!("Error in decoding user : {e}"))
                     .ok()
             })
@@ -200,7 +298,7 @@ impl Authenticator for OIDCAuthenticator {
             Some(organisations) => {
                 HttpResponse::Ok().json(serde_json::json!(organisations))
             }
-            None => self.new_redirect(),
+            None => self.new_redirect(&Login::Global.to_string()),
         }
     }
 
@@ -209,53 +307,22 @@ impl Authenticator for OIDCAuthenticator {
         req: &HttpRequest,
         path: &Path<SwitchOrgParams>,
     ) -> LocalBoxFuture<'static, actix_web::Result<HttpResponse>> {
-        let issuer_url = match self.get_issuer_url(&path.organisation_id) {
-            Ok(issuer_url) => issuer_url,
+        let client = match self.get_org_client(&path.organisation_id) {
+            Ok(client) => client,
             Err(e) => {
-                log::error!("Unable to create issuer url {e}");
+                log::error!("Error in getting Org specific client: {e}");
                 return Box::pin(async move {
-                    Err(ErrorBadRequest(String::from("Unable to create issuer url")))
+                    Err(ErrorInternalServerError(String::from(
+                        "Error in getting Org specific client",
+                    )))
                 });
             }
         };
-
-        let token_url = match self.get_token_url(&path.organisation_id) {
-            Ok(token_url) => token_url,
-            Err(e) => {
-                log::error!("Unable to create token url {e}");
-                return Box::pin(async move {
-                    Err(ErrorInternalServerError("Unable to create token url"))
-                });
-            }
-        };
-
-        let redirect_url = match RedirectUrl::new(format!("{}/", self.base_url.clone())) {
-            Ok(redirect_url) => redirect_url,
-            Err(e) => {
-                log::error!("Unable to create redirect url {e}");
-                return Box::pin(async move {
-                    Err(ErrorInternalServerError("Unable to create redirect url"))
-                });
-            }
-        };
-
-        let provider = self
-            .provider_metadata
-            .clone()
-            .set_issuer(issuer_url)
-            .set_token_endpoint(Some(token_url));
-
-        let client = CoreClient::from_provider_metadata(
-            provider,
-            ClientId::new(self.client_id.clone()),
-            Some(ClientSecret::new(self.client_secret.clone())),
-        )
-        .set_redirect_uri(redirect_url);
 
         let user = req
-            .cookie("user")
+            .cookie(&Login::Global.to_string())
             .and_then(|user_cookie| {
-                self.decode_token(user_cookie.value())
+                self.decode_global_token(user_cookie.value())
                     .map_err(|e| log::error!("Error in decoding user : {e}"))
                     .ok()
             })
@@ -280,7 +347,9 @@ impl Authenticator for OIDCAuthenticator {
         let org_id = path.organisation_id.clone();
         let user = ResourceOwnerUsername::new(username.to_string());
         let pass = ResourceOwnerPassword::new(switch_pass);
-        let redirect = self.new_redirect();
+        let redirect = self.new_redirect(&Login::Org.to_string());
+        let prefix = self.path_prefix.clone();
+        let cookie_path = self.get_cookie_path();
 
         Box::pin(async move {
             let response = client
@@ -291,22 +360,20 @@ impl Authenticator for OIDCAuthenticator {
                 .map_err(|e| log::error!("Failed to switch organisation for token: {e}"))
                 .and_then(|tr| {
                     tr.id_token()
-                        .ok_or_else(|| eprintln!("No identity-token!"))
-                        .and_then(|t| {
-                            t.claims(&client.id_token_verifier(), presence_no_check)
-                                .map_err(|e| log::error!("Couldn't verify claims: {e}"))
-                        })?;
+                        .ok_or_else(|| log::error!("No identity-token!"))?
+                        .claims(&client.id_token_verifier(), presence_no_check)
+                        .map_err(|e| log::error!("Couldn't verify claims: {e}"))?;
                     Ok(tr)
                 });
 
             match response {
                 Ok(r) => {
-                    let token = serde_json::to_string(&r).map_err(|err| {
-                        log::error!("Unable to stringify data: {err}");
+                    let token = serde_json::to_string(&r).map_err(|e| {
+                        log::error!("Unable to stringify data: {e}");
                         ErrorInternalServerError(format!("Unable to stringify data"))
                     })?;
-                    let cookie = Cookie::build("org_user", token)
-                        .path("/")
+                    let cookie = Cookie::build(Login::Org.to_string(), token)
+                        .path(cookie_path)
                         .http_only(true)
                         .max_age(Duration::days(1))
                         .finish();
@@ -314,7 +381,7 @@ impl Authenticator for OIDCAuthenticator {
                         .cookie(cookie)
                         .insert_header((
                             "Location",
-                            format!("/admin/{org_id}/workspaces"),
+                            format!("{prefix}/admin/{org_id}/workspaces"),
                         ))
                         .finish())
                 }
@@ -334,12 +401,12 @@ async fn login(
         p_cookie
     } else {
         log::error!("OIDC: Missing/Bad protection-cookie, redirecting...");
-        return Ok(data.new_redirect());
+        return Ok(data.new_redirect(&Login::Global.to_string()));
     };
 
     if params.state.secret() != p_cookie.csrf.secret() {
         log::error!("OIDC: Bad csrf",);
-        return Ok(data.new_redirect());
+        return Ok(data.new_redirect(&Login::Global.to_string()));
     }
 
     // Exchange the code with a token.
@@ -361,20 +428,23 @@ async fn login(
 
     match response {
         Ok(r) => {
-            let token = serde_json::to_string(&r).map_err(|err| {
-                log::error!("Unable to stringify data: {err}");
+            let token = serde_json::to_string(&r).map_err(|e| {
+                log::error!("Unable to stringify data: {e}");
                 ErrorInternalServerError(format!("Unable to stringify data"))
             })?;
-            let cookie = Cookie::build("user", token)
-                .path("/")
+            let cookie = Cookie::build(Login::Global.to_string(), token)
+                .path(data.get_cookie_path())
                 .http_only(true)
                 .max_age(Duration::days(1))
                 .finish();
             Ok(HttpResponse::Found()
                 .cookie(cookie)
-                .insert_header(("Location", "/admin/organisations"))
+                .insert_header((
+                    "Location",
+                    format!("{}/admin/organisations", data.path_prefix.clone()),
+                ))
                 .finish())
         }
-        Err(()) => Ok(data.new_redirect()),
+        Err(()) => Ok(data.new_redirect(&Login::Global.to_string())),
     }
 }
