@@ -7,6 +7,8 @@
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     haskell-flake.url = "github:srid/haskell-flake";
     rust-flake.url = "github:juspay/rust-flake";
+    process-compose-flake.url = "github:Platonic-Systems/process-compose-flake";
+    services-flake.url = "github:juspay/services-flake";
   };
 
   outputs =
@@ -20,6 +22,7 @@
         inputs.rust-flake.flakeModules.default
         inputs.rust-flake.flakeModules.nixpkgs
         inputs.pre-commit-hooks.flakeModule
+        inputs.process-compose-flake.flakeModule
         ./nix/pre-commit.nix
         ./clients/haskell
         ./nix/rust.nix
@@ -36,6 +39,7 @@
         }:
         {
           formatter = pkgs.nixpkgs-fmt;
+          packages.default = self'.packages.superposition;
           packages.static-assets = pkgs.buildNpmPackage {
             name = "static-assets";
             version = "1.0.0";
@@ -60,7 +64,7 @@
             '';
             installPhase = "true";
           };
-          packages.image = pkgs.dockerTools.buildImage {
+          packages.container-image = pkgs.dockerTools.buildImage {
             name = "superposition";
             tag = "latest";
 
@@ -93,7 +97,6 @@
             ];
             # Add your devShell tools here
             packages = with pkgs; [
-              docker-compose
               gnumake
               # Why do we need this?
               stdenv.cc
@@ -107,6 +110,8 @@
               leptosfmt
               wasm-pack
               tailwindcss
+              podman
+              podman-compose
               ## For inspecting OCI(docker) images.
               dive
               # go client

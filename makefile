@@ -3,15 +3,20 @@ DOCKER_DNS ?= localhost
 TENANT ?= dev
 SHELL := /usr/bin/env bash
 FEATURES ?= ssr
+COMPOSE_CMD = podman-compose
+COMPOSE_UP = $(COMPOSE_CMD) up -d
+COMPOSE_DOWN = $(COMPOSE_CMD) down
+DB_UP := $(shell podman container ls | grep -q 'superposition_postgres' && echo 1 || echo 0)
+LOCALSTACK_UP := $(shell podman container ls | grep -q 'superposition_localstack' && echo 1 || echo 0)
+TIMEOUT ?= 30
 
 .PHONY:
 	db-init
 	setup
 	kill
 	run
-	ci-test
-	validate-aws-connection
-	validate-psql-connection
+	ci-setup
+	test
 	cac
 
 db-init:
@@ -19,28 +24,18 @@ db-init:
 	-diesel migration run --locked-schema --config-file=crates/superposition_types/src/experimentation/diesel.toml
 
 cleanup:
-	-docker rm -f $$(docker container ls --filter name=^context-aware-config -a -q)
-	-docker rmi -f $$(docker images | grep context-aware-config-postgres | cut -f 10 -d " ")
+	-podman rm -f $$(podman container ls --filter name=^context-aware-config -a -q)
+	-podman rmi -f $$(podman images | grep context-aware-config-postgres | cut -f 10 -d " ")
 
-cac-migration: cleanup
-	docker-compose up -d postgres
+cac-migration: cleanup db
 	cp .env.example .env
-	while ! make validate-psql-connection; \
-		do echo "waiting for postgres bootup"; \
-		sleep 0.5; \
-		done
 	diesel migration run --locked-schema --config-file=crates/superposition_types/src/cac/diesel.toml
-	docker-compose down
+	$(COMPOSE_DOWN)
 
-exp-migration: cleanup
-	docker-compose up -d postgres
+	exp-migration: cleanup db
 	cp .env.example .env
-	while ! make validate-psql-connection; \
-		do echo "waiting for postgres bootup"; \
-		sleep 0.5; \
-		done
 	--diesel migration run --locked-schema --config-file=crates/superposition_types/src/experimentation/diesel.toml
-	docker-compose down
+	$(COMPOSE_DOWN)
 
 migration: cac-migration exp-migration
 
@@ -50,38 +45,37 @@ legacy_db_setup:
 tenant:
 	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/create-tenant.sh -t $(TENANT) -d
 
-validate-aws-connection:
-	aws --no-cli-pager --endpoint-url=http://$(DOCKER_DNS):4566 --region=ap-south-1 sts get-caller-identity
+db:
+ifeq ($(DB_UP),0)
+	@echo "Booting postgres..."
+## Filtering some output to remove spurious error logs.
+	@$(COMPOSE_UP) postgres 2>&1 | grep -v "already exists"
+endif
+	@podman wait --condition=healthy "superposition_postgres" > /dev/null
+	@echo "DB Up!"
 
-validate-psql-connection:
-	pg_isready -h $(DOCKER_DNS) -p 5432
+localstack:
+ifeq ($(LOCALSTACK_UP),0)
+	@echo "Booting localstack..."
+## Filtering some output to remove spurious error logs.
+	@$(COMPOSE_UP) localstack 2>&1 | grep -v "already exists"
+endif
+	@podman wait --condition=healthy "superposition_localstack" > /dev/null
+	@echo "Localstack Up!"
 
+infra: db localstack
 
-env-setup:
+env-setup: infra
 	npm ci
-	-docker-compose up -d postgres localstack
 	cp .env.example .env
-	while ! make validate-psql-connection validate-aws-connection; \
-		do echo "waiting for postgres, localstack bootup"; \
-		sleep 0.5; \
-		done
 
-test-tenant:
-	make tenant TENANT='test'
+test-tenant: TENANT = 'test'
+test-tenant: tenant
 
-dev-tenant:
-	make tenant TENANT='dev'
+dev-tenant: TENANT = 'dev'
+dev-tenant: tenant
 
-ci-setup: env-setup test-tenant
-	npm ci --loglevel=error
-	make run -e DOCKER_DNS=$(DOCKER_DNS) 2>&1 | tee test_logs &
-	while ! grep -q "starting in Actix" test_logs; \
-		do echo "ci-test: waiting for bootup..." && sleep 4; \
-		done
-	# NOTE: `make db-init` finally starts a postgres container and runs all the migrations with locked-schema option
-	# to prevent update of schema.rs for both cac and experimentation.
-	# NOTE: The container spinned-up here is the actual container being used in development
-	echo setup completed successfully!!!
+ci-setup: env-setup test-tenant run
 
 setup: env-setup
 
@@ -89,7 +83,7 @@ kill:
 	-pkill -f target/debug/superposition &
 
 get-password:
-	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh` && echo $$DB_PASSWORD
+	export DB_PASSWORD=`./podman-compose/localstack/get_db_password.sh` && echo $$DB_PASSWORD
 
 superposition:
 	cargo run --color always --bin superposition --no-default-features --features=$(FEATURES)
@@ -101,7 +95,7 @@ superposition_legacy:
 	cargo run --color always --bin superposition --no-default-features --features='ssr superposition_types/disable_db_data_validation context_aware_config/disable_db_data_validation experimentation_platform/disable_db_data_validation'
 
 superposition_dev:
-	# export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`
+# export DB_PASSWORD=`./podman-compose/localstack/get_db_password.sh`
 	cargo watch -x 'run --color always --bin superposition --no-default-features --features=$(FEATURES)'
 
 
@@ -123,22 +117,20 @@ backend:
 
 build: frontend backend
 
-run: kill frontend
-	while ! make validate-psql-connection validate-aws-connection; \
-		do echo "waiting for postgres, localstack bootup"; \
-		sleep 0.5; \
-		done
-	make superposition -e DOCKER_DNS=$(DOCKER_DNS)
+run: kill infra frontend superposition
 
-run_legacy: kill build
-	while ! make validate-psql-connection validate-aws-connection; \
-		do echo "waiting for postgres, localstack bootup"; \
-		sleep 0.5; \
-		done
-	make superposition_legacy -e DOCKER_DNS=$(DOCKER_DNS)
+run_legacy: kill infra build superposition_legacy
 
-ci-test: ci-setup
+test:
 	cargo test
+	@timeout=$(TIMEOUT); \
+  while ! nc -z localhost 8080 && [ $$timeout -gt 0 ]; do \
+		sleep 1; \
+		((timeout--)); \
+  done; \
+	if [ $$timeout -eq 0 ]; then \
+		echo "Timedout waiting for service to recieve connections, is superposition running?" && exit 1; \
+	fi
 	npm run test
 
 tailwind:
