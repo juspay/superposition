@@ -7,7 +7,7 @@ pub async fn conclude_experiment(
     exp_id: String,
     variant_id: String,
     tenant: &String,
-    org_id: &String
+    org_id: &String,
 ) -> Result<Experiment, String> {
     let client = reqwest::Client::new();
     let host = get_host();
