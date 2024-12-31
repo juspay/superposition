@@ -1,58 +1,86 @@
 use leptos::*;
+use serde_json::{Map, Value};
 
 use crate::api::fetch_organisations;
-use crate::components::skeleton::Skeleton;
+use crate::components::{
+    skeleton::Skeleton,
+    stat::Stat,
+    table::{
+        types::{Column, ColumnSortable},
+        Table,
+    },
+};
 use crate::utils::use_host_server;
 
 #[component]
 pub fn organisations() -> impl IntoView {
-    let host = StoredValue::new(use_host_server());
-    let (organisation_rs, organisation_ws) = create_signal::<Option<String>>(None);
-
+    let host = use_host_server();
     let organisation_resource = create_local_resource(
         || (),
         |_| async { fetch_organisations().await.unwrap_or_default() },
     );
 
+    let table_columns = create_memo(move |_| {
+        let host = host.clone();
+        let navigate = move |_: &str, row: &Map<String, Value>| {
+            let organisation_id = row["organisation_id"]
+                .as_str()
+                .clone()
+                .unwrap_or_default()
+                .to_string();
+            view! {
+                <button
+                    formaction=format!("{host}/organisations/switch/{organisation_id}")
+                    class="cursor-pointer text-blue-500"
+                >
+                    {organisation_id}
+                </button>
+            }
+            .into_view()
+        };
+
+        vec![Column::new(
+            "organisation_id".to_string(),
+            None,
+            navigate,
+            ColumnSortable::No,
+        )]
+    });
+
     view! {
-        <div class="h-screen w-full flex flex-col items-center justify-center">
+        <form class="p-8">
             <Suspense fallback=move || {
                 view! { <Skeleton /> }
             }>
                 {move || {
+                    let organisations = organisation_resource.get().unwrap_or_default();
+                    let table_rows = organisations.clone()
+                        .into_iter()
+                        .map(|organisation| {
+                            let mut map = Map::new();
+                            map.insert(String::from("organisation_id"), Value::String(organisation));
+                            map
+                        })
+                        .collect::<Vec<Map<String, Value>>>();
+
                     view! {
-                        <form action=format!(
-                            "{}/organisations/switch/{}",
-                            host.get_value(),
-                            organisation_rs.get().unwrap_or_default(),
-                        )>
-                            <div>Select Organisation</div>
-                            <select
-                                class="w-[300px] border border-black"
-                                value=organisation_rs.get().unwrap_or_default()
-                                on:change=move |event| {
-                                    let organisation = event_target_value(&event);
-                                    organisation_ws
-                                        .set(
-                                            if organisation.as_str() != "" { Some(organisation) } else { None },
-                                        );
-                                }
-                            >
-                                <option value=String::from("")>Select Organisation</option>
-                                <For
-                                    each=move || organisation_resource.get().clone().unwrap_or_default()
-                                    key=|organisation| organisation.clone()
-                                    children=move |organisation| {
-                                        view! { <option value=organisation.clone() selected={organisation == organisation_rs.get().unwrap_or_default()}>{organisation}</option> }
-                                    }
-                                />
-                            </select>
-                            <button disabled=organisation_rs.get().is_none()>Submit</button>
-                        </form>
+                        <div class="pb-4">
+                            <Stat
+                                heading="Oraganisations"
+                                icon="ri-building-fill"
+                                number={organisations.len().to_string()}
+                            />
+                        </div>
+                        <Table
+                            class="card-body card rounded-lg w-full bg-base-100 shadow"
+                            cell_class="min-w-48 font-mono".to_string()
+                            rows=table_rows
+                            key_column="id".to_string()
+                            columns=table_columns.get()
+                        />
                     }
                 }}
-
             </Suspense>
-        </div>
+        </form>
     }
 }

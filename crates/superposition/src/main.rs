@@ -119,7 +119,7 @@ async fn main() -> Result<()> {
         .await,
     );
 
-    let auth = AuthHandler::init(&kms_client, &app_env).await;
+    let auth = AuthHandler::init(&kms_client, &app_env, base.clone()).await;
 
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
@@ -139,8 +139,6 @@ async fn main() -> Result<()> {
             .service(web::redirect("/", ui_redirect_path.to_string()))
             .service(web::redirect("/admin", ui_redirect_path.to_string()))
             .service(web::redirect("/admin/{tenant}/", "default-config"))
-            .service(auth.routes())
-            .service(auth.org_routes())
             .leptos_routes(
                 leptos_options.to_owned(),
                 routes.to_owned(),
@@ -152,6 +150,8 @@ async fn main() -> Result<()> {
                         "/health",
                         get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
                     )
+                    .service(auth.routes())
+                    .service(auth.org_routes())
                     /***************************** V1 Routes *****************************/
                     .service(
                         scope("/context")
