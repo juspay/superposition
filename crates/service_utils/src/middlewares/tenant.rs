@@ -15,15 +15,15 @@ use std::rc::Rc;
 use superposition_types::TenantConfig;
 
 pub struct OrgWorkspaceMiddlewareFactory {
-    enable_org_id_header: bool,
-    enable_workspace_id_header: bool,
+    enable_org_id: bool,
+    enable_workspace_id: bool,
 }
 
 impl OrgWorkspaceMiddlewareFactory {
-    pub fn new(enable_org_id_header: bool, enable_workspace_id_header: bool) -> Self {
+    pub fn new(enable_org_id: bool, enable_workspace_id: bool) -> Self {
         Self {
-            enable_org_id_header,
-            enable_workspace_id_header,
+            enable_org_id,
+            enable_workspace_id,
         }
     }
 }
@@ -43,16 +43,16 @@ where
     fn new_transform(&self, service: S) -> Self::Future {
         ready(Ok(OrgWorkspaceMiddleware {
             service: Rc::new(service),
-            enable_org_id_header: self.enable_org_id_header,
-            enable_workspace_id_header: self.enable_workspace_id_header,
+            enable_org_id: self.enable_org_id,
+            enable_workspace_id: self.enable_workspace_id,
         }))
     }
 }
 
 pub struct OrgWorkspaceMiddleware<S> {
     service: Rc<S>,
-    enable_org_id_header: bool,
-    enable_workspace_id_header: bool,
+    enable_org_id: bool,
+    enable_workspace_id: bool,
 }
 
 fn extract_org_workspace_from_header(
@@ -106,8 +106,8 @@ where
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let srv = self.service.clone();
-        let enable_org_id = self.enable_org_id_header;
-        let enable_workspace_id = self.enable_workspace_id_header;
+        let enable_org_id = self.enable_org_id;
+        let enable_workspace_id = self.enable_workspace_id;
 
         Box::pin(async move {
             let app_state = match req.app_data::<Data<AppState>>() {
@@ -124,8 +124,10 @@ where
             };
 
             let request_path = req.uri().path().replace(&base, "");
-            let request_pattern =
-                req.match_pattern().unwrap_or_else(|| request_path.clone());
+            let request_pattern = req
+                .match_pattern()
+                .map(|a| a.replace(&base, ""))
+                .unwrap_or_else(|| request_path.clone());
             let pkg_regex = Regex::new(".*/pkg/.+")
                 .map_err(|err| error::ErrorInternalServerError(err.to_string()))?;
             let assets_regex = Regex::new(".*/assets/.+")
@@ -196,21 +198,29 @@ where
                     )
                 });
 
-                // TODO: validate the tenant
-                let (validated_tenant, tenant_config) = match (org, enable_org_id, workspace, enable_workspace_id) {
-                    (None, true, None, true) => return Err(error::ErrorBadRequest("The parameters org id and workspace id are required, and must be passed through headers/url params/query params. Consult the documentation to know which to use for this endpoint")),
-                    (None, true, _, _) => return Err(error::ErrorBadRequest("The parameter org id is required, and must be passed through headers/url params/query params. Consult the documentation to know which to use for this endpoint")),
-                    (_, _, None, true) => return Err(error::ErrorBadRequest("The parameter workspace id is required, and must be passed through headers/url params/query params. Consult the documentation to know which to use for this endpoint")),
-                    (Some(org_id), _, Some(workspace_id), _) => {
-                        let tenant = format!("{org_id}_{workspace_id}");
-                        (Tenant(tenant), TenantConfig::default())
-                    }
-                    (_, _, _, _) => (Tenant("public".into()), TenantConfig::default()),
+                let workspace_id = match (enable_workspace_id, workspace) {
+                    (true, None) => return Err(error::ErrorBadRequest("The parameter workspace id is required, and must be passed through headers/url params/query params. Consult the documentation to know which to use for this endpoint")),
+                    (true, Some(workspace_id)) => workspace_id,
+                    (false, _) => "public",
                 };
 
+                // TODO: validate the tenant, get correct TenantConfig
+                let (validated_tenant, tenant_config) =  match (enable_org_id, org) {
+                    (true, None) => return Err(error::ErrorBadRequest("The parameter org id is required, and must be passed through headers/url params/query params. Consult the documentation to know which to use for this endpoint")),
+                    (true, Some(org_id)) => {
+                        let tenant = format!("{org_id}_{workspace_id}");
+                        (Tenant(tenant), TenantConfig::default())
+                    },
+                    (false, _) => (Tenant("public".into()), TenantConfig::default()),
+                };
+
+                let organisation = org
+                    .map(String::from)
+                    .map(OrganisationId)
+                    .unwrap_or_default();
+
                 req.extensions_mut().insert(validated_tenant);
-                req.extensions_mut()
-                    .insert(OrganisationId(org.unwrap_or("juspay").into()));
+                req.extensions_mut().insert(organisation);
                 req.extensions_mut().insert(tenant_config);
             }
 

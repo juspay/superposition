@@ -3,6 +3,7 @@ mod no_auth;
 mod oidc;
 
 use std::{
+    collections::HashSet,
     future::{ready, Ready},
     sync::Arc,
 };
@@ -15,7 +16,7 @@ use actix_web::{
     web::{self, Data, Path},
     Error, HttpMessage, HttpRequest, HttpResponse, Scope,
 };
-use authenticator::{Authenticator, SwitchOrgParams};
+use authenticator::{Authenticator, Login, SwitchOrgParams};
 use aws_sdk_kms::Client;
 use futures_util::future::LocalBoxFuture;
 use no_auth::DisabledAuthenticator;
@@ -30,6 +31,31 @@ use url::Url;
 pub struct AuthMiddleware<S> {
     service: S,
     auth_handler: AuthHandler,
+}
+
+impl<S> AuthMiddleware<S> {
+    fn get_login_type(
+        &self,
+        request: &ServiceRequest,
+        exception: &HashSet<String>,
+    ) -> Login {
+        let path_prefix = self.auth_handler.0.get_path_prefix();
+        let request_pattern = request
+            .match_pattern()
+            .map(|a| a.replace(&path_prefix, ""))
+            .unwrap_or_else(|| request.uri().path().replace(&path_prefix, ""));
+
+        let excep = exception.contains(&request_pattern)
+                        // Implies it's a local/un-forwarded request.
+                        || !request.headers().contains_key(header::USER_AGENT);
+        let org_request = request.path().matches("/organisations").count() > 0;
+
+        match (excep, org_request) {
+            (true, false) => Login::None,
+            (_, true) => Login::Global,
+            (false, false) => Login::Org,
+        }
+    }
 }
 
 impl<S, B> Service<ServiceRequest> for AuthMiddleware<S>
@@ -69,7 +95,12 @@ where
                     (_, _) => None,
                 }
             })
-            .unwrap_or_else(|| self.auth_handler.0.authenticate(&request));
+            .unwrap_or_else(|| {
+                let login_type = self
+                    .get_login_type(&request, &state.tenant_middleware_exclusion_list);
+
+                self.auth_handler.0.authenticate(&request, &login_type)
+            });
 
         match result {
             Ok(user) => {
@@ -99,7 +130,11 @@ impl AuthHandler {
         routes(self.clone())
     }
 
-    pub async fn init(kms_client: &Option<Client>, app_env: &AppEnv) -> Self {
+    pub async fn init(
+        kms_client: &Option<Client>,
+        app_env: &AppEnv,
+        path_prefix: String,
+    ) -> Self {
         let auth_provider: String = get_from_env_unsafe("AUTH_PROVIDER").unwrap();
         let mut auth = auth_provider.split('+');
 
@@ -110,6 +145,7 @@ impl AuthHandler {
                     .split(",")
                     .map(String::from)
                     .collect(),
+                path_prefix,
             )),
             Some("OIDC") => {
                 let url = Url::parse(auth.next().unwrap())
@@ -119,9 +155,15 @@ impl AuthHandler {
                 let cid = get_from_env_unsafe("OIDC_CLIENT_ID").unwrap();
                 let csecret = get_oidc_client_secret(kms_client, app_env).await;
                 Arc::new(
-                    oidc::OIDCAuthenticator::new(url, base_url, cid, csecret)
-                        .await
-                        .unwrap(),
+                    oidc::OIDCAuthenticator::new(
+                        url,
+                        base_url,
+                        path_prefix,
+                        cid,
+                        csecret,
+                    )
+                    .await
+                    .unwrap(),
                 )
             }
             _ => panic!("Missing/Unknown authenticator."),
