@@ -15,3 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: om ci --extra-access-tokens ${{ secrets.GITHUB_TOKEN }} run --systems "${{ matrix.system }}"
+      - name: tests
+        shell: bash
+        run: |
+            # ls -la
+            nix develop --impure --command bash -c 'make run &'
+            nix develop --impure --command bash -c 'make test'
