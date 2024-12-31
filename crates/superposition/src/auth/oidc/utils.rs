@@ -1,7 +1,5 @@
-use openidconnect::Nonce;
+use openidconnect::{AdditionalClaims, GenderClaim, IdTokenClaims, Nonce};
 use superposition_types::User;
-
-use super::types::UserClaims;
 
 pub(super) fn verify_presence(n: Option<&Nonce>) -> Result<(), String> {
     if n.is_some() {
@@ -15,7 +13,9 @@ pub(super) fn presence_no_check(_: Option<&Nonce>) -> Result<(), String> {
     Ok(())
 }
 
-pub(super) fn try_user_from(claims: &UserClaims) -> Result<User, String> {
+pub(super) fn try_user_from<A: AdditionalClaims, B: GenderClaim>(
+    claims: &IdTokenClaims<A, B>,
+) -> Result<User, String> {
     let user = User {
         email: claims
             .email()
