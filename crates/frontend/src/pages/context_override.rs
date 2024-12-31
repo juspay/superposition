@@ -152,27 +152,36 @@ pub fn context_override() -> impl IntoView {
     let (modal_visible, set_modal_visible) = create_signal(false);
     let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
 
-    let page_resource: Resource<(String, String), PageResource> = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
-        |(current_tenant, org_id)| async move {
-            let empty_list_filters = PaginationParams::all_entries();
-            let (config_result, dimensions_result, default_config_result) = join!(
-                fetch_config(current_tenant.to_string(), None, org_id.clone()),
-                fetch_dimensions(&empty_list_filters, current_tenant.to_string(), org_id.clone()),
-                fetch_default_config(&empty_list_filters, current_tenant.to_string(), org_id.clone())
-            );
-            PageResource {
-                config: config_result.unwrap_or_default(),
-                dimensions: dimensions_result
-                    .unwrap_or_default()
-                    .data
-                    .into_iter()
-                    .filter(|d| d.dimension != "variantIds")
-                    .collect(),
-                default_config: default_config_result.unwrap_or_default().data,
-            }
-        },
-    );
+    let page_resource: Resource<(String, String), PageResource> =
+        create_blocking_resource(
+            move || (tenant_rws.get().0, org_rws.get().0),
+            |(current_tenant, org_id)| async move {
+                let empty_list_filters = PaginationParams::all_entries();
+                let (config_result, dimensions_result, default_config_result) = join!(
+                    fetch_config(current_tenant.to_string(), None, org_id.clone()),
+                    fetch_dimensions(
+                        &empty_list_filters,
+                        current_tenant.to_string(),
+                        org_id.clone()
+                    ),
+                    fetch_default_config(
+                        &empty_list_filters,
+                        current_tenant.to_string(),
+                        org_id.clone()
+                    )
+                );
+                PageResource {
+                    config: config_result.unwrap_or_default(),
+                    dimensions: dimensions_result
+                        .unwrap_or_default()
+                        .data
+                        .into_iter()
+                        .filter(|d| d.dimension != "variantIds")
+                        .collect(),
+                    default_config: default_config_result.unwrap_or_default().data,
+                }
+            },
+        );
 
     let handle_context_create = Callback::new(move |_| {
         set_form_mode.set(Some(FormMode::Create));
@@ -241,7 +250,8 @@ pub fn context_override() -> impl IntoView {
     let confirm_delete = Callback::new(move |_| {
         if let Some(id) = delete_id.get().clone() {
             spawn_local(async move {
-                let result = delete_context(tenant_rws.get().0, id, org_rws.get().0).await;
+                let result =
+                    delete_context(tenant_rws.get().0, id, org_rws.get().0).await;
 
                 match result {
                     Ok(_) => {

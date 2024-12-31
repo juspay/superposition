@@ -59,7 +59,8 @@ pub fn function_page() -> impl IntoView {
     let combined_resource: Resource<(String, String, String), CombinedResource> =
         create_blocking_resource(source, |(function_name, tenant, org_id)| async move {
             let function_result =
-                fetch_function(function_name.to_string(), tenant.to_string(), org_id).await;
+                fetch_function(function_name.to_string(), tenant.to_string(), org_id)
+                    .await;
 
             CombinedResource {
                 function: function_result.ok(),

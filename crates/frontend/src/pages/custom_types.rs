@@ -74,7 +74,8 @@ pub fn types_page() -> impl IntoView {
                                 let tenant = tenant_rws.get().0;
                                 let org = org_rws.get().0;
                                 let _ =
-                                    delete_type(tenant, row_data.clone().type_name, org).await;
+                                    delete_type(tenant, row_data.clone().type_name, org)
+                                        .await;
                                 types_resource.refetch();
                             }
                         });

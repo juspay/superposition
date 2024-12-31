@@ -14,7 +14,7 @@ pub async fn create_function(
     runtime_version: String,
     description: String,
     tenant: String,
-    org_id: String
+    org_id: String,
 ) -> Result<Function, String> {
     let payload = FunctionCreateRequest {
         function_name,
@@ -29,7 +29,7 @@ pub async fn create_function(
         url,
         reqwest::Method::POST,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant),("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;
 
