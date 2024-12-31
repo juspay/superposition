@@ -23,7 +23,7 @@ use crate::{
 pub async fn fetch_dimensions(
     filters: &PaginationParams,
     tenant: String,
-    org_id: String
+    org_id: String,
 ) -> Result<PaginatedResponse<DimensionWithMandatory>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();

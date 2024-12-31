@@ -24,7 +24,7 @@ pub async fn update_default_config(
     key: String,
     tenant: String,
     payload: DefaultConfigUpdateReq,
-    org_id: String
+    org_id: String,
 ) -> Result<serde_json::Value, String> {
     let host = get_host();
     let url = format!("{host}/default-config/{key}");
