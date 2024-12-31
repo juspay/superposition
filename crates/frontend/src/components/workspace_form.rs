@@ -61,7 +61,12 @@ where
             let handle_submit = handle_submit_clone;
             async move {
                 let result = if is_edit {
-                    update_workspace(workspace_name_rs.get(), org_id.get().to_string(), update_payload).await
+                    update_workspace(
+                        workspace_name_rs.get(),
+                        org_id.get().to_string(),
+                        update_payload,
+                    )
+                    .await
                 } else {
                     create_workspace(org_id.get().to_string(), create_payload).await
                 };
