@@ -192,7 +192,6 @@ impl FromRequest for DbConnection {
         req: &actix_web::HttpRequest,
         _: &mut actix_web::dev::Payload,
     ) -> Self::Future {
-
         let app_state = match req.app_data::<Data<AppState>>() {
             Some(state) => state,
             None => {
@@ -238,6 +237,13 @@ impl FromRequest for CustomHeaders {
 
 #[derive(Deref, DerefMut, Clone, Debug)]
 pub struct OrganisationId(pub String);
+
+impl Default for OrganisationId {
+    fn default() -> Self {
+        Self(String::from("superposition"))
+    }
+}
+
 impl FromRequest for OrganisationId {
     type Error = Error;
     type Future = Ready<Result<Self, Self::Error>>;
@@ -264,7 +270,7 @@ impl FromRequest for OrganisationId {
                         "message": "x-org-id was not set. Please ensure you are passing in the x-tenant header"
                     })))
                 } else {
-                    Ok(OrganisationId("juspay".into()))
+                    Ok(OrganisationId::default())
                 }
             }
         };

@@ -99,7 +99,9 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 path="/admin/organisations"
                                 view=move || {
                                     view! {
-                                        <Organisations/>
+                                        <Layout show_side_nav=false>
+                                            <Organisations/>
+                                        </Layout>
                                     }
                                 }
                             />
