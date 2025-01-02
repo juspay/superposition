@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use derive_more::{Deref, DerefMut, Into};
+use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::{deserialize::FromSqlRow, expression::AsExpression, sql_types::Json};
 use serde::{Deserialize, Deserializer, Serialize};
@@ -71,7 +71,7 @@ impl IntoIterator for Overrides {
 impl_try_from_map!(Cac, Overrides, Overrides::validate_data);
 impl_try_from_map!(Exp, Overrides, Overrides::validate_data);
 
-#[derive(Deserialize, Serialize, Clone, Deref, Debug, PartialEq, Into)]
+#[derive(Deserialize, Serialize, Clone, Deref, Debug, PartialEq, Into, AsRef)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
