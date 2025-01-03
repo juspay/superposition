@@ -76,6 +76,8 @@ async fn create(
         function_name: create_req.function_name.clone(),
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
+        description: create_req.description,
+        change_reason: create_req.change_reason,
     };
 
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -151,6 +153,11 @@ async fn update(
         validate_jsonschema(&state.meta_schema, &schema_value)?;
         dimension_row.schema = schema_value;
     }
+
+    dimension_row.change_reason = update_req.change_reason;
+    dimension_row.description = update_req
+        .description
+        .unwrap_or_else(|| dimension_row.description);
 
     dimension_row.function_name = match update_req.function_name {
         Some(FunctionNameEnum::Name(func_name)) => Some(func_name),

@@ -137,6 +137,8 @@ async fn create(
     use superposition_types::database::schema::experiments::dsl::experiments;
     let mut variants = req.variants.to_vec();
     let DbConnection(mut conn) = db_conn;
+    let description = req.description.clone();
+    let change_reason = req.change_reason.clone();
 
     // Checking if experiment has exactly 1 control variant, and
     // atleast 1 experimental variant
@@ -211,6 +213,8 @@ async fn create(
                 })?
                 .clone(),
             r#override: json!(variant.overrides),
+            description: Some(description.clone()),
+            change_reason: change_reason.clone(),
         };
         cac_operations.push(ContextAction::PUT(payload));
     }
@@ -280,6 +284,8 @@ async fn create(
         variants: Variants::new(variants),
         last_modified_by: user.get_email(),
         chosen_variant: None,
+        description,
+        change_reason,
     };
 
     let mut inserted_experiments = diesel::insert_into(experiments)
@@ -365,12 +371,18 @@ pub async fn conclude(
 ) -> superposition::Result<(Experiment, Option<String>)> {
     use superposition_types::database::schema::experiments::dsl;
 
+    let change_reason = req.change_reason.clone();
+
     let winner_variant_id: String = req.chosen_variant.to_owned();
 
     let experiment: Experiment = dsl::experiments
         .find(experiment_id)
         .get_result::<Experiment>(&mut conn)?;
 
+    let description = match req.description.clone() {
+        Some(desc) => desc,
+        None => experiment.description.clone(),
+    };
     if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
         return Err(bad_argument!(
             "experiment with id {} is already concluded",
@@ -393,6 +405,8 @@ pub async fn conclude(
             if !experiment_context.is_empty() {
                 let context_move_req = ContextMoveReq {
                     context: experiment_context.clone(),
+                    description: description.clone(),
+                    change_reason: change_reason.clone(),
                 };
                 operations.push(ContextAction::MOVE((context_id, context_move_req)));
             } else {
@@ -669,6 +683,8 @@ async fn ramp(
 ) -> superposition::Result<Json<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
+    let description = req.description.clone();
+    let change_reason = req.change_reason.clone();
 
     let experiment: Experiment = experiments::experiments
         .find(exp_id)
@@ -699,6 +715,8 @@ async fn ramp(
             experiments::last_modified.eq(Utc::now()),
             experiments::last_modified_by.eq(user.get_email()),
             experiments::status.eq(ExperimentStatusType::INPROGRESS),
+            experiments::description.eq(description),
+            experiments::change_reason.eq(change_reason),
         ))
         .get_result(&mut conn)?;
 
@@ -744,6 +762,8 @@ async fn update_overrides(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let experiment_id = params.into_inner();
+    let description = req.description.clone();
+    let change_reason = req.change_reason.clone();
 
     let payload = req.into_inner();
     let variants = payload.variants;
@@ -881,6 +901,8 @@ async fn update_overrides(
                 })?
                 .clone(),
             r#override: json!(variant.overrides),
+            description: description.clone(),
+            change_reason: change_reason.clone(),
         };
         cac_operations.push(ContextAction::PUT(payload));
     }

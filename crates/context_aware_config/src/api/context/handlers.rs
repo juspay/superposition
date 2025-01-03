@@ -198,6 +198,15 @@ fn create_ctx_from_put_req(
     tenant_config: &TenantConfig,
 ) -> superposition::Result<Context> {
     let ctx_condition = req.context.to_owned().into_inner();
+    let description = if req.description.is_none() {
+        let ctx_condition_value = json!(ctx_condition);
+        ensure_description(ctx_condition_value, conn)?
+    } else {
+        req.description
+            .clone()
+            .ok_or_else(|| bad_argument!("Description should not be empty"))?
+    };
+    let change_reason = req.change_reason.clone();
     let condition_val = Value::Object(ctx_condition.clone().into());
     let r_override = req.r#override.clone().into_inner();
     let ctx_override = Value::Object(r_override.clone().into());
@@ -228,6 +237,8 @@ fn create_ctx_from_put_req(
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
         weight,
+        description: description,
+        change_reason,
     })
 }
 
@@ -297,6 +308,8 @@ fn db_update_override(
             dsl::override_id.eq(ctx.override_id),
             dsl::last_modified_at.eq(Utc::now().naive_utc()),
             dsl::last_modified_by.eq(user.get_email()),
+            dsl::description.eq(ctx.description),
+            dsl::change_reason.eq(ctx.change_reason),
         ))
         .get_result::<Context>(conn)?;
     Ok(get_put_resp(update_resp))
@@ -307,6 +320,8 @@ fn get_put_resp(ctx: Context) -> PutResp {
         context_id: ctx.id,
         override_id: ctx.override_id,
         weight: ctx.weight,
+        description: ctx.description,
+        change_reason: ctx.change_reason,
     }
 }
 
@@ -320,7 +335,6 @@ pub fn put(
 ) -> superposition::Result<PutResp> {
     use contexts::dsl::contexts;
     let new_ctx = create_ctx_from_put_req(req, conn, user, tenant_config)?;
-
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
     }
@@ -345,6 +359,33 @@ pub fn put(
     }
 }
 
+fn ensure_description(
+    context: Value,
+    transaction_conn: &mut diesel::PgConnection,
+) -> Result<String, superposition::AppError> {
+    use superposition_types::database::schema::contexts::dsl::{
+        contexts as contexts_table, id as context_id,
+    };
+
+    let context_id_value = hash(&context);
+
+    // Perform the database query
+    let existing_context = contexts_table
+        .filter(context_id.eq(context_id_value))
+        .first::<Context>(transaction_conn);
+
+    match existing_context {
+        Ok(ctx) => Ok(ctx.description), // If the context is found, return the description
+        Err(diesel::result::Error::NotFound) => Err(superposition::AppError::NotFound(
+            "Description not found in the existing context".to_string(),
+        )),
+        Err(e) => {
+            log::error!("Database error while fetching context: {:?}", e);
+            Err(superposition::AppError::DbError(e)) // Use the `DbError` variant for other Diesel-related errors
+        }
+    }
+}
+
 #[put("")]
 async fn put_handler(
     state: Data<AppState>,
@@ -356,18 +397,43 @@ async fn put_handler(
     tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
+
     let (put_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let put_response =
-                put(req, transaction_conn, true, &user, &tenant_config, false).map_err(
-                    |err: superposition::AppError| {
-                        log::info!("context put failed with error: {:?}", err);
-                        err
-                    },
-                )?;
-            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            let mut req_mut = req.into_inner();
+
+            // Use the helper function to ensure the description
+            if req_mut.description.is_none() {
+                req_mut.description = Some(ensure_description(
+                    Value::Object(req_mut.context.clone().into_inner().into()),
+                    transaction_conn,
+                )?);
+            }
+            let put_response = put(
+                Json(req_mut.clone()),
+                transaction_conn,
+                true,
+                &user,
+                &tenant_config,
+                false,
+            )
+            .map_err(|err: superposition::AppError| {
+                log::info!("context put failed with error: {:?}", err);
+                err
+            })?;
+            let description = req_mut.description.unwrap_or_default();
+            let change_reason = req_mut.change_reason;
+
+            let version_id = add_config_version(
+                &state,
+                tags,
+                transaction_conn,
+                description,
+                change_reason,
+            )?;
             Ok((put_response, version_id))
         })?;
+
     let mut http_resp = HttpResponse::Ok();
 
     http_resp.insert_header((
@@ -396,14 +462,32 @@ async fn update_override_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let (override_resp, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let override_resp =
-                put(req, transaction_conn, true, &user, &tenant_config, true).map_err(
-                    |err: superposition::AppError| {
-                        log::info!("context put failed with error: {:?}", err);
-                        err
-                    },
-                )?;
-            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            let mut req_mut = req.into_inner();
+            if req_mut.description.is_none() {
+                req_mut.description = Some(ensure_description(
+                    Value::Object(req_mut.context.clone().into_inner().into()),
+                    transaction_conn,
+                )?);
+            }
+            let override_resp = put(
+                Json(req_mut.clone()),
+                transaction_conn,
+                true,
+                &user,
+                &tenant_config,
+                true,
+            )
+            .map_err(|err: superposition::AppError| {
+                log::info!("context put failed with error: {:?}", err);
+                err
+            })?;
+            let version_id = add_config_version(
+                &state,
+                tags,
+                transaction_conn,
+                req_mut.description.unwrap().clone(),
+                req_mut.change_reason.clone(),
+            )?;
             Ok((override_resp, version_id))
         })?;
     let mut http_resp = HttpResponse::Ok();
@@ -431,6 +515,17 @@ fn r#move(
 ) -> superposition::Result<PutResp> {
     use contexts::dsl;
     let req = req.into_inner();
+
+    let ctx_condition = req.context.to_owned().into_inner();
+    let ctx_condition_value = Value::Object(ctx_condition.clone().into());
+    let description = if req.description.is_none() {
+        ensure_description(ctx_condition_value.clone(), conn)?
+    } else {
+        req.description
+            .ok_or_else(|| bad_argument!("Description should not be empty"))?
+    };
+
+    let change_reason = req.change_reason.clone();
     let ctx_condition = req.context.to_owned().into_inner();
     let ctx_condition_value = Value::Object(ctx_condition.clone().into());
     let new_ctx_id = hash(&ctx_condition_value);
@@ -471,6 +566,8 @@ fn r#move(
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
         weight,
+        description: description,
+        change_reason,
     };
 
     let handle_unique_violation =
@@ -534,7 +631,14 @@ async fn move_handler(
                 log::info!("move api failed with error: {:?}", err);
                 err
             })?;
-            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            let version_id = add_config_version(
+                &state,
+                tags,
+                transaction_conn,
+                move_response.description.clone(),
+                move_response.change_reason.clone(),
+            )?;
+
             Ok((move_response, version_id))
         })?;
     let mut http_resp = HttpResponse::Ok();
@@ -709,12 +813,26 @@ async fn delete_context(
     #[cfg(feature = "high-performance-mode")] tenant: Tenant,
     mut db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {
+    use superposition_types::database::schema::contexts::dsl::{
+        contexts as contexts_table, id as context_id,
+    };
     let ctx_id = path.into_inner();
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let version_id =
         db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            delete_context_api(ctx_id, user, transaction_conn)?;
-            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            let context = contexts_table
+                .filter(context_id.eq(ctx_id.clone()))
+                .first::<Context>(transaction_conn)?;
+            delete_context_api(ctx_id.clone(), user.clone(), transaction_conn)?;
+            let description = context.description;
+            let change_reason = format!("Deleted context by {}", user.username);
+            let version_id = add_config_version(
+                &state,
+                tags,
+                transaction_conn,
+                description,
+                change_reason,
+            )?;
             Ok(version_id)
         })?;
     cfg_if::cfg_if! {
@@ -743,6 +861,9 @@ async fn bulk_operations(
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
     let DbConnection(mut conn) = db_conn;
+    let mut all_descriptions = Vec::new();
+    let mut all_change_reasons = Vec::new();
+
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let (response, version_id) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -751,7 +872,7 @@ async fn bulk_operations(
                 match action {
                     ContextAction::Put(put_req) => {
                         let put_resp = put(
-                            Json(put_req),
+                            Json(put_req.clone()),
                             transaction_conn,
                             true,
                             &user,
@@ -765,12 +886,39 @@ async fn bulk_operations(
                             );
                             err
                         })?;
+
+                        let ctx_condition = put_req.context.to_owned().into_inner();
+                        let ctx_condition_value =
+                            Value::Object(ctx_condition.clone().into());
+
+                        let description = if put_req.description.is_none() {
+                            ensure_description(
+                                ctx_condition_value.clone(),
+                                transaction_conn,
+                            )?
+                        } else {
+                            put_req
+                                .description
+                                .expect("Description should not be empty")
+                        };
+                        all_descriptions.push(description);
+                        all_change_reasons.push(put_req.change_reason.clone());
                         response.push(ContextBulkResponse::Put(put_resp));
                     }
                     ContextAction::Delete(ctx_id) => {
+                        let context: Context = contexts
+                            .filter(id.eq(&ctx_id))
+                            .first::<Context>(transaction_conn)?;
+
                         let deleted_row = delete(contexts.filter(id.eq(&ctx_id)))
                             .execute(transaction_conn);
-                        let email: String = user.get_email();
+                        let description = context.description;
+
+                        let email: String = user.clone().get_email();
+                        let change_reason =
+                            format!("Context deleted by {}", email.clone());
+                        all_descriptions.push(description.clone());
+                        all_change_reasons.push(change_reason.clone());
                         match deleted_row {
                             // Any kind of error would rollback the tranction but explicitly returning rollback tranction allows you to rollback from any point in transaction.
                             Ok(0) => {
@@ -807,12 +955,25 @@ async fn bulk_operations(
                             );
                             err
                         })?;
+                        all_descriptions.push(move_context_resp.description.clone());
+                        all_change_reasons.push(move_context_resp.change_reason.clone());
+
                         response.push(ContextBulkResponse::Move(move_context_resp));
                     }
                 }
             }
 
-            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            let combined_description = all_descriptions.join(",");
+
+            let combined_change_reasons = all_change_reasons.join(",");
+
+            let version_id = add_config_version(
+                &state,
+                tags,
+                transaction_conn,
+                combined_description,
+                combined_change_reasons,
+            )?;
             Ok((response, version_id))
         })?;
     let mut http_resp = HttpResponse::Ok();
@@ -835,20 +996,25 @@ async fn weight_recompute(
     #[cfg(feature = "high-performance-mode")] tenant: Tenant,
     user: User,
 ) -> superposition::Result<HttpResponse> {
-    use superposition_types::database::schema::contexts::dsl::*;
+    use superposition_types::database::schema::contexts::dsl::{
+        contexts, last_modified_at, last_modified_by, weight,
+    };
     let DbConnection(mut conn) = db_conn;
 
+    // Fetch all contexts from the database
     let result: Vec<Context> = contexts.load(&mut conn).map_err(|err| {
-        log::error!("failed to fetch contexts with error: {}", err);
+        log::error!("Failed to fetch contexts with error: {}", err);
         unexpected_error!("Something went wrong")
     })?;
 
+    // Get dimension data and map for weight calculation
     let dimension_data = get_dimension_data(&mut conn)?;
     let dimension_data_map = get_dimension_data_map(&dimension_data)?;
     let mut response: Vec<WeightRecomputeResponse> = vec![];
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    let contexts_new_weight: Vec<(BigDecimal, String)> = result
+    // Recompute weights and add descriptions
+    let contexts_new_weight: Vec<(BigDecimal, String, String, String)> = result
         .clone()
         .into_iter()
         .map(|context| {
@@ -864,8 +1030,15 @@ async fn weight_recompute(
                         condition: context.value.clone(),
                         old_weight: context.weight.clone(),
                         new_weight: val.clone(),
+                        description: context.description.clone(),
+                        change_reason: context.change_reason.clone(),
                     });
-                    Ok((val, context.id.clone()))
+                    Ok((
+                        val,
+                        context.id.clone(),
+                        context.description.clone(),
+                        context.change_reason.clone(),
+                    ))
                 }
                 Err(e) => {
                     log::error!("failed to calculate context weight: {}", e);
@@ -873,26 +1046,35 @@ async fn weight_recompute(
                 }
             }
         })
-        .collect::<superposition::Result<Vec<(BigDecimal, String)>>>()?;
+        .collect::<superposition::Result<Vec<(BigDecimal, String, String, String)>>>()?;
 
+    // Update database and add config version
     let last_modified_time = Utc::now().naive_utc();
     let config_version_id =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            for (context_weight, context_id) in contexts_new_weight {
+            for (context_weight, context_id, _description, _change_reason) in contexts_new_weight.clone() {
                 diesel::update(contexts.filter(id.eq(context_id)))
-                    .set((weight.eq(context_weight), last_modified_at.eq(last_modified_time.clone()), last_modified_by.eq(user.get_email())))
-                    .execute(transaction_conn).map_err(|err| {
+                    .set((
+                        weight.eq(context_weight),
+                        last_modified_at.eq(last_modified_time.clone()),
+                        last_modified_by.eq(user.get_email()),
+                    ))
+                    .execute(transaction_conn)
+                    .map_err(|err| {
                         log::error!(
                             "Failed to execute query while recomputing weight, error: {err}"
                         );
                         db_error!(err)
                     })?;
             }
-            let version_id = add_config_version(&state, tags, transaction_conn)?;
+            let description = "Recomputed weight".to_string(); 
+            let change_reason = "Recomputed weight".to_string();
+            let version_id = add_config_version(&state, tags, transaction_conn, description, change_reason)?;
             Ok(version_id)
         })?;
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(config_version_id, state, tenant, &mut conn).await?;
+
     let mut http_resp = HttpResponse::Ok();
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),

@@ -22,6 +22,7 @@ pub fn function_editor<NF>(
     #[prop(default = String::from(TEMPLATE_FN))] function: String,
     #[prop(default = String::new())] runtime_version: String,
     #[prop(default = String::new())] description: String,
+    #[prop(default = String::new())] change_reason: String,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -33,6 +34,7 @@ where
     let (runtime_version, set_runtime_version) = create_signal(runtime_version);
     let (error_message, set_error_message) = create_signal("".to_string());
     let (description, set_description) = create_signal(description);
+    let (change_reason, set_change_reason) = create_signal(change_reason);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     if !edit {
         set_runtime_version.set("1.0.0".to_string())
@@ -47,6 +49,7 @@ where
         let f_function = function.get();
         let f_runtime_version = runtime_version.get();
         let f_description = description.get();
+        let f_change_reason = change_reason.get();
         let handle_submit_clone = handle_submit.clone();
 
         logging::log!("Function Name in editor: {:?}", function_name);
@@ -59,6 +62,7 @@ where
                         f_function,
                         f_runtime_version,
                         f_description,
+                        f_change_reason,
                         tenant,
                     )
                     .await
@@ -68,6 +72,7 @@ where
                         f_function,
                         f_runtime_version,
                         f_description,
+                        f_change_reason,
                         tenant,
                     )
                     .await
@@ -157,6 +162,26 @@ where
                             >
 
                                 {description.get()}
+                            </textarea>
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Change Reason</span>
+                            </label>
+                            <textarea
+                                type="text"
+                                class="input input-bordered shadow-md"
+                                name="change_reason"
+                                id="change_reason"
+                                placeholder="explain function"
+                                on:change=move |ev| {
+                                    let value = event_target_value(&ev);
+                                    logging::log!("{:?}", value);
+                                    set_change_reason.set(value);
+                                }
+                            >
+
+                                {change_reason.get()}
                             </textarea>
                         </div>
 

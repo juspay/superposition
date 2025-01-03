@@ -40,7 +40,7 @@
             }
           ],
           "request": {
-            "method": "PUT",
+            "method": "POST",
             "header": [
               {
                 "key": "Authorization",
@@ -65,16 +65,15 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
+              "raw": "{\"key\":\"key.\",\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
             },
             "url": {
-              "raw": "{{host}}/default-config/key.",
+              "raw": "{{host}}/default-config",
               "host": [
                 "{{host}}"
               ],
               "path": [
-                "default-config",
-                "key."
+                "default-config"
               ]
             }
           },
@@ -97,7 +96,7 @@
             }
           ],
           "request": {
-            "method": "PUT",
+            "method": "POST",
             "header": [
               {
                 "key": "Authorization",
@@ -122,16 +121,15 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
+              "raw": "{\"key\":\"key!\",\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
             },
             "url": {
-              "raw": "{{host}}/default-config/key!",
+              "raw": "{{host}}/default-config",
               "host": [
                 "{{host}}"
               ],
               "path": [
-                "default-config",
-                "key!"
+                "default-config"
               ]
             }
           },
@@ -161,22 +159,62 @@
                   "            console.log(\"Failed to fetch config\");",
                   "            throw error;",
                   "        }",
-                  "",
                   "        const resp_obj = response.json();",
                   "        const default_configs = resp_obj.default_configs;",
-                  "",
+                  "        ",
+                  "        // Original checks for key-value",
                   "        console.log(`Checking if key=${key} with value=${value} in default_configs`);",
+                  "        pm.expect(default_configs).to.have.property(key);",
                   "        pm.expect(default_configs[key]).to.be.eq(value);",
                   "    });",
                   "}",
                   "",
+                  "// Original test cases",
                   "pm.test(\"201 check\", function () {",
                   "    pm.response.to.have.status(200);",
-                  "})",
+                  "});",
                   "",
                   "pm.test(\"Check if key added to default config\", function () {",
                   "    const key = \"key1\", value = \"value1\";",
                   "    getConfigAndTest(key, value);",
+                  "});",
+                  "",
+                  "// New test case for description and comment fields",
+                  "pm.test(\"Check if description and comment fields exist\", function () {",
+                  "    const getRequest = {",
+                  "        url: `${host}/config`,",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-tenant': 'test',",
+                  "        }",
+                  "    };",
+                  "",
+                  "    pm.sendRequest(getRequest, (error, response) => {",
+                  "        if(error) {",
+                  "            console.log(\"Failed to fetch config\");",
+                  "            throw error;",
+                  "        }",
+                  "        const resp_obj = response.json();",
+                  "        console.log(\"Response:\", JSON.stringify(resp_obj, null, 2));",
+                  "        ",
+                  "        // Verify the structure of the response",
+                  "        pm.expect(resp_obj).to.have.property('default_configs');",
+                  "        const configItem = resp_obj.default_configs.key1;",
+                  "        ",
+                  "        // If the config is returned as an object",
+                  "        if (typeof configItem === 'object') {",
+                  "            pm.expect(configItem).to.have.property('value');",
+                  "            pm.expect(configItem).to.have.property('description');",
+                  "            pm.expect(configItem).to.have.property('change_reason');",
+                  "        }",
+                  "        // If it's just the value directly",
+                  "        else {",
+                  "            // The original format is maintained",
+                  "            pm.expect(resp_obj.default_configs).to.have.property('description');",
+                  "            pm.expect(resp_obj.default_configs).to.have.property('change_reason');",
+                  "        }",
+                  "    });",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -184,7 +222,7 @@
             }
           ],
           "request": {
-            "method": "PUT",
+            "method": "POST",
             "header": [
               {
                 "key": "Authorization",
@@ -209,16 +247,15 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
+              "raw": "{\"key\":\"key1\",\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"},\"description\":\"description\",\"change_reason\":\"change_reason\"}"
             },
             "url": {
-              "raw": "{{host}}/default-config/key1",
+              "raw": "{{host}}/default-config",
               "host": [
                 "{{host}}"
               ],
               "path": [
-                "default-config",
-                "key1"
+                "default-config"
               ]
             }
           },
@@ -235,20 +272,23 @@
                   "",
                   "function add_default_config() {",
                   "    const options = {",
-                  "        'method': 'PUT',",
-                  "        'url': `${host}/default-config/key2`,",
+                  "        'method': 'POST',",
+                  "        'url': `${host}/default-config`,",
                   "        'header': {",
                   "            'x-tenant': 'test',",
                   "            'Content-Type': 'application/json'",
                   "        },",
                   "        \"body\": {",
                   "            \"mode\": \"raw\",",
-                  "            \"raw\": JSON.stringify({",
+                  "            \"raw\": JSON.stringify({ ",
+                  "                \"key\": \"key2\",",
                   "                \"value\": \"value1\",",
                   "                \"schema\": {",
                   "                    \"type\": \"string\",",
                   "                    \"pattern\": \".*\"",
-                  "                }",
+                  "                }, ",
+                  "                \"description\": \"description\",",
+                  "                \"change_reason\": \"change_reason\"",
                   "            })",
                   "        }",
                   "    };",
@@ -426,8 +466,10 @@
                   "                \"position\": 0,",
                   "                \"schema\": {",
                   "                    \"type\": \"string\",",
-                  "                    \"pattern\": \".*\"",
-                  "                }",
+                  "                    \"pattern\": \"^[a-z0-9].*$\"",
+                  "                }, ",
+                  "                \"description\": \"change_reason\",",
+                  "                \"change_reason\": \"change_reason\"",
                   "            })",
                   "        }",
                   "    };",
@@ -486,7 +528,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"dimension\":\"clientId\",\"position\":1,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
+              "raw": "{\"dimension\":\"clientId\",\"position\":1,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"},\"description\":\"description\",\"change_reason\":\"change_reason\"}"
             },
             "url": {
               "raw": "{{host}}/dimension",
@@ -581,7 +623,9 @@
                   "                \"schema\": {",
                   "                    \"type\": \"string\",",
                   "                    \"pattern\": \".*\"",
-                  "                }",
+                  "                }, ",
+                  "                \"description\": \"description\",",
+                  "                \"change_reason\": \"change_reason\"",
                   "            })",
                   "        }",
                   "    };",
@@ -785,7 +829,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"override\":{\"key1\":\"value2\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]}}"
+              "raw": "{\"override\":{\"key1\":\"value2\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]},\"description\":\"description\",\"change_reason\":\"change_reason\"}"
             },
             "url": {
               "raw": "{{host}}/context",
@@ -915,7 +959,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]}}"
+              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]},\"description\":\"description\",\"change_reason\":\"change_reason\"}"
             },
             "url": {
               "raw": "{{host}}/context",
@@ -1050,7 +1094,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"tamatar\"]}}"
+              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"tamatar\"]},\"description\":\"description\",\"change_reason\":\"change_reason\"}"
             },
             "url": {
               "raw": "{{host}}/context/move/{{context_id}}",
@@ -1101,6 +1145,8 @@
                   "    delete response.created_by;",
                   "    delete response.last_modified_at;",
                   "    delete response.last_modified_by;",
+                  "    delete response.description;",
+                  "    delete response.change_reason;",
                   "",
                   "    pm.expect(JSON.stringify(response)).to.be.eq(JSON.stringify(expected_context));",
                   "});",
@@ -1213,7 +1259,9 @@
                   "                \"schema\": {",
                   "                    \"type\": \"string\",",
                   "                    \"pattern\": \"^[a-z0-9].*$\"",
-                  "                }",
+                  "                }, ",
+                  "                \"description\": \"description\",           ",
+                  "                \"change_reason\": \"change_reason\"",
                   "            })",
                   "        }",
                   "    };",
@@ -1317,6 +1365,8 @@
                 "exec": [
                   "const host = pm.variables.get(\"host\");",
                   "const context_id = pm.environment.get(\"context_id\");",
+                  "",
+                  "console.log(`context id is thiss : ${context_id}`);",
                   "",
                   "pm.test(\"204 check\", function() {",
                   "    pm.response.to.have.status(204);",
@@ -1443,6 +1493,8 @@
                   "                \"type\": \"string\"",
                   "            },",
                   "            \"created_by\": \"user@superposition.io\",",
+                  "            \"description\": \"\",",
+                  "            \"change_reason\": \"\"",
                   "        },",
                   "        {",
                   "            \"type_name\": \"Enum\",",
@@ -1451,6 +1503,8 @@
                   "                \"type\": \"string\"",
                   "            },",
                   "            \"created_by\": \"user@superposition.io\",",
+                  "            \"description\": \"\",",
+                  "            \"change_reason\": \"\"",
                   "        },",
                   "        {",
                   "            \"type_name\": \"Boolean\",",
@@ -1458,6 +1512,8 @@
                   "                \"type\": \"boolean\"",
                   "            },",
                   "            \"created_by\": \"user@superposition.io\",",
+                  "            \"description\": \"\",",
+                  "            \"change_reason\": \"\"",
                   "        },",
                   "        {",
                   "            \"type_name\": \"Decimal\",",
@@ -1465,6 +1521,8 @@
                   "                \"type\": \"number\"",
                   "            },",
                   "            \"created_by\": \"user@superposition.io\",",
+                  "            \"description\": \"\",",
+                  "            \"change_reason\": \"\"",
                   "        },",
                   "        {",
                   "            \"type_name\": \"Number\",",
@@ -1472,6 +1530,8 @@
                   "                \"type\": \"integer\"",
                   "            },",
                   "            \"created_by\": \"user@superposition.io\",",
+                  "            \"description\": \"\",",
+                  "            \"change_reason\": \"\"",
                   "        }",
                   "    ]))",
                   "});",
@@ -1620,7 +1680,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"type_schema\":{\"type\":\"number\"},\"type_name\":\"Integer\"}"
+              "raw": "{\"type_schema\":{\"type\":\"number\"},\"type_name\":\"Integer\",\"description\":\"\",\"change_reason\":\"\"}"
             },
             "url": {
               "raw": "{{host}}/types",
@@ -1778,7 +1838,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"type_schema\":{\"type\":\"integer\"},\"type_name\":\"Integer\"}"
+              "raw": "{\"type_schema\":{\"type\":\"integer\"},\"type_name\":\"Integer\",\"description\":\"\",\"change_reason\":\"\"}"
             },
             "url": {
               "raw": "{{host}}/types/{{type_name}}",

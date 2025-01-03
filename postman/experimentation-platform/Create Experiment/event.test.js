@@ -141,7 +141,9 @@ pm.test("Test created contexts", function() {
                 "pmTestKey1": "value1-control",
                 "pmTestKey2": "value1-control"
             },
-            "variant_type": "CONTROL"
+            "variant_type": "CONTROL", 
+            "description": "description",
+            "change_reason": "change_reason"
         },
         {
             "id": `${experiment_id}-test1`,
@@ -149,7 +151,9 @@ pm.test("Test created contexts", function() {
                 "pmTestKey1": "value2-test",
                 "pmTestKey2": "value2-test"
             },
-            "variant_type": "EXPERIMENTAL"
+            "variant_type": "EXPERIMENTAL",
+            "description": "description",
+            "change_reason": "change_reason"
         }
     ];
     const expected_variant_contexts = [
@@ -181,7 +185,9 @@ pm.test("Test created contexts", function() {
                             }
                         ]
                     }
-                ]
+                ], 
+                "description": "description",
+                "change_reason": "change_reason"
             }
         },
         {
@@ -212,7 +218,9 @@ pm.test("Test created contexts", function() {
                             }
                         ]
                     }
-                ]
+                ], 
+                "description": "description",
+                "change_reason": "change_reason"
             }
         }
     ];
