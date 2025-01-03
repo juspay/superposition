@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "ES2015",
+    "outDir": "./dist",
+    "declaration": true,
+    "esModuleInterop": true
+  },
+  "exclude": ["node_modules"],
+  "include": ["./client.ts"]
+}
