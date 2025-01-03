@@ -24,7 +24,9 @@ function create_default_config_keys() {
                     "schema": {
                         "type": "string",
                         "pattern": ".*"
-                    }
+                    }, 
+                    "description": "description",
+                    "change_reason": "change_reason"
                 })
             }
         };
@@ -55,7 +57,9 @@ function create_dimensions(dimension) {
                 "raw": JSON.stringify({
                     "dimension": dimension.name,
                     "position": dimension.position,
-                    "schema": dimension.schema
+                    "schema": dimension.schema, 
+                    "description": dimension.description,
+                    "change_reason": dimension.change_reason
                 })
             }
         };
@@ -73,8 +77,8 @@ function create_dimensions(dimension) {
 create_default_config_keys();
 
 const dimensions = [
-    {name: "os", position: 1, schema: { type: "string", enum: ["android", "ios", "web"] }},
-    {name: "client", position: 2, schema: { type: "string", pattern: ".*" }}
+    {name: "os", position: 1, schema: { type: "string", enum: ["android", "ios", "web"] } , description: "description", change_reason: "change_reason"},
+    {name: "client", position: 2, schema: { type: "string", pattern: ".*" }, description: "description", change_reason: "change_reason"}
 ];
 create_dimensions(dimensions[0]);
 setTimeout(() => {
