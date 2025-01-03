@@ -68,7 +68,9 @@
             "pmTestKey2": "value2-test"
           }
         }
-      ]
+      ], 
+      "description": "description",
+      "change_reason": "change_reason"
     }
   },
   "url": {

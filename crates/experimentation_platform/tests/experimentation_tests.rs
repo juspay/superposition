@@ -13,6 +13,7 @@ use superposition_types::{
 enum Dimensions {
     Os(String),
     Client(String),
+    #[allow(dead_code)]
     VariantIds(String),
 }
 
@@ -72,6 +73,8 @@ fn experiment_gen(
         context: context.clone(),
         variants: Variants::new(variants.clone()),
         chosen_variant: None,
+        description: "".to_string(),
+        change_reason: "".to_string(),
     }
 }
 

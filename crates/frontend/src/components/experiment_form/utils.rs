@@ -15,11 +15,15 @@ pub async fn create_experiment(
     variants: Vec<VariantFormT>,
     name: String,
     tenant: String,
+    description: String,
+    change_reason: String,
 ) -> Result<serde_json::Value, String> {
     let payload = ExperimentCreateRequest {
         name,
         variants: FromIterator::from_iter(variants),
         context: conditions.to_context_json(),
+        description,
+        change_reason,
     };
 
     let _ = validate_experiment(&payload)?;
