@@ -16,7 +16,9 @@ function add_dimension() {
                 "schema": {
                     "type": "string",
                     "pattern": ".*"
-                }
+                }, 
+                "description": "description",
+                "change_reason": "change_reason"
             })
         }
     };

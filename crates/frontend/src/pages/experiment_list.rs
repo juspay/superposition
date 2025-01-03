@@ -62,7 +62,7 @@ pub fn experiment_list() -> impl IntoView {
             )
         },
         |(current_tenant, filters, pagination_filters)| async move {
-            let fetch_all_filters = ListFilters {
+            let fetch_all_filters = PaginationParams {
                 page: None,
                 count: None,
                 all: Some(true),

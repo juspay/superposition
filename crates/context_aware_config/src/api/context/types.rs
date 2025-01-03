@@ -9,12 +9,16 @@ use superposition_types::{
 pub struct PutReq {
     pub context: Cac<Condition>,
     pub r#override: Cac<Overrides>,
+    pub description: Option<String>,
+    pub change_reason: String,
 }
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
 #[derive(Deserialize, Clone)]
 pub struct MoveReq {
     pub context: Cac<Condition>,
+    pub description: Option<String>,
+    pub change_reason: String,
 }
 
 #[derive(Deserialize, Clone)]
@@ -27,6 +31,8 @@ pub struct PutResp {
     pub context_id: String,
     pub override_id: String,
     pub weight: BigDecimal,
+    pub description: String,
+    pub change_reason: String,
 }
 
 #[derive(Deserialize)]
@@ -81,6 +87,8 @@ pub struct WeightRecomputeResponse {
     pub condition: Condition,
     pub old_weight: BigDecimal,
     pub new_weight: BigDecimal,
+    pub description: String,
+    pub change_reason: String,
 }
 
 #[cfg(test)]
@@ -100,7 +108,9 @@ mod tests {
             },
             "override": {
                 "foo": "baz"
-            }
+            },
+            "description": "",
+            "change_reason": ""
         });
 
         let action_str = json!({
@@ -122,6 +132,8 @@ mod tests {
         let expected_action = ContextAction::Put(PutReq {
             context: context,
             r#override: override_,
+            description: Some("".to_string()),
+            change_reason: "".to_string(),
         });
 
         let action_deserialized =

@@ -14,6 +14,8 @@ pub struct ExperimentCreateRequest {
     pub name: String,
     pub context: Exp<Condition>,
     pub variants: Vec<Variant>,
+    pub description: String,
+    pub change_reason: String,
 }
 
 #[derive(Serialize)]
@@ -49,6 +51,8 @@ pub struct ExperimentResponse {
     pub variants: Vec<Variant>,
     pub last_modified_by: String,
     pub chosen_variant: Option<String>,
+    pub description: String,
+    pub change_reason: String,
 }
 
 impl From<Experiment> for ExperimentResponse {
@@ -68,6 +72,8 @@ impl From<Experiment> for ExperimentResponse {
             variants: experiment.variants.into_inner(),
             last_modified_by: experiment.last_modified_by,
             chosen_variant: experiment.chosen_variant,
+            description: experiment.description,
+            change_reason: experiment.change_reason,
         }
     }
 }
@@ -77,6 +83,8 @@ impl From<Experiment> for ExperimentResponse {
 #[derive(Deserialize, Debug)]
 pub struct ConcludeExperimentRequest {
     pub chosen_variant: String,
+    pub description: Option<String>,
+    pub change_reason: String,
 }
 
 /********** Context Bulk API Type *************/
@@ -85,6 +93,8 @@ pub struct ConcludeExperimentRequest {
 pub struct ContextPutReq {
     pub context: Map<String, Value>,
     pub r#override: Value,
+    pub description: Option<String>,
+    pub change_reason: String,
 }
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -185,6 +195,8 @@ pub struct ExperimentListFilters {
 #[derive(Deserialize, Debug)]
 pub struct RampRequest {
     pub traffic_percentage: u64,
+    pub description: String,
+    pub change_reason: String,
 }
 
 /********** Update API type ********/
@@ -198,11 +210,15 @@ pub struct VariantUpdateRequest {
 #[derive(Deserialize, Debug)]
 pub struct OverrideKeysUpdateRequest {
     pub variants: Vec<VariantUpdateRequest>,
+    pub description: Option<String>,
+    pub change_reason: String,
 }
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct ContextMoveReq {
     pub context: Map<String, Value>,
+    pub description: String,
+    pub change_reason: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]

@@ -211,6 +211,8 @@ pub fn construct_request_payload(
     overrides: Map<String, Value>,
     conditions: Vec<Condition>,
     dimensions: Vec<DimensionWithMandatory>,
+    description: String,
+    change_reason: String,
 ) -> Value {
     // Construct the override section
     let override_section: Map<String, Value> = overrides;
@@ -221,7 +223,9 @@ pub fn construct_request_payload(
     // Construct the entire request payload
     let request_payload = json!({
         "override": override_section,
-        "context": context_section
+        "context": context_section,
+        "description": description,
+        "change_reason": change_reason
     });
 
     request_payload
@@ -232,10 +236,18 @@ pub async fn create_context(
     overrides: Map<String, Value>,
     conditions: Vec<Condition>,
     dimensions: Vec<DimensionWithMandatory>,
+    description: String,
+    change_reason: String,
 ) -> Result<serde_json::Value, String> {
     let host = get_host();
     let url = format!("{host}/context");
-    let request_payload = construct_request_payload(overrides, conditions, dimensions);
+    let request_payload = construct_request_payload(
+        overrides,
+        conditions,
+        dimensions,
+        description,
+        change_reason,
+    );
     let response = request(
         url,
         reqwest::Method::PUT,
@@ -252,11 +264,18 @@ pub async fn update_context(
     overrides: Map<String, Value>,
     conditions: Vec<Condition>,
     dimensions: Vec<DimensionWithMandatory>,
+    description: String,
+    change_reason: String,
 ) -> Result<serde_json::Value, String> {
     let host = get_host();
     let url = format!("{host}/context/overrides");
-    let request_payload =
-        construct_request_payload(overrides, conditions, dimensions.clone());
+    let request_payload = construct_request_payload(
+        overrides,
+        conditions,
+        dimensions.clone(),
+        description,
+        change_reason,
+    );
     let response = request(
         url,
         reqwest::Method::PUT,

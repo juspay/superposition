@@ -7,9 +7,10 @@ use crate::types::VariantFormT;
 #[derive(Serialize)]
 pub struct ExperimentCreateRequest {
     pub name: String,
-
     pub context: Value,
     pub variants: Vec<Variant>,
+    pub description: String,
+    pub change_reason: String,
 }
 
 #[derive(Serialize, Debug)]
