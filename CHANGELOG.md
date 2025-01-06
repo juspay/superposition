@@ -2,6 +2,23 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.64.0 - 2025-01-06
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.45.0
+- superposition_types bumped to superposition_types-v0.10.0
+- frontend bumped to frontend-v0.19.0
+- service_utils bumped to service_utils-v0.25.0
+- experimentation_platform bumped to experimentation_platform-v0.24.0
+### Global changes
+#### Bug Fixes
+- webhook kms decrypt auth key (#332) - (09ebc29) - Ankit Kumar Mahato
+#### Features
+- position migration update for demo up (#300) - (d2f56db) - PRATIK MISHRA
+- search and sort experiments - (95b87c5) - Datron
+- Replace priority with position (#299) - (61e052a) - PRATIK MISHRA
+
+- - -
+
 ## v0.63.0 - 2024-12-04
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.23.1

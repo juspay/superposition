@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.25.0 - 2025-01-06
+#### Bug Fixes
+- webhook kms decrypt auth key (#332) - (09ebc29) - Ankit Kumar Mahato
+#### Features
+- search and sort experiments - (95b87c5) - Datron
+
+- - -
+
 ## service_utils-v0.24.2 - 2024-12-04
 #### Bug Fixes
 - webhook optional field (#296) - (fe0171f) - Ankit Kumar Mahato

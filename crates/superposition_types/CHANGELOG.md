@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.10.0 - 2025-01-06
+#### Features
+- Replace priority with position (#299) - (61e052a) - PRATIK MISHRA
+- Use dimension[] for dimension params in context/list (#303) - (0eb9086) - Ayush Jain
+- search and sort experiments - (95b87c5) - Datron
+
+- - -
+
 ## superposition_types-v0.9.0 - 2024-12-04
 #### Bug Fixes
 - webhook optional field (#296) - (fe0171f) - Ankit Kumar Mahato

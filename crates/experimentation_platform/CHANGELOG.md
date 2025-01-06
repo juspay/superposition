@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.24.0 - 2025-01-06
+#### Bug Fixes
+- webhook kms decrypt auth key (#332) - (09ebc29) - Ankit Kumar Mahato
+- webhook payload (#302) - (90beb70) - Ankit Kumar Mahato
+#### Features
+- Replace priority with position (#299) - (61e052a) - PRATIK MISHRA
+- search and sort experiments - (95b87c5) - Datron
+
+- - -
+
 ## experimentation_platform-v0.23.1 - 2024-12-04
 #### Bug Fixes
 - disregarding experiments last-modified filter in case of (#295) - (516a2c1) - Shubhranshu Sanjeev

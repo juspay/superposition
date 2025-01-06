@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.45.0 - 2025-01-06
+#### Bug Fixes
+- add unique position contraint as deferred (#330) - (2f507df) - PRATIK MISHRA
+#### Features
+- Replace priority with position (#299) - (61e052a) - PRATIK MISHRA
+- Use dimension[] for dimension params in context/list (#303) - (0eb9086) - Ayush Jain
+- search and sort experiments - (95b87c5) - Datron
+#### Miscellaneous Chores
+- **(deps)** bump cross-spawn in /crates/context_aware_config - (ec36576) - dependabot[bot]
+
+- - -
+
 ## context_aware_config-v0.44.0 - 2024-12-04
 #### Features
 - priority recompute restructure (#279) - (849063d) - PRATIK MISHRA

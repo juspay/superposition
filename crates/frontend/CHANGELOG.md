@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.19.0 - 2025-01-06
+#### Bug Fixes
+- Experiment create config list (#324) - (28e3b7c) - Ayush Jain
+#### Features
+- Replace priority with position (#299) - (61e052a) - PRATIK MISHRA
+- search and sort experiments - (95b87c5) - Datron
+#### Refactoring
+- make default config page's code more clean and use the Input component (#278) - (5b8410e) - Datron
+
+- - -
+
 ## frontend-v0.18.1 - 2024-11-22
 #### Bug Fixes
 - mandatory dimension UI - (eee9165) - Ankit Mahato
