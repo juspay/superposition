@@ -57,7 +57,7 @@ pub struct Client {
     polling_interval: Duration,
     last_modified: Data<RwLock<DateTime<Utc>>>,
     config: Data<RwLock<Config>>,
-    config_cache: Cache<String, Map<String, Value>>,
+    config_cache: Option<Cache<String, Map<String, Value>>>,
 }
 
 fn clone_reqw(reqw: &RequestBuilder) -> Result<RequestBuilder, String> {
@@ -103,24 +103,36 @@ impl Client {
             return Err("Invalid tenant".to_string());
         }
         let config = resp.json::<Config>().await.map_err_to_string()?;
-        let config_cache = Cache::builder()
-            .weigher(|_key, value: &Map<String, Value>| -> u32 {
-                Value::Object(value.to_owned())
-                    .to_string()
-                    .len()
-                    .try_into()
-                    .unwrap_or(u32::MAX)
-            })
-            // max size of cache in mb
-            .max_capacity(
-                cache_max_capacity.map_or(CACHE_MAX_CAPACITY, |v| v * 1024 * 1024),
+
+        let config_cache = if cache_max_capacity == None {
+            None
+        } else {
+            Some(
+                Cache::builder()
+                    .weigher(|_key, value: &Map<String, Value>| -> u32 {
+                        Value::Object(value.to_owned())
+                            .to_string()
+                            .len()
+                            .try_into()
+                            .unwrap_or(u32::MAX)
+                    })
+                    // max size of cache in mb
+                    .max_capacity(
+                        cache_max_capacity
+                            .map_or(CACHE_MAX_CAPACITY, |v| v * 1024 * 1024),
+                    )
+                    // Time to live (TTL): in minutes
+                    .time_to_live(Duration::from_secs(
+                        cache_ttl.map_or(CACHE_TTL, |v| v * 60),
+                    ))
+                    // Time to idle (TTI):  in minutes
+                    .time_to_idle(Duration::from_secs(
+                        cache_tti.map_or(CACHE_TTI, |v| v * 60),
+                    ))
+                    // Create the cache.
+                    .build(),
             )
-            // Time to live (TTL): in minutes
-            .time_to_live(Duration::from_secs(cache_ttl.map_or(CACHE_TTL, |v| v * 60)))
-            // Time to idle (TTI):  in minutes
-            .time_to_idle(Duration::from_secs(cache_tti.map_or(CACHE_TTI, |v| v * 60)))
-            // Create the cache.
-            .build();
+        };
         let client = Client {
             tenant,
             reqw: Data::new(reqw),
@@ -129,7 +141,7 @@ impl Client {
                 last_modified_at.unwrap_or(DateTime::<Utc>::from(UNIX_EPOCH)),
             )),
             config: Data::new(RwLock::new(config)),
-            config_cache,
+            config_cache: config_cache,
         };
         Ok(client)
     }
@@ -161,7 +173,10 @@ impl Client {
         let mut last_modified = self.last_modified.write().await;
         let last_modified_at = get_last_modified(&fetched_config);
         *config = fetched_config.json::<Config>().await.map_err_to_string()?;
-        self.config_cache.invalidate_all();
+        match &self.config_cache {
+            Some(cache) => cache.invalidate_all(),
+            None => (),
+        }
         if let Some(val) = last_modified_at {
             *last_modified = val;
         }
@@ -209,33 +224,51 @@ impl Client {
         filter_keys: Option<Vec<String>>,
         merge_strategy: MergeStrategy,
     ) -> Result<Map<String, Value>, String> {
-        let filter_keys_concat = if let Some(vec) = filter_keys.clone() {
-            BTreeSet::from_iter(vec).iter().join(",")
-        } else {
-            "null".to_string()
-        };
-        let hash_key = json_to_sorted_string(&Value::Object(query_data.clone()))
-            + "?"
-            + &merge_strategy.clone().to_string()
-            + "?"
-            + &filter_keys_concat;
-        if let Some(value) = self.config_cache.get(&hash_key) {
-            Ok(value)
-        } else {
-            let cac = self.config.read().await;
-            let mut config = cac.to_owned();
-            if let Some(keys) = filter_keys {
-                config = config.filter_by_prefix(&HashSet::from_iter(keys));
+        match &self.config_cache {
+            None => {
+                let cac = self.config.read().await;
+                let mut config = cac.to_owned();
+                if let Some(keys) = filter_keys {
+                    config = config.filter_by_prefix(&HashSet::from_iter(keys));
+                }
+                eval::eval_cac(
+                    config.default_configs.to_owned(),
+                    &config.contexts,
+                    &config.overrides,
+                    &query_data,
+                    merge_strategy,
+                )
             }
-            let evaled_cac = eval::eval_cac(
-                config.default_configs.to_owned(),
-                &config.contexts,
-                &config.overrides,
-                &query_data,
-                merge_strategy,
-            )?;
-            self.config_cache.insert(hash_key, evaled_cac.clone());
-            Ok(evaled_cac)
+            Some(cache) => {
+                let filter_keys_concat = if let Some(vec) = filter_keys.clone() {
+                    BTreeSet::from_iter(vec).iter().join(",")
+                } else {
+                    "null".to_string()
+                };
+                let hash_key = json_to_sorted_string(&Value::Object(query_data.clone()))
+                    + "?"
+                    + &merge_strategy.clone().to_string()
+                    + "?"
+                    + &filter_keys_concat;
+                if let Some(value) = cache.get(&hash_key) {
+                    Ok(value)
+                } else {
+                    let cac = self.config.read().await;
+                    let mut config = cac.to_owned();
+                    if let Some(keys) = filter_keys {
+                        config = config.filter_by_prefix(&HashSet::from_iter(keys));
+                    }
+                    let evaled_cac = eval::eval_cac(
+                        config.default_configs.to_owned(),
+                        &config.contexts,
+                        &config.overrides,
+                        &query_data,
+                        merge_strategy,
+                    )?;
+                    cache.insert(hash_key, evaled_cac.clone());
+                    Ok(evaled_cac)
+                }
+            }
         }
     }
 
@@ -249,6 +282,13 @@ impl Client {
             default_configs = configs.filter_default_by_prefix(&HashSet::from_iter(keys));
         }
         Ok(default_configs)
+    }
+
+    pub async fn invalidate_cache(&self) -> () {
+        match &self.config_cache {
+            Some(cache) => cache.invalidate_all(),
+            None => (),
+        }
     }
 }
 
