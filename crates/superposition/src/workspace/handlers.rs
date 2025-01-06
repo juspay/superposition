@@ -7,9 +7,12 @@ use actix_web::{
 };
 use chrono::Utc;
 use diesel::{
-    connection::SimpleConnection, Connection, ExpressionMethods, QueryDsl, RunQueryDsl,
+    connection::SimpleConnection,
+    r2d2::{ConnectionManager, PooledConnection},
+    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
     TextExpressionMethods,
 };
+use leptos::logging::log;
 use regex::Regex;
 use service_utils::service::types::{DbConnection, OrganisationId};
 use superposition_macros::{db_error, unexpected_error, validation_error};
@@ -25,6 +28,33 @@ use superposition_types::{
 use crate::workspace::types::{
     CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceListFilters,
 };
+
+const WORKSPACE_TEMPLATE_PATH: &str = "workspace_template.sql";
+
+fn setup_workspace_schema(
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    workspace_schema_name: &String,
+) -> superposition::Result<()> {
+    let workspace_template =
+        fs::read_to_string(WORKSPACE_TEMPLATE_PATH).map_err(|err| {
+            log::error!("Could not load the workspace template due to {}", err);
+            unexpected_error!(
+                "Could not load the workspace template, please contact an admin"
+            )
+        })?;
+    let workspace_schema_str = workspace_schema_name.as_str();
+    let workspace_template =
+        workspace_template.replace("{replaceme}", workspace_schema_str);
+    conn.batch_execute(&workspace_template).map_err(|err| {
+        log::error!(
+            "Could not create workspace {} due to {}",
+            workspace_schema_str,
+            err
+        );
+        db_error!(err)
+    })?;
+    Ok(())
+}
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
@@ -70,26 +100,7 @@ async fn create_workspace(
                     .values(workspace)
                     .get_results(transaction_conn)?;
 
-            let workspace_template = fs::read_to_string("workspace_template.sql")
-                .map_err(|err| {
-                    log::error!("Could not load the workspace template due to {}", err);
-                    unexpected_error!(
-                        "Could not load the workspace template, please contact an admin"
-                    )
-                })?;
-            let workspace_schema_str = workspace_schema_name.as_str();
-            let workspace_template =
-                workspace_template.replace("{replaceme}", workspace_schema_str);
-            transaction_conn
-                .batch_execute(&workspace_template)
-                .map_err(|err| {
-                    log::error!(
-                        "Could not create workspace {} due to {}",
-                        workspace_schema_str,
-                        err
-                    );
-                    db_error!(err)
-                })?;
+            setup_workspace_schema(transaction_conn, &workspace_schema_name)?;
             Ok(inserted_workspace.remove(0))
         })?;
     Ok(Json(created_workspace))
@@ -107,34 +118,39 @@ async fn update_workspace(
     let workspace_name = workspace_name.into_inner();
     let timestamp = Utc::now().naive_utc();
     let DbConnection(mut conn) = db_conn;
-    let mut updated_workspace = diesel::update(workspaces::table)
-        .filter(workspaces::organisation_id.eq(&org_id.0))
-        .filter(workspaces::workspace_name.eq(workspace_name.clone()))
-        .set((
-            workspaces::workspace_admin_email.eq(request.workspace_admin_email),
-            workspaces::mandatory_dimensions.eq(request.mandatory_dimensions),
-            workspaces::last_modified_by.eq(user.email),
-            workspaces::last_modified_at.eq(timestamp),
-        ))
-        .get_result::<Workspace>(&mut conn)
-        .map_err(|err| {
-            log::error!("failed to update workspace with error: {}", err);
-            db_error!(err)
+    let updated_workspace =
+        conn.transaction::<Workspace, superposition::AppError, _>(|transaction_conn| {
+            let mut updated_workspace = diesel::update(workspaces::table)
+                .filter(workspaces::organisation_id.eq(&org_id.0))
+                .filter(workspaces::workspace_name.eq(workspace_name.clone()))
+                .set((
+                    workspaces::workspace_admin_email.eq(request.workspace_admin_email),
+                    workspaces::mandatory_dimensions.eq(request.mandatory_dimensions),
+                    workspaces::last_modified_by.eq(user.email),
+                    workspaces::last_modified_at.eq(timestamp),
+                ))
+                .get_result::<Workspace>(transaction_conn)
+                .map_err(|err| {
+                    log::error!("failed to update workspace with error: {}", err);
+                    db_error!(err)
+                })?;
+            if let Some(workspace_status) = request.workspace_status {
+                updated_workspace = diesel::update(workspaces::table)
+                    .filter(workspaces::organisation_id.eq(&org_id.0))
+                    .filter(workspaces::workspace_name.eq(workspace_name))
+                    .set((
+                        workspaces::workspace_status.eq(workspace_status),
+                        workspaces::last_modified_at.eq(Utc::now().naive_utc()),
+                    ))
+                    .get_result::<Workspace>(transaction_conn)
+                    .map_err(|err| {
+                        log::error!("failed to update workspace with error: {}", err);
+                        db_error!(err)
+                    })?;
+            }
+
+            Ok(updated_workspace)
         })?;
-    if let Some(workspace_status) = request.workspace_status {
-        updated_workspace = diesel::update(workspaces::table)
-            .filter(workspaces::organisation_id.eq(&org_id.0))
-            .filter(workspaces::workspace_name.eq(workspace_name))
-            .set((
-                workspaces::workspace_status.eq(workspace_status),
-                workspaces::last_modified_at.eq(Utc::now().naive_utc()),
-            ))
-            .get_result::<Workspace>(&mut conn)
-            .map_err(|err| {
-                log::error!("failed to update workspace with error: {}", err);
-                db_error!(err)
-            })?;
-    }
     Ok(Json(updated_workspace))
 }
 

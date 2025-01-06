@@ -42,8 +42,8 @@ use superposition_types::{
 };
 use uuid::Uuid;
 
-use crate::{api::context::PutReq, helpers::generate_cac};
 use crate::{api::context, helpers::DimensionData};
+use crate::{api::context::PutReq, helpers::generate_cac};
 use crate::{
     api::dimension::{get_dimension_data, get_dimension_data_map},
     helpers::calculate_context_weight,
