@@ -7,6 +7,7 @@ use std::{
 };
 
 use actix_web::{error, web::Data, Error, FromRequest, HttpMessage};
+use aws_sdk_kms::Client;
 use derive_more::{Deref, DerefMut};
 use jsonschema::JSONSchema;
 use serde_json::json;
@@ -54,6 +55,7 @@ pub struct AppState {
     #[cfg(feature = "high-performance-mode")]
     pub redis: fred::clients::RedisPool,
     pub http_client: reqwest::Client,
+    pub kms_client: Option<Client>,
 }
 
 impl FromStr for AppEnv {

@@ -295,7 +295,9 @@ async fn create(
             &config_version_id,
             &tenant,
             WebhookEvent::ExperimentCreated,
+            &state.app_env,
             &state.http_client,
+            &state.kms_client,
         )
         .await?;
     }
@@ -338,7 +340,9 @@ async fn conclude_handler(
             &config_version_id,
             &tenant,
             WebhookEvent::ExperimentConcluded,
+            &state.app_env,
             &state.http_client,
+            &state.kms_client,
         )
         .await?;
     }
@@ -711,7 +715,9 @@ async fn ramp(
             &config_version_id,
             &tenant,
             webhook_event,
+            &data.app_env,
             &data.http_client,
+            &data.kms_client,
         )
         .await?;
     }
@@ -948,7 +954,9 @@ async fn update_overrides(
             &config_version_id,
             &tenant,
             WebhookEvent::ExperimentUpdated,
+            &state.app_env,
             &state.http_client,
+            &state.kms_client,
         )
         .await?;
     }

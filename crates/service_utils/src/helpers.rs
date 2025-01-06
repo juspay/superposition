@@ -1,4 +1,7 @@
-use crate::service::types::{AppState, Tenant};
+use crate::{
+    aws::kms,
+    service::types::{AppEnv, AppState, Tenant},
+};
 use actix_web::{error::ErrorInternalServerError, web::Data, Error};
 use anyhow::anyhow;
 use chrono::Utc;
@@ -23,6 +26,7 @@ use superposition_types::{
     },
     Condition,
 };
+use urlencoding::encode;
 
 const CONFIG_TAG_REGEX: &str = "^[a-zA-Z0-9_-]{1,64}$";
 
@@ -381,7 +385,9 @@ pub async fn execute_webhook_call<T>(
     config_version_opt: &Option<String>,
     tenant: &Tenant,
     event: WebhookEvent,
+    app_env: &AppEnv,
     http_client: &reqwest::Client,
+    kms_client: &Option<aws_sdk_kms::Client>,
 ) -> Result<(), AppError>
 where
     T: Serialize,
@@ -411,13 +417,20 @@ where
         .for_each(|(key, value)| header_array.push((key, value)));
 
     if let Some(auth) = &webhook_config.authorization {
-        let auth_token_value: String =
-                get_from_env_unsafe(&auth.value).map_err(|err| {
-                    log::error!("Failed to retrieve authentication token for the webhook with error: {}", err);
-                    AppError::WebhookError(
-                        String::from("Failed to retrieve authentication token for the webhook. Please verify the credentials in TenantConfig.")
-                    )
+        let auth_token_value: String = match app_env {
+            AppEnv::DEV | AppEnv::TEST => {
+                get_from_env_or_default(&auth.value, "1234".into())
+            }
+            _ => {
+                let kms_client = kms_client.clone().ok_or_else(|| {
+                    log::error!("Failed to retrieve kms client: KMS client is None");
+                    AppError::WebhookError(String::from(
+                        "Something went wrong. Please check the logs.",
+                    ))
                 })?;
+                kms::decrypt(kms_client, &auth.value).await
+            }
+        };
         header_array.push((auth.key.clone(), auth_token_value));
     }
 
