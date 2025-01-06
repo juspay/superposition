@@ -31,7 +31,7 @@ pub fn types_page() -> impl IntoView {
     let types_resource = create_blocking_resource(
         move || (tenant_rws.get().0, org_rws.get().0),
         |(t, org_id)| async move {
-            fetch_types(&PaginationParams::default_request(), t, org_id)
+            fetch_types(&PaginationParams::default(), t, org_id)
                 .await
                 .map_or_else(
                     |err| {

@@ -22,7 +22,7 @@ use crate::utils::update_page_direction;
 pub fn workspace() -> impl IntoView {
     let org_id: RwSignal<OrganisationId> =
         use_context::<RwSignal<OrganisationId>>().unwrap();
-    let (filters, set_filters) = create_signal(PaginationParams::default_request());
+    let (filters, set_filters) = create_signal(PaginationParams::default());
     let workspace_resource = create_blocking_resource(
         move || (filters.get(), org_id.get().0),
         |(filters, org_id)| async move {

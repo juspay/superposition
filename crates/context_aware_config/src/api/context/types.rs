@@ -42,6 +42,8 @@ impl From<Context> for PutResp {
             context_id: value.id,
             override_id: value.override_id,
             weight: value.weight,
+            description: value.description,
+            change_reason: value.change_reason,
         }
     }
 }

@@ -126,6 +126,8 @@ pub fn r#move(
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
         weight,
+        description: ctx.description,
+        change_reason: ctx.change_reason,
     };
 
     let handle_unique_violation =

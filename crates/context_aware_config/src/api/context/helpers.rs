@@ -217,6 +217,8 @@ pub fn create_ctx_from_put_req(
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
         weight,
+        description: req.description.clone().unwrap_or_default(),
+        change_reason: req.change_reason.clone(),
     })
 }
 

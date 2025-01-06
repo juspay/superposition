@@ -33,7 +33,7 @@ pub fn dimensions() -> impl IntoView {
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
-    let (filters, set_filters) = create_signal(PaginationParams::default_request());
+    let (filters, set_filters) = create_signal(PaginationParams::default());
     let dimensions_resource = create_blocking_resource(
         move || (tenant_rws.get().0, filters.get(), org_rws.get().0),
         |(current_tenant, filters, org_id)| async move {

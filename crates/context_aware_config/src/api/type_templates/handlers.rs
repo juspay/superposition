@@ -1,8 +1,9 @@
 use actix_web::web::{Json, Path, Query};
 use actix_web::{delete, get, post, put, HttpResponse, Scope};
 use chrono::Utc;
-use diesel::{ExpressionMethods, OptionalExtension};
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
+use diesel::{
+    ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl, SelectableHelper,
+};
 use jsonschema::JSONSchema;
 use serde_json::Value;
 use service_utils::service::types::{DbConnection, Tenant};

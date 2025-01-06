@@ -50,7 +50,7 @@ pub fn experiment_list() -> impl IntoView {
     });
 
     let (pagination_filters_rs, pagination_filters_ws) =
-        create_signal(PaginationParams::default_request());
+        create_signal(PaginationParams::default());
 
     let (reset_exp_form, set_exp_form) = create_signal(0);
 

@@ -66,6 +66,7 @@ COPY --from=builder /build/target/release/superposition /app/superposition
 COPY --from=builder /build/Cargo.toml /app/Cargo.toml
 COPY --from=builder /build/target/site /app/target/site
 COPY --from=builder /build/target/node_modules /app/target/node_modules
+COPY --from=builder /build/workspace_template.sql /app/workspace_template.sql
 # COPY --from=builder /build/superposition/target/.env /app/.env
 ENV SUPERPOSITION_VERSION=$SUPERPOSITION_VERSION
 ENV SOURCE_COMMIT=$SOURCE_COMMIT

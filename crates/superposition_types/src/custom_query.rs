@@ -173,8 +173,10 @@ impl PaginationParams {
             all: Some(true),
         }
     }
+}
 
-    pub fn default_request() -> Self {
+impl Default for PaginationParams {
+    fn default() -> Self {
         Self {
             count: Some(10),
             page: Some(1),

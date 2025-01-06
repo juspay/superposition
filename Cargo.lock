@@ -4612,7 +4612,6 @@ dependencies = [
  "actix-web",
  "anyhow",
  "aws-sdk-kms",
- "cac_toml",
  "cfg-if",
  "chrono",
  "context_aware_config",
@@ -4636,7 +4635,6 @@ dependencies = [
  "service_utils",
  "superposition_macros",
  "superposition_types",
- "toml 0.8.8",
  "url",
 ]
 
