@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     future::{ready, Ready},
     str::FromStr,
     sync::Arc,
@@ -14,7 +14,6 @@ use diesel::PgConnection;
 use jsonschema::JSONSchema;
 use serde_json::json;
 use snowflake::SnowflakeIdGenerator;
-use superposition_types::TenantConfig;
 
 use crate::db::PgSchemaConnectionPool;
 
@@ -43,7 +42,6 @@ pub enum AppHeader {
 pub struct AppState {
     pub cac_host: String,
     pub app_env: AppEnv,
-    pub tenants: HashSet<String>,
     pub cac_version: String,
     pub db_pool: PgSchemaConnectionPool,
     pub meta_schema: JSONSchema,
@@ -52,7 +50,6 @@ pub struct AppState {
     pub enable_tenant_and_scope: bool,
     pub tenant_middleware_exclusion_list: HashSet<String>,
     pub service_prefix: String,
-    pub tenant_configs: HashMap<String, TenantConfig>,
     pub superposition_token: String,
     #[cfg(feature = "high-performance-mode")]
     pub redis: fred::clients::RedisPool,

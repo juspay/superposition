@@ -2,6 +2,24 @@ extern crate base64;
 
 use std::{cmp::min, collections::HashSet};
 
+#[cfg(feature = "high-performance-mode")]
+use crate::helpers::put_config_in_redis;
+use crate::{
+    api::{
+        context::{
+            hash,
+            helpers::ensure_description,
+            operations,
+            types::{
+                ContextAction, ContextBulkResponse, ContextFilterSortOn, ContextFilters,
+                MoveReq, PutReq, WeightRecomputeResponse,
+            },
+        },
+        dimension::{get_dimension_data, get_dimension_data_map},
+    },
+    helpers::{add_config_version, calculate_context_weight},
+};
+
 use actix_web::{
     delete, get, post, put,
     web::{Data, Json, Path},
@@ -9,9 +27,8 @@ use actix_web::{
 };
 use bigdecimal::BigDecimal;
 use chrono::Utc;
-use diesel::{
-    delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
-};
+use diesel::SelectableHelper;
+use diesel::{delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
 use service_utils::service::types::Tenant;
 use service_utils::{
@@ -28,26 +45,6 @@ use superposition_types::{
     result as superposition, Contextual, Overridden, PaginatedResponse, SortBy,
     TenantConfig, User,
 };
-
-use super::{helpers::hash, operations::r#move};
-
-#[cfg(feature = "high-performance-mode")]
-use crate::helpers::put_config_in_redis;
-use crate::{
-    api::{
-        context::{
-            helpers::ensure_description,
-            types::{
-                ContextAction, ContextBulkResponse, ContextFilterSortOn, ContextFilters,
-                MoveReq, PutReq, WeightRecomputeResponse,
-            },
-        },
-        dimension::{get_dimension_data, get_dimension_data_map},
-    },
-    helpers::{add_config_version, calculate_context_weight},
-};
-
-use super::operations;
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -477,7 +474,9 @@ async fn bulk_operations(
                             .schema_name(&tenant)
                             .first::<Context>(transaction_conn)?;
 
-                        let deleted_row = delete(contexts.filter(id.eq(&ctx_id)))
+                        let deleted_row = delete(contexts)
+                            .filter(id.eq(&ctx_id))
+                            .schema_name(&tenant)
                             .execute(transaction_conn);
                         let description = context.description;
 
@@ -507,7 +506,7 @@ async fn bulk_operations(
                         };
                     }
                     ContextAction::Move((old_ctx_id, move_req)) => {
-                        let move_context_resp = r#move(
+                        let move_context_resp = operations::r#move(
                             old_ctx_id,
                             Json(move_req),
                             transaction_conn,
