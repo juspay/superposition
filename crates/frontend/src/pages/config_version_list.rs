@@ -23,7 +23,7 @@ pub fn config_version_list() -> impl IntoView {
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
 
     // Signals for filters
-    let (filters, set_filters) = create_signal(PaginationParams::default_request());
+    let (filters, set_filters) = create_signal(PaginationParams::default());
 
     let table_columns =
         create_memo(move |_| snapshot_table_columns(tenant_rws.get().0, org_rws.get().0));

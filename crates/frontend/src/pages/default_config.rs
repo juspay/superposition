@@ -34,7 +34,7 @@ pub fn default_config() -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let enable_grouping = create_rw_signal(false);
-    let (filters, set_filters) = create_signal(PaginationParams::default_request());
+    let (filters, set_filters) = create_signal(PaginationParams::default());
     let default_config_resource = create_blocking_resource(
         move || (tenant_rws.get().0, filters.get(), org_rws.get().0),
         |(current_tenant, filters, org_id)| async move {
@@ -51,8 +51,7 @@ pub fn default_config() -> impl IntoView {
 
     let set_filters_none = move || set_filters.set(PaginationParams::all_entries());
 
-    let set_filters_default =
-        move || set_filters.set(PaginationParams::default_request());
+    let set_filters_default = move || set_filters.set(PaginationParams::default());
 
     create_effect(move |_| {
         let enable_grouping_val =

@@ -1,3 +1,8 @@
+-- Your SQL goes here
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+--
+-- Name: {replaceme}; Type: SCHEMA; Schema: -; Owner: -
+--
 CREATE SCHEMA IF NOT EXISTS {replaceme};
 --
 -- Name: dimension_type; Type: TYPE; Schema: {replaceme}; Owner: -
@@ -194,9 +199,9 @@ CREATE SCHEMA IF NOT EXISTS {replaceme};
 -- Name: experiment_status_type; Type: TYPE; Schema: {replaceme}; Owner: -
 --
 CREATE TYPE {replaceme}.experiment_status_type AS ENUM (
-'CREATED',
-'CONCLUDED',
-'INPROGRESS'
+    'CREATED',
+    'CONCLUDED',
+    'INPROGRESS'
 );
 --
 -- Name: not_null_text; Type: DOMAIN; Schema: {replaceme}; Owner: -
@@ -261,19 +266,19 @@ SET default_table_access_method = heap;
 -- Name: experiments; Type: TABLE; Schema: {replaceme}; Owner: -
 --
 CREATE TABLE {replaceme}.experiments (
-id bigint PRIMARY KEY,
-created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-created_by text NOT NULL,
-last_modified timestamp with time zone DEFAULT now() NOT NULL,
-name text NOT NULL,
-override_keys {replaceme}.not_null_text [] NOT NULL,
-status {replaceme}.experiment_status_type NOT NULL,
-traffic_percentage integer NOT NULL,
-context json NOT NULL,
-variants json NOT NULL,
-last_modified_by text DEFAULT 'Null'::text NOT NULL,
-chosen_variant text,
-CONSTRAINT experiments_traffic_percentage_check CHECK ((traffic_percentage >= 0))
+    id bigint PRIMARY KEY,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by text NOT NULL,
+    last_modified timestamp with time zone DEFAULT now() NOT NULL,
+    name text NOT NULL,
+    override_keys {replaceme}.not_null_text [] NOT NULL,
+    status {replaceme}.experiment_status_type NOT NULL,
+    traffic_percentage integer NOT NULL,
+    context json NOT NULL,
+    variants json NOT NULL,
+    last_modified_by text DEFAULT 'Null'::text NOT NULL,
+    chosen_variant text,
+    CONSTRAINT experiments_traffic_percentage_check CHECK ((traffic_percentage >= 0))
 );
 --
 -- Name: experiment_created_date_index; Type: INDEX; Schema: {replaceme}; Owner: -
@@ -287,7 +292,6 @@ CREATE INDEX experiment_last_modified_index ON {replaceme}.experiments USING btr
 -- Name: experiment_status_index; Type: INDEX; Schema: {replaceme}; Owner: -
 --
 CREATE INDEX experiment_status_index ON {replaceme}.experiments USING btree (status) INCLUDE (created_at, last_modified);
-
 --
 -- Name: experiments experiments_audit; Type: TRIGGER; Schema: {replaceme}; Owner: -
 --
@@ -649,3 +653,27 @@ ALTER COLUMN priority SET DEFAULT 1;
 
 ALTER TABLE {replaceme}.dimensions
 ADD CONSTRAINT dimension_unique_position UNIQUE (position);
+
+ALTER TABLE {replaceme}.contexts ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
+ALTER TABLE {replaceme}.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+
+ALTER TABLE {replaceme}.dimensions ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
+ALTER TABLE {replaceme}.dimensions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+
+ALTER TABLE {replaceme}.default_configs ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
+ALTER TABLE {replaceme}.default_configs ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+
+ALTER TABLE {replaceme}.type_templates ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
+ALTER TABLE {replaceme}.type_templates ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+
+ALTER TABLE {replaceme}.functions RENAME COLUMN function_description TO description;
+ALTER TABLE {replaceme}.functions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+
+ALTER TABLE {replaceme}.functions ALTER COLUMN description SET DEFAULT '';
+ALTER TABLE {replaceme}.functions ALTER COLUMN description SET NOT NULL;
+
+ALTER TABLE {replaceme}.config_versions ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
+ALTER TABLE {replaceme}.config_versions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+
+ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
+ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;

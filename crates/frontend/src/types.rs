@@ -56,7 +56,6 @@ impl FromStr for AppEnv {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Envs {
     pub host: String,
-    pub tenants: Vec<String>,
     pub service_prefix: &'static str,
 }
 
