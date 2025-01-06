@@ -88,28 +88,6 @@ pub fn get_host() -> String {
     add_prefix(&host, &service_prefix)
 }
 
-pub fn get_tenants() -> Vec<String> {
-    let context = use_context::<Envs>();
-    context
-        .map(|ctx: Envs| ctx.tenants)
-        .or_else(|| match js_sys::eval("__APP_ENVS?.tenants") {
-            Ok(value) => value
-                .dyn_into::<js_sys::Array>()
-                .expect("tenants is not an array")
-                .to_vec()
-                .into_iter()
-                .map(|tenant| {
-                    tenant.dyn_into::<js_sys::JsString>().ok().map(String::from)
-                })
-                .collect::<Option<Vec<String>>>(),
-            Err(e) => {
-                logging::log!("Unable to fetch tenants from __APP_ENVS: {:?}", e);
-                None
-            }
-        })
-        .unwrap_or_default()
-}
-
 #[allow(dead_code)]
 pub fn use_env() -> Envs {
     let context = use_context::<Envs>();

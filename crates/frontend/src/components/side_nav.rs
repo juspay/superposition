@@ -1,10 +1,12 @@
+use crate::api::fetch_workspaces;
 use crate::components::nav_item::NavItem;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::types::{AppRoute, OrganisationId, Tenant};
-use crate::utils::{get_tenants, use_url_base};
+use crate::utils::use_url_base;
 
 use leptos::*;
 use leptos_router::{use_location, use_navigate, A};
+use superposition_types::custom_query::PaginationParams;
 use web_sys::Event;
 
 fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
@@ -74,6 +76,15 @@ pub fn side_nav(
         org_rws.get_untracked().as_str(),
         tenant_rws.get_untracked().as_str(),
     ));
+    let workspace_resource = create_blocking_resource(
+        move || org_rws.get().0,
+        |org_id| async move {
+            let filters = PaginationParams::default();
+            fetch_workspaces(&filters, &org_id)
+                .await
+                .unwrap_or_default()
+        },
+    );
 
     let resolved_path = create_rw_signal(resolved_path);
     let original_path = create_rw_signal(original_path);
@@ -135,10 +146,16 @@ pub fn side_nav(
                 >
 
                     {move || {
-                        let tenants = get_tenants();
-                        match tenants.is_empty() {
+                        let workspaces = workspace_resource
+                            .get()
+                            .unwrap_or_default()
+                            .data
+                            .into_iter()
+                            .map(|workspace| workspace.workspace_name)
+                            .collect::<Vec<String>>();
+                        match workspaces.is_empty() {
                             false => {
-                                tenants
+                                workspaces
                                     .iter()
                                     .map(|tenant| {
                                         view! {
