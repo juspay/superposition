@@ -141,5 +141,6 @@ pub async fn get(
         #[cfg(feature = "high-performance-mode")]
         redis: redis_pool,
         http_client: reqwest::Client::new(),
+        kms_client: kms_client.clone(),
     }
 }
