@@ -7,13 +7,13 @@
         "type": "text"
       },
       {
-        "key": "x-tenant",
-        "value": "test",
-        "type": "default"
-      },
-      {
         "key": "Content-Type",
         "value": "application/json",
+        "type": "text"
+      },
+      {
+        "key": "x-org-id",
+        "value": "testorg",
         "type": "text"
       }
     ],
@@ -25,18 +25,17 @@
         }
        },
        "raw_json_formatted": {
-          "admin_email": "test@gmail.com",
-          "name": "testorg"
+          "workspace_admin_email": "test@gmail.com",
+          "workspace_name": "test"
        }
     },
     "url": {
-      "raw": "{{host}}/superposition/organisations",
+      "raw": "{{host}}/workspaces",
       "host": [
         "{{host}}"
       ],
       "path": [
-        "superposition",
-        "organisations"
+        "workspaces"
       ]
     }
   }

@@ -2,7 +2,7 @@ const host = pm.variables.get("host");
 
 function getOrgAndTest(org_id) {
     const getRequest = {
-        url: `${host}/organisation/${org_id}`,
+        url: `${host}/superposition/organisations/${org_id}`,
         method: 'GET',
         header: {
             'Content-Type': 'application/json',
@@ -21,13 +21,13 @@ function getOrgAndTest(org_id) {
     });
 }
 
-pm.test("201 check", function () {
+pm.test("200 check", function () {
     console.log(pm.response)
     const response = pm.response.json();
     
     pm.environment.set("org_id", response.org_id);
     pm.variables.set("org_id", response.org_id);
-    pm.response.to.have.status(201);
+    pm.response.to.have.status(200);
 })
 
 pm.test("Check if org is added", function () {
