@@ -1,4 +1,5 @@
 const host = pm.variables.get("host");
+const org_id = pm.variables.get("org_id");
 
 function getConfigAndTest(context_id, override_id, expected_condition, expected_override) {
     const getRequest = {
@@ -7,6 +8,7 @@ function getConfigAndTest(context_id, override_id, expected_condition, expected_
         header: {
             'Content-Type': 'application/json',
             'x-tenant': 'test',
+            'x-org-id': `${org_id}`,
         }
     };
 

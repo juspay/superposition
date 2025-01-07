@@ -1,5 +1,6 @@
 const host = pm.environment.get("host");
 const token = pm.environment.get("token");
+const org_id = pm.environment.get("org_id");
 
 const experiment_id = pm.environment.get("experiment_id");
 
@@ -11,6 +12,7 @@ function fetch_config_n_test(variants, winner_variant_id) {
             'Authorization': `Bearer ${token}`,
             'Contet-Type': 'application/json',
             'x-tenant': 'test',
+            'x-org-id': `${org_id}`
         }
     };
 
