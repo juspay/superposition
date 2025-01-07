@@ -1,4 +1,5 @@
 const host = pm.variables.get("host");
+const org_id = pm.variables.get("org_id");
 
 function add_default_config() {
     const options = {
@@ -6,7 +7,8 @@ function add_default_config() {
         'url': `${host}/default-config`,
         'header': {
             'x-tenant': 'test',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-org-id': `${org_id}`
         },
         "body": {
             "mode": "raw",
