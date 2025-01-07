@@ -9,6 +9,11 @@
         "key": "token",
         "value": "12345678",
         "type": "default"
+      },
+      {
+        "key": "org_id",
+        "value": "testorg",
+        "type": "default"
       }
     ]
   }

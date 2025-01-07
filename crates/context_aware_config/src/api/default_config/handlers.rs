@@ -409,6 +409,7 @@ async fn delete(
 
                 let default_config: DefaultConfig = dsl::default_configs
                     .filter(dsl::key.eq(&key))
+                    .schema_name(&tenant)
                     .first::<DefaultConfig>(transaction_conn)?;
                 let description = default_config.description;
                 let change_reason = format!("Context Deleted by {}", user.get_email());
