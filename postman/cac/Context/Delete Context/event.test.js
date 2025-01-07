@@ -1,5 +1,6 @@
 const host = pm.variables.get("host");
 const context_id = pm.environment.get("context_id");
+const org_id = pm.variables.get("org_id");
 
 console.log(`context id is thiss : ${context_id}`);
 
@@ -14,6 +15,7 @@ pm.test("Fetch for context should fail with 404", function () {
         header: {
             'Content-Type': 'application/json',
             'x-tenant': 'test',
+            'x-org-id': `${org_id}`
         }
     };
 

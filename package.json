@@ -4,7 +4,8 @@
   "private": true,
   "description": "This is just to run automated newman tests for this service",
   "scripts": {
-    "test": "./node_modules/.bin/newman dir-run ./postman/cac && ./node_modules/.bin/newman dir-run -e postman/experiment-platform-local-env.postman_environment.json ./postman/experimentation-platform ",
+    "test": "./node_modules/.bin/newman dir-run ./postman/superposition && ./node_modules/.bin/newman dir-run ./postman/cac && ./node_modules/.bin/newman dir-run -e postman/experiment-platform-local-env.postman_environment.json ./postman/experimentation-platform ",
+    "load_superposition_tests": "npx newman dir-import postman/superposition -o postman/superposition.postman_collection.json",
     "load_exp_tests": "npx newman dir-import postman/experimentation-platform -o postman/experimentation-platform.postman_collection.json",
     "load_cac_tests": "npx newman dir-import postman/cac -o postman/cac.postman_collection.json"
   },

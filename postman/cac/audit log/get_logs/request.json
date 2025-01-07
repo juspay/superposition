@@ -5,6 +5,11 @@
         "key": "x-tenant",
         "value": "test",
         "type": "default"
+    },
+    {
+      "key": "x-org-id",
+      "value": "{{org_id}}",
+      "type": "default"
     }
   ],
   "url": {

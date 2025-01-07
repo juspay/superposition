@@ -1,5 +1,6 @@
 const host = pm.environment.get("host");
 const token = pm.environment.get("token");
+const org_id = pm.environment.get("org_id");
 
 function fetch_experiment_n_test(experiment_id, expected_traffic_percentage) {
     const options = {
@@ -9,6 +10,7 @@ function fetch_experiment_n_test(experiment_id, expected_traffic_percentage) {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             'x-tenant': 'test',
+            'x-org-id': `${org_id}`
         }
     };
 

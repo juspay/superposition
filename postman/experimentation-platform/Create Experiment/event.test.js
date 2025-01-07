@@ -1,5 +1,6 @@
 const host = pm.environment.get("host");
 const token = pm.environment.get("token");
+const org_id = pm.environment.get("org_id");
 
 
 function fetch_context_n_test(context_id, expected_override_id, expected_override, expected_variant_context) {
@@ -9,6 +10,7 @@ function fetch_context_n_test(context_id, expected_override_id, expected_overrid
         header: {
             'Content-Type': 'application/json',
             'x-tenant': 'test',
+            'x-org-id': `${org_id}`
         }
     };
 
