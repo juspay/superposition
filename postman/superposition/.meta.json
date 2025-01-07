@@ -1,6 +1,7 @@
 {
     "childrenOrder": [
-      "Organisation"
+      "Organisation",
+      "Workspace"
     ]
   }
   
