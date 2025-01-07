@@ -3,12 +3,14 @@
 pm.test('expect response be 200', function () {
     pm.response.to.be.ok;
     const host = pm.variables.get("host");
+    const org_id = pm.variables.get("org_id");
     const request = {
         url: `${host}/types`,
         method: 'GET',
         header: {
             'Content-Type': 'application/json',
             'x-tenant': 'test',
+            'x-org-id': `${org_id}`
         }
     }
     pm.sendRequest(request, (error, response) => {

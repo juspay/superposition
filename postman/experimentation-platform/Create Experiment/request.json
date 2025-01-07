@@ -15,6 +15,11 @@
       "key": "Content-Type",
       "value": "application/json",
       "type": "default"
+    },
+    {
+      "key": "x-org-id",
+      "value": "{{org_id}}",
+      "type": "default"
     }
   ],
   "body": {
