@@ -1,4 +1,5 @@
 const host = pm.variables.get("host");
+const org_id = pm.variables.get("org_id");
 
 function getConfigAndTest(key, value) {
     const getRequest = {
@@ -7,6 +8,7 @@ function getConfigAndTest(key, value) {
         header: {
             'Content-Type': 'application/json',
             'x-tenant': 'test',
+            'x-org-id': `${org_id}`
         }
     };
 

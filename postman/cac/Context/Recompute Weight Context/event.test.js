@@ -1,5 +1,6 @@
 const host = pm.variables.get("host");
 const context_id = pm.environment.get("context_id");
+const org_id = pm.variables.get("org_id");
 
 
 function getContextAndTest() {
@@ -9,6 +10,7 @@ function getContextAndTest() {
         header: {
             'Content-Type': 'application/json',
             'x-tenant': 'test',
+            'x-org-id': `${org_id}`
         }
     
     };
