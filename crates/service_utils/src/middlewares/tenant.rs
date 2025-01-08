@@ -196,7 +196,8 @@ where
                         req.query_string(),
                         String::from("org="),
                     )
-                });
+                })
+                .unwrap_or("juspay");
 
                 let workspace_id = match (enable_workspace_id, workspace) {
                     (true, None) => return Err(error::ErrorBadRequest("The parameter workspace id is required, and must be passed through headers/url params/query params. Consult the documentation to know which to use for this endpoint")),
@@ -205,19 +206,15 @@ where
                 };
 
                 // TODO: validate the tenant, get correct TenantConfig
-                let (validated_tenant, tenant_config) =  match (enable_org_id, org) {
-                    (true, None) => return Err(error::ErrorBadRequest("The parameter org id is required, and must be passed through headers/url params/query params. Consult the documentation to know which to use for this endpoint")),
-                    (true, Some(org_id)) => {
-                        let tenant = format!("{org_id}_{workspace_id}");
+                let (validated_tenant, tenant_config) = match enable_org_id {
+                    true => {
+                        let tenant = format!("{org}_{workspace_id}");
                         (Tenant(tenant), TenantConfig::default())
-                    },
-                    (false, _) => (Tenant("public".into()), TenantConfig::default()),
+                    }
+                    false => (Tenant("public".into()), TenantConfig::default()),
                 };
 
-                let organisation = org
-                    .map(String::from)
-                    .map(OrganisationId)
-                    .unwrap_or_default();
+                let organisation = OrganisationId(String::from(org));
 
                 req.extensions_mut().insert(validated_tenant);
                 req.extensions_mut().insert(organisation);
