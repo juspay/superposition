@@ -23,7 +23,7 @@ use service_utils::{
 use snowflake::SnowflakeIdGenerator;
 use superposition_types::TenantConfig;
 
-const TENANT_CONFIG_FILE: &str = "crates/superposition/Superposition.cac.toml";
+const TENANT_CONFIG_FILE: &str = "Superposition.cac.toml";
 
 pub async fn get(
     app_env: AppEnv,

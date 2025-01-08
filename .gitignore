@@ -41,3 +41,4 @@ test_logs
 .gradle
 build
 .java~
+data/

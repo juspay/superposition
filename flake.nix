@@ -1,5 +1,7 @@
 {
   inputs = {
+    process-compose-flake.url = "github:Platonic-Systems/process-compose-flake";
+    services-flake.url = "github:juspay/services-flake";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     old-nixpkgs.url = "github:NixOS/nixpkgs/10b813040df67c4039086db0f6eaf65c536886c6";
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -20,6 +22,7 @@
         inputs.rust-flake.flakeModules.default
         inputs.rust-flake.flakeModules.nixpkgs
         inputs.pre-commit-hooks.flakeModule
+        inputs.process-compose-flake.flakeModule
         ./nix/pre-commit.nix
         ./clients/haskell
         ./nix/rust.nix
@@ -35,10 +38,32 @@
           ...
         }:
         {
+          process-compose."integration-services" = {
+            imports = [
+              inputs.services-flake.processComposeModules.default
+              ./nix/localstack.nix
+            ];
+            services.postgres."database" = {
+              enable = true;
+              initialScript.before = ''
+                CREATE USER postgres WITH password 'docker';
+              '';
+              initialDatabases = [
+                {
+                  name = "config";
+                  schemas = [ ./docker-compose/postgres/db_init.sql ];
+                }
+              ];
+            };
+            services.localstack.enable = true;
+            settings.processes.test = {
+
+            };
+          };
           formatter = pkgs.nixpkgs-fmt;
           packages.static-assets = pkgs.buildNpmPackage {
             name = "static-assets";
-            version = "1.0.0";
+            version = "0.0.0";
             src = ./.;
             nativeBuildInputs = with pkgs; [
               tailwindcss
@@ -51,13 +76,11 @@
               cd crates/frontend
               tailwindcss -i ./styles/tailwind.css -o ../../style.css
               cd -
-              mkdir -p $out/bin/target/site
-              cp -r node_modules $out/bin/target
-              cp style.css $out/bin/target/site
-              cp Cargo.toml $out/bin
-
-              mkdir -p $out/bin/crates/superposition
-              cp crates/superposition/Superposition.cac.toml $out/bin/crates/superposition/
+              mkdir -p $out/static/target/site
+              cp -r node_modules $out/static/target
+              cp style.css $out/static/target/site
+              ## Cargo.toml is needed by leptos.
+              cp Superposition.cac.toml Cargo.toml $out/static
             '';
             installPhase = "true";
           };
@@ -75,18 +98,21 @@
                 pkgs.nodejs-18_x
                 pkgs.cacert
               ];
-              pathsToLink = [ "/bin" ];
+              pathsToLink = [
+                "/bin"
+                "/static"
+              ];
             };
 
             # Configuration
             config = {
-              WorkingDir = "/bin";
-              Cmd = [ "superposition" ];
+              WorkingDir = "/static";
+              Cmd = [ "/bin/superposition" ];
               ExposedPorts = {
                 "8080/tcp" = { };
               };
               Env = [
-                  "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+                "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
               ];
             };
           };
@@ -98,6 +124,7 @@
             ];
             # Add your devShell tools here
             packages = with pkgs; [
+              process-compose
               docker-compose
               gnumake
               # Why do we need this?

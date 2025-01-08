@@ -136,12 +136,12 @@
                   ++ [
                     pkgs.libiconv
                     pkgs.openssl
+                    ## REVIEW
                     pkgs.postgresql_12
                   ];
                 nativeBuildInputs =
                   let
-                      wasm-bindgen-cli-0-2-89 =
-                          inputs.old-nixpkgs.legacyPackages.${system}.wasm-bindgen-cli;
+                    wasm-bindgen-cli-0-2-89 = inputs.old-nixpkgs.legacyPackages.${system}.wasm-bindgen-cli;
                   in
                   with pkgs;
                   [
@@ -162,8 +162,8 @@
                             --target=web \
                             --mode no-install \
                             --no-default-features --features=hydrate
-                  mkdir -p $out/bin/target/site
-                  cp -r ./pkg $out/bin/target/site
+                  mkdir -p $out/static/target/site
+                  cp -r ./pkg $out/static/target/site
                 '';
                 installPhaseCommand = "true";
               };
