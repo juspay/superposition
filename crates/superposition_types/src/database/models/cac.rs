@@ -112,7 +112,7 @@ pub struct Function {
     pub change_reason: String,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "diesel_derives", derive(Queryable, Selectable, Insertable))]
 #[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
 #[cfg_attr(feature = "diesel_derives", diesel(table_name = event_log))]

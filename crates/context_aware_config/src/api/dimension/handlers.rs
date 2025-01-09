@@ -228,11 +228,13 @@ async fn update(
             diesel::update(dimensions)
                 .filter(dsl::dimension.eq(&dimension_row.dimension))
                 .set((
-                    dsl::last_modified_at.eq(Utc::now().naive_utc()),
-                    dsl::last_modified_by.eq(user.get_email()),
+                    dimensions::last_modified_at.eq(Utc::now().naive_utc()),
+                    dimensions::last_modified_by.eq(user.get_email()),
                     dimensions::function_name.eq(dimension_row.function_name),
                     dimensions::schema.eq(dimension_row.schema),
                     dimensions::position.eq(new_position),
+                    dimensions::description.eq(dimension_row.description),
+                    dimensions::change_reason.eq(dimension_row.change_reason),
                 ))
                 .returning(Dimension::as_returning())
                 .schema_name(&tenant)

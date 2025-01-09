@@ -201,7 +201,7 @@ where
                         <span class="label-text">Description</span>
                     </label>
                     <textarea
-                        placeholder="Enter description"
+                        placeholder="Enter a description"
                         class="textarea textarea-bordered w-full max-w-md"
                         value=description_rs.get_untracked()
                         on:change=move |ev| {
@@ -215,10 +215,10 @@ where
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">change_reason</span>
+                        <span class="label-text">Reason for Change</span>
                     </label>
                     <textarea
-                        placeholder="Enter change_reason"
+                        placeholder="Enter a reason for this change"
                         class="textarea textarea-bordered w-full max-w-md"
                         value=change_reason_rs.get_untracked()
                         on:change=move |ev| {
@@ -227,8 +227,6 @@ where
                         }
                     />
                 </div>
-
-                <div class="divider"></div>
                 <Suspense>
                     {move || {
                         let options = type_template_resource.get().unwrap_or(vec![]);

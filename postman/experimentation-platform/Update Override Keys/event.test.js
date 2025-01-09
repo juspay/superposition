@@ -108,7 +108,7 @@ pm.test("200 OK", function () {
 // check for contexts in CAC
 pm.test("Test updated experiment", function() {
     const response = pm.response.json();
-    const experiment_id = response.id;
+    const experiment_id = response.experiment_id;
 
     const expected_varaints = [
         {

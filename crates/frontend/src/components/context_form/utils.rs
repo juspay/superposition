@@ -7,7 +7,6 @@ use serde_json::{json, Map, Value};
 pub fn context_payload(
     overrides: Map<String, Value>,
     conditions: Conditions,
-
     description: String,
     change_reason: String,
 ) -> Value {

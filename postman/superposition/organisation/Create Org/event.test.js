@@ -24,14 +24,14 @@ function getOrgAndTest(org_id) {
 pm.test("200 check", function () {
     console.log(pm.response)
     const response = pm.response.json();
-    
-    pm.environment.set("org_id", response.org_id);
-    pm.variables.set("org_id", response.org_id);
+
+    pm.environment.set("org_id", response.id);
+    pm.variables.set("org_id", response.id);
     pm.response.to.have.status(200);
 })
 
 pm.test("Check if org is added", function () {
     const response = pm.response.json();
-    const org_id = response.org_id;
+    const org_id = response.id;
     getOrgAndTest(org_id);
 });

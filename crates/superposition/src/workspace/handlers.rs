@@ -12,7 +12,6 @@ use diesel::{
     Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
     TextExpressionMethods,
 };
-use leptos::logging::log;
 use regex::Regex;
 use service_utils::service::types::{DbConnection, OrganisationId};
 use superposition_macros::{db_error, unexpected_error, validation_error};

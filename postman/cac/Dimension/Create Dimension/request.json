@@ -12,9 +12,9 @@
       "type": "text"
     },
     {
-        "key": "x-tenant",
-        "value": "test",
-        "type": "default"
+      "key": "x-tenant",
+      "value": "{{x_tenant}}",
+      "type": "default"
     },
     {
       "key": "x-org-id",
@@ -35,7 +35,7 @@
       "schema": {
         "type": "string",
         "pattern": "^[a-z0-9].*$"
-      }, 
+      },
       "description": "description",
       "change_reason": "change_reason"
     }

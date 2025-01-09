@@ -32,6 +32,7 @@ where
     let (type_name_rs, type_name_ws) = create_signal(type_name);
     let (type_schema_rs, type_schema_ws) = create_signal(type_schema);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
+
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
 
@@ -46,13 +47,13 @@ where
             let handle_submit = handle_submit_clone;
             async move {
                 let result = if edit {
-                    update_type(
-                        tenant_rws.get().0,
-                        type_name,
-                        type_schema,
-                        org_rws.get().0,
-                    )
-                    .await
+                    let payload = json!({
+                        "type_schema": type_schema,
+                        "description": description_rs.get(),
+                        "change_reason": change_reason_rs.get(),
+                    });
+                    update_type(tenant_rws.get().0, type_name, payload, org_rws.get().0)
+                        .await
                 } else {
                     let description = description_rs.get();
                     let change_reason = change_reason_rs.get();
@@ -125,6 +126,38 @@ where
                     placeholder="Enter change_reason"
                     class="textarea textarea-bordered w-full max-w-md"
                     value=change_reason_rs.get_untracked()
+                    on:change=move |ev| {
+                        let value = event_target_value(&ev);
+                        change_reason_ws.set(value);
+                    }
+                />
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Description</span>
+                </label>
+                <textarea
+                    placeholder="Enter description"
+                    class="textarea textarea-bordered w-full max-w-md"
+                    value=description_rs.get()
+                    on:change=move |ev| {
+                        let value = event_target_value(&ev);
+                        description_ws.set(value);
+                    }
+                />
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Reason for Change</span>
+                </label>
+                <textarea
+                    placeholder="Enter a reason for this change"
+                    class="textarea textarea-bordered w-full max-w-md"
+                    value=change_reason_rs.get()
                     on:change=move |ev| {
                         let value = event_target_value(&ev);
                         change_reason_ws.set(value);

@@ -19,7 +19,7 @@ pm.test('expect response be 200', function () {
             throw error;
         }
         const resp = response.json();
-        const modified_response = resp.map(({ created_at, last_modified, ...rest }) => rest).sort((a, b) => {
+        const modified_response = resp.map(({ created_at, last_modified, description, change_reason, ...rest }) => rest).sort((a, b) => {
             return a.type_name > b.type_name;
         });
         pm.expect(JSON.stringify(modified_response)).to.be.eq(JSON.stringify([
