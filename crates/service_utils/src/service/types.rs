@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use std::sync::Mutex;
 use std::{
     collections::HashSet,
@@ -147,6 +148,17 @@ impl FromRequest for AppExecutionNamespace {
 
 #[derive(Deref, DerefMut, Clone, Debug)]
 pub struct Tenant(pub String);
+
+impl Tenant {
+    pub fn get_tenant_name(&self) -> Result<String, String> {
+        self.deref()
+            .split('_')
+            .into_iter()
+            .last()
+            .map(str::to_string)
+            .ok_or(String::from("failed to decode tenant"))
+    }
+}
 impl FromRequest for Tenant {
     type Error = Error;
     type Future = Ready<Result<Self, Self::Error>>;

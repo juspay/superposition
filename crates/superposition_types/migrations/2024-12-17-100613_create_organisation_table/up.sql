@@ -23,12 +23,3 @@ CREATE INDEX IF NOT EXISTS idx_organisation_contact_email ON superposition.organ
 CREATE INDEX IF NOT EXISTS idx_organisation_status ON superposition.organisations (status);
 CREATE INDEX IF NOT EXISTS idx_organisation_created_at ON superposition.organisations (created_at);
 CREATE INDEX IF NOT EXISTS idx_organisation_admin_email ON superposition.organisations (admin_email);
-
-
-INSERT INTO superposition.organisations(id, admin_email, name, created_by, updated_by) values(
-    'testorg',
-    'test@example.com',
-    'testorg',
-    'test_user',
-    'test_user'
-);

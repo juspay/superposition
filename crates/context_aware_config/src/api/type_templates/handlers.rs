@@ -5,7 +5,6 @@ use diesel::{
     ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use jsonschema::JSONSchema;
-use serde_json::Value;
 use service_utils::service::types::{DbConnection, Tenant};
 use superposition_macros::{bad_argument, db_error};
 use superposition_types::{
@@ -17,7 +16,9 @@ use superposition_types::{
     result as superposition, PaginatedResponse, User,
 };
 
-use crate::api::type_templates::types::{TypeTemplateCreateRequest, TypeTemplateName};
+use crate::api::type_templates::types::{
+    TypeTemplateCreateRequest, TypeTemplateName, TypeTemplateUpdateRequest,
+};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -68,14 +69,15 @@ async fn create_type(
 
 #[put("/{type_name}")]
 async fn update_type(
-    request: Json<Value>,
+    request: Json<TypeTemplateUpdateRequest>,
     path: Path<TypeTemplateName>,
     db_conn: DbConnection,
     user: User,
     tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let _ = JSONSchema::compile(&request).map_err(|err| {
+    let request = request.into_inner();
+    let _ = JSONSchema::compile(&request.type_schema).map_err(|err| {
         log::error!(
             "Invalid jsonschema sent in the request, schema: {:?} error: {}",
             request,
@@ -87,11 +89,12 @@ async fn update_type(
         )
     })?;
 
-    let description = request.get("description").cloned();
+    let description = request.description;
     let type_name: String = path.into_inner().into();
     let final_description = if description.is_none() {
         let existing_template = type_templates::table
             .filter(type_templates::type_name.eq(&type_name))
+            .schema_name(&tenant)
             .first::<TypeTemplate>(&mut conn)
             .optional()
             .map_err(|err| {
@@ -110,15 +113,16 @@ async fn update_type(
     } else {
         description.unwrap().to_string()
     };
-
+    let change_reason = request.change_reason;
     let timestamp = Utc::now().naive_utc();
     let updated_type = diesel::update(type_templates::table)
         .filter(type_templates::type_name.eq(type_name))
         .set((
-            type_templates::type_schema.eq(request.clone()),
+            type_templates::type_schema.eq(request.type_schema),
             type_templates::last_modified_at.eq(timestamp),
             type_templates::last_modified_by.eq(user.email),
             type_templates::description.eq(final_description),
+            type_templates::change_reason.eq(change_reason),
         ))
         .returning(TypeTemplate::as_returning())
         .schema_name(&tenant)

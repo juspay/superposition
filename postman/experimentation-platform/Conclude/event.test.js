@@ -72,6 +72,7 @@ function fetch_experiment_n_test(experiment_id, winner_variant_id, expected_stat
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             'x-tenant': 'test',
+            'x-org-id': `${org_id}`
         }
     };
 

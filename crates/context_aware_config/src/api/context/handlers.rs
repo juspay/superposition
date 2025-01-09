@@ -478,6 +478,7 @@ async fn bulk_operations(
                             .filter(id.eq(&ctx_id))
                             .schema_name(&tenant)
                             .execute(transaction_conn);
+
                         let description = context.description;
 
                         let email: String = user.clone().get_email();
@@ -485,6 +486,7 @@ async fn bulk_operations(
                             format!("Context deleted by {}", email.clone());
                         all_descriptions.push(description.clone());
                         all_change_reasons.push(change_reason.clone());
+
                         match deleted_row {
                             // Any kind of error would rollback the tranction but explicitly returning rollback tranction allows you to rollback from any point in transaction.
                             Ok(0) => {
@@ -524,7 +526,6 @@ async fn bulk_operations(
                         })?;
                         all_descriptions.push(move_context_resp.description.clone());
                         all_change_reasons.push(move_context_resp.change_reason.clone());
-
                         response.push(ContextBulkResponse::Move(move_context_resp));
                     }
                 }
@@ -583,7 +584,6 @@ async fn weight_recompute(
     let mut response: Vec<WeightRecomputeResponse> = vec![];
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    // Recompute weights and add descriptions
     let contexts_new_weight: Vec<(BigDecimal, String, String, String)> = result
         .clone()
         .into_iter()

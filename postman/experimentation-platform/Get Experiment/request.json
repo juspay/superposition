@@ -2,9 +2,9 @@
   "method": "GET",
   "header": [
     {
-        "key": "x-tenant",
-        "value": "test",
-        "type": "default"
+      "key": "x-tenant",
+      "value": "{{x_tenant}}",
+      "type": "default"
     },
     {
       "key": "x-org-id",
@@ -23,4 +23,3 @@
     ]
   }
 }
-

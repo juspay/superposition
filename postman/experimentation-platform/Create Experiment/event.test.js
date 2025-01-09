@@ -55,6 +55,7 @@ function fetch_experiment_n_test(experiment_id, expected_context, expected_varai
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             'x-tenant': 'test',
+            'x-org-id': `${org_id}`
         }
     };
 
@@ -143,7 +144,7 @@ pm.test("Test created contexts", function() {
                 "pmTestKey1": "value1-control",
                 "pmTestKey2": "value1-control"
             },
-            "variant_type": "CONTROL", 
+            "variant_type": "CONTROL",
             "description": "description",
             "change_reason": "change_reason"
         },
@@ -187,7 +188,7 @@ pm.test("Test created contexts", function() {
                             }
                         ]
                     }
-                ], 
+                ],
                 "description": "description",
                 "change_reason": "change_reason"
             }
@@ -220,7 +221,7 @@ pm.test("Test created contexts", function() {
                             }
                         ]
                     }
-                ], 
+                ],
                 "description": "description",
                 "change_reason": "change_reason"
             }

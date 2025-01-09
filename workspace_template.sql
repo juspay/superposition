@@ -4,17 +4,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Name: {replaceme}; Type: SCHEMA; Schema: -; Owner: -
 --
 CREATE SCHEMA IF NOT EXISTS {replaceme};
---
--- Name: dimension_type; Type: TYPE; Schema: {replaceme}; Owner: -
---
-CREATE TYPE {replaceme}.dimension_type AS ENUM (
-    'NULL',
-    'BOOL',
-    'NUMBER',
-    'STRING',
-    'ARRAY',
-    'OBJECT'
-);
+
 --
 -- Name: event_logger(); Type: FUNCTION; Schema: {replaceme}; Owner: -
 --
@@ -198,11 +188,7 @@ CREATE SCHEMA IF NOT EXISTS {replaceme};
 --
 -- Name: experiment_status_type; Type: TYPE; Schema: {replaceme}; Owner: -
 --
-CREATE TYPE {replaceme}.experiment_status_type AS ENUM (
-    'CREATED',
-    'CONCLUDED',
-    'INPROGRESS'
-);
+
 --
 -- Name: not_null_text; Type: DOMAIN; Schema: {replaceme}; Owner: -
 --
@@ -262,6 +248,16 @@ END;
 $$;
 SET default_tablespace = '';
 SET default_table_access_method = heap;
+
+DO $$ BEGIN
+    CREATE TYPE public.experiment_status_type AS ENUM (
+        'CREATED',
+        'CONCLUDED',
+        'INPROGRESS'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 --
 -- Name: experiments; Type: TABLE; Schema: {replaceme}; Owner: -
 --
@@ -272,7 +268,7 @@ CREATE TABLE {replaceme}.experiments (
     last_modified timestamp with time zone DEFAULT now() NOT NULL,
     name text NOT NULL,
     override_keys {replaceme}.not_null_text [] NOT NULL,
-    status {replaceme}.experiment_status_type NOT NULL,
+    status public.experiment_status_type NOT NULL,
     traffic_percentage integer NOT NULL,
     context json NOT NULL,
     variants json NOT NULL,
@@ -677,3 +673,5 @@ ALTER TABLE {replaceme}.config_versions ADD COLUMN IF NOT EXISTS change_reason T
 
 ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
 ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+
+

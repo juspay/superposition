@@ -13,7 +13,7 @@
     },
     {
         "key": "x-tenant",
-        "value": "test",
+        "value": "{{x_tenant}}",
         "type": "default"
     },
     {
@@ -21,7 +21,7 @@
       "value": "{{org_id}}",
       "type": "default"
     }
-    
+
   ],
   "body": {
     "mode": "raw",
@@ -41,7 +41,7 @@
           },
           "piyaz"
         ]
-      }, 
+      },
       "description": "description",
       "change_reason": "change_reason"
     }

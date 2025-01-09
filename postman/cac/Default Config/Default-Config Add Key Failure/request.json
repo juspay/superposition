@@ -12,9 +12,9 @@
       "type": "text"
     },
     {
-        "key": "x-tenant",
-        "value": "test",
-        "type": "default"
+      "key": "x-tenant",
+      "value": "{{x_tenant}}",
+      "type": "default"
     },
     {
       "key": "x-org-id",
@@ -29,8 +29,8 @@
         "language": "json"
       }
     },
-    "raw_json_formatted": { 
-      "key": "key.", 
+    "raw_json_formatted": {
+      "key": "key.",
       "value": "value1",
       "schema": {
         "type": "string",

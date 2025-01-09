@@ -195,7 +195,6 @@ pub struct ExperimentListFilters {
 #[derive(Deserialize, Debug)]
 pub struct RampRequest {
     pub traffic_percentage: u64,
-    pub description: String,
     pub change_reason: String,
 }
 

@@ -248,6 +248,8 @@ async fn update_default_config(
                 .on_conflict(dsl::key)
                 .do_update()
                 .set(&updated_config)
+                .returning(DefaultConfig::as_returning())
+                .schema_name(&tenant)
                 .execute(transaction_conn)
                 .map_err(|e| {
                     log::info!("Update failed: {e}");

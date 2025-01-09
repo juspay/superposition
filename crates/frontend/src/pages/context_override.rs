@@ -62,6 +62,7 @@ fn form(
     let (overrides, set_overrides) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
+
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
 
@@ -120,37 +121,39 @@ fn form(
         <div class="divider"></div>
 
         <div class="form-control">
-        <label class="label">
-            <span class="label-text">Description</span>
-        </label>
-        <textarea
-            placeholder="Enter description"
-            class="textarea textarea-bordered w-full max-w-md"
-            value=description_rs.get_untracked()
-            on:change=move |ev| {
-                let value = event_target_value(&ev);
-                description_ws.set(value);
-            }
-        />
-    </div>
+            <label class="label">
+                <span class="label-text">Description</span>
+            </label>
+            <textarea
+                placeholder="Enter description"
+                class="textarea textarea-bordered w-full max-w-md"
+                value=description_rs.get_untracked()
+                on:change=move |ev| {
+                    let value = event_target_value(&ev);
+                    description_ws.set(value);
+                }
+            />
+        </div>
 
-    <div class="divider"></div>
+        <div class="divider"></div>
 
-    <div class="form-control">
-        <label class="label">
-            <span class="label-text">change_reason</span>
-        </label>
-        <textarea
-            placeholder="Enter change_reason"
-            class="textarea textarea-bordered w-full max-w-md"
-            value=change_reason_rs.get_untracked()
-            on:change=move |ev| {
-                let value = event_target_value(&ev);
-                change_reason_ws.set(value);
-            }
-        />
-    </div>
-    <div class="divider"></div>
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">Reason for Change</span>
+            </label>
+            <textarea
+                placeholder="Enter a reason for this change"
+                class="textarea textarea-bordered w-full max-w-md"
+                value=change_reason_rs.get_untracked()
+                on:change=move |ev| {
+                    let value = event_target_value(&ev);
+                    change_reason_ws.set(value);
+                }
+            />
+        </div>
+
+        <div class="divider"></div>
+
         <OverrideForm
             overrides=overrides.get_untracked()
             default_config=default_config

@@ -369,7 +369,7 @@
           },
           {
             "key": "x-tenant",
-            "value": "test",
+            "value": "{{x_tenant}}",
             "type": "default"
           },
           {
@@ -424,7 +424,7 @@
         "header": [
           {
             "key": "x-tenant",
-            "value": "test",
+            "value": "{{x_tenant}}",
             "type": "default"
           },
           {
@@ -513,7 +513,7 @@
           },
           {
             "key": "x-tenant",
-            "value": "test",
+            "value": "{{x_tenant}}",
             "type": "default"
           },
           {
@@ -673,7 +673,7 @@
           },
           {
             "key": "x-tenant",
-            "value": "test",
+            "value": "{{x_tenant}}",
             "type": "default"
           },
           {
@@ -1005,7 +1005,7 @@
           },
           {
             "key": "x-tenant",
-            "value": "test",
+            "value": "{{x_tenant}}",
             "type": "default"
           },
           {
@@ -1307,7 +1307,7 @@
           },
           {
             "key": "x-tenant",
-            "value": "test",
+            "value": "{{x_tenant}}",
             "type": "default"
           },
           {
@@ -1350,7 +1350,7 @@
           },
           {
             "key": "x-tenant",
-            "value": "test",
+            "value": "{{x_tenant}}",
             "type": "default"
           },
           {
@@ -1422,7 +1422,7 @@
           },
           {
             "key": "x-tenant",
-            "value": "test",
+            "value": "{{x_tenant}}",
             "type": "default"
           },
           {
@@ -1486,7 +1486,7 @@
           },
           {
             "key": "x-tenant",
-            "value": "test",
+            "value": "{{x_tenant}}",
             "type": "default"
           },
           {
