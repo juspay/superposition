@@ -20,13 +20,13 @@ function create_default_config_keys() {
             },
             "body": {
                 "mode": "raw",
-                "raw": JSON.stringify({ 
+                "raw": JSON.stringify({
                     "key": key,
                     "value": "value1",
                     "schema": {
                         "type": "string",
                         "pattern": ".*"
-                    }, 
+                    },
                     "description": "description",
                     "change_reason": "change_reason"
                 })

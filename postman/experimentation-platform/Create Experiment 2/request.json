@@ -7,9 +7,9 @@
       "type": "default"
     },
     {
-        "key": "x-tenant",
-        "value": "test",
-        "type": "default"
+      "key": "x-tenant",
+      "value": "{{x_tenant}}",
+      "type": "default"
     },
     {
       "key": "x-org-id",
@@ -68,7 +68,7 @@
             "pmTestKey4": "value4-test"
           }
         }
-      ], 
+      ],
       "description": "description",
       "change_reason": "change_reason"
     }

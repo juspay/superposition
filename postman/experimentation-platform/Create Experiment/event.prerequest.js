@@ -20,13 +20,13 @@ function create_default_config_keys() {
             },
             "body": {
                 "mode": "raw",
-                "raw": JSON.stringify({ 
+                "raw": JSON.stringify({
                     "key": key,
                     "value": "value1",
                     "schema": {
                         "type": "string",
                         "pattern": ".*"
-                    }, 
+                    },
                     "description": "description",
                     "change_reason": "change_reason"
                 })
@@ -52,20 +52,21 @@ function create_dimensions(dimension) {
             'header': {
                 'Authorization': `Bearer ${token}`,
                 'x-tenant': 'test',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'x-org-id': `${org_id}`
             },
             "body": {
                 "mode": "raw",
                 "raw": JSON.stringify({
                     "dimension": dimension.name,
                     "position": dimension.position,
-                    "schema": dimension.schema, 
-                    "description": dimension.description,
-                    "change_reason": dimension.change_reason
+                    "schema": dimension.schema,
+                    "description": "description",
+                    "change_reason": "change_reason"
                 })
             }
         };
-        
+
             pm.sendRequest(options, function (error, response) {
                 if (error) {
                     console.log(`Error creating dimension: ${dimension.name}`);

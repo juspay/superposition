@@ -34,8 +34,8 @@ where
     let (function, set_function) = create_signal(function);
     let (runtime_version, set_runtime_version) = create_signal(runtime_version);
     let (error_message, set_error_message) = create_signal("".to_string());
-    let (description, set_description) = create_signal(description);
-    let (change_reason, set_change_reason) = create_signal(change_reason);
+    let (description_rs, description_ws) = create_signal(description);
+    let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     if !edit {
         set_runtime_version.set("1.0.0".to_string())
@@ -50,8 +50,8 @@ where
         let f_function_name = function_name.get();
         let f_function = function.get();
         let f_runtime_version = runtime_version.get();
-        let f_description = description.get();
-        let f_change_reason = change_reason.get();
+        let f_description = description_rs.get();
+        let f_change_reason = change_reason_rs.get();
         let handle_submit_clone = handle_submit.clone();
 
         logging::log!("Function Name in editor: {:?}", function_name);
@@ -161,31 +161,32 @@ where
                                 on:change=move |ev| {
                                     let value = event_target_value(&ev);
                                     logging::log!("{:?}", value);
-                                    set_description.set(value);
+                                    description_ws.set(value);
                                 }
                             >
 
-                                {description.get()}
+                                {description_rs.get()}
                             </textarea>
                         </div>
+
                         <div class="form-control">
                             <label class="label">
-                                <span class="label-text">Change Reason</span>
+                                <span class="label-text">Reason for Change</span>
                             </label>
                             <textarea
                                 type="text"
                                 class="input input-bordered shadow-md"
                                 name="change_reason"
                                 id="change_reason"
-                                placeholder="explain function"
+                                placeholder="Reason for change"
                                 on:change=move |ev| {
                                     let value = event_target_value(&ev);
                                     logging::log!("{:?}", value);
-                                    set_change_reason.set(value);
+                                    change_reason_ws.set(value);
                                 }
                             >
 
-                                {change_reason.get()}
+                                {change_reason_rs.get()}
                             </textarea>
                         </div>
 

@@ -7,9 +7,9 @@
       "type": "default"
     },
     {
-        "key": "x-tenant",
-        "value": "test",
-        "type": "default"
+      "key": "x-tenant",
+      "value": "{{x_tenant}}",
+      "type": "default"
     },
     {
       "key": "Content-Type",
@@ -73,7 +73,7 @@
             "pmTestKey2": "value2-test"
           }
         }
-      ], 
+      ],
       "description": "description",
       "change_reason": "change_reason"
     }

@@ -55,6 +55,7 @@ function fetch_experiment_n_test(experiment_id, expected_context, expected_varai
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             'x-tenant': 'test',
+            'x-org-id': `${org_id}`
         }
     };
 

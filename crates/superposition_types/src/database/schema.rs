@@ -667,7 +667,7 @@ diesel::table! {
         #[max_length = 200]
         last_modified_by -> Varchar,
         description -> Text,
-        change_reason-> Text,
+        change_reason -> Text,
     }
 }
 
@@ -721,7 +721,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     event_log_y2026m10,
     event_log_y2026m11,
     event_log_y2026m12,
-    experiments,
     functions,
     type_templates,
 );

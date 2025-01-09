@@ -12,7 +12,7 @@
       },
       {
         "key": "org_id",
-        "value": "testorg",
+        "value": "{{org_id}}",
         "type": "default"
       }
     ]

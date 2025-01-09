@@ -13,7 +13,7 @@
     },
     {
         "key": "x-tenant",
-        "value": "test",
+        "value": "{{x_tenant}}",
         "type": "default"
     },
     {
@@ -41,7 +41,7 @@
           "tamatar"
         ]
       },
-      "description": "description", 
+      "description": "description",
       "change_reason": "change_reason"
     }
   },

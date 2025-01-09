@@ -21,7 +21,7 @@ pm.test("200 check", function() {
 
 pm.test("Context equality check", function() {
     const response = pm.response.json();
-    
+
     delete response.created_at;
     delete response.created_by;
     delete response.last_modified_at;
