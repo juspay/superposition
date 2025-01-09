@@ -12,6 +12,13 @@ pub struct TypeTemplateCreateRequest {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct TypeTemplateUpdateRequest {
+    pub type_schema: Value,
+    pub description: Option<String>,
+    pub change_reason: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TypeTemplateResponse {
     pub type_schema: Value,
     pub type_name: TypeTemplateName,

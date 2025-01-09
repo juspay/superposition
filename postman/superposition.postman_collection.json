@@ -113,6 +113,70 @@
           }
         }
       ]
+    },
+    {
+      "name": "Workspace",
+      "item": [
+        {
+          "name": "Create",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "",
+                  "pm.test(\"200 check\", function () {",
+                  "    console.log(pm.response)",
+                  "    console.log(pm.request)",
+                  "    const response = pm.response.json();",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-org-id",
+                "value": "testorg",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\"workspace_admin_email\":\"test@gmail.com\",\"workspace_name\":\"test\"}"
+            },
+            "url": {
+              "raw": "{{host}}/workspaces",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "workspaces"
+              ]
+            }
+          }
+        }
+      ]
     }
   ],
   "info": {
@@ -129,6 +193,11 @@
     {
       "key": "token",
       "value": "12345678",
+      "type": "default"
+    },
+    {
+      "key": "org_id",
+      "value": "testorg",
       "type": "default"
     }
   ]

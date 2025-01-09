@@ -13,7 +13,7 @@ use std::fmt::Display;
 use std::future::{ready, Ready};
 
 #[cfg(feature = "server")]
-use actix_web::{dev::Payload, error, FromRequest, HttpMessage, HttpRequest};
+use actix_web::{dev::Payload, FromRequest, HttpMessage, HttpRequest};
 #[cfg(feature = "diesel_derives")]
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 #[cfg(feature = "diesel_derives")]

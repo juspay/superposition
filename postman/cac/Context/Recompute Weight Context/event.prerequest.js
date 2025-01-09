@@ -18,8 +18,8 @@ function update_dimension_position() {
                 "schema": {
                     "type": "string",
                     "pattern": "^[a-z0-9].*$"
-                }, 
-                "description": "description",           
+                },
+                "description": "description",
                 "change_reason": "change_reason"
             })
         }
@@ -32,7 +32,7 @@ function update_dimension_position() {
         }
         console.log(`Updated dimension: clientId`);
     });
-    
+
 }
 
 update_dimension_position();

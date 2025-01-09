@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    ops::Deref,
+};
 
 use actix_http::header::{self};
 use actix_web::{
@@ -17,11 +20,14 @@ use diesel::{
 };
 use reqwest::{Method, Response, StatusCode};
 use serde_json::{json, Map, Value};
-use service_utils::helpers::{
-    construct_request_headers, execute_webhook_call, generate_snowflake_id, request,
-};
 use service_utils::service::types::{
     AppHeader, AppState, CustomHeaders, DbConnection, Tenant,
+};
+use service_utils::{
+    helpers::{
+        construct_request_headers, execute_webhook_call, generate_snowflake_id, request,
+    },
+    service::types::OrganisationId,
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
@@ -135,6 +141,7 @@ async fn create(
     tenant: Tenant,
     user: User,
     tenant_config: TenantConfig,
+    org_id: OrganisationId,
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::experiments::dsl::experiments;
     let mut variants = req.variants.to_vec();
@@ -237,15 +244,27 @@ async fn create(
             err
         )
     })?;
+    let org_id = org_id.clone().deref().to_owned();
+    log::info!("Organisation ID {org_id}");
     let extra_headers = vec![
         ("x-user", Some(user_str)),
         ("x-config-tags", custom_headers.config_tags),
+        ("x-org-id", Some(org_id)),
     ]
     .into_iter()
     .filter_map(|(key, val)| val.map(|v| (key, v)))
     .collect::<Vec<_>>();
 
-    let headers_map = construct_header_map(tenant.as_str(), extra_headers)?;
+    let headers_map = construct_header_map(
+        tenant
+            .get_tenant_name()
+            .map_err(|err| {
+                log::error!("{err}");
+                unexpected_error!("failed to decode tenant")
+            })?
+            .as_str(),
+        extra_headers,
+    )?;
 
     // Step 1: Perform the HTTP request and handle errors
     let response = http_client
@@ -334,6 +353,7 @@ async fn conclude_handler(
     tenant: Tenant,
     tenant_config: TenantConfig,
     user: User,
+    org_id: OrganisationId,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(conn) = db_conn;
     let (response, config_version_id) = conclude(
@@ -344,6 +364,7 @@ async fn conclude_handler(
         conn,
         tenant.clone(),
         user,
+        org_id,
     )
     .await?;
 
@@ -378,11 +399,11 @@ pub async fn conclude(
     mut conn: PooledConnection<ConnectionManager<PgConnection>>,
     tenant: Tenant,
     user: User,
+    org_id: OrganisationId,
 ) -> superposition::Result<(Experiment, Option<String>)> {
     use superposition_types::database::schema::experiments::dsl;
 
     let change_reason = req.change_reason.clone();
-
     let winner_variant_id: String = req.chosen_variant.to_owned();
 
     let experiment: Experiment = dsl::experiments
@@ -404,6 +425,10 @@ pub async fn conclude(
     let experiment_context: Map<String, Value> = experiment.context.into();
 
     let mut operations: Vec<ContextAction> = vec![];
+    let tenant_name = tenant.get_tenant_name().map_err(|err| {
+        log::error!("{err}");
+        unexpected_error!("failed to decode tenant")
+    })?;
 
     let mut is_valid_winner_variant = false;
     for variant in experiment.variants.into_inner() {
@@ -437,12 +462,13 @@ pub async fn conclude(
                     let url = format!("{}/default-config/{}", state.cac_host, key);
 
                     let headers = construct_request_headers(&[
-                        ("x-tenant", tenant.as_str()),
+                        ("x-tenant", tenant_name.as_str()),
                         (
                             "Authorization",
                             &format!("Internal {}", state.superposition_token),
                         ),
                         ("x-user", user_str.as_str()),
+                        ("x-org-id", org_id.as_str()),
                     ])
                     .map_err(|err| {
                         superposition::AppError::UnexpectedError(anyhow!(err))
@@ -481,12 +507,16 @@ pub async fn conclude(
             err
         )
     })?;
-    let extra_headers = vec![("x-user", Some(user_str)), ("x-config-tags", config_tags)]
-        .into_iter()
-        .filter_map(|(key, val)| val.map(|v| (key, v)))
-        .collect::<Vec<_>>();
+    let extra_headers = vec![
+        ("x-user", Some(user_str)),
+        ("x-config-tags", config_tags),
+        ("x-org-id", Some(org_id.to_string())),
+    ]
+    .into_iter()
+    .filter_map(|(key, val)| val.map(|v| (key, v)))
+    .collect::<Vec<_>>();
 
-    let headers_map = construct_header_map(tenant.as_str(), extra_headers)?;
+    let headers_map = construct_header_map(&tenant_name, extra_headers)?;
 
     let response = http_client
         .put(&url)
@@ -702,10 +732,10 @@ async fn ramp(
     user: User,
     tenant: Tenant,
     tenant_config: TenantConfig,
+    org_id: OrganisationId,
 ) -> superposition::Result<Json<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
-    let description = req.description.clone();
     let change_reason = req.change_reason.clone();
 
     let experiment: Experiment = experiments::experiments
@@ -738,14 +768,13 @@ async fn ramp(
             experiments::last_modified.eq(Utc::now()),
             experiments::last_modified_by.eq(user.get_email()),
             experiments::status.eq(ExperimentStatusType::INPROGRESS),
-            experiments::description.eq(description),
             experiments::change_reason.eq(change_reason),
         ))
         .returning(Experiment::as_returning())
         .schema_name(&tenant)
         .get_result(&mut conn)?;
 
-    let (_, config_version_id) = fetch_cac_config(&tenant, &data).await?;
+    let (_, config_version_id) = fetch_cac_config(&tenant, &data, &org_id).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
     let webhook_event = if new_traffic_percentage == 0
@@ -784,6 +813,7 @@ async fn update_overrides(
     tenant: Tenant,
     tenant_config: TenantConfig,
     user: User,
+    org_id: OrganisationId,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let experiment_id = params.into_inner();
@@ -946,12 +976,17 @@ async fn update_overrides(
     let extra_headers = vec![
         ("x-user", Some(user_str)),
         ("x-config-tags", custom_headers.config_tags),
+        ("x-org-id", Some(org_id.to_string())),
     ]
     .into_iter()
     .filter_map(|(key, val)| val.map(|v| (key, v)))
     .collect::<Vec<_>>();
 
-    let headers_map = construct_header_map(tenant.as_str(), extra_headers)?;
+    let tenant_name = tenant.get_tenant_name().map_err(|err| {
+        log::error!("{err}");
+        unexpected_error!("failed to decode tenant")
+    })?;
+    let headers_map = construct_header_map(&tenant_name, extra_headers)?;
 
     let response = http_client
         .put(&url)

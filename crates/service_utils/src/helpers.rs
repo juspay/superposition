@@ -26,7 +26,6 @@ use superposition_types::{
     },
     Condition,
 };
-use urlencoding::encode;
 
 const CONFIG_TAG_REGEX: &str = "^[a-zA-Z0-9_-]{1,64}$";
 

@@ -4,7 +4,9 @@ use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
 use service_utils::helpers::extract_dimensions;
-use service_utils::service::types::{AppState, ExperimentationFlags, Tenant};
+use service_utils::service::types::{
+    AppState, ExperimentationFlags, OrganisationId, Tenant,
+};
 use std::collections::HashSet;
 use std::str::FromStr;
 use superposition_macros::{bad_argument, unexpected_error};
@@ -304,10 +306,16 @@ pub fn construct_header_map(
 pub async fn fetch_cac_config(
     tenant: &Tenant,
     state: &Data<AppState>,
+    org_id: &OrganisationId,
 ) -> superposition::Result<(Config, Option<String>)> {
     let http_client = reqwest::Client::new();
     let url = state.cac_host.clone() + "/config";
-    let headers_map = construct_header_map(tenant.as_str(), Vec::new())?;
+    let tenant_name = tenant.get_tenant_name().map_err(|err| {
+        log::error!("{err}");
+        unexpected_error!("failed to decode tenant")
+    })?;
+    let headers_map =
+        construct_header_map(&tenant_name, vec![("x-org-id", org_id.to_string())])?;
 
     let response = http_client
         .get(&url)

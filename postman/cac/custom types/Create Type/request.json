@@ -13,7 +13,7 @@
         },
         {
             "key": "x-tenant",
-            "value": "test",
+            "value": "{{x_tenant}}",
             "type": "default"
         },
         {
@@ -34,8 +34,8 @@
                 "type": "number"
             },
             "type_name": "Integer",
-            "description": "",
-            "change_reason": ""
+            "description": "description",
+            "change_reason": "change_reason"
         }
     },
     "url": {

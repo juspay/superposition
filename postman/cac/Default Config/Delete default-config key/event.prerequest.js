@@ -12,13 +12,13 @@ function add_default_config() {
         },
         "body": {
             "mode": "raw",
-            "raw": JSON.stringify({ 
+            "raw": JSON.stringify({
                 "key": "key2",
                 "value": "value1",
                 "schema": {
                     "type": "string",
                     "pattern": ".*"
-                }, 
+                },
                 "description": "description",
                 "change_reason": "change_reason"
             })
@@ -32,7 +32,7 @@ function add_default_config() {
         }
         console.log(`created default config: new_key`);
     });
-    
+
 }
 
 add_default_config();

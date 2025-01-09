@@ -15,7 +15,7 @@ pub async fn ramp_experiment(
         .patch(format!("{host}/experiments/{}/ramp", exp_id))
         .header("x-tenant", tenant)
         .header("x-org-id", org_id)
-        .json(&json!({ "traffic_percentage": percent }))
+        .json(&json!({ "traffic_percentage": percent, "change_reason": format!("ramping to {percent}") }))
         .send()
         .await
     {

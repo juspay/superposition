@@ -1,5 +1,6 @@
 const host = pm.environment.get("host");
 const token = pm.environment.get("token");
+const org_id = pm.environment.get("org_id");
 
 function create_default_config_keys() {
     let keys = [
@@ -14,17 +15,18 @@ function create_default_config_keys() {
             "header": {
                 'Authorization': `Bearer ${token}`,
                 'x-tenant': 'test',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'x-org-id': `${org_id}`
             },
             "body": {
                 "mode": "raw",
-                "raw": JSON.stringify({ 
+                "raw": JSON.stringify({
                     "key": key,
                     "value": "value1",
                     "schema": {
                         "type": "string",
                         "pattern": ".*"
-                    }, 
+                    },
                     "description": "description",
                     "change_reason": "change_reason"
                 })

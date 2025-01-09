@@ -12,9 +12,9 @@
       "type": "text"
     },
     {
-        "key": "x-tenant",
-        "value": "test",
-        "type": "default"
+      "key": "x-tenant",
+      "value": "{{x_tenant}}",
+      "type": "default"
     },
     {
       "key": "x-org-id",
@@ -30,7 +30,7 @@
       }
     },
     "raw_json_formatted": {
-      "chosen_variant": "{{experiment_id}}-control", 
+      "chosen_variant": "{{experiment_id}}-control",
       "description": "description",
       "change_reason": "change_reason"
     }

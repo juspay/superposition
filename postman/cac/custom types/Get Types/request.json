@@ -1,34 +1,34 @@
 {
-    "method": "GET",
-    "header": [
-        {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-        },
-        {
-            "key": "Content-Type",
-            "value": "application/json",
-            "type": "text"
-        },
-        {
-            "key": "x-tenant",
-            "value": "test",
-            "type": "default"
-        },
-        {
-            "key": "x-org-id",
-            "value": "{{org_id}}",
-            "type": "default"
-        }
-    ],
-    "url": {
-        "raw": "{{host}}/types",
-        "host": [
-            "{{host}}"
-        ],
-        "path": [
-            "types"
-        ]
+  "method": "GET",
+  "header": [
+    {
+      "key": "Authorization",
+      "value": "Bearer {{token}}",
+      "type": "text"
+    },
+    {
+      "key": "Content-Type",
+      "value": "application/json",
+      "type": "text"
+    },
+    {
+      "key": "x-tenant",
+      "value": "{{x_tenant}}",
+      "type": "default"
+    },
+    {
+      "key": "x-org-id",
+      "value": "{{org_id}}",
+      "type": "default"
     }
+  ],
+  "url": {
+    "raw": "{{host}}/types",
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "types"
+    ]
+  }
 }

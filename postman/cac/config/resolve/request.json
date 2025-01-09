@@ -3,7 +3,7 @@
   "header": [
     {
         "key": "x-tenant",
-        "value": "test",
+        "value": "{{x_tenant}}",
         "type": "default"
     },
     {

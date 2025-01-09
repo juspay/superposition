@@ -56,6 +56,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "body": {
@@ -112,6 +117,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "body": {
@@ -143,6 +153,7 @@
               "script": {
                 "exec": [
                   "const host = pm.variables.get(\"host\");",
+                  "const org_id = pm.variables.get(\"org_id\");",
                   "",
                   "function getConfigAndTest(key, value) {",
                   "    const getRequest = {",
@@ -151,9 +162,10 @@
                   "        header: {",
                   "            'Content-Type': 'application/json',",
                   "            'x-tenant': 'test',",
+                  "            'x-org-id': `${org_id}`",
                   "        }",
                   "    };",
-                  "",
+                  "    console.log(getRequest)",
                   "    pm.sendRequest(getRequest, (error, response) => {",
                   "        if(error) {",
                   "            console.log(\"Failed to fetch config\");",
@@ -238,6 +250,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "body": {
@@ -269,6 +286,7 @@
               "script": {
                 "exec": [
                   "const host = pm.variables.get(\"host\");",
+                  "const org_id = pm.variables.get(\"org_id\");",
                   "",
                   "function add_default_config() {",
                   "    const options = {",
@@ -276,7 +294,8 @@
                   "        'url': `${host}/default-config`,",
                   "        'header': {",
                   "            'x-tenant': 'test',",
-                  "            'Content-Type': 'application/json'",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-org-id': `${org_id}`",
                   "        },",
                   "        \"body\": {",
                   "            \"mode\": \"raw\",",
@@ -338,6 +357,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "url": {
@@ -393,6 +417,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "url": {
@@ -415,6 +444,11 @@
               {
                 "key": "x-tenant",
                 "value": "test",
+                "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
                 "type": "default"
               }
             ],
@@ -450,6 +484,7 @@
               "script": {
                 "exec": [
                   "const host = pm.variables.get(\"host\");",
+                  "const org_id = pm.variables.get(\"org_id\");",
                   "",
                   "function add_dimension() {",
                   "    const options = {",
@@ -457,7 +492,8 @@
                   "        'url': `${host}/dimension`,",
                   "        'header': {",
                   "            'x-tenant': 'test',",
-                  "            'Content-Type': 'application/json'",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-org-id': `${org_id}`",
                   "        },",
                   "        \"body\": {",
                   "            \"mode\": \"raw\",",
@@ -519,6 +555,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "body": {
@@ -574,6 +615,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "body": {
@@ -583,7 +629,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\"position\":1,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
+              "raw": "{\"position\":1,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"},\"description\":\"description\",\"change_reason\":\"change_reason\"}"
             },
             "url": {
               "raw": "{{host}}/dimension/{{dimension_name}}",
@@ -606,6 +652,7 @@
               "script": {
                 "exec": [
                   "const host = pm.variables.get(\"host\");",
+                  "const org_id = pm.variables.get(\"org_id\");",
                   "",
                   "function add_dimension() {",
                   "    const options = {",
@@ -613,7 +660,8 @@
                   "        'url': `${host}/dimension`,",
                   "        'header': {",
                   "            'x-tenant': 'test',",
-                  "            'Content-Type': 'application/json'",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-org-id': `${org_id}`",
                   "        },",
                   "        \"body\": {",
                   "            \"mode\": \"raw\",",
@@ -651,6 +699,7 @@
                 "exec": [
                   "const host = pm.variables.get(\"host\");",
                   "const token = pm.variables.get(\"token\");",
+                  "const org_id = pm.variables.get(\"org_id\");",
                   "",
                   "pm.test(\"204 check\", function () {",
                   "    pm.response.to.have.status(204);",
@@ -663,7 +712,8 @@
                   "        header: {",
                   "            'Content-Type': 'application/json',",
                   "            'x-tenant': 'test',",
-                  "            'Authorization': `Bearer ${token}`",
+                  "            'Authorization': `Bearer ${token}`,",
+                  "            'x-org-id': `${org_id}`",
                   "        }",
                   "    };",
                   "",
@@ -694,6 +744,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "url": {
@@ -721,6 +776,7 @@
               "script": {
                 "exec": [
                   "const host = pm.variables.get(\"host\");",
+                  "const org_id = pm.variables.get(\"org_id\");",
                   "",
                   "function getConfigAndTest(context_id, override_id, expected_condition, expected_override) {",
                   "    const getRequest = {",
@@ -729,6 +785,7 @@
                   "        header: {",
                   "            'Content-Type': 'application/json',",
                   "            'x-tenant': 'test',",
+                  "            'x-org-id': `${org_id}`,",
                   "        }",
                   "    };",
                   "",
@@ -819,6 +876,11 @@
               {
                 "key": "x-tenant",
                 "value": "test",
+                "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
                 "type": "default"
               }
             ],
@@ -851,6 +913,7 @@
               "script": {
                 "exec": [
                   "const host = pm.variables.get(\"host\");",
+                  "const org_id = pm.variables.get(\"org_id\");",
                   "",
                   "function getConfigAndTest(context_id, override_id, expected_condition, expected_override) {",
                   "    const getRequest = {",
@@ -859,6 +922,7 @@
                   "        header: {",
                   "            'Content-Type': 'application/json',",
                   "            'x-tenant': 'test',",
+                  "            'x-org-id': `${org_id}`",
                   "        }",
                   "    };",
                   "",
@@ -950,6 +1014,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "body": {
@@ -981,6 +1050,7 @@
               "script": {
                 "exec": [
                   "const host = pm.variables.get(\"host\");",
+                  "const org_id = pm.variables.get(\"org_id\");",
                   "",
                   "function getConfigAndTest(context_id, override_id, expected_condition, expected_override) {",
                   "    const getRequest = {",
@@ -989,6 +1059,7 @@
                   "        header: {",
                   "            'Content-Type': 'application/json',",
                   "            'x-tenant': 'test',",
+                  "            'x-org-id': `${org_id}`",
                   "        }",
                   "    };",
                   "",
@@ -1085,6 +1156,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "body": {
@@ -1168,6 +1244,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "url": {
@@ -1219,6 +1300,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "url": {
@@ -1242,6 +1328,7 @@
               "script": {
                 "exec": [
                   "const host = pm.variables.get(\"host\");",
+                  "const org_id = pm.variables.get(\"org_id\");",
                   "",
                   "function update_dimension_position() {",
                   "    const options = {",
@@ -1249,7 +1336,8 @@
                   "        'url': `${host}/dimension`,",
                   "        'header': {",
                   "            'x-tenant': 'test',",
-                  "            'Content-Type': 'application/json'",
+                  "            'Content-Type': 'application/json',",
+                  "            'x-org-id': `${org_id}`",
                   "        },",
                   "        \"body\": {",
                   "            \"mode\": \"raw\",",
@@ -1287,6 +1375,7 @@
                 "exec": [
                   "const host = pm.variables.get(\"host\");",
                   "const context_id = pm.environment.get(\"context_id\");",
+                  "const org_id = pm.variables.get(\"org_id\");",
                   "",
                   "",
                   "function getContextAndTest() {",
@@ -1296,6 +1385,7 @@
                   "        header: {",
                   "            'Content-Type': 'application/json',",
                   "            'x-tenant': 'test',",
+                  "            'x-org-id': `${org_id}`",
                   "        }",
                   "    ",
                   "    };",
@@ -1341,6 +1431,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "url": {
@@ -1365,6 +1460,7 @@
                 "exec": [
                   "const host = pm.variables.get(\"host\");",
                   "const context_id = pm.environment.get(\"context_id\");",
+                  "const org_id = pm.variables.get(\"org_id\");",
                   "",
                   "console.log(`context id is thiss : ${context_id}`);",
                   "",
@@ -1379,6 +1475,7 @@
                   "        header: {",
                   "            'Content-Type': 'application/json',",
                   "            'x-tenant': 'test',",
+                  "            'x-org-id': `${org_id}`",
                   "        }",
                   "    };",
                   "",
@@ -1408,6 +1505,11 @@
               {
                 "key": "x-tenant",
                 "value": "test",
+                "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
                 "type": "default"
               }
             ],
@@ -1451,6 +1553,11 @@
               {
                 "key": "x-tenant",
                 "value": "test",
+                "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
                 "type": "default"
               }
             ],
@@ -1558,6 +1665,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "url": {
@@ -1583,12 +1695,14 @@
                   "pm.test('expect response be 200', function () {",
                   "    pm.response.to.be.ok;",
                   "    const host = pm.variables.get(\"host\");",
+                  "    const org_id = pm.variables.get(\"org_id\");",
                   "    const request = {",
                   "        url: `${host}/types`,",
                   "        method: 'GET',",
                   "        header: {",
                   "            'Content-Type': 'application/json',",
                   "            'x-tenant': 'test',",
+                  "            'x-org-id': `${org_id}`",
                   "        }",
                   "    }",
                   "    pm.sendRequest(request, (error, response) => {",
@@ -1671,6 +1785,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "body": {
@@ -1703,12 +1822,14 @@
                   "// any prerequest js code goes here",
                   "function get_type_name() {",
                   "    const host = pm.variables.get(\"host\");",
+                  "    const org_id = pm.variables.get(\"org_id\");",
                   "    const request = {",
                   "        url: `${host}/types`,",
                   "        method: 'GET',",
                   "        header: {",
                   "            'Content-Type': 'application/json',",
                   "            'x-tenant': 'test',",
+                  "            'x-org-id': `${org_id}`",
                   "        }",
                   "    }",
                   "    pm.sendRequest(request, (error, response) => {",
@@ -1741,12 +1862,14 @@
                   "pm.test('expect response be 200', function () {",
                   "    pm.response.to.be.ok;",
                   "    const host = pm.variables.get(\"host\");",
+                  "    const org_id = pm.variables.get(\"org_id\");",
                   "    const request = {",
                   "        url: `${host}/types`,",
                   "        method: 'GET',",
                   "        header: {",
                   "            'Content-Type': 'application/json',",
                   "            'x-tenant': 'test',",
+                  "            'x-org-id': `${org_id}`",
                   "        }",
                   "    }",
                   "    pm.sendRequest(request, (error, response) => {",
@@ -1829,6 +1952,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "body": {
@@ -1862,12 +1990,14 @@
                   "// any prerequest js code goes here",
                   "function get_type_name() {",
                   "    const host = pm.variables.get(\"host\");",
+                  "    const org_id = pm.variables.get(\"org_id\");",
                   "    const request = {",
                   "        url: `${host}/types`,",
                   "        method: 'GET',",
                   "        header: {",
                   "            'Content-Type': 'application/json',",
                   "            'x-tenant': 'test',",
+                  "            'x-org-id': `${org_id}`",
                   "        }",
                   "    }",
                   "    pm.sendRequest(request, (error, response) => {",
@@ -1900,12 +2030,14 @@
                   "pm.test('expect response be 200', function () {",
                   "    pm.response.to.be.ok;",
                   "    const host = pm.variables.get(\"host\");",
+                  "    const org_id = pm.variables.get(\"org_id\");",
                   "    const request = {",
                   "        url: `${host}/types`,",
                   "        method: 'GET',",
                   "        header: {",
                   "            'Content-Type': 'application/json',",
                   "            'x-tenant': 'test',",
+                  "            'x-org-id': `${org_id}`",
                   "        }",
                   "    }",
                   "    pm.sendRequest(request, (error, response) => {",
@@ -1981,6 +2113,11 @@
                 "key": "x-tenant",
                 "value": "test",
                 "type": "default"
+              },
+              {
+                "key": "x-org-id",
+                "value": "{{org_id}}",
+                "type": "default"
               }
             ],
             "url": {
@@ -2013,6 +2150,11 @@
     {
       "key": "token",
       "value": "12345678",
+      "type": "default"
+    },
+    {
+      "key": "org_id",
+      "value": "testorg",
       "type": "default"
     }
   ]

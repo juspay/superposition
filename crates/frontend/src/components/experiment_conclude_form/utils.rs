@@ -7,7 +7,7 @@ pub async fn conclude_experiment(
     exp_id: String,
     variant_id: String,
     tenant: &String,
-    org_id: &String
+    org_id: &String,
 ) -> Result<ExperimentResponse, String> {
     let client = reqwest::Client::new();
     let host = get_host();
@@ -15,7 +15,7 @@ pub async fn conclude_experiment(
         .patch(format!("{host}/experiments/{}/conclude", exp_id))
         .header("x-tenant", tenant)
         .header("x-org-id", org_id)
-        .json(&json!({ "chosen_variant": variant_id }))
+        .json(&json!({ "chosen_variant": variant_id, "change_reason": "concluding experiment" }))
         .send()
         .await
     {

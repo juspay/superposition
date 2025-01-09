@@ -18,7 +18,7 @@ function add_dimension() {
                 "schema": {
                     "type": "string",
                     "pattern": ".*"
-                }, 
+                },
                 "description": "description",
                 "change_reason": "change_reason"
             })
@@ -32,7 +32,7 @@ function add_dimension() {
         }
         console.log(`created dimension: dim1`);
     });
-    
+
 }
 
 add_dimension();
