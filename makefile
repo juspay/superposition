@@ -3,6 +3,22 @@ DOCKER_DNS ?= localhost
 TENANT ?= dev
 SHELL := /usr/bin/env bash
 FEATURES ?= ssr
+HAS_DOCKER := $(shell command -v docker > /dev/null; echo $$?)
+HAS_PODMAN := $(shell command -v podman > /dev/null; echo $$?)
+
+ifeq ($(shell test -f .env; echo $$?),1)
+$(shell cp .env.example .env)
+endif
+
+ifeq ($(HAS_DOCKER),0)
+  DOCKER := docker
+else ifeq ($(HAS_PODMAN),0)
+  DOCKER := podman
+else
+	$(error "No docker or podman found, please install one of them.")
+endif
+
+COMPOSE := $(DOCKER) compose
 
 .PHONY:
 	db-init
@@ -14,22 +30,36 @@ FEATURES ?= ssr
 	validate-psql-connection
 	cac
 
+db:
+ifndef CI
+	$(COMPOSE) up -d postgres
+else
+	@echo "Skipping postgres setup in CI."
+endif
+	@echo "Verifying postgres readiness..."
+	@while ! pg_isready -h $(DOCKER_DNS) -p 5432; do sleep 0.5; done
+
+localstack:
+ifndef CI
+	$(COMPOSE) up -d localstack
+else
+	@echo "Skipping localstack setup in CI."
+endif
+	@echo "Verifying localstack readiness..."
+	@while ! aws --no-cli-pager --endpoint-url=http://$(DOCKER_DNS):4566 --region=ap-south-1 sts get-caller-identity; do \
+		sleep 0.5; \
+	done
+
 db-init:
 	diesel migration run --locked-schema --config-file=crates/superposition_types/src/database/diesel.toml
 
 cleanup:
-	-docker rm -f $$(docker container ls --filter name=^context-aware-config -a -q)
-	-docker rmi -f $$(docker images | grep context-aware-config-postgres | cut -f 10 -d " ")
+	-$(DOCKER) rm -f $$($(DOCKER) container ls --filter name=^context-aware-config -a -q)
+	-$(DOCKER) rmi -f $$($(DOCKER) images | grep context-aware-config-postgres | cut -f 10 -d " ")
 
-migration: cleanup
-	docker-compose up -d postgres
-	cp .env.example .env
-	while ! make validate-psql-connection; \
-		do echo "waiting for postgres bootup"; \
-		sleep 0.5; \
-		done
+migration: cleanup db
 	diesel migration run --locked-schema --config-file=crates/superposition_types/src/database/diesel.toml
-	docker-compose down
+	$(COMPOSE) down
 
 legacy_db_setup:
 	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/legacy-db-setup.sh
@@ -44,33 +74,18 @@ validate-psql-connection:
 	pg_isready -h $(DOCKER_DNS) -p 5432
 
 
-env-setup:
+test-tenant: TENANT = 'test'
+test-tenant: tenant
+
+dev-tenant: TENANT = 'dev'
+dev-tenant: tenant
+
+SETUP_DEPS = db localstack
+ifdef CI
+	SETUP_DEPS += test-tenant
+endif
+setup: $(SETUP_DEPS)
 	npm ci
-	-docker-compose up -d postgres localstack
-	cp .env.example .env
-	while ! make validate-psql-connection validate-aws-connection; \
-		do echo "waiting for postgres, localstack bootup"; \
-		sleep 0.5; \
-		done
-
-test-tenant:
-	make tenant TENANT='test'
-
-dev-tenant:
-	make tenant TENANT='dev'
-
-ci-setup: env-setup test-tenant
-	npm ci --loglevel=error
-	make run -e DOCKER_DNS=$(DOCKER_DNS) 2>&1 | tee test_logs &
-	while ! grep -q "starting in Actix" test_logs; \
-		do echo "ci-test: waiting for bootup..." && sleep 4; \
-		done
-	# NOTE: `make db-init` finally starts a postgres container and runs all the migrations with locked-schema option
-	# to prevent update of schema.rs for both cac and experimentation.
-	# NOTE: The container spinned-up here is the actual container being used in development
-	echo setup completed successfully!!!
-
-setup: env-setup
 
 kill:
 	-pkill -f target/debug/superposition &
@@ -110,22 +125,20 @@ backend:
 
 build: frontend backend
 
-run: kill frontend
-	while ! make validate-psql-connection validate-aws-connection; \
-		do echo "waiting for postgres, localstack bootup"; \
-		sleep 0.5; \
-		done
-	make superposition -e DOCKER_DNS=$(DOCKER_DNS)
+RUN_DEPS =
+ifdef CI
+		RUN_DEPS += setup
+endif
+RUN_DEPS += kill frontend superposition
+run: $(RUN_DEPS)
 
-run_legacy: kill build
-	while ! make validate-psql-connection validate-aws-connection; \
-		do echo "waiting for postgres, localstack bootup"; \
-		sleep 0.5; \
-		done
-	make superposition_legacy -e DOCKER_DNS=$(DOCKER_DNS)
+run_legacy: kill build db localstack superposition_legacy
 
-ci-test: ci-setup
+test:
 	cargo test
+	npm ci
+	@echo "Awaiting superposition boot..."
+	@timeout 200s bash -c "while ! curl --silent 'http://localhost:8080/health' 2>&1 > /dev/null; do sleep 0.5; done"
 	npm run test
 
 tailwind:

@@ -126,6 +126,7 @@ jobs:
             - name: run tests
               shell: bash
               run: |
-                  make ci-test
+                  make run CI=1 &
+                  make test
               env:
                   APP_ENV: "TEST"
