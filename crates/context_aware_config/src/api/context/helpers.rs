@@ -99,6 +99,7 @@ pub fn validate_override_with_functions(
     let keys_function_array: Vec<(String, Option<String>)> = dsl::default_configs
         .filter(dsl::key.eq_any(default_config_keys))
         .select((dsl::key, dsl::function_name))
+        .schema_name(tenant)
         .load(conn)?;
     let new_keys_function_array: Vec<(String, String)> = keys_function_array
         .into_iter()

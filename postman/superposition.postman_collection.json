@@ -21,7 +21,7 @@
   ],
   "item": [
     {
-      "name": "Organisation",
+      "name": "organisation",
       "item": [
         {
           "name": "Create Org",
@@ -34,7 +34,7 @@
                   "",
                   "function getOrgAndTest(org_id) {",
                   "    const getRequest = {",
-                  "        url: `${host}/organisation/${org_id}`,",
+                  "        url: `${host}/superposition/organisations/${org_id}`,",
                   "        method: 'GET',",
                   "        header: {",
                   "            'Content-Type': 'application/json',",
@@ -53,13 +53,13 @@
                   "    });",
                   "}",
                   "",
-                  "pm.test(\"201 check\", function () {",
+                  "pm.test(\"200 check\", function () {",
                   "    console.log(pm.response)",
                   "    const response = pm.response.json();",
                   "    ",
                   "    pm.environment.set(\"org_id\", response.org_id);",
                   "    pm.variables.set(\"org_id\", response.org_id);",
-                  "    pm.response.to.have.status(201);",
+                  "    pm.response.to.have.status(200);",
                   "})",
                   "",
                   "pm.test(\"Check if org is added\", function () {",
@@ -101,12 +101,13 @@
               "raw": "{\"admin_email\":\"test@gmail.com\",\"name\":\"testorg\"}"
             },
             "url": {
-              "raw": "{{host}}/organisation",
+              "raw": "{{host}}/superposition/organisations",
               "host": [
                 "{{host}}"
               ],
               "path": [
-                "organisation"
+                "superposition",
+                "organisations"
               ]
             }
           }

@@ -11,7 +11,7 @@ function getConfigAndTest(key, value) {
             'x-org-id': `${org_id}`
         }
     };
-
+    console.log(getRequest)
     pm.sendRequest(getRequest, (error, response) => {
         if(error) {
             console.log("Failed to fetch config");

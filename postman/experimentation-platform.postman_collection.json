@@ -29,6 +29,7 @@
             "exec": [
               "const host = pm.environment.get(\"host\");",
               "const token = pm.environment.get(\"token\");",
+              "const org_id = pm.environment.get(\"org_id\");",
               "",
               "function create_default_config_keys() {",
               "    let keys = [",
@@ -38,21 +39,25 @@
               "",
               "    for (const key of keys) {",
               "        const options = {",
-              "            'method': 'PUT',",
-              "            'url': `${host}/default-config/${key}`,",
+              "            'method': 'POST',",
+              "            'url': `${host}/default-config`,",
               "            \"header\": {",
               "                'Authorization': `Bearer ${token}`,",
               "                'x-tenant': 'test',",
-              "                'Content-Type': 'application/json'",
+              "                'Content-Type': 'application/json',",
+              "                'x-org-id': `${org_id}`",
               "            },",
               "            \"body\": {",
               "                \"mode\": \"raw\",",
-              "                \"raw\": JSON.stringify({",
+              "                \"raw\": JSON.stringify({ ",
+              "                    \"key\": key,",
               "                    \"value\": \"value1\",",
               "                    \"schema\": {",
               "                        \"type\": \"string\",",
               "                        \"pattern\": \".*\"",
-              "                    }",
+              "                    }, ",
+              "                    \"description\": \"description\",",
+              "                    \"change_reason\": \"change_reason\"",
               "                })",
               "            }",
               "        };",
@@ -83,7 +88,9 @@
               "                \"raw\": JSON.stringify({",
               "                    \"dimension\": dimension.name,",
               "                    \"position\": dimension.position,",
-              "                    \"schema\": dimension.schema",
+              "                    \"schema\": dimension.schema, ",
+              "                    \"description\": dimension.description,",
+              "                    \"change_reason\": dimension.change_reason",
               "                })",
               "            }",
               "        };",
@@ -101,8 +108,8 @@
               "create_default_config_keys();",
               "",
               "const dimensions = [",
-              "    {name: \"os\", position: 1, schema: { type: \"string\", enum: [\"android\", \"ios\", \"web\"] }},",
-              "    {name: \"client\", position: 2, schema: { type: \"string\", pattern: \".*\" }}",
+              "    {name: \"os\", position: 1, schema: { type: \"string\", enum: [\"android\", \"ios\", \"web\"] } , description: \"description\", change_reason: \"change_reason\"},",
+              "    {name: \"client\", position: 2, schema: { type: \"string\", pattern: \".*\" }, description: \"description\", change_reason: \"change_reason\"}",
               "];",
               "create_dimensions(dimensions[0]);",
               "setTimeout(() => {",
@@ -118,6 +125,7 @@
             "exec": [
               "const host = pm.environment.get(\"host\");",
               "const token = pm.environment.get(\"token\");",
+              "const org_id = pm.environment.get(\"org_id\");",
               "",
               "",
               "function fetch_context_n_test(context_id, expected_override_id, expected_override, expected_variant_context) {",
@@ -127,6 +135,7 @@
               "        header: {",
               "            'Content-Type': 'application/json',",
               "            'x-tenant': 'test',",
+              "            'x-org-id': `${org_id}`",
               "        }",
               "    };",
               "",
@@ -259,7 +268,9 @@
               "                \"pmTestKey1\": \"value1-control\",",
               "                \"pmTestKey2\": \"value1-control\"",
               "            },",
-              "            \"variant_type\": \"CONTROL\"",
+              "            \"variant_type\": \"CONTROL\", ",
+              "            \"description\": \"description\",",
+              "            \"change_reason\": \"change_reason\"",
               "        },",
               "        {",
               "            \"id\": `${experiment_id}-test1`,",
@@ -267,7 +278,9 @@
               "                \"pmTestKey1\": \"value2-test\",",
               "                \"pmTestKey2\": \"value2-test\"",
               "            },",
-              "            \"variant_type\": \"EXPERIMENTAL\"",
+              "            \"variant_type\": \"EXPERIMENTAL\",",
+              "            \"description\": \"description\",",
+              "            \"change_reason\": \"change_reason\"",
               "        }",
               "    ];",
               "    const expected_variant_contexts = [",
@@ -299,7 +312,9 @@
               "                            }",
               "                        ]",
               "                    }",
-              "                ]",
+              "                ], ",
+              "                \"description\": \"description\",",
+              "                \"change_reason\": \"change_reason\"",
               "            }",
               "        },",
               "        {",
@@ -330,7 +345,9 @@
               "                            }",
               "                        ]",
               "                    }",
-              "                ]",
+              "                ], ",
+              "                \"description\": \"description\",",
+              "                \"change_reason\": \"change_reason\"",
               "            }",
               "        }",
               "    ];",
@@ -359,6 +376,11 @@
             "key": "Content-Type",
             "value": "application/json",
             "type": "default"
+          },
+          {
+            "key": "x-org-id",
+            "value": "{{org_id}}",
+            "type": "default"
           }
         ],
         "body": {
@@ -368,7 +390,7 @@
               "language": "json"
             }
           },
-          "raw": "{\"name\":\"experiment-1\",\"override_keys\":[\"pmTestKey1\",\"pmTestKey2\"],\"traffic_percentage\":10,\"context\":{\"and\":[{\"==\":[{\"var\":\"os\"},\"ios\"]},{\"==\":[{\"var\":\"client\"},\"testClientCac1\"]}]},\"variants\":[{\"id\":\"control\",\"variant_type\":\"CONTROL\",\"overrides\":{\"pmTestKey1\":\"value1-control\",\"pmTestKey2\":\"value1-control\"}},{\"id\":\"test1\",\"variant_type\":\"EXPERIMENTAL\",\"overrides\":{\"pmTestKey1\":\"value2-test\",\"pmTestKey2\":\"value2-test\"}}]}"
+          "raw": "{\"name\":\"experiment-1\",\"override_keys\":[\"pmTestKey1\",\"pmTestKey2\"],\"traffic_percentage\":10,\"context\":{\"and\":[{\"==\":[{\"var\":\"os\"},\"ios\"]},{\"==\":[{\"var\":\"client\"},\"testClientCac1\"]}]},\"variants\":[{\"id\":\"control\",\"variant_type\":\"CONTROL\",\"overrides\":{\"pmTestKey1\":\"value1-control\",\"pmTestKey2\":\"value1-control\"}},{\"id\":\"test1\",\"variant_type\":\"EXPERIMENTAL\",\"overrides\":{\"pmTestKey1\":\"value2-test\",\"pmTestKey2\":\"value2-test\"}}],\"description\":\"description\",\"change_reason\":\"change_reason\"}"
         },
         "url": {
           "raw": "{{host}}/experiments",
@@ -404,6 +426,11 @@
             "key": "x-tenant",
             "value": "test",
             "type": "default"
+          },
+          {
+            "key": "x-org-id",
+            "value": "{{org_id}}",
+            "type": "default"
           }
         ],
         "url": {
@@ -428,6 +455,7 @@
             "exec": [
               "const host = pm.environment.get(\"host\");",
               "const token = pm.environment.get(\"token\");",
+              "const org_id = pm.environment.get(\"org_id\");",
               "",
               "function fetch_experiment_n_test(experiment_id, expected_traffic_percentage) {",
               "    const options = {",
@@ -437,6 +465,7 @@
               "            'Authorization': `Bearer ${token}`,",
               "            'Content-Type': 'application/json',",
               "            'x-tenant': 'test',",
+              "            'x-org-id': `${org_id}`",
               "        }",
               "    };",
               "",
@@ -486,6 +515,11 @@
             "key": "x-tenant",
             "value": "test",
             "type": "default"
+          },
+          {
+            "key": "x-org-id",
+            "value": "{{org_id}}",
+            "type": "default"
           }
         ],
         "body": {
@@ -495,7 +529,7 @@
               "language": "json"
             }
           },
-          "raw": "{\"traffic_percentage\":46}"
+          "raw": "{\"traffic_percentage\":46,\"description\":\"description\",\"change_reason\":\"change_reason\"}"
         },
         "url": {
           "raw": "{{host}}/experiments/{{experiment_id}}/ramp",
@@ -520,6 +554,7 @@
             "exec": [
               "const host = pm.environment.get(\"host\");",
               "const token = pm.environment.get(\"token\");",
+              "const org_id = pm.environment.get(\"org_id\");",
               "",
               "const experiment_id = pm.environment.get(\"experiment_id\");",
               "",
@@ -531,6 +566,7 @@
               "            'Authorization': `Bearer ${token}`,",
               "            'Contet-Type': 'application/json',",
               "            'x-tenant': 'test',",
+              "            'x-org-id': `${org_id}`",
               "        }",
               "    };",
               "",
@@ -639,6 +675,11 @@
             "key": "x-tenant",
             "value": "test",
             "type": "default"
+          },
+          {
+            "key": "x-org-id",
+            "value": "{{org_id}}",
+            "type": "default"
           }
         ],
         "body": {
@@ -648,7 +689,7 @@
               "language": "json"
             }
           },
-          "raw": "{\"chosen_variant\":\"{{experiment_id}}-control\"}"
+          "raw": "{\"chosen_variant\":\"{{experiment_id}}-control\",\"description\":\"description\",\"change_reason\":\"change_reason\"}"
         },
         "url": {
           "raw": "{{host}}/experiments/{{experiment_id}}/conclude",
@@ -673,6 +714,7 @@
             "exec": [
               "const host = pm.environment.get(\"host\");",
               "const token = pm.environment.get(\"token\");",
+              "const org_id = pm.environment.get(\"org_id\");",
               "",
               "function create_default_config_keys() {",
               "    let keys = [",
@@ -682,21 +724,25 @@
               "",
               "    for (const key of keys) {",
               "        const options = {",
-              "            'method': 'PUT',",
-              "            'url': `${host}/default-config/${key}`,",
+              "            'method': 'POST',",
+              "            'url': `${host}/default-config`,",
               "            \"header\": {",
               "                'Authorization': `Bearer ${token}`,",
               "                'x-tenant': 'test',",
-              "                'Content-Type': 'application/json'",
+              "                'Content-Type': 'application/json',",
+              "                'x-org-id': `${org_id}`",
               "            },",
               "            \"body\": {",
               "                \"mode\": \"raw\",",
-              "                \"raw\": JSON.stringify({",
+              "                \"raw\": JSON.stringify({ ",
+              "                    \"key\": key,",
               "                    \"value\": \"value1\",",
               "                    \"schema\": {",
               "                        \"type\": \"string\",",
               "                        \"pattern\": \".*\"",
-              "                    }",
+              "                    }, ",
+              "                    \"description\": \"description\",",
+              "                    \"change_reason\": \"change_reason\"",
               "                })",
               "            }",
               "        };",
@@ -723,6 +769,7 @@
             "exec": [
               "const host = pm.environment.get(\"host\");",
               "const token = pm.environment.get(\"token\");",
+              "const org_id = pm.environment.get(\"org_id\");",
               "",
               "",
               "function fetch_context_n_test(context_id, expected_override_id, expected_override, expected_variant_context) {",
@@ -732,6 +779,7 @@
               "        header: {",
               "            'Content-Type': 'application/json',",
               "            'x-tenant': 'test',",
+              "            'x-org-id': `${org_id}`",
               "        }",
               "    };",
               "",
@@ -959,6 +1007,11 @@
             "key": "x-tenant",
             "value": "test",
             "type": "default"
+          },
+          {
+            "key": "x-org-id",
+            "value": "{{org_id}}",
+            "type": "default"
           }
         ],
         "body": {
@@ -968,7 +1021,7 @@
               "language": "json"
             }
           },
-          "raw": "{\"name\":\"experiment-1\",\"override_keys\":[\"pmTestKey3\",\"pmTestKey4\"],\"traffic_percentage\":10,\"context\":{\"and\":[{\"==\":[{\"var\":\"os\"},\"ios\"]},{\"==\":[{\"var\":\"client\"},\"testClientCac02\"]}]},\"variants\":[{\"id\":\"control\",\"variant_type\":\"CONTROL\",\"overrides\":{\"pmTestKey3\":\"value3-control\",\"pmTestKey4\":\"value3-control\"}},{\"id\":\"test1\",\"variant_type\":\"EXPERIMENTAL\",\"overrides\":{\"pmTestKey3\":\"value4-test\",\"pmTestKey4\":\"value4-test\"}}]}"
+          "raw": "{\"name\":\"experiment-1\",\"override_keys\":[\"pmTestKey3\",\"pmTestKey4\"],\"traffic_percentage\":10,\"context\":{\"and\":[{\"==\":[{\"var\":\"os\"},\"ios\"]},{\"==\":[{\"var\":\"client\"},\"testClientCac02\"]}]},\"variants\":[{\"id\":\"control\",\"variant_type\":\"CONTROL\",\"overrides\":{\"pmTestKey3\":\"value3-control\",\"pmTestKey4\":\"value3-control\"}},{\"id\":\"test1\",\"variant_type\":\"EXPERIMENTAL\",\"overrides\":{\"pmTestKey3\":\"value4-test\",\"pmTestKey4\":\"value4-test\"}}],\"description\":\"description\",\"change_reason\":\"change_reason\"}"
         },
         "url": {
           "raw": "{{host}}/experiments",
@@ -1000,8 +1053,8 @@
               "",
               "    for (const key of keys) {",
               "        const options = {",
-              "            'method': 'PUT',",
-              "            'url': `${host}/default-config/${key}`,",
+              "            'method': 'POST',",
+              "            'url': `${host}/default-config`,",
               "            \"header\": {",
               "                'Authorization': `Bearer ${token}`,",
               "                'x-tenant': 'test',",
@@ -1009,12 +1062,15 @@
               "            },",
               "            \"body\": {",
               "                \"mode\": \"raw\",",
-              "                \"raw\": JSON.stringify({",
+              "                \"raw\": JSON.stringify({ ",
+              "                    \"key\": key,",
               "                    \"value\": \"value1\",",
               "                    \"schema\": {",
               "                        \"type\": \"string\",",
               "                        \"pattern\": \".*\"",
-              "                    }",
+              "                    }, ",
+              "                    \"description\": \"description\",",
+              "                    \"change_reason\": \"change_reason\"",
               "                })",
               "            }",
               "        };",
@@ -1041,6 +1097,7 @@
             "exec": [
               "const host = pm.environment.get(\"host\");",
               "const token = pm.environment.get(\"token\");",
+              "const org_id = pm.environment.get(\"org_id\");",
               "",
               "",
               "function fetch_context_n_test(context_id, expected_override_id, expected_override, expected_variant_context) {",
@@ -1050,6 +1107,7 @@
               "        header: {",
               "            'Content-Type': 'application/json',",
               "            'x-tenant': 'test',",
+              "            'x-org-id': `${org_id}`",
               "        }",
               "    };",
               "",
@@ -1094,6 +1152,7 @@
               "            'Authorization': `Bearer ${token}`,",
               "            'Content-Type': 'application/json',",
               "            'x-tenant': 'test',",
+              "            'x-org-id': `${org_id}`",
               "        }",
               "    };",
               "",
@@ -1250,6 +1309,11 @@
             "key": "x-tenant",
             "value": "test",
             "type": "default"
+          },
+          {
+            "key": "x-org-id",
+            "value": "{{org_id}}",
+            "type": "default"
           }
         ],
         "body": {
@@ -1259,7 +1323,7 @@
               "language": "json"
             }
           },
-          "raw": "{\"override_keys\":[\"pmTestKey1972\",\"pmTestKey1999\"],\"variants\":[{\"id\":\"{{experiment_id}}-control\",\"overrides\":{\"pmTestKey1972\":\"value-7910-an-control\",\"pmTestKey1999\":\"value-6910-an-control\"}},{\"id\":\"{{experiment_id}}-test1\",\"overrides\":{\"pmTestKey1972\":\"value-7920-an-test\",\"pmTestKey1999\":\"value-6930-an-test\"}}]}"
+          "raw": "{\"override_keys\":[\"pmTestKey1972\",\"pmTestKey1999\"],\"variants\":[{\"id\":\"{{experiment_id}}-control\",\"overrides\":{\"pmTestKey1972\":\"value-7910-an-control\",\"pmTestKey1999\":\"value-6910-an-control\"}},{\"id\":\"{{experiment_id}}-test1\",\"overrides\":{\"pmTestKey1972\":\"value-7920-an-test\",\"pmTestKey1999\":\"value-6930-an-test\"}}],\"description\":\"description\",\"change_reason\":\"change_reason\"}"
         },
         "url": {
           "raw": "{{host}}/experiments/{{experiment_id}}/overrides",
@@ -1287,6 +1351,11 @@
           {
             "key": "x-tenant",
             "value": "test",
+            "type": "default"
+          },
+          {
+            "key": "x-org-id",
+            "value": "{{org_id}}",
             "type": "default"
           }
         ],
@@ -1355,6 +1424,11 @@
             "key": "x-tenant",
             "value": "test",
             "type": "default"
+          },
+          {
+            "key": "x-org-id",
+            "value": "{{org_id}}",
+            "type": "default"
           }
         ],
         "url": {
@@ -1414,6 +1488,11 @@
             "key": "x-tenant",
             "value": "test",
             "type": "default"
+          },
+          {
+            "key": "x-org-id",
+            "value": "{{org_id}}",
+            "type": "default"
           }
         ],
         "url": {
@@ -1457,6 +1536,11 @@
     {
       "key": "token",
       "value": "12345678",
+      "type": "default"
+    },
+    {
+      "key": "org_id",
+      "value": "testorg",
       "type": "default"
     }
   ]

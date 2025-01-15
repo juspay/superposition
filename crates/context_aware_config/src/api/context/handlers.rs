@@ -577,6 +577,7 @@ fn r#move(
             dsl::last_modified_at.eq(Utc::now().naive_utc()),
             dsl::last_modified_by.eq(user.get_email()),
         ))
+        .schema_name(tenant)
         .get_result(conn);
 
     let contruct_new_ctx_with_old_overrides = |ctx: Context| Context {
