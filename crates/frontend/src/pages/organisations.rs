@@ -48,39 +48,39 @@ pub fn organisations() -> impl IntoView {
     });
 
     view! {
-        <form class="p-8">
-            <Suspense fallback=move || {
-                view! { <Skeleton /> }
-            }>
-                {move || {
-                    let organisations = organisation_resource.get().unwrap_or_default();
-                    let table_rows = organisations.clone()
-                        .into_iter()
-                        .map(|organisation| {
-                            let mut map = Map::new();
-                            map.insert(String::from("organisation_id"), Value::String(organisation));
-                            map
-                        })
-                        .collect::<Vec<Map<String, Value>>>();
+            <form class="p-8">
+                <Suspense fallback=move || {
+                    view! { <Skeleton /> }
+                }>
+                    {move || {
+                        let organisations = organisation_resource.get().unwrap_or_default();
+                        let table_rows = organisations.clone()
+                            .into_iter()
+                            .map(|organisation| {
+                                let mut map = Map::new();
+                                map.insert(String::from("organisation_id"), Value::String(organisation));
+                                map
+                            })
+                            .collect::<Vec<Map<String, Value>>>();
 
-                    view! {
-                        <div class="pb-4">
-                            <Stat
-                                heading="Oraganisations"
-                                icon="ri-building-fill"
-                                number={organisations.len().to_string()}
+                        view! {
+                            <div class="pb-4">
+                                <Stat
+                                    heading="Oraganisations"
+                                    icon="ri-building-fill"
+                                    number={organisations.len().to_string()}
+                                />
+                            </div>
+                            <Table
+                                class="card-body card rounded-lg w-full bg-base-100 shadow"
+                                cell_class="min-w-48 font-mono".to_string()
+                                rows=table_rows
+                                key_column="id".to_string()
+                                columns=table_columns.get()
                             />
-                        </div>
-                        <Table
-                            class="card-body card rounded-lg w-full bg-base-100 shadow"
-                            cell_class="min-w-48 font-mono".to_string()
-                            rows=table_rows
-                            key_column="id".to_string()
-                            columns=table_columns.get()
-                        />
-                    }
-                }}
-            </Suspense>
-        </form>
-    }
+                        }
+                    }}
+                </Suspense>
+            </form>
+        }
 }

@@ -189,9 +189,7 @@ pub fn default_config() -> impl IntoView {
 
             {move || {
                 let prefix = query_params.get().get("prefix").cloned().unwrap_or_default();
-                let default_config = default_config_resource
-                    .get()
-                    .unwrap_or_default();
+                let default_config = default_config_resource.get().unwrap_or_default();
                 let table_rows = default_config
                     .data
                     .into_iter()

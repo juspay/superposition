@@ -26,7 +26,7 @@ pub struct Context {
     pub override_id: String,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
-    #[serde(rename(serialize = "override"))]
+    #[serde(rename(serialize = "override", deserialize = "override"))]
     pub override_: Overrides,
     pub last_modified_at: NaiveDateTime,
     pub last_modified_by: String,
