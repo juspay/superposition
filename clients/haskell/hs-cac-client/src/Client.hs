@@ -17,7 +17,7 @@ module Client
 import           Data.Aeson
 import           Data.Functor          (($>))
 import           Data.List             (intercalate)
-import           Foreign.C.String      (CString, newCAString, peekCAString)
+import           Foreign.C.String      (CString, newCString, peekCString)
 import           Foreign.C.Types       (CInt (CInt), CULong (..))
 import           Foreign.ForeignPtr
 import           Foreign.Marshal.Alloc (malloc, free)
@@ -71,14 +71,14 @@ data MergeStrategy = MERGE | REPLACE deriving (Show, Eq, Ord, Enum)
 
 cacStartPolling :: Tenant -> IO ()
 cacStartPolling tenant =
-    newCAString tenant
+    newCString tenant
     >>= newForeignPtr c_free_string
     >>= flip withForeignPtr c_cac_poll
 
 getError :: IO String
 getError = c_last_error_message
             >>= newForeignPtr c_free_string
-            >>= flip withForeignPtr peekCAString
+            >>= flip withForeignPtr peekCString
 
 cleanup :: [Ptr a] -> IO ()
 cleanup items = mapM free items $> ()
@@ -86,8 +86,8 @@ cleanup items = mapM free items $> ()
 createCacClient:: Tenant -> Integer -> String -> IO (Either Error ())
 createCacClient tenant frequency hostname = do
     let duration = fromInteger frequency
-    cTenant   <- newCAString tenant
-    cHostname <- newCAString hostname
+    cTenant   <- newCString tenant
+    cHostname <- newCString hostname
     resp      <- c_new_cac_client cTenant duration cHostname
     _         <- cleanup [cTenant, cHostname]
     case resp of
@@ -100,8 +100,8 @@ createCacClientWithCacheProperties tenant frequency hostname cacheMaxCapacity ca
     let cacheCapacity = fromInteger cacheMaxCapacity
     let cacheTimeToLive = fromInteger cacheTTL
     let cacheTimeToIdle = fromInteger cacheTTI
-    cTenant   <- newCAString tenant
-    cHostname <- newCAString hostname
+    cTenant   <- newCString tenant
+    cHostname <- newCString hostname
     resp      <- c_new_cac_client_with_cache_properties cTenant duration cHostname cacheCapacity cacheTimeToLive cacheTimeToIdle
     _         <- cleanup [cTenant, cHostname]
     case resp of
@@ -110,7 +110,7 @@ createCacClientWithCacheProperties tenant frequency hostname cacheMaxCapacity ca
 
 getCacClient :: Tenant -> IO (Either Error (ForeignPtr CacClient))
 getCacClient tenant = do
-    cTenant   <- newCAString tenant
+    cTenant   <- newCString tenant
     cacClient <- c_get_cac_client cTenant
     _         <- cleanup [cTenant]
     if cacClient == nullPtr
@@ -120,10 +120,10 @@ getCacClient tenant = do
 getFullConfigStateWithFilter :: ForeignPtr CacClient -> Maybe String -> Maybe [String] -> IO (Either Error Value)
 getFullConfigStateWithFilter client mbFilters mbPrefix = do
     cFilters <- case mbFilters of
-        Just filters -> newCAString filters
+        Just filters -> newCString filters
         Nothing      -> return nullPtr
     cPrefix <- case mbPrefix of
-        Just prefix -> newCAString (intercalate "," prefix)
+        Just prefix -> newCString (intercalate "," prefix)
         Nothing     -> return nullPtr
     config <- withForeignPtr client $ \clientPtr -> c_get_config clientPtr cFilters cPrefix
     _ <- cleanup [cFilters]
@@ -131,7 +131,7 @@ getFullConfigStateWithFilter client mbFilters mbPrefix = do
         then Left <$> getError
         else do
             fptrConfig <- newForeignPtr c_free_string config
-            Right . toJSON <$> withForeignPtr fptrConfig peekCAString
+            Right . toJSON <$> withForeignPtr fptrConfig peekCString
 
 getCacLastModified :: ForeignPtr CacClient -> IO (Either Error String)
 getCacLastModified client = do
@@ -140,14 +140,14 @@ getCacLastModified client = do
         then Left <$> getError
         else do
             fptrLastModified <- newForeignPtr c_free_string lastModified
-            Right <$> withForeignPtr fptrLastModified peekCAString
+            Right <$> withForeignPtr fptrLastModified peekCString
 
 getResolvedConfigWithStrategy :: ForeignPtr CacClient -> String -> Maybe [String] -> MergeStrategy -> IO (Either Error Value)
 getResolvedConfigWithStrategy client context mbKeys mergeStrat = do
-    cContext    <- newCAString context
-    cMergeStrat <- newCAString (show mergeStrat)
+    cContext    <- newCString context
+    cMergeStrat <- newCString (show mergeStrat)
     cStrKeys    <- case mbKeys of
-        Just keys ->  newCAString (intercalate "|" keys)
+        Just keys ->  newCString (intercalate "|" keys)
         Nothing   ->  return nullPtr
     overrides   <- withForeignPtr client $ \clientPtr -> c_cac_get_resolved_config clientPtr cContext cStrKeys cMergeStrat
     _           <- cleanup [cContext, cStrKeys]
@@ -155,12 +155,12 @@ getResolvedConfigWithStrategy client context mbKeys mergeStrat = do
         then Left <$> getError
         else do
             fptrOverrides <- newForeignPtr c_free_string overrides
-            Right . toJSON <$> withForeignPtr fptrOverrides peekCAString
+            Right . toJSON <$> withForeignPtr fptrOverrides peekCString
 
 getDefaultConfig :: ForeignPtr CacClient -> Maybe [String] -> IO (Either Error Value)
 getDefaultConfig client mbKeys = do
     cStrKeys    <- case mbKeys of
-        Just keys ->  newCAString (intercalate "|" keys)
+        Just keys ->  newCString (intercalate "|" keys)
         Nothing   ->  return nullPtr
     overrides   <- withForeignPtr client $ \clientPtr -> c_cac_get_default_config clientPtr cStrKeys
     _           <- cleanup [cStrKeys]
@@ -168,8 +168,7 @@ getDefaultConfig client mbKeys = do
         then Left <$> getError
         else do
             fptrOverrides <- newForeignPtr c_free_string overrides
-            Right . toJSON <$> withForeignPtr fptrOverrides peekCAString
+            Right . toJSON <$> withForeignPtr fptrOverrides peekCString
 
 getResolvedConfig :: ForeignPtr CacClient -> String -> Maybe [String] -> IO (Either Error Value)
 getResolvedConfig client context mbKeys = getResolvedConfigWithStrategy client context mbKeys MERGE
-

@@ -64,14 +64,14 @@ foreign import ccall unsafe "expt_get_running_experiments"
 
 expStartPolling :: Tenant -> IO ()
 expStartPolling tenant =
-    newCAString tenant
+    newCString tenant
     >>= newForeignPtr c_free_string
     >>= flip withForeignPtr c_start_polling_update
 
 getError :: IO String
 getError = c_last_error_message
             >>= newForeignPtr c_free_string
-            >>= flip withForeignPtr peekCAString
+            >>= flip withForeignPtr peekCString
 
 cleanup :: [Ptr a] -> IO ()
 cleanup items = mapM free items $> ()
@@ -79,8 +79,8 @@ cleanup items = mapM free items $> ()
 createExpClient:: Tenant -> Integer -> String -> IO (Either Error ())
 createExpClient tenant frequency hostname = do
     let duration = fromInteger frequency
-    cTenant   <- newCAString tenant
-    cHostname <- newCAString hostname
+    cTenant   <- newCString tenant
+    cHostname <- newCString hostname
     resp      <- c_new_expt_client cTenant duration cHostname
     _         <- cleanup [cTenant, cHostname]
     case resp of
@@ -89,7 +89,7 @@ createExpClient tenant frequency hostname = do
 
 getExpClient :: Tenant -> IO (Either Error (ForeignPtr ExpClient))
 getExpClient tenant = do
-    cTenant   <- newCAString tenant
+    cTenant   <- newCString tenant
     cacClient <- c_get_expt_client cTenant
     _         <- cleanup [cTenant]
     if cacClient == nullPtr
@@ -98,14 +98,14 @@ getExpClient tenant = do
 
 getApplicableVariants :: ForeignPtr ExpClient -> String -> Integer -> IO (Either Error String)
 getApplicableVariants client query toss = do
-    context  <- newCAString query
+    context  <- newCString query
     variants <- withForeignPtr client (\c -> c_get_applicable_variants c context (fromInteger toss))
     _        <- cleanup [context]
     if variants == nullPtr
         then Left <$> getError
         else do
             fptrVariants  <- newForeignPtr c_free_string variants
-            Right <$> withForeignPtr fptrVariants peekCAString
+            Right <$> withForeignPtr fptrVariants peekCString
             -- pure $
                 -- case fromJSON variantVector of
                     -- Error s     -> Left s
@@ -113,9 +113,9 @@ getApplicableVariants client query toss = do
 
 getSatisfiedExperiments :: ForeignPtr ExpClient -> String -> Maybe String -> IO (Either Error Value)
 getSatisfiedExperiments client query mbPrefix = do
-    context     <- newCAString query
+    context     <- newCString query
     prefix <- case mbPrefix of
-        Just prefix -> newCAString prefix
+        Just prefix -> newCString prefix
         Nothing     -> return nullPtr
     experiments <- withForeignPtr client $ \client -> c_get_satisfied_experiments client context prefix
     _           <- cleanup [context]
@@ -123,15 +123,15 @@ getSatisfiedExperiments client query mbPrefix = do
         then Left <$> getError
         else do
             fptrExperiments  <- newForeignPtr c_free_string experiments
-            Right . toJSON <$> withForeignPtr fptrExperiments peekCAString
+            Right . toJSON <$> withForeignPtr fptrExperiments peekCString
 
 getFilteredSatisfiedExperiments :: ForeignPtr ExpClient -> Maybe String -> Maybe String -> IO (Either Error Value)
 getFilteredSatisfiedExperiments client mbFilters mbPrefix = do
     filters <- case mbFilters of
-        Just filters' -> newCAString filters'
+        Just filters' -> newCString filters'
         Nothing       -> return nullPtr
     prefix <- case mbPrefix of
-        Just prefix' -> newCAString prefix'
+        Just prefix' -> newCString prefix'
         Nothing      -> return nullPtr
     experiments <- withForeignPtr client $ \client -> c_get_filtered_satisfied_experiments client filters prefix
     _           <- cleanup [filters]
@@ -139,7 +139,7 @@ getFilteredSatisfiedExperiments client mbFilters mbPrefix = do
         then Left <$> getError
         else do
             fptrExperiments  <- newForeignPtr c_free_string experiments
-            Right . toJSON <$> withForeignPtr fptrExperiments peekCAString
+            Right . toJSON <$> withForeignPtr fptrExperiments peekCString
 
 getRunningExperiments :: ForeignPtr ExpClient -> IO (Either Error Value)
 getRunningExperiments client = do
@@ -148,4 +148,4 @@ getRunningExperiments client = do
         then Left <$> getError
         else do
             fptrExperiments  <- newForeignPtr c_free_string experiments
-            Right . toJSON <$> withForeignPtr fptrExperiments peekCAString
+            Right . toJSON <$> withForeignPtr fptrExperiments peekCString
