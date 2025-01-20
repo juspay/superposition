@@ -3,7 +3,7 @@
 pm.test('expect response be 200', function () {
     pm.response.to.be.ok;
     const response = pm.response.json();
-    const modified_response = response.data.map(({ created_at, last_modified_at, last_modified_by, description, change_reason, ...rest }) => rest);
+    const modified_response = response.data.map(({ created_at, last_modified_at, last_modified_by, ...rest }) => rest);
     console.log("The API returned the response", modified_response);
     pm.expect(JSON.stringify(modified_response)).to.be.eq(JSON.stringify([
         {
