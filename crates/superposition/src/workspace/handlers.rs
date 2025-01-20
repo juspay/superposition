@@ -119,34 +119,26 @@ async fn update_workspace(
     let DbConnection(mut conn) = db_conn;
     let updated_workspace =
         conn.transaction::<Workspace, superposition::AppError, _>(|transaction_conn| {
-            let mut updated_workspace = diesel::update(workspaces::table)
+            let result: Workspace = workspaces::dsl::workspaces
                 .filter(workspaces::organisation_id.eq(&org_id.0))
                 .filter(workspaces::workspace_name.eq(workspace_name.clone()))
+                .get_result(transaction_conn)?;
+            let updated_workspace = diesel::update(workspaces::table)
+                .filter(workspaces::organisation_id.eq(&org_id.0))
+                .filter(workspaces::workspace_name.eq(workspace_name))
                 .set((
                     workspaces::workspace_admin_email.eq(request.workspace_admin_email),
                     workspaces::mandatory_dimensions.eq(request.mandatory_dimensions),
                     workspaces::last_modified_by.eq(user.email),
                     workspaces::last_modified_at.eq(timestamp),
+                    workspaces::workspace_status
+                        .eq(request.workspace_status.unwrap_or(result.workspace_status)),
                 ))
                 .get_result::<Workspace>(transaction_conn)
                 .map_err(|err| {
                     log::error!("failed to update workspace with error: {}", err);
                     db_error!(err)
                 })?;
-            if let Some(workspace_status) = request.workspace_status {
-                updated_workspace = diesel::update(workspaces::table)
-                    .filter(workspaces::organisation_id.eq(&org_id.0))
-                    .filter(workspaces::workspace_name.eq(workspace_name))
-                    .set((
-                        workspaces::workspace_status.eq(workspace_status),
-                        workspaces::last_modified_at.eq(Utc::now().naive_utc()),
-                    ))
-                    .get_result::<Workspace>(transaction_conn)
-                    .map_err(|err| {
-                        log::error!("failed to update workspace with error: {}", err);
-                        db_error!(err)
-                    })?;
-            }
 
             Ok(updated_workspace)
         })?;
