@@ -490,22 +490,12 @@ async fn reduce_config_key(
 
                 if *to_be_deleted {
                     if is_approve {
-                        let _ = context::delete(
-                            cid.clone(),
-                            user.clone(),
-                            conn,
-                            &tenant,
-                        );
+                        let _ = context::delete(cid.clone(), user.clone(), conn, &tenant);
                     }
                     og_contexts.retain(|x| x.id != *cid);
                 } else {
                     if is_approve {
-                        let _ = context::delete(
-                            cid.clone(),
-                            user.clone(),
-                            conn,
-                            &tenant,
-                        );
+                        let _ = context::delete(cid.clone(), user.clone(), conn, &tenant);
                         if let Ok(put_req) = construct_new_payload(request_payload) {
                             let _ = context::put(
                                 put_req,
