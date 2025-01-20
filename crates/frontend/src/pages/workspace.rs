@@ -2,6 +2,7 @@ use leptos::*;
 use leptos_router::use_navigate;
 use serde_json::{json, Map, Value};
 use superposition_types::custom_query::PaginationParams;
+use superposition_types::database::models::WorkspaceStatus;
 
 use crate::api::fetch_workspaces;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
@@ -13,7 +14,6 @@ use crate::components::table::{
     Table,
 };
 use crate::components::workspace_form::types::RowData;
-use crate::components::workspace_form::types::WorkspaceStatus;
 use crate::components::workspace_form::WorkspaceForm;
 use crate::types::OrganisationId;
 use crate::utils::update_page_direction;
