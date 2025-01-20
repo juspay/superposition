@@ -1,6 +1,7 @@
 use chrono::NaiveDateTime;
 #[cfg(feature = "diesel_derives")]
 use diesel::{AsChangeset, Insertable, QueryId, Queryable, Selectable};
+use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 
@@ -70,6 +71,18 @@ pub struct Organisation {
 pub enum WorkspaceStatus {
     ENABLED,
     DISABLED,
+}
+
+impl FromStr for WorkspaceStatus {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "ENABLED" => Ok(WorkspaceStatus::ENABLED),
+            "DISABLED" => Ok(WorkspaceStatus::DISABLED),
+            _ => Err(format!("Invalid enum string: {}", s)),
+        }
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

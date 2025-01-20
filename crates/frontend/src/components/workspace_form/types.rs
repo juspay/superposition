@@ -1,24 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
-use strum_macros::Display;
-
-#[derive(Debug, Serialize, Deserialize, Clone, Display, PartialEq)]
-pub enum WorkspaceStatus {
-    ENABLED,
-    DISABLED,
-}
-
-impl FromStr for WorkspaceStatus {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "ENABLED" => Ok(WorkspaceStatus::ENABLED),
-            "DISABLED" => Ok(WorkspaceStatus::DISABLED),
-            _ => Err(format!("Invalid enum string: {}", s)),
-        }
-    }
-}
+use superposition_types::database::models::WorkspaceStatus;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateWorkspaceRequest {

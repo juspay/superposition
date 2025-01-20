@@ -2,18 +2,19 @@ use crate::api::fetch_config;
 use crate::components::alert::{Alert, AlertType};
 use crate::components::skeleton::Skeleton;
 use crate::components::toast::Toast;
+use crate::types::{OrganisationId, Tenant};
 use leptos::*;
 use leptos_router::use_params_map;
 
 #[component]
 pub fn config_version() -> impl IntoView {
+    let tenant = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_id = use_context::<RwSignal<OrganisationId>>().unwrap();
     let params = use_params_map();
-    let tenant = params.with(|p| p.get("tenant").cloned().unwrap_or_default());
-    let org_id = params.with(|p| p.get("org_id").cloned().unwrap_or_default());
     let version = params.with(|p| p.get("version").cloned());
 
     let config_resource = create_blocking_resource(
-        move || (tenant.clone(), version.clone(), org_id.clone()),
+        move || (tenant.get().0, version.clone(), org_id.get().0),
         |(tenant, version, org_id)| async move { fetch_config(tenant, version, org_id).await },
     );
 
