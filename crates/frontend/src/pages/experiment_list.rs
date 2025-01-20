@@ -70,6 +70,7 @@ pub fn experiment_list() -> impl IntoView {
         },
         |(current_tenant, filters, pagination_filters, org_id)| async move {
             // Perform all fetch operations concurrently
+            let fetch_all_filters = PaginationParams::all_entries();
             let experiments_future = fetch_experiments(
                 &filters,
                 &pagination_filters,
@@ -77,12 +78,12 @@ pub fn experiment_list() -> impl IntoView {
                 org_id.clone(),
             );
             let dimensions_future = fetch_dimensions(
-                &pagination_filters,
+                &fetch_all_filters,
                 current_tenant.to_string(),
                 org_id.clone(),
             );
             let config_future = fetch_default_config(
-                &pagination_filters,
+                &fetch_all_filters,
                 current_tenant.to_string(),
                 org_id.clone(),
             );
