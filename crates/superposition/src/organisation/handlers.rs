@@ -123,9 +123,9 @@ pub async fn update_organisation(
         .set(&org)
         .get_result(&mut conn)
         .map_err(|e| {
-            log::error!("Failed to insert new organisation: {:?}", e);
+            log::error!("Failed to update organisation: {:?}", e);
             superposition::AppError::UnexpectedError(anyhow::anyhow!(
-                "Failed to create organisation"
+                "Failed to update organisation"
             ))
         })?;
 
