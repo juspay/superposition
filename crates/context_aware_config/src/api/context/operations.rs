@@ -10,7 +10,7 @@ use service_utils::service::types::Tenant;
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     database::{models::cac::Context, schema::contexts},
-    result, DBConnection, TenantConfig, User,
+    result, DBConnection, User,
 };
 
 use crate::{
@@ -25,7 +25,7 @@ use crate::{
         },
         dimension::{get_dimension_data, get_dimension_data_map},
     },
-    helpers::calculate_context_weight,
+    helpers::{calculate_context_weight, get_workspace},
 };
 
 use super::{
@@ -39,11 +39,10 @@ pub fn put(
     already_under_txn: bool,
     user: &User,
     tenant: &Tenant,
-    tenant_config: &TenantConfig,
     replace: bool,
 ) -> result::Result<PutResp> {
     use contexts::dsl::contexts;
-    let new_ctx = create_ctx_from_put_req(req, conn, user, tenant_config, &tenant)?;
+    let new_ctx = create_ctx_from_put_req(req, conn, user, &tenant)?;
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
@@ -80,7 +79,6 @@ pub fn r#move(
     already_under_txn: bool,
     user: &User,
     tenant: &Tenant,
-    tenant_config: &TenantConfig,
 ) -> result::Result<PutResp> {
     use contexts::dsl;
     let req = req.into_inner();
@@ -102,9 +100,11 @@ pub fn r#move(
     let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
 
+    let workspace_settings = get_workspace(&tenant, conn)?;
+
     validate_condition_with_mandatory_dimensions(
         &req.context.into_inner(),
-        &tenant_config.mandatory_dimensions,
+        &workspace_settings.mandatory_dimensions.unwrap_or_default(),
     )?;
 
     if already_under_txn {

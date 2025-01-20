@@ -14,11 +14,11 @@ use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     custom_query::PaginationParams,
     database::{
-        models::cac::Dimension,
+        models::{cac::Dimension, Workspace},
         schema::dimensions::{self, dsl::*},
         types::DimensionWithMandatory,
     },
-    result as superposition, PaginatedResponse, TenantConfig, User,
+    result as superposition, PaginatedResponse, User,
 };
 
 use crate::{
@@ -26,7 +26,7 @@ use crate::{
         types::{CreateReq, FunctionNameEnum},
         utils::{get_dimension_usage_context_ids, validate_dimension_position},
     },
-    helpers::validate_jsonschema,
+    helpers::{get_workspace, validate_jsonschema},
 };
 
 use super::types::{DeleteReq, DimensionName, UpdateReq};
@@ -46,7 +46,6 @@ async fn create(
     user: User,
     db_conn: DbConnection,
     tenant: Tenant,
-    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
@@ -101,8 +100,11 @@ async fn create(
 
         match insert_resp {
             Ok(inserted_dimension) => {
-                let is_mandatory = tenant_config
+                let workspace_settings: Workspace =
+                    get_workspace(&tenant, transaction_conn)?;
+                let is_mandatory = workspace_settings
                     .mandatory_dimensions
+                    .unwrap_or_default()
                     .contains(&inserted_dimension.dimension);
                 Ok(HttpResponse::Created().json(DimensionWithMandatory::new(
                     inserted_dimension,
@@ -136,7 +138,6 @@ async fn update(
     user: User,
     db_conn: DbConnection,
     tenant: Tenant,
-    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.clone().into();
     use dimensions::dsl;
@@ -242,8 +243,10 @@ async fn update(
                 .map_err(|err| db_error!(err))
         })?;
 
-    let is_mandatory = tenant_config
+    let workspace_settings = get_workspace(&tenant, &mut conn)?;
+    let is_mandatory = workspace_settings
         .mandatory_dimensions
+        .unwrap_or_default()
         .contains(&result.dimension);
 
     Ok(HttpResponse::Ok().json(DimensionWithMandatory::new(result, is_mandatory)))
@@ -252,7 +255,6 @@ async fn update(
 #[get("")]
 async fn get(
     db_conn: DbConnection,
-    tenant_config: TenantConfig,
     filters: Query<PaginationParams>,
     tenant: Tenant,
 ) -> superposition::Result<Json<PaginatedResponse<DimensionWithMandatory>>> {
@@ -285,11 +287,15 @@ async fn get(
         }
     };
 
+    let workspace_settings = get_workspace(&tenant, &mut conn)?;
+
+    let mandatory_dimensions =
+        workspace_settings.mandatory_dimensions.unwrap_or_default();
+
     let dimensions_with_mandatory: Vec<DimensionWithMandatory> = result
         .into_iter()
         .map(|ele| {
-            let is_mandatory =
-                tenant_config.mandatory_dimensions.contains(&ele.dimension);
+            let is_mandatory = mandatory_dimensions.contains(&ele.dimension);
             DimensionWithMandatory::new(ele, is_mandatory)
         })
         .collect();
