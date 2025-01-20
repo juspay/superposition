@@ -117,57 +117,6 @@ CREATE INDEX IF NOT EXISTS event_log_table_name_index ON ONLY {replaceme}.event_
 CREATE INDEX IF NOT EXISTS event_log_timestamp_index ON ONLY {replaceme}.event_log USING btree ("timestamp") INCLUDE (action, table_name);
 
 --
--- Event log parititons
---
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2023m08 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2023-08-01') TO ('2023-09-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2023m09 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2023-09-01') TO ('2023-10-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2023m10 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2023-10-01') TO ('2023-11-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2023m11 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2023-11-01') TO ('2023-12-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2023m12 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2023-12-01') TO ('2024-01-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m01 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-01-01') TO ('2024-02-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m02 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-02-01') TO ('2024-03-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m03 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-03-01') TO ('2024-04-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m04 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-04-01') TO ('2024-05-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m05 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-05-01') TO ('2024-06-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m06 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-06-01') TO ('2024-07-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m07 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-07-01') TO ('2024-08-01');
-
---
 -- Name: contexts contexts_audit; Type: TRIGGER; Schema: {replaceme}; Owner: -
 --
 CREATE TRIGGER contexts_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.contexts FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
@@ -184,8 +133,6 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 --
 -- Name: {replaceme}; Type: SCHEMA; Schema: -; Owner: -
 --
-CREATE SCHEMA IF NOT EXISTS {replaceme};
---
 -- Name: experiment_status_type; Type: TYPE; Schema: {replaceme}; Owner: -
 --
 
@@ -196,58 +143,6 @@ CREATE DOMAIN {replaceme}.not_null_text AS text NOT NULL;
 --
 -- Name: event_logger(); Type: FUNCTION; Schema: {replaceme}; Owner: -
 --
-CREATE OR REPLACE FUNCTION {replaceme}.event_logger() RETURNS trigger
-LANGUAGE plpgsql AS $$
-DECLARE old_data json;
-new_data json;
-BEGIN IF (TG_OP = 'UPDATE') THEN old_data := row_to_json(OLD);
-new_data := row_to_json(NEW);
-INSERT INTO {replaceme}.event_log (
-        table_name,
-        user_name,
-        action,
-        original_data,
-        new_data,
-        query
-    )
-VALUES (
-        TG_TABLE_NAME::TEXT,
-        session_user::TEXT,
-        TG_OP,
-        old_data,
-        new_data,
-        current_query()
-    );
-ELSIF (TG_OP = 'DELETE') THEN old_data := row_to_json(OLD);
-INSERT INTO {replaceme}.event_log (
-        table_name,
-        user_name,
-        action,
-        original_data,
-        query
-    )
-VALUES (
-        TG_TABLE_NAME::TEXT,
-        session_user::TEXT,
-        TG_OP,
-        old_data,
-        current_query()
-    );
-ELSIF (TG_OP = 'INSERT') THEN new_data = row_to_json(NEW);
-INSERT INTO {replaceme}.event_log (table_name, user_name, action, new_data, query)
-VALUES (
-        TG_TABLE_NAME::TEXT,
-        session_user::TEXT,
-        TG_OP,
-        new_data,
-        current_query()
-    );
-END IF;
-RETURN NULL;
-END;
-$$;
-SET default_tablespace = '';
-SET default_table_access_method = heap;
 
 DO $$ BEGIN
     CREATE TYPE public.experiment_status_type AS ENUM (
@@ -292,26 +187,6 @@ CREATE INDEX experiment_status_index ON {replaceme}.experiments USING btree (sta
 -- Name: experiments experiments_audit; Type: TRIGGER; Schema: {replaceme}; Owner: -
 --
 CREATE TRIGGER experiments_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.experiments FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
--- Your SQL goes here
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m08 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-08-01') TO ('2024-09-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m09 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-09-01') TO ('2024-10-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m10 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-10-01') TO ('2024-11-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m11 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-11-01') TO ('2024-12-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m12 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-12-01') TO ('2025-01-01');
 
 ------------ Parititions for 2025 -----------
 CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m01 PARTITION OF {replaceme}.event_log FOR
@@ -410,124 +285,7 @@ FROM ('2026-11-01') TO ('2026-12-01');
 CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2026m12 PARTITION OF {replaceme}.event_log FOR
 VALUES
 FROM ('2026-12-01') TO ('2027-01-01');
--- Your SQL goes here
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m08 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-08-01') TO ('2024-09-01');
 
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m09 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-09-01') TO ('2024-10-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m10 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-10-01') TO ('2024-11-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m11 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-11-01') TO ('2024-12-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2024m12 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2024-12-01') TO ('2025-01-01');
-
------------- Parititions for 2025 -----------
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m01 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2025-01-01') TO ('2025-02-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m02 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2025-02-01') TO ('2025-03-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m03 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2025-03-01') TO ('2025-04-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m04 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2025-04-01') TO ('2025-05-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m05 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2025-05-01') TO ('2025-06-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m06 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2025-06-01') TO ('2025-07-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m07 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2025-07-01') TO ('2025-08-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m08 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2025-08-01') TO ('2025-09-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m09 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2025-09-01') TO ('2025-10-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m10 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2025-10-01') TO ('2025-11-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m11 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2025-11-01') TO ('2025-12-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m12 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2025-12-01') TO ('2026-01-01');
-
------------- Parititions for 2026 -----------
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2026m01 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2026-01-01') TO ('2026-02-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2026m02 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2026-02-01') TO ('2026-03-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2026m03 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2026-03-01') TO ('2026-04-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2026m04 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2026-04-01') TO ('2026-05-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2026m05 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2026-05-01') TO ('2026-06-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2026m06 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2026-06-01') TO ('2026-07-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2026m07 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2026-07-01') TO ('2026-08-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2026m08 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2026-08-01') TO ('2026-09-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2026m09 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2026-09-01') TO ('2026-10-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2026m10 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2026-10-01') TO ('2026-11-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2026m11 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2026-11-01') TO ('2026-12-01');
-
-CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2026m12 PARTITION OF {replaceme}.event_log FOR
-VALUES
-FROM ('2026-12-01') TO ('2027-01-01');
 -- Your SQL goes here
 -- Name: functions; Type: TABLE; Schema: {replaceme}; Owner: -
 --
@@ -583,36 +341,36 @@ VALUES (
         'Number',
         '{"type": "integer"}',
         'user@superposition.io',
-        '2024-10-18 10:34:00.376562+00',
-        '2024-10-18 10:34:00.376562+00'
+        NOW(),
+        NOW()
     ),
     (
         'Decimal',
         '{"type": "number"}',
         'user@superposition.io',
-        '2024-10-18 10:35:00.376562+00',
-        '2024-10-18 10:35:00.376562+00'
+        NOW(),
+        NOW()
     ),
     (
         'Boolean',
         '{"type": "boolean"}',
         'user@superposition.io',
-        '2024-10-18 10:36:00.376562+00',
-        '2024-10-18 10:36:00.376562+00'
+        NOW(),
+        NOW()
     ),
     (
         'Enum',
         '{"type": "string", "enum": ["android", "ios"]}',
         'user@superposition.io',
-        '2024-10-18 10:37:00.376562+00',
-        '2024-10-18 10:37:00.376562+00'
+        NOW(),
+        NOW()
     ),
     (
         'Pattern',
         '{"type": "string", "pattern": ".*"}',
         'user@superposition.io',
-        '2024-10-18 10:38:00.376562+00',
-        '2024-10-18 10:38:00.376562+00'
+        NOW(),
+        NOW()
     );
 -- Your SQL goes here
 
@@ -674,4 +432,21 @@ ALTER TABLE {replaceme}.config_versions ADD COLUMN IF NOT EXISTS change_reason T
 ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
 ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
 
-
+INSERT INTO {replaceme}.dimensions (
+        dimension,
+        priority,
+        created_at,
+        created_by,
+        schema,
+        function_name,
+        description
+    )
+VALUES (
+        'variantIds',
+        0,
+        CURRENT_TIMESTAMP,
+        'default@superposition.io',
+        '{"type": "string","pattern": ".*"}'::json,
+        null,
+        'variantIds are used by experimentation module to manage and select variations'
+);
