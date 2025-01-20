@@ -3,6 +3,7 @@ pub mod utils;
 
 use leptos::*;
 use serde_json::to_string;
+use superposition_types::database::models::WorkspaceStatus;
 use web_sys::MouseEvent;
 
 use crate::components::input_components::BooleanToggle;
@@ -16,8 +17,6 @@ use crate::{
     },
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
 };
-
-use self::types::WorkspaceStatus;
 
 #[component]
 pub fn workspace_form<NF>(
