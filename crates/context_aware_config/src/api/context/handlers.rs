@@ -584,7 +584,7 @@ async fn weight_recompute(
     let mut response: Vec<WeightRecomputeResponse> = vec![];
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    let contexts_new_weight: Vec<(BigDecimal, String, String, String)> = result
+    let contexts_new_weight = result
         .clone()
         .into_iter()
         .map(|context| {
@@ -600,15 +600,8 @@ async fn weight_recompute(
                         condition: context.value.clone(),
                         old_weight: context.weight.clone(),
                         new_weight: val.clone(),
-                        description: context.description.clone(),
-                        change_reason: context.change_reason.clone(),
                     });
-                    Ok((
-                        val,
-                        context.id.clone(),
-                        context.description.clone(),
-                        context.change_reason.clone(),
-                    ))
+                    Ok((val, context.id.clone()))
                 }
                 Err(e) => {
                     log::error!("failed to calculate context weight: {}", e);
@@ -616,13 +609,13 @@ async fn weight_recompute(
                 }
             }
         })
-        .collect::<superposition::Result<Vec<(BigDecimal, String, String, String)>>>()?;
+        .collect::<superposition::Result<Vec<(BigDecimal, String)>>>()?;
 
     // Update database and add config version
     let last_modified_time = Utc::now().naive_utc();
     let config_version_id =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            for (context_weight, context_id, _description, _change_reason) in contexts_new_weight.clone() {
+            for (context_weight, context_id) in contexts_new_weight.clone() {
                 diesel::update(contexts.filter(id.eq(context_id)))
                     .set((
                         weight.eq(context_weight),
