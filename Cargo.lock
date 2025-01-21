@@ -4616,6 +4616,7 @@ dependencies = [
  "cfg-if",
  "chrono",
  "context_aware_config",
+ "derive_more",
  "diesel",
  "dotenv",
  "env_logger",
