@@ -361,7 +361,7 @@ where
                                 {move || {
                                     if last_idx.get() != idx {
                                         view! {
-                                            <div class="my-3 ml-5 ml-6 ml-7">
+                                            <div class="my-3 ml-7">
                                                 <span class="font-mono text-xs font-bold">"&&"</span>
                                             </div>
                                         }
