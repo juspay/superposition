@@ -40,7 +40,7 @@ pub struct Webhook {
     pub authorization: Option<Authorization>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum WebhookEvent {
     ExperimentCreated,
     ExperimentStarted,
@@ -50,7 +50,20 @@ pub enum WebhookEvent {
     ExperimentDiscarded,
 }
 
-#[derive(Serialize, Deserialize)]
+impl fmt::Display for WebhookEvent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            WebhookEvent::ExperimentCreated => write!(f, "ExperimentCreated"),
+            WebhookEvent::ExperimentStarted => write!(f, "ExperimentStarted"),
+            WebhookEvent::ExperimentInprogress => write!(f, "ExperimentInprogress"),
+            WebhookEvent::ExperimentUpdated => write!(f, "ExperimentUpdated"),
+            WebhookEvent::ExperimentConcluded => write!(f, "ExperimentConcluded"),
+            WebhookEvent::ExperimentDiscarded => write!(f, "ExperimentDiscarded"),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct WebhookEventInfo {
     pub webhook_event: WebhookEvent,
     pub time: String,
@@ -59,7 +72,7 @@ pub struct WebhookEventInfo {
     pub config_version: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct WebhookResponse<T> {
     pub event_info: WebhookEventInfo,
     pub payload: T,

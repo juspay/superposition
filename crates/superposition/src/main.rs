@@ -2,6 +2,7 @@
 mod app_state;
 mod auth;
 mod organisation;
+mod webhooks;
 mod workspace;
 
 use idgenerator::{IdGeneratorOptions, IdInstance};
@@ -204,7 +205,12 @@ async fn main() -> Result<()> {
                     )
                     .service(workspace::endpoints(scope("/workspaces"))
                         .wrap(OrgWorkspaceMiddlewareFactory::new(true, false))
-                        .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION)),
+                        .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION))
+                    )
+                    .service(
+                        scope("/webhook")
+                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
+                            .service(webhooks::endpoints()),
                     )
                     /***************************** UI Routes ******************************/
                     .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())

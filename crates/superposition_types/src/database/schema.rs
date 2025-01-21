@@ -683,6 +683,25 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    webhooks (name) {
+        name -> Text,
+        description -> Text,
+        enabled -> Bool,
+        url -> Text,
+        method -> Text,
+        version -> Text,
+        custom_headers -> Nullable<Json>,
+        events -> Array<Varchar>,
+        max_retries -> Int4,
+        last_triggered_at -> Nullable<Timestamp>,
+        created_by -> Text,
+        created_at -> Timestamp,
+        last_modified_by -> Text,
+        last_modified_at -> Timestamp,
+    }
+}
+
 diesel::joinable!(default_configs -> functions (function_name));
 diesel::joinable!(dimensions -> functions (function_name));
 
@@ -736,4 +755,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     experiments,
     functions,
     type_templates,
+    webhooks,
 );
