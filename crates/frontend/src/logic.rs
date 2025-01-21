@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Map};
+use serde_json::{json, Map, Value};
 
 use crate::schema::{HtmlDisplay, SchemaType};
 use superposition_types::Context;
@@ -174,7 +174,7 @@ impl From<(SchemaType, Operator)> for Expression {
     fn from((r#type, operator): (SchemaType, Operator)) -> Self {
         match operator {
             Operator::Is => Expression::Is(r#type.default_value()),
-            Operator::In => Expression::In(r#type.default_value()),
+            Operator::In => Expression::In(Value::Array(vec![r#type.default_value()])),
             Operator::Has => Expression::Has(r#type.default_value()),
             Operator::Between => {
                 Expression::Between(r#type.default_value(), r#type.default_value())
