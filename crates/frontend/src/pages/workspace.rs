@@ -164,7 +164,7 @@ pub fn workspace() -> impl IntoView {
                                     mandatory_dimensions=selected_workspace_data
                                         .mandatory_dimensions
                                         .unwrap_or_default()
-                                    handle_submit=move || {
+                                    handle_submit=move |_| {
                                         workspace_resource.refetch();
                                         selected_workspace.set(None);
                                         close_drawer("workspace_drawer");
@@ -182,7 +182,7 @@ pub fn workspace() -> impl IntoView {
                             >
                                 <WorkspaceForm
                                     org_id=org_id
-                                    handle_submit=move || {
+                                    handle_submit=move |_| {
                                         workspace_resource.refetch();
                                         selected_workspace.set(None);
                                         close_drawer("workspace_drawer");

@@ -1,4 +1,5 @@
 #![deny(unused_crate_dependencies)]
+pub mod api;
 mod config;
 mod contextual;
 pub mod custom_query;
