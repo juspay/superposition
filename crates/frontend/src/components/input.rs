@@ -178,7 +178,7 @@ pub fn toggle(
 
             type="checkbox"
             name=name
-            class=format!("toggle toggle-primary {class}")
+            class=format!("toggle toggle-primary !w-[3rem] {class}")
             checked=value
         />
     }
