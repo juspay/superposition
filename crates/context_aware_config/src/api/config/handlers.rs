@@ -38,7 +38,7 @@ use superposition_types::{
         schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
     },
     result as superposition, Cac, Condition, Config, Context, DBConnection, Overrides,
-    PaginatedResponse, TenantConfig, User,
+    PaginatedResponse, User,
 };
 use uuid::Uuid;
 
@@ -412,7 +412,6 @@ fn construct_new_payload(
 async fn reduce_config_key(
     user: User,
     conn: &mut DBConnection,
-    tenant_config: &TenantConfig,
     mut og_contexts: Vec<Context>,
     mut og_overrides: HashMap<String, Overrides>,
     check_key: &str,
@@ -497,15 +496,8 @@ async fn reduce_config_key(
                     if is_approve {
                         let _ = context::delete(cid.clone(), user.clone(), conn, &tenant);
                         if let Ok(put_req) = construct_new_payload(request_payload) {
-                            let _ = context::put(
-                                put_req,
-                                conn,
-                                false,
-                                &user,
-                                &tenant,
-                                &tenant_config,
-                                false,
-                            );
+                            let _ =
+                                context::put(put_req, conn, false, &user, &tenant, false);
                         }
                     }
 
@@ -549,7 +541,6 @@ async fn reduce_config(
     req: HttpRequest,
     user: User,
     db_conn: DbConnection,
-    tenant_config: TenantConfig,
     tenant: Tenant,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -570,7 +561,6 @@ async fn reduce_config(
         config = reduce_config_key(
             user.clone(),
             &mut conn,
-            &tenant_config,
             contexts.clone(),
             overrides.clone(),
             key.as_str(),

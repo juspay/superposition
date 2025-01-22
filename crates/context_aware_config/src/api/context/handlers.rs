@@ -42,8 +42,7 @@ use superposition_types::{
         models::cac::Context,
         schema::contexts::{self, id},
     },
-    result as superposition, Contextual, Overridden, PaginatedResponse, SortBy,
-    TenantConfig, User,
+    result as superposition, Contextual, Overridden, PaginatedResponse, SortBy, User,
 };
 
 pub fn endpoints() -> Scope {
@@ -67,7 +66,6 @@ async fn put_handler(
     mut db_conn: DbConnection,
     user: User,
     tenant: Tenant,
-    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
@@ -89,7 +87,6 @@ async fn put_handler(
                 true,
                 &user,
                 &tenant,
-                &tenant_config,
                 false,
             )
             .map_err(|err: superposition::AppError| {
@@ -133,7 +130,6 @@ async fn update_override_handler(
     mut db_conn: DbConnection,
     user: User,
     tenant: Tenant,
-    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let (override_resp, version_id) = db_conn
@@ -152,7 +148,6 @@ async fn update_override_handler(
                 true,
                 &user,
                 &tenant,
-                &tenant_config,
                 true,
             )
             .map_err(|err: superposition::AppError| {
@@ -193,7 +188,6 @@ async fn move_handler(
     mut db_conn: DbConnection,
     user: User,
     tenant: Tenant,
-    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let (move_response, version_id) = db_conn
@@ -205,7 +199,6 @@ async fn move_handler(
                 true,
                 &user,
                 &tenant,
-                &tenant_config,
             )
             .map_err(|err| {
                 log::info!("move api failed with error: {:?}", err);
@@ -418,7 +411,6 @@ async fn bulk_operations(
     db_conn: DbConnection,
     user: User,
     tenant: Tenant,
-    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
     let DbConnection(mut conn) = db_conn;
@@ -438,7 +430,6 @@ async fn bulk_operations(
                             true,
                             &user,
                             &tenant,
-                            &tenant_config,
                             false,
                         )
                         .map_err(|err| {
@@ -515,7 +506,6 @@ async fn bulk_operations(
                             true,
                             &user,
                             &tenant,
-                            &tenant_config,
                         )
                         .map_err(|err| {
                             log::error!(
