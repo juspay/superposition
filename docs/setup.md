@@ -125,7 +125,6 @@ The following targets are available
 ### Environment Variables
 | Variable | Description | Default Value |
 |---|---|---|
-| `ENABLE_TENANT_AND_SCOPE` | Enables multi-tenancy | `true` |
 | `TENANTS` | List of Tenants | `dev,test` |
 | `DOCKER_DNS` | DNS server to use within the container | `localhost` |
 

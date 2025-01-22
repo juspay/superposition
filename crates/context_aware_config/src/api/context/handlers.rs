@@ -30,10 +30,9 @@ use chrono::Utc;
 use diesel::SelectableHelper;
 use diesel::{delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
-use service_utils::service::types::Tenant;
 use service_utils::{
     helpers::parse_config_tags,
-    service::types::{AppHeader, AppState, CustomHeaders, DbConnection},
+    service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
@@ -65,7 +64,7 @@ async fn put_handler(
     req: Json<PutReq>,
     mut db_conn: DbConnection,
     user: User,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
@@ -78,7 +77,7 @@ async fn put_handler(
                 req_mut.description = Some(ensure_description(
                     Value::Object(req_mut.context.clone().into_inner().into()),
                     transaction_conn,
-                    &tenant,
+                    &schema_name,
                 )?);
             }
             let put_response = operations::put(
@@ -86,7 +85,7 @@ async fn put_handler(
                 transaction_conn,
                 true,
                 &user,
-                &tenant,
+                &schema_name,
                 false,
             )
             .map_err(|err: superposition::AppError| {
@@ -102,7 +101,7 @@ async fn put_handler(
                 description,
                 change_reason,
                 transaction_conn,
-                &tenant,
+                &schema_name,
             )?;
             Ok((put_response, version_id))
         })?;
@@ -116,7 +115,7 @@ async fn put_handler(
     cfg_if::cfg_if! {
         if #[cfg(feature = "high-performance-mode")] {
             let DbConnection(mut conn) = db_conn;
-            put_config_in_redis(version_id, state, tenant, &mut conn).await?;
+            put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
         }
     }
     Ok(http_resp.json(put_response))
@@ -129,7 +128,7 @@ async fn update_override_handler(
     req: Json<PutReq>,
     mut db_conn: DbConnection,
     user: User,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let (override_resp, version_id) = db_conn
@@ -139,7 +138,7 @@ async fn update_override_handler(
                 req_mut.description = Some(ensure_description(
                     Value::Object(req_mut.context.clone().into_inner().into()),
                     transaction_conn,
-                    &tenant,
+                    &schema_name,
                 )?);
             }
             let override_resp = operations::put(
@@ -147,7 +146,7 @@ async fn update_override_handler(
                 transaction_conn,
                 true,
                 &user,
-                &tenant,
+                &schema_name,
                 true,
             )
             .map_err(|err: superposition::AppError| {
@@ -160,7 +159,7 @@ async fn update_override_handler(
                 req_mut.description.unwrap().clone(),
                 req_mut.change_reason.clone(),
                 transaction_conn,
-                &tenant,
+                &schema_name,
             )?;
             Ok((override_resp, version_id))
         })?;
@@ -173,7 +172,7 @@ async fn update_override_handler(
     cfg_if::cfg_if! {
         if #[cfg(feature = "high-performance-mode")] {
             let DbConnection(mut conn) = db_conn;
-            put_config_in_redis(version_id, state, tenant, &mut conn).await?;
+            put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
         }
     }
     Ok(http_resp.json(override_resp))
@@ -187,7 +186,7 @@ async fn move_handler(
     req: Json<MoveReq>,
     mut db_conn: DbConnection,
     user: User,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let (move_response, version_id) = db_conn
@@ -198,7 +197,7 @@ async fn move_handler(
                 transaction_conn,
                 true,
                 &user,
-                &tenant,
+                &schema_name,
             )
             .map_err(|err| {
                 log::info!("move api failed with error: {:?}", err);
@@ -210,7 +209,7 @@ async fn move_handler(
                 move_response.description.clone(),
                 move_response.change_reason.clone(),
                 transaction_conn,
-                &tenant,
+                &schema_name,
             )?;
 
             Ok((move_response, version_id))
@@ -224,7 +223,7 @@ async fn move_handler(
     cfg_if::cfg_if! {
         if #[cfg(feature = "high-performance-mode")] {
             let DbConnection(mut conn) = db_conn;
-            put_config_in_redis(version_id, state, tenant, &mut conn).await?;
+            put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
         }
     }
     Ok(http_resp.json(move_response))
@@ -234,7 +233,7 @@ async fn move_handler(
 async fn get_context_from_condition(
     db_conn: DbConnection,
     req: Json<Map<String, Value>>,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<Json<Context>> {
     use superposition_types::database::schema::contexts::dsl::*;
 
@@ -243,7 +242,7 @@ async fn get_context_from_condition(
 
     let ctx: Context = contexts
         .filter(id.eq(context_id))
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .get_result::<Context>(&mut conn)?;
 
     Ok(Json(ctx))
@@ -253,7 +252,7 @@ async fn get_context_from_condition(
 async fn get_context(
     path: Path<String>,
     db_conn: DbConnection,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<Json<Context>> {
     use superposition_types::database::schema::contexts::dsl::*;
 
@@ -262,7 +261,7 @@ async fn get_context(
 
     let ctx: Context = contexts
         .filter(id.eq(ctx_id))
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .get_result::<Context>(&mut conn)?;
 
     Ok(Json(ctx))
@@ -273,7 +272,7 @@ async fn list_contexts(
     filter_params: superposition_query::Query<ContextFilters>,
     dimension_params: DimensionQuery<QueryMap>,
     db_conn: DbConnection,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<Context>>> {
     use superposition_types::database::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
@@ -289,7 +288,7 @@ async fn list_contexts(
     }
 
     let dimension_params = dimension_params.into_inner();
-    let builder = contexts.schema_name(&tenant).into_boxed();
+    let builder = contexts.schema_name(&schema_name).into_boxed();
 
     #[rustfmt::skip]
     let mut builder = match (filter_params.sort_on.unwrap_or_default(), filter_params.sort_by.unwrap_or(SortBy::Asc)) {
@@ -335,7 +334,7 @@ async fn list_contexts(
 
             (data, total_items as i64)
         } else {
-            let mut total_count_builder = contexts.schema_name(&tenant).into_boxed();
+            let mut total_count_builder = contexts.schema_name(&schema_name).into_boxed();
             if let Some(created_bys) = filter_params.created_by {
                 total_count_builder =
                     total_count_builder.filter(created_by.eq_any(created_bys.0))
@@ -362,7 +361,7 @@ async fn delete_context_handler(
     path: Path<String>,
     custom_headers: CustomHeaders,
     user: User,
-    tenant: Tenant,
+    schema_name: SchemaName,
     mut db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::contexts::dsl::{
@@ -374,9 +373,9 @@ async fn delete_context_handler(
         db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let context = contexts_table
                 .filter(context_id.eq(ctx_id.clone()))
-                .schema_name(&tenant)
+                .schema_name(&schema_name)
                 .first::<Context>(transaction_conn)?;
-            operations::delete(ctx_id.clone(), user.clone(), transaction_conn, &tenant)?;
+            operations::delete(ctx_id.clone(), &user, transaction_conn, &schema_name)?;
             let description = context.description;
             let change_reason = format!("Deleted context by {}", user.username);
             let version_id = add_config_version(
@@ -385,14 +384,14 @@ async fn delete_context_handler(
                 description,
                 change_reason,
                 transaction_conn,
-                &tenant,
+                &schema_name,
             )?;
             Ok(version_id)
         })?;
     cfg_if::cfg_if! {
         if #[cfg(feature = "high-performance-mode")] {
             let DbConnection(mut conn) = db_conn;
-            put_config_in_redis(version_id, state, tenant, &mut conn).await?;
+            put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
         }
     }
     Ok(HttpResponse::NoContent()
@@ -410,7 +409,7 @@ async fn bulk_operations(
     reqs: Json<Vec<ContextAction>>,
     db_conn: DbConnection,
     user: User,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
     let DbConnection(mut conn) = db_conn;
@@ -429,7 +428,7 @@ async fn bulk_operations(
                             transaction_conn,
                             true,
                             &user,
-                            &tenant,
+                            &schema_name,
                             false,
                         )
                         .map_err(|err| {
@@ -448,7 +447,7 @@ async fn bulk_operations(
                             ensure_description(
                                 ctx_condition_value.clone(),
                                 transaction_conn,
-                                &tenant,
+                                &schema_name,
                             )?
                         } else {
                             put_req
@@ -462,12 +461,12 @@ async fn bulk_operations(
                     ContextAction::Delete(ctx_id) => {
                         let context: Context = contexts
                             .filter(id.eq(&ctx_id))
-                            .schema_name(&tenant)
+                            .schema_name(&schema_name)
                             .first::<Context>(transaction_conn)?;
 
                         let deleted_row = delete(contexts)
                             .filter(id.eq(&ctx_id))
-                            .schema_name(&tenant)
+                            .schema_name(&schema_name)
                             .execute(transaction_conn);
 
                         let description = context.description;
@@ -505,7 +504,7 @@ async fn bulk_operations(
                             transaction_conn,
                             true,
                             &user,
-                            &tenant,
+                            &schema_name,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -531,7 +530,7 @@ async fn bulk_operations(
                 combined_description,
                 combined_change_reasons,
                 transaction_conn,
-                &tenant,
+                &schema_name,
             )?;
             Ok((response, version_id))
         })?;
@@ -543,7 +542,7 @@ async fn bulk_operations(
 
     // Commit the transaction
     #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, tenant, &mut conn).await?;
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
     Ok(http_resp.json(response))
 }
 
@@ -552,7 +551,7 @@ async fn weight_recompute(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
-    tenant: Tenant,
+    schema_name: SchemaName,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::contexts::dsl::{
@@ -560,16 +559,15 @@ async fn weight_recompute(
     };
     let DbConnection(mut conn) = db_conn;
 
-    let result: Vec<Context> =
-        contexts
-            .schema_name(&tenant)
-            .load(&mut conn)
-            .map_err(|err| {
-                log::error!("failed to fetch contexts with error: {}", err);
-                unexpected_error!("Something went wrong")
-            })?;
+    let result: Vec<Context> = contexts
+        .schema_name(&schema_name)
+        .load(&mut conn)
+        .map_err(|err| {
+            log::error!("failed to fetch contexts with error: {}", err);
+            unexpected_error!("Something went wrong")
+        })?;
 
-    let dimension_data = get_dimension_data(&mut conn, &tenant)?;
+    let dimension_data = get_dimension_data(&mut conn, &schema_name)?;
     let dimension_data_map = get_dimension_data_map(&dimension_data)?;
     let mut response: Vec<WeightRecomputeResponse> = vec![];
     let tags = parse_config_tags(custom_headers.config_tags)?;
@@ -612,7 +610,7 @@ async fn weight_recompute(
                         last_modified_at.eq(last_modified_time.clone()),
                         last_modified_by.eq(user.get_email())
                     ))
-                    .schema_name(&tenant)
+                    .schema_name(&schema_name)
                     .returning(Context::as_returning())
                     .execute(transaction_conn).map_err(|err| {
                         log::error!(
@@ -623,11 +621,11 @@ async fn weight_recompute(
             }
             let description = "Recomputed weight".to_string();
             let change_reason = "Recomputed weight".to_string();
-            let version_id = add_config_version(&state, tags, description, change_reason, transaction_conn, &tenant)?;
+            let version_id = add_config_version(&state, tags, description, change_reason, transaction_conn, &schema_name)?;
             Ok(version_id)
         })?;
     #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(config_version_id, state, tenant, &mut conn).await?;
+    put_config_in_redis(config_version_id, state, &schema_name, &mut conn).await?;
 
     let mut http_resp = HttpResponse::Ok();
     http_resp.insert_header((

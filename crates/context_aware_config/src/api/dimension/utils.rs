@@ -1,7 +1,7 @@
 use crate::helpers::DimensionData;
 use diesel::{query_dsl::methods::SchemaNameDsl, RunQueryDsl};
 use jsonschema::{Draft, JSONSchema};
-use service_utils::{helpers::extract_dimensions, service::types::Tenant};
+use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
 use std::collections::HashMap;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
@@ -16,9 +16,11 @@ use super::types::{DimensionName, Position};
 
 pub fn get_dimension_data(
     conn: &mut DBConnection,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<Vec<Dimension>> {
-    Ok(dimensions.schema_name(tenant).load::<Dimension>(conn)?)
+    Ok(dimensions
+        .schema_name(schema_name)
+        .load::<Dimension>(conn)?)
 }
 
 pub fn get_dimension_data_map(
@@ -48,13 +50,16 @@ pub fn get_dimension_data_map(
 pub fn get_dimension_usage_context_ids(
     key: &str,
     conn: &mut DBConnection,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<Vec<String>> {
     let result: Vec<Context> =
-        contexts.schema_name(tenant).load(conn).map_err(|err| {
-            log::error!("failed to fetch contexts with error: {}", err);
-            db_error!(err)
-        })?;
+        contexts
+            .schema_name(schema_name)
+            .load(conn)
+            .map_err(|err| {
+                log::error!("failed to fetch contexts with error: {}", err);
+                db_error!(err)
+            })?;
 
     let mut context_ids = vec![];
     for context in result.iter() {

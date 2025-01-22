@@ -1,15 +1,18 @@
 use std::future::{ready, Ready};
 
-use crate::service::types::{AppState, OrganisationId, Tenant};
+use crate::{
+    extensions::ServiceRequestExt,
+    service::types::{
+        AppState, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
+    },
+};
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     error::{self},
-    http::header::{HeaderMap, HeaderValue},
     web::Data,
     Error, HttpMessage,
 };
 use futures_util::future::LocalBoxFuture;
-use log::debug;
 use regex::Regex;
 use std::rc::Rc;
 use superposition_types::TenantConfig;
@@ -53,43 +56,6 @@ pub struct OrgWorkspaceMiddleware<S> {
     service: Rc<S>,
     enable_org_id: bool,
     enable_workspace_id: bool,
-}
-
-fn extract_org_workspace_from_header(
-    headers: &HeaderMap,
-    header_name: String,
-) -> Option<&str> {
-    headers
-        .get(header_name)
-        .and_then(|header_value: &HeaderValue| header_value.to_str().ok())
-}
-
-fn extract_org_workspace_from_url(
-    path: &str,
-    match_pattern: Option<String>,
-    matching_url_param: String,
-) -> Option<&str> {
-    match_pattern.and_then(move |pattern| {
-        let pattern_segments = pattern.split('/');
-        let path_segments = path.split('/').collect::<Vec<&str>>();
-
-        debug!("PATTERN_SEGMENTS ===> {:?}", pattern_segments);
-        debug!("PATH_SEGMENTS ===> {:?}", path_segments);
-
-        std::iter::zip(path_segments, pattern_segments)
-            .find(|(_, pattern_seg)| *pattern_seg == matching_url_param.as_str())
-            .map(|(path_seg, _)| path_seg)
-    })
-}
-
-fn extract_org_workspace_from_query_params(
-    query_str: &str,
-    matching_pattern: String,
-) -> Option<&str> {
-    query_str
-        .split('&')
-        .find(|segment| segment.contains(matching_pattern.as_str()))
-        .and_then(|tenant_query_param| tenant_query_param.split('=').nth(1))
 }
 
 impl<S, B> Service<ServiceRequest> for OrgWorkspaceMiddleware<S>
@@ -138,89 +104,36 @@ where
                 || pkg_regex.is_match(&request_path)
                 || assets_regex.is_match(&request_path);
 
-            if !is_excluded && app_state.enable_tenant_and_scope {
-                debug!(
-                    "Workspace FROM HEADER ==> {:?}",
-                    extract_org_workspace_from_header(
-                        req.headers(),
-                        String::from("x-tenant")
-                    )
-                );
-                debug!(
-                    "Workspace FROM URL ==> {:?}",
-                    extract_org_workspace_from_url(
-                        req.path(),
-                        req.match_pattern(),
-                        String::from("{tenant}")
-                    )
-                );
-                debug!(
-                    "Workspace FROM QUERY ==> {:?}",
-                    extract_org_workspace_from_query_params(
-                        req.query_string(),
-                        String::from("tenant=")
-                    )
-                );
-
-                let workspace = extract_org_workspace_from_header(
-                    req.headers(),
-                    String::from("x-tenant"),
-                )
-                .or_else(|| {
-                    extract_org_workspace_from_url(
-                        req.path(),
-                        req.match_pattern(),
-                        String::from("{tenant}"),
-                    )
-                })
-                .or_else(|| {
-                    extract_org_workspace_from_query_params(
-                        req.query_string(),
-                        String::from("tenant="),
-                    )
-                });
-
-                let org = extract_org_workspace_from_header(
-                    req.headers(),
-                    String::from("x-org-id"),
-                )
-                .or_else(|| {
-                    extract_org_workspace_from_url(
-                        req.path(),
-                        req.match_pattern(),
-                        String::from("{org_id}"),
-                    )
-                })
-                .or_else(|| {
-                    extract_org_workspace_from_query_params(
-                        req.query_string(),
-                        String::from("org="),
-                    )
-                });
-
-                let workspace_id = match (enable_workspace_id, workspace) {
-                    (true, None) => return Err(error::ErrorBadRequest("The parameter workspace id is required, and must be passed through headers/url params/query params. Consult the documentation to know which to use for this endpoint")),
-                    (true, Some(workspace_id)) => workspace_id,
-                    (false, _) => "public",
+            if !is_excluded {
+                let workspace_id = match (enable_workspace_id, req.get_workspace_id()) {
+                    (true, None) => return Err(error::ErrorBadRequest("The parameter workspace id is required, and must be passed through headers/url params/query params.")),
+                    (true, Some(WorkspaceId(workspace_id))) => workspace_id,
+                    (false, _) => String::from("public"),
                 };
 
-                // TODO: validate the tenant, get correct TenantConfig
-                let (validated_tenant, tenant_config) =  match (enable_org_id, org) {
-                    (true, None) => return Err(error::ErrorBadRequest("The parameter org id is required, and must be passed through headers/url params/query params. Consult the documentation to know which to use for this endpoint")),
-                    (true, Some(org_id)) => {
-                        let tenant = format!("{org_id}_{workspace_id}");
-                        (Tenant(tenant), TenantConfig::default())
+                let org = req.get_organisation_id();
+
+                // TODO: validate the workspace, get correct TenantConfig
+                let (schema_name, tenant_config) =  match (enable_org_id, &org) {
+                    (true, None) => return Err(error::ErrorBadRequest("The parameter org id is required, and must be passed through headers/url params/query params.")),
+                    (true, Some(OrganisationId(org_id))) => {
+                        let schema = format!("{org_id}_{workspace_id}");
+                        (SchemaName(schema), TenantConfig::default())
                     },
-                    (false, _) => (Tenant("public".into()), TenantConfig::default()),
+                    (false, _) => (SchemaName("public".into()), TenantConfig::default()),
                 };
 
-                let organisation = org
-                    .map(String::from)
-                    .map(OrganisationId)
-                    .unwrap_or_default();
+                let organisation = org.unwrap_or_default();
+                let workspace = WorkspaceId(workspace_id.to_string());
 
-                req.extensions_mut().insert(validated_tenant);
-                req.extensions_mut().insert(organisation);
+                req.extensions_mut().insert(schema_name.clone());
+                req.extensions_mut().insert(workspace.clone());
+                req.extensions_mut().insert(organisation.clone());
+                req.extensions_mut().insert(WorkspaceContext {
+                    organisation_id: organisation,
+                    workspace_id: workspace,
+                    schema_name,
+                });
                 req.extensions_mut().insert(tenant_config);
             }
 
