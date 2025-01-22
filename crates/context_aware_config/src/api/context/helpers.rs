@@ -16,11 +16,13 @@ use superposition_types::{
         models::cac::Context,
         schema::{contexts, default_configs::dsl, dimensions},
     },
-    result as superposition, Cac, Condition, DBConnection, Overrides, TenantConfig, User,
+    result as superposition, Cac, Condition, DBConnection, Overrides, User,
 };
 
-use crate::api::functions::helpers::get_published_functions_by_names;
 use crate::validation_functions::execute_fn;
+use crate::{
+    api::functions::helpers::get_published_functions_by_names, helpers::get_workspace,
+};
 use crate::{
     api::{
         context::types::FunctionsInfo,
@@ -213,7 +215,6 @@ pub fn create_ctx_from_put_req(
     req: Json<PutReq>,
     conn: &mut DBConnection,
     user: &User,
-    tenant_config: &TenantConfig,
     tenant: &Tenant,
 ) -> superposition::Result<Context> {
     let ctx_condition = req.context.to_owned().into_inner();
@@ -228,10 +229,13 @@ pub fn create_ctx_from_put_req(
             .clone()
             .ok_or_else(|| bad_argument!("Description should not be empty"))?
     };
+
+    let workspace_settings = get_workspace(&tenant, conn)?;
+
     let change_reason = req.change_reason.clone();
     validate_condition_with_mandatory_dimensions(
         &ctx_condition,
-        &tenant_config.mandatory_dimensions,
+        &workspace_settings.mandatory_dimensions.unwrap_or_default(),
     )?;
     validate_override_with_default_configs(conn, &r_override, tenant)?;
     validate_condition_with_functions(conn, &ctx_condition, tenant)?;
