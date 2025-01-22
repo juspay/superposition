@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.19.1 - 2025-01-22
+#### Bug Fixes
+- webhook ui failure handling - (7f1b273) - Ankit.Mahato
+
+- - -
+
 ## frontend-v0.19.0 - 2025-01-06
 #### Bug Fixes
 - Experiment create config list (#324) - (28e3b7c) - Ayush Jain

@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.2.1 - 2025-01-22
+#### Bug Fixes
+- haskell client encode fix - (48bdfaf) - Pratik Mishra
+
+- - -
+
 ## haskell_client-v0.2.0 - 2024-11-20
 #### Continuous Integration
 - **(nix)** Run Haskell clients in CI (#191) - (5eeb498) - Shivaraj B H

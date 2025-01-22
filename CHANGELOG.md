@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.64.1 - 1970-01-01
+### Package updates
+- frontend bumped to frontend-v0.19.1
+- haskell_client bumped to haskell_client-v0.2.1
+### Global changes
+
+- - -
+
 ## v0.64.0 - 2025-01-06
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.45.0
