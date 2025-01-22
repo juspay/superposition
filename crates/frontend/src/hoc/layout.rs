@@ -61,13 +61,11 @@ pub fn layout(
                 <SideNav resolved_path=path.clone() original_path=original_path.clone()/>
             </Show>
             // params_map=params_map
-            <main class={
-                if show_side_nav {
-                    "ease-soft-in-out xl:ml-[350px] relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto"
-                } else {
-                    "ease-soft-in-out p-10 relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto"
-                }
-            }>
+            <main class={format!("ease-soft-in-out {} relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto", if show_side_nav {
+                "xl:ml-[350px]"
+            } else {
+                "p-10"
+            })}>
                 {children()}
             </main>
 
