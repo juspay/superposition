@@ -7,7 +7,7 @@ use chrono::Utc;
 use diesel::prelude::*;
 use idgenerator::IdInstance;
 use service_utils::service::types::DbConnection;
-use superposition_macros::db_error;
+use superposition_macros::{db_error, unexpected_error};
 use superposition_types::database::{
     models::{OrgStatus, Organisation},
     superposition_schema::superposition::organisations,
@@ -124,9 +124,7 @@ pub async fn update_organisation(
         .get_result(&mut conn)
         .map_err(|e| {
             log::error!("Failed to update organisation: {:?}", e);
-            superposition::AppError::UnexpectedError(anyhow::anyhow!(
-                "Failed to update organisation"
-            ))
+            unexpected_error!("Failed to update organisation")
         })?;
 
     Ok(Json(updated_org))

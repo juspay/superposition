@@ -100,8 +100,6 @@ pub struct WeightRecomputeResponse {
     pub condition: Condition,
     pub old_weight: BigDecimal,
     pub new_weight: BigDecimal,
-    pub description: String,
-    pub change_reason: String,
 }
 
 #[cfg(test)]
