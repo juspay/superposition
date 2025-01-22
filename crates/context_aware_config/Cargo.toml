@@ -31,6 +31,7 @@ service_utils = { path = "../service_utils" }
 strum_macros = { workspace = true }
 superposition_macros = { path = "../superposition_macros" }
 superposition_types = { path = "../superposition_types", features = [
+    "api",
     "result",
     "diesel_derives",
 ] }
