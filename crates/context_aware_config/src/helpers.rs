@@ -22,10 +22,11 @@ use service_utils::{
 use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
 use superposition_types::database::schema::event_log::dsl as event_log;
+use superposition_types::database::superposition_schema::superposition::workspaces;
 use superposition_types::DBConnection;
 use superposition_types::{
     database::{
-        models::cac::ConfigVersion,
+        models::{cac::ConfigVersion, Workspace},
         schema::{
             config_versions,
             contexts::dsl::{self as ctxt},
@@ -318,6 +319,16 @@ pub fn add_config_version(
         .schema_name(tenant)
         .execute(db_conn)?;
     Ok(version_id)
+}
+
+pub fn get_workspace(
+    workspace_schema_name: &String,
+    db_conn: &mut DBConnection,
+) -> superposition::Result<Workspace> {
+    let workspace = workspaces::dsl::workspaces
+        .filter(workspaces::workspace_schema_name.eq(workspace_schema_name))
+        .get_result::<Workspace>(db_conn)?;
+    Ok(workspace)
 }
 
 #[cfg(feature = "high-performance-mode")]

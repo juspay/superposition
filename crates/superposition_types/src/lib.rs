@@ -148,7 +148,6 @@ impl Display for RegexEnum {
 
 #[derive(Clone, Deserialize)]
 pub struct TenantConfig {
-    pub mandatory_dimensions: Vec<String>,
     pub experiments_webhook_config: WebhookConfig,
 }
 
@@ -173,7 +172,6 @@ impl FromRequest for TenantConfig {
 impl Default for TenantConfig {
     fn default() -> Self {
         Self {
-            mandatory_dimensions: Default::default(),
             experiments_webhook_config: WebhookConfig::Disbled,
         }
     }
