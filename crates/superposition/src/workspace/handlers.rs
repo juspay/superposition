@@ -16,6 +16,7 @@ use regex::Regex;
 use service_utils::service::types::{DbConnection, OrganisationId};
 use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::{
+    api::workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest},
     custom_query::PaginationParams,
     database::{
         models::{Organisation, Workspace, WorkspaceStatus},
@@ -24,9 +25,7 @@ use superposition_types::{
     result as superposition, PaginatedResponse, User,
 };
 
-use crate::workspace::types::{
-    CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceListFilters,
-};
+use crate::workspace::types::WorkspaceListFilters;
 
 const WORKSPACE_TEMPLATE_PATH: &str = "workspace_template.sql";
 

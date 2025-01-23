@@ -3,34 +3,31 @@ pub mod utils;
 
 use leptos::*;
 use serde_json::to_string;
+use superposition_types::api::workspace::{
+    CreateWorkspaceRequest, UpdateWorkspaceRequest,
+};
 use superposition_types::database::models::WorkspaceStatus;
 use web_sys::MouseEvent;
 
-use crate::components::input_components::BooleanToggle;
+use crate::components::input::Toggle;
 use crate::components::workspace_form::utils::string_to_vec;
 use crate::components::{alert::AlertType, button::Button};
 use crate::types::OrganisationId;
 use crate::{
-    components::workspace_form::{
-        types::{CreateWorkspaceRequest, UpdateWorkspaceRequest},
-        utils::{create_workspace, update_workspace},
-    },
+    components::workspace_form::utils::{create_workspace, update_workspace},
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
 };
 
 #[component]
-pub fn workspace_form<NF>(
+pub fn workspace_form(
     org_id: RwSignal<OrganisationId>,
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] workspace_admin_email: String,
     #[prop(default = String::new())] workspace_name: String,
     #[prop(default = WorkspaceStatus::ENABLED)] workspace_status: WorkspaceStatus,
     #[prop(default = vec![])] mandatory_dimensions: Vec<String>,
-    handle_submit: NF,
-) -> impl IntoView
-where
-    NF: Fn() + 'static + Clone,
-{
+    #[prop(into)] handle_submit: Callback<(), ()>,
+) -> impl IntoView {
     let (workspace_name_rs, workspace_name_ws) = create_signal(workspace_name);
     let (workspace_admin_email_rs, workspace_admin_email_ws) =
         create_signal(workspace_admin_email);
@@ -54,10 +51,8 @@ where
             mandatory_dimensions: Some(mandatory_dimensions_rs.get()),
         };
 
-        let handle_submit_clone = handle_submit.clone();
         let is_edit = edit;
         spawn_local({
-            let handle_submit = handle_submit_clone;
             async move {
                 let result = if is_edit {
                     update_workspace(
@@ -72,7 +67,7 @@ where
 
                 match result {
                     Ok(_) => {
-                        handle_submit();
+                        handle_submit.call(());
                         let success_message = if is_edit {
                             "Workspace updated successfully!"
                         } else {
@@ -164,14 +159,15 @@ where
                     <label class="label">
                         <span class="label-text">Workspace Status</span>
                     </label>
-                    <BooleanToggle
+                    <Toggle
                         name="workspace-status"
                         value=if workspace_status_rs.get_untracked() == WorkspaceStatus::ENABLED {
                             true
                         } else {
                             false
                         }
-                        on_change=Callback::new(move |flag: bool| {
+                        on_change=Callback::new(move |flag: serde_json::Value| {
+                            let flag = flag.as_bool().unwrap();
                             if flag {
                                 workspace_status_ws.set(WorkspaceStatus::ENABLED)
                             } else {
