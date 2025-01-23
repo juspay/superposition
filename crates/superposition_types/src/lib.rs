@@ -1,4 +1,6 @@
 #![deny(unused_crate_dependencies)]
+#[cfg(feature = "api")]
+pub mod api;
 mod config;
 mod contextual;
 pub mod custom_query;

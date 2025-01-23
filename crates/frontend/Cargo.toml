@@ -26,6 +26,7 @@ strum = { workspace = true }
 strum_macros = { workspace = true }
 superposition_types = { path = "../superposition_types", features = [
   "experimentation",
+  "api"
 ], default-features = false }
 url = { workspace = true }
 wasm-bindgen = "=0.2.89"

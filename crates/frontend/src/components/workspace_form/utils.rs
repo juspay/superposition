@@ -1,6 +1,8 @@
-use super::types::{CreateWorkspaceRequest, UpdateWorkspaceRequest};
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
 use serde_json::Value;
+use superposition_types::api::workspace::{
+    CreateWorkspaceRequest, UpdateWorkspaceRequest,
+};
 
 pub async fn create_workspace(
     org_id: String,

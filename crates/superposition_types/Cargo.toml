@@ -37,6 +37,7 @@ disable_db_data_validation = []
 result = ["dep:diesel", "dep:anyhow", "dep:thiserror", "dep:actix-web"]
 server = ["dep:actix-web"]
 experimentation = []
+api = []
 
 [lints]
 workspace = true
