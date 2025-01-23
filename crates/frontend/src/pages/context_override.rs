@@ -97,9 +97,20 @@ fn form(
                 Ok(_) => {
                     logging::log!("Context and overrides submitted successfully");
                     handle_submit.call(());
+                    let success_message = if edit {
+                        "Context and overrides updated successfully!"
+                    } else {
+                        "Context and overrides created successfully!"
+                    };
+                    enqueue_alert(
+                        String::from(success_message),
+                        AlertType::Success,
+                        5000,
+                    );
                 }
                 Err(e) => {
                     logging::log!("Error submitting context and overrides: {:?}", e);
+                    enqueue_alert(e, AlertType::Error, 5000);
                 }
             }
             req_inprogress_ws.set(false);
@@ -118,7 +129,6 @@ fn form(
 
             disabled=edit
         />
-        <div class="divider"></div>
 
         <div class="form-control">
             <label class="label">
@@ -135,8 +145,6 @@ fn form(
             />
         </div>
 
-        <div class="divider"></div>
-
         <div class="form-control">
             <label class="label">
                 <span class="label-text">Reason for Change</span>
@@ -151,8 +159,6 @@ fn form(
                 }
             />
         </div>
-
-        <div class="divider"></div>
 
         <OverrideForm
             overrides=overrides.get_untracked()

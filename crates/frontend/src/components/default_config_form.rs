@@ -175,7 +175,6 @@ where
     view! {
         <EditorProvider>
             <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
-
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Key Name</span>
@@ -194,8 +193,6 @@ where
 
                 </div>
 
-                <div class="divider"></div>
-
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Description</span>
@@ -210,8 +207,6 @@ where
                         }
                     />
                 </div>
-
-                <div class="divider"></div>
 
                 <div class="form-control">
                     <label class="label">
@@ -269,13 +264,12 @@ where
                                     })
                                     r#type=InputType::Monaco
                                 />
-
                             </div>
                         }
                     }}
 
                 </Suspense>
-                <div class="divider"></div>
+
 
                 {move || {
                     let input_format = match (
@@ -337,7 +331,7 @@ where
                             </label>
                             {input_format}
                         </div>
-                        <div class="divider"></div>
+
                     }
                 }}
 

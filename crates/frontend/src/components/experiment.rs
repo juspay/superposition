@@ -85,7 +85,6 @@ where
                 {experiment.with_value(|v| v.name.clone())}
                 <span class=badge_class>{experiment.with_value(|v| v.status.to_string())}</span>
             </h1>
-            <div class="divider"></div>
             <div class="flex flex-row justify-end join m-5">
 
                 {move || {

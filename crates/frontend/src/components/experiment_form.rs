@@ -11,9 +11,10 @@ use web_sys::MouseEvent;
 
 use crate::components::context_form::ContextForm;
 use crate::components::variant_form::VariantForm;
+use crate::providers::alert_provider::enqueue_alert;
 use crate::types::{VariantFormT, VariantFormTs};
 use crate::{
-    components::button::Button,
+    components::{alert::AlertType, button::Button},
     types::{OrganisationId, Tenant},
 };
 
@@ -133,8 +134,19 @@ where
                 match result {
                     Ok(_) => {
                         handle_submit_clone();
+                        let success_message = if edit {
+                            "Experiment updated successfully!"
+                        } else {
+                            "New Experiment created successfully!"
+                        };
+                        enqueue_alert(
+                            String::from(success_message),
+                            AlertType::Success,
+                            5000,
+                        );
                     }
-                    Err(_) => {
+                    Err(e) => {
+                        enqueue_alert(e, AlertType::Error, 5000);
                         // Handle error
                         // We can consider logging or displaying the error
                     }
@@ -162,8 +174,6 @@ where
                 />
             </div>
 
-            <div class="divider"></div>
-
             <div class="form-control">
                 <label class="label">
                     <span class="label-text">Description</span>
@@ -178,8 +188,6 @@ where
                     }
                 />
             </div>
-
-            <div class="divider"></div>
 
             <div class="form-control">
                 <label class="label">
@@ -213,8 +221,6 @@ where
                 }}
 
             </div>
-
-            <div class="divider"></div>
 
             {move || {
                 let variants = f_variants.get();

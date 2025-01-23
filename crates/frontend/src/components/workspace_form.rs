@@ -113,8 +113,6 @@ pub fn workspace_form(
                     />
                 </div>
 
-                <div class="divider"></div>
-
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Workspace Admin Email</span>
@@ -132,8 +130,6 @@ pub fn workspace_form(
                 </div>
 
                 <Show when=move || edit>
-                    <div class="divider"></div>
-
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text">Mandatory Dimensions</span>
@@ -152,8 +148,6 @@ pub fn workspace_form(
                         />
                     </div>
                 </Show>
-
-                <div class="divider"></div>
 
                 <div class="form-control">
                     <label class="label">
@@ -177,8 +171,6 @@ pub fn workspace_form(
                         class=String::from("mt-2")
                     />
                 </div>
-
-                <div class="divider"></div>
 
                 <div class="form-control grid w-full justify-start">
                     {move || {

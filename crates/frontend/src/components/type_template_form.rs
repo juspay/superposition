@@ -2,11 +2,12 @@ pub mod utils;
 
 use crate::components::type_template_form::utils::create_type;
 use crate::components::{
+    alert::AlertType,
     button::Button,
     input::{Input, InputType},
     type_template_form::utils::update_type,
 };
-use crate::providers::editor_provider::EditorProvider;
+use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Tenant};
 use leptos::*;
@@ -69,9 +70,20 @@ where
                 match result {
                     Ok(_) => {
                         handle_submit();
+                        let success_message = if edit {
+                            "Type updated successfully!"
+                        } else {
+                            "New Type created successfully!"
+                        };
+                        enqueue_alert(
+                            String::from(success_message),
+                            AlertType::Success,
+                            5000,
+                        );
                     }
                     Err(e) => {
-                        set_error_message.set(e);
+                        set_error_message.set(e.clone());
+                        enqueue_alert(e, AlertType::Error, 5000);
                     }
                 }
                 req_inprogress_ws.set(false);
@@ -99,7 +111,6 @@ where
                 />
 
             </div>
-            <div class="divider"></div>
 
             <div class="form-control">
                 <label class="label">
@@ -115,8 +126,6 @@ where
                     }
                 />
             </div>
-
-            <div class="divider"></div>
 
             <div class="form-control">
                 <label class="label">
@@ -148,8 +157,6 @@ where
                 />
             </div>
 
-            <div class="divider"></div>
-
             <div class="form-control">
                 <label class="label">
                     <span class="label-text">Reason for Change</span>
@@ -165,7 +172,6 @@ where
                 />
             </div>
 
-            <div class="divider"></div>
             <div class="form-control">
                 <label class="label">
                     <span class="label-text">Type Schema</span>
