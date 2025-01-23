@@ -12,9 +12,11 @@ use utils::{create_dimension, update_dimension};
 use web_sys::MouseEvent;
 
 use crate::components::{
+    alert::AlertType,
     dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
     input::{Input, InputType},
 };
+use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::FunctionsName;
@@ -126,9 +128,20 @@ where
                 match result {
                     Ok(_) => {
                         handle_submit();
+                        let success_message = if edit {
+                            "Dimension updated successfully!"
+                        } else {
+                            "New Dimension created successfully!"
+                        };
+                        enqueue_alert(
+                            String::from(success_message),
+                            AlertType::Success,
+                            5000,
+                        );
                     }
                     Err(e) => {
-                        set_error_message.set(e);
+                        set_error_message.set(e.clone());
+                        enqueue_alert(e, AlertType::Error, 5000);
                         // Handle error
                         // Consider logging or displaying the error
                     }
@@ -157,8 +170,6 @@ where
 
             </div>
 
-            <div class="divider"></div>
-
             <div class="form-control">
                 <label class="label">
                     <span class="label-text">Description</span>
@@ -173,8 +184,6 @@ where
                     }
                 />
             </div>
-
-            <div class="divider"></div>
 
             <div class="form-control">
                 <label class="label">
@@ -235,7 +244,6 @@ where
                 }}
 
             </Suspense>
-            <div class="divider"></div>
 
             {move || {
                 view! {
