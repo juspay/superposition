@@ -1,6 +1,6 @@
 use crate::{
     aws::kms,
-    service::types::{AppEnv, AppState, Tenant},
+    service::types::{AppEnv, AppState, WorkspaceContext},
 };
 use actix_web::{error::ErrorInternalServerError, web::Data, Error};
 use anyhow::anyhow;
@@ -382,7 +382,7 @@ pub async fn execute_webhook_call<T>(
     webhook_config: &Webhook,
     payload: &T,
     config_version_opt: &Option<String>,
-    tenant: &Tenant,
+    workspace_request: &WorkspaceContext,
     event: WebhookEvent,
     app_env: &AppEnv,
     http_client: &reqwest::Client,
@@ -404,7 +404,9 @@ where
                     None
                 }
             }
-            HeadersEnum::TenantId => Some((key.to_string(), tenant.to_string())),
+            HeadersEnum::WorkspaceId => {
+                Some((key.to_string(), workspace_request.workspace_id.to_string()))
+            }
         })
         .collect::<Vec<(String, String)>>();
 
@@ -454,7 +456,8 @@ where
             event_info: WebhookEventInfo {
                 webhook_event: event,
                 time: Utc::now().naive_utc().to_string(),
-                tenant_id: tenant.to_string(),
+                workspace_id: workspace_request.workspace_id.to_string(),
+                organisation_id: workspace_request.organisation_id.to_string(),
                 config_version: config_version_opt.clone(),
             },
             payload,

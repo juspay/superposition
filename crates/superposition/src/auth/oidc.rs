@@ -17,7 +17,7 @@ use openidconnect::{
     AuthenticationFlow, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce, RedirectUrl,
     ResourceOwnerPassword, ResourceOwnerUsername, Scope, TokenResponse, TokenUrl,
 };
-use service_utils::helpers::get_from_env_unsafe;
+use service_utils::{extensions::ServiceRequestExt, helpers::get_from_env_unsafe};
 use superposition_types::User;
 use types::{
     GlobalUserClaims, GlobalUserTokenResponse, LoginParams, OrgUserClaims,
@@ -240,9 +240,9 @@ impl OIDCAuthenticator {
     }
 
     fn get_org_user(&self, request: &ServiceRequest) -> Result<User, HttpResponse> {
-        let org_id = self.get_org_id(request);
+        let org_id = request.get_organisation_id().unwrap_or_default();
         let token = request.cookie(&Login::Org.to_string()).and_then(|c| {
-            self.decode_org_token(&org_id.0, c.value())
+            self.decode_org_token(&org_id, c.value())
                 .map_err(|e| log::error!("Error in decoding org_user : {e}"))
                 .ok()
         });

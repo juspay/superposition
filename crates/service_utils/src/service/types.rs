@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use std::sync::Mutex;
 use std::{
     collections::HashSet,
@@ -13,7 +12,6 @@ use derive_more::{Deref, DerefMut};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use diesel::PgConnection;
 use jsonschema::JSONSchema;
-use serde_json::json;
 use snowflake::SnowflakeIdGenerator;
 
 use crate::db::PgSchemaConnectionPool;
@@ -48,7 +46,6 @@ pub struct AppState {
     pub meta_schema: JSONSchema,
     pub experimentation_flags: ExperimentationFlags,
     pub snowflake_generator: Arc<Mutex<SnowflakeIdGenerator>>,
-    pub enable_tenant_and_scope: bool,
     pub tenant_middleware_exclusion_list: HashSet<String>,
     pub service_prefix: String,
     pub superposition_token: String,
@@ -78,7 +75,11 @@ pub enum AppScope {
     EXPERIMENTATION,
     SUPERPOSITION,
 }
-impl FromRequest for AppScope {
+
+#[derive(Deref, DerefMut, Clone, Debug)]
+pub struct WorkspaceId(pub String);
+
+impl FromRequest for WorkspaceId {
     type Error = Error;
     type Future = Ready<Result<Self, Self::Error>>;
 
@@ -86,55 +87,25 @@ impl FromRequest for AppScope {
         req: &actix_web::HttpRequest,
         _: &mut actix_web::dev::Payload,
     ) -> Self::Future {
-        let scope = req.extensions().get::<AppScope>().cloned();
-        let result = match scope {
-            Some(v) => Ok(v),
-            None => Err(error::ErrorInternalServerError("app scope not set")),
-        };
+        let result = req.extensions().get::<Self>().cloned().ok_or_else(|| {
+            log::error!("Workspace Id not found");
+            actix_web::error::ErrorInternalServerError("Workspace Id not found")
+        });
+
         ready(result)
     }
 }
 
 #[derive(Deref, DerefMut, Clone, Debug)]
-pub struct AppExecutionNamespace(pub String);
-impl AppExecutionNamespace {
-    pub fn from_request_sync(req: &actix_web::HttpRequest) -> Result<Self, Error> {
-        let app_state = match req.app_data::<Data<AppState>>() {
-            Some(val) => val,
-            None => {
-                log::error!("get_app_execution_namespace: AppState not set");
-                return Err(error::ErrorInternalServerError(""));
-            }
-        };
+pub struct OrganisationId(pub String);
 
-        let tenant = req.extensions().get::<Tenant>().cloned();
-        let scope = req.extensions().get::<AppScope>().cloned();
-
-        match (
-            app_state.enable_tenant_and_scope,
-            app_state.app_env,
-            tenant,
-            scope,
-        ) {
-            (false, _, _, _) => Ok(AppExecutionNamespace("cac_v1".to_string())),
-            (true, _, Some(t), Some(_)) => Ok(AppExecutionNamespace(t.0)),
-            (true, _, None, _) => {
-                log::error!(
-                    "get_app_execution_namespace: Tenant not set in request extensions"
-                );
-                Err(error::ErrorInternalServerError(""))
-            }
-            (true, _, _, None) => {
-                log::error!(
-                    "get_app_execution_namespace: AppScope not set in request extensions"
-                );
-                Err(error::ErrorInternalServerError(""))
-            }
-        }
+impl Default for OrganisationId {
+    fn default() -> Self {
+        Self(String::from("superposition"))
     }
 }
 
-impl FromRequest for AppExecutionNamespace {
+impl FromRequest for OrganisationId {
     type Error = Error;
     type Future = Ready<Result<Self, Self::Error>>;
 
@@ -142,24 +113,19 @@ impl FromRequest for AppExecutionNamespace {
         req: &actix_web::HttpRequest,
         _: &mut actix_web::dev::Payload,
     ) -> Self::Future {
-        ready(AppExecutionNamespace::from_request_sync(req))
+        let result = req.extensions().get::<Self>().cloned().ok_or_else(|| {
+            log::error!("Organisation Id not found");
+            actix_web::error::ErrorInternalServerError("Organisation Id not found")
+        });
+
+        ready(result)
     }
 }
 
 #[derive(Deref, DerefMut, Clone, Debug)]
-pub struct Tenant(pub String);
+pub struct SchemaName(pub String);
 
-impl Tenant {
-    pub fn get_tenant_name(&self) -> Result<String, String> {
-        self.deref()
-            .split('_')
-            .into_iter()
-            .last()
-            .map(str::to_string)
-            .ok_or(String::from("failed to decode tenant"))
-    }
-}
-impl FromRequest for Tenant {
+impl FromRequest for SchemaName {
     type Error = Error;
     type Future = Ready<Result<Self, Self::Error>>;
 
@@ -167,28 +133,35 @@ impl FromRequest for Tenant {
         req: &actix_web::HttpRequest,
         _: &mut actix_web::dev::Payload,
     ) -> Self::Future {
-        let tenant = req.extensions().get::<Tenant>().cloned();
-        let result = match tenant {
-            Some(v) => Ok(v),
-            None => {
-                let app_state = match req.app_data::<Data<AppState>>() {
-                    Some(val) => val,
-                    None => {
-                        log::error!("app state not set");
-                        return ready(Err(error::ErrorInternalServerError(json!({
-                            "message": "an unknown error occurred with the app. Please contact an admin"
-                        }))));
-                    }
-                };
-                if app_state.enable_tenant_and_scope {
-                    Err(error::ErrorInternalServerError(json!({
-                        "message": "tenant was not set. Please ensure you are passing in the x-tenant header"
-                    })))
-                } else {
-                    Ok(Tenant("public".into()))
-                }
-            }
-        };
+        let result = req.extensions().get::<Self>().cloned().ok_or_else(|| {
+            log::error!("Please check that the organisation id and workspace id are being properly sent");
+            actix_web::error::ErrorInternalServerError("Please check that the organisation id and workspace id are being properly sent")
+        });
+
+        ready(result)
+    }
+}
+
+#[derive(Clone)]
+pub struct WorkspaceContext {
+    pub workspace_id: WorkspaceId,
+    pub organisation_id: OrganisationId,
+    pub schema_name: SchemaName,
+}
+
+impl FromRequest for WorkspaceContext {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        let result = req.extensions().get::<Self>().cloned().ok_or_else(|| {
+            log::error!("Please check that the organisation id and workspace id are being properly sent");
+            actix_web::error::ErrorInternalServerError("Please check that the organisation id and workspace id are being properly sent")
+        });
+
         ready(result)
     }
 }
@@ -243,48 +216,5 @@ impl FromRequest for CustomHeaders {
             }),
         };
         ready(Ok(val))
-    }
-}
-
-#[derive(Deref, DerefMut, Clone, Debug)]
-pub struct OrganisationId(pub String);
-
-impl Default for OrganisationId {
-    fn default() -> Self {
-        Self(String::from("superposition"))
-    }
-}
-
-impl FromRequest for OrganisationId {
-    type Error = Error;
-    type Future = Ready<Result<Self, Self::Error>>;
-
-    fn from_request(
-        req: &actix_web::HttpRequest,
-        _: &mut actix_web::dev::Payload,
-    ) -> Self::Future {
-        let organisation = req.extensions().get::<OrganisationId>().cloned();
-        let result = match organisation {
-            Some(v) => Ok(v),
-            None => {
-                let app_state = match req.app_data::<Data<AppState>>() {
-                    Some(val) => val,
-                    None => {
-                        log::error!("app state not set");
-                        return ready(Err(error::ErrorInternalServerError(json!({
-                            "message": "an unknown error occurred with the app. Please contact an admin"
-                        }))));
-                    }
-                };
-                if app_state.enable_tenant_and_scope {
-                    Err(error::ErrorInternalServerError(json!({
-                        "message": "x-org-id was not set. Please ensure you are passing in the x-tenant header"
-                    })))
-                } else {
-                    Ok(OrganisationId::default())
-                }
-            }
-        };
-        ready(result)
     }
 }

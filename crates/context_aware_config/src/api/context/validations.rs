@@ -3,8 +3,7 @@ use std::collections::HashMap;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{json, Map, Value};
-use service_utils::helpers::validation_err_to_str;
-use service_utils::service::types::Tenant;
+use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
 use superposition_macros::{bad_argument, validation_error};
 use superposition_types::{database::schema, result, DBConnection};
 
@@ -15,7 +14,7 @@ use super::types::DimensionCondition;
 pub fn validate_override_with_default_configs(
     conn: &mut DBConnection,
     override_: &Map<String, Value>,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> result::Result<()> {
     let keys_array: Vec<&String> = override_.keys().collect();
     let res: Vec<(String, Value)> = schema::default_configs::dsl::default_configs
@@ -24,7 +23,7 @@ pub fn validate_override_with_default_configs(
             schema::default_configs::dsl::key,
             schema::default_configs::dsl::schema,
         ))
-        .schema_name(tenant)
+        .schema_name(schema_name)
         .get_results::<(String, Value)>(conn)?;
 
     let map = Map::from_iter(res);

@@ -6,7 +6,7 @@ use diesel::{
     Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use serde_json::Value;
-use service_utils::service::types::Tenant;
+use service_utils::service::types::SchemaName;
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     database::{models::cac::Context, schema::contexts},
@@ -38,11 +38,11 @@ pub fn put(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
     replace: bool,
 ) -> result::Result<PutResp> {
     use contexts::dsl::contexts;
-    let new_ctx = create_ctx_from_put_req(req, conn, user, &tenant)?;
+    let new_ctx = create_ctx_from_put_req(req, conn, user, schema_name)?;
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
@@ -50,7 +50,7 @@ pub fn put(
     let insert = diesel::insert_into(contexts)
         .values(&new_ctx)
         .returning(Context::as_returning())
-        .schema_name(&tenant)
+        .schema_name(schema_name)
         .execute(conn);
 
     match insert {
@@ -60,9 +60,9 @@ pub fn put(
                 diesel::sql_query("ROLLBACK TO put_ctx_savepoint").execute(conn)?;
             }
             if replace {
-                replace_override_of_existing_ctx(conn, new_ctx, user, tenant)
+                replace_override_of_existing_ctx(conn, new_ctx, user, schema_name)
             } else {
-                update_override_of_existing_ctx(conn, new_ctx, user, tenant)
+                update_override_of_existing_ctx(conn, new_ctx, user, schema_name)
             }
         }
         Err(e) => {
@@ -78,14 +78,14 @@ pub fn r#move(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> result::Result<PutResp> {
     use contexts::dsl;
     let req = req.into_inner();
     let ctx_condition = req.context.to_owned().into_inner();
     let ctx_condition_value = Value::Object(ctx_condition.clone().into());
     let description = if req.description.is_none() {
-        ensure_description(ctx_condition_value.clone(), conn, tenant)?
+        ensure_description(ctx_condition_value.clone(), conn, schema_name)?
     } else {
         req.description
             .ok_or_else(|| bad_argument!("Description should not be empty"))?
@@ -94,13 +94,13 @@ pub fn r#move(
 
     let new_ctx_id = hash(&ctx_condition_value);
 
-    let dimension_data = get_dimension_data(conn, &tenant)?;
+    let dimension_data = get_dimension_data(conn, schema_name)?;
     let dimension_data_map = get_dimension_data_map(&dimension_data)?;
     validate_dimensions("context", &ctx_condition_value, &dimension_data_map)?;
     let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
 
-    let workspace_settings = get_workspace(&tenant, conn)?;
+    let workspace_settings = get_workspace(schema_name, conn)?;
 
     validate_condition_with_mandatory_dimensions(
         &req.context.into_inner(),
@@ -121,7 +121,7 @@ pub fn r#move(
             dsl::last_modified_by.eq(user.get_email()),
         ))
         .returning(Context::as_returning())
-        .schema_name(&tenant)
+        .schema_name(schema_name)
         .get_result::<Context>(conn);
 
     let contruct_new_ctx_with_old_overrides = |ctx: Context| Context {
@@ -143,19 +143,19 @@ pub fn r#move(
             if already_under_txn {
                 let deleted_ctxt = diesel::delete(dsl::contexts)
                     .filter(dsl::id.eq(&old_ctx_id))
-                    .schema_name(&tenant)
+                    .schema_name(schema_name)
                     .get_result(db_conn)?;
 
                 let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
-                update_override_of_existing_ctx(db_conn, ctx, user, tenant)
+                update_override_of_existing_ctx(db_conn, ctx, user, schema_name)
             } else {
                 db_conn.transaction(|conn| {
                     let deleted_ctxt = diesel::delete(dsl::contexts)
                         .filter(dsl::id.eq(&old_ctx_id))
-                        .schema_name(&tenant)
+                        .schema_name(schema_name)
                         .get_result(conn)?;
                     let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
-                    update_override_of_existing_ctx(conn, ctx, user, tenant)
+                    update_override_of_existing_ctx(conn, ctx, user, schema_name)
                 })
             }
         };
@@ -177,9 +177,9 @@ pub fn r#move(
 
 pub fn delete(
     ctx_id: String,
-    user: User,
+    user: &User,
     conn: &mut DBConnection,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> result::Result<()> {
     use contexts::dsl;
     diesel::update(dsl::contexts)
@@ -189,10 +189,10 @@ pub fn delete(
             dsl::last_modified_by.eq(user.get_email()),
         ))
         .returning(Context::as_returning())
-        .schema_name(&tenant)
+        .schema_name(schema_name)
         .execute(conn)?;
     let deleted_row = diesel::delete(dsl::contexts.filter(dsl::id.eq(&ctx_id)))
-        .schema_name(&tenant)
+        .schema_name(schema_name)
         .execute(conn);
     match deleted_row {
         Ok(0) => Err(not_found!("Context Id `{}` doesn't exists", ctx_id)),
