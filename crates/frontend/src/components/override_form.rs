@@ -149,7 +149,7 @@ where
         set_overrides.update(|curr_overrides| {
             let position = curr_overrides
                 .iter()
-                .position(|(k, _)| k.to_owned() == config_key_value);
+                .position(|(k, _)| *k == config_key_value);
             if let Some(idx) = position {
                 curr_overrides[idx].1 = value;
             }
@@ -161,8 +161,7 @@ where
             Some(f) => f.call(key),
             None => {
                 set_overrides.update(|value| {
-                    let position =
-                        value.iter().position(|(k, _)| k.to_owned() == key.clone());
+                    let position = value.iter().position(|(k, _)| *k == key.clone());
                     if let Some(idx) = position {
                         value.remove(idx);
                     }

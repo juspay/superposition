@@ -41,7 +41,7 @@ impl Expression {
                 .cloned()
                 .ok_or("Invalid operands list for context")?;
 
-            let operand_0 = operands.get(0);
+            let operand_0 = operands.first();
             let operand_1 = operands.get(1);
             let operand_2 = operands.get(2);
 
@@ -270,13 +270,9 @@ impl Condition {
                 .ok_or("Invalid operands list for context")?
                 .iter()
                 .find_map(|o| {
-                    o.as_object()
-                        .map(|v| {
-                            v.get("var")
-                                .map(|s| s.as_str().map(|s| s.to_owned()))
-                                .flatten()
-                        })
-                        .flatten()
+                    o.as_object().and_then(|v| {
+                        v.get("var").and_then(|s| s.as_str().map(|s| s.to_owned()))
+                    })
                 })
                 .ok_or("variable doesn't exist in operands");
         }
@@ -337,7 +333,7 @@ impl Conditions {
                         .map(Condition::try_from_condition_json)
                         .collect::<Result<Vec<Condition>, &'static str>>()
                 })?,
-            None => Condition::try_from_condition_map(&context).map(|v| vec![v])?,
+            None => Condition::try_from_condition_map(context).map(|v| vec![v])?,
         }))
     }
     pub fn to_context_json(self) -> serde_json::Value {
@@ -362,6 +358,6 @@ impl FromIterator<Condition> for Conditions {
 impl TryFrom<&Context> for Conditions {
     type Error = &'static str;
     fn try_from(context: &Context) -> Result<Self, Self::Error> {
-        Self::from_context_json(&context.condition.as_ref())
+        Self::from_context_json(context.condition.as_ref())
     }
 }

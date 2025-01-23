@@ -339,11 +339,11 @@ pub extern "C" fn cac_get_default_config(
                     unwrap_safe!(
                         serde_json::to_string::<Map<String, Value>>(&ov)
                             .map(|overrides| rstring_to_cstring(overrides).into_raw()),
-                        return std::ptr::null()
+                        std::ptr::null()
                     )
                 })
             },
-            return std::ptr::null()
+            std::ptr::null()
         )
     })
 }

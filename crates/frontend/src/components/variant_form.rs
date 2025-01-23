@@ -77,7 +77,7 @@ where
                     .1
                     .overrides
                     .iter()
-                    .position(|(k, _)| k.to_owned() == removed_key);
+                    .position(|(k, _)| *k == removed_key);
                 if let Some(idx) = position {
                     variant.1.overrides.remove(idx);
                 }

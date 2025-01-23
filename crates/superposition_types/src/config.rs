@@ -306,28 +306,22 @@ pub(crate) mod tests {
     }
 
     pub(crate) fn get_dimension_data1() -> Map<String, Value> {
-        Map::from_iter(vec![(String::from("test3"), Value::Bool(true))].into_iter())
+        Map::from_iter(vec![(String::from("test3"), Value::Bool(true))])
     }
 
     pub(crate) fn get_dimension_data2() -> Map<String, Value> {
-        Map::from_iter(
-            vec![
-                (String::from("test3"), Value::Bool(false)),
-                (String::from("test"), Value::String(String::from("key"))),
-            ]
-            .into_iter(),
-        )
+        Map::from_iter(vec![
+            (String::from("test3"), Value::Bool(false)),
+            (String::from("test"), Value::String(String::from("key"))),
+        ])
     }
 
     pub(crate) fn get_dimension_data3() -> Map<String, Value> {
-        Map::from_iter(
-            vec![
-                (String::from("test3"), Value::Bool(false)),
-                (String::from("test"), Value::String(String::from("key"))),
-                (String::from("test2"), Value::Number(Number::from(12))),
-            ]
-            .into_iter(),
-        )
+        Map::from_iter(vec![
+            (String::from("test3"), Value::Bool(false)),
+            (String::from("test"), Value::String(String::from("key"))),
+            (String::from("test2"), Value::Number(Number::from(12))),
+        ])
     }
 
     pub(crate) fn get_dimension_filtered_config1() -> Config {
@@ -555,7 +549,7 @@ pub(crate) mod tests {
     fn filter_default_by_prefix() {
         let config = get_config();
 
-        let prefix_list = HashSet::from_iter(vec![String::from("test.")].into_iter());
+        let prefix_list = HashSet::from_iter(vec![String::from("test.")]);
 
         assert_eq!(
             config.filter_default_by_prefix(&prefix_list),
@@ -568,7 +562,7 @@ pub(crate) mod tests {
             .clone()
         );
 
-        let prefix_list = HashSet::from_iter(vec![String::from("test3")].into_iter());
+        let prefix_list = HashSet::from_iter(vec![String::from("test3")]);
 
         assert_eq!(config.filter_default_by_prefix(&prefix_list), Map::new());
     }
@@ -577,23 +571,22 @@ pub(crate) mod tests {
     fn filter_by_prefix() {
         let config = get_config();
 
-        let prefix_list = HashSet::from_iter(vec![String::from("test.")].into_iter());
+        let prefix_list = HashSet::from_iter(vec![String::from("test.")]);
 
         assert_eq!(
             config.filter_by_prefix(&prefix_list),
             get_prefix_filtered_config1()
         );
 
-        let prefix_list = HashSet::from_iter(
-            vec![String::from("test."), String::from("test2.")].into_iter(),
-        );
+        let prefix_list =
+            HashSet::from_iter(vec![String::from("test."), String::from("test2.")]);
 
         assert_eq!(
             config.filter_by_prefix(&prefix_list),
             get_prefix_filtered_config2()
         );
 
-        let prefix_list = HashSet::from_iter(vec![String::from("abcd")].into_iter());
+        let prefix_list = HashSet::from_iter(vec![String::from("abcd")]);
 
         assert_eq!(
             config.filter_by_prefix(&prefix_list),

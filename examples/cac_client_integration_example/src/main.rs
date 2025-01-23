@@ -19,7 +19,7 @@ async fn main() -> std::io::Result<()> {
                 "http://localhost:8080".into(),
             )
             .await
-            .expect(format!("{}: Failed to acquire cac_client", "dev").as_str())
+            .unwrap_or_else(|_| panic!("{}: Failed to acquire cac_client", "dev"))
             .clone()
             .run_polling_updates(),
     );
@@ -60,13 +60,11 @@ async fn get_full_config(request: HttpRequest) -> HttpResponse {
         .expect("No client found for dev tenant");
     let query_params = Query::<Map<String, Value>>::from_query(request.query_string())
         .map(Query::into_inner)
-        .unwrap_or(Map::new());
+        .unwrap_or_default();
     let prefix = query_params
         .get("prefix")
         .and_then(|item| item.as_str())
-        .and_then(|item| {
-            Some(item.split(',').map(str::to_string).collect::<Vec<String>>())
-        });
+        .map(|item| item.split(',').map(str::to_string).collect::<Vec<String>>());
     println!(
         "full config with filters: {:?}",
         client
@@ -84,7 +82,7 @@ async fn get_resolved_config(request: HttpRequest) -> HttpResponse {
         .expect("No client found for dev tenant");
     let query_params = Query::<Map<String, Value>>::from_query(request.query_string())
         .map(Query::into_inner)
-        .unwrap_or(Map::new());
+        .unwrap_or_default();
     println!(
         "resolved config with filters: {:?}",
         client

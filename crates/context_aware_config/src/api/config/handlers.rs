@@ -51,14 +51,13 @@ use crate::{
 use super::helpers::apply_prefix_filter_to_config;
 
 pub fn endpoints() -> Scope {
-    let scope = Scope::new("")
+    #[cfg(feature = "high-performance-mode")]
+    let scope = scope.service(get_config_fast);
+    Scope::new("")
         .service(get_config)
         .service(get_resolved_config)
         .service(reduce_config)
-        .service(get_config_versions);
-    #[cfg(feature = "high-performance-mode")]
-    let scope = scope.service(get_config_fast);
-    scope
+        .service(get_config_versions)
 }
 
 fn validate_version_in_params(
@@ -158,7 +157,7 @@ pub fn generate_config_from_version(
     schema_name: &SchemaName,
 ) -> superposition::Result<Config> {
     if let Some(val) = version {
-        let val = val.clone();
+        let val = *val;
         let config = config_versions::config_versions
             .select(config_versions::config)
             .filter(config_versions::id.eq(val))
@@ -315,6 +314,7 @@ fn reduce(
     Ok(dimensions)
 }
 
+#[allow(clippy::type_complexity)]
 fn get_contextids_from_overrideid(
     contexts: Vec<Context>,
     overrides: Map<String, Value>,
@@ -499,7 +499,7 @@ async fn reduce_config_key(
                                 put_req,
                                 conn,
                                 false,
-                                &user,
+                                user,
                                 schema_name,
                                 false,
                             );

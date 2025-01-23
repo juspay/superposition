@@ -57,7 +57,7 @@ fn experiment_gen(
     override_keys: &[String],
     context: &Condition,
     status: ExperimentStatusType,
-    variants: &Vec<Variant>,
+    variants: &[Variant],
 ) -> Experiment {
     Experiment {
         id: 123456789,
@@ -71,7 +71,7 @@ fn experiment_gen(
         override_keys: override_keys.to_vec(),
         status,
         context: context.clone(),
-        variants: Variants::new(variants.clone()),
+        variants: Variants::new(variants.to_owned()),
         chosen_variant: None,
         description: "".to_string(),
         change_reason: "".to_string(),
@@ -238,7 +238,7 @@ fn test_is_valid_experiment_no_restrictions_overlapping_experiment(
         &["key1".to_string(), "key2".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &vec![],
+        &[],
     )];
 
     assert_eq!(
@@ -280,7 +280,7 @@ fn test_is_valid_experiment_no_restrictions_non_overlapping_experiment(
         .map_err(superposition::AppError::BadArgument)?
         .into_inner(),
         ExperimentStatusType::CREATED,
-        &vec![],
+        &[],
     )];
 
     assert_eq!(
@@ -319,7 +319,7 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
         &experiment_override_keys,
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &vec![],
+        &[],
     )];
 
     assert_eq!(
@@ -356,7 +356,7 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
         &["key1".to_string(), "key3".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &vec![],
+        &[],
     )];
 
     assert_eq!(
@@ -393,7 +393,7 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
         &["key3".to_string(), "key4".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &vec![],
+        &[],
     )];
 
     assert_eq!(
@@ -432,7 +432,7 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
         &experiment_override_keys,
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &vec![],
+        &[],
     )];
 
     assert_eq!(
@@ -469,7 +469,7 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
         &["key1".to_string(), "key3".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &vec![],
+        &[],
     )];
 
     assert_eq!(
@@ -506,7 +506,7 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
         &["key3".to_string(), "key4".to_string()],
         &experiment_context,
         ExperimentStatusType::CREATED,
-        &vec![],
+        &[],
     )];
 
     assert_eq!(
@@ -550,7 +550,7 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
         .map_err(superposition::AppError::BadArgument)?
         .into_inner(),
         ExperimentStatusType::CREATED,
-        &vec![],
+        &[],
     )];
 
     assert_eq!(
@@ -592,7 +592,7 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
         .map_err(superposition::AppError::BadArgument)?
         .into_inner(),
         ExperimentStatusType::CREATED,
-        &vec![],
+        &[],
     )];
 
     assert_eq!(
@@ -634,7 +634,7 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
         .map_err(superposition::AppError::BadArgument)?
         .into_inner(),
         ExperimentStatusType::CREATED,
-        &vec![],
+        &[],
     )];
 
     assert_eq!(

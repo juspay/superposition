@@ -207,7 +207,7 @@ pub fn calculate_context_weight(
                 log::error!("{}", msg);
                 msg
             })?;
-        weight = weight + calculate_weight_from_index(position as u32)?;
+        weight += calculate_weight_from_index(position as u32)?;
     }
     Ok(weight)
 }

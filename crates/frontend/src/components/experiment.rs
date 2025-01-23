@@ -22,6 +22,7 @@ fn badge_class(status_type: ExperimentStatusType) -> &'static str {
 
 use super::table::types::ColumnSortable;
 
+#[allow(clippy::type_complexity)]
 pub fn gen_variant_table(
     variants: &[Variant],
 ) -> Result<(Vec<Map<String, Value>>, Vec<Column>), String> {

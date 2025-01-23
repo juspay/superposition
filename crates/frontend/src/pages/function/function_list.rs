@@ -55,7 +55,7 @@ pub fn function_list() -> impl IntoView {
 
     view! {
         <div class="p-8">
-            <Suspense fallback=move || view! { <Skeleton/> }>
+            <Suspense fallback=move || view! { <Skeleton /> }>
                 <div class="pb-4">
 
                     {move || {
@@ -66,7 +66,7 @@ pub fn function_list() -> impl IntoView {
                             });
                         let total_items = value.functions.total_items.to_string();
                         view! {
-                            <Stat heading="Functions" icon="ri-code-box-fill" number=total_items/>
+                            <Stat heading="Functions" icon="ri-code-box-fill" number=total_items />
                         }
                     }}
 

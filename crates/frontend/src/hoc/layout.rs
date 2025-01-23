@@ -55,19 +55,14 @@ pub fn layout(
 
     view! {
         <div>
-            <Show
-            when=move || show_side_nav
-            >
-                <SideNav resolved_path=path.clone() original_path=original_path.clone()/>
+            <Show when=move || show_side_nav>
+                <SideNav resolved_path=path.clone() original_path=original_path.clone() />
             </Show>
             // params_map=params_map
-            <main class={format!("ease-soft-in-out {} relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto", if show_side_nav {
-                "xl:ml-[350px]"
-            } else {
-                "p-10"
-            })}>
-                {children()}
-            </main>
+            <main class=format!(
+                "ease-soft-in-out {} relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto",
+                if show_side_nav { "xl:ml-[350px]" } else { "p-10" },
+            )>{children()}</main>
 
             {move || {
                 let alert_queue = use_context::<ReadSignal<AlertQueue>>();
@@ -75,7 +70,7 @@ pub fn layout(
                     Some(queue) => queue.get().alerts,
                     None => Vec::new(),
                 };
-                view! { <Toast alerts/> }
+                view! { <Toast alerts /> }
             }}
 
         </div>

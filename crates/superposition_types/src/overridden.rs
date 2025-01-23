@@ -48,23 +48,22 @@ mod tests {
     fn test_filter_config_keys_by_prefix() {
         let config = get_config();
 
-        let prefix_list = HashSet::from_iter(vec![String::from("test.")].into_iter());
+        let prefix_list = HashSet::from_iter(vec![String::from("test.")]);
 
         assert_eq!(
             filter_config_keys_by_prefix(config.default_configs.clone(), &prefix_list),
             get_prefix_filtered_config1().default_configs
         );
 
-        let prefix_list = HashSet::from_iter(
-            vec![String::from("test."), String::from("test2.")].into_iter(),
-        );
+        let prefix_list =
+            HashSet::from_iter(vec![String::from("test."), String::from("test2.")]);
 
         assert_eq!(
             filter_config_keys_by_prefix(config.default_configs.clone(), &prefix_list),
             get_prefix_filtered_config2().default_configs
         );
 
-        let prefix_list = HashSet::from_iter(vec![String::from("abcd")].into_iter());
+        let prefix_list = HashSet::from_iter(vec![String::from("abcd")]);
 
         assert_eq!(
             filter_config_keys_by_prefix(config.default_configs, &prefix_list),

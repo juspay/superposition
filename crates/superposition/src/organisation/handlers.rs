@@ -192,6 +192,6 @@ pub async fn list_organisations(
     Ok(Json(PaginatedResponse {
         total_pages,
         total_items,
-        data: data,
+        data,
     }))
 }

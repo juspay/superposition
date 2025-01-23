@@ -73,26 +73,29 @@ fn all_context_view(config: Config) -> impl IntoView {
                     .as_str()
                     .unwrap_or(value.to_string().trim_matches('"'))
                     .into();
-                let unique_name = gen_name_id(&key, &key, &value);
+                let unique_name = gen_name_id(key, key, &value);
                 view! {
                     <tr>
                         <td class="min-w-48 max-w-72 font-mono">
                             <span
-                                name=format!("{unique_name}-1") class="config-name"
-                                class:text-black={!striked}
-                                class:font-bold={!striked}
-                                class:text-gray-300={striked}
-                            >{key}</span>
+                                name=format!("{unique_name}-1")
+                                class="config-name"
+                                class:text-black=!striked
+                                class:font-bold=!striked
+                                class:text-gray-300=striked
+                            >
+                                {key}
+                            </span>
                         </td>
                         <td class="min-w-48 max-w-72 font-mono" style="word-break: break-word;">
                             <span
                                 name=format!("{unique_name}-2")
                                 class="config-value"
-                                class:text-black={ !striked }
-                                class:font-bold={ !striked }
-                                class:text-gray-300 = { striked }
+                                class:text-black=!striked
+                                class:font-bold=!striked
+                                class:text-gray-300=striked
                             >
-                                {check_url_and_return_val(value) }
+                                {check_url_and_return_val(value)}
                             </span>
                         </td>
                     </tr>
@@ -155,7 +158,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                         </thead>
                         <tbody>
 
-                        {rows(&default_configs, false)}
+                            {rows(&default_configs, false)}
 
                         </tbody>
                     </table>
@@ -336,7 +339,7 @@ pub fn home() -> impl IntoView {
         <div class="w-full mt-5">
             <div class="mr-5 ml-5 mt-6">
                 <Suspense fallback=move || {
-                    view! { <Skeleton variant=SkeletonVariant::Block/> }
+                    view! { <Skeleton variant=SkeletonVariant::Block /> }
                 }>
                     {move || {
                         dimension_resource
@@ -348,10 +351,7 @@ pub fn home() -> impl IntoView {
                                                 <h2 class="card-title">Resolve Configs</h2>
 
                                                 <ContextForm
-                                                    dimensions=dimension
-                                                        .to_owned()
-                                                        .unwrap_or_default()
-                                                        .data
+                                                    dimensions=dimension.to_owned().unwrap_or_default().data
                                                     context=Conditions::default()
                                                     heading_sub_text="Query your configs".to_string()
                                                     dropdown_direction=DropdownDirection::Right
@@ -371,7 +371,7 @@ pub fn home() -> impl IntoView {
                                                             <Button
                                                                 id="resolve_btn".to_string()
                                                                 text="Resolve".to_string()
-                                                                on_click=resolve_click.clone()
+                                                                on_click=resolve_click
                                                                 loading=loading
                                                             />
                                                         }
@@ -454,7 +454,7 @@ pub fn home() -> impl IntoView {
                                     <Suspense fallback=move || {
                                         view! {
                                             <div class="m-6">
-                                                <Skeleton variant=SkeletonVariant::Content/>
+                                                <Skeleton variant=SkeletonVariant::Content />
                                             </div>
                                         }
                                     }>
@@ -463,7 +463,7 @@ pub fn home() -> impl IntoView {
                                                 match result {
                                                     Some(Ok(config)) => {
                                                         vec![
-                                                            view! { <AllContextView config=config.clone()/> }
+                                                            view! { <AllContextView config=config.clone() /> }
                                                                 .into_view(),
                                                         ]
                                                     }
@@ -494,7 +494,7 @@ pub fn home() -> impl IntoView {
                                     <Suspense fallback=move || {
                                         view! {
                                             <div class="m-6">
-                                                <Skeleton variant=SkeletonVariant::Content/>
+                                                <Skeleton variant=SkeletonVariant::Content />
                                             </div>
                                         }
                                     }>

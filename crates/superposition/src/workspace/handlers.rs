@@ -31,7 +31,7 @@ const WORKSPACE_TEMPLATE_PATH: &str = "workspace_template.sql";
 
 fn setup_workspace_schema(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-    workspace_schema_name: &String,
+    workspace_schema_name: &str,
 ) -> superposition::Result<()> {
     let workspace_template =
         fs::read_to_string(WORKSPACE_TEMPLATE_PATH).map_err(|err| {
@@ -40,13 +40,12 @@ fn setup_workspace_schema(
                 "Could not load the workspace template, please contact an admin"
             )
         })?;
-    let workspace_schema_str = workspace_schema_name.as_str();
     let workspace_template =
-        workspace_template.replace("{replaceme}", workspace_schema_str);
+        workspace_template.replace("{replaceme}", workspace_schema_name);
     conn.batch_execute(&workspace_template).map_err(|err| {
         log::error!(
             "Could not create workspace {} due to {}",
-            workspace_schema_str,
+            workspace_schema_name,
             err
         );
         db_error!(err)
@@ -86,7 +85,7 @@ async fn create_workspace(
         workspace_admin_email: request.workspace_admin_email,
         created_by: email.clone(),
         last_modified_by: email,
-        last_modified_at: timestamp.clone(),
+        last_modified_at: timestamp,
         created_at: timestamp,
         mandatory_dimensions: None,
     };
