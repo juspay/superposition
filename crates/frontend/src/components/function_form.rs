@@ -2,8 +2,9 @@ pub mod types;
 pub mod utils;
 
 use self::utils::{create_function, test_function, update_function};
+use crate::providers::alert_provider::enqueue_alert;
 use crate::{
-    components::{button::Button, monaco_editor::MonacoEditor},
+    components::{alert::AlertType, button::Button, monaco_editor::MonacoEditor},
     types::{FunctionTestResponse, OrganisationId, Tenant},
 };
 use leptos::*;
@@ -85,9 +86,20 @@ where
                 match result {
                     Ok(_) => {
                         handle_submit_clone();
+                        let success_message = if edit {
+                            "Function updated successfully!"
+                        } else {
+                            "New Function created successfully!"
+                        };
+                        enqueue_alert(
+                            String::from(success_message),
+                            AlertType::Success,
+                            5000,
+                        );
                     }
                     Err(e) => {
-                        set_error_message.set(e);
+                        set_error_message.set(e.clone());
+                        enqueue_alert(e, AlertType::Error, 5000);
                     }
                 }
                 req_inprogress_ws.set(false);
