@@ -62,7 +62,7 @@ pub fn config_version_list() -> impl IntoView {
 
     view! {
         <div class="p-8">
-            <Suspense fallback=move || view! { <Skeleton/> }>
+            <Suspense fallback=move || view! { <Skeleton /> }>
                 <div class="pb-4">
                     {move || {
                         let snapshot_res = snapshots_resource.get();
@@ -93,24 +93,24 @@ pub fn config_version_list() -> impl IntoView {
                                     Some(snapshot_resp) => {
                                         let page = filters.page.unwrap_or(1);
                                         let count = filters.count.unwrap_or(10);
-                                        let total_pages = snapshot_resp.clone().total_pages as i64;
+                                        let total_pages = snapshot_resp.clone().total_pages;
                                         let resp = snapshot_resp
-                                        .data
-                                        .into_iter()
-                                        .map(|config_version| {
-                                            let mut map = Map::new();
-                                            map.insert(
-                                                "id".to_string(),
-                                                Value::String(config_version.id.to_string()),
-                                            );
-                                            map.insert(
-                                                "created_at".to_string(),
-                                                json!(config_version.created_at),
-                                            );
-                                            map.insert("tags".to_string(), json!(config_version.tags));
-                                            map
-                                        })
-                                        .collect();
+                                            .data
+                                            .into_iter()
+                                            .map(|config_version| {
+                                                let mut map = Map::new();
+                                                map.insert(
+                                                    "id".to_string(),
+                                                    Value::String(config_version.id.to_string()),
+                                                );
+                                                map.insert(
+                                                    "created_at".to_string(),
+                                                    json!(config_version.created_at),
+                                                );
+                                                map.insert("tags".to_string(), json!(config_version.tags));
+                                                map
+                                            })
+                                            .collect();
                                         let pagination_props = TablePaginationProps {
                                             enabled: true,
                                             count,
@@ -122,7 +122,7 @@ pub fn config_version_list() -> impl IntoView {
                                         view! {
                                             <Table
                                                 cell_class="px-4 py-2 text-sm".to_string()
-                                                rows= resp
+                                                rows=resp
                                                 key_column="id".to_string()
                                                 columns=table_columns.get()
                                                 pagination=pagination_props
@@ -130,9 +130,7 @@ pub fn config_version_list() -> impl IntoView {
                                         }
                                     }
                                     None => {
-                                        view! {
-                                            <Skeleton/>
-                                        }
+                                        view! { <Skeleton /> }
                                     }
                                 }
                             }}

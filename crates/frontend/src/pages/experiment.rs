@@ -91,7 +91,7 @@ pub fn experiment_page() -> impl IntoView {
         <Suspense fallback=move || {
             view! {
                 <div class="m-4">
-                    <Skeleton variant=SkeletonVariant::DetailPage/>
+                    <Skeleton variant=SkeletonVariant::DetailPage />
                 </div>
             }
         }>

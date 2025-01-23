@@ -378,6 +378,7 @@ pub fn parse_config_tags(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn execute_webhook_call<T>(
     webhook_config: &Webhook,
     payload: &T,
@@ -397,13 +398,9 @@ where
         .unwrap_or_default()
         .into_iter()
         .filter_map(|key| match key {
-            HeadersEnum::ConfigVersion => {
-                if let Some(config_version) = config_version_opt {
-                    Some((key.to_string(), config_version.to_string()))
-                } else {
-                    None
-                }
-            }
+            HeadersEnum::ConfigVersion => config_version_opt
+                .as_ref()
+                .map(|config_version| (key.to_string(), config_version.to_string())),
             HeadersEnum::WorkspaceId => {
                 Some((key.to_string(), workspace_request.workspace_id.to_string()))
             }
@@ -451,7 +448,7 @@ where
     };
 
     let response = request_builder
-        .headers(headers.into())
+        .headers(headers)
         .json(&WebhookResponse {
             event_info: WebhookEventInfo {
                 webhook_event: event,

@@ -134,7 +134,7 @@ pub fn types_page() -> impl IntoView {
                             types_resource.refetch();
                             selected_type.set(None);
                             close_drawer(TYPE_DRAWER_ID);
-                        }/>
+                        } />
 
                     </Drawer>
                 }
@@ -142,7 +142,7 @@ pub fn types_page() -> impl IntoView {
         }}
 
         <div class="p-8">
-            <Suspense fallback=move || view! { <Skeleton/> }>
+            <Suspense fallback=move || view! { <Skeleton /> }>
                 <div class="pb-4">
                     {move || {
                         let types = types_resource.get().unwrap_or(vec![]);

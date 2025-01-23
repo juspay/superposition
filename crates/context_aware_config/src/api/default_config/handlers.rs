@@ -225,7 +225,7 @@ async fn update_default_config(
         return Err(validation_error!(
             "Schema validation failed: {}",
             validation_err_to_str(verrors)
-                .get(0)
+                .first()
                 .unwrap_or(&String::new())
         ));
     }

@@ -171,7 +171,6 @@ fn form(
             }
         />
 
-
         <div class="flex justify-start w-full mt-10">
             {move || {
                 let loading = req_inprogess_rs.get();
@@ -179,7 +178,7 @@ fn form(
                     <Button
                         class="pl-[70px] pr-[70px] w-48 h-12".to_string()
                         text="Submit".to_string()
-                        on_click=on_submit.clone()
+                        on_click=on_submit
                         loading
                     />
                 }
@@ -235,7 +234,7 @@ pub fn context_override() -> impl IntoView {
         let mut default_ctx: Conditions = Conditions(vec![]);
         for dim in dimensions.iter().filter(|v| v.mandatory) {
             let r#type = SchemaType::try_from(dim.schema.clone());
-            if let Err(_) = r#type {
+            if r#type.is_err() {
                 //TODO emit an alert and return
                 return;
             }

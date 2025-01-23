@@ -11,7 +11,7 @@ pub fn button<F: Fn(MouseEvent) + 'static>(
 ) -> impl IntoView {
     let mut button_class = format!("btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 {class}");
     if loading {
-        button_class = button_class + "hover:cursor-not-allowed";
+        button_class += "hover:cursor-not-allowed";
     }
     view! {
         <button class=button_class id=id on:click=on_click disabled=loading>

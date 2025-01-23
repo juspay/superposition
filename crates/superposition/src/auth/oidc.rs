@@ -85,7 +85,7 @@ impl OIDCAuthenticator {
         })
     }
 
-    fn get_org_client(&self, org_id: &String) -> Result<CoreClient, String> {
+    fn get_org_client(&self, org_id: &str) -> Result<CoreClient, String> {
         let issuer_url = match self.get_issuer_url(org_id) {
             Ok(issuer_url) => issuer_url,
             Err(e) => return Err(format!("Unable to create issuer url: {e}")),
@@ -121,7 +121,7 @@ impl OIDCAuthenticator {
 
     fn get_issuer_url(
         &self,
-        organisation_id: &String,
+        organisation_id: &str,
     ) -> Result<IssuerUrl, url::ParseError> {
         let issuer_endpoint = self
             .issuer_endpoint_format
@@ -129,10 +129,7 @@ impl OIDCAuthenticator {
         IssuerUrl::new(issuer_endpoint)
     }
 
-    fn get_token_url(
-        &self,
-        organisation_id: &String,
-    ) -> Result<TokenUrl, url::ParseError> {
+    fn get_token_url(&self, organisation_id: &str) -> Result<TokenUrl, url::ParseError> {
         let token_endpoint = self
             .token_endpoint_format
             .replace("<organisation>", organisation_id);
@@ -167,7 +164,7 @@ impl OIDCAuthenticator {
         let cookie_result = serde_json::to_string(&protection)
             .map_err(|e| {
                 log::error!("Unable to stringify data: {e}");
-                ErrorInternalServerError(format!("Unable to stringify data"))
+                ErrorInternalServerError("Unable to stringify data".to_string())
             })
             .map(|cookie| {
                 Cookie::build("protection", cookie)
@@ -222,7 +219,7 @@ impl OIDCAuthenticator {
 
     fn decode_org_token(
         &self,
-        org_id: &String,
+        org_id: &str,
         cookie: &str,
     ) -> Result<OrgUserClaims, String> {
         let client = self
@@ -370,7 +367,7 @@ impl Authenticator for OIDCAuthenticator {
                 Ok(r) => {
                     let token = serde_json::to_string(&r).map_err(|e| {
                         log::error!("Unable to stringify data: {e}");
-                        ErrorInternalServerError(format!("Unable to stringify data"))
+                        ErrorInternalServerError("Unable to stringify data".to_string())
                     })?;
                     let cookie = Cookie::build(Login::Org.to_string(), token)
                         .path(cookie_path)
@@ -430,7 +427,7 @@ async fn login(
         Ok(r) => {
             let token = serde_json::to_string(&r).map_err(|e| {
                 log::error!("Unable to stringify data: {e}");
-                ErrorInternalServerError(format!("Unable to stringify data"))
+                ErrorInternalServerError("Unable to stringify data".to_string())
             })?;
             let cookie = Cookie::build(Login::Global.to_string(), token)
                 .path(data.get_cookie_path())

@@ -10,7 +10,7 @@ pub fn toast(alerts: Vec<Alert>) -> impl IntoView {
             {alerts
                 .into_iter()
                 .map(|alert| {
-                    view! { <Alert alert/> }
+                    view! { <Alert alert /> }
                 })
                 .collect_view()}
 

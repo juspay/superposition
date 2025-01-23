@@ -155,11 +155,7 @@ pub fn workspace_form(
                     </label>
                     <Toggle
                         name="workspace-status"
-                        value=if workspace_status_rs.get_untracked() == WorkspaceStatus::ENABLED {
-                            true
-                        } else {
-                            false
-                        }
+                        value=workspace_status_rs.get_untracked() == WorkspaceStatus::ENABLED
                         on_change=Callback::new(move |flag: serde_json::Value| {
                             let flag = flag.as_bool().unwrap();
                             if flag {
@@ -179,7 +175,7 @@ pub fn workspace_form(
                             <Button
                                 class="pl-[70px] pr-[70px] w-48 h-12".to_string()
                                 text="Submit".to_string()
-                                on_click=on_submit.clone()
+                                on_click=on_submit
                                 loading
                             />
                         }

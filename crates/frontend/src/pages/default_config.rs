@@ -214,7 +214,7 @@ pub fn default_config() -> impl IntoView {
     view! {
         <div class="p-8">
             <Suspense fallback=move || {
-                view! { <Skeleton/> }
+                view! { <Skeleton /> }
             }>
 
                 {move || {
@@ -263,9 +263,7 @@ pub fn default_config() -> impl IntoView {
                     }
                 }}
                 {move || {
-                    let default_config = default_config_resource
-                        .get()
-                        .unwrap_or_default();
+                    let default_config = default_config_resource.get().unwrap_or_default();
                     let table_rows = default_config
                         .data
                         .into_iter()
@@ -316,7 +314,10 @@ pub fn default_config() -> impl IntoView {
                         <div class="card rounded-lg w-full bg-base-100 shadow">
                             <div class="card-body">
                                 <div class="flex justify-between pb-2">
-                                    <BreadCrums bread_crums=bread_crums.get() folder_click_handler/>
+                                    <BreadCrums
+                                        bread_crums=bread_crums.get()
+                                        folder_click_handler
+                                    />
                                     <div class="flex">
                                         <label
                                             on:click=move |_| {

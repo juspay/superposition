@@ -3,6 +3,8 @@ DOCKER_DNS ?= localhost
 TENANT ?= dev
 SHELL := /usr/bin/env bash
 FEATURES ?= ssr
+FMT_FLAGS := --all
+LINT_FLAGS := --all-targets
 CARGO_FLAGS := --color always --no-default-features
 HAS_DOCKER := $(shell command -v docker > /dev/null; echo $$?)
 HAS_PODMAN := $(shell command -v podman > /dev/null; echo $$?)
@@ -165,5 +167,29 @@ test: setup frontend superposition
 
 tailwind:
 	cd crates/frontend && npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css --watch
+
+format:
+	leptosfmt $(LEPTOS_FMT_FLAGS) crates/frontend
+	cargo fmt $(FMT_FLAGS)
+
+lint:
+	cargo clippy $(LINT_FLAGS)
+
+lint-fix: LINT_FLAGS += --fix --allow-dirty --allow-staged
+lint-fix: lint
+
+check: FMT_FLAGS += --check
+check: LEPTOS_FMT_FLAGS += --check
+check: LINT_FLAGS += -- -Dwarnings
+check: format lint
+
+commit: check
+	git commit $(COMMIT_FLAGS)
+
+ammend: COMMIT_FLAGS += --amend
+ammend: commit
+
+ammend-no-edit: COMMIT_FLAGS += --no-edit
+ammend-no-edit: ammend
 
 default: dev-build

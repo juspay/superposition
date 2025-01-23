@@ -9,9 +9,9 @@ pub trait DropdownOption {
 
 impl DropdownOption for Value {
     fn key(&self) -> String {
-        format!("{}", self.html_display())
+        self.html_display().to_string()
     }
     fn label(&self) -> String {
-        format!("{}", self.html_display())
+        self.html_display().to_string()
     }
 }

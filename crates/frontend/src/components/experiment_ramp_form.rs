@@ -61,7 +61,11 @@ where
             {move || {
                 let loading = req_inprogess_rs.get();
                 view! {
-                    <Button text="Set".to_string() on_click=handle_ramp_experiment.clone() loading/>
+                    <Button
+                        text="Set".to_string()
+                        on_click=handle_ramp_experiment.clone()
+                        loading
+                    />
                 }
             }}
 

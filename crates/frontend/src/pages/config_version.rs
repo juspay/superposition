@@ -20,7 +20,9 @@ pub fn config_version() -> impl IntoView {
 
     view! {
         <div class="p-8">
-            <Suspense fallback=move || view! { <Skeleton /> }>
+            <Suspense fallback=move || {
+                view! { <Skeleton /> }
+            }>
                 {move || {
                     match config_resource.get() {
                         Some(Ok(config)) => {
@@ -42,19 +44,20 @@ pub fn config_version() -> impl IntoView {
                                     ></andypf-json-viewer>
                                 </div>
                             }
-                            .into_view()
+                                .into_view()
                         }
                         Some(Err(_)) => {
                             view! {
-                                <Toast
-                                    alerts=vec![Alert::new(
+                                <Toast alerts=vec![
+                                    Alert::new(
                                         0,
                                         "Error loading config.".to_string(),
                                         AlertType::Error,
                                         5000,
-                                    )]
-                                />
-                            }.into_view()
+                                    ),
+                                ] />
+                            }
+                                .into_view()
                         }
                         None => {
                             view! { <Skeleton /> }
