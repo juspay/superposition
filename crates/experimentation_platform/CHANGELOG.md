@@ -2,6 +2,23 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.25.0 - 2025-01-23
+#### Bug Fixes
+- experiment handlers to send org_id - (571f201) - Kartik
+- added missing returning DSLs - (c6735b3) - Shubhranshu Sanjeev
+#### Features
+- added description and comment (#284) - (4e0006c) - sauraww
+- Use Common db model types in frontend (#291) - (e68782d) - Ayush Jain
+#### Miscellaneous Chores
+- formatting - (c3a1ca1) - Shubhranshu Sanjeev
+#### Refactoring
+- OrgId, WorkspaceId, SchemaName cleanup and refactor (#379) - (470ab48) - Ayush Jain
+- workspace ui & form (#373) - (9dca3aa) - Shubhranshu Sanjeev
+- added schema_name dsl to experimentation queries - (9642d20) - Shubhranshu Sanjeev
+- merge cac and experimentation schemas - (51367a6) - Kartik
+
+- - -
+
 ## experimentation_platform-v0.24.0 - 2025-01-06
 #### Bug Fixes
 - webhook kms decrypt auth key (#332) - (09ebc29) - Ankit Kumar Mahato

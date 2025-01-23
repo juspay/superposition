@@ -2,6 +2,31 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.46.0 - 2025-01-23
+#### Bug Fixes
+- mandatory dimensions with workspaces (#370) - (e5b8097) - Datron
+- Resolving general pending issues (#375) - (d3e2e34) - Ayush Jain
+- get types test failure - (d72ae46) - Shubhranshu Sanjeev
+- experiment handlers to send org_id - (571f201) - Kartik
+- add org tests - (deab731) - Pratik Mishra
+- read from workspaces table when showing the dropdown - (1594218) - Kartik
+- added missing returning DSLs - (c6735b3) - Shubhranshu Sanjeev
+#### Features
+- workspace-ui - (4ccd9c6) - Ankit.Mahato
+- added description and comment (#284) - (4e0006c) - sauraww
+- Add auth via OAUTH2 (#321) - (f5092f8) - Ayush Jain
+- Use Common db model types in frontend (#291) - (e68782d) - Ayush Jain
+- added update api for default config (#310) - (e6ca4de) - sauraww
+#### Miscellaneous Chores
+- formatting - (c3a1ca1) - Shubhranshu Sanjeev
+#### Refactoring
+- OrgId, WorkspaceId, SchemaName cleanup and refactor (#379) - (470ab48) - Ayush Jain
+- workspace ui & form (#373) - (9dca3aa) - Shubhranshu Sanjeev
+- added schema_name dsl to cac queries - (73d6ba2) - Shubhranshu Sanjeev
+- merge cac and experimentation schemas - (51367a6) - Kartik
+
+- - -
+
 ## context_aware_config-v0.45.0 - 2025-01-06
 #### Bug Fixes
 - add unique position contraint as deferred (#330) - (2f507df) - PRATIK MISHRA

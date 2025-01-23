@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.26.0 - 2025-01-23
+#### Bug Fixes
+- experiment handlers to send org_id - (571f201) - Kartik
+- read from workspaces table when showing the dropdown - (1594218) - Kartik
+#### Features
+- auth path prefix support and org_user authentication - (919de10) - ayush.jain@juspay.in
+- workspace-ui - (4ccd9c6) - Ankit.Mahato
+- added schema and crl apis for organisation (#322) - (c333f3a) - sauraww
+- Add auth via OAUTH2 (#321) - (f5092f8) - Ayush Jain
+- Use Common db model types in frontend (#291) - (e68782d) - Ayush Jain
+#### Refactoring
+- OrgId, WorkspaceId, SchemaName cleanup and refactor (#379) - (470ab48) - Ayush Jain
+- merge cac and experimentation schemas - (51367a6) - Kartik
+
+- - -
+
 ## service_utils-v0.25.0 - 2025-01-06
 #### Bug Fixes
 - webhook kms decrypt auth key (#332) - (09ebc29) - Ankit Kumar Mahato

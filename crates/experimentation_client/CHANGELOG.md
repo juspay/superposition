@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.10.0 - 2025-01-23
+#### Features
+- Use Common db model types in frontend (#291) - (e68782d) - Ayush Jain
+#### Refactoring
+- merge cac and experimentation schemas - (51367a6) - Kartik
+
+- - -
+
 ## experimentation_client-v0.9.0 - 2024-10-23
 #### Features
 - Search contexts by dimension values (#264) - (12743af) - Ayush Jain

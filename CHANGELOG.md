@@ -2,6 +2,50 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.65.0 - 2025-01-23
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.25.0
+- superposition_types bumped to superposition_types-v0.11.0
+- context_aware_config bumped to context_aware_config-v0.46.0
+- frontend bumped to frontend-v0.20.0
+- service_utils bumped to service_utils-v0.26.0
+- experimentation_client bumped to experimentation_client-v0.10.0
+### Global changes
+#### Bug Fixes
+- Redirect to workspaces after selecting org_id in local - (1ed5a3f) - ayush.jain@juspay.in
+- read from workspaces table when showing the dropdown - (1594218) - Kartik
+- org_id in tests - (9484a9c) - Pratik Mishra
+- add org_id in tests headers - (4ca46bc) - Pratik Mishra
+- add org tests - (deab731) - Pratik Mishra
+- experiment handlers to send org_id - (571f201) - Kartik
+- get types test failure - (d72ae46) - Shubhranshu Sanjeev
+- workspace template SQL and workspace update handler - (fb68d3b) - Kartik
+- revert experiment list pagination bug - (df94849) - Kartik
+- resolved comments - (09ea160) - Shubhranshu Sanjeev
+- Fixed update w/ accurate verbage. - (82e7466) - Shrey Bana
+- Resolving general pending issues (#375) - (d3e2e34) - Ayush Jain
+#### Features
+- added update api for default config (#310) - (e6ca4de) - sauraww
+- Use Common db model types in frontend (#291) - (e68782d) - Ayush Jain
+- Add auth via OAUTH2 (#321) - (f5092f8) - Ayush Jain
+- added schema and crl apis for organisation (#322) - (c333f3a) - sauraww
+- added description and comment (#284) - (4e0006c) - sauraww
+- added workspaces table and workspace management APIs - (5910f3e) - Kartik
+- workspace-ui - (4ccd9c6) - Ankit.Mahato
+- Redirect to workspaces after selecting org_id - (2cafa61) - ayush.jain@juspay.in
+- auth path prefix support and org_user authentication - (919de10) - ayush.jain@juspay.in
+#### Miscellaneous Chores
+- formatting - (c3a1ca1) - Shubhranshu Sanjeev
+#### Refactoring
+- merge cac and experimentation schemas - (51367a6) - Kartik
+- using juspay diesel fork - (c306404) - Shubhranshu Sanjeev
+- added schema_name dsl to cac queries - (73d6ba2) - Shubhranshu Sanjeev
+- Refactored make & related files. (#339) - (9153a46) - ShreyBana
+- workspace ui & form (#373) - (9dca3aa) - Shubhranshu Sanjeev
+- OrgId, WorkspaceId, SchemaName cleanup and refactor (#379) - (470ab48) - Ayush Jain
+
+- - -
+
 ## v0.64.1 - 1970-01-01
 ### Package updates
 - frontend bumped to frontend-v0.19.1

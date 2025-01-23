@@ -2,6 +2,34 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.20.0 - 2025-01-23
+#### Bug Fixes
+- Add success alerts and remove divider - (2387b75) - Ankit.Mahato
+- Resolving general pending issues (#375) - (d3e2e34) - Ayush Jain
+- set toggle length and default monaco strings - (1b30494) - Kartik
+- resolved comments - (09ea160) - Shubhranshu Sanjeev
+- revert experiment list pagination bug - (df94849) - Kartik
+- experiment handlers to send org_id - (571f201) - Kartik
+- read from workspaces table when showing the dropdown - (1594218) - Kartik
+- Formatting - (c68d5fb) - ayush.jain@juspay.in
+- update Tenant and org in all frontend pages - (396b02b) - Kartik
+- added missing returning DSLs - (c6735b3) - Shubhranshu Sanjeev
+- JSONSchema generated forms for contexts - (839abe6) - Shubhranshu Sanjeev
+#### Features
+- auth path prefix support and org_user authentication - (919de10) - ayush.jain@juspay.in
+- update UI to accept org ID - (0db5577) - Kartik
+- workspace-ui - (4ccd9c6) - Ankit.Mahato
+- added description and comment (#284) - (4e0006c) - sauraww
+- JsonLogic algebraic representation - (1ac1a5b) - Shubhranshu Sanjeev
+- Add auth via OAUTH2 (#321) - (f5092f8) - Ayush Jain
+- Use Common db model types in frontend (#291) - (e68782d) - Ayush Jain
+- added update api for default config (#310) - (e6ca4de) - sauraww
+#### Refactoring
+- workspace ui & form (#373) - (9dca3aa) - Shubhranshu Sanjeev
+- merge cac and experimentation schemas - (51367a6) - Kartik
+
+- - -
+
 ## frontend-v0.19.1 - 2025-01-22
 #### Bug Fixes
 - webhook ui failure handling - (7f1b273) - Ankit.Mahato
