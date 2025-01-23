@@ -14,10 +14,9 @@ use jsonlogic;
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use num_bigint::BigUint;
 use serde_json::{json, Map, Value};
-use service_utils::service::types::Tenant;
 use service_utils::{
     helpers::{generate_snowflake_id, validation_err_to_str},
-    service::types::AppState,
+    service::types::{AppState, SchemaName},
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
@@ -214,12 +213,12 @@ pub fn calculate_context_weight(
 }
 pub fn generate_cac(
     conn: &mut DBConnection,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<Config> {
     let contexts_vec: Vec<(String, Condition, String, Overrides)> = ctxt::contexts
         .select((ctxt::id, ctxt::value, ctxt::override_id, ctxt::override_))
         .order_by((ctxt::weight.asc(), ctxt::created_at.asc()))
-        .schema_name(tenant)
+        .schema_name(schema_name)
         .load::<(String, Condition, String, Overrides)>(conn)
         .map_err(|err| {
             log::error!("failed to fetch contexts with error: {}", err);
@@ -269,7 +268,7 @@ pub fn generate_cac(
 
     let default_config_vec = def_conf::default_configs
         .select((def_conf::key, def_conf::value))
-        .schema_name(&tenant)
+        .schema_name(schema_name)
         .load::<(String, Value)>(conn)
         .map_err(|err| {
             log::error!("failed to fetch default_configs with error: {}", err);
@@ -297,11 +296,11 @@ pub fn add_config_version(
     description: String,
     change_reason: String,
     db_conn: &mut DBConnection,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<i64> {
     use config_versions::dsl::config_versions;
     let version_id = generate_snowflake_id(state)?;
-    let config = generate_cac(db_conn, tenant)?;
+    let config = generate_cac(db_conn, schema_name)?;
     let json_config = json!(config);
     let config_hash = blake3::hash(json_config.to_string().as_bytes()).to_string();
     let config_version = ConfigVersion {
@@ -316,7 +315,7 @@ pub fn add_config_version(
     diesel::insert_into(config_versions)
         .values(&config_version)
         .returning(ConfigVersion::as_returning())
-        .schema_name(tenant)
+        .schema_name(schema_name)
         .execute(db_conn)?;
     Ok(version_id)
 }
@@ -335,18 +334,18 @@ pub fn get_workspace(
 pub async fn put_config_in_redis(
     version_id: i64,
     state: Data<AppState>,
-    tenant: Tenant,
+    schema_name: &SchemaName,
     db_conn: &mut DBConnection,
 ) -> superposition::Result<()> {
-    let raw_config = generate_cac(db_conn, &tenant)?;
+    let raw_config = generate_cac(db_conn, schema_name)?;
     let parsed_config = serde_json::to_string(&json!(raw_config)).map_err(|e| {
         log::error!("failed to convert cac config to string: {}", e);
         unexpected_error!("could not convert cac config to string")
     })?;
-    let config_key = format!("{}::cac_config", *tenant);
-    let last_modified_at_key = format!("{}::cac_config::last_modified_at", *tenant);
-    let audit_id_key = format!("{}::cac_config::audit_id", *tenant);
-    let config_version_key = format!("{}::cac_config::config_version", *tenant);
+    let config_key = format!("{}::cac_config", *schema_name);
+    let last_modified_at_key = format!("{}::cac_config::last_modified_at", *schema_name);
+    let audit_id_key = format!("{}::cac_config::audit_id", *schema_name);
+    let config_version_key = format!("{}::cac_config::config_version", *schema_name);
     let last_modified = DateTime::to_rfc2822(&Utc::now());
     let _ = state
         .redis

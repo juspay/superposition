@@ -7,14 +7,14 @@ use std::{
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum HeadersEnum {
     ConfigVersion,
-    TenantId,
+    WorkspaceId,
 }
 
 impl fmt::Display for HeadersEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::ConfigVersion => write!(f, "x-config-version"),
-            Self::TenantId => write!(f, "x-tenant"),
+            Self::WorkspaceId => write!(f, "x-tenant"),
         }
     }
 }
@@ -53,7 +53,8 @@ pub enum WebhookEvent {
 pub struct WebhookEventInfo {
     pub webhook_event: WebhookEvent,
     pub time: String,
-    pub tenant_id: String,
+    pub workspace_id: String,
+    pub organisation_id: String,
     pub config_version: Option<String>,
 }
 

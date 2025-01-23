@@ -2,7 +2,7 @@ extern crate base64;
 
 use base64::prelude::*;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-use service_utils::service::types::Tenant;
+use service_utils::service::types::SchemaName;
 use std::str;
 use superposition_macros::unexpected_error;
 use superposition_types::{
@@ -16,11 +16,11 @@ use superposition_types::{
 pub fn fetch_function(
     f_name: &String,
     conn: &mut DBConnection,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<Function> {
     Ok(functions
         .filter(schema::functions::function_name.eq(f_name))
-        .schema_name(tenant)
+        .schema_name(schema_name)
         .get_result::<Function>(conn)?)
 }
 
@@ -52,12 +52,12 @@ pub fn decode_base64_to_string(code: &String) -> superposition::Result<String> {
 pub fn get_published_function_code(
     conn: &mut DBConnection,
     f_name: String,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<Option<String>> {
     let function = functions
         .filter(schema::functions::function_name.eq(f_name))
         .select(schema::functions::published_code)
-        .schema_name(tenant)
+        .schema_name(schema_name)
         .first(conn)?;
     Ok(function)
 }
@@ -65,7 +65,7 @@ pub fn get_published_function_code(
 pub fn get_published_functions_by_names(
     conn: &mut DBConnection,
     function_names: Vec<String>,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<Vec<(String, Option<String>)>> {
     let function: Vec<(String, Option<String>)> = functions
         .filter(schema::functions::function_name.eq_any(function_names))
@@ -73,7 +73,7 @@ pub fn get_published_functions_by_names(
             schema::functions::function_name,
             schema::functions::published_code,
         ))
-        .schema_name(tenant)
+        .schema_name(schema_name)
         .load(conn)?;
     Ok(function)
 }

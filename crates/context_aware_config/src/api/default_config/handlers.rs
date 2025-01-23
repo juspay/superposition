@@ -11,7 +11,7 @@ use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Value;
 use service_utils::{
     helpers::{parse_config_tags, validation_err_to_str},
-    service::types::{AppHeader, AppState, CustomHeaders, DbConnection, Tenant},
+    service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
 };
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
@@ -52,7 +52,7 @@ async fn create_default_config(
     custom_headers: CustomHeaders,
     request: web::Json<CreateReq>,
     db_conn: DbConnection,
-    tenant: Tenant,
+    schema_name: SchemaName,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -112,7 +112,7 @@ async fn create_default_config(
         default_config.function_name.as_ref(),
         &default_config.key,
         &default_config.value,
-        &tenant,
+        &schema_name,
     ) {
         log::info!("Validation failed: {:?}", e);
         return Err(e);
@@ -123,7 +123,7 @@ async fn create_default_config(
             diesel::insert_into(dsl::default_configs)
                 .values(&default_config)
                 .returning(DefaultConfig::as_returning())
-                .schema_name(&tenant)
+                .schema_name(&schema_name)
                 .execute(transaction_conn)
                 .map_err(|e| {
                     log::info!("DefaultConfig creation failed with error: {e}");
@@ -137,13 +137,13 @@ async fn create_default_config(
                 description,
                 change_reason,
                 transaction_conn,
-                &tenant,
+                &schema_name,
             )?;
             Ok(version_id)
         })?;
 
     #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, tenant, &mut conn).await?;
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
     let mut http_resp = HttpResponse::Ok();
 
     http_resp.insert_header((
@@ -161,7 +161,7 @@ async fn update_default_config(
     custom_headers: CustomHeaders,
     request: web::Json<UpdateReq>,
     db_conn: DbConnection,
-    tenant: Tenant,
+    schema_name: SchemaName,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -170,7 +170,7 @@ async fn update_default_config(
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let existing =
-        fetch_default_key(&key_str, &mut conn, &tenant).map_err(|e| match e {
+        fetch_default_key(&key_str, &mut conn, &schema_name).map_err(|e| match e {
             superposition::AppError::DbError(diesel::NotFound) => {
                 bad_argument!(
                     "No record found for {}. Use create endpoint instead.",
@@ -235,7 +235,7 @@ async fn update_default_config(
         updated_config.function_name.as_ref(),
         &updated_config.key,
         &updated_config.value,
-        &tenant,
+        &schema_name,
     ) {
         log::info!("Validation failed: {:?}", e);
         return Err(e);
@@ -249,7 +249,7 @@ async fn update_default_config(
                 .do_update()
                 .set(&updated_config)
                 .returning(DefaultConfig::as_returning())
-                .schema_name(&tenant)
+                .schema_name(&schema_name)
                 .execute(transaction_conn)
                 .map_err(|e| {
                     log::info!("Update failed: {e}");
@@ -262,14 +262,14 @@ async fn update_default_config(
                 description,
                 change_reason,
                 transaction_conn,
-                &tenant,
+                &schema_name,
             )?;
 
             Ok(version_id)
         })?;
 
     #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, tenant, &mut conn).await?;
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
 
     let mut http_resp = HttpResponse::Ok();
     http_resp.insert_header((
@@ -284,11 +284,12 @@ fn validate_and_get_function_code(
     function_name: Option<&String>,
     key: &str,
     value: &Value,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     if let Some(f_name) = function_name {
-        let function_code = get_published_function_code(conn, f_name.clone(), &tenant)
-            .map_err(|_| bad_argument!("Function {} doesn't exist.", f_name))?;
+        let function_code =
+            get_published_function_code(conn, f_name.clone(), schema_name)
+                .map_err(|_| bad_argument!("Function {} doesn't exist.", f_name))?;
         if let Some(f_code) = function_code {
             validate_value_with_function(
                 f_name.as_str(),
@@ -304,12 +305,12 @@ fn validate_and_get_function_code(
 fn fetch_default_key(
     key: &String,
     conn: &mut DBConnection,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<models::DefaultConfig> {
     let res = dsl::default_configs
         .filter(schema::default_configs::key.eq(key))
         .select(models::DefaultConfig::as_select())
-        .schema_name(tenant)
+        .schema_name(schema_name)
         .get_result(conn)?;
     Ok(res)
 }
@@ -318,13 +319,13 @@ fn fetch_default_key(
 async fn get(
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<DefaultConfig>>> {
     let DbConnection(mut conn) = db_conn;
 
     if let Some(true) = filters.all {
         let result: Vec<DefaultConfig> = dsl::default_configs
-            .schema_name(&tenant)
+            .schema_name(&schema_name)
             .get_results(&mut conn)?;
         return Ok(Json(PaginatedResponse {
             total_pages: 1,
@@ -335,13 +336,13 @@ async fn get(
 
     let n_default_configs: i64 = dsl::default_configs
         .count()
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .get_result(&mut conn)?;
     let limit = filters.count.unwrap_or(10);
     let mut builder = dsl::default_configs
         .order(dsl::created_at.desc())
         .limit(limit)
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .into_boxed();
     if let Some(page) = filters.page {
         let offset = (page - 1) * limit;
@@ -359,13 +360,16 @@ async fn get(
 pub fn get_key_usage_context_ids(
     key: &str,
     conn: &mut DBConnection,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<Vec<String>> {
     let result: Vec<Context> =
-        contexts.schema_name(tenant).load(conn).map_err(|err| {
-            log::error!("failed to fetch contexts with error: {}", err);
-            db_error!(err)
-        })?;
+        contexts
+            .schema_name(schema_name)
+            .load(conn)
+            .map_err(|err| {
+                log::error!("failed to fetch contexts with error: {}", err);
+                db_error!(err)
+            })?;
 
     let mut context_ids = vec![];
     for context in result.iter() {
@@ -383,7 +387,7 @@ async fn delete(
     path: Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
-    tenant: Tenant,
+    schema_name: SchemaName,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -392,9 +396,9 @@ async fn delete(
     let key: String = path.into_inner().into();
     let mut version_id = 0;
 
-    fetch_default_key(&key, &mut conn, &tenant)?;
+    fetch_default_key(&key, &mut conn, &schema_name)?;
 
-    let context_ids = get_key_usage_context_ids(&key, &mut conn, &tenant)
+    let context_ids = get_key_usage_context_ids(&key, &mut conn, &schema_name)
         .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
         let resp =
@@ -406,19 +410,19 @@ async fn delete(
                         dsl::last_modified_by.eq(user.get_email()),
                     ))
                     .returning(DefaultConfig::as_returning())
-                    .schema_name(&tenant)
+                    .schema_name(&schema_name)
                     .execute(transaction_conn)?;
 
                 let default_config: DefaultConfig = dsl::default_configs
                     .filter(dsl::key.eq(&key))
-                    .schema_name(&tenant)
+                    .schema_name(&schema_name)
                     .first::<DefaultConfig>(transaction_conn)?;
                 let description = default_config.description;
                 let change_reason = format!("Context Deleted by {}", user.get_email());
 
                 let deleted_row =
                     diesel::delete(dsl::default_configs.filter(dsl::key.eq(&key)))
-                        .schema_name(&tenant)
+                        .schema_name(&schema_name)
                         .execute(transaction_conn);
                 match deleted_row {
                     Ok(0) => {
@@ -431,7 +435,7 @@ async fn delete(
                             description,
                             change_reason,
                             transaction_conn,
-                            &tenant,
+                            &schema_name,
                         )?;
                         log::info!(
                             "default config key: {key} deleted by {}",
@@ -451,7 +455,7 @@ async fn delete(
                 }
             });
         #[cfg(feature = "high-performance-mode")]
-        put_config_in_redis(version_id, state, tenant, &mut conn).await?;
+        put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
         resp
     } else {
         Err(bad_argument!(

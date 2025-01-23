@@ -5,7 +5,7 @@ use diesel::{
     ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use jsonschema::JSONSchema;
-use service_utils::service::types::{DbConnection, Tenant};
+use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_macros::{bad_argument, db_error};
 use superposition_types::{
     custom_query::PaginationParams,
@@ -33,7 +33,7 @@ async fn create_type(
     request: Json<TypeTemplateCreateRequest>,
     db_conn: DbConnection,
     user: User,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let _ = JSONSchema::compile(&request.type_schema).map_err(|err| {
@@ -58,7 +58,7 @@ async fn create_type(
             type_templates::change_reason.eq(request.change_reason.clone()),
         ))
         .returning(TypeTemplate::as_returning())
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .get_result::<TypeTemplate>(&mut conn)
         .map_err(|err| {
             log::error!("failed to insert custom type with error: {}", err);
@@ -73,7 +73,7 @@ async fn update_type(
     path: Path<TypeTemplateName>,
     db_conn: DbConnection,
     user: User,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let request = request.into_inner();
@@ -94,7 +94,7 @@ async fn update_type(
     let final_description = if description.is_none() {
         let existing_template = type_templates::table
             .filter(type_templates::type_name.eq(&type_name))
-            .schema_name(&tenant)
+            .schema_name(&schema_name)
             .first::<TypeTemplate>(&mut conn)
             .optional()
             .map_err(|err| {
@@ -120,12 +120,12 @@ async fn update_type(
         .set((
             type_templates::type_schema.eq(request.type_schema),
             type_templates::last_modified_at.eq(timestamp),
-            type_templates::last_modified_by.eq(user.email),
+            type_templates::last_modified_by.eq(user.email.clone()),
             type_templates::description.eq(final_description),
             type_templates::change_reason.eq(change_reason),
         ))
         .returning(TypeTemplate::as_returning())
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .get_result::<TypeTemplate>(&mut conn)
         .map_err(|err| {
             log::error!("failed to insert custom type with error: {}", err);
@@ -139,7 +139,7 @@ async fn delete_type(
     path: Path<TypeTemplateName>,
     db_conn: DbConnection,
     user: User,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let type_name: String = path.into_inner().into();
@@ -147,14 +147,14 @@ async fn delete_type(
         .filter(dsl::type_name.eq(type_name.clone()))
         .set((
             dsl::last_modified_at.eq(Utc::now().naive_utc()),
-            dsl::last_modified_by.eq(user.email),
+            dsl::last_modified_by.eq(user.email.clone()),
         ))
         .returning(TypeTemplate::as_returning())
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .execute(&mut conn)?;
     let deleted_type =
         diesel::delete(dsl::type_templates.filter(dsl::type_name.eq(type_name)))
-            .schema_name(&tenant)
+            .schema_name(&schema_name)
             .get_result::<TypeTemplate>(&mut conn)?;
     Ok(HttpResponse::Ok().json(deleted_type))
 }
@@ -163,13 +163,13 @@ async fn delete_type(
 async fn list_types(
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<TypeTemplate>>> {
     let DbConnection(mut conn) = db_conn;
 
     if let Some(true) = filters.all {
         let result: Vec<TypeTemplate> = type_templates::dsl::type_templates
-            .schema_name(&tenant)
+            .schema_name(&schema_name)
             .get_results(&mut conn)?;
         return Ok(Json(PaginatedResponse {
             total_pages: 1,
@@ -180,11 +180,11 @@ async fn list_types(
 
     let n_types: i64 = type_templates::dsl::type_templates
         .count()
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .get_result(&mut conn)?;
     let limit = filters.count.unwrap_or(10);
     let mut builder = type_templates::dsl::type_templates
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .order(type_templates::dsl::created_at.desc())
         .limit(limit)
         .into_boxed();
