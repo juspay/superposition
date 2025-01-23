@@ -61,9 +61,9 @@ jobs:
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
-            - name: Check formatting
+            - name: Check formatting & linting
               shell: bash
-              run: cargo fmt --all --check
+              run: make check
 
             - name: install cocogitto
               uses: baptiste0928/cargo-install@v2.2.0

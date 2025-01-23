@@ -13,13 +13,13 @@ pub struct CreateReq {
     pub change_reason: String,
 }
 
-#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into, Clone)]
+#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into, Clone, Default)]
 #[serde(try_from = "i32")]
 pub struct Position(i32);
 impl Position {
     fn validate_data(position_val: i32) -> Result<Self, String> {
         if position_val < 0 {
-            return Err("Position should be greater than equal to 0".to_string());
+            Err("Position should be greater than equal to 0".to_string())
         } else {
             Ok(Self(position_val))
         }
@@ -29,13 +29,7 @@ impl Position {
 impl TryFrom<i32> for Position {
     type Error = String;
     fn try_from(value: i32) -> Result<Self, Self::Error> {
-        Ok(Self::validate_data(value)?)
-    }
-}
-
-impl Default for Position {
-    fn default() -> Self {
-        Position(0)
+        Self::validate_data(value)
     }
 }
 
@@ -65,8 +59,9 @@ impl<'de> Deserialize<'de> for FunctionNameEnum {
             Value::Null => Ok(Self::Remove),
             _ => {
                 log::error!("Expected a string or null literal as the function name.");
-                Err("Expected a string or null literal as the function name.")
-                    .map_err(serde::de::Error::custom)
+                Err(serde::de::Error::custom(
+                    "Expected a string or null literal as the function name.",
+                ))
             }
         }
     }
@@ -87,7 +82,7 @@ impl DimensionName {
 impl TryFrom<String> for DimensionName {
     type Error = String;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Ok(Self::validate_data(value)?)
+        Self::validate_data(value)
     }
 }
 

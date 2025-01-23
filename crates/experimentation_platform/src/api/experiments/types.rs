@@ -154,9 +154,7 @@ impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
     fn try_from(value: HashMap<String, String>) -> Result<Self, Self::Error> {
         let mut value = value
             .into_iter()
-            .map(|(key, value)| {
-                (key, value.parse().unwrap_or_else(|_| Value::String(value)))
-            })
+            .map(|(key, value)| (key, value.parse().unwrap_or(Value::String(value))))
             .collect::<Map<_, _>>();
 
         let toss = value

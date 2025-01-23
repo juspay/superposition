@@ -38,8 +38,8 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                 let js_href = base.to_owned() + "/pkg/frontend.js";
                 let import_callback = "() => mod.hydrate()";
                 view! {
-                    <Stylesheet id="leptos" href=styles_href/>
-                    <Link rel="shortcut icon" type_="image/ico" href=favicon_href/>
+                    <Stylesheet id="leptos" href=styles_href />
+                    <Link rel="shortcut icon" type_="image/ico" href=favicon_href />
                     <Link
                         href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css"
                         rel="stylesheet"
@@ -60,7 +60,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                     type_="application/wasm"
                                     crossorigin=""
                                 />
-                                <link as_="script" rel="modulepreload" href=js_href.clone()/>
+                                <link as_="script" rel="modulepreload" href=js_href.clone() />
                                 <script type_="module">
                                     {format!(
                                         r#"
@@ -88,7 +88,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                 }
             }}
             // sets the document title
-            <Title text="Welcome to Superposition"/>
+            <Title text="Welcome to Superposition" />
             <script type_="text/javascript">"__APP_ENVS=" {json!(app_envs).to_string()}</script>
             <Router base=service_prefix>
                 <body class="m-0 min-h-screen bg-gray-50 font-mono">
@@ -100,7 +100,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout show_side_nav=false>
-                                            <Organisations/>
+                                            <Organisations />
                                         </Layout>
                                     }
                                 }
@@ -111,7 +111,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout>
-                                            <Dimensions/>
+                                            <Dimensions />
                                         </Layout>
                                     }
                                 }
@@ -123,7 +123,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout>
-                                            <FunctionList/>
+                                            <FunctionList />
                                         </Layout>
                                     }
                                 }
@@ -135,7 +135,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout>
-                                            <CreateFunctionView/>
+                                            <CreateFunctionView />
                                         </Layout>
                                     }
                                 }
@@ -147,7 +147,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout>
-                                            <FunctionPage/>
+                                            <FunctionPage />
                                         </Layout>
                                     }
                                 }
@@ -159,7 +159,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout>
-                                            <ExperimentList/>
+                                            <ExperimentList />
                                         </Layout>
                                     }
                                 }
@@ -171,7 +171,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout>
-                                            <ExperimentPage/>
+                                            <ExperimentPage />
                                         </Layout>
                                     }
                                 }
@@ -183,7 +183,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout>
-                                            <DefaultConfig/>
+                                            <DefaultConfig />
                                         </Layout>
                                     }
                                 }
@@ -195,7 +195,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout>
-                                            <ContextOverride/>
+                                            <ContextOverride />
                                         </Layout>
                                     }
                                 }
@@ -207,7 +207,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout>
-                                            <Home/>
+                                            <Home />
                                         </Layout>
                                     }
                                 }
@@ -219,7 +219,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout>
-                                            <TypesPage/>
+                                            <TypesPage />
                                         </Layout>
                                     }
                                 }
@@ -231,7 +231,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout>
-                                            <ConfigVersionList/>
+                                            <ConfigVersionList />
                                         </Layout>
                                     }
                                 }
@@ -243,7 +243,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout>
-                                            <ConfigVersion/>
+                                            <ConfigVersion />
                                         </Layout>
                                     }
                                 }
@@ -255,9 +255,9 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                 view=move || {
                                     view! {
                                         <Layout show_side_nav=false>
-                                            <Workspace/>
+                                            <Workspace />
                                         </Layout>
-                                        }
+                                    }
                                 }
                             />
 
@@ -271,7 +271,6 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         // }
                         // }
                         // />
-
                         </Routes>
                     </AlertProvider>
                 </body>

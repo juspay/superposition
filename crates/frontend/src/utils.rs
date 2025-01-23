@@ -233,8 +233,7 @@ where
             .map_err(|_| String::from("Something went wrong"))?;
         let error_msg = serde_json::from_slice::<ErrorResponse>(&resp_bytes).map_or(
             String::from(
-                std::str::from_utf8(&resp_bytes.to_vec())
-                    .unwrap_or("Something went wrong"),
+                std::str::from_utf8(&resp_bytes).unwrap_or("Something went wrong"),
             ),
             |error| error.message,
         );

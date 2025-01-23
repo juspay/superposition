@@ -91,7 +91,9 @@ async fn update_type(
 
     let description = request.description;
     let type_name: String = path.into_inner().into();
-    let final_description = if description.is_none() {
+    let final_description = if let Some(description) = description {
+        description
+    } else {
         let existing_template = type_templates::table
             .filter(type_templates::type_name.eq(&type_name))
             .schema_name(&schema_name)
@@ -110,8 +112,6 @@ async fn update_type(
                 ));
             }
         }
-    } else {
-        description.unwrap().to_string()
     };
     let change_reason = request.change_reason;
     let timestamp = Utc::now().naive_utc();

@@ -62,7 +62,7 @@ where
 
     view! {
         <div class="drawer drawer-end">
-            <input id=id.clone() type="checkbox" class="drawer-toggle"/>
+            <input id=id.clone() type="checkbox" class="drawer-toggle" />
 
             <div class="drawer-side drawer-zindex w-full">
                 <label for=id.clone() class="drawer-overlay" on:click=close_drawer.clone()></label>

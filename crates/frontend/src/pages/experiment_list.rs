@@ -214,9 +214,11 @@ pub fn experiment_list() -> impl IntoView {
                 </div>
 
                 {move || {
-                    let CombinedResource {dimensions : dim, default_config : def_conf, experiments: _ } = combined_resource
-                        .get()
-                        .unwrap_or_default();
+                    let CombinedResource {
+                        dimensions: dim,
+                        default_config: def_conf,
+                        experiments: _,
+                    } = combined_resource.get().unwrap_or_default();
                     let _ = reset_exp_form.get();
                     view! {
                         <Drawer

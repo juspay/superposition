@@ -30,7 +30,7 @@ pub fn table(
                             .iter()
                             .filter(|column| !column.hidden)
                             .map(|column| {
-                                let column_name = (&column.name).replace('_', " ");
+                                let column_name = column.name.replace('_', " ");
                                 match column.sortable.clone() {
                                     types::ColumnSortable::Yes {
                                         sort_fn,
@@ -43,13 +43,17 @@ pub fn table(
                                                 on:click=move |_| sort_fn.call(())
                                             >
                                                 {column_name}
-                                                    {
-                                                        match (currently_sorted, sort_by) {
-                                                            (false, _) => view! { <i class="ri-expand-up-down-line"></i> },
-                                                            (_, SortBy::Desc) => view! { <i class="ri-arrow-down-s-line"></i> },
-                                                            (_, SortBy::Asc) => view! { <i class="ri-arrow-up-s-line"></i> },
-                                                        }
+                                                {match (currently_sorted, sort_by) {
+                                                    (false, _) => {
+                                                        view! { <i class="ri-expand-up-down-line"></i> }
                                                     }
+                                                    (_, SortBy::Desc) => {
+                                                        view! { <i class="ri-arrow-down-s-line"></i> }
+                                                    }
+                                                    (_, SortBy::Asc) => {
+                                                        view! { <i class="ri-arrow-up-s-line"></i> }
+                                                    }
+                                                }}
 
                                             </th>
                                         }

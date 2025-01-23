@@ -340,30 +340,21 @@ mod tests {
             .map(|a| a.into_inner())
             .map_err(|_| "variantIds should not be present".to_owned());
 
-        assert_eq!(
-            json!(fail_condition)
-                .to_string()
-                .contains("Invalid operation"),
-            true
-        );
+        assert!(json!(fail_condition)
+            .to_string()
+            .contains("Invalid operation"));
 
-        assert_eq!(
-            json!(fail_exp_condition)
-                .to_string()
-                .contains("variantIds should not be present"),
-            true
-        );
+        assert!(json!(fail_exp_condition)
+            .to_string()
+            .contains("variantIds should not be present"));
 
         let db_expected_condition = Exp::<Condition>::validate_db_data(exp_condition_map)
             .map(|_| true)
             .map_err(|_| "variantIds should not be present".to_string());
 
-        assert_eq!(
-            json!(db_expected_condition)
-                .to_string()
-                .contains("variantIds should not be present"),
-            true
-        );
+        assert!(json!(db_expected_condition)
+            .to_string()
+            .contains("variantIds should not be present"));
     }
 
     #[test]
@@ -396,11 +387,8 @@ mod tests {
         )
         .map_err(|_| "override should not be empty".to_string());
 
-        assert_eq!(
-            json!(empty_overrides)
-                .to_string()
-                .contains("override should not be empty"),
-            true
-        );
+        assert!(json!(empty_overrides)
+            .to_string()
+            .contains("override should not be empty"));
     }
 }

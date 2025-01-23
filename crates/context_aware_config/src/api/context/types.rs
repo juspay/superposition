@@ -143,7 +143,7 @@ mod tests {
             .expect("Invalid context override");
 
         let expected_action = ContextAction::Put(PutReq {
-            context: context,
+            context,
             r#override: override_,
             description: Some("".to_string()),
             change_reason: "".to_string(),

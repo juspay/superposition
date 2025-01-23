@@ -58,8 +58,7 @@ pub fn monaco_editor(
                 let editor = editor_rs.get();
                 let value = (editor.borrow() as &Option<CodeEditor>)
                     .as_ref()
-                    .map(|editor| editor.get_model())
-                    .flatten()
+                    .and_then(|editor| editor.get_model())
                     .map(|model| model.get_value());
                 match value {
                     Some(value) => {
@@ -71,7 +70,6 @@ pub fn monaco_editor(
                     }
                 }
             }
-        >
-        </div>
+        />
     }
 }

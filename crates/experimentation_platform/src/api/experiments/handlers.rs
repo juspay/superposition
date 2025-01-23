@@ -129,6 +129,7 @@ async fn process_cac_http_response(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 #[post("")]
 async fn create(
     state: Data<AppState>,
@@ -178,12 +179,7 @@ async fn create(
     }
 
     // validating context
-    let exp_context = Exp::<Condition>::try_from(req.context.clone())
-        .map_err(|err| {
-            log::error!("failed to decode condition with error {}", err);
-            bad_argument!(err)
-        })?
-        .into_inner();
+    let exp_context = req.context.clone().into_inner();
 
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;
@@ -335,6 +331,7 @@ async fn create(
     Ok(http_resp.json(response))
 }
 
+#[allow(clippy::too_many_arguments)]
 #[patch("/{experiment_id}/conclude")]
 async fn conclude_handler(
     state: Data<AppState>,
@@ -381,6 +378,7 @@ async fn conclude_handler(
     Ok(http_resp.json(experiment_response))
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn conclude(
     state: &Data<AppState>,
     experiment_id: i64,
@@ -530,6 +528,7 @@ pub async fn conclude(
     Ok((updated_experiment, config_version_id))
 }
 
+#[allow(clippy::too_many_arguments)]
 #[patch("/{experiment_id}/discard")]
 async fn discard_handler(
     state: Data<AppState>,
@@ -843,12 +842,13 @@ pub fn get_experiment(
     use superposition_types::database::schema::experiments::dsl::*;
     let result: Experiment = experiments
         .find(experiment_id)
-        .schema_name(&schema_name)
+        .schema_name(schema_name)
         .get_result::<Experiment>(conn)?;
 
     Ok(result)
 }
 
+#[allow(clippy::too_many_arguments)]
 #[patch("/{id}/ramp")]
 async fn ramp(
     data: Data<AppState>,
@@ -928,6 +928,7 @@ async fn ramp(
     Ok(Json(experiment_response))
 }
 
+#[allow(clippy::too_many_arguments)]
 #[put("/{id}/overrides")]
 async fn update_overrides(
     params: web::Path<i64>,
@@ -1214,7 +1215,7 @@ async fn get_audit_logs(
 
     Ok(Json(PaginatedResponse {
         total_items: log_count,
-        total_pages: total_pages,
+        total_pages,
         data: logs,
     }))
 }

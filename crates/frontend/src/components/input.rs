@@ -148,7 +148,7 @@ fn parse_input(
     match schema_type {
         SchemaType::Single(ref r#type) => parse_single(r#type),
         SchemaType::Multiple(mut types) => {
-            types.sort_by(|a, b| a.precedence().cmp(&b.precedence()));
+            types.sort_by_key(|a| a.precedence());
 
             for r#type in types.iter() {
                 let v = parse_single(r#type);
@@ -490,11 +490,11 @@ pub fn input(
     match r#type {
         InputType::Toggle => match value.as_bool() {
             Some(ref v) => {
-                view! { <Toggle value=v.clone() on_change class name/> }.into_view()
+                view! { <Toggle value=*v on_change class name /> }.into_view()
             }
-            None => view! { <Toggle value=false on_change class name/> }.into_view(),
+            None => view! { <Toggle value=false on_change class name /> }.into_view(),
         },
-        InputType::Select(ref options) => view! { <Select id name class value on_change disabled options=options.0.clone()/> }
+        InputType::Select(ref options) => view! { <Select id name class value on_change disabled options=options.0.clone() /> }
         .into_view(),
         InputType::Monaco => {
             view! { <MonacoInput id class value on_change disabled schema_type operator/> }.into_view()

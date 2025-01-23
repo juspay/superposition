@@ -133,7 +133,7 @@ pub fn experiment_table_columns(
                 let context = row
                     .get("context")
                     .and_then(|v| v.as_object().cloned())
-                    .unwrap_or(Map::new());
+                    .unwrap_or_default();
                 let id = row.get("id").map_or(String::from(""), |value| {
                     value.as_str().unwrap_or("").to_string()
                 });

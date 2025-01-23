@@ -21,7 +21,7 @@ impl HtmlDisplay for Value {
             Value::Object(obj) => {
                 let items: Vec<String> = obj
                     .iter()
-                    .map(|(k, v)| format!("\"{}\": {}", k, v.to_string()))
+                    .map(|(k, v)| format!("\"{}\": {}", k, v))
                     .collect();
                 format!("{{{}}}", items.join(", "))
             }

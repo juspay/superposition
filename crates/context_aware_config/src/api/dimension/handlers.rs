@@ -119,7 +119,7 @@ async fn create(
                 log::error!("{fun_name:?} function not found with error: {e:?}");
                 Err(bad_argument!(
                     "Function {} doesn't exists",
-                    fun_name.unwrap_or(String::new())
+                    fun_name.unwrap_or_default()
                 ))
             }
             Err(e) => {
@@ -165,9 +165,8 @@ async fn update(
     }
 
     dimension_row.change_reason = update_req.change_reason;
-    dimension_row.description = update_req
-        .description
-        .unwrap_or_else(|| dimension_row.description);
+    dimension_row.description =
+        update_req.description.unwrap_or(dimension_row.description);
 
     dimension_row.function_name = match update_req.function_name {
         Some(FunctionNameEnum::Name(func_name)) => Some(func_name),

@@ -40,8 +40,9 @@ impl<'de> Deserialize<'de> for FunctionNameEnum {
             Value::Null => Ok(Self::Remove),
             _ => {
                 log::error!("Expected a string or null literal as the function name.");
-                Err("Expected a string or null literal as the function name.")
-                    .map_err(serde::de::Error::custom)
+                Err(serde::de::Error::custom(
+                    "Expected a string or null literal as the function name.",
+                ))
             }
         }
     }
@@ -62,7 +63,7 @@ impl DefaultConfigKey {
 impl TryFrom<String> for DefaultConfigKey {
     type Error = String;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Ok(Self::validate_data(value)?)
+        Self::validate_data(value)
     }
 }
 

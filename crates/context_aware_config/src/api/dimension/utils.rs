@@ -24,10 +24,10 @@ pub fn get_dimension_data(
 }
 
 pub fn get_dimension_data_map(
-    dimensions_vec: &Vec<Dimension>,
+    dimensions_vec: &[Dimension],
 ) -> superposition::Result<HashMap<String, DimensionData>> {
     let dimension_schema_map = dimensions_vec
-        .into_iter()
+        .iter()
         .filter_map(|item| {
             let compiled_schema = JSONSchema::options()
                 .with_draft(Draft::Draft7)
@@ -70,9 +70,9 @@ pub fn get_dimension_usage_context_ids(
             })?
             .into_inner();
 
-        extract_dimensions(&condition)?
-            .get(key)
-            .map(|_| context_ids.push(context.id.to_owned()));
+        if extract_dimensions(&condition)?.get(key).is_some() {
+            context_ids.push(context.id.to_owned())
+        }
     }
     Ok(context_ids)
 }

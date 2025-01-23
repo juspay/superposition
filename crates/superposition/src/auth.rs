@@ -78,7 +78,7 @@ where
             .get(header::AUTHORIZATION)
             .and_then(|auth| auth.to_str().ok())
             .and_then(|auth| {
-                let mut token = auth.split(' ').into_iter();
+                let mut token = auth.split(' ');
                 match (token.next(), token.next()) {
                     (Some("Internal"), Some(token))
                         if token == state.superposition_token =>
@@ -142,7 +142,7 @@ impl AuthHandler {
             Some("DISABLED") => Arc::new(DisabledAuthenticator::new(
                 get_from_env_unsafe::<String>("LOCAL_ORGS")
                     .unwrap()
-                    .split(",")
+                    .split(',')
                     .map(String::from)
                     .collect(),
                 path_prefix,
