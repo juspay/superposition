@@ -9,7 +9,7 @@ use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::{json, Map, Value};
-use service_utils::{helpers::extract_dimensions, service::types::Tenant};
+use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
 use superposition_macros::{bad_argument, unexpected_error, validation_error};
 use superposition_types::{
     database::{
@@ -63,7 +63,7 @@ pub fn validate_condition_with_mandatory_dimensions(
 pub fn validate_condition_with_functions(
     conn: &mut DBConnection,
     context: &Condition,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     use dimensions::dsl;
     let context = extract_dimensions(context)?;
@@ -71,7 +71,7 @@ pub fn validate_condition_with_functions(
     let keys_function_array: Vec<(String, Option<String>)> = dsl::dimensions
         .filter(dsl::dimension.eq_any(dimensions_list))
         .select((dsl::dimension, dsl::function_name))
-        .schema_name(tenant)
+        .schema_name(schema_name)
         .load(conn)?;
     let new_keys_function_array: Vec<(String, String)> = keys_function_array
         .into_iter()
@@ -79,7 +79,7 @@ pub fn validate_condition_with_functions(
         .collect();
 
     let dimension_functions_map =
-        get_functions_map(conn, new_keys_function_array, tenant)?;
+        get_functions_map(conn, new_keys_function_array, schema_name)?;
     for (key, value) in context.iter() {
         if let Some(functions_map) = dimension_functions_map.get(key) {
             if let (function_name, Some(function_code)) =
@@ -95,13 +95,13 @@ pub fn validate_condition_with_functions(
 pub fn validate_override_with_functions(
     conn: &mut DBConnection,
     override_: &Map<String, Value>,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     let default_config_keys: Vec<String> = override_.keys().cloned().collect();
     let keys_function_array: Vec<(String, Option<String>)> = dsl::default_configs
         .filter(dsl::key.eq_any(default_config_keys))
         .select((dsl::key, dsl::function_name))
-        .schema_name(tenant)
+        .schema_name(schema_name)
         .load(conn)?;
     let new_keys_function_array: Vec<(String, String)> = keys_function_array
         .into_iter()
@@ -109,7 +109,7 @@ pub fn validate_override_with_functions(
         .collect();
 
     let default_config_functions_map =
-        get_functions_map(conn, new_keys_function_array, tenant)?;
+        get_functions_map(conn, new_keys_function_array, schema_name)?;
     for (key, value) in override_.iter() {
         if let Some(functions_map) = default_config_functions_map.get(key) {
             if let (function_name, Some(function_code)) =
@@ -125,7 +125,7 @@ pub fn validate_override_with_functions(
 fn get_functions_map(
     conn: &mut DBConnection,
     keys_function_array: Vec<(String, String)>,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<HashMap<String, FunctionsInfo>> {
     let functions_map: HashMap<String, Option<String>> =
         get_published_functions_by_names(
@@ -134,7 +134,7 @@ fn get_functions_map(
                 .iter()
                 .map(|(_, f_name)| f_name.clone())
                 .collect(),
-            tenant,
+            schema_name,
         )?
         .into_iter()
         .collect();
@@ -185,7 +185,7 @@ pub fn validate_value_with_function(
 pub fn ensure_description(
     context: Value,
     transaction_conn: &mut diesel::PgConnection,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> Result<String, superposition::AppError> {
     use superposition_types::database::schema::contexts::dsl::{
         contexts as contexts_table, id as context_id,
@@ -196,7 +196,7 @@ pub fn ensure_description(
     // Perform the database query
     let existing_context = contexts_table
         .filter(context_id.eq(context_id_value))
-        .schema_name(tenant)
+        .schema_name(schema_name)
         .first::<Context>(transaction_conn);
 
     match existing_context {
@@ -215,7 +215,7 @@ pub fn create_ctx_from_put_req(
     req: Json<PutReq>,
     conn: &mut DBConnection,
     user: &User,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<Context> {
     let ctx_condition = req.context.to_owned().into_inner();
     let condition_val = Value::Object(ctx_condition.clone().into());
@@ -223,25 +223,25 @@ pub fn create_ctx_from_put_req(
     let ctx_override = Value::Object(r_override.clone().into());
     let description = if req.description.is_none() {
         let ctx_condition_value = json!(ctx_condition);
-        ensure_description(ctx_condition_value, conn, &tenant)?
+        ensure_description(ctx_condition_value, conn, schema_name)?
     } else {
         req.description
             .clone()
             .ok_or_else(|| bad_argument!("Description should not be empty"))?
     };
 
-    let workspace_settings = get_workspace(&tenant, conn)?;
+    let workspace_settings = get_workspace(schema_name, conn)?;
 
     let change_reason = req.change_reason.clone();
     validate_condition_with_mandatory_dimensions(
         &ctx_condition,
         &workspace_settings.mandatory_dimensions.unwrap_or_default(),
     )?;
-    validate_override_with_default_configs(conn, &r_override, tenant)?;
-    validate_condition_with_functions(conn, &ctx_condition, tenant)?;
-    validate_override_with_functions(conn, &r_override, tenant)?;
+    validate_override_with_default_configs(conn, &r_override, schema_name)?;
+    validate_condition_with_functions(conn, &ctx_condition, schema_name)?;
+    validate_override_with_functions(conn, &r_override, schema_name)?;
 
-    let dimension_data = get_dimension_data(conn, tenant)?;
+    let dimension_data = get_dimension_data(conn, schema_name)?;
     let dimension_data_map = get_dimension_data_map(&dimension_data)?;
     validate_dimensions("context", &condition_val, &dimension_data_map)?;
 
@@ -269,7 +269,7 @@ fn db_update_override(
     conn: &mut DBConnection,
     ctx: Context,
     user: &User,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<PutResp> {
     use contexts::dsl;
     let update_resp = diesel::update(dsl::contexts)
@@ -283,7 +283,7 @@ fn db_update_override(
             dsl::change_reason.eq(ctx.change_reason),
         ))
         .returning(Context::as_returning())
-        .schema_name(tenant)
+        .schema_name(schema_name)
         .get_result::<Context>(conn)?;
     Ok(update_resp.into())
 }
@@ -292,7 +292,7 @@ pub fn replace_override_of_existing_ctx(
     conn: &mut DBConnection,
     ctx: Context,
     user: &User,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<PutResp> {
     let new_override = ctx.override_;
     let new_override_id = hash(&Value::Object(new_override.clone().into()));
@@ -301,20 +301,20 @@ pub fn replace_override_of_existing_ctx(
         override_id: new_override_id,
         ..ctx
     };
-    db_update_override(conn, new_ctx, user, tenant)
+    db_update_override(conn, new_ctx, user, schema_name)
 }
 
 pub fn update_override_of_existing_ctx(
     conn: &mut DBConnection,
     ctx: Context,
     user: &User,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<PutResp> {
     use contexts::dsl;
     let mut new_override: Value = dsl::contexts
         .filter(dsl::id.eq(ctx.id.clone()))
         .select(dsl::override_)
-        .schema_name(&tenant)
+        .schema_name(schema_name)
         .first(conn)?;
     cac_client::merge(
         &mut new_override,
@@ -336,5 +336,5 @@ pub fn update_override_of_existing_ctx(
         override_id: new_override_id,
         ..ctx
     };
-    db_update_override(conn, new_ctx, user, tenant)
+    db_update_override(conn, new_ctx, user, schema_name)
 }

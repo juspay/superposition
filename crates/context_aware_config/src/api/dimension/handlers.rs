@@ -9,7 +9,7 @@ use chrono::Utc;
 use diesel::{
     delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
-use service_utils::service::types::{AppState, DbConnection, Tenant};
+use service_utils::service::types::{AppState, DbConnection, SchemaName};
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     custom_query::PaginationParams,
@@ -45,7 +45,7 @@ async fn create(
     req: web::Json<CreateReq>,
     user: User,
     db_conn: DbConnection,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
@@ -54,7 +54,7 @@ async fn create(
 
     let num_rows = dimensions
         .count()
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .get_result::<i64>(&mut conn)
         .map_err(|err| {
             log::error!("failed to fetch number of dimension with error: {}", err);
@@ -90,18 +90,18 @@ async fn create(
                 dimensions::position.eq(dimensions::position + 1),
             ))
             .returning(Dimension::as_returning())
-            .schema_name(&tenant)
+            .schema_name(&schema_name)
             .execute(transaction_conn)?;
         let insert_resp = diesel::insert_into(dimensions::table)
             .values(&dimension_data)
             .returning(Dimension::as_returning())
-            .schema_name(&tenant)
+            .schema_name(&schema_name)
             .get_result(transaction_conn);
 
         match insert_resp {
             Ok(inserted_dimension) => {
                 let workspace_settings: Workspace =
-                    get_workspace(&tenant, transaction_conn)?;
+                    get_workspace(&schema_name, transaction_conn)?;
                 let is_mandatory = workspace_settings
                     .mandatory_dimensions
                     .unwrap_or_default()
@@ -137,7 +137,7 @@ async fn update(
     req: web::Json<UpdateReq>,
     user: User,
     db_conn: DbConnection,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.clone().into();
     use dimensions::dsl;
@@ -145,12 +145,12 @@ async fn update(
 
     let mut dimension_row: Dimension = dsl::dimensions
         .filter(dimensions::dimension.eq(name.clone()))
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .get_result::<Dimension>(&mut conn)?;
 
     let num_rows = dimensions
         .count()
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .get_result::<i64>(&mut conn)
         .map_err(|err| {
             log::error!("failed to fetch number of dimension with error: {}", err);
@@ -196,7 +196,7 @@ async fn update(
                         dimensions::position.eq((num_rows + 100) as i32),
                     ))
                     .returning(Dimension::as_returning())
-                    .schema_name(&tenant)
+                    .schema_name(&schema_name)
                     .get_result::<Dimension>(transaction_conn)?;
 
                 if previous_position < new_position {
@@ -209,7 +209,7 @@ async fn update(
                             dimensions::position.eq(dimensions::position - 1),
                         ))
                         .returning(Dimension::as_returning())
-                        .schema_name(&tenant)
+                        .schema_name(&schema_name)
                         .execute(transaction_conn)?
                 } else {
                     diesel::update(dsl::dimensions)
@@ -221,7 +221,7 @@ async fn update(
                             dimensions::position.eq(dimensions::position + 1),
                         ))
                         .returning(Dimension::as_returning())
-                        .schema_name(&tenant)
+                        .schema_name(&schema_name)
                         .execute(transaction_conn)?
                 };
             }
@@ -238,12 +238,12 @@ async fn update(
                     dimensions::change_reason.eq(dimension_row.change_reason),
                 ))
                 .returning(Dimension::as_returning())
-                .schema_name(&tenant)
+                .schema_name(&schema_name)
                 .get_result::<Dimension>(transaction_conn)
                 .map_err(|err| db_error!(err))
         })?;
 
-    let workspace_settings = get_workspace(&tenant, &mut conn)?;
+    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
     let is_mandatory = workspace_settings
         .mandatory_dimensions
         .unwrap_or_default()
@@ -256,24 +256,25 @@ async fn update(
 async fn get(
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<DimensionWithMandatory>>> {
     let DbConnection(mut conn) = db_conn;
 
     let (total_pages, total_items, result) = match filters.all {
         Some(true) => {
-            let result: Vec<Dimension> =
-                dimensions.schema_name(&tenant).get_results(&mut conn)?;
+            let result: Vec<Dimension> = dimensions
+                .schema_name(&schema_name)
+                .get_results(&mut conn)?;
             (1, result.len() as i64, result)
         }
         _ => {
             let n_dimensions: i64 = dimensions
                 .count()
-                .schema_name(&tenant)
+                .schema_name(&schema_name)
                 .get_result(&mut conn)?;
             let limit = filters.count.unwrap_or(10);
             let mut builder = dimensions
-                .schema_name(&tenant)
+                .schema_name(&schema_name)
                 .order(created_at.desc())
                 .limit(limit)
                 .into_boxed();
@@ -287,7 +288,7 @@ async fn get(
         }
     };
 
-    let workspace_settings = get_workspace(&tenant, &mut conn)?;
+    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
 
     let mandatory_dimensions =
         workspace_settings.mandatory_dimensions.unwrap_or_default();
@@ -312,16 +313,16 @@ async fn delete_dimension(
     path: Path<DeleteReq>,
     user: User,
     db_conn: DbConnection,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.into_inner().into();
     let DbConnection(mut conn) = db_conn;
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(&name))
         .select(Dimension::as_select())
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .get_result(&mut conn)?;
-    let context_ids = get_dimension_usage_context_ids(&name, &mut conn, &tenant)
+    let context_ids = get_dimension_usage_context_ids(&name, &mut conn, &schema_name)
         .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -333,16 +334,16 @@ async fn delete_dimension(
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
                 .returning(Dimension::as_returning())
-                .schema_name(&tenant)
+                .schema_name(&schema_name)
                 .execute(transaction_conn)?;
             diesel::update(dimensions::dsl::dimensions)
                 .filter(dimensions::position.gt(dimension_data.position))
                 .set(dimensions::position.eq(dimensions::position - 1))
                 .returning(Dimension::as_returning())
-                .schema_name(&tenant)
+                .schema_name(&schema_name)
                 .execute(transaction_conn)?;
             let deleted_row = delete(dsl::dimensions.filter(dsl::dimension.eq(&name)))
-                .schema_name(&tenant)
+                .schema_name(&schema_name)
                 .execute(transaction_conn);
             match deleted_row {
                 Ok(0) => Err(not_found!("Dimension `{}` doesn't exists", name)),

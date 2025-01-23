@@ -5,7 +5,8 @@ use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::{
-    AppState, ExperimentationFlags, OrganisationId, Tenant,
+    AppState, ExperimentationFlags, OrganisationId, SchemaName, WorkspaceContext,
+    WorkspaceId,
 };
 use std::collections::HashSet;
 use std::str::FromStr;
@@ -185,7 +186,7 @@ pub fn validate_experiment(
     override_keys: &[String],
     experiment_id: Option<i64>,
     flags: &ExperimentationFlags,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
     conn: &mut PgConnection,
 ) -> superposition::Result<(bool, String)> {
     use superposition_types::database::schema::experiments::dsl as experiments_dsl;
@@ -199,7 +200,7 @@ pub fn validate_experiment(
                         .or(experiments_dsl::status.eq(ExperimentStatusType::INPROGRESS)),
                 ),
         )
-        .schema_name(tenant)
+        .schema_name(schema_name)
         .load(conn)?;
 
     is_valid_experiment(context, override_keys, flags, &active_experiments)
@@ -277,15 +278,23 @@ pub fn decide_variant(
 }
 
 pub fn construct_header_map(
-    tenant: &str,
+    workspace_id: &WorkspaceId,
+    organisation_id: &OrganisationId,
     other_headers: Vec<(&str, String)>,
 ) -> superposition::Result<HeaderMap> {
     let mut headers = HeaderMap::new();
-    let tenant_val = HeaderValue::from_str(tenant).map_err(|err| {
+    let workspace_val = HeaderValue::from_str(workspace_id).map_err(|err| {
         log::error!("failed to set header: {}", err);
         unexpected_error!("Something went wrong")
     })?;
-    headers.insert(HeaderName::from_static("x-tenant"), tenant_val);
+    headers.insert(HeaderName::from_static("x-tenant"), workspace_val);
+
+    let org_val = HeaderValue::from_str(organisation_id).map_err(|err| {
+        log::error!("failed to set header: {}", err);
+        unexpected_error!("Something went wrong")
+    })?;
+    headers.insert(HeaderName::from_static("x-org-id"), org_val);
+
     for (header, value) in other_headers {
         let header_name = HeaderName::from_str(header).map_err(|err| {
             log::error!("failed to set header: {}", err);
@@ -304,18 +313,16 @@ pub fn construct_header_map(
 }
 
 pub async fn fetch_cac_config(
-    tenant: &Tenant,
     state: &Data<AppState>,
-    org_id: &OrganisationId,
+    workspace_request: &WorkspaceContext,
 ) -> superposition::Result<(Config, Option<String>)> {
     let http_client = reqwest::Client::new();
     let url = state.cac_host.clone() + "/config";
-    let tenant_name = tenant.get_tenant_name().map_err(|err| {
-        log::error!("{err}");
-        unexpected_error!("failed to decode tenant")
-    })?;
-    let headers_map =
-        construct_header_map(&tenant_name, vec![("x-org-id", org_id.to_string())])?;
+    let headers_map = construct_header_map(
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
+        vec![],
+    )?;
 
     let response = http_client
         .get(&url)

@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    ops::Deref,
-};
+use std::collections::{HashMap, HashSet};
 
 use actix_http::header::{self};
 use actix_web::{
@@ -9,7 +6,6 @@ use actix_web::{
     web::{self, Data, Json, Query},
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
-use anyhow::anyhow;
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use diesel::{
     dsl::sql,
@@ -20,14 +16,13 @@ use diesel::{
 };
 use reqwest::{Method, Response, StatusCode};
 use serde_json::{json, Map, Value};
-use service_utils::service::types::{
-    AppHeader, AppState, CustomHeaders, DbConnection, Tenant,
-};
 use service_utils::{
     helpers::{
         construct_request_headers, execute_webhook_call, generate_snowflake_id, request,
     },
-    service::types::OrganisationId,
+    service::types::{
+        AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
+    },
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
@@ -138,10 +133,9 @@ async fn create(
     custom_headers: CustomHeaders,
     req: web::Json<ExperimentCreateRequest>,
     db_conn: DbConnection,
-    tenant: Tenant,
+    workspace_request: WorkspaceContext,
     user: User,
     tenant_config: TenantConfig,
-    org_id: OrganisationId,
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::experiments::dsl::experiments;
     let mut variants = req.variants.to_vec();
@@ -196,7 +190,7 @@ async fn create(
         &unique_override_keys,
         None,
         flags,
-        &tenant,
+        &workspace_request.schema_name,
         &mut conn,
     )?;
     if !valid {
@@ -244,25 +238,18 @@ async fn create(
             err
         )
     })?;
-    let org_id = org_id.clone().deref().to_owned();
-    log::info!("Organisation ID {org_id}");
+
     let extra_headers = vec![
         ("x-user", Some(user_str)),
         ("x-config-tags", custom_headers.config_tags),
-        ("x-org-id", Some(org_id)),
     ]
     .into_iter()
     .filter_map(|(key, val)| val.map(|v| (key, v)))
     .collect::<Vec<_>>();
 
     let headers_map = construct_header_map(
-        tenant
-            .get_tenant_name()
-            .map_err(|err| {
-                log::error!("{err}");
-                unexpected_error!("failed to decode tenant")
-            })?
-            .as_str(),
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
         extra_headers,
     )?;
 
@@ -318,19 +305,19 @@ async fn create(
     let mut inserted_experiments = diesel::insert_into(experiments)
         .values(&new_experiment)
         .returning(Experiment::as_returning())
-        .schema_name(&tenant)
+        .schema_name(&workspace_request.schema_name)
         .get_results(&mut conn)?;
 
     let inserted_experiment: Experiment = inserted_experiments.remove(0);
     let response = ExperimentCreateResponse::from(inserted_experiment.clone());
     if let WebhookConfig::Enabled(experiments_webhook_config) =
-        tenant_config.experiments_webhook_config
+        &tenant_config.experiments_webhook_config
     {
         execute_webhook_call(
-            &experiments_webhook_config,
+            experiments_webhook_config,
             &ExperimentResponse::from(inserted_experiment),
             &config_version_id,
-            &tenant,
+            &workspace_request,
             WebhookEvent::ExperimentCreated,
             &state.app_env,
             &state.http_client,
@@ -350,10 +337,9 @@ async fn conclude_handler(
     custom_headers: CustomHeaders,
     req: web::Json<ConcludeExperimentRequest>,
     db_conn: DbConnection,
-    tenant: Tenant,
+    workspace_request: WorkspaceContext,
     tenant_config: TenantConfig,
     user: User,
-    org_id: OrganisationId,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(conn) = db_conn;
     let (response, config_version_id) = conclude(
@@ -362,22 +348,21 @@ async fn conclude_handler(
         custom_headers.config_tags,
         req.into_inner(),
         conn,
-        tenant.clone(),
-        user,
-        org_id,
+        &workspace_request,
+        &user,
     )
     .await?;
 
     let experiment_response = ExperimentResponse::from(response);
 
     if let WebhookConfig::Enabled(experiments_webhook_config) =
-        tenant_config.experiments_webhook_config
+        &tenant_config.experiments_webhook_config
     {
         execute_webhook_call(
-            &experiments_webhook_config,
+            experiments_webhook_config,
             &experiment_response,
             &config_version_id,
-            &tenant,
+            &workspace_request,
             WebhookEvent::ExperimentConcluded,
             &state.app_env,
             &state.http_client,
@@ -397,9 +382,8 @@ pub async fn conclude(
     config_tags: Option<String>,
     req: ConcludeExperimentRequest,
     mut conn: PooledConnection<ConnectionManager<PgConnection>>,
-    tenant: Tenant,
-    user: User,
-    org_id: OrganisationId,
+    workspace_request: &WorkspaceContext,
+    user: &User,
 ) -> superposition::Result<(Experiment, Option<String>)> {
     use superposition_types::database::schema::experiments::dsl;
 
@@ -408,7 +392,7 @@ pub async fn conclude(
 
     let experiment: Experiment = dsl::experiments
         .find(experiment_id)
-        .schema_name(&tenant)
+        .schema_name(&workspace_request.schema_name)
         .get_result::<Experiment>(&mut conn)?;
 
     let description = match req.description.clone() {
@@ -425,10 +409,6 @@ pub async fn conclude(
     let experiment_context: Map<String, Value> = experiment.context.into();
 
     let mut operations: Vec<ContextAction> = vec![];
-    let tenant_name = tenant.get_tenant_name().map_err(|err| {
-        log::error!("{err}");
-        unexpected_error!("failed to decode tenant")
-    })?;
 
     let mut is_valid_winner_variant = false;
     for variant in experiment.variants.into_inner() {
@@ -462,24 +442,20 @@ pub async fn conclude(
                     let url = format!("{}/default-config/{}", state.cac_host, key);
 
                     let headers = construct_request_headers(&[
-                        ("x-tenant", tenant_name.as_str()),
+                        ("x-tenant", &workspace_request.workspace_id),
                         (
                             "Authorization",
                             &format!("Internal {}", state.superposition_token),
                         ),
                         ("x-user", user_str.as_str()),
-                        ("x-org-id", org_id.as_str()),
+                        ("x-org-id", &workspace_request.organisation_id),
                     ])
-                    .map_err(|err| {
-                        superposition::AppError::UnexpectedError(anyhow!(err))
-                    })?;
+                    .map_err(|err| unexpected_error!(err))?;
 
                     let _ =
                         request::<_, Value>(url, Method::PUT, Some(create_req), headers)
                             .await
-                            .map_err(|err| {
-                                superposition::AppError::UnexpectedError(anyhow!(err))
-                            })?;
+                            .map_err(|err| unexpected_error!(err))?;
                 }
                 operations.push(ContextAction::DELETE(context_id));
             }
@@ -507,16 +483,16 @@ pub async fn conclude(
             err
         )
     })?;
-    let extra_headers = vec![
-        ("x-user", Some(user_str)),
-        ("x-config-tags", config_tags),
-        ("x-org-id", Some(org_id.to_string())),
-    ]
-    .into_iter()
-    .filter_map(|(key, val)| val.map(|v| (key, v)))
-    .collect::<Vec<_>>();
+    let extra_headers = vec![("x-user", Some(user_str)), ("x-config-tags", config_tags)]
+        .into_iter()
+        .filter_map(|(key, val)| val.map(|v| (key, v)))
+        .collect::<Vec<_>>();
 
-    let headers_map = construct_header_map(&tenant_name, extra_headers)?;
+    let headers_map = construct_header_map(
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
+        extra_headers,
+    )?;
 
     let response = http_client
         .put(&url)
@@ -541,7 +517,7 @@ pub async fn conclude(
             dsl::chosen_variant.eq(Some(winner_variant_id)),
         ))
         .returning(Experiment::as_returning())
-        .schema_name(&tenant)
+        .schema_name(&workspace_request.schema_name)
         .get_result::<Experiment>(&mut conn)?;
 
     Ok((updated_experiment, config_version_id))
@@ -551,14 +527,14 @@ pub async fn conclude(
 async fn get_applicable_variants(
     db_conn: DbConnection,
     query_data: Query<ApplicableVariantsQuery>,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let query_data = query_data.into_inner();
 
     let experiments = experiments::experiments
         .filter(experiments::status.ne(ExperimentStatusType::CONCLUDED))
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .load::<Experiment>(&mut conn)?;
 
     let experiments = experiments.into_iter().filter(|exp| {
@@ -594,13 +570,13 @@ async fn list_experiments(
     pagination_params: Query<PaginationParams>,
     filters: Query<ExperimentListFilters>,
     db_conn: DbConnection,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
     if let Some(true) = pagination_params.all {
         let result = experiments::experiments
-            .schema_name(&tenant)
+            .schema_name(&schema_name)
             .get_results::<Experiment>(&mut conn)?;
         return Ok(
             HttpResponse::Ok().json(PaginatedResponse::<ExperimentResponse> {
@@ -614,7 +590,7 @@ async fn list_experiments(
     let max_event_timestamp: Option<NaiveDateTime> = event_log::event_log
         .filter(event_log::table_name.eq("experiments"))
         .select(diesel::dsl::max(event_log::timestamp))
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .first(&mut conn)?;
 
     let last_modified = req
@@ -632,7 +608,9 @@ async fn list_experiments(
     };
 
     let query_builder = |filters: &ExperimentListFilters| {
-        let mut builder = experiments::experiments.schema_name(&tenant).into_boxed();
+        let mut builder = experiments::experiments
+            .schema_name(&schema_name)
+            .into_boxed();
         if let Some(ref states) = filters.status {
             builder = builder.filter(experiments::status.eq_any(states.0.clone()));
         }
@@ -702,22 +680,22 @@ async fn list_experiments(
 async fn get_experiment_handler(
     params: web::Path<i64>,
     db_conn: DbConnection,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<Json<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
-    let response = get_experiment(params.into_inner(), &mut conn, &tenant)?;
+    let response = get_experiment(params.into_inner(), &mut conn, &schema_name)?;
     Ok(Json(ExperimentResponse::from(response)))
 }
 
 pub fn get_experiment(
     experiment_id: i64,
     conn: &mut DBConnection,
-    tenant: &Tenant,
+    schema_name: &SchemaName,
 ) -> superposition::Result<Experiment> {
     use superposition_types::database::schema::experiments::dsl::*;
     let result: Experiment = experiments
         .find(experiment_id)
-        .schema_name(&tenant)
+        .schema_name(&schema_name)
         .get_result::<Experiment>(conn)?;
 
     Ok(result)
@@ -730,9 +708,8 @@ async fn ramp(
     req: web::Json<RampRequest>,
     db_conn: DbConnection,
     user: User,
-    tenant: Tenant,
+    workspace_request: WorkspaceContext,
     tenant_config: TenantConfig,
-    org_id: OrganisationId,
 ) -> superposition::Result<Json<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
@@ -740,7 +717,7 @@ async fn ramp(
 
     let experiment: Experiment = experiments::experiments
         .find(exp_id)
-        .schema_name(&tenant)
+        .schema_name(&workspace_request.schema_name)
         .get_result::<Experiment>(&mut conn)?;
 
     let old_traffic_percentage = experiment.traffic_percentage as u8;
@@ -771,10 +748,10 @@ async fn ramp(
             experiments::change_reason.eq(change_reason),
         ))
         .returning(Experiment::as_returning())
-        .schema_name(&tenant)
+        .schema_name(&workspace_request.schema_name)
         .get_result(&mut conn)?;
 
-    let (_, config_version_id) = fetch_cac_config(&tenant, &data, &org_id).await?;
+    let (_, config_version_id) = fetch_cac_config(&data, &workspace_request).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
     let webhook_event = if new_traffic_percentage == 0
@@ -785,13 +762,13 @@ async fn ramp(
         WebhookEvent::ExperimentInprogress
     };
     if let WebhookConfig::Enabled(experiments_webhook_config) =
-        tenant_config.experiments_webhook_config
+        &tenant_config.experiments_webhook_config
     {
         execute_webhook_call(
-            &experiments_webhook_config,
+            experiments_webhook_config,
             &experiment_response,
             &config_version_id,
-            &tenant,
+            &workspace_request,
             webhook_event,
             &data.app_env,
             &data.http_client,
@@ -810,10 +787,9 @@ async fn update_overrides(
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
     req: web::Json<OverrideKeysUpdateRequest>,
-    tenant: Tenant,
+    workspace_request: WorkspaceContext,
     tenant_config: TenantConfig,
     user: User,
-    org_id: OrganisationId,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let experiment_id = params.into_inner();
@@ -834,7 +810,7 @@ async fn update_overrides(
     // fetch the current variants of the experiment
     let experiment = experiments::experiments
         .find(experiment_id)
-        .schema_name(&tenant)
+        .schema_name(&workspace_request.schema_name)
         .first::<Experiment>(&mut conn)?;
 
     if experiment.status != ExperimentStatusType::CREATED {
@@ -918,7 +894,7 @@ async fn update_overrides(
         &override_keys,
         Some(experiment_id),
         flags,
-        &tenant,
+        &workspace_request.schema_name,
         &mut conn,
     )?;
     if !valid {
@@ -976,17 +952,16 @@ async fn update_overrides(
     let extra_headers = vec![
         ("x-user", Some(user_str)),
         ("x-config-tags", custom_headers.config_tags),
-        ("x-org-id", Some(org_id.to_string())),
     ]
     .into_iter()
     .filter_map(|(key, val)| val.map(|v| (key, v)))
     .collect::<Vec<_>>();
 
-    let tenant_name = tenant.get_tenant_name().map_err(|err| {
-        log::error!("{err}");
-        unexpected_error!("failed to decode tenant")
-    })?;
-    let headers_map = construct_header_map(&tenant_name, extra_headers)?;
+    let headers_map = construct_header_map(
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
+        extra_headers,
+    )?;
 
     let response = http_client
         .put(&url)
@@ -1032,19 +1007,19 @@ async fn update_overrides(
             experiments::last_modified_by.eq(user.get_email()),
         ))
         .returning(Experiment::as_returning())
-        .schema_name(&tenant)
+        .schema_name(&workspace_request.schema_name)
         .get_result::<Experiment>(&mut conn)?;
 
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
     if let WebhookConfig::Enabled(experiments_webhook_config) =
-        tenant_config.experiments_webhook_config
+        &tenant_config.experiments_webhook_config
     {
         execute_webhook_call(
-            &experiments_webhook_config,
+            experiments_webhook_config,
             &experiment_response,
             &config_version_id,
-            &tenant,
+            &workspace_request,
             WebhookEvent::ExperimentUpdated,
             &state.app_env,
             &state.http_client,
@@ -1062,12 +1037,12 @@ async fn update_overrides(
 async fn get_audit_logs(
     filters: Query<AuditQueryFilters>,
     db_conn: DbConnection,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<EventLog>>> {
     let DbConnection(mut conn) = db_conn;
 
     let query_builder = |filters: &AuditQueryFilters| {
-        let mut builder = event_log::event_log.schema_name(&tenant).into_boxed();
+        let mut builder = event_log::event_log.schema_name(&schema_name).into_boxed();
         if let Some(tables) = filters.table.clone() {
             builder = builder.filter(event_log::table_name.eq_any(tables.0));
         }

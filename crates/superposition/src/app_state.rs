@@ -30,8 +30,6 @@ pub async fn get(
     let cac_host =
         get_from_env_unsafe::<String>("CAC_HOST").expect("CAC host is not set") + base;
     let max_pool_size = get_from_env_or_default("MAX_DB_CONNECTION_POOL_SIZE", 2);
-    let enable_tenant_and_scope = get_from_env_unsafe("ENABLE_TENANT_AND_SCOPE")
-        .expect("ENABLE_TENANT_AND_SCOPE is not set");
 
     let snowflake_generator = Arc::new(Mutex::new(SnowflakeIdGenerator::new(1, 1)));
 
@@ -92,7 +90,6 @@ pub async fn get(
         snowflake_generator,
         meta_schema: get_meta_schema(),
         app_env,
-        enable_tenant_and_scope,
         tenant_middleware_exclusion_list: get_from_env_unsafe::<String>(
             "TENANT_MIDDLEWARE_EXCLUSION_LIST",
         )

@@ -5,7 +5,7 @@ use actix_web::{
 };
 use chrono::{Duration, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-use service_utils::service::types::{DbConnection, Tenant};
+use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_types::{
     database::{models::cac::EventLog, schema::event_log::dsl as event_log},
     result as superposition, PaginatedResponse,
@@ -21,12 +21,12 @@ pub fn endpoints() -> Scope {
 async fn get_audit_logs(
     filters: Query<AuditQueryFilters>,
     db_conn: DbConnection,
-    tenant: Tenant,
+    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<EventLog>>> {
     let DbConnection(mut conn) = db_conn;
 
     let query_builder = |filters: &AuditQueryFilters| {
-        let mut builder = event_log::event_log.schema_name(&tenant).into_boxed();
+        let mut builder = event_log::event_log.schema_name(&schema_name).into_boxed();
         if let Some(tables) = filters.table.clone() {
             builder = builder.filter(event_log::table_name.eq_any(tables.0));
         }
