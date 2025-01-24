@@ -342,10 +342,10 @@ pub async fn put_config_in_redis(
         log::error!("failed to convert cac config to string: {}", e);
         unexpected_error!("could not convert cac config to string")
     })?;
-    let config_key = format!("{}::cac_config", *schema_name);
-    let last_modified_at_key = format!("{}::cac_config::last_modified_at", *schema_name);
-    let audit_id_key = format!("{}::cac_config::audit_id", *schema_name);
-    let config_version_key = format!("{}::cac_config::config_version", *schema_name);
+    let config_key = format!("{}::cac_config", **schema_name);
+    let last_modified_at_key = format!("{}::cac_config::last_modified_at", **schema_name);
+    let audit_id_key = format!("{}::cac_config::audit_id", **schema_name);
+    let config_version_key = format!("{}::cac_config::config_version", **schema_name);
     let last_modified = DateTime::to_rfc2822(&Utc::now());
     let _ = state
         .redis
