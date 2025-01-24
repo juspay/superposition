@@ -25,6 +25,8 @@ pub(super) fn try_user_from<A: AdditionalClaims, B: GenderClaim>(
             .preferred_username()
             .ok_or(String::from("Username not found"))?
             .to_string(),
+        auth_token: "token".into(),
+        auth_type: "type".into(),
     };
     Ok(user)
 }
