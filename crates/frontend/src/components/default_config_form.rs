@@ -57,6 +57,8 @@ where
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
+    let (schema_type_rs, schema_type_ws) = create_signal(Err("".to_string()));
+    let (enum_variants_rs, enum_variants_ws) = create_signal(Err("".to_string()));
 
     let functions_resource: Resource<(String, String), Vec<Function>> =
         create_blocking_resource(
@@ -249,8 +251,27 @@ where
                                     dropdown_options=options
                                     on_select=Callback::new(move |selected_item: TypeTemplate| {
                                         logging::log!("selected item {:?}", selected_item);
+                                        let type_schema = selected_item.type_schema.clone();
+                                        let parsed_schema_type = SchemaType::try_from(
+                                            type_schema.clone(),
+                                        );
+                                        let parsed_enum_variants = EnumVariants::try_from(
+                                            type_schema.clone(),
+                                        );
                                         config_type_ws.set(selected_item.type_name);
-                                        config_schema_ws.set(selected_item.type_schema);
+                                        config_schema_ws.set(type_schema);
+                                        schema_type_ws.set(parsed_schema_type.clone());
+                                        enum_variants_ws.set(parsed_enum_variants.clone());
+                                        if let (Ok(schema_type), Ok(enum_variants)) = (
+                                            parsed_schema_type,
+                                            parsed_enum_variants,
+                                        ) {
+                                            if InputType::from((schema_type, enum_variants))
+                                                == InputType::Toggle
+                                            {
+                                                config_value_ws.set(Value::Bool(false));
+                                            }
+                                        }
                                     })
                                 />
 
@@ -270,12 +291,8 @@ where
 
                 </Suspense>
 
-
                 {move || {
-                    let input_format = match (
-                        SchemaType::try_from(config_schema_rs.get()),
-                        EnumVariants::try_from(config_schema_rs.get()),
-                    ) {
+                    let input_format = match (schema_type_rs.get(), enum_variants_rs.get()) {
                         (Ok(schema_type), Ok(enum_variants)) => {
                             let input_type = InputType::from((schema_type.clone(), enum_variants));
                             let class = match input_type {
@@ -331,7 +348,6 @@ where
                             </label>
                             {input_format}
                         </div>
-
                     }
                 }}
 
