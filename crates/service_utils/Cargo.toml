@@ -30,6 +30,7 @@ urlencoding = "~2.1.2"
 
 [features]
 high-performance-mode = ["dep:fred"]
+tenant-config = []
 
 [lints]
 workspace = true

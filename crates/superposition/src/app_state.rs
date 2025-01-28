@@ -2,7 +2,8 @@ use std::{
     collections::HashSet,
     sync::{Arc, Mutex},
 };
-
+#[cfg(feature = "tenant-config")] 
+use std::collections::HashMap;
 #[cfg(feature = "high-performance-mode")]
 use std::time::Duration;
 
@@ -103,5 +104,7 @@ pub async fn get(
         redis: redis_pool,
         http_client: reqwest::Client::new(),
         kms_client: kms_client.clone(),
+        #[cfg(feature = "tenant-config")]
+        tenant_configs: HashMap::new()
     }
 }

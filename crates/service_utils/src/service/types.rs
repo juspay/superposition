@@ -1,3 +1,6 @@
+#[cfg(feature = "tenant-config")]
+use std::collections::HashMap;
+
 use std::sync::Mutex;
 use std::{
     collections::HashSet,
@@ -13,6 +16,8 @@ use diesel::r2d2::{ConnectionManager, PooledConnection};
 use diesel::PgConnection;
 use jsonschema::JSONSchema;
 use snowflake::SnowflakeIdGenerator;
+#[cfg(feature = "tenant-config")]
+use superposition_types::TenantConfig;
 
 use crate::db::PgSchemaConnectionPool;
 
@@ -47,6 +52,8 @@ pub struct AppState {
     pub experimentation_flags: ExperimentationFlags,
     pub snowflake_generator: Arc<Mutex<SnowflakeIdGenerator>>,
     pub tenant_middleware_exclusion_list: HashSet<String>,
+    #[cfg(feature = "tenant-config")]
+    pub tenant_configs: HashMap<String, TenantConfig>,
     pub service_prefix: String,
     pub superposition_token: String,
     #[cfg(feature = "high-performance-mode")]

@@ -41,6 +41,7 @@ high-performance-mode = [
     "service_utils/high-performance-mode",
     "dep:fred",
 ]
+tenant-config = []
 
 [lints]
 workspace = true
