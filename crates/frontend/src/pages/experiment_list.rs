@@ -12,11 +12,14 @@ use superposition_types::{
 };
 use utils::experiment_table_columns;
 
+use crate::components::alert::AlertType;
 use crate::components::drawer::{close_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{experiment_form::ExperimentForm, stat::Stat, table::Table};
-use crate::logic::Conditions;
+use crate::logic::{Condition, Conditions};
+use crate::providers::alert_provider::enqueue_alert;
+use crate::schema::SchemaType;
 
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
@@ -214,10 +217,26 @@ pub fn experiment_list() -> impl IntoView {
                 </div>
 
                 {move || {
-                    let CombinedResource {dimensions : dim, default_config : def_conf, experiments: _ } = combined_resource
-                        .get()
-                        .unwrap_or_default();
+                    let CombinedResource {
+                        dimensions: dim,
+                        default_config: def_conf,
+                        experiments: _,
+                    } = combined_resource.get().unwrap_or_default();
                     let _ = reset_exp_form.get();
+                    let mut default_ctx: Conditions = Conditions(vec![]);
+                    for mandatory_dim in dim.iter().filter(|v| v.mandatory) {
+                        let r#type = SchemaType::try_from(mandatory_dim.schema.clone());
+                        if let Err(e) = &r#type {
+                            enqueue_alert(e.to_string(), AlertType::Error, 5000);
+                        }
+                        default_ctx
+                            .push(
+                                Condition::new_with_default_expression(
+                                    mandatory_dim.dimension.clone(),
+                                    r#type.unwrap(),
+                                ),
+                            );
+                    }
                     view! {
                         <Drawer
                             id="create_exp_drawer".to_string()
@@ -231,7 +250,7 @@ pub fn experiment_list() -> impl IntoView {
                             <EditorProvider>
                                 <ExperimentForm
                                     name="".to_string()
-                                    context=Conditions::default()
+                                    context=default_ctx
                                     variants=VariantFormTs::default()
                                     dimensions=dim.clone()
                                     default_config=def_conf.clone()
