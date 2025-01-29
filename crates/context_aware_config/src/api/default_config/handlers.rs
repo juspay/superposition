@@ -185,41 +185,26 @@ async fn update_default_config(
 
     let description = req
         .description
+        .clone()
         .unwrap_or_else(|| existing.description.clone());
-    let change_reason = req.change_reason;
+    let change_reason = req.change_reason.clone();
 
-    let value = req.value.unwrap_or_else(|| existing.value.clone());
+    let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
     let schema = req
         .schema
+        .clone()
         .map(Value::Object)
         .unwrap_or_else(|| existing.schema.clone());
-    let function_name = match req.function_name {
-        Some(FunctionNameEnum::Name(func_name)) => Some(func_name),
-        Some(FunctionNameEnum::Remove) => None,
-        None => existing.function_name.clone(),
-    };
-    let updated_config = DefaultConfig {
-        key: key_str.to_owned(),
-        value,
-        schema,
-        function_name: function_name.clone(),
-        created_by: existing.created_by.clone(),
-        created_at: existing.created_at,
-        last_modified_at: Utc::now().naive_utc(),
-        last_modified_by: user.get_email(),
-        description: description.clone(),
-        change_reason: change_reason.clone(),
-    };
 
     let jschema = JSONSchema::options()
         .with_draft(Draft::Draft7)
-        .compile(&updated_config.schema)
+        .compile(&schema)
         .map_err(|e| {
             log::info!("Failed to compile JSON schema: {e}");
             bad_argument!("Invalid JSON schema.")
         })?;
 
-    if let Err(e) = jschema.validate(&updated_config.value) {
+    if let Err(e) = jschema.validate(&value) {
         let verrors = e.collect::<Vec<_>>();
         log::info!("Validation failed: {:?}", verrors);
         return Err(validation_error!(
@@ -230,31 +215,34 @@ async fn update_default_config(
         ));
     }
 
+    let function_name = match req.function_name.clone() {
+        Some(FunctionNameEnum::Name(func_name)) => Some(func_name),
+        Some(FunctionNameEnum::Remove) => None,
+        None => existing.function_name.clone(),
+    };
+
     if let Err(e) = validate_and_get_function_code(
         &mut conn,
-        updated_config.function_name.as_ref(),
-        &updated_config.key,
-        &updated_config.value,
+        function_name.as_ref(),
+        &key_str,
+        &value,
         &schema_name,
     ) {
         log::info!("Validation failed: {:?}", e);
         return Err(e);
     }
 
-    let version_id =
+    let (db_row, version_id) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            diesel::insert_into(dsl::default_configs)
-                .values(&updated_config)
-                .on_conflict(dsl::key)
-                .do_update()
-                .set(&updated_config)
-                .returning(DefaultConfig::as_returning())
+            let val = diesel::update(dsl::default_configs)
+                .filter(dsl::key.eq(key_str.clone()))
+                .set((
+                    req.clone().as_changeset(),
+                    dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                    dsl::last_modified_by.eq(user.get_email()),
+                ))
                 .schema_name(&schema_name)
-                .execute(transaction_conn)
-                .map_err(|e| {
-                    log::info!("Update failed: {e}");
-                    unexpected_error!("Failed to update DefaultConfig")
-                })?;
+                .get_result::<DefaultConfig>(transaction_conn)?;
 
             let version_id = add_config_version(
                 &state,
@@ -265,7 +253,7 @@ async fn update_default_config(
                 &schema_name,
             )?;
 
-            Ok(version_id)
+            Ok((val, version_id))
         })?;
 
     #[cfg(feature = "high-performance-mode")]
@@ -276,7 +264,7 @@ async fn update_default_config(
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
-    Ok(http_resp.json(updated_config))
+    Ok(http_resp.json(db_row))
 }
 
 fn validate_and_get_function_code(
@@ -396,7 +384,7 @@ async fn delete(
     let key: String = path.into_inner().into();
     let mut version_id = 0;
 
-    fetch_default_key(&key, &mut conn, &schema_name)?;
+    let default_config_row = fetch_default_key(&key, &mut conn, &schema_name)?;
 
     let context_ids = get_key_usage_context_ids(&key, &mut conn, &schema_name)
         .map_err(|_| unexpected_error!("Something went wrong"))?;
@@ -409,15 +397,10 @@ async fn delete(
                         dsl::last_modified_at.eq(Utc::now().naive_utc()),
                         dsl::last_modified_by.eq(user.get_email()),
                     ))
-                    .returning(DefaultConfig::as_returning())
                     .schema_name(&schema_name)
                     .execute(transaction_conn)?;
 
-                let default_config: DefaultConfig = dsl::default_configs
-                    .filter(dsl::key.eq(&key))
-                    .schema_name(&schema_name)
-                    .first::<DefaultConfig>(transaction_conn)?;
-                let description = default_config.description;
+                let description = default_config_row.description;
                 let change_reason = format!("Context Deleted by {}", user.get_email());
 
                 let deleted_row =

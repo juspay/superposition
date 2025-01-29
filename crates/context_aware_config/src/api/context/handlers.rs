@@ -67,21 +67,23 @@ async fn put_handler(
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
+    let description = match req.description.clone() {
+        Some(val) => val,
+        None => ensure_description(
+            Value::Object(req.context.clone().into_inner().into()),
+            &mut db_conn,
+            &schema_name,
+        )?,
+    };
+    let req_change_reason = req.change_reason.clone();
 
     let (put_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let mut req_mut = req.into_inner();
-
             // Use the helper function to ensure the description
-            if req_mut.description.is_none() {
-                req_mut.description = Some(ensure_description(
-                    Value::Object(req_mut.context.clone().into_inner().into()),
-                    transaction_conn,
-                    &schema_name,
-                )?);
-            }
+
             let put_response = operations::put(
-                Json(req_mut.clone()),
+                Json(req.into_inner()),
+                description.clone(),
                 transaction_conn,
                 true,
                 &user,
@@ -92,14 +94,12 @@ async fn put_handler(
                 log::info!("context put failed with error: {:?}", err);
                 err
             })?;
-            let description = req_mut.description.unwrap_or_default();
-            let change_reason = req_mut.change_reason;
 
             let version_id = add_config_version(
                 &state,
                 tags,
                 description,
-                change_reason,
+                req_change_reason,
                 transaction_conn,
                 &schema_name,
             )?;
@@ -131,18 +131,20 @@ async fn update_override_handler(
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
+    let description = match req.description.clone() {
+        Some(val) => val,
+        None => ensure_description(
+            Value::Object(req.context.clone().into_inner().into()),
+            &mut db_conn,
+            &schema_name,
+        )?,
+    };
+    let req_change_reason = req.change_reason.clone();
     let (override_resp, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let mut req_mut = req.into_inner();
-            if req_mut.description.is_none() {
-                req_mut.description = Some(ensure_description(
-                    Value::Object(req_mut.context.clone().into_inner().into()),
-                    transaction_conn,
-                    &schema_name,
-                )?);
-            }
             let override_resp = operations::put(
-                Json(req_mut.clone()),
+                Json(req.into_inner()),
+                description.clone(),
                 transaction_conn,
                 true,
                 &user,
@@ -156,8 +158,8 @@ async fn update_override_handler(
             let version_id = add_config_version(
                 &state,
                 tags,
-                req_mut.description.unwrap().clone(),
-                req_mut.change_reason.clone(),
+                description.clone(),
+                req_change_reason.clone(),
                 transaction_conn,
                 &schema_name,
             )?;
@@ -190,11 +192,22 @@ async fn move_handler(
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
+
+    let description = match req.description.clone() {
+        Some(val) => val,
+        None => ensure_description(
+            Value::Object(req.context.clone().into_inner().into()),
+            &mut db_conn,
+            &schema_name,
+        )?,
+    };
+
     let (move_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let move_response = operations::r#move(
                 path.into_inner(),
                 req,
+                description,
                 transaction_conn,
                 true,
                 &user,
@@ -424,8 +437,26 @@ async fn bulk_operations(
             for action in reqs.into_inner().into_iter() {
                 match action {
                     ContextAction::Put(put_req) => {
+                        let ctx_condition = put_req.context.to_owned().into_inner();
+                        let ctx_condition_value =
+                            Value::Object(ctx_condition.clone().into());
+
+                        let description = if put_req.description.is_none() {
+                            ensure_description(
+                                ctx_condition_value.clone(),
+                                transaction_conn,
+                                &schema_name,
+                            )?
+                        } else {
+                            put_req
+                                .description
+                                .clone()
+                                .expect("Description should not be empty")
+                        };
+
                         let put_resp = operations::put(
                             Json(put_req.clone()),
+                            description.clone(),
                             transaction_conn,
                             true,
                             &user,
@@ -440,7 +471,7 @@ async fn bulk_operations(
                             err
                         })?;
 
-                        all_descriptions.push(put_resp.description.clone());
+                        all_descriptions.push(description);
                         all_change_reasons.push(put_req.change_reason.clone());
                         response.push(ContextBulkResponse::Put(put_resp));
                     }
@@ -505,9 +536,21 @@ async fn bulk_operations(
                         };
                     }
                     ContextAction::Move((old_ctx_id, move_req)) => {
+                        let description = match move_req.description.clone() {
+                            Some(val) => val,
+                            None => ensure_description(
+                                Value::Object(
+                                    move_req.context.clone().into_inner().into(),
+                                ),
+                                transaction_conn,
+                                &schema_name,
+                            )?,
+                        };
+
                         let move_context_resp = operations::r#move(
                             old_ctx_id,
                             Json(move_req),
+                            description,
                             transaction_conn,
                             true,
                             &user,

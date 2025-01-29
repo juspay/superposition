@@ -1,7 +1,8 @@
 use derive_more::{AsRef, Deref, DerefMut, Into};
+use diesel::AsChangeset;
 use serde::{Deserialize, Deserializer};
 use serde_json::Value;
-use superposition_types::RegexEnum;
+use superposition_types::{database::schema::dimensions, RegexEnum};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateReq {
@@ -38,6 +39,35 @@ pub struct UpdateReq {
     pub position: Option<Position>,
     pub schema: Option<Value>,
     pub function_name: Option<FunctionNameEnum>,
+    pub description: Option<String>,
+    pub change_reason: String,
+}
+
+impl UpdateReq {
+    pub fn as_changeset(self) -> UpdateReqChangeset {
+        UpdateReqChangeset {
+            position: self.position.map(|x| x.into()),
+            schema: self.schema,
+            function_name: match self.function_name {
+                Some(FunctionNameEnum::Name(val)) => Some(Some(val)),
+                Some(FunctionNameEnum::Remove) => Some(None),
+                _ => None,
+            },
+            description: self.description,
+            change_reason: self.change_reason,
+        }
+    }
+}
+
+//changeset type for update request type
+#[derive(AsChangeset)]
+#[diesel(table_name = dimensions)]
+pub struct UpdateReqChangeset {
+    pub position: Option<i32>,
+    pub schema: Option<Value>,
+    //function_name is nullable column, so to support null update with changeset
+    //we had to make it Option<Option<String>>
+    pub function_name: Option<Option<String>>,
     pub description: Option<String>,
     pub change_reason: String,
 }
