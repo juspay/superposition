@@ -1,7 +1,8 @@
 use derive_more::{AsRef, Deref, DerefMut, Into};
+use diesel::AsChangeset;
 use serde::{Deserialize, Deserializer};
 use serde_json::{Map, Value};
-use superposition_types::RegexEnum;
+use superposition_types::{database::schema::default_configs, RegexEnum};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateReq {
@@ -13,12 +14,41 @@ pub struct CreateReq {
     pub change_reason: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct UpdateReq {
     #[serde(default, deserialize_with = "deserialize_option")]
     pub value: Option<Value>,
     pub schema: Option<Map<String, Value>>,
     pub function_name: Option<FunctionNameEnum>,
+    pub description: Option<String>,
+    pub change_reason: String,
+}
+
+impl UpdateReq {
+    pub fn as_changeset(self) -> UpdateReqChangeset {
+        UpdateReqChangeset {
+            value: self.value,
+            schema: self.schema.map(Value::Object),
+            function_name: match self.function_name {
+                Some(FunctionNameEnum::Name(val)) => Some(Some(val)),
+                Some(FunctionNameEnum::Remove) => Some(None),
+                _ => None,
+            },
+            description: self.description,
+            change_reason: self.change_reason,
+        }
+    }
+}
+
+//changeset type for update request type
+#[derive(AsChangeset)]
+#[diesel(table_name = default_configs)]
+pub struct UpdateReqChangeset {
+    pub value: Option<Value>,
+    pub schema: Option<Value>,
+    //function_name is nullable column, so to support null update with changeset
+    //we had to make it Option<Option<String>>
+    pub function_name: Option<Option<String>>,
     pub description: Option<String>,
     pub change_reason: String,
 }

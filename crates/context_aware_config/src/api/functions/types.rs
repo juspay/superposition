@@ -1,12 +1,35 @@
+use base64::prelude::*;
 use derive_more::{AsRef, Deref, DerefMut, Into};
+use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use superposition_types::RegexEnum;
+use superposition_types::{database::schema::functions, RegexEnum};
 
 #[derive(Debug, Deserialize)]
 pub struct UpdateFunctionRequest {
     pub function: Option<String>,
     pub runtime_version: Option<String>,
+    pub description: Option<String>,
+    pub change_reason: String,
+}
+
+impl UpdateFunctionRequest {
+    pub fn as_changeset(self) -> UpdateFunctionRequestChangeset {
+        UpdateFunctionRequestChangeset {
+            draft_code: self.function.map(|x| BASE64_STANDARD.encode(x)),
+            draft_runtime_version: self.runtime_version,
+            description: self.description,
+            change_reason: self.change_reason,
+        }
+    }
+}
+
+//changeset type for update request type
+#[derive(AsChangeset)]
+#[diesel(table_name = functions)]
+pub struct UpdateFunctionRequestChangeset {
+    pub draft_code: Option<String>,
+    pub draft_runtime_version: Option<String>,
     pub description: Option<String>,
     pub change_reason: String,
 }
