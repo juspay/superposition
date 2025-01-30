@@ -71,8 +71,8 @@ pub fn experiment_form(
 ) -> impl IntoView {
     let init_variants = get_init_state(&variants);
     let default_config = StoredValue::new(default_config);
-    let tenant_s = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_s = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_s = use_context::<Signal<Tenant>>().unwrap();
+    let org_s = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (experiment_name, set_experiment_name) = create_signal(name);
     let (f_context, set_context) = create_signal(context.clone());
@@ -174,7 +174,6 @@ pub fn experiment_form(
                         />
                     </div>
 
-
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text">Description</span>
@@ -204,7 +203,6 @@ pub fn experiment_form(
                             }
                         />
                     </div>
-
 
                     <div class="divider"></div>
 

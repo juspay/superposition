@@ -68,6 +68,15 @@ pub fn page(children: Children) -> impl IntoView {
 }
 
 #[component]
+pub fn unstyled_page(children: Children) -> impl IntoView {
+    view! {
+        <section class="relative w-full h-full overflow-y-auto px-4">
+            <main class="py-8 min-h-[calc(100vh-16px-12px-12px-16px-36px)]">{children()}</main>
+        </section>
+    }
+}
+
+#[component]
 pub fn workspace_select() -> impl IntoView {
     let org_id = use_context::<Signal<OrganisationId>>().unwrap();
     let tenant_s = use_context::<Signal<Tenant>>().unwrap();

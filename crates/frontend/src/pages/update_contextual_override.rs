@@ -107,7 +107,7 @@ pub fn update_contextual_override() -> impl IntoView {
                             context=condition
                             overrides=overrides
                             width="w-[60%]"
-                            class="h-main-content p-8 rounded-2xl border bg-white overflow-y-auto mx-auto"
+                            class="h-main-content p-8 rounded-2xl border bg-white overflow-y-auto"
                             on_submit
                             dimensions
                             default_config

@@ -2,7 +2,7 @@ use leptos::*;
 use leptos_router::{Route, SsrMode};
 
 use crate::{
-    hoc::layout::{Layout, Page},
+    hoc::layout::{Layout, Page, UnstyledPage},
     pages::{
         config_version::ConfigVersion,
         config_version_list::ConfigVersionList,
@@ -26,12 +26,13 @@ use crate::{
         update_contextual_override::UpdateContextualOverride,
         update_default_config::UpdateDefaultConfig,
         update_dimension::UpdateDimension,
-        update_template_type::UpdateTemplateType, workspace::Workspace,
+        update_template_type::UpdateTemplateType,
+        workspace::Workspace,
     },
 };
 
 #[component(transparent)]
-pub fn app_routes() -> impl IntoView {
+pub fn organisation_routes() -> impl IntoView {
     view! {
         <Route
             ssr=SsrMode::Async
@@ -41,20 +42,48 @@ pub fn app_routes() -> impl IntoView {
             }
         >
             <Route
-                ssr=SsrMode::InOrder
+                ssr=SsrMode::Async
                 path="/organisations"
                 view=move || {
-                    view! { <Organisations /> }
-                }
-            />
-            <Route
-                ssr=SsrMode::Async
-                path="/:org_id/workspaces"
-                view=move || {
-                    view! { <Workspace /> }
+                    view! {
+                        <UnstyledPage>
+                            <Organisations />
+                        </UnstyledPage>
+                    }
                 }
             />
         </Route>
+    }
+}
+
+#[component(transparent)]
+pub fn workspace_routes() -> impl IntoView {
+    view! {
+        <Route
+            ssr=SsrMode::Async
+            path="/admin/:org_id"
+            view=move || {
+                view! { <Layout show_side_nav=false /> }
+            }
+        >
+            <Route
+                ssr=SsrMode::Async
+                path="/workspaces"
+                view=move || {
+                    view! {
+                        <UnstyledPage>
+                            <Workspace />
+                        </UnstyledPage>
+                    }
+                }
+            />
+        </Route>
+    }
+}
+
+#[component(transparent)]
+pub fn app_routes() -> impl IntoView {
+    view! {
         <Route
             ssr=SsrMode::Async
             path="/admin/:org_id/:tenant"

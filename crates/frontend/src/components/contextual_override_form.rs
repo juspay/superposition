@@ -14,7 +14,7 @@ use crate::{
         override_form::OverrideForm,
     },
     logic::Conditions,
-    types::OrganisationId,
+    types::{OrganisationId, Tenant},
 };
 
 #[component]
@@ -31,7 +31,7 @@ pub fn contextual_override_form(
     on_submit: Callback<(), ()>,
 ) -> impl IntoView {
     let dimensions = StoredValue::new(dimensions);
-    let tenant_rs = use_context::<Signal<String>>().unwrap();
+    let tenant_rs = use_context::<Signal<Tenant>>().unwrap();
     let org_s = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (context, set_context) = create_signal(context);
@@ -45,7 +45,7 @@ pub fn contextual_override_form(
         spawn_local(async move {
             let result = if edit {
                 update_context(
-                    tenant_rs.get(),
+                    tenant_rs.get().0,
                     Map::from_iter(overrides.get()),
                     context.get(),
                     description_rs.get(),
@@ -55,7 +55,7 @@ pub fn contextual_override_form(
                 .await
             } else {
                 create_context(
-                    tenant_rs.get().clone(),
+                    tenant_rs.get().0,
                     Map::from_iter(overrides.get()),
                     context.get(),
                     description_rs.get(),

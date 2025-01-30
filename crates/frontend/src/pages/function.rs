@@ -99,7 +99,8 @@ pub fn function_page() -> impl IntoView {
                             let f_function_name = function_rs.get().function_name;
                             spawn_local({
                                 async move {
-                                    let result = publish_function(f_function_name, tenant, org).await;
+                                    let result = publish_function(f_function_name, tenant, org)
+                                        .await;
                                     match result {
                                         Ok(_) => {
                                             publish_error_ws.set("".to_string());
@@ -131,15 +132,11 @@ pub fn function_page() -> impl IntoView {
                                     </div>
                                     <div class="stat w-2/12">
                                         <div class="stat-title">Function Description</div>
-                                        <div>
-                                            {function_rs.get().description.to_string()}
-                                        </div>
+                                        <div>{function_rs.get().description.to_string()}</div>
                                     </div>
                                     <div class="stat w-2/12">
                                         <div class="stat-title">Function Change Reason</div>
-                                        <div>
-                                            {function_rs.get().change_reason.to_string()}
-                                        </div>
+                                        <div>{function_rs.get().change_reason.to_string()}</div>
                                     </div>
                                     <div class="stat w-2/12">
                                         <div class="stat-title">Draft Edited At</div>

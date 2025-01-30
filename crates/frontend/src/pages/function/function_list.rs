@@ -23,8 +23,8 @@ struct CombinedResource {
 
 #[component]
 pub fn function_list() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_rws = use_context::<Signal<Tenant>>().unwrap();
+    let org_rws = use_context::<Signal<OrganisationId>>().unwrap();
     let (filters, set_filters) = create_signal(PaginationParams::default());
     let table_columns = create_memo(move |_| function_table_columns());
 

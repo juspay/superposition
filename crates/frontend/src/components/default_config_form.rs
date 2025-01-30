@@ -42,13 +42,14 @@ pub fn default_config_form<NF>(
     #[prop(default = String::new())] description: String,
     #[prop(default = String::new())] change_reason: String,
     #[prop(into, default = String::new())] class: String,
+    #[prop(into, default = String::new())] width: String,
     handle_submit: NF,
 ) -> impl IntoView
 where
     NF: Fn() + 'static + Clone,
 {
     let tenant_s = use_context::<Signal<Tenant>>().unwrap();
-    let org_s = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let org_s = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (config_key_rs, config_key_ws) = create_signal(config_key);
     let (config_type_rs, config_type_ws) = create_signal(config_type);
@@ -56,6 +57,7 @@ where
     let (config_value_rs, config_value_ws) = create_signal(config_value);
     let (function_name_rs, function_name_ws) = create_signal(function_name);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
+
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
 
@@ -106,7 +108,7 @@ where
         let change_reason = change_reason_rs.get();
 
         let create_payload = DefaultConfigCreateReq {
-            key: config_key_rs.get(),
+            key: f_name.clone(),
             schema: f_schema.clone(),
             value: f_value.clone(),
             function_name: fun_name.clone(),
@@ -138,12 +140,8 @@ where
                     .await
                 } else {
                     // Call create_default_config when edit is false
-                    create_default_config(
-                        tenant_s.get().0,
-                        create_payload,
-                        org_s.get().0,
-                    )
-                    .await
+                    create_default_config(tenant_s.get().0, create_payload, org_s.get().0)
+                        .await
                 };
 
                 match result {
@@ -175,193 +173,204 @@ where
     };
     view! {
         <EditorProvider>
-            <form class=format!("relative form-control text-gray-700 font-mono {}", class)>
+            <div class="relative">
+                <form class=format!(
+                    "form-control text-gray-700 font-mono gap-4 {} {}",
+                    class,
+                    width,
+                )>
 
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Key Name</span>
-                    </label>
-                    <input
-                        disabled=edit
-                        type="text"
-                        placeholder="Key"
-                        class="input input-bordered w-full max-w-md"
-                        value=config_key_rs.get_untracked()
-                        on:change=move |ev| {
-                            let value = event_target_value(&ev);
-                            config_key_ws.set(value);
-                        }
-                    />
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Key Name</span>
+                        </label>
+                        <input
+                            disabled=edit
+                            type="text"
+                            placeholder="Key"
+                            class="input input-bordered w-full max-w-md"
+                            value=config_key_rs.get_untracked()
+                            on:input=move |ev| {
+                                let value = event_target_value(&ev);
+                                config_key_ws.set(value);
+                            }
+                        />
 
-                </div>
+                    </div>
 
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Description</span>
-                    </label>
-                    <textarea
-                        placeholder="Enter a description"
-                        class="textarea textarea-bordered w-full max-w-md"
-                        value=description_rs.get_untracked()
-                        on:change=move |ev| {
-                            let value = event_target_value(&ev);
-                            description_ws.set(value);
-                        }
-                    />
-                </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Description</span>
+                        </label>
+                        <textarea
+                            placeholder="Enter a description"
+                            class="textarea textarea-bordered w-full max-w-md"
+                            value=description_rs.get_untracked()
+                            on:input=move |ev| {
+                                let value = event_target_value(&ev);
+                                logging::log!("Description {value}");
+                                description_ws.set(value);
+                            }
+                        />
+                    </div>
 
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Reason for Change</span>
-                    </label>
-                    <textarea
-                        placeholder="Enter a reason for this change"
-                        class="textarea textarea-bordered w-full max-w-md"
-                        value=change_reason_rs.get_untracked()
-                        on:change=move |ev| {
-                            let value = event_target_value(&ev);
-                            change_reason_ws.set(value);
-                        }
-                    />
-                </div>
-                <Suspense>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Reason for Change</span>
+                        </label>
+                        <textarea
+                            placeholder="Enter a reason for this change"
+                            class="textarea textarea-bordered w-full max-w-md"
+                            value=change_reason_rs.get_untracked()
+                            on:change=move |ev| {
+                                let value = event_target_value(&ev);
+                                change_reason_ws.set(value);
+                            }
+                        />
+                    </div>
+
+                    <div class="divider" />
+
+                    <Suspense>
+                        {move || {
+                            let options = type_template_resource.get().unwrap_or(vec![]);
+                            let config_t = if config_type_rs.get().is_empty() && edit {
+                                "change current type template".into()
+                            } else if config_type_rs.get().is_empty() && !edit {
+                                "Choose a type template".into()
+                            } else {
+                                config_type_rs.get()
+                            };
+                            let config_type_schema = SchemaType::Single(
+                                JsonSchemaType::from(&config_schema_rs.get()),
+                            );
+                            view! {
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Set Schema</span>
+                                    </label>
+                                    <Dropdown
+                                        dropdown_width="w-100 max-w-md"
+                                        dropdown_icon="".to_string()
+                                        dropdown_text=config_t
+                                        dropdown_direction=DropdownDirection::Down
+                                        dropdown_btn_type=DropdownBtnType::Select
+                                        dropdown_options=options
+                                        on_select=Callback::new(move |selected_item: TypeTemplate| {
+                                            logging::log!("selected item {:?}", selected_item);
+                                            config_type_ws.set(selected_item.type_name);
+                                            config_schema_ws.set(selected_item.type_schema);
+                                        })
+                                    />
+
+                                    <Input
+                                        id="type-schema"
+                                        class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
+                                        schema_type=config_type_schema
+                                        value=config_schema_rs.get()
+                                        on_change=Callback::new(move |new_config_schema| {
+                                            config_schema_ws.set(new_config_schema)
+                                        })
+                                        r#type=InputType::Monaco
+                                    />
+                                </div>
+                            }
+                        }}
+
+                    </Suspense>
+
                     {move || {
-                        let options = type_template_resource.get().unwrap_or(vec![]);
-                        let config_t = if config_type_rs.get().is_empty() && edit {
-                            "change current type template".into()
-                        } else if config_type_rs.get().is_empty() && !edit {
-                            "Choose a type template".into()
-                        } else {
-                            config_type_rs.get()
+                        let input_format = match (
+                            SchemaType::try_from(config_schema_rs.get()),
+                            EnumVariants::try_from(config_schema_rs.get()),
+                        ) {
+                            (Ok(schema_type), Ok(enum_variants)) => {
+                                let input_type = InputType::from((
+                                    schema_type.clone(),
+                                    enum_variants,
+                                ));
+                                let class = match input_type {
+                                    InputType::Toggle => String::new(),
+                                    InputType::Select(_) => "mt-2".into(),
+                                    InputType::Integer | InputType::Number => {
+                                        "w-full max-w-md".into()
+                                    }
+                                    _ => "rounded-md resize-y w-full max-w-md".into(),
+                                };
+                                view! {
+                                    <Input
+                                        id="default-config-value-input"
+                                        class
+                                        schema_type
+                                        value=config_value_rs.get()
+                                        on_change=Callback::new(move |new_default_config: Value| {
+                                            logging::log!(
+                                                "new value entered for default config = {:?}", new_default_config
+                                            );
+                                            config_value_ws.set(new_default_config);
+                                        })
+                                        r#type=input_type
+                                    />
+                                }
+                                    .into_view()
+                            }
+                            _ => {
+                                let config_value = match config_value_rs.get() {
+                                    Value::String(s) => s,
+                                    _ => String::new(),
+                                };
+                                view! {
+                                    <textarea
+                                        type="text"
+                                        placeholder="Value"
+                                        class="input input-bordered w-full max-w-md pt-3"
+                                        on:change=move |ev| {
+                                            logging::log!(
+                                                "changing default config value with a text area = {:?}", event_target_value(&ev)
+                                            );
+                                            config_value_ws.set(Value::String(event_target_value(&ev)));
+                                        }
+                                    >
+                                        {config_value}
+                                    </textarea>
+                                }
+                                    .into_view()
+                            }
                         };
-                        let config_type_schema = SchemaType::Single(
-                            JsonSchemaType::from(&config_schema_rs.get()),
-                        );
                         view! {
                             <div class="form-control">
                                 <label class="label">
-                                    <span class="label-text">Set Schema</span>
+                                    <span class="label-text">Default Value</span>
                                 </label>
-                                <Dropdown
-                                    dropdown_width="w-100"
-                                    dropdown_icon="".to_string()
-                                    dropdown_text=config_t
-                                    dropdown_direction=DropdownDirection::Down
-                                    dropdown_btn_type=DropdownBtnType::Select
-                                    dropdown_options=options
-                                    on_select=Callback::new(move |selected_item: TypeTemplate| {
-                                        logging::log!("selected item {:?}", selected_item);
-                                        config_type_ws.set(selected_item.type_name);
-                                        config_schema_ws.set(selected_item.type_schema);
-                                    })
-                                />
-
-                                <Input
-                                    id="type-schema"
-                                    class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
-                                    schema_type=config_type_schema
-                                    value=config_schema_rs.get()
-                                    on_change=Callback::new(move |new_config_schema| {
-                                        config_schema_ws.set(new_config_schema)
-                                    })
-                                    r#type=InputType::Monaco
-                                />
+                                {input_format}
                             </div>
                         }
                     }}
 
-                </Suspense>
+                    <div class="divider" />
 
-
-                {move || {
-                    let input_format = match (
-                        SchemaType::try_from(config_schema_rs.get()),
-                        EnumVariants::try_from(config_schema_rs.get()),
-                    ) {
-                        (Ok(schema_type), Ok(enum_variants)) => {
-                            let input_type = InputType::from((schema_type.clone(), enum_variants));
-                            let class = match input_type {
-                                InputType::Toggle => String::new(),
-                                InputType::Select(_) => "mt-2".into(),
-                                InputType::Integer | InputType::Number => "w-full max-w-md".into(),
-                                _ => "rounded-md resize-y w-full max-w-md".into(),
-                            };
+                    <Suspense>
+                        {move || {
+                            let functions = functions_resource.get().unwrap_or_default();
+                            let mut function_names: Vec<FunctionsName> = vec![];
+                            functions
+                                .into_iter()
+                                .for_each(|ele| {
+                                    function_names.push(ele.function_name);
+                                });
+                            function_names.sort();
+                            function_names.insert(0, "None".to_string());
                             view! {
-                                <Input
-                                    id="default-config-value-input"
-                                    class
-                                    schema_type
-                                    value=config_value_rs.get()
-                                    on_change=Callback::new(move |new_default_config: Value| {
-                                        logging::log!(
-                                            "new value entered for default config = {:?}", new_default_config
-                                        );
-                                        config_value_ws.set(new_default_config);
-                                    })
-                                    r#type=input_type
-                                />
-                            }
-                                .into_view()
-                        }
-                        _ => {
-                            let config_value = match config_value_rs.get() {
-                                Value::String(s) => s,
-                                _ => String::new(),
-                            };
-                            view! {
-                                <textarea
-                                    type="text"
-                                    placeholder="Value"
-                                    class="input input-bordered w-full max-w-md pt-3"
-                                    on:change=move |ev| {
-                                        logging::log!(
-                                            "changing default config value with a text area = {:?}", event_target_value(&ev)
-                                        );
-                                        config_value_ws.set(Value::String(event_target_value(&ev)));
-                                    }
-                                >
-                                    {config_value}
-                                </textarea>
-                            }
-                                .into_view()
-                        }
-                    };
-                    view! {
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Default Value</span>
-                            </label>
-                            {input_format}
-                        </div>
-
-                    }
-                }}
-
-                <Suspense>
-                    {move || {
-                        let functions = functions_resource.get().unwrap_or_default();
-                        let mut function_names: Vec<FunctionsName> = vec![];
-                        functions
-                            .into_iter()
-                            .for_each(|ele| {
-                                function_names.push(ele.function_name);
-                            });
-                        function_names.sort();
-                        function_names.insert(0, "None".to_string());
-                        view! {
-                            <div class="form-control">
-                                <div class="gap-1">
+                                <div class="form-control">
                                     <label class="label flex-col justify-center items-start">
                                         <span class="label-text">Function Name</span>
                                         <span class="label-text text-slate-400">
                                             Assign Function validation to your key
                                         </span>
                                     </label>
-                                </div>
 
-                                <div class="mt-2">
                                     <Dropdown
-                                        dropdown_width="w-100"
+                                        dropdown_width="w-100 max-w-md"
                                         dropdown_icon="".to_string()
                                         dropdown_text=function_name_rs
                                             .get()
@@ -376,13 +385,16 @@ where
                                         on_select=handle_select_dropdown_option
                                     />
                                 </div>
-                            </div>
-                        }
-                    }}
+                            }
+                        }}
 
-                </Suspense>
+                    </Suspense>
 
-                <div class="form-control grid w-full justify-start">
+                </form>
+                <div class=format!(
+                    "absolute bottom-0 left-0 p-4 flex justify-end items-end bg-white border-r border-b border-l rounded-2xl rounded-t-none {}",
+                    width,
+                )>
                     {move || {
                         let loading = req_inprogess_rs.get();
                         view! {
@@ -395,7 +407,7 @@ where
                         }
                     }}
                 </div>
-            </form>
+            </div>
         </EditorProvider>
     }
 }

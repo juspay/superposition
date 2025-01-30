@@ -54,8 +54,7 @@ where
                         "description": description_rs.get(),
                         "change_reason": change_reason_rs.get(),
                     });
-                    update_type(tenant_s.get().0, type_name, payload, org_s.get().0)
-                        .await
+                    update_type(tenant_s.get().0, type_name, payload, org_s.get().0).await
                 } else {
                     let description = description_rs.get();
                     let change_reason = change_reason_rs.get();
@@ -65,8 +64,7 @@ where
                         "description": description,
                         "change_reason": change_reason
                     });
-                    create_type(tenant_s.get().0, payload.clone(), org_s.get().0)
-                        .await
+                    create_type(tenant_s.get().0, payload.clone(), org_s.get().0).await
                 };
                 match result {
                     Ok(_) => {

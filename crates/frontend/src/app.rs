@@ -4,7 +4,7 @@ use leptos_router::*;
 use serde_json::json;
 
 use crate::providers::alert_provider::AlertProvider;
-use crate::routes::AppRoutes;
+use crate::routes::{AppRoutes, OrganisationRoutes, WorkspaceRoutes};
 use crate::types::Envs;
 
 #[component]
@@ -81,6 +81,8 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                 <body class="m-0 min-h-screen bg-gray-50 font-mono">
                     <AlertProvider>
                         <Routes base=service_prefix.to_string()>
+                            <OrganisationRoutes />
+                            <WorkspaceRoutes />
                             <AppRoutes />
                         </Routes>
                     </AlertProvider>

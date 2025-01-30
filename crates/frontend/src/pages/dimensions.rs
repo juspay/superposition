@@ -46,8 +46,7 @@ pub fn dimensions() -> impl IntoView {
     let confirm_delete = Callback::new(move |_| {
         if let Some(id) = delete_id_rs.get().clone() {
             spawn_local(async move {
-                let result =
-                    delete_dimension(id, tenant_s.get().0, org_s.get().0).await;
+                let result = delete_dimension(id, tenant_s.get().0, org_s.get().0).await;
 
                 match result {
                     Ok(_) => {

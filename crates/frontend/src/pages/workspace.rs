@@ -20,8 +20,7 @@ use crate::utils::update_page_direction;
 
 #[component]
 pub fn workspace() -> impl IntoView {
-    let org_id: RwSignal<OrganisationId> =
-        use_context::<RwSignal<OrganisationId>>().unwrap();
+    let org_id = use_context::<Signal<OrganisationId>>().unwrap();
     let (filters, set_filters) = create_signal(PaginationParams::default());
     let workspace_resource = create_blocking_resource(
         move || (filters.get(), org_id.get().0),
@@ -112,7 +111,9 @@ pub fn workspace() -> impl IntoView {
             view! {
                 <span
                     class="cursor-pointer text-blue-500"
-                    on:click=move |_| { navigate_to_workspace(org_id.clone(), navigated_workspace_name.clone()) }
+                    on:click=move |_| {
+                        navigate_to_workspace(org_id.clone(), navigated_workspace_name.clone())
+                    }
                 >
 
                     {workspace_name}

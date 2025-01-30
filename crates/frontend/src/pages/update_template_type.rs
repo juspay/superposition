@@ -58,7 +58,7 @@ pub fn update_template_type() -> impl IntoView {
                                 edit=true
                                 type_name=t.type_name
                                 type_schema=t.type_schema
-                                class="mx-auto w-1/2 h-main-content p-8 rounded-2xl border bg-white overflow-y-auto"
+                                class="w-1/2 h-main-content p-8 rounded-2xl border bg-white overflow-y-auto"
                                 handle_submit=move || {}
                             />
                         }

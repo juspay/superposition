@@ -8,8 +8,8 @@ use leptos_router::use_params_map;
 
 #[component]
 pub fn config_version() -> impl IntoView {
-    let tenant = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_id = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant = use_context::<Signal<Tenant>>().unwrap();
+    let org_id = use_context::<Signal<OrganisationId>>().unwrap();
     let params = use_params_map();
     let version = params.with(|p| p.get("version").cloned());
 

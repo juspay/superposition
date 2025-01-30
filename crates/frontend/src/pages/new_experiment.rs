@@ -67,8 +67,10 @@ pub fn new_experiment() -> impl IntoView {
     let on_submit = Callback::new(move |experiment_id: String| {
         let url_prefix = add_prefix("", &service_prefix);
         let tenant = tenant_s.get().0;
+        let org = org_s.get().0;
         navigate(
-            format!("{url_prefix}/admin/{tenant}/experiments/{experiment_id}").as_str(),
+            format!("{url_prefix}/admin/{org}/{tenant}/experiments/{experiment_id}")
+                .as_str(),
             Default::default(),
         );
     });

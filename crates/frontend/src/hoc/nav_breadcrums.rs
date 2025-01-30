@@ -3,7 +3,10 @@ use leptos_router::*;
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, sync::Arc};
 
-use crate::utils::use_url_base;
+use crate::{
+    types::{OrganisationId, Tenant},
+    utils::use_url_base,
+};
 
 // Types and Structures
 #[derive(Clone)]
@@ -293,10 +296,11 @@ pub fn get_breadcrumbs(
 #[component]
 pub fn breadcrumbs() -> impl IntoView {
     let params = use_params_map();
-    let tenant = use_context::<Signal<String>>().unwrap();
+    let tenant = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let breadcrumbs = create_memo(move |_| {
-        let base = format!("{}/admin/:tenant", use_url_base());
+        let base = format!("{}/admin/:org_id/:tenant", use_url_base());
         let current_path = use_route().original_path().replace(&base, "");
         let params = params.get();
         logging::log!("BREAD {current_path}");
@@ -315,7 +319,12 @@ pub fn breadcrumbs() -> impl IntoView {
                         .map(|(index, (path, label, icon))| {
                             let is_last = index == breadcrumbs.get().len() - 1;
                             let show_separator = index > 0;
-                            let base = format!("{}/admin/{}", use_url_base(), tenant.get());
+                            let base = format!(
+                                "{}/admin/{}/{}",
+                                use_url_base(),
+                                org.get().0,
+                                tenant.get().0,
+                            );
                             let path = format!("{}{}", base, path);
                             view! {
                                 <li class="flex items-center">
