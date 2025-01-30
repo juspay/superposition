@@ -29,8 +29,8 @@ pub fn function_editor<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_s = use_context::<Signal<Tenant>>().unwrap();
+    let org_s = use_context::<Signal<OrganisationId>>().unwrap();
     let (function_name, set_function_name) = create_signal(function_name);
     let (function, set_function) = create_signal(function);
     let (runtime_version, set_runtime_version) = create_signal(runtime_version);
@@ -46,8 +46,8 @@ where
         event.prevent_default();
         logging::log!("Submitting function form");
 
-        let tenant = tenant_rws.get().0;
-        let org = org_rws.get().0;
+        let tenant = tenant_s.get().0;
+        let org = org_s.get().0;
         let f_function_name = function_name.get();
         let f_function = function.get();
         let f_runtime_version = runtime_version.get();
@@ -230,8 +230,8 @@ where
 
 #[component]
 pub fn test_form(function_name: String, stage: String) -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_s = use_context::<Signal<Tenant>>().unwrap();
+    let org_s = use_context::<Signal<OrganisationId>>().unwrap();
     let (error_message, set_error_message) = create_signal(String::new());
     let (output_message, set_output_message) =
         create_signal::<Option<FunctionTestResponse>>(None);
@@ -243,8 +243,8 @@ pub fn test_form(function_name: String, stage: String) -> impl IntoView {
         event.prevent_default();
         logging::log!("Submitting function form");
 
-        let tenant = tenant_rws.get().0;
-        let org = org_rws.get().0;
+        let tenant = tenant_s.get().0;
+        let org = org_s.get().0;
         let f_function_name = function_name.clone();
         let f_val = json!({
             "key": key.get(),

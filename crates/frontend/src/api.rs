@@ -3,7 +3,9 @@ use superposition_types::{
     custom_query::PaginationParams,
     database::{
         models::{
-            cac::{ConfigVersion, DefaultConfig, Function, TypeTemplate},
+            cac::{
+                ConfigVersion, Context, DefaultConfig, Dimension, Function, TypeTemplate,
+            },
             Workspace,
         },
         types::DimensionWithMandatory,
@@ -22,8 +24,8 @@ use crate::{
 // #[server(GetDimensions, "/fxn", "GetJson")]
 pub async fn fetch_dimensions(
     filters: &PaginationParams,
-    tenant: String,
-    org_id: String,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<PaginatedResponse<DimensionWithMandatory>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
@@ -31,7 +33,7 @@ pub async fn fetch_dimensions(
     let url = format!("{}/dimension?{}", host, filters.to_string());
     let response: PaginatedResponse<DimensionWithMandatory> = client
         .get(url)
-        .header("x-tenant", &tenant)
+        .header("x-tenant", tenant)
         .header("x-org-id", org_id)
         .send()
         .await
@@ -46,8 +48,8 @@ pub async fn fetch_dimensions(
 // #[server(GetDefaultConfig, "/fxn", "GetJson")]
 pub async fn fetch_default_config(
     filters: &PaginationParams,
-    tenant: String,
-    org_id: String,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<PaginatedResponse<DefaultConfig>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
@@ -90,8 +92,8 @@ pub async fn fetch_snapshots(
 }
 
 pub async fn delete_context(
-    tenant: String,
     context_id: String,
+    tenant: String,
     org_id: String,
 ) -> Result<(), ServerFnError> {
     let client = reqwest::Client::new();
@@ -200,7 +202,7 @@ pub async fn fetch_function(
 
 // #[server(GetConfig, "/fxn", "GetJson")]
 pub async fn fetch_config(
-    tenant: String,
+    tenant: &str,
     version: Option<String>,
     org_id: String,
 ) -> Result<Config, ServerFnError> {
@@ -231,9 +233,9 @@ pub async fn fetch_config(
 
 // #[server(GetExperiment, "/fxn", "GetJson")]
 pub async fn fetch_experiment(
-    exp_id: String,
-    tenant: String,
-    org_id: String,
+    exp_id: &str,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<ExperimentResponse, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
@@ -351,4 +353,78 @@ pub async fn fetch_workspaces(
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     Ok(response)
+}
+
+pub async fn fetch_type(tenant: &str, name: &str) -> Result<TypeTemplate, ServerFnError> {
+    let host = use_host_server();
+    let url = format!("{host}/types/{name}");
+    let err_handler = |e: String| ServerFnError::new(e.to_string());
+    let response = request::<()>(
+        url,
+        reqwest::Method::GET,
+        None,
+        construct_request_headers(&[("x-tenant", &tenant)]).map_err(err_handler)?,
+    )
+    .await
+    .map_err(err_handler)?;
+    parse_json_response::<TypeTemplate>(response)
+        .await
+        .map_err(err_handler)
+}
+
+pub async fn fetch_context(tenant: &str, id: &str) -> Result<Context, ServerFnError> {
+    let host = use_host_server();
+    let url = format!("{host}/context/{id}");
+    let err_handler = |e: String| ServerFnError::new(e.to_string());
+    let response = request::<()>(
+        url,
+        reqwest::Method::GET,
+        None,
+        construct_request_headers(&[("x-tenant", &tenant)]).map_err(err_handler)?,
+    )
+    .await
+    .map_err(err_handler)?;
+    parse_json_response::<Context>(response)
+        .await
+        .map_err(err_handler)
+}
+
+pub async fn fetch_default_config_key(
+    tenant: &str,
+    key: &str,
+) -> Result<DefaultConfig, ServerFnError> {
+    let host = use_host_server();
+    let url = format!("{host}/default-config/{key}");
+    let err_handler = |e: String| ServerFnError::new(e.to_string());
+    let response = request::<()>(
+        url,
+        reqwest::Method::GET,
+        None,
+        construct_request_headers(&[("x-tenant", &tenant)]).map_err(err_handler)?,
+    )
+    .await
+    .map_err(err_handler)?;
+    parse_json_response::<DefaultConfig>(response)
+        .await
+        .map_err(err_handler)
+}
+
+pub async fn fetch_dimension(
+    tenant: &str,
+    name: &str,
+) -> Result<Dimension, ServerFnError> {
+    let host = use_host_server();
+    let url = format!("{host}/dimension/{name}");
+    let err_handler = |e: String| ServerFnError::new(e.to_string());
+    let response = request::<()>(
+        url,
+        reqwest::Method::GET,
+        None,
+        construct_request_headers(&[("x-tenant", &tenant)]).map_err(err_handler)?,
+    )
+    .await
+    .map_err(err_handler)?;
+    parse_json_response::<Dimension>(response)
+        .await
+        .map_err(err_handler)
 }

@@ -40,11 +40,11 @@ struct CombinedResource {
 #[component]
 pub fn function_page() -> impl IntoView {
     let function_params = use_params_map();
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let tenant_s = use_context::<Signal<Tenant>>().unwrap();
+    let org_s = use_context::<Signal<OrganisationId>>().unwrap();
     let source = move || {
-        let t = tenant_rws.get().0;
-        let org = org_rws.get().0;
+        let t = tenant_s.get().0;
+        let org = org_s.get().0;
         let function_name = function_params
             .with(|params| params.get("function_name").cloned().unwrap_or("1".into()));
         (function_name, t, org)
@@ -71,7 +71,7 @@ pub fn function_page() -> impl IntoView {
         <Transition fallback=move || {
             view! {
                 <div class="m-5">
-                    <Skeleton variant=SkeletonVariant::DetailPage/>
+                    <Skeleton variant=SkeletonVariant::DetailPage />
                 </div>
             }
         }>
@@ -94,12 +94,13 @@ pub fn function_page() -> impl IntoView {
                         let publish_click = move |event: MouseEvent| {
                             event.prevent_default();
                             logging::log!("Submitting function form");
-                            let tenant = tenant_rws.get().0;
-                            let org = org_rws.get().0;
+                            let tenant = tenant_s.get().0;
+                            let org = org_s.get().0;
                             let f_function_name = function_rs.get().function_name;
                             spawn_local({
                                 async move {
-                                    let result = publish_function(f_function_name, tenant, org).await;
+                                    let result = publish_function(f_function_name, tenant, org)
+                                        .await;
                                     match result {
                                         Ok(_) => {
                                             publish_error_ws.set("".to_string());
@@ -131,15 +132,11 @@ pub fn function_page() -> impl IntoView {
                                     </div>
                                     <div class="stat w-2/12">
                                         <div class="stat-title">Function Description</div>
-                                        <div>
-                                            {function_rs.get().description.to_string()}
-                                        </div>
+                                        <div>{function_rs.get().description.to_string()}</div>
                                     </div>
                                     <div class="stat w-2/12">
                                         <div class="stat-title">Function Change Reason</div>
-                                        <div>
-                                            {function_rs.get().change_reason.to_string()}
-                                        </div>
+                                        <div>{function_rs.get().change_reason.to_string()}</div>
                                     </div>
                                     <div class="stat w-2/12">
                                         <div class="stat-title">Draft Edited At</div>

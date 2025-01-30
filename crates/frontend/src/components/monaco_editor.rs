@@ -71,7 +71,6 @@ pub fn monaco_editor(
                     }
                 }
             }
-        >
-        </div>
+        ></div>
     }
 }

@@ -18,19 +18,6 @@ pub struct ExperimentCreateRequest {
     pub change_reason: String,
 }
 
-#[derive(Serialize)]
-pub struct ExperimentCreateResponse {
-    pub experiment_id: String,
-}
-
-impl From<Experiment> for ExperimentCreateResponse {
-    fn from(experiment: Experiment) -> Self {
-        Self {
-            experiment_id: experiment.id.to_string(),
-        }
-    }
-}
-
 /********** Experiment Response Type **************/
 // Same as models::Experiments but `id` field is String
 // JS have limitation of 53-bit integers, so on
