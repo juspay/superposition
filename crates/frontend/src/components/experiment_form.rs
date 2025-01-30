@@ -2,6 +2,7 @@ pub mod types;
 pub mod utils;
 
 use leptos::*;
+use serde_json::Value;
 use superposition_types::{
     database::models::experimentation::VariantType,
     database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
@@ -20,14 +21,16 @@ use crate::{
 
 use crate::logic::Conditions;
 
-fn default_variants_for_form() -> Vec<(String, VariantFormT)> {
+fn default_variants_for_form(
+    overrides: Vec<(String, Value)>,
+) -> Vec<(String, VariantFormT)> {
     vec![
         (
             "control-variant".to_string(),
             VariantFormT {
                 id: "control".to_string(),
                 variant_type: VariantType::CONTROL,
-                overrides: vec![],
+                overrides: overrides.clone(),
             },
         ),
         (
@@ -35,15 +38,18 @@ fn default_variants_for_form() -> Vec<(String, VariantFormT)> {
             VariantFormT {
                 id: "experimental".to_string(),
                 variant_type: VariantType::EXPERIMENTAL,
-                overrides: vec![],
+                overrides: overrides.clone(),
             },
         ),
     ]
 }
 
-fn get_init_state(variants: &VariantFormTs) -> Vec<(String, VariantFormT)> {
+fn get_init_state(
+    variants: &[VariantFormT],
+    overrides: Vec<(String, Value)>,
+) -> Vec<(String, VariantFormT)> {
     let init_variants = if variants.is_empty() {
-        default_variants_for_form()
+        default_variants_for_form(overrides)
     } else {
         variants
             .iter()
@@ -61,6 +67,7 @@ pub fn experiment_form<NF>(
     name: String,
     context: Conditions,
     variants: VariantFormTs,
+    overrides: Vec<(String, Value)>,
     handle_submit: NF,
     default_config: Vec<DefaultConfig>,
     dimensions: Vec<DimensionWithMandatory>,
@@ -70,7 +77,7 @@ pub fn experiment_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let init_variants = get_init_state(&variants);
+    let init_variants = get_init_state(&variants, overrides);
     let default_config = StoredValue::new(default_config);
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
