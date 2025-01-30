@@ -2,6 +2,7 @@ pub mod types;
 pub mod utils;
 
 use leptos::*;
+use serde_json::Value;
 use superposition_types::{
     database::models::experimentation::VariantType,
     database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
@@ -20,14 +21,16 @@ use crate::{
 
 use crate::logic::Conditions;
 
-fn default_variants_for_form() -> Vec<(String, VariantFormT)> {
+pub fn default_variants_for_form(
+    overrides: Vec<(String, Value)>,
+) -> Vec<(String, VariantFormT)> {
     vec![
         (
             "control-variant".to_string(),
             VariantFormT {
                 id: "control".to_string(),
                 variant_type: VariantType::CONTROL,
-                overrides: vec![],
+                overrides: overrides.clone(),
             },
         ),
         (
@@ -35,23 +38,17 @@ fn default_variants_for_form() -> Vec<(String, VariantFormT)> {
             VariantFormT {
                 id: "experimental".to_string(),
                 variant_type: VariantType::EXPERIMENTAL,
-                overrides: vec![],
+                overrides: overrides.clone(),
             },
         ),
     ]
 }
 
-fn get_init_state(variants: &VariantFormTs) -> Vec<(String, VariantFormT)> {
-    let init_variants = if variants.is_empty() {
-        default_variants_for_form()
-    } else {
-        variants
-            .iter()
-            .map(|variant| (variant.id.to_string(), variant.clone()))
-            .collect::<Vec<(String, VariantFormT)>>()
-    };
-
-    init_variants
+fn get_init_state(variants: &[VariantFormT]) -> Vec<(String, VariantFormT)> {
+    variants
+        .iter()
+        .map(|variant| (variant.id.to_string(), variant.clone()))
+        .collect::<Vec<(String, VariantFormT)>>()
 }
 
 #[component]
@@ -68,7 +65,7 @@ pub fn experiment_form<NF>(
     #[prop(default = String::new())] change_reason: String,
 ) -> impl IntoView
 where
-    NF: Fn() + 'static + Clone,
+    NF: Fn(String) + 'static + Clone,
 {
     let init_variants = get_init_state(&variants);
     let default_config = StoredValue::new(default_config);
@@ -140,8 +137,10 @@ where
                 };
 
                 match result {
-                    Ok(_) => {
-                        handle_submit_clone();
+                    Ok(res) => {
+                        handle_submit_clone(
+                            res["experiment_id"].as_str().unwrap_or("").to_string(),
+                        );
                         let success_message = if edit {
                             "Experiment updated successfully!"
                         } else {

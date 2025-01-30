@@ -15,6 +15,10 @@ pub fn context_card(
     context: Context,
     overrides: Map<String, Value>,
     #[prop(default = true)] show_actions: bool,
+    #[prop(default=Callback::new(|_| {}))] handle_create_experiment: Callback<
+        (Context, Map<String, Value>),
+        (),
+    >,
     #[prop(default=Callback::new(|_| {}))] handle_edit: Callback<
         (Context, Map<String, Value>),
         (),
@@ -65,6 +69,14 @@ pub fn context_card(
                 <Show when=move || actions_supported>
                     <div class="h-fit text-right space-x-4">
                         <Show when=move || !edit_unsupported>
+                            <i
+                                class="ri-test-tube-line ri-lg text-blue-500 cursor-pointer"
+                                on:click=move |_| {
+                                    handle_create_experiment.call((context.get_value(), overrides.get_value()));
+                                }
+                            >
+                            </i>
+
                             <i
                                 class="ri-pencil-line ri-lg text-blue-500 cursor-pointer"
                                 on:click=move |_| {
