@@ -1,5 +1,6 @@
 use futures::join;
 use leptos::*;
+use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
@@ -9,12 +10,12 @@ use superposition_types::{
     Config, Context,
 };
 
-use crate::components::button::Button;
 use crate::components::context_card::ContextCard;
 use crate::components::context_form::utils::{create_context, update_context};
 use crate::components::context_form::ContextForm;
 use crate::components::delete_modal::DeleteModal;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
+use crate::components::experiment_form::ExperimentForm;
 use crate::components::override_form::OverrideForm;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::logic::{Condition, Conditions};
@@ -26,6 +27,7 @@ use crate::{
     types::{OrganisationId, Tenant},
 };
 use crate::{components::alert::AlertType, schema::SchemaType};
+use crate::{components::button::Button, types::VariantFormTs};
 
 #[derive(Clone, Debug, Default)]
 pub struct Data {
@@ -279,6 +281,38 @@ pub fn context_override() -> impl IntoView {
             }
         };
     });
+    let handle_submit_experiment_form = move |experiment_id: String| {
+        page_resource.refetch();
+        close_drawer("create_exp_drawer");
+
+        let tenant = tenant_rws.get().0;
+        let org = org_rws.get().0;
+        let navigate = use_navigate();
+        let redirect_url = format!("/admin/{org}/{tenant}/experiments/{experiment_id}");
+        navigate(redirect_url.as_str(), Default::default())
+    };
+
+    let handle_create_experiment =
+        Callback::new(move |data: (Context, Map<String, Value>)| {
+            let (context, overrides) = data;
+
+            match Conditions::from_context_json(&context.condition.into()) {
+                Ok(conditions) => {
+                    selected_context_ws.set(Some(Data {
+                        context: conditions,
+                        overrides: overrides
+                            .into_iter()
+                            .collect::<Vec<(String, Value)>>(),
+                    }));
+
+                    open_drawer("create_exp_drawer");
+                }
+                Err(e) => {
+                    logging::error!("Error parsing context: {}", e);
+                    enqueue_alert(e.to_string(), AlertType::Error, 5000);
+                }
+            };
+        });
 
     let on_context_clone = Callback::new(move |data: (Context, Map<String, Value>)| {
         let (context, overrides) = data;
@@ -343,6 +377,48 @@ pub fn context_override() -> impl IntoView {
                 view! { <Skeleton variant=SkeletonVariant::Block /> }
             }>
                 <div class="space-y-6">
+
+                    {move || {
+                        let PageResource { config: _, dimensions, default_config } = page_resource
+                            .get()
+                            .unwrap_or_default();
+                        let data = selected_context_rs.get();
+                        view! {
+                            <Drawer
+                                id="create_exp_drawer".to_string()
+                                header="Create Experiment"
+                                handle_close=move || {
+                                    close_drawer("create_exp_drawer");
+                                    selected_context_ws.set(None);
+                                }
+                            >
+
+                                <EditorProvider>
+                                    {match data {
+                                        Some(data) => {
+                                            view! {
+                                                <ExperimentForm
+                                                    name="".to_string()
+                                                    context=data.context
+                                                    variants=VariantFormTs(crate::components::experiment_form::default_variants_for_form(
+                                                        data.overrides
+                                                    ).into_iter().map(|(_, value)| value).collect())
+                                                    dimensions=dimensions
+                                                    default_config=default_config
+                                                    handle_submit=handle_submit_experiment_form
+                                                />
+                                            }
+                                                .into_view()
+                                        }
+                                        None => {
+                                            view! {}.into_view()
+                                        }
+                                    }}
+
+                                </EditorProvider>
+                            </Drawer>
+                        }
+                    }}
 
                     {move || {
                         let PageResource { config: _, dimensions, default_config } = page_resource
@@ -452,6 +528,7 @@ pub fn context_override() -> impl IntoView {
                                             <ContextCard
                                                 context=context
                                                 overrides=overrides
+                                                handle_create_experiment=handle_create_experiment
                                                 handle_edit=on_context_edit
                                                 handle_clone=on_context_clone
                                                 handle_delete=on_context_delete

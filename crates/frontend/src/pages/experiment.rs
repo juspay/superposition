@@ -170,7 +170,7 @@ pub fn experiment_page() -> impl IntoView {
                                         variants=FromIterator::from_iter(experiment_ef.variants)
                                         default_config=default_config
                                         dimensions=dimensions
-                                        handle_submit=move || { combined_resource.refetch() }
+                                        handle_submit=move |_| { combined_resource.refetch() }
                                     />
                                 </EditorProvider>
 

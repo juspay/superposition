@@ -175,7 +175,7 @@ impl From<Variant> for VariantFormT {
 }
 
 #[derive(Deref, Default)]
-pub struct VariantFormTs(Vec<VariantFormT>);
+pub struct VariantFormTs(pub Vec<VariantFormT>);
 
 impl FromIterator<Variant> for VariantFormTs {
     fn from_iter<T: IntoIterator<Item = Variant>>(iter: T) -> Self {

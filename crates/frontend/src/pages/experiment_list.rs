@@ -107,7 +107,7 @@ pub fn experiment_list() -> impl IntoView {
         },
     );
 
-    let handle_submit_experiment_form = move || {
+    let handle_submit_experiment_form = move |_| {
         combined_resource.refetch();
         set_exp_form.update(|val| {
             *val += 1;
