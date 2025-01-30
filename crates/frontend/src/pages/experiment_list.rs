@@ -233,6 +233,7 @@ pub fn experiment_list() -> impl IntoView {
                                     name="".to_string()
                                     context=Conditions::default()
                                     variants=VariantFormTs::default()
+                                    overrides=vec![]
                                     dimensions=dim.clone()
                                     default_config=def_conf.clone()
                                     handle_submit=handle_submit_experiment_form
