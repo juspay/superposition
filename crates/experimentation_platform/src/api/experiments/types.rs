@@ -87,6 +87,13 @@ pub struct ConcludeExperimentRequest {
     pub change_reason: String,
 }
 
+/********** Experiment Discard Req Types **********/
+
+#[derive(Deserialize, Debug)]
+pub struct DiscardExperimentRequest {
+    pub change_reason: String,
+}
+
 /********** Context Bulk API Type *************/
 
 #[derive(Deserialize, Serialize, Clone)]

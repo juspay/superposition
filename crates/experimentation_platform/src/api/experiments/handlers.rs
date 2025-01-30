@@ -48,8 +48,9 @@ use super::{
     types::{
         ApplicableVariantsQuery, AuditQueryFilters, ConcludeExperimentRequest,
         ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq,
-        ExperimentCreateRequest, ExperimentCreateResponse, ExperimentListFilters,
-        ExperimentResponse, OverrideKeysUpdateRequest, RampRequest,
+        DiscardExperimentRequest, ExperimentCreateRequest, ExperimentCreateResponse,
+        ExperimentListFilters, ExperimentResponse, OverrideKeysUpdateRequest,
+        RampRequest,
     },
 };
 use crate::api::experiments::{helpers::construct_header_map, types::ExperimentSortOn};
@@ -59,6 +60,7 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(get_audit_logs)
         .service(create)
         .service(conclude_handler)
+        .service(discard_handler)
         .service(list_experiments)
         .service(get_applicable_variants)
         .service(get_experiment_handler)
@@ -399,10 +401,11 @@ pub async fn conclude(
         Some(desc) => desc,
         None => experiment.description.clone(),
     };
-    if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
+    if !experiment.status.active() {
         return Err(bad_argument!(
-            "experiment with id {} is already concluded",
-            experiment_id
+            "experiment with id {} is already {}",
+            experiment_id,
+            experiment.status
         ));
     }
 
@@ -515,6 +518,145 @@ pub async fn conclude(
             dsl::last_modified.eq(Utc::now()),
             dsl::last_modified_by.eq(user.get_email()),
             dsl::chosen_variant.eq(Some(winner_variant_id)),
+            dsl::change_reason.eq(change_reason),
+        ))
+        .returning(Experiment::as_returning())
+        .schema_name(&workspace_request.schema_name)
+        .get_result::<Experiment>(&mut conn)?;
+
+    Ok((updated_experiment, config_version_id))
+}
+
+#[patch("/{experiment_id}/discard")]
+async fn discard_handler(
+    state: Data<AppState>,
+    path: web::Path<i64>,
+    custom_headers: CustomHeaders,
+    req: web::Json<DiscardExperimentRequest>,
+    db_conn: DbConnection,
+    workspace_request: WorkspaceContext,
+    tenant_config: TenantConfig,
+    user: User,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(conn) = db_conn;
+    let (response, config_version_id) = discard(
+        &state,
+        path.into_inner(),
+        custom_headers.config_tags,
+        req.into_inner(),
+        conn,
+        &workspace_request,
+        &user,
+    )
+    .await?;
+
+    let experiment_response = ExperimentResponse::from(response);
+
+    if let WebhookConfig::Enabled(experiments_webhook_config) =
+        &tenant_config.experiments_webhook_config
+    {
+        execute_webhook_call(
+            experiments_webhook_config,
+            &experiment_response,
+            &config_version_id,
+            &workspace_request,
+            WebhookEvent::ExperimentDiscarded,
+            &state.app_env,
+            &state.http_client,
+            &state.kms_client,
+        )
+        .await?;
+    }
+
+    let mut http_resp = HttpResponse::Ok();
+    add_config_version_to_header(&config_version_id, &mut http_resp);
+    Ok(http_resp.json(experiment_response))
+}
+
+pub async fn discard(
+    state: &Data<AppState>,
+    experiment_id: i64,
+    config_tags: Option<String>,
+    req: DiscardExperimentRequest,
+    mut conn: PooledConnection<ConnectionManager<PgConnection>>,
+    workspace_request: &WorkspaceContext,
+    user: &User,
+) -> superposition::Result<(Experiment, Option<String>)> {
+    use superposition_types::database::schema::experiments::dsl;
+
+    let experiment: Experiment = dsl::experiments
+        .find(experiment_id)
+        .schema_name(&workspace_request.schema_name)
+        .get_result::<Experiment>(&mut conn)?;
+
+    if !experiment.status.discardable() {
+        return Err(bad_argument!(
+            "experiment with id {} cannot be discarded",
+            experiment_id
+        ));
+    }
+
+    let operations: Vec<ContextAction> = experiment
+        .variants
+        .into_inner()
+        .into_iter()
+        .map(|variant| {
+            variant
+                .context_id
+                .map(ContextAction::DELETE)
+                .ok_or_else(|| {
+                    log::error!("context id not available for variant {:?}", variant.id);
+                    unexpected_error!(
+                        "Something went wrong, failed to discard experiment"
+                    )
+                })
+        })
+        .collect::<superposition::Result<Vec<ContextAction>>>()?;
+
+    // calling CAC bulk api with operations as payload
+    let http_client = reqwest::Client::new();
+    let url = state.cac_host.clone() + "/context/bulk-operations";
+    let user_str = serde_json::to_string(&user).map_err(|err| {
+        log::error!("Something went wrong, failed to stringify user data {err}");
+        unexpected_error!(
+            "Something went wrong, failed to stringify user data {}",
+            err
+        )
+    })?;
+
+    let extra_headers = vec![("x-user", Some(user_str)), ("x-config-tags", config_tags)]
+        .into_iter()
+        .filter_map(|(key, val)| val.map(|v| (key, v)))
+        .collect::<Vec<_>>();
+
+    let headers_map = construct_header_map(
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
+        extra_headers,
+    )?;
+
+    let response = http_client
+        .put(&url)
+        .headers(headers_map.into())
+        .header(
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
+        )
+        .json(&operations)
+        .send()
+        .await;
+
+    let (_, config_version_id) = process_cac_http_response(response).await?;
+
+    // updating experiment status in db
+    let updated_experiment = diesel::update(dsl::experiments)
+        .filter(dsl::id.eq(experiment_id))
+        .set((
+            dsl::status.eq(ExperimentStatusType::DISCARDED),
+            dsl::last_modified.eq(Utc::now()),
+            dsl::last_modified_by.eq(user.get_email()),
+            dsl::chosen_variant.eq(None as Option<String>),
+            dsl::change_reason.eq(req.change_reason),
         ))
         .returning(Experiment::as_returning())
         .schema_name(&workspace_request.schema_name)
@@ -533,7 +675,10 @@ async fn get_applicable_variants(
     let query_data = query_data.into_inner();
 
     let experiments = experiments::experiments
-        .filter(experiments::status.ne(ExperimentStatusType::CONCLUDED))
+        .filter(experiments::status.ne_all(vec![
+            ExperimentStatusType::CONCLUDED,
+            ExperimentStatusType::DISCARDED,
+        ]))
         .schema_name(&schema_name)
         .load::<Experiment>(&mut conn)?;
 
@@ -725,13 +870,13 @@ async fn ramp(
     let variants_count = experiment.variants.into_inner().len() as u8;
     let max = 100 / variants_count;
 
-    if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
+    if !experiment.status.active() {
         return Err(bad_argument!(
             "experiment already concluded, cannot ramp a concluded experiment"
         ));
     } else if new_traffic_percentage > max {
         return Err(bad_argument!(
-            "The traffic_percentage cannot exceed {}. Provide a traffic percentage less than {}", max, max
+            "The traffic_percentage cannot exceed {max}. Provide a traffic percentage less than {max}"
         ))?;
     } else if new_traffic_percentage != 0
         && new_traffic_percentage == old_traffic_percentage

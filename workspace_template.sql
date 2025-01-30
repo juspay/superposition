@@ -450,3 +450,5 @@ VALUES (
         null,
         'variantIds are used by experimentation module to manage and select variations'
 );
+
+ALTER TYPE public.experiment_status_type ADD VALUE 'DISCARDED';
