@@ -11,8 +11,7 @@ use chrono::{DateTime, TimeZone, Utc};
 use derive_more::{Deref, DerefMut};
 use serde_json::Value;
 use superposition_types::{
-    database::models::experimentation::{ExperimentStatusType, VariantType},
-    Overridden, PaginatedResponse,
+    database::models::experimentation::VariantType, Overridden, PaginatedResponse,
 };
 use tokio::{
     sync::RwLock,
@@ -66,9 +65,10 @@ impl Client {
 
                 let mut exp_store = self.experiments.write().await;
                 for (exp_id, experiment) in experiments.into_iter() {
-                    match experiment.status {
-                        ExperimentStatusType::CONCLUDED => exp_store.remove(&exp_id),
-                        _ => exp_store.insert(exp_id, experiment),
+                    if experiment.status.active() {
+                        exp_store.insert(exp_id, experiment)
+                    } else {
+                        exp_store.remove(&exp_id)
                     };
                 }
             } // write lock on exp store releases here
@@ -251,7 +251,9 @@ async fn get_experiments(
             "{hostname}/experiments?from_date={start_date}&to_date={now}&page={page}&count={requesting_count}"
         );
         let list_experiments_response = http_client
-            .get(format!("{endpoint}&status=CREATED,INPROGRESS,CONCLUDED"))
+            .get(format!(
+                "{endpoint}&status=CREATED,INPROGRESS,CONCLUDED,DISCARDED"
+            ))
             .header("x-tenant", tenant.to_string())
             .send()
             .await

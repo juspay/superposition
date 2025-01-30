@@ -49,6 +49,7 @@ ALTER TYPE dev.dimension_type OWNER TO postgres;
 CREATE TYPE dev.experiment_status_type AS ENUM (
     'CREATED',
     'CONCLUDED',
+    'DISCARDED',
     'INPROGRESS'
 );
 ALTER TYPE dev.experiment_status_type OWNER TO postgres;
@@ -80,6 +81,7 @@ ALTER TYPE test.dimension_type OWNER TO postgres;
 CREATE TYPE test.experiment_status_type AS ENUM (
     'CREATED',
     'CONCLUDED',
+    'DISCARDED',
     'INPROGRESS'
 );
 ALTER TYPE test.experiment_status_type OWNER TO postgres;

@@ -32,6 +32,23 @@ pub enum ExperimentStatusType {
     CREATED,
     CONCLUDED,
     INPROGRESS,
+    DISCARDED,
+}
+
+impl ExperimentStatusType {
+    pub fn active(&self) -> bool {
+        match self {
+            Self::CREATED | Self::INPROGRESS => true,
+            Self::CONCLUDED | Self::DISCARDED => false,
+        }
+    }
+
+    pub fn discardable(&self) -> bool {
+        match self {
+            Self::CREATED => true,
+            Self::INPROGRESS | Self::CONCLUDED | Self::DISCARDED => false,
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Clone, PartialEq, Debug, strum_macros::Display)]
