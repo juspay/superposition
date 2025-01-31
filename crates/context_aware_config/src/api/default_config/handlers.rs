@@ -10,6 +10,7 @@ use diesel::{Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHel
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Value;
 use service_utils::{
+    db::types::ConnectionImpl,
     helpers::{parse_config_tags, validation_err_to_str},
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
 };
@@ -317,16 +318,12 @@ fn fetch_default_key(
 
 #[get("")]
 async fn get(
-    db_conn: DbConnection,
+    mut db_conn: ConnectionImpl,
     filters: Query<PaginationParams>,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<DefaultConfig>>> {
-    let DbConnection(mut conn) = db_conn;
-
     if let Some(true) = filters.all {
-        let result: Vec<DefaultConfig> = dsl::default_configs
-            .schema_name(&schema_name)
-            .get_results(&mut conn)?;
+        let result: Vec<DefaultConfig> =
+            dsl::default_configs.get_results(&mut db_conn)?;
         return Ok(Json(PaginatedResponse {
             total_pages: 1,
             total_items: result.len() as i64,
@@ -334,21 +331,17 @@ async fn get(
         }));
     }
 
-    let n_default_configs: i64 = dsl::default_configs
-        .count()
-        .schema_name(&schema_name)
-        .get_result(&mut conn)?;
+    let n_default_configs: i64 = dsl::default_configs.count().get_result(&mut db_conn)?;
     let limit = filters.count.unwrap_or(10);
     let mut builder = dsl::default_configs
         .order(dsl::created_at.desc())
         .limit(limit)
-        .schema_name(&schema_name)
         .into_boxed();
     if let Some(page) = filters.page {
         let offset = (page - 1) * limit;
         builder = builder.offset(offset);
     }
-    let result: Vec<DefaultConfig> = builder.load(&mut conn)?;
+    let result: Vec<DefaultConfig> = builder.load(&mut db_conn)?;
     let total_pages = (n_default_configs as f64 / limit as f64).ceil() as i64;
     Ok(Json(PaginatedResponse {
         total_pages,

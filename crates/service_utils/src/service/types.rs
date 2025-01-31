@@ -171,7 +171,6 @@ pub struct DbConnection(pub PooledConnection<ConnectionManager<PgConnection>>);
 impl FromRequest for DbConnection {
     type Error = Error;
     type Future = Ready<Result<DbConnection, Self::Error>>;
-
     fn from_request(
         req: &actix_web::HttpRequest,
         _: &mut actix_web::dev::Payload,
@@ -185,7 +184,6 @@ impl FromRequest for DbConnection {
                 return ready(Err(error::ErrorInternalServerError("")));
             }
         };
-
         let result = match app_state.db_pool.get() {
             Ok(conn) => Ok(DbConnection(conn)),
             Err(e) => {
@@ -193,7 +191,6 @@ impl FromRequest for DbConnection {
                 Err(error::ErrorInternalServerError(""))
             }
         };
-
         ready(result)
     }
 }

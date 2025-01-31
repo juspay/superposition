@@ -4,5 +4,6 @@ use diesel::{
 };
 
 pub mod utils;
+pub mod types;
 
 pub type PgSchemaConnectionPool = Pool<ConnectionManager<PgConnection>>;
