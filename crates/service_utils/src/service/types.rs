@@ -10,7 +10,7 @@ use actix_web::{error, web::Data, Error, FromRequest, HttpMessage};
 use aws_sdk_kms::Client;
 use derive_more::{Deref, DerefMut};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
-use diesel::PgConnection;
+use diesel::{Connection, PgConnection};
 use jsonschema::JSONSchema;
 use snowflake::SnowflakeIdGenerator;
 
@@ -187,7 +187,12 @@ impl FromRequest for DbConnection {
         };
 
         let result = match app_state.db_pool.get() {
-            Ok(conn) => Ok(DbConnection(conn)),
+            Ok(mut conn) => {
+                conn.set_prepared_statement_cache_size(
+                    diesel::connection::CacheSize::Disabled,
+                );
+                Ok(DbConnection(conn))
+            }
             Err(e) => {
                 log::info!("Unable to get db connection from pool, error: {e}");
                 Err(error::ErrorInternalServerError(""))
