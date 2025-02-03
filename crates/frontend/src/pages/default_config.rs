@@ -77,9 +77,12 @@ pub fn default_config() -> impl IntoView {
 
     let folder_click_handler = move |key_name: Option<String>| {
         let tenant = tenant_rws.get().0;
+        let org_id = org_rws.get().0;
         let redirect_url = match key_name {
-            Some(prefix) => format!("admin/{tenant}/default-config?prefix={prefix}"),
-            None => format!("admin/{tenant}/default-config"),
+            Some(prefix) => {
+                format!("admin/{org_id}/{tenant}/default-config?prefix={prefix}")
+            }
+            None => format!("admin/{org_id}/{tenant}/default-config"),
         };
         logging::log!("redirecting to {:?}", redirect_url.clone());
         let navigate = use_navigate();
