@@ -116,47 +116,18 @@ async fn update(
     let req = request.into_inner();
     let f_name: String = params.into_inner().into();
 
-    let result = match fetch_function(&f_name, &mut conn, &schema_name) {
-        Ok(val) => val,
-        Err(superposition::AppError::DbError(diesel::result::Error::NotFound)) => {
-            log::error!("Function not found.");
-            return Err(bad_argument!("Function {} doesn't exists", f_name));
-        }
-        Err(e) => {
-            log::error!("Failed to update Function with error: {e}");
-            return Err(unexpected_error!("Failed to update Function"));
-        }
-    };
-
     // Function Linter Check
     if let Some(function) = &req.function {
         compile_fn(function)?;
     }
 
-    let new_function = Function {
-        function_name: f_name.to_owned(),
-        draft_code: req.function.map_or_else(
-            || result.draft_code.clone(),
-            |func| BASE64_STANDARD.encode(func),
-        ),
-        draft_runtime_version: req
-            .runtime_version
-            .unwrap_or(result.draft_runtime_version),
-        description: req.description.unwrap_or(result.description),
-        draft_edited_by: user.get_email(),
-        draft_edited_at: Utc::now().naive_utc(),
-        published_code: result.published_code,
-        published_at: result.published_at,
-        published_by: result.published_by,
-        published_runtime_version: result.published_runtime_version,
-        last_modified_at: Utc::now().naive_utc(),
-        last_modified_by: user.get_email(),
-        change_reason: req.change_reason,
-    };
-
     let mut updated_function = diesel::update(functions)
         .filter(schema::functions::function_name.eq(f_name))
-        .set(new_function)
+        .set((
+            req.as_changeset(),
+            dsl::draft_edited_by.eq(user.get_email()),
+            dsl::draft_edited_at.eq(Utc::now().naive_utc()),
+        ))
         .returning(Function::as_returning())
         .schema_name(&schema_name)
         .get_result::<Function>(&mut conn)?;

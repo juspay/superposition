@@ -23,7 +23,7 @@ use superposition_types::{
 
 use crate::{
     api::dimension::{
-        types::{CreateReq, FunctionNameEnum},
+        types::{CreateReq, Position},
         utils::{get_dimension_usage_context_ids, validate_dimension_position},
     },
     helpers::{get_workspace, validate_jsonschema},
@@ -143,10 +143,11 @@ async fn update(
     use dimensions::dsl;
     let DbConnection(mut conn) = db_conn;
 
-    let mut dimension_row: Dimension = dsl::dimensions
+    let existing_position: i32 = dsl::dimensions
+        .select(dimensions::position)
         .filter(dimensions::dimension.eq(name.clone()))
         .schema_name(&schema_name)
-        .get_result::<Dimension>(&mut conn)?;
+        .get_result::<i32>(&mut conn)?;
 
     let num_rows = dimensions
         .count()
@@ -157,39 +158,27 @@ async fn update(
             db_error!(err)
         })?;
 
-    let update_req = req.into_inner();
+    let mut update_req = req.into_inner();
 
-    if let Some(schema_value) = update_req.schema {
+    if let Some(schema_value) = update_req.clone().schema {
         validate_jsonschema(&state.meta_schema, &schema_value)?;
-        dimension_row.schema = schema_value;
     }
-
-    dimension_row.change_reason = update_req.change_reason;
-    dimension_row.description = update_req
-        .description
-        .unwrap_or_else(|| dimension_row.description);
-
-    dimension_row.function_name = match update_req.function_name {
-        Some(FunctionNameEnum::Name(func_name)) => Some(func_name),
-        Some(FunctionNameEnum::Remove) => None,
-        None => dimension_row.function_name,
-    };
 
     let result =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let mut new_position = dimension_row.position;
+            let mut new_position = existing_position.clone();
 
-            if let Some(position_val) = update_req.position {
+            if let Some(position_val) = update_req.clone().position {
                 new_position = position_val.clone().into();
                 validate_dimension_position(
                     path.into_inner(),
                     position_val,
                     num_rows - 1,
                 )?;
-                let previous_position = dimension_row.position;
+                let previous_position = existing_position.clone();
 
                 diesel::update(dimensions)
-                    .filter(dsl::dimension.eq(&dimension_row.dimension))
+                    .filter(dsl::dimension.eq(name.clone()))
                     .set((
                         dsl::last_modified_at.eq(Utc::now().naive_utc()),
                         dsl::last_modified_by.eq(user.get_email()),
@@ -225,17 +214,15 @@ async fn update(
                         .execute(transaction_conn)?
                 };
             }
-
+            let update_position =
+                Position::try_from(new_position).map_err(|err| unexpected_error!(err))?;
+            update_req.position = Some(update_position);
             diesel::update(dimensions)
-                .filter(dsl::dimension.eq(&dimension_row.dimension))
+                .filter(dsl::dimension.eq(name))
                 .set((
+                    update_req.as_changeset(),
                     dimensions::last_modified_at.eq(Utc::now().naive_utc()),
                     dimensions::last_modified_by.eq(user.get_email()),
-                    dimensions::function_name.eq(dimension_row.function_name),
-                    dimensions::schema.eq(dimension_row.schema),
-                    dimensions::position.eq(new_position),
-                    dimensions::description.eq(dimension_row.description),
-                    dimensions::change_reason.eq(dimension_row.change_reason),
                 ))
                 .returning(Dimension::as_returning())
                 .schema_name(&schema_name)
