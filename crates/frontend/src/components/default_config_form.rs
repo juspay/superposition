@@ -278,6 +278,9 @@ where
                     ) {
                         (Ok(schema_type), Ok(enum_variants)) => {
                             let input_type = InputType::from((schema_type.clone(), enum_variants));
+                            if input_type == InputType::Toggle {
+                                config_value_ws.set(Value::Bool(false));
+                            }
                             let class = match input_type {
                                 InputType::Toggle => String::new(),
                                 InputType::Select(_) => "mt-2".into(),
