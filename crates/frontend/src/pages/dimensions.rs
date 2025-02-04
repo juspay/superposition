@@ -145,9 +145,10 @@ pub fn dimensions() -> impl IntoView {
             Column::default("created_at".to_string()),
             Column::new(
                 "actions".to_string(),
-                None,
+                false,
                 action_col_formatter,
                 ColumnSortable::No,
+                true,
             ),
         ]
     });

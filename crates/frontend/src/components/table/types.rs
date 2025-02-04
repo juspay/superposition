@@ -27,6 +27,7 @@ pub struct Column {
     pub hidden: bool,
     pub formatter: CellFormatter,
     pub sortable: ColumnSortable,
+    pub expandable: bool,
 }
 
 impl PartialEq for Column {
@@ -46,6 +47,7 @@ impl Column {
             hidden: false,
             formatter: Box::new(Rc::new(default_formatter)),
             sortable: ColumnSortable::No,
+            expandable: true,
         }
     }
     pub fn default_with_sort(name: String, sortable: ColumnSortable) -> Column {
@@ -54,22 +56,25 @@ impl Column {
             hidden: false,
             formatter: Box::new(Rc::new(default_formatter)),
             sortable,
+            expandable: true,
         }
     }
     pub fn new<NF>(
         name: String,
-        hidden: Option<bool>,
+        hidden: bool,
         formatter: NF,
         sortable: ColumnSortable,
+        expandable: bool,
     ) -> Column
     where
         NF: Fn(&str, &Map<String, Value>) -> View + 'static,
     {
         Column {
             name,
-            hidden: hidden.unwrap_or(false),
+            hidden,
             formatter: Box::new(Rc::new(formatter)),
             sortable,
+            expandable,
         }
     }
 }

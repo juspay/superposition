@@ -149,7 +149,7 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
     vec![
         Column::new(
             "id".to_string(),
-            None,
+            false,
             move |value: &str, _row: &Map<String, Value>| {
                 let id = value.to_string();
                 let base = use_url_base();
@@ -168,10 +168,11 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
                 .into_view()
             },
             ColumnSortable::No,
+            true,
         ),
         Column::new(
             "created_at".to_string(),
-            None,
+            false,
             |value: &str, _row: &Map<String, Value>| {
                 let formatted_date =
                     match NaiveDateTime::parse_from_str(value, "%Y-%m-%dT%H:%M:%S%.f") {
@@ -184,10 +185,11 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
                 view! { <span class="w-24">{formatted_date}</span> }.into_view()
             },
             ColumnSortable::No,
+            true,
         ),
         Column::new(
             "tags".to_string(),
-            None,
+            false,
             |_value: &str, row: &Map<String, Value>| {
                 let tags = row.get("tags").and_then(|v| v.as_array());
                 match tags {
@@ -204,6 +206,7 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
                 .into_view()
             },
             ColumnSortable::No,
+            true,
         ),
     ]
 }

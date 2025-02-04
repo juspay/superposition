@@ -83,7 +83,7 @@ pub fn types_page() -> impl IntoView {
             Column::default("last_modified_at".to_string()),
             Column::new(
                 "actions".into(),
-                None,
+                false,
                 move |_: &str, row: &Map<String, Value>| {
                     let edit_row_json = json!(row);
                     let delete_row_json = edit_row_json.clone();
@@ -116,6 +116,7 @@ pub fn types_page() -> impl IntoView {
                     .into_view()
                 },
                 ColumnSortable::No,
+                true,
             ),
         ]
     });

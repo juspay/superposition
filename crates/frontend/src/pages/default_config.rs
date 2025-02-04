@@ -193,8 +193,8 @@ pub fn default_config() -> impl IntoView {
             }
         };
 
-        let expand = move |_: &str, row: &Map<String, Value>| {
-            let key_name = row["key"].to_string().replace('"', "");
+        let expand = move |key_name: &str, _row: &Map<String, Value>| {
+            let key_name = key_name.to_string();
             let label = key_name.clone();
             let is_folder = key_name.contains('.');
 
@@ -221,7 +221,7 @@ pub fn default_config() -> impl IntoView {
         };
 
         vec![
-            Column::new("key".to_string(), None, expand, ColumnSortable::No),
+            Column::new("key".to_string(), false, expand, ColumnSortable::No, true),
             Column::default("schema".to_string()),
             Column::default("value".to_string()),
             Column::default("function_name".to_string()),
@@ -229,9 +229,10 @@ pub fn default_config() -> impl IntoView {
             Column::default("created_by".to_string()),
             Column::new(
                 "actions".to_string(),
-                None,
+                false,
                 actions_col_formatter,
                 ColumnSortable::No,
+                true,
             ),
         ]
     });

@@ -35,9 +35,10 @@ pub fn gen_variant_table(
         };
         columns.push(Column::new(
             name.clone(),
-            None,
+            false,
             |value: &str, _| view! { <span>{value.to_string()}</span> }.into_view(),
             ColumnSortable::No,
+            true,
         ));
         for (config, value) in variant.overrides.clone().into_inner().into_iter() {
             match row_map.get_mut(&config) {
