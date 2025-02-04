@@ -22,11 +22,18 @@ pub enum ColumnSortable {
 }
 
 #[derive(Clone)]
+pub enum Expandable {
+    Disabled,
+    Enabled(usize),
+}
+
+#[derive(Clone)]
 pub struct Column {
     pub name: String,
     pub hidden: bool,
     pub formatter: CellFormatter,
     pub sortable: ColumnSortable,
+    pub expandable: Expandable,
 }
 
 impl PartialEq for Column {
@@ -46,6 +53,16 @@ impl Column {
             hidden: false,
             formatter: Box::new(Rc::new(default_formatter)),
             sortable: ColumnSortable::No,
+            expandable: Expandable::Enabled(100),
+        }
+    }
+    pub fn default_no_collapse(name: String) -> Column {
+        Column {
+            name,
+            hidden: false,
+            formatter: Box::new(Rc::new(default_formatter)),
+            sortable: ColumnSortable::No,
+            expandable: Expandable::Disabled,
         }
     }
     pub fn default_with_sort(name: String, sortable: ColumnSortable) -> Column {
@@ -54,22 +71,25 @@ impl Column {
             hidden: false,
             formatter: Box::new(Rc::new(default_formatter)),
             sortable,
+            expandable: Expandable::Enabled(100),
         }
     }
     pub fn new<NF>(
         name: String,
-        hidden: Option<bool>,
+        hidden: bool,
         formatter: NF,
         sortable: ColumnSortable,
+        expandable: Expandable,
     ) -> Column
     where
         NF: Fn(&str, &Map<String, Value>) -> View + 'static,
     {
         Column {
             name,
-            hidden: hidden.unwrap_or(false),
+            hidden,
             formatter: Box::new(Rc::new(formatter)),
             sortable,
+            expandable,
         }
     }
 }

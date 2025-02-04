@@ -1,7 +1,7 @@
 use crate::{
     components::{
         condition_pills::Condition as ConditionComponent,
-        table::types::{Column, ColumnSortable},
+        table::types::{Column, ColumnSortable, Expandable},
     },
     logic::Conditions,
     types::ExperimentListFilters,
@@ -40,7 +40,7 @@ pub fn experiment_table_columns(
     vec![
         Column::new(
             "name".to_string(),
-            None,
+            false,
             |value: &str, row: &Map<String, Value>| {
                 let (copied, set_copied) = create_signal(false);
 
@@ -92,10 +92,11 @@ pub fn experiment_table_columns(
                     .into_view()
             },
             ColumnSortable::No,
+            Expandable::Disabled,
         ),
         Column::new(
             "status".to_string(),
-            None,
+            false,
             |value: &str, row: &Map<String, Value>| {
                 let badge_color = match value {
                     "CREATED" => "badge-info",
@@ -125,10 +126,11 @@ pub fn experiment_table_columns(
                 .into_view()
             },
             ColumnSortable::No,
+            Expandable::Enabled(100),
         ),
         Column::new(
             "context".to_string(),
-            None,
+            false,
             |_, row: &Map<String, Value>| {
                 let context = row
                     .get("context")
@@ -148,10 +150,11 @@ pub fn experiment_table_columns(
                 .into_view()
             },
             ColumnSortable::No,
+            Expandable::Disabled,
         ),
         Column::new(
             "chosen_variant".to_string(),
-            None,
+            false,
             |value: &str, _| {
                 let label = match value {
                     "null" => "¯\\_(ツ)_/¯".to_string(),
@@ -164,6 +167,7 @@ pub fn experiment_table_columns(
                 .into_view()
             },
             ColumnSortable::No,
+            Expandable::Enabled(100),
         ),
         Column::default_with_sort(
             "created_at".to_string(),

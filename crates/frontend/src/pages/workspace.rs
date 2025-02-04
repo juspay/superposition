@@ -8,7 +8,7 @@ use crate::api::fetch_workspaces;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
-use crate::components::table::types::ColumnSortable;
+use crate::components::table::types::{ColumnSortable, Expandable};
 use crate::components::table::{
     types::{Column, TablePaginationProps},
     Table,
@@ -126,9 +126,10 @@ pub fn workspace() -> impl IntoView {
         vec![
             Column::new(
                 "workspace_name".to_string(),
-                None,
+                false,
                 navigate,
                 ColumnSortable::No,
+                Expandable::Disabled,
             ),
             Column::default("workspace_admin_email".to_string()),
             Column::default("mandatory_dimensions".to_string()),
@@ -136,9 +137,10 @@ pub fn workspace() -> impl IntoView {
             Column::default("created_at".to_string()),
             Column::new(
                 "actions".to_string(),
-                None,
+                false,
                 actions_col_formatter,
                 ColumnSortable::No,
+                Expandable::Disabled,
             ),
         ]
     });
@@ -243,7 +245,6 @@ pub fn workspace() -> impl IntoView {
                                     </div>
                                 </div>
                                 <Table
-                                    cell_class="min-w-48 font-mono".to_string()
                                     rows=table_rows
                                     key_column="id".to_string()
                                     columns=table_columns.get()

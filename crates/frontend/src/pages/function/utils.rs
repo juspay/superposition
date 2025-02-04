@@ -1,4 +1,4 @@
-use crate::components::table::types::{Column, ColumnSortable};
+use crate::components::table::types::{Column, ColumnSortable, Expandable};
 use crate::utils::get_host;
 use leptos::*;
 use leptos_router::A;
@@ -10,7 +10,7 @@ pub fn function_table_columns() -> Vec<Column> {
     vec![
         Column::new(
             "function_name".to_string(),
-            None,
+            false,
             |value: &str, _row: &Map<String, Value>| {
                 let function_name = value.to_string();
                 view! {
@@ -24,6 +24,7 @@ pub fn function_table_columns() -> Vec<Column> {
                 .into_view()
             },
             ColumnSortable::No,
+            Expandable::Disabled,
         ),
         Column::default("function_description".to_string()),
         Column::default("published_runtime_version".to_string()),

@@ -44,7 +44,7 @@ pub fn context_card(
     let overrides = store_value(overrides);
 
     let table_columns = vec![
-        Column::default("KEY".to_string()),
+        Column::default_no_collapse("KEY".to_string()),
         Column::default("VALUE".to_string()),
     ];
 
@@ -110,7 +110,6 @@ pub fn context_card(
                     class="xl:w-[400px] h-fit"
                 />
                 <Table
-                    cell_class="min-w-48 font-mono".to_string()
                     rows=override_table_rows
                     key_column="KEY".to_string()
                     columns=table_columns

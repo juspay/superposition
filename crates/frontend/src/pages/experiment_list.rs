@@ -197,7 +197,6 @@ pub fn experiment_list() -> impl IntoView {
                                     view! {
                                         <ConditionCollapseProvider>
                                             <Table
-                                                cell_class="min-w-48 font-mono".to_string()
                                                 rows=data
                                                 key_column="id".to_string()
                                                 columns=table_columns

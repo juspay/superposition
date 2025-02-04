@@ -10,7 +10,7 @@ use superposition_types::{
 
 use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
-use crate::components::table::types::{ColumnSortable, TablePaginationProps};
+use crate::components::table::types::{ColumnSortable, Expandable, TablePaginationProps};
 use crate::components::table::{types::Column, Table};
 use crate::types::{OrganisationId, Tenant};
 use crate::utils::use_url_base;
@@ -121,7 +121,6 @@ pub fn config_version_list() -> impl IntoView {
                                         };
                                         view! {
                                             <Table
-                                                cell_class="px-4 py-2 text-sm".to_string()
                                                 rows=resp
                                                 key_column="id".to_string()
                                                 columns=table_columns.get()
@@ -147,7 +146,7 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
     vec![
         Column::new(
             "id".to_string(),
-            None,
+            false,
             move |value: &str, _row: &Map<String, Value>| {
                 let id = value.to_string();
                 let base = use_url_base();
@@ -166,10 +165,11 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
                 .into_view()
             },
             ColumnSortable::No,
+            Expandable::Disabled,
         ),
         Column::new(
             "created_at".to_string(),
-            None,
+            false,
             |value: &str, _row: &Map<String, Value>| {
                 let formatted_date =
                     match NaiveDateTime::parse_from_str(value, "%Y-%m-%dT%H:%M:%S%.f") {
@@ -182,10 +182,11 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
                 view! { <span class="w-24">{formatted_date}</span> }.into_view()
             },
             ColumnSortable::No,
+            Expandable::Enabled(100),
         ),
         Column::new(
             "tags".to_string(),
-            None,
+            false,
             |_value: &str, row: &Map<String, Value>| {
                 let tags = row.get("tags").and_then(|v| v.as_array());
                 match tags {
@@ -202,6 +203,7 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
                 .into_view()
             },
             ColumnSortable::No,
+            Expandable::Enabled(100),
         ),
     ]
 }

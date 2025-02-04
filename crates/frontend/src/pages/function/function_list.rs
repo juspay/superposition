@@ -126,7 +126,6 @@ pub fn function_list() -> impl IntoView {
                                         };
                                         view! {
                                             <Table
-                                                cell_class="".to_string()
                                                 rows=data
                                                 key_column="id".to_string()
                                                 columns=table_columns.get()
