@@ -113,7 +113,7 @@ pub fn function_page() -> impl IntoView {
                             });
                         };
                         view! {
-                            <div class="flex flex-row overflow-x-auto p-2 bg-transparent">
+                            <div class="flex flex-col overflow-x-auto p-2 bg-transparent">
 
                                 <div class="flex bg-base-100 flex-row gap-3 justify-between flex-wrap shadow m-5">
                                     <div class="stat w-2/12">
