@@ -10,6 +10,7 @@ pub mod drawer;
 pub mod dropdown;
 pub mod experiment;
 pub mod experiment_conclude_form;
+pub mod experiment_discard_form;
 pub mod experiment_form;
 pub mod experiment_ramp_form;
 pub mod function_form;

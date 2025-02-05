@@ -32,6 +32,7 @@ export enum ExperimentStatusType {
     CREATED = "CREATED",
     INPROGRESS = "INPROGRESS",
     CONCLUDED = "CONCLUDED",
+    DISCARDED = "DISCARDED",
 }
 
 export type Experiment = {

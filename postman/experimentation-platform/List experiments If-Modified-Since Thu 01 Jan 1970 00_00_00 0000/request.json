@@ -40,7 +40,7 @@
       },
       {
         "key": "status",
-        "value": "CREATED,INPROGRESS,CONCLUDED"
+        "value": "CREATED,INPROGRESS,CONCLUDED,DISCARDED"
       }
     ]
   }

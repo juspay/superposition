@@ -12,6 +12,7 @@ use crate::{
     components::{
         experiment::Experiment,
         experiment_conclude_form::ExperimentConcludeForm,
+        experiment_discard_form::ExperimentDiscardForm,
         experiment_form::ExperimentForm,
         experiment_ramp_form::utils::ramp_experiment,
         modal::Modal,
@@ -86,6 +87,7 @@ pub fn experiment_page() -> impl IntoView {
     let handle_ramp = move || show_modal("ramp_form_modal");
     let handle_conclude = move || show_modal("conclude_form_modal");
     let handle_edit = move || show_modal("experiment_edit_form_modal");
+    let handle_discard = move || show_modal("experiment_discard_form_modal");
 
     view! {
         <Suspense fallback=move || {
@@ -108,6 +110,8 @@ pub fn experiment_page() -> impl IntoView {
                         let experiment_rf = experiment.clone();
                         let experiment_cf = experiment.clone();
                         let experiment_ef = experiment.clone();
+                        let experiment_df = experiment.clone();
+
                         view! {
                             <Experiment
                                 experiment=experiment.clone()
@@ -115,7 +119,17 @@ pub fn experiment_page() -> impl IntoView {
                                 handle_ramp=handle_ramp
                                 handle_conclude=handle_conclude
                                 handle_edit=handle_edit
+                                handle_discard=handle_discard
                             />
+                            <Modal
+                                id="experiment_discard_form_modal".to_string()
+                                handle_close=move || { close_modal("experiment_discard_form_modal") }
+                            >
+                                <ExperimentDiscardForm
+                                    experiment=experiment_df
+                                    handle_submit=move || { combined_resource.refetch() }
+                                />
+                            </Modal>
                             <Modal
                                 id="ramp_form_modal".to_string()
                                 handle_close=move || { close_modal("ramp_form_modal") }

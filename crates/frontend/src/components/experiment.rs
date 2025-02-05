@@ -17,6 +17,7 @@ fn badge_class(status_type: ExperimentStatusType) -> &'static str {
         ExperimentStatusType::CREATED => "badge-info",
         ExperimentStatusType::INPROGRESS => "badge-warning",
         ExperimentStatusType::CONCLUDED => "badge-success",
+        ExperimentStatusType::DISCARDED => "badge-neutral",
     }
 }
 
@@ -57,18 +58,20 @@ pub fn gen_variant_table(
 }
 
 #[component]
-pub fn experiment<HS, HR, HC, HE>(
+pub fn experiment<HS, HR, HC, HE, HD>(
     experiment: Experiment,
     handle_start: HS,
     handle_ramp: HR,
     handle_conclude: HC,
     handle_edit: HE,
+    handle_discard: HD,
 ) -> impl IntoView
 where
     HS: Fn(String) + 'static + Clone,
     HR: Fn() + 'static + Clone,
     HC: Fn() + 'static + Clone,
     HE: Fn() + 'static + Clone,
+    HD: Fn() + 'static + Clone,
 {
     let experiment = store_value(experiment);
     let contexts = experiment.with_value(|v| v.context.clone());
@@ -92,6 +95,7 @@ where
                     let handle_conclude = handle_conclude.clone();
                     let handle_ramp = handle_ramp.clone();
                     let handle_edit = handle_edit.clone();
+                    let handle_discard = handle_discard.clone();
                     match experiment.with_value(|v| v.status) {
                         ExperimentStatusType::CREATED => {
                             view! {
@@ -102,6 +106,14 @@ where
 
                                     <i class="ri-edit-line"></i>
                                     Edit
+                                </button>
+                                <button
+                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                    on:click=move |_| { handle_discard() }
+                                >
+
+                                    <i class="ri-delete-bin-line"></i>
+                                    Discard
                                 </button>
                                 <button
                                     class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
@@ -151,6 +163,9 @@ where
                                 </div>
                             }
                                 .into_view()
+                        }
+                        ExperimentStatusType::DISCARDED => {
+                            view! {<></>}.into_view()
                         }
                     }
                 }}

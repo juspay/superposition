@@ -47,6 +47,7 @@ pub enum WebhookEvent {
     ExperimentInprogress,
     ExperimentUpdated,
     ExperimentConcluded,
+    ExperimentDiscarded,
 }
 
 #[derive(Serialize, Deserialize)]
