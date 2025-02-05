@@ -79,7 +79,7 @@ pub fn side_nav(
     let workspace_resource = create_blocking_resource(
         move || org_rws.get().0,
         |org_id| async move {
-            let filters = PaginationParams::default();
+            let filters = PaginationParams::all_entries();
             fetch_workspaces(&filters, &org_id)
                 .await
                 .unwrap_or_default()
