@@ -8,6 +8,47 @@ use serde_json::{json, Map, Value};
 use superposition_types::SortBy;
 
 #[component]
+pub fn expandable_text(
+    #[prop(into)] text: String,
+    #[prop(into, default = String::new())] cell_class: String,
+    #[prop(default = 100)] max_length: usize,
+) -> impl IntoView {
+    let (is_expanded, set_is_expanded) = create_signal(false);
+
+    view! {
+        <td class=cell_class>
+            <span>
+                {move || {
+                    let should_expand = text.len() > max_length && !is_expanded.get();
+                    let displayed_text = if should_expand {
+                        text[..max_length].to_string()
+                    } else {
+                        text.clone()
+                    };
+                    view! {
+                        <>
+                            {displayed_text}
+                            {if text.len() > max_length {
+                                view! {
+                                    <span
+                                        class="text-blue-500 cursor-pointer ml-2"
+                                        on:click=move |_| set_is_expanded.set(!is_expanded.get())
+                                    >
+                                        {if is_expanded.get() { "Read less" } else { "Read more" }}
+                                    </span>
+                                }
+                            } else {
+                                view! { <span></span> }
+                            }}
+                        </>
+                    }
+                }}
+            </span>
+        </td>
+    }
+}
+
+#[component]
 pub fn table(
     key_column: String,
     columns: Vec<Column>,
@@ -43,13 +84,17 @@ pub fn table(
                                                 on:click=move |_| sort_fn.call(())
                                             >
                                                 {column_name}
-                                                    {
-                                                        match (currently_sorted, sort_by) {
-                                                            (false, _) => view! { <i class="ri-expand-up-down-line"></i> },
-                                                            (_, SortBy::Desc) => view! { <i class="ri-arrow-down-s-line"></i> },
-                                                            (_, SortBy::Asc) => view! { <i class="ri-arrow-up-s-line"></i> },
-                                                        }
+                                                {match (currently_sorted, sort_by) {
+                                                    (false, _) => {
+                                                        view! { <i class="ri-expand-up-down-line"></i> }
                                                     }
+                                                    (_, SortBy::Desc) => {
+                                                        view! { <i class="ri-arrow-down-s-line"></i> }
+                                                    }
+                                                    (_, SortBy::Asc) => {
+                                                        view! { <i class="ri-arrow-up-s-line"></i> }
+                                                    }
+                                                }}
 
                                             </th>
                                         }
@@ -95,9 +140,20 @@ pub fn table(
                                                 .get(cname)
                                                 .unwrap_or(&Value::String(String::new()))
                                                 .html_display();
-                                            view! {
-                                                <td class=cell_class
-                                                    .to_string()>{(column.formatter)(&value, row)}</td>
+                                            if cname == "actions" {
+                                                view! {
+                                                    <td class=cell_class
+                                                        .to_string()>{(column.formatter)(&value, row)}</td>
+                                                }
+                                                    .into_view()
+                                            } else {
+                                                view! {
+                                                    <ExpandableText
+                                                        text=value
+                                                        cell_class=cell_class.clone()
+                                                        max_length=50
+                                                    />
+                                                }
                                             }
                                         })
                                         .collect_view()}
