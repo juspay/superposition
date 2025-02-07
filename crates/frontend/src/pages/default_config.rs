@@ -6,15 +6,19 @@ use serde_json::{json, Map, Value};
 use superposition_types::custom_query::PaginationParams;
 
 use crate::api::{delete_default_config, fetch_default_config};
-use crate::components::default_config_form::DefaultConfigForm;
-use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
-use crate::components::skeleton::Skeleton;
-use crate::components::stat::Stat;
-use crate::components::table::types::ColumnSortable;
-use crate::components::table::{
-    types::{Column, TablePaginationProps},
-    Table,
+use crate::components::{
+    alert::AlertType,
+    default_config_form::DefaultConfigForm,
+    delete_modal::DeleteModal,
+    drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
+    skeleton::Skeleton,
+    stat::Stat,
+    table::{
+        types::{Column, ColumnSortable, TablePaginationProps},
+        Table,
+    },
 };
+use crate::providers::alert_provider::enqueue_alert;
 use crate::types::{BreadCrums, OrganisationId, Tenant};
 use crate::utils::{
     get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
@@ -35,6 +39,10 @@ pub fn default_config() -> impl IntoView {
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let enable_grouping = create_rw_signal(false);
     let (filters, set_filters) = create_signal(PaginationParams::default());
+
+    let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
+    let (delete_key_rs, delete_key_ws) = create_signal::<Option<String>>(None);
+
     let default_config_resource = create_blocking_resource(
         move || (tenant_rws.get().0, filters.get(), org_rws.get().0),
         |(current_tenant, filters, org_id)| async move {
@@ -52,6 +60,39 @@ pub fn default_config() -> impl IntoView {
     let set_filters_none = move || set_filters.set(PaginationParams::all_entries());
 
     let set_filters_default = move || set_filters.set(PaginationParams::default());
+
+    let confirm_delete = Callback::new(move |_| {
+        let tenant = tenant_rws.get().0;
+        let org = org_rws.get().0;
+        let prefix = key_prefix.get().unwrap_or_default();
+        if let Some(key_name) = delete_key_rs.get() {
+            spawn_local({
+                async move {
+                    let api_response = delete_default_config(
+                        format!("{prefix}{}", key_name),
+                        tenant,
+                        org,
+                    )
+                    .await;
+                    match api_response {
+                        Ok(_) => {
+                            enqueue_alert(
+                                format!("Config {key_name} deleted successfully"),
+                                AlertType::Success,
+                                5000,
+                            );
+                            default_config_resource.refetch();
+                        }
+                        Err(err) => {
+                            enqueue_alert(String::from(err), AlertType::Error, 5000)
+                        }
+                    }
+                }
+            });
+        }
+        delete_key_ws.set(None);
+        delete_modal_visible_ws.set(false);
+    });
 
     create_effect(move |_| {
         let enable_grouping_val =
@@ -131,20 +172,8 @@ pub fn default_config() -> impl IntoView {
             };
 
             let handle_delete = move |_| {
-                let tenant = tenant_rws.get().0;
-                let org = org_rws.get().0;
-                let prefix = key_prefix.get().unwrap_or_default();
-                spawn_local({
-                    async move {
-                        let _ = delete_default_config(
-                            format!("{prefix}{}", key_name.get_value()),
-                            tenant,
-                            org,
-                        )
-                        .await;
-                        default_config_resource.refetch();
-                    }
-                });
+                delete_key_ws.set(Some(key_name.get_value()));
+                delete_modal_visible_ws.set(true);
             };
 
             if is_folder && grouping_enabled {
@@ -358,9 +387,16 @@ pub fn default_config() -> impl IntoView {
                                 />
                             </div>
                         </div>
+                        <DeleteModal
+                            modal_visible=delete_modal_visible_rs
+                            confirm_delete=confirm_delete
+                            set_modal_visible=delete_modal_visible_ws
+                            header_text="Are you sure you want to delete this config? Action is irreversible."
+                                .to_string()
+                        />
                     }
-                }}
 
+                }}
             </Suspense>
         </div>
     }
