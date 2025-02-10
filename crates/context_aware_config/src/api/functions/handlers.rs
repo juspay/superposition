@@ -25,7 +25,9 @@ use superposition_types::{
 use validation_functions::{compile_fn, execute_fn};
 
 use crate::{
-    api::functions::types::{Stage, TestFunctionRequest, TestParam},
+    api::functions::types::{
+        Stage, TestFunctionRequest, TestParam, UpdateFunctionRequestChangeset,
+    },
     validation_functions,
 };
 
@@ -124,9 +126,11 @@ async fn update(
     let mut updated_function = diesel::update(functions)
         .filter(schema::functions::function_name.eq(f_name))
         .set((
-            req.as_changeset(),
+            UpdateFunctionRequestChangeset::from(req),
             dsl::draft_edited_by.eq(user.get_email()),
             dsl::draft_edited_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_by.eq(user.get_email()),
+            dsl::last_modified_at.eq(Utc::now().naive_utc()),
         ))
         .returning(Function::as_returning())
         .schema_name(&schema_name)

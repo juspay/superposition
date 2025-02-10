@@ -17,8 +17,8 @@ use crate::{
     api::{
         context::{
             helpers::{
-                create_ctx_from_put_req, ensure_description, hash,
-                replace_override_of_existing_ctx, update_override_of_existing_ctx,
+                create_ctx_from_put_req, hash, replace_override_of_existing_ctx,
+                update_override_of_existing_ctx,
                 validate_condition_with_mandatory_dimensions,
             },
             validations::validate_dimensions,

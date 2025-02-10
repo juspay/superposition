@@ -18,12 +18,12 @@ use superposition_types::{
         schema::dimensions::{self, dsl::*},
         types::DimensionWithMandatory,
     },
-    result as superposition, PaginatedResponse, User,
+    result as superposition, PaginatedResponse, Position, User,
 };
 
 use crate::{
     api::dimension::{
-        types::{CreateReq, Position},
+        types::{CreateReq, UpdateReqChangeset},
         utils::{get_dimension_usage_context_ids, validate_dimension_position},
     },
     helpers::{get_workspace, validate_jsonschema},
@@ -83,7 +83,7 @@ async fn create(
 
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
         diesel::update(dimensions::table)
-            .filter(dimensions::position.ge(dimension_data.position))
+            .filter(dimensions::position.ge(dimension_data.position.clone()))
             .set((
                 last_modified_at.eq(Utc::now().naive_utc()),
                 last_modified_by.eq(user.get_email()),
@@ -143,11 +143,11 @@ async fn update(
     use dimensions::dsl;
     let DbConnection(mut conn) = db_conn;
 
-    let existing_position: i32 = dsl::dimensions
+    let existing_position: Position = dsl::dimensions
         .select(dimensions::position)
         .filter(dimensions::dimension.eq(name.clone()))
         .schema_name(&schema_name)
-        .get_result::<i32>(&mut conn)?;
+        .get_result::<Position>(&mut conn)?;
 
     let num_rows = dimensions
         .count()
@@ -160,16 +160,15 @@ async fn update(
 
     let mut update_req = req.into_inner();
 
-    if let Some(schema_value) = update_req.clone().schema {
+    if let Some(schema_value) = update_req.schema.clone() {
         validate_jsonschema(&state.meta_schema, &schema_value)?;
     }
 
     let result =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let mut new_position = existing_position.clone();
-
-            if let Some(position_val) = update_req.clone().position {
-                new_position = position_val.clone().into();
+            if let Some(position_val) = update_req.position.clone() {
+                new_position = position_val.clone();
                 validate_dimension_position(
                     path.into_inner(),
                     position_val,
@@ -178,7 +177,7 @@ async fn update(
                 let previous_position = existing_position.clone();
 
                 diesel::update(dimensions)
-                    .filter(dsl::dimension.eq(name.clone()))
+                    .filter(dsl::dimension.eq(&name))
                     .set((
                         dsl::last_modified_at.eq(Utc::now().naive_utc()),
                         dsl::last_modified_by.eq(user.get_email()),
@@ -191,7 +190,7 @@ async fn update(
                 if previous_position < new_position {
                     diesel::update(dsl::dimensions)
                         .filter(dimensions::position.gt(previous_position))
-                        .filter(dimensions::position.le(new_position))
+                        .filter(dimensions::position.le(&new_position))
                         .set((
                             dsl::last_modified_at.eq(Utc::now().naive_utc()),
                             dsl::last_modified_by.eq(user.get_email()),
@@ -203,7 +202,7 @@ async fn update(
                 } else {
                     diesel::update(dsl::dimensions)
                         .filter(dimensions::position.lt(previous_position))
-                        .filter(dimensions::position.ge(new_position))
+                        .filter(dimensions::position.ge(&new_position))
                         .set((
                             dsl::last_modified_at.eq(Utc::now().naive_utc()),
                             dsl::last_modified_by.eq(user.get_email()),
@@ -214,13 +213,11 @@ async fn update(
                         .execute(transaction_conn)?
                 };
             }
-            let update_position =
-                Position::try_from(new_position).map_err(|err| unexpected_error!(err))?;
-            update_req.position = Some(update_position);
+            update_req.position = Some(new_position.clone());
             diesel::update(dimensions)
                 .filter(dsl::dimension.eq(name))
                 .set((
-                    update_req.as_changeset(),
+                    UpdateReqChangeset::from(update_req),
                     dimensions::last_modified_at.eq(Utc::now().naive_utc()),
                     dimensions::last_modified_by.eq(user.get_email()),
                 ))

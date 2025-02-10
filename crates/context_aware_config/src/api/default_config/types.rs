@@ -2,7 +2,9 @@ use derive_more::{AsRef, Deref, DerefMut, Into};
 use diesel::AsChangeset;
 use serde::{Deserialize, Deserializer};
 use serde_json::{Map, Value};
-use superposition_types::{database::schema::default_configs, RegexEnum};
+use superposition_types::{
+    api::function::FunctionNameEnum, database::schema::default_configs, RegexEnum,
+};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateReq {
@@ -14,7 +16,7 @@ pub struct CreateReq {
     pub change_reason: String,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize)]
 pub struct UpdateReq {
     #[serde(default, deserialize_with = "deserialize_option")]
     pub value: Option<Value>,
@@ -24,18 +26,14 @@ pub struct UpdateReq {
     pub change_reason: String,
 }
 
-impl UpdateReq {
-    pub fn as_changeset(self) -> UpdateReqChangeset {
-        UpdateReqChangeset {
-            value: self.value,
-            schema: self.schema.map(Value::Object),
-            function_name: match self.function_name {
-                Some(FunctionNameEnum::Name(val)) => Some(Some(val)),
-                Some(FunctionNameEnum::Remove) => Some(None),
-                _ => None,
-            },
-            description: self.description,
-            change_reason: self.change_reason,
+impl From<UpdateReq> for UpdateReqChangeset {
+    fn from(req: UpdateReq) -> Self {
+        Self {
+            value: req.value,
+            schema: req.schema.map(Value::Object),
+            function_name: req.function_name.map(|x| x.to_option()),
+            description: req.description,
+            change_reason: req.change_reason,
         }
     }
 }
@@ -51,31 +49,6 @@ pub struct UpdateReqChangeset {
     pub function_name: Option<Option<String>>,
     pub description: Option<String>,
     pub change_reason: String,
-}
-
-#[derive(Debug, Clone)]
-pub enum FunctionNameEnum {
-    Name(String),
-    Remove,
-}
-
-impl<'de> Deserialize<'de> for FunctionNameEnum {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let map: Value = Deserialize::deserialize(deserializer)?;
-        match map {
-            Value::String(func_name) => Ok(Self::Name(func_name)),
-            Value::Null => Ok(Self::Remove),
-            _ => {
-                log::error!("Expected a string or null literal as the function name.");
-                Err(serde::de::Error::custom(
-                    "Expected a string or null literal as the function name.",
-                ))
-            }
-        }
-    }
 }
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]

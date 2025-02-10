@@ -30,13 +30,13 @@ use crate::helpers::put_config_in_redis;
 use crate::{
     api::{
         context::helpers::validate_value_with_function,
-        default_config::types::DefaultConfigKey,
+        default_config::types::{DefaultConfigKey, UpdateReqChangeset},
         functions::helpers::get_published_function_code,
     },
     helpers::add_config_version,
 };
 
-use super::types::{CreateReq, FunctionNameEnum, UpdateReq};
+use super::types::{CreateReq, UpdateReq};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -134,7 +134,6 @@ async fn create_default_config(
             let version_id = add_config_version(
                 &state,
                 tags,
-                description,
                 change_reason,
                 transaction_conn,
                 &schema_name,
@@ -183,10 +182,6 @@ async fn update_default_config(
             }
         })?;
 
-    let description = req
-        .description
-        .clone()
-        .unwrap_or_else(|| existing.description.clone());
     let change_reason = req.change_reason.clone();
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
@@ -215,11 +210,10 @@ async fn update_default_config(
         ));
     }
 
-    let function_name = match req.function_name.clone() {
-        Some(FunctionNameEnum::Name(func_name)) => Some(func_name),
-        Some(FunctionNameEnum::Remove) => None,
-        None => existing.function_name.clone(),
-    };
+    let function_name = req
+        .function_name
+        .clone()
+        .map_or_else(|| existing.function_name.clone(), |f| f.to_option());
 
     if let Err(e) = validate_and_get_function_code(
         &mut conn,
@@ -237,7 +231,7 @@ async fn update_default_config(
             let val = diesel::update(dsl::default_configs)
                 .filter(dsl::key.eq(key_str.clone()))
                 .set((
-                    req.clone().as_changeset(),
+                    UpdateReqChangeset::from(req),
                     dsl::last_modified_at.eq(Utc::now().naive_utc()),
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
@@ -247,7 +241,6 @@ async fn update_default_config(
             let version_id = add_config_version(
                 &state,
                 tags.clone(),
-                description,
                 change_reason,
                 transaction_conn,
                 &schema_name,
@@ -384,8 +377,6 @@ async fn delete(
     let key: String = path.into_inner().into();
     let mut version_id = 0;
 
-    let default_config_row = fetch_default_key(&key, &mut conn, &schema_name)?;
-
     let context_ids = get_key_usage_context_ids(&key, &mut conn, &schema_name)
         .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
@@ -400,7 +391,6 @@ async fn delete(
                     .schema_name(&schema_name)
                     .execute(transaction_conn)?;
 
-                let description = default_config_row.description;
                 let change_reason = format!("Context Deleted by {}", user.get_email());
 
                 let deleted_row =
@@ -415,7 +405,6 @@ async fn delete(
                         version_id = add_config_version(
                             &state,
                             tags,
-                            description,
                             change_reason,
                             transaction_conn,
                             &schema_name,

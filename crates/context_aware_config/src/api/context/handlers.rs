@@ -98,7 +98,6 @@ async fn put_handler(
             let version_id = add_config_version(
                 &state,
                 tags,
-                description,
                 req_change_reason,
                 transaction_conn,
                 &schema_name,
@@ -158,7 +157,6 @@ async fn update_override_handler(
             let version_id = add_config_version(
                 &state,
                 tags,
-                description.clone(),
                 req_change_reason.clone(),
                 transaction_conn,
                 &schema_name,
@@ -220,7 +218,6 @@ async fn move_handler(
             let version_id = add_config_version(
                 &state,
                 tags,
-                move_response.description.clone(),
                 move_response.change_reason.clone(),
                 transaction_conn,
                 &schema_name,
@@ -385,17 +382,15 @@ async fn delete_context_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let version_id =
         db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let context = contexts_table
+            contexts_table
                 .filter(context_id.eq(ctx_id.clone()))
                 .schema_name(&schema_name)
                 .first::<Context>(transaction_conn)?;
             operations::delete(ctx_id.clone(), &user, transaction_conn, &schema_name)?;
-            let description = context.description;
             let change_reason = format!("Deleted context by {}", user.username);
             let version_id = add_config_version(
                 &state,
                 tags,
-                description,
                 change_reason,
                 transaction_conn,
                 &schema_name,
@@ -570,14 +565,11 @@ async fn bulk_operations(
                 }
             }
 
-            let combined_description = all_descriptions.join(",");
-
             let combined_change_reasons = all_change_reasons.join(",");
 
             let version_id = add_config_version(
                 &state,
                 tags,
-                combined_description,
                 combined_change_reasons,
                 transaction_conn,
                 &schema_name,
@@ -669,9 +661,8 @@ async fn weight_recompute(
                         db_error!(err)
                     })?;
             }
-            let description = "Recomputed weight".to_string();
             let change_reason = "Recomputed weight".to_string();
-            let version_id = add_config_version(&state, tags, description, change_reason, transaction_conn, &schema_name)?;
+            let version_id = add_config_version(&state, tags, change_reason, transaction_conn, &schema_name)?;
             Ok(version_id)
         })?;
     #[cfg(feature = "high-performance-mode")]

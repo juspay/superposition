@@ -1,8 +1,10 @@
 use derive_more::{AsRef, Deref, DerefMut, Into};
 use diesel::AsChangeset;
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 use serde_json::Value;
-use superposition_types::{database::schema::dimensions, RegexEnum};
+use superposition_types::{
+    api::function::FunctionNameEnum, database::schema::dimensions, Position, RegexEnum,
+};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateReq {
@@ -14,26 +16,6 @@ pub struct CreateReq {
     pub change_reason: String,
 }
 
-#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into, Clone, Default)]
-#[serde(try_from = "i32")]
-pub struct Position(i32);
-impl Position {
-    fn validate_data(position_val: i32) -> Result<Self, String> {
-        if position_val < 0 {
-            Err("Position should be greater than equal to 0".to_string())
-        } else {
-            Ok(Self(position_val))
-        }
-    }
-}
-
-impl TryFrom<i32> for Position {
-    type Error = String;
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        Self::validate_data(value)
-    }
-}
-
 #[derive(Debug, Deserialize, Clone)]
 pub struct UpdateReq {
     pub position: Option<Position>,
@@ -43,18 +25,14 @@ pub struct UpdateReq {
     pub change_reason: String,
 }
 
-impl UpdateReq {
-    pub fn as_changeset(self) -> UpdateReqChangeset {
-        UpdateReqChangeset {
-            position: self.position.map(|x| x.into()),
-            schema: self.schema,
-            function_name: match self.function_name {
-                Some(FunctionNameEnum::Name(val)) => Some(Some(val)),
-                Some(FunctionNameEnum::Remove) => Some(None),
-                _ => None,
-            },
-            description: self.description,
-            change_reason: self.change_reason,
+impl From<UpdateReq> for UpdateReqChangeset {
+    fn from(req: UpdateReq) -> Self {
+        Self {
+            position: req.position.map(|x| x.into()),
+            schema: req.schema,
+            function_name: req.function_name.map(|x| x.to_option()),
+            description: req.description,
+            change_reason: req.change_reason,
         }
     }
 }
@@ -70,31 +48,6 @@ pub struct UpdateReqChangeset {
     pub function_name: Option<Option<String>>,
     pub description: Option<String>,
     pub change_reason: String,
-}
-
-#[derive(Debug, Clone)]
-pub enum FunctionNameEnum {
-    Name(String),
-    Remove,
-}
-
-impl<'de> Deserialize<'de> for FunctionNameEnum {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let map: Value = Deserialize::deserialize(deserializer)?;
-        match map {
-            Value::String(func_name) => Ok(Self::Name(func_name)),
-            Value::Null => Ok(Self::Remove),
-            _ => {
-                log::error!("Expected a string or null literal as the function name.");
-                Err(serde::de::Error::custom(
-                    "Expected a string or null literal as the function name.",
-                ))
-            }
-        }
-    }
 }
 
 #[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into, Clone)]

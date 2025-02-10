@@ -5,7 +5,7 @@ use diesel::{AsChangeset, Insertable, Queryable, Selectable};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{Cac, Condition, Contextual, Overridden, Overrides};
+use crate::{Cac, Condition, Contextual, Overridden, Overrides, Position};
 
 #[cfg(feature = "diesel_derives")]
 use super::super::schema::{
@@ -63,7 +63,7 @@ pub struct Dimension {
     pub function_name: Option<String>,
     pub last_modified_at: NaiveDateTime,
     pub last_modified_by: String,
-    pub position: i32,
+    pub position: Position,
     pub description: String,
     pub change_reason: String,
 }
@@ -138,7 +138,6 @@ pub struct ConfigVersion {
     pub config_hash: String,
     pub tags: Option<Vec<String>>,
     pub created_at: NaiveDateTime,
-    pub description: String,
     pub change_reason: String,
 }
 

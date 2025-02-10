@@ -9,10 +9,10 @@ use superposition_types::{
         models::cac::{Context, Dimension},
         schema::{contexts::dsl::contexts, dimensions::dsl::*},
     },
-    result as superposition, Cac, Condition, DBConnection,
+    result as superposition, Cac, Condition, DBConnection, Position,
 };
 
-use super::types::{DimensionName, Position};
+use super::types::DimensionName;
 
 pub fn get_dimension_data(
     conn: &mut DBConnection,
@@ -38,7 +38,7 @@ pub fn get_dimension_data_map(
                 item.dimension.clone(),
                 DimensionData {
                     schema: compiled_schema,
-                    position: item.position,
+                    position: item.position.clone().into(),
                 },
             ))
         })

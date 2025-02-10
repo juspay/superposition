@@ -13,13 +13,13 @@ pub struct UpdateFunctionRequest {
     pub change_reason: String,
 }
 
-impl UpdateFunctionRequest {
-    pub fn as_changeset(self) -> UpdateFunctionRequestChangeset {
-        UpdateFunctionRequestChangeset {
-            draft_code: self.function.map(|x| BASE64_STANDARD.encode(x)),
-            draft_runtime_version: self.runtime_version,
-            description: self.description,
-            change_reason: self.change_reason,
+impl From<UpdateFunctionRequest> for UpdateFunctionRequestChangeset {
+    fn from(req: UpdateFunctionRequest) -> Self {
+        Self {
+            draft_code: req.function.map(|x| BASE64_STANDARD.encode(x)),
+            draft_runtime_version: req.runtime_version,
+            description: req.description,
+            change_reason: req.change_reason,
         }
     }
 }
