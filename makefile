@@ -4,6 +4,7 @@ TENANT ?= dev
 SHELL := /usr/bin/env bash
 FEATURES ?= ssr
 CARGO_FLAGS := --color always --no-default-features
+WASM_PACK_MODE ?= --dev
 HAS_DOCKER := $(shell command -v docker > /dev/null; echo $$?)
 HAS_PODMAN := $(shell command -v podman > /dev/null; echo $$?)
 ifeq ($(HAS_DOCKER),0)
@@ -132,7 +133,7 @@ superposition_dev:
 
 frontend:
 	cd crates/frontend && \
-		wasm-pack build --target web --dev --no-default-features --features hydrate
+		wasm-pack build --target web $(WASM_PACK_MODE) --no-default-features --features hydrate
 	cd crates/frontend && \
 		npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css
 	-rm -rf target/site
@@ -154,6 +155,7 @@ run: kill db localstack frontend superposition
 run_legacy: kill build db localstack superposition_legacy
 	@./target/debug/superposition_legacy
 
+test: WASM_PACK_MODE=--profiling
 test: setup frontend superposition
 	cargo test
 	@echo "Running superposition"

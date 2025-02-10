@@ -17,7 +17,7 @@ js-sys = "0.3.65"
 leptos = { workspace = true }
 leptos_meta = { version = "0.6.11" }
 leptos_router = { version = "0.6.11" }
-monaco = { git = "https://github.com/datron/rust-monaco.git" }
+monaco = { git = "https://github.com/datron/rust-monaco.git", rev = "5c9c93a" }
 once_cell = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
