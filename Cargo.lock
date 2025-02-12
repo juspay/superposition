@@ -2688,9 +2688,9 @@ dependencies = [
 
 [[package]]
 name = "js-sys"
-version = "0.3.66"
+version = "0.3.70"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cee9c64da59eae3b50095c18d3e74f8b73c0b86d2792824ff01bbce68ba229ca"
+checksum = "1868808506b929d7b0cfa8f75951347aa71bb21144b7791bae35d9bccfcfe37a"
 dependencies = [
  "wasm-bindgen",
 ]
@@ -3173,8 +3173,8 @@ dependencies = [
 
 [[package]]
 name = "monaco"
-version = "0.5.0"
-source = "git+https://github.com/datron/rust-monaco.git#177672e133d75adce866f0775739b47d21b5c077"
+version = "0.5.1"
+source = "git+https://github.com/datron/rust-monaco.git?rev=5c9c93a#5c9c93a33802bfafb25fb88fd1e27adb077dcbf6"
 dependencies = [
  "js-sys",
  "paste",
@@ -5350,9 +5350,9 @@ dependencies = [
 
 [[package]]
 name = "web-sys"
-version = "0.3.64"
+version = "0.3.70"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b85cbef8c220a6abc02aefd892dfc0fc23afb1c6a426316ec33253a3877249b"
+checksum = "26fdeaafd9bd129f65e7c031593c24d62186301e0c72c8978fa1678be7d532c0"
 dependencies = [
  "js-sys",
  "wasm-bindgen",

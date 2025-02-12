@@ -26,7 +26,7 @@ RUN cd crates/context_aware_config/ && npm ci
 RUN mkdir -p target/node_modules
 RUN cp -a crates/context_aware_config/node_modules target/
 RUN cd crates/frontend \
-    && wasm-pack build --target=web --no-default-features --features=hydrate
+    && wasm-pack build --target=web --release --no-default-features --features=hydrate
 
 # copying .wasm, .js and .css files to target/site directory
 RUN mkdir -p target/site && mkdir -p target/site/pkg
