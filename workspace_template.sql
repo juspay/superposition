@@ -451,4 +451,9 @@ VALUES (
         'variantIds are used by experimentation module to manage and select variations'
 );
 
-ALTER TYPE public.experiment_status_type ADD VALUE 'DISCARDED';
+
+DO $$ BEGIN
+    ALTER TYPE public.experiment_status_type ADD VALUE 'DISCARDED';
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
