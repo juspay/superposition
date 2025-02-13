@@ -1,5 +1,6 @@
 use leptos::ServerFnError;
 use superposition_types::{
+    api::default_config::DefaultConfigFilters,
     custom_query::PaginationParams,
     database::{
         models::{
@@ -45,14 +46,15 @@ pub async fn fetch_dimensions(
 
 // #[server(GetDefaultConfig, "/fxn", "GetJson")]
 pub async fn fetch_default_config(
-    filters: &PaginationParams,
+    pagination: &PaginationParams,
+    filters: &DefaultConfigFilters,
     tenant: String,
     org_id: String,
 ) -> Result<PaginatedResponse<DefaultConfig>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let url = format!("{}/default-config?{}", host, filters);
+    let url = format!("{}/default-config?{}&{}", host, pagination, filters);
     let response: PaginatedResponse<DefaultConfig> = client
         .get(url)
         .header("x-tenant", tenant)
