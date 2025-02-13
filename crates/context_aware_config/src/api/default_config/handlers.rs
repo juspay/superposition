@@ -6,7 +6,10 @@ use actix_web::{
     HttpResponse, Scope,
 };
 use chrono::Utc;
-use diesel::{Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
+use diesel::{
+    Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
+    TextExpressionMethods,
+};
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Value;
 use service_utils::{
@@ -30,7 +33,7 @@ use crate::helpers::put_config_in_redis;
 use crate::{
     api::{
         context::helpers::validate_value_with_function,
-        default_config::types::DefaultConfigKey,
+        default_config::types::{DefaultConfigFilters, DefaultConfigKey},
         functions::helpers::get_published_function_code,
     },
     helpers::add_config_version,
@@ -42,7 +45,7 @@ pub fn endpoints() -> Scope {
     Scope::new("")
         .service(create_default_config)
         .service(update_default_config)
-        .service(get)
+        .service(list_default_configs)
         .service(delete)
 }
 
@@ -316,17 +319,28 @@ fn fetch_default_key(
 }
 
 #[get("")]
-async fn get(
+async fn list_default_configs(
     db_conn: DbConnection,
-    filters: Query<PaginationParams>,
+    pagination: Query<PaginationParams>,
+    filters: Query<DefaultConfigFilters>,
     schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<DefaultConfig>>> {
     let DbConnection(mut conn) = db_conn;
 
-    if let Some(true) = filters.all {
-        let result: Vec<DefaultConfig> = dsl::default_configs
-            .schema_name(&schema_name)
-            .get_results(&mut conn)?;
+    let filters = filters.into_inner();
+
+    let query_builder = |filters: &DefaultConfigFilters| {
+        let mut builder = dsl::default_configs.schema_name(&schema_name).into_boxed();
+        if let Some(ref config_name) = filters.name {
+            builder = builder
+                .filter(schema::default_configs::key.like(format!["%{}%", config_name]));
+        }
+        builder
+    };
+
+    if let Some(true) = pagination.all {
+        let result: Vec<DefaultConfig> =
+            query_builder(&filters).get_results(&mut conn)?;
         return Ok(Json(PaginatedResponse {
             total_pages: 1,
             total_items: result.len() as i64,
@@ -334,17 +348,13 @@ async fn get(
         }));
     }
 
-    let n_default_configs: i64 = dsl::default_configs
-        .count()
-        .schema_name(&schema_name)
-        .get_result(&mut conn)?;
-    let limit = filters.count.unwrap_or(10);
-    let mut builder = dsl::default_configs
-        .order(dsl::created_at.desc())
-        .limit(limit)
-        .schema_name(&schema_name)
-        .into_boxed();
-    if let Some(page) = filters.page {
+    let base_query = query_builder(&filters);
+    let count_query = query_builder(&filters);
+
+    let n_default_configs: i64 = count_query.count().get_result(&mut conn)?;
+    let limit = pagination.count.unwrap_or(10);
+    let mut builder = base_query.order(dsl::created_at.desc()).limit(limit);
+    if let Some(page) = pagination.page {
         let offset = (page - 1) * limit;
         builder = builder.offset(offset);
     }
