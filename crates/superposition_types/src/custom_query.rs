@@ -5,7 +5,7 @@ use derive_more::{Deref, DerefMut};
 use regex::Regex;
 use serde::{
     de::{self, DeserializeOwned, IntoDeserializer},
-    Deserialize, Deserializer,
+    Deserialize, Deserializer, Serialize,
 };
 use serde_json::{Map, Value};
 
@@ -284,6 +284,21 @@ where
     }
 
     deserializer.deserialize_any(StringVecVisitor(std::marker::PhantomData::<I>))
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+pub struct DefaultConfigFilters {
+    pub name: Option<String>,
+}
+
+impl Display for DefaultConfigFilters {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut query_params = vec![];
+        if let Some(key_name) = &self.name {
+            query_params.push(format!("name={}", key_name));
+        }
+        write!(f, "{}", query_params.join("&"))
+    }
 }
 
 #[cfg(test)]
