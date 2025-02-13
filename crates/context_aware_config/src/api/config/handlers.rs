@@ -43,7 +43,7 @@ use uuid::Uuid;
 
 use crate::{api::context::PutReq, helpers::generate_cac};
 use crate::{
-    api::context::{self, helpers::ensure_description},
+    api::context::{self, helpers::query_description},
     helpers::DimensionData,
 };
 use crate::{
@@ -501,7 +501,7 @@ async fn reduce_config_key(
                         if let Ok(put_req) = construct_new_payload(request_payload) {
                             let description = match put_req.description.clone() {
                                 Some(val) => val,
-                                None => ensure_description(
+                                None => query_description(
                                     Value::Object(
                                         put_req.context.clone().into_inner().into(),
                                     ),

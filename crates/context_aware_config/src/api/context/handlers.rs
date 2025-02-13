@@ -8,7 +8,7 @@ use crate::{
     api::{
         context::{
             hash,
-            helpers::ensure_description,
+            helpers::query_description,
             operations,
             types::{
                 ContextAction, ContextBulkResponse, ContextFilterSortOn, ContextFilters,
@@ -69,7 +69,7 @@ async fn put_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let description = match req.description.clone() {
         Some(val) => val,
-        None => ensure_description(
+        None => query_description(
             Value::Object(req.context.clone().into_inner().into()),
             &mut db_conn,
             &schema_name,
@@ -132,7 +132,7 @@ async fn update_override_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let description = match req.description.clone() {
         Some(val) => val,
-        None => ensure_description(
+        None => query_description(
             Value::Object(req.context.clone().into_inner().into()),
             &mut db_conn,
             &schema_name,
@@ -193,7 +193,7 @@ async fn move_handler(
 
     let description = match req.description.clone() {
         Some(val) => val,
-        None => ensure_description(
+        None => query_description(
             Value::Object(req.context.clone().into_inner().into()),
             &mut db_conn,
             &schema_name,
@@ -437,7 +437,7 @@ async fn bulk_operations(
                             Value::Object(ctx_condition.clone().into());
 
                         let description = if put_req.description.is_none() {
-                            ensure_description(
+                            query_description(
                                 ctx_condition_value.clone(),
                                 transaction_conn,
                                 &schema_name,
@@ -533,7 +533,7 @@ async fn bulk_operations(
                     ContextAction::Move((old_ctx_id, move_req)) => {
                         let description = match move_req.description.clone() {
                             Some(val) => val,
-                            None => ensure_description(
+                            None => query_description(
                                 Value::Object(
                                     move_req.context.clone().into_inner().into(),
                                 ),

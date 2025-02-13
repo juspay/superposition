@@ -138,7 +138,7 @@ pub struct ConfigVersion {
     pub config_hash: String,
     pub tags: Option<Vec<String>>,
     pub created_at: NaiveDateTime,
-    pub change_reason: String,
+    pub description: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

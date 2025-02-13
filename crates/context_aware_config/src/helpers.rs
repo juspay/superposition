@@ -308,7 +308,7 @@ pub fn add_config_version(
         config_hash,
         tags,
         created_at: Utc::now().naive_utc(),
-        change_reason: description,
+        description,
     };
     diesel::insert_into(config_versions)
         .values(&config_version)

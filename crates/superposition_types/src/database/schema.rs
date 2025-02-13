@@ -13,7 +13,7 @@ diesel::table! {
         config_hash -> Text,
         tags -> Nullable<Array<Varchar>>,
         created_at -> Timestamp,
-        change_reason -> Text,
+        description -> Text,
     }
 }
 

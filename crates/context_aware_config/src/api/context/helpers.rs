@@ -182,7 +182,7 @@ pub fn validate_value_with_function(
     Ok(())
 }
 
-pub fn ensure_description(
+pub fn query_description(
     context: Value,
     transaction_conn: &mut diesel::PgConnection,
     schema_name: &SchemaName,
