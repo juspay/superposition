@@ -10,7 +10,7 @@ use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::{json, Map, Value};
 use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
-use superposition_macros::{bad_argument, unexpected_error, validation_error};
+use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     database::{
         models::cac::Context,
@@ -221,13 +221,11 @@ pub fn create_ctx_from_put_req(
     let condition_val = Value::Object(ctx_condition.clone().into());
     let r_override = req.r#override.clone().into_inner();
     let ctx_override = Value::Object(r_override.clone().into());
-    let description = if req.description.is_none() {
+    let description = if let Some(description) = req.description.clone() {
+        description
+    } else {
         let ctx_condition_value = json!(ctx_condition);
         ensure_description(ctx_condition_value, conn, schema_name)?
-    } else {
-        req.description
-            .clone()
-            .ok_or_else(|| bad_argument!("Description should not be empty"))?
     };
 
     let workspace_settings = get_workspace(schema_name, conn)?;

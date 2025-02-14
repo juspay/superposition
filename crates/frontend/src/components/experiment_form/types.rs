@@ -37,4 +37,6 @@ impl FromIterator<VariantFormT> for Vec<VariantUpdateRequest> {
 #[derive(Serialize, Debug)]
 pub struct ExperimentUpdateRequest {
     pub variants: Vec<VariantUpdateRequest>,
+    pub description: Option<String>,
+    pub change_reason: String,
 }

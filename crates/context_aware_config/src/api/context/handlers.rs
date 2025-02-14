@@ -439,24 +439,30 @@ async fn bulk_operations(
                             err
                         })?;
 
-                        let ctx_condition = put_req.context.to_owned().into_inner();
-                        let ctx_condition_value =
-                            Value::Object(ctx_condition.clone().into());
-
-                        let description = if put_req.description.is_none() {
-                            ensure_description(
-                                ctx_condition_value.clone(),
-                                transaction_conn,
-                                &schema_name,
-                            )?
-                        } else {
-                            put_req
-                                .description
-                                .expect("Description should not be empty")
-                        };
-                        all_descriptions.push(description);
+                        all_descriptions.push(put_resp.description.clone());
                         all_change_reasons.push(put_req.change_reason.clone());
                         response.push(ContextBulkResponse::Put(put_resp));
+                    }
+                    ContextAction::Replace(put_req) => {
+                        let put_resp = operations::put(
+                            Json(put_req.clone()),
+                            transaction_conn,
+                            true,
+                            &user,
+                            &schema_name,
+                            true,
+                        )
+                        .map_err(|err| {
+                            log::error!(
+                                "Failed at insert into contexts due to {:?}",
+                                err
+                            );
+                            err
+                        })?;
+
+                        all_descriptions.push(put_resp.description.clone());
+                        all_change_reasons.push(put_req.change_reason.clone());
+                        response.push(ContextBulkResponse::Replace(put_resp));
                     }
                     ContextAction::Delete(ctx_id) => {
                         let context: Context = contexts
