@@ -30,11 +30,13 @@ jobs:
               uses: baptiste0928/cargo-install@v2.2.0
               with:
                   crate: cargo-edit
+                  version: "0.13.0"
 
             - name: install cocogitto
               uses: baptiste0928/cargo-install@v2.2.0
               with:
                   crate: cocogitto
+                  version: "6.2.0"
 
             - name: Semver release
               shell: bash
