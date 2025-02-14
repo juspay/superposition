@@ -766,10 +766,12 @@ async fn list_experiments(
                 builder.filter(experiments::name.like(format!("%{}%", experiment_name)));
         }
         if let Some(ref context_search) = filters.context {
-            builder = builder.filter(
-                sql::<Bool>("context::text LIKE ")
-                    .bind::<Text, _>(format!("%{}%", context_search)),
-            );
+            for c in context_search.iter() {
+                builder = builder.filter(
+                    sql::<Bool>("context::text LIKE ")
+                        .bind::<Text, _>(format!("%{}%", c)),
+                );
+            }
         }
         if let Some(ref created_by) = filters.created_by {
             builder =
