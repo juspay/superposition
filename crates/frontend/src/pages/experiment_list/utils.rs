@@ -31,10 +31,9 @@ impl Default for ExperimentSortOn {
 }
 
 pub fn experiment_table_columns(
-    filters_rs: ReadSignal<ExperimentListFilters>,
-    filters_ws: WriteSignal<ExperimentListFilters>,
+    filters_rws: RwSignal<ExperimentListFilters>,
 ) -> Vec<Column> {
-    let current_filters = filters_rs.get();
+    let current_filters = filters_rws.get();
     let current_sort_on = current_filters.sort_on.unwrap_or_default();
     let current_sort_by = current_filters.sort_by.unwrap_or_default();
     vec![
@@ -173,14 +172,14 @@ pub fn experiment_table_columns(
             "created_at".to_string(),
             ColumnSortable::Yes {
                 sort_fn: Callback::new(move |_| {
-                    let filters = filters_rs.get();
+                    let filters = filters_rws.get();
                     let sort_by = filters.sort_by.unwrap_or_default().flip();
                     let new_filters = ExperimentListFilters {
                         sort_on: Some(ExperimentSortOn::CreatedAt),
                         sort_by: Some(sort_by),
                         ..filters
                     };
-                    filters_ws.set(new_filters);
+                    filters_rws.set(new_filters);
                 }),
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == ExperimentSortOn::CreatedAt,
@@ -191,14 +190,14 @@ pub fn experiment_table_columns(
             "last_modified".to_string(),
             ColumnSortable::Yes {
                 sort_fn: Callback::new(move |_| {
-                    let filters = filters_rs.get();
+                    let filters = filters_rws.get();
                     let sort_by = filters.sort_by.as_ref().map(|i| i.flip());
                     let new_filters = ExperimentListFilters {
                         sort_on: Some(ExperimentSortOn::LastModifiedAt),
                         sort_by,
                         ..filters
                     };
-                    filters_ws.set(new_filters);
+                    filters_rws.set(new_filters);
                 }),
                 sort_by: current_sort_by,
                 currently_sorted: current_sort_on == ExperimentSortOn::LastModifiedAt,
