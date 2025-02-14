@@ -6,6 +6,7 @@ use derive_more::{Deref, DerefMut};
 use leptos::{ReadSignal, WriteSignal};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
+use strum::IntoEnumIterator;
 use superposition_types::{
     database::{
         models::cac::{DefaultConfig, TypeTemplate},
@@ -88,6 +89,12 @@ pub struct ExperimentResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, Deref, DerefMut, PartialEq)]
 pub struct StatusTypes(pub Vec<ExperimentStatusType>);
 
+impl Default for StatusTypes {
+    fn default() -> Self {
+        Self(ExperimentStatusType::iter().collect())
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ExperimentListFilters {
     pub status: Option<StatusTypes>,
@@ -96,7 +103,7 @@ pub struct ExperimentListFilters {
     pub experiment_name: Option<String>,
     pub experiment_ids: Option<String>,
     pub created_by: Option<String>,
-    pub context: Option<String>,
+    pub context: Option<Conditions>,
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
 }
@@ -124,7 +131,11 @@ impl Display for ExperimentListFilters {
             query_params.push(format!("created_by={}", created_by));
         }
         if let Some(context) = &self.context {
-            query_params.push(format!("context={}", context));
+            let mut contexts = vec![];
+            for c in context.iter() {
+                contexts.push(c.to_condition_json().to_string())
+            }
+            query_params.push(format!("context={}", contexts.join(",")));
         }
         if let Some(sort_on) = self.sort_on {
             query_params.push(format!("sort_on={}", sort_on));
@@ -133,6 +144,23 @@ impl Display for ExperimentListFilters {
             query_params.push(format!("sort_by={}", sort_by));
         }
         write!(f, "{}", query_params.join("&"))
+    }
+}
+
+impl Default for ExperimentListFilters {
+    fn default() -> Self {
+        let now = Utc::now();
+        Self {
+            status: None,
+            from_date: Some(now - chrono::Duration::days(30)),
+            to_date: Some(now),
+            experiment_name: None,
+            experiment_ids: None,
+            created_by: None,
+            context: None,
+            sort_on: None,
+            sort_by: None,
+        }
     }
 }
 
