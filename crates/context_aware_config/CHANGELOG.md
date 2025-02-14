@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.46.1 - 2025-02-14
+#### Bug Fixes
+- Update experiments page - (d0c8d4e) - ayush.jain@juspay.in
+- using schema_name in redis key - (18dfc5d) - Kartik
+
+- - -
+
 ## context_aware_config-v0.46.0 - 2025-01-23
 #### Bug Fixes
 - mandatory dimensions with workspaces (#370) - (e5b8097) - Datron

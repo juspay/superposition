@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.26.0 - 2025-02-14
+#### Bug Fixes
+- Update experiments page - (d0c8d4e) - ayush.jain@juspay.in
+#### Features
+- Discard experiment - (42ac967) - ayush.jain@juspay.in
+
+- - -
+
 ## experimentation_platform-v0.25.0 - 2025-01-23
 #### Bug Fixes
 - experiment handlers to send org_id - (571f201) - Kartik

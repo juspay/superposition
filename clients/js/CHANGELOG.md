@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## js_client-v0.3.0 - 2025-02-14
+#### Features
+- Discard experiment - (42ac967) - ayush.jain@juspay.in
+
+- - -
+
 ## js_client-v0.2.1 - 2024-07-17
 #### Bug Fixes
 - Match function in js-client (#176) - (5d3b2aa) - Ayush Jain

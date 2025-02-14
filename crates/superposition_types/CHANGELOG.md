@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.12.0 - 2025-02-14
+#### Features
+- Discard experiment - (42ac967) - ayush.jain@juspay.in
+
+- - -
+
 ## superposition_types-v0.11.0 - 2025-01-23
 #### Bug Fixes
 - mandatory dimensions with workspaces (#370) - (e5b8097) - Datron

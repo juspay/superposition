@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.21.0 - 2025-02-14
+#### Bug Fixes
+- Update experiments page - (d0c8d4e) - ayush.jain@juspay.in
+- show delete modal for delete actions and remove duplicate form fields - (699d504) - Kartik
+- update rust-monaco version (#411) - (47c0fc6) - Datron
+- using schema_name in redis key - (e910b8f) - Kartik
+- workspace dropdown and UI misalignment (#408) - (82dde7f) - Datron
+- function page alignment (#405) - (8959077) - Datron
+- prefix grouping was not redirecting to the correct URL - (7da15c3) - Kartik
+#### Features
+- Discard experiment - (42ac967) - ayush.jain@juspay.in
+
+- - -
+
 ## frontend-v0.20.0 - 2025-01-23
 #### Bug Fixes
 - Add success alerts and remove divider - (2387b75) - Ankit.Mahato

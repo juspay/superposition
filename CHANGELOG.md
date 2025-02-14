@@ -2,6 +2,30 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.66.0 - 2025-02-14
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.26.0
+- superposition_types bumped to superposition_types-v0.12.0
+- experimentation_client bumped to experimentation_client-v0.11.0
+- context_aware_config bumped to context_aware_config-v0.46.1
+- frontend bumped to frontend-v0.21.0
+- service_utils bumped to service_utils-v0.26.1
+- js_client bumped to js_client-v0.3.0
+### Global changes
+#### Bug Fixes
+- using schema_name in redis key - (18dfc5d) - Kartik
+- workspace dropdown and UI misalignment (#408) - (82dde7f) - Datron
+- update rust-monaco version (#411) - (47c0fc6) - Datron
+- nix builds (#418) - (d0bb78a) - Datron
+#### Features
+- Discard experiment - (42ac967) - ayush.jain@juspay.in
+#### Miscellaneous Chores
+- **(deps)** bump jinja2 from 3.1.4 to 3.1.5 in /locust - (2b1aa66) - dependabot[bot]
+- **(deps)** bump cryptography from 43.0.1 to 44.0.1 in /locust - (ce5dad8) - dependabot[bot]
+- Pin cargo-edit and cocogitto in github action - (9595662) - ayush.jain@juspay.in
+
+- - -
+
 ## v0.65.0 - 2025-01-23
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.25.0
