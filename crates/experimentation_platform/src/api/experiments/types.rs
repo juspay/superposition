@@ -9,12 +9,22 @@ use superposition_types::{
     Condition, Exp, Overrides, SortBy,
 };
 
+fn default_description() -> String {
+    String::from("Description not passed")
+}
+
+fn default_change_reason() -> String {
+    String::from("Change Reason not passed")
+}
+
 #[derive(Deserialize)]
 pub struct ExperimentCreateRequest {
     pub name: String,
     pub context: Exp<Condition>,
     pub variants: Vec<Variant>,
+    #[serde(default = "default_description")]
     pub description: String,
+    #[serde(default = "default_change_reason")]
     pub change_reason: String,
 }
 
@@ -51,7 +61,9 @@ pub struct ExperimentResponse {
     pub variants: Vec<Variant>,
     pub last_modified_by: String,
     pub chosen_variant: Option<String>,
+    #[serde(default = "default_description")]
     pub description: String,
+    #[serde(default = "default_change_reason")]
     pub change_reason: String,
 }
 
@@ -84,6 +96,7 @@ impl From<Experiment> for ExperimentResponse {
 pub struct ConcludeExperimentRequest {
     pub chosen_variant: String,
     pub description: Option<String>,
+    #[serde(default = "default_change_reason")]
     pub change_reason: String,
 }
 
@@ -91,6 +104,7 @@ pub struct ConcludeExperimentRequest {
 
 #[derive(Deserialize, Debug)]
 pub struct DiscardExperimentRequest {
+    #[serde(default = "default_change_reason")]
     pub change_reason: String,
 }
 
@@ -107,6 +121,7 @@ pub struct ContextPutReq {
 #[derive(Deserialize, Serialize, Clone)]
 pub enum ContextAction {
     PUT(ContextPutReq),
+    REPLACE(ContextPutReq),
     DELETE(String),
     MOVE((String, ContextMoveReq)),
 }
@@ -121,6 +136,7 @@ pub struct ContextPutResp {
 #[derive(Serialize, Deserialize, Debug)]
 pub enum ContextBulkResponse {
     PUT(ContextPutResp),
+    REPLACE(ContextPutResp),
     DELETE(String),
     MOVE(ContextPutResp),
 }
@@ -202,6 +218,7 @@ pub struct ExperimentListFilters {
 #[derive(Deserialize, Debug)]
 pub struct RampRequest {
     pub traffic_percentage: u64,
+    #[serde(default = "default_change_reason")]
     pub change_reason: String,
 }
 
@@ -217,6 +234,7 @@ pub struct VariantUpdateRequest {
 pub struct OverrideKeysUpdateRequest {
     pub variants: Vec<VariantUpdateRequest>,
     pub description: Option<String>,
+    #[serde(default = "default_change_reason")]
     pub change_reason: String,
 }
 

@@ -1049,18 +1049,6 @@ async fn update_overrides(
     /******************************* Updating contexts ************************************/
     let mut cac_operations: Vec<ContextAction> = vec![];
 
-    // adding operations to remove exisiting variant contexts
-    for existing_variant in experiment_variants {
-        let context_id = existing_variant.context_id.ok_or_else(|| {
-            log::error!(
-                "context id not available for variant {:?}",
-                existing_variant.id
-            );
-            unexpected_error!("Something went wrong, failed to update experiment")
-        })?;
-        cac_operations.push(ContextAction::DELETE(context_id.to_string()));
-    }
-
     // adding operations to create new updated variant contexts
     for variant in &mut new_variants {
         let updated_cac_context =
@@ -1082,7 +1070,7 @@ async fn update_overrides(
             description: description.clone(),
             change_reason: change_reason.clone(),
         };
-        cac_operations.push(ContextAction::PUT(payload));
+        cac_operations.push(ContextAction::REPLACE(payload));
     }
 
     let http_client = reqwest::Client::new();

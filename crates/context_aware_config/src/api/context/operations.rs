@@ -7,7 +7,7 @@ use diesel::{
 };
 use serde_json::Value;
 use service_utils::service::types::SchemaName;
-use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
+use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
     database::{models::cac::Context, schema::contexts},
     result, DBConnection, User,
@@ -84,11 +84,10 @@ pub fn r#move(
     let req = req.into_inner();
     let ctx_condition = req.context.to_owned().into_inner();
     let ctx_condition_value = Value::Object(ctx_condition.clone().into());
-    let description = if req.description.is_none() {
-        ensure_description(ctx_condition_value.clone(), conn, schema_name)?
+    let description = if let Some(description) = req.description {
+        description
     } else {
-        req.description
-            .ok_or_else(|| bad_argument!("Description should not be empty"))?
+        ensure_description(ctx_condition_value.clone(), conn, schema_name)?
     };
     let change_reason = req.change_reason.clone();
 

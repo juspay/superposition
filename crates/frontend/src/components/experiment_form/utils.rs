@@ -47,9 +47,13 @@ pub async fn update_experiment(
     variants: Vec<VariantFormT>,
     tenant: String,
     org_id: String,
+    description: String,
+    change_reason: String,
 ) -> Result<serde_json::Value, String> {
     let payload = ExperimentUpdateRequest {
         variants: FromIterator::from_iter(variants),
+        description: Some(description),
+        change_reason,
     };
 
     let host = get_host();

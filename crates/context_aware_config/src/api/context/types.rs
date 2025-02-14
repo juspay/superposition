@@ -76,6 +76,7 @@ pub struct ContextFilters {
 #[serde(rename_all = "UPPERCASE")]
 pub enum ContextAction {
     Put(PutReq),
+    Replace(PutReq),
     Delete(String),
     Move((String, MoveReq)),
 }
@@ -84,6 +85,7 @@ pub enum ContextAction {
 #[serde(rename_all = "UPPERCASE")]
 pub enum ContextBulkResponse {
     Put(PutResp),
+    Replace(PutResp),
     Delete(String),
     Move(PutResp),
 }

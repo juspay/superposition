@@ -117,7 +117,15 @@ where
         spawn_local({
             async move {
                 let result = if edit {
-                    update_experiment(experiment_id, f_variants, tenant, org).await
+                    update_experiment(
+                        experiment_id,
+                        f_variants,
+                        tenant,
+                        org,
+                        description_rs.get(),
+                        change_reason_rs.get(),
+                    )
+                    .await
                 } else {
                     create_experiment(
                         f_context,
