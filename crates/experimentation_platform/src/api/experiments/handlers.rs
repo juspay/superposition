@@ -271,15 +271,18 @@ async fn create(
     let (resp_contexts, config_version_id) = process_cac_http_response(response).await?;
     let created_contexts = resp_contexts
         .into_iter()
-        .filter_map(|item| match item {
-            ContextBulkResponse::PUT(context) => Some(context),
-            ContextBulkResponse::DELETE(_) => None,
-            _ => {
-                log::error!("Unexpected response item: {:?}", item);
-                None
-            }
+        .map(|item| match item {
+            ContextBulkResponse::PUT(context) => Ok(context),
+            _ => Err(format!("Unexpected response item: {item:?}")),
         })
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|err| {
+            log::error!(
+                "Something went wrong, failed to parse bulk operations response {err}"
+            );
+            unexpected_error!("Something went wrong")
+        })?;
+
     for i in 0..created_contexts.len() {
         let created_context = &created_contexts[i];
         variants[i].context_id = Some(created_context.context_id.clone());
@@ -1111,15 +1114,17 @@ async fn update_overrides(
     let (resp_contexts, config_version_id) = process_cac_http_response(response).await?;
     let created_contexts = resp_contexts
         .into_iter()
-        .filter_map(|item| match item {
-            ContextBulkResponse::PUT(context) => Some(context),
-            ContextBulkResponse::DELETE(_) => None,
-            _ => {
-                log::error!("Unexpected response item: {:?}", item);
-                None
-            }
+        .map(|item| match item {
+            ContextBulkResponse::REPLACE(context) => Ok(context),
+            _ => Err(format!("Unexpected response item: {item:?}")),
         })
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|err| {
+            log::error!(
+                "Something went wrong, failed to parse bulk operations response {err}"
+            );
+            unexpected_error!("Something went wrong")
+        })?;
     for i in 0..created_contexts.len() {
         let created_context = &created_contexts[i];
 
@@ -1128,14 +1133,11 @@ async fn update_overrides(
     }
 
     /*************************** Updating experiment in DB **************************/
-    let new_variants_json = serde_json::to_value(new_variants).map_err(|e| {
-        log::error!("failed to serialize new variants to json with error: {e}");
-        bad_argument!("failed to update experiment, bad variant data")
-    })?;
     let updated_experiment = diesel::update(experiments::experiments.find(experiment_id))
         .set((
-            experiments::variants.eq(new_variants_json),
+            experiments::variants.eq(Variants::new(new_variants)),
             experiments::override_keys.eq(override_keys),
+            experiments::change_reason.eq(change_reason),
             experiments::last_modified.eq(Utc::now()),
             experiments::last_modified_by.eq(user.get_email()),
         ))
