@@ -67,7 +67,7 @@ pub struct WebhookResponse<T> {
 
 #[derive(Clone, Serialize)]
 pub enum WebhookConfig {
-    Disbled,
+    Disabled,
     Enabled(Webhook),
 }
 
@@ -81,14 +81,13 @@ impl<'de> Deserialize<'de> for WebhookConfig {
             enabled: bool,
             configuration: Option<Webhook>,
         }
-
         let helper = WebhookConfigHelper::deserialize(deserializer)?;
         match (helper.enabled, helper.configuration) {
             (true, None) => Err(serde::de::Error::custom(
                 "Configuration must be provided when enabled is true",
             )),
             (true, Some(webhook)) => Ok(Self::Enabled(webhook)),
-            (false, _) => Ok(Self::Disbled),
+            (false, _) => Ok(Self::Disabled),
         }
     }
 }

@@ -1,0 +1,25 @@
+[default-config]
+experiments_webhook_config = { "value" = { "enabled" = false }, "schema" = { "type" = "object", "properties" = { "enabled" = { "type" = "boolean" }, "configuration" = { "type" = "object", "properties" = { "url" = { "type" = "string" }, "method" = { "enum" = [
+    "Post",
+    "Get",
+], "type" = "string" }, "custom_headers" = { "type" = "object" }, "service_headers" = { "type" = "array", "items" = { "type" = "string", "enum" = [
+    "ConfigVersion",
+    "WorkspaceId",
+] } }, "authorization" = { "type" = "object", "properties" = { "key" = { "type" = "string" }, "value" = { "type" = "string" } }, "required" = [
+    "key",
+    "value",
+] }, "required" = [
+    "url",
+    "method",
+], "additionalProperties" = false } } }, "required" = [
+    "enabled",
+] } }
+
+[dimensions]
+tenant = { schema = { "type" = "string", "enum" = ["test", "dev", "public"] } }
+
+[context."$tenant == 'test'"]
+experiments_webhook_config = { "enabled" = false, "configuration" = { "url" = "http://localhost:8080/config/test", "method" = "Get", "custom_headers" = { "x-tenant" = "dev" }, "service_headers" = [
+    "ConfigVersion",
+    "WorkspaceId",
+], "authorization" = { key = "Authorization", value = "TOKEN_FOR_WEBHOOK" } } }
