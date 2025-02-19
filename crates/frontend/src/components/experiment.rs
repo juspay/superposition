@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use leptos::*;
 use serde_json::{Map, Value};
+use superposition_types::api::experiments::ExperimentResponse;
 use superposition_types::database::models::experimentation::{
     ExperimentStatusType, Variant, VariantType,
 };
@@ -9,8 +10,8 @@ use superposition_types::database::models::experimentation::{
 use crate::components::table::types::Column;
 use crate::components::table::Table;
 
+use crate::logic::Conditions;
 use crate::schema::HtmlDisplay;
-use crate::types::Experiment;
 
 fn badge_class(status_type: ExperimentStatusType) -> &'static str {
     match status_type {
@@ -59,7 +60,7 @@ pub fn gen_variant_table(
 
 #[component]
 pub fn experiment<HS, HR, HC, HE, HD>(
-    experiment: Experiment,
+    experiment: ExperimentResponse,
     handle_start: HS,
     handle_ramp: HR,
     handle_conclude: HC,
@@ -74,7 +75,8 @@ where
     HD: Fn() + 'static + Clone,
 {
     let experiment = store_value(experiment);
-    let contexts = experiment.with_value(|v| v.context.clone());
+    let contexts = experiment
+        .with_value(|v| Conditions::from_context_json(&v.context).unwrap_or_default());
     let badge_class = format!(
         "badge text-white ml-3 mb-1 badge-xl {}",
         experiment.with_value(|v| badge_class(v.status))
@@ -179,7 +181,7 @@ where
                 <div class="stat w-2/12">
                     <div class="stat-title">Current Traffic Percentage</div>
                     <div class="stat-value text-sm">
-                        {experiment.with_value(|v| v.traffic_percentage)}
+                        {experiment.with_value(|v| v.traffic_percentage.into_inner())}
                     </div>
                 </div>
                 <div class="stat w-2/12">

@@ -3,6 +3,7 @@ use leptos::*;
 use leptos_router::use_params_map;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
+    api::experiments::ExperimentResponse,
     custom_query::PaginationParams,
     database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
 };
@@ -18,8 +19,9 @@ use crate::{
         modal::Modal,
         skeleton::{Skeleton, SkeletonVariant},
     },
+    logic::Conditions,
     providers::editor_provider::EditorProvider,
-    types::{Experiment, OrganisationId, Tenant},
+    types::{OrganisationId, Tenant},
     utils::{close_modal, show_modal},
 };
 
@@ -27,7 +29,7 @@ use crate::components::experiment_ramp_form::ExperimentRampForm;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct CombinedResource {
-    experiment: Option<Experiment>,
+    experiment: Option<ExperimentResponse>,
     dimensions: Vec<DimensionWithMandatory>,
     default_config: Vec<DefaultConfig>,
 }
@@ -64,7 +66,7 @@ pub fn experiment_page() -> impl IntoView {
 
             // Construct the combined result, handling errors as needed
             CombinedResource {
-                experiment: experiments_result.ok().map(|v| v.into()),
+                experiment: experiments_result.ok(),
                 dimensions: dimensions_result
                     .unwrap_or_default()
                     .data
@@ -162,8 +164,8 @@ pub fn experiment_page() -> impl IntoView {
                                         edit=true
                                         id=experiment.id
                                         name=experiment_ef.name
-                                        context=experiment_ef.context.clone()
-                                        variants=FromIterator::from_iter(experiment_ef.variants)
+                                        context=Conditions::from_context_json(&experiment_ef.context).unwrap_or_default()
+                                        variants=FromIterator::from_iter(experiment_ef.variants.into_inner())
                                         default_config=default_config
                                         dimensions=dimensions
                                         handle_submit=move || { combined_resource.refetch() }

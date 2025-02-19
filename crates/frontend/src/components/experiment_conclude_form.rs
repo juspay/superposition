@@ -3,14 +3,21 @@ pub mod utils;
 use std::rc::Rc;
 
 use leptos::*;
-use superposition_types::database::models::experimentation::{Variant, VariantType};
+use superposition_types::{
+    api::experiments::ExperimentResponse,
+    database::models::experimentation::{Variant, VariantType},
+};
 use utils::conclude_experiment;
 
-use crate::types::{Experiment, OrganisationId, Tenant};
+use crate::{
+    components::alert::AlertType,
+    providers::alert_provider::enqueue_alert,
+    types::{OrganisationId, Tenant},
+};
 
 #[component]
 pub fn experiment_conclude_form<HS>(
-    experiment: Experiment,
+    experiment: ExperimentResponse,
     handle_submit: HS,
 ) -> impl IntoView
 where
@@ -27,9 +34,21 @@ where
             let experiment = experiment_clone.clone();
             let tenant = tenant_rws.get().0;
             let org = org_rws.get().0;
-            let _ =
+            let result =
                 conclude_experiment(experiment.id.to_string(), variant_id, &tenant, &org)
                     .await;
+            match result {
+                Ok(_) => {
+                    enqueue_alert(
+                        String::from("Experiment concluded successfully!"),
+                        AlertType::Success,
+                        5000,
+                    );
+                }
+                Err(e) => {
+                    enqueue_alert(e, AlertType::Error, 5000);
+                }
+            }
             handle_submit_clone();
         })
     };
@@ -44,10 +63,9 @@ where
             <For
                 each=move || {
                     experiment_rc
-                        .clone()
                         .variants
-                        .clone()
-                        .into_iter()
+                        .iter()
+                        .cloned()
                         .enumerate()
                         .collect::<Vec<(usize, Variant)>>()
                 }
