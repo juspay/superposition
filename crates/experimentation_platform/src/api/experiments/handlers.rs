@@ -29,8 +29,8 @@ use superposition_types::{
     api::experiments::{
         ApplicableVariantsQuery, AuditQueryFilters, ConcludeExperimentRequest,
         DiscardExperimentRequest, ExperimentCreateRequest, ExperimentCreateResponse,
-        ExperimentListFilters, ExperimentResponse, ExperimentSortOn,
-        OverrideKeysUpdateRequest, RampRequest,
+        ExperimentListFilters, ExperimentResponse, OverrideKeysUpdateRequest,
+        RampRequest, SortOn,
     },
     custom_query::PaginationParams,
     database::{
@@ -806,10 +806,10 @@ async fn list_experiments(
     let sort_on = filters.sort_on.unwrap_or_default();
     #[rustfmt::skip]
     let base_query = match (sort_on, sort_by) {
-        (ExperimentSortOn::LastModifiedAt, SortBy::Desc) => base_query.order(experiments::last_modified.desc()),
-        (ExperimentSortOn::LastModifiedAt, SortBy::Asc)  => base_query.order(experiments::last_modified.asc()),
-        (ExperimentSortOn::CreatedAt, SortBy::Desc)      => base_query.order(experiments::created_at.desc()),
-        (ExperimentSortOn::CreatedAt, SortBy::Asc)       => base_query.order(experiments::created_at.asc()),
+        (SortOn::LastModifiedAt, SortBy::Desc) => base_query.order(experiments::last_modified.desc()),
+        (SortOn::LastModifiedAt, SortBy::Asc)  => base_query.order(experiments::last_modified.asc()),
+        (SortOn::CreatedAt, SortBy::Desc)      => base_query.order(experiments::created_at.desc()),
+        (SortOn::CreatedAt, SortBy::Asc)       => base_query.order(experiments::created_at.asc()),
     };
     let query = base_query.limit(limit).offset(offset);
     let experiment_list = query.load::<Experiment>(&mut conn)?;

@@ -1,7 +1,9 @@
-use leptos::logging::log;
-use serde_json::json;
+use superposition_types::{
+    api::experiments::{ExperimentResponse, RampRequest},
+    database::models::{experimentation::TrafficPercentage, ChangeReason},
+};
 
-use crate::{types::ExperimentResponse, utils::get_host};
+use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
 
 pub async fn ramp_experiment(
     exp_id: &String,
@@ -9,23 +11,21 @@ pub async fn ramp_experiment(
     tenant: &String,
     org_id: &String,
 ) -> Result<ExperimentResponse, String> {
-    let client = reqwest::Client::new();
+    let payload = RampRequest {
+        change_reason: ChangeReason::try_from(format!("ramping to {percent}"))?,
+        traffic_percentage: TrafficPercentage::try_from(percent as i32)?,
+    };
+
     let host = get_host();
-    match client
-        .patch(format!("{host}/experiments/{}/ramp", exp_id))
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .json(&json!({ "traffic_percentage": percent, "change_reason": format!("ramping to {percent}") }))
-        .send()
-        .await
-    {
-        Ok(experiment) => {
-            log!("experiment response {:?}", experiment);
-            Ok(experiment
-                .json::<ExperimentResponse>()
-                .await
-                .map_err(|err| err.to_string())?)
-        }
-        Err(e) => Err(e.to_string()),
-    }
+    let url = format!("{host}/experiments/{exp_id}/ramp");
+
+    let response = request(
+        url,
+        reqwest::Method::PATCH,
+        Some(payload),
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
 }

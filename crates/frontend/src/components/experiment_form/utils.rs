@@ -1,4 +1,11 @@
-use super::types::{ExperimentCreateRequest, ExperimentUpdateRequest};
+use superposition_types::{
+    api::experiments::{
+        ExperimentCreateRequest, OverrideKeysUpdateRequest, VariantUpdateRequest,
+    },
+    database::models::{experimentation::Variant, ChangeReason, Description},
+    Condition, Exp,
+};
+
 use crate::logic::Conditions;
 use crate::types::VariantFormT;
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
@@ -21,10 +28,10 @@ pub async fn create_experiment(
 ) -> Result<serde_json::Value, String> {
     let payload = ExperimentCreateRequest {
         name,
-        variants: FromIterator::from_iter(variants),
-        context: conditions.as_context_json(),
-        description,
-        change_reason,
+        variants: Result::<Vec<Variant>, String>::from_iter(variants)?,
+        context: Exp::<Condition>::try_from(conditions.as_context_json())?,
+        description: Description::try_from(description)?,
+        change_reason: ChangeReason::try_from(change_reason)?,
     };
 
     let _ = validate_experiment(&payload)?;
@@ -50,10 +57,10 @@ pub async fn update_experiment(
     description: String,
     change_reason: String,
 ) -> Result<serde_json::Value, String> {
-    let payload = ExperimentUpdateRequest {
-        variants: FromIterator::from_iter(variants),
-        description: Some(description),
-        change_reason,
+    let payload = OverrideKeysUpdateRequest {
+        variants: Result::<Vec<VariantUpdateRequest>, String>::from_iter(variants)?,
+        description: Some(Description::try_from(description)?),
+        change_reason: ChangeReason::try_from(change_reason)?,
     };
 
     let host = get_host();

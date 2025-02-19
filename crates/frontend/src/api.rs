@@ -1,6 +1,7 @@
 use leptos::ServerFnError;
 use superposition_types::{
     api::default_config::DefaultConfigFilters,
+    api::experiments::{ExperimentListFilters, ExperimentResponse},
     custom_query::PaginationParams,
     database::{
         models::{
@@ -12,12 +13,8 @@ use superposition_types::{
     Config, PaginatedResponse,
 };
 
-use crate::{
-    types::{ExperimentListFilters, ExperimentResponse},
-    utils::{
-        construct_request_headers, get_host, parse_json_response, request,
-        use_host_server,
-    },
+use crate::utils::{
+    construct_request_headers, get_host, parse_json_response, request, use_host_server,
 };
 
 // #[server(GetDimensions, "/fxn", "GetJson")]
