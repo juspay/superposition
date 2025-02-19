@@ -1913,7 +1913,7 @@ dependencies = [
 
 [[package]]
 name = "experimentation_platform"
-version = "0.26.0"
+version = "0.26.1"
 dependencies = [
  "actix-http",
  "actix-web",
@@ -4419,7 +4419,7 @@ dependencies = [
 
 [[package]]
 name = "service_utils"
-version = "0.26.1"
+version = "0.26.2"
 dependencies = [
  "actix-web",
  "anyhow",
@@ -4666,7 +4666,7 @@ version = "0.2.0"
 
 [[package]]
 name = "superposition_types"
-version = "0.12.0"
+version = "0.12.1"
 dependencies = [
  "actix-web",
  "anyhow",

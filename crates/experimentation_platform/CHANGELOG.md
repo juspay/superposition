@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.26.1 - 2025-02-19
+#### Bug Fixes
+- Unsafe error handling in experimentation (#421) - (2cb6840) - Ayush Jain
+
+- - -
+
 ## experimentation_platform-v0.26.0 - 2025-02-14
 #### Bug Fixes
 - Update experiments page - (d0c8d4e) - ayush.jain@juspay.in

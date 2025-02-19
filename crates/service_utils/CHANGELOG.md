@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.26.2 - 2025-02-19
+#### Bug Fixes
+- tenant config - (416f066) - Ankit Kumar Mahato
+
+- - -
+
 ## service_utils-v0.26.1 - 2025-02-14
 #### Bug Fixes
 - disable prepared statement cache so that schema swapping does not break - (c0dc141) - Kartik

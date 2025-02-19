@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.66.1 - 2025-02-19
+### Package updates
+- superposition_types bumped to superposition_types-v0.12.1
+- experimentation_platform bumped to experimentation_platform-v0.26.1
+- service_utils bumped to service_utils-v0.26.2
+### Global changes
+#### Bug Fixes
+- tenant config - (416f066) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(deps)** bump openssl from 0.10.54 to 0.10.70 - (f9d536d) - dependabot[bot]
+
+- - -
+
 ## v0.66.0 - 2025-02-14
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.26.0
