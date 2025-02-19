@@ -8,6 +8,9 @@ use serde::{
     Deserialize, Deserializer, Serialize,
 };
 use serde_json::{Map, Value};
+use strum::IntoEnumIterator;
+
+use crate::database::models::experimentation::ExperimentStatusType;
 
 pub trait CustomQuery: Sized {
     type Inner: DeserializeOwned;
@@ -243,7 +246,7 @@ impl<'de> Deserialize<'de> for PaginationParams {
     }
 }
 
-#[derive(Debug, Clone, Deref, PartialEq)]
+#[derive(Debug, Clone, Deref, PartialEq, Default)]
 #[deref(forward)]
 pub struct CommaSeparatedQParams<T: Display + FromStr>(pub Vec<T>);
 
@@ -281,6 +284,12 @@ impl<T: Display + FromStr> Serialize for CommaSeparatedQParams<T> {
 }
 
 pub type CommaSeparatedStringQParams = CommaSeparatedQParams<String>;
+
+impl Default for CommaSeparatedQParams<ExperimentStatusType> {
+    fn default() -> Self {
+        Self(ExperimentStatusType::iter().collect())
+    }
+}
 
 #[cfg(test)]
 mod tests {

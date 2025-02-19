@@ -159,12 +159,12 @@ impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
 #[derive(Copy, Display, Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
-pub enum ExperimentSortOn {
+pub enum SortOn {
     LastModifiedAt,
     CreatedAt,
 }
 
-impl Default for ExperimentSortOn {
+impl Default for SortOn {
     fn default() -> Self {
         Self::LastModifiedAt
     }
@@ -179,7 +179,7 @@ pub struct ExperimentListFilters {
     pub experiment_ids: Option<CommaSeparatedStringQParams>,
     pub created_by: Option<CommaSeparatedStringQParams>,
     pub context: Option<CommaSeparatedStringQParams>,
-    pub sort_on: Option<ExperimentSortOn>,
+    pub sort_on: Option<SortOn>,
     pub sort_by: Option<SortBy>,
 }
 
@@ -216,6 +216,23 @@ impl Display for ExperimentListFilters {
             query_params.push(format!("sort_by={}", sort_by));
         }
         write!(f, "{}", query_params.join("&"))
+    }
+}
+
+impl Default for ExperimentListFilters {
+    fn default() -> Self {
+        let now = Utc::now();
+        Self {
+            status: None,
+            from_date: Some(now - chrono::Duration::days(30)),
+            to_date: Some(now),
+            experiment_name: None,
+            experiment_ids: None,
+            created_by: None,
+            context: None,
+            sort_on: None,
+            sort_by: None,
+        }
     }
 }
 

@@ -4,31 +4,14 @@ use crate::{
         table::types::{Column, ColumnSortable, Expandable},
     },
     logic::Conditions,
-    types::ExperimentListFilters,
 };
 use core::time::Duration;
 use leptos::*;
 use leptos_router::A;
-use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::vec::Vec;
-use strum_macros::Display;
+use superposition_types::api::experiments::{ExperimentListFilters, SortOn};
 use web_sys::MouseEvent;
-
-#[derive(Copy, Display, Debug, Clone, Deserialize, Serialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
-pub enum ExperimentSortOn {
-    #[strum(to_string = "last_modified_at")]
-    LastModifiedAt,
-    #[strum(to_string = "created_at")]
-    CreatedAt,
-}
-
-impl Default for ExperimentSortOn {
-    fn default() -> Self {
-        Self::LastModifiedAt
-    }
-}
 
 pub fn experiment_table_columns(
     filters_rws: RwSignal<ExperimentListFilters>,
@@ -175,14 +158,14 @@ pub fn experiment_table_columns(
                     let filters = filters_rws.get();
                     let sort_by = filters.sort_by.unwrap_or_default().flip();
                     let new_filters = ExperimentListFilters {
-                        sort_on: Some(ExperimentSortOn::CreatedAt),
+                        sort_on: Some(SortOn::CreatedAt),
                         sort_by: Some(sort_by),
                         ..filters
                     };
                     filters_rws.set(new_filters);
                 }),
                 sort_by: current_sort_by.clone(),
-                currently_sorted: current_sort_on == ExperimentSortOn::CreatedAt,
+                currently_sorted: current_sort_on == SortOn::CreatedAt,
             },
         ),
         Column::default("created_by".to_string()),
@@ -193,14 +176,14 @@ pub fn experiment_table_columns(
                     let filters = filters_rws.get();
                     let sort_by = filters.sort_by.as_ref().map(|i| i.flip());
                     let new_filters = ExperimentListFilters {
-                        sort_on: Some(ExperimentSortOn::LastModifiedAt),
+                        sort_on: Some(SortOn::LastModifiedAt),
                         sort_by,
                         ..filters
                     };
                     filters_rws.set(new_filters);
                 }),
                 sort_by: current_sort_by,
-                currently_sorted: current_sort_on == ExperimentSortOn::LastModifiedAt,
+                currently_sorted: current_sort_on == SortOn::LastModifiedAt,
             },
         ),
     ]
