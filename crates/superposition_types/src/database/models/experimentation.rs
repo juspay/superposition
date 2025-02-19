@@ -28,6 +28,7 @@ use super::{ChangeReason, Description};
     Deserialize,
     Serialize,
     strum_macros::Display,
+    strum_macros::EnumIter,
     strum_macros::EnumString,
 )]
 #[serde(rename_all = "UPPERCASE")]

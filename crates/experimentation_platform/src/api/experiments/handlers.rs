@@ -28,9 +28,8 @@ use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
     api::experiments::{
         ApplicableVariantsQuery, AuditQueryFilters, ConcludeExperimentRequest,
-        DiscardExperimentRequest, ExperimentCreateRequest, ExperimentCreateResponse,
-        ExperimentListFilters, ExperimentResponse, ExperimentSortOn,
-        OverrideKeysUpdateRequest, RampRequest,
+        DiscardExperimentRequest, ExperimentCreateRequest, ExperimentListFilters,
+        ExperimentResponse, ExperimentSortOn, OverrideKeysUpdateRequest, RampRequest,
     },
     custom_query::PaginationParams,
     database::{
@@ -311,7 +310,7 @@ async fn create(
         .get_results(&mut conn)?;
 
     let inserted_experiment: Experiment = inserted_experiments.remove(0);
-    let response = ExperimentCreateResponse::from(inserted_experiment.clone());
+    let response = ExperimentResponse::from(inserted_experiment.clone());
     if let WebhookConfig::Enabled(experiments_webhook_config) =
         &tenant_config.experiments_webhook_config
     {

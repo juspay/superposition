@@ -76,19 +76,6 @@ pub struct ExperimentCreateRequest {
     pub change_reason: ChangeReason,
 }
 
-#[derive(Deserialize, Serialize)]
-pub struct ExperimentCreateResponse {
-    pub experiment_id: String,
-}
-
-impl From<Experiment> for ExperimentCreateResponse {
-    fn from(experiment: Experiment) -> Self {
-        Self {
-            experiment_id: experiment.id.to_string(),
-        }
-    }
-}
-
 /********** Experiment Ramp Req Types **********/
 
 #[derive(Deserialize, Serialize, Debug)]
