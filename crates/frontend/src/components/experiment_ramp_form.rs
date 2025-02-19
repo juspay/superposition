@@ -21,8 +21,7 @@ pub fn experiment_ramp_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let (traffic, set_traffic) =
-        create_signal(experiment.traffic_percentage.into_inner());
+    let (traffic, set_traffic) = create_signal(*experiment.traffic_percentage);
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);

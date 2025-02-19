@@ -45,6 +45,7 @@ use super::DisableDBValidation;
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
 pub struct ChangeReason(String);
+const CHANGE_REASON_CHAR_LIMIT: usize = 255;
 
 impl Default for ChangeReason {
     fn default() -> Self {
@@ -54,8 +55,9 @@ impl Default for ChangeReason {
 
 #[cfg(feature = "disable_db_data_validation")]
 impl DisableDBValidation for ChangeReason {
-    type From = String;
-    fn from_db_unvalidated(data: Self::From) -> Self {
+    type Source = String;
+    fn from_db_unvalidated(data: Self::Source) -> Self {
+        // Defaulting, to convert "" entries to Self::default
         Self::try_from(data).unwrap_or_default()
     }
 }
@@ -71,6 +73,12 @@ impl TryFrom<String> for ChangeReason {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() {
             return Err(String::from("Empty reason not allowed"));
+        }
+        let len = value.len();
+        if len > CHANGE_REASON_CHAR_LIMIT {
+            return Err(format!(
+                "Reason longer than {CHANGE_REASON_CHAR_LIMIT} characters not allowed, current length: {len}",
+            ));
         }
         Ok(Self(value))
     }
@@ -95,6 +103,7 @@ impl TryFrom<String> for ChangeReason {
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
 pub struct Description(String);
+const DESCRIPTION_CHAR_LIMIT: usize = 1024;
 
 impl Default for Description {
     fn default() -> Self {
@@ -104,8 +113,9 @@ impl Default for Description {
 
 #[cfg(feature = "disable_db_data_validation")]
 impl DisableDBValidation for Description {
-    type From = String;
-    fn from_db_unvalidated(data: Self::From) -> Self {
+    type Source = String;
+    fn from_db_unvalidated(data: Self::Source) -> Self {
+        // Defaulting, to convert "" entries to Self::default
         Self::try_from(data).unwrap_or_default()
     }
 }
@@ -121,6 +131,12 @@ impl TryFrom<String> for Description {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() {
             return Err(String::from("Empty description not allowed"));
+        }
+        let len = value.len();
+        if len > DESCRIPTION_CHAR_LIMIT {
+            return Err(format!(
+                "Description longer than {DESCRIPTION_CHAR_LIMIT} characters not allowed, current length: {len}",
+            ));
         }
         Ok(Self(value))
     }

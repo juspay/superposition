@@ -181,7 +181,7 @@ where
                 <div class="stat w-2/12">
                     <div class="stat-title">Current Traffic Percentage</div>
                     <div class="stat-value text-sm">
-                        {experiment.with_value(|v| v.traffic_percentage.into_inner())}
+                        {experiment.with_value(|v| *v.traffic_percentage)}
                     </div>
                 </div>
                 <div class="stat w-2/12">

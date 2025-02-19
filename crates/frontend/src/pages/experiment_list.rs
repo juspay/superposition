@@ -253,7 +253,7 @@ fn experiment_table_filter_widget(
                             placeholder="eg: 7259558160762015744"
                             on:change=move |event| {
                                 let ids = event_target_value(&event);
-                                let ids = if ids.is_empty() { None } else { serde_json::from_str(&ids).ok() };
+                                let ids = (!ids.is_empty()).then(|| serde_json::from_str(&ids).ok()).flatten();
                                 filters_buffer_rws
                                     .update(|filter| {
                                         filter.experiment_ids = ids;

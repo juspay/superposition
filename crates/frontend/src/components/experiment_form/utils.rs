@@ -1,6 +1,7 @@
 use superposition_types::{
     api::experiments::{
-        ExperimentCreateRequest, OverrideKeysUpdateRequest, VariantUpdateRequest,
+        ExperimentCreateRequest, ExperimentResponse, OverrideKeysUpdateRequest,
+        VariantUpdateRequest,
     },
     database::models::{experimentation::Variant, ChangeReason, Description},
     Condition, Exp,
@@ -25,7 +26,7 @@ pub async fn create_experiment(
     description: String,
     change_reason: String,
     org_id: String,
-) -> Result<serde_json::Value, String> {
+) -> Result<ExperimentResponse, String> {
     let payload = ExperimentCreateRequest {
         name,
         variants: Result::<Vec<Variant>, String>::from_iter(variants)?,
@@ -56,7 +57,7 @@ pub async fn update_experiment(
     org_id: String,
     description: String,
     change_reason: String,
-) -> Result<serde_json::Value, String> {
+) -> Result<ExperimentResponse, String> {
     let payload = OverrideKeysUpdateRequest {
         variants: Result::<Vec<VariantUpdateRequest>, String>::from_iter(variants)?,
         description: Some(Description::try_from(description)?),

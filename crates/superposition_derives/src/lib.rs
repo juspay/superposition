@@ -54,16 +54,14 @@ pub fn text_from_sql_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident;
 
-    let expanded = quote! {
+    quote! {
         impl diesel::deserialize::FromSql<diesel::sql_types::Text, diesel::pg::Pg> for #name {
             fn from_sql(bytes: diesel::pg::PgValue<'_>) -> diesel::deserialize::Result<Self> {
                 let text = <String as diesel::deserialize::FromSql<diesel::sql_types::Text, diesel::pg::Pg>>::from_sql(bytes)?;
-                text.try_into().map_err(|e: String| Box::<dyn std::error::Error + Send + Sync>::from(e))
+                text.try_into().map_err(|e: String| e.into())
             }
         }
-    };
-
-    TokenStream::from(expanded)
+    }.into()
 }
 
 /// Implements `ToSql` trait for converting the typed data to `Json` type for `Pg` backend
@@ -73,7 +71,7 @@ pub fn text_to_sql_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident;
 
-    let expanded = quote! {
+    quote! {
         impl diesel::serialize::ToSql<diesel::sql_types::Text, diesel::pg::Pg> for #name {
             fn to_sql<'b>(
                 &'b self,
@@ -86,9 +84,8 @@ pub fn text_to_sql_derive(input: TokenStream) -> TokenStream {
                 >>::to_sql(&text, &mut out.reborrow())
             }
         }
-    };
-
-    TokenStream::from(expanded)
+    }
+    .into()
 }
 
 /// Implements `FromSql` trait for converting `Text` type to the type for `Pg` backend without running validations on it
@@ -98,14 +95,12 @@ pub fn text_from_sql_derive_no_validation(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident;
 
-    let expanded = quote! {
+    quote! {
         impl diesel::deserialize::FromSql<diesel::sql_types::Text, diesel::pg::Pg> for #name {
             fn from_sql(bytes: diesel::pg::PgValue<'_>) -> diesel::deserialize::Result<Self> {
                 let text = <String as diesel::deserialize::FromSql<diesel::sql_types::Text, diesel::pg::Pg>>::from_sql(bytes)?;
                 Ok(<#name as DisableDBValidation>::from_db_unvalidated(text))
             }
         }
-    };
-
-    TokenStream::from(expanded)
+    }.into()
 }

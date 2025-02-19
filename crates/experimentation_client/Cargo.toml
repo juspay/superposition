@@ -9,10 +9,11 @@ derive_more = { workspace = true }
 jsonlogic = { workspace = true }
 once_cell = { workspace = true }
 reqwest = { workspace = true }
-serde = { workspace = true }
 serde_json = { workspace = true }
+strum = { workspace = true }
 superposition_types = { path = "../superposition_types", features = [
     "experimentation",
+    "api",
 ] }
 tokio = { version = "1.29.1", features = ["full"] }
 

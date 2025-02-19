@@ -76,19 +76,6 @@ pub struct ExperimentCreateRequest {
     pub change_reason: ChangeReason,
 }
 
-#[derive(Deserialize, Serialize)]
-pub struct ExperimentCreateResponse {
-    pub experiment_id: String,
-}
-
-impl From<Experiment> for ExperimentCreateResponse {
-    fn from(experiment: Experiment) -> Self {
-        Self {
-            experiment_id: experiment.id.to_string(),
-        }
-    }
-}
-
 /********** Experiment Ramp Req Types **********/
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -159,12 +146,12 @@ impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
 #[derive(Copy, Display, Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
-pub enum SortOn {
+pub enum ExperimentSortOn {
     LastModifiedAt,
     CreatedAt,
 }
 
-impl Default for SortOn {
+impl Default for ExperimentSortOn {
     fn default() -> Self {
         Self::LastModifiedAt
     }
@@ -179,7 +166,7 @@ pub struct ExperimentListFilters {
     pub experiment_ids: Option<CommaSeparatedStringQParams>,
     pub created_by: Option<CommaSeparatedStringQParams>,
     pub context: Option<CommaSeparatedStringQParams>,
-    pub sort_on: Option<SortOn>,
+    pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
 }
 

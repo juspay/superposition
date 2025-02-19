@@ -115,12 +115,12 @@ impl TryFrom<i32> for TrafficPercentage {
 }
 
 impl TrafficPercentage {
-    pub fn into_inner(self) -> u8 {
-        self.0
-    }
-
     pub fn check_max_allowed(&self, variants_count: u8) -> Result<(), String> {
-        let max = 100 / variants_count;
+        let max = if variants_count < 2 {
+            100
+        } else {
+            100 / variants_count
+        };
         if self.0 > max {
             return Err(format!("The traffic_percentage cannot exceed {max}. Provide a traffic percentage less than {max}"));
         }

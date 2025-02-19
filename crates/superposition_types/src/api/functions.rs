@@ -1,3 +1,9 @@
+use derive_more::{AsRef, Deref, DerefMut, Into};
+#[cfg(feature = "diesel_derives")]
+use diesel::AsChangeset;
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
+
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::functions;
 use crate::{
@@ -5,17 +11,9 @@ use crate::{
     RegexEnum,
 };
 
-use derive_more::{AsRef, Deref, DerefMut, Into};
-
-#[cfg(feature = "diesel_derives")]
-use diesel::AsChangeset;
-
-use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
-
-#[derive(Debug, Serialize, Deserialize, AsChangeset)]
-#[cfg(feature = "diesel_derives")]
-#[diesel(table_name = functions)]
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = functions))]
 pub struct UpdateFunctionRequest {
     #[serde(rename = "function")]
     pub draft_code: Option<FunctionCode>,

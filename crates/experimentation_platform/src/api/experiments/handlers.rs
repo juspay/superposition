@@ -28,9 +28,8 @@ use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
     api::experiments::{
         ApplicableVariantsQuery, AuditQueryFilters, ConcludeExperimentRequest,
-        DiscardExperimentRequest, ExperimentCreateRequest, ExperimentCreateResponse,
-        ExperimentListFilters, ExperimentResponse, OverrideKeysUpdateRequest,
-        RampRequest, SortOn,
+        DiscardExperimentRequest, ExperimentCreateRequest, ExperimentListFilters,
+        ExperimentResponse, ExperimentSortOn, OverrideKeysUpdateRequest, RampRequest,
     },
     custom_query::PaginationParams,
     database::{
@@ -311,7 +310,7 @@ async fn create(
         .get_results(&mut conn)?;
 
     let inserted_experiment: Experiment = inserted_experiments.remove(0);
-    let response = ExperimentCreateResponse::from(inserted_experiment.clone());
+    let response = ExperimentResponse::from(inserted_experiment.clone());
     if let WebhookConfig::Enabled(experiments_webhook_config) =
         &tenant_config.experiments_webhook_config
     {
@@ -806,10 +805,10 @@ async fn list_experiments(
     let sort_on = filters.sort_on.unwrap_or_default();
     #[rustfmt::skip]
     let base_query = match (sort_on, sort_by) {
-        (SortOn::LastModifiedAt, SortBy::Desc) => base_query.order(experiments::last_modified.desc()),
-        (SortOn::LastModifiedAt, SortBy::Asc)  => base_query.order(experiments::last_modified.asc()),
-        (SortOn::CreatedAt, SortBy::Desc)      => base_query.order(experiments::created_at.desc()),
-        (SortOn::CreatedAt, SortBy::Asc)       => base_query.order(experiments::created_at.asc()),
+        (ExperimentSortOn::LastModifiedAt, SortBy::Desc) => base_query.order(experiments::last_modified.desc()),
+        (ExperimentSortOn::LastModifiedAt, SortBy::Asc)  => base_query.order(experiments::last_modified.asc()),
+        (ExperimentSortOn::CreatedAt, SortBy::Desc)      => base_query.order(experiments::created_at.desc()),
+        (ExperimentSortOn::CreatedAt, SortBy::Asc)       => base_query.order(experiments::created_at.asc()),
     };
     let query = base_query.limit(limit).offset(offset);
     let experiment_list = query.load::<Experiment>(&mut conn)?;
@@ -905,7 +904,7 @@ async fn ramp(
     let (_, config_version_id) = fetch_cac_config(&data, &workspace_request).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
-    let webhook_event = if new_traffic_percentage.into_inner() == 0
+    let webhook_event = if **new_traffic_percentage == 0
         && matches!(experiment.status, ExperimentStatusType::CREATED)
     {
         WebhookEvent::ExperimentStarted

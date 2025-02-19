@@ -7,6 +7,6 @@ pub mod types;
 
 #[cfg(feature = "disable_db_data_validation")]
 pub trait DisableDBValidation {
-    type From;
-    fn from_db_unvalidated(data: Self::From) -> Self;
+    type Source;
+    fn from_db_unvalidated(data: Self::Source) -> Self;
 }

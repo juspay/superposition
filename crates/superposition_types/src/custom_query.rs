@@ -8,8 +8,10 @@ use serde::{
     Deserialize, Deserializer, Serialize,
 };
 use serde_json::{Map, Value};
+#[cfg(feature = "experimentation")]
 use strum::IntoEnumIterator;
 
+#[cfg(feature = "experimentation")]
 use crate::database::models::experimentation::ExperimentStatusType;
 
 pub trait CustomQuery: Sized {
@@ -285,6 +287,7 @@ impl<T: Display + FromStr> Serialize for CommaSeparatedQParams<T> {
 
 pub type CommaSeparatedStringQParams = CommaSeparatedQParams<String>;
 
+#[cfg(feature = "experimentation")]
 impl Default for CommaSeparatedQParams<ExperimentStatusType> {
     fn default() -> Self {
         Self(ExperimentStatusType::iter().collect())
