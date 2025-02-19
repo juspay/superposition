@@ -26,10 +26,17 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
+    api::experiments::{
+        ApplicableVariantsQuery, AuditQueryFilters, ConcludeExperimentRequest,
+        DiscardExperimentRequest, ExperimentCreateRequest, ExperimentCreateResponse,
+        ExperimentListFilters, ExperimentResponse, ExperimentSortOn,
+        OverrideKeysUpdateRequest, RampRequest,
+    },
     custom_query::PaginationParams,
     database::{
         models::experimentation::{
-            EventLog, Experiment, ExperimentStatusType, Variant, Variants,
+            EventLog, Experiment, ExperimentStatusType, TrafficPercentage, Variant,
+            Variants,
         },
         schema::{event_log::dsl as event_log, experiments::dsl as experiments},
     },
@@ -42,18 +49,12 @@ use superposition_types::{
 use super::{
     helpers::{
         add_variant_dimension_to_ctx, check_variant_types,
-        check_variants_override_coverage, decide_variant, extract_override_keys,
-        fetch_cac_config, validate_experiment, validate_override_keys,
+        check_variants_override_coverage, construct_header_map, decide_variant,
+        extract_override_keys, fetch_cac_config, validate_experiment,
+        validate_override_keys,
     },
-    types::{
-        ApplicableVariantsQuery, AuditQueryFilters, ConcludeExperimentRequest,
-        ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq,
-        DiscardExperimentRequest, ExperimentCreateRequest, ExperimentCreateResponse,
-        ExperimentListFilters, ExperimentResponse, OverrideKeysUpdateRequest,
-        RampRequest,
-    },
+    types::{ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq},
 };
-use crate::api::experiments::{helpers::construct_header_map, types::ExperimentSortOn};
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
@@ -297,7 +298,7 @@ async fn create(
         last_modified: Utc::now(),
         name: req.name.to_string(),
         override_keys: unique_override_keys.to_vec(),
-        traffic_percentage: 0,
+        traffic_percentage: TrafficPercentage::default(),
         status: ExperimentStatusType::CREATED,
         context: req.context.clone().into_inner(),
         variants: Variants::new(variants),
@@ -697,7 +698,7 @@ async fn get_applicable_variants(
     let mut variants = Vec::new();
     for exp in experiments {
         if let Some(v) = decide_variant(
-            exp.traffic_percentage as u8,
+            *exp.traffic_percentage,
             exp.variants.into_inner(),
             query_data.toss,
         )
@@ -868,28 +869,28 @@ async fn ramp(
         .schema_name(&workspace_request.schema_name)
         .get_result::<Experiment>(&mut conn)?;
 
-    let old_traffic_percentage = experiment.traffic_percentage as u8;
-    let new_traffic_percentage = req.traffic_percentage as u8;
+    let old_traffic_percentage = experiment.traffic_percentage;
+    let new_traffic_percentage = &req.traffic_percentage;
     let variants_count = experiment.variants.into_inner().len() as u8;
-    let max = 100 / variants_count;
 
     if !experiment.status.active() {
         return Err(bad_argument!(
             "experiment already concluded, cannot ramp a concluded experiment"
         ));
-    } else if new_traffic_percentage > max {
-        return Err(bad_argument!(
-            "The traffic_percentage cannot exceed {max}. Provide a traffic percentage less than {max}"
-        ))?;
-    } else if new_traffic_percentage != 0
-        && new_traffic_percentage == old_traffic_percentage
-    {
-        return Err(bad_argument!("The traffic_percentage is same as provided"))?;
     }
+
+    new_traffic_percentage
+        .check_max_allowed(variants_count)
+        .map_err(|e| bad_argument!(e))?;
+
+    new_traffic_percentage
+        .compare_old(&old_traffic_percentage)
+        .map_err(|e| bad_argument!(e))?;
+
     let updated_experiment: Experiment = diesel::update(experiments::experiments)
         .filter(experiments::id.eq(exp_id))
         .set((
-            experiments::traffic_percentage.eq(req.traffic_percentage as i32),
+            experiments::traffic_percentage.eq(req.traffic_percentage),
             experiments::last_modified.eq(Utc::now()),
             experiments::last_modified_by.eq(user.get_email()),
             experiments::status.eq(ExperimentStatusType::INPROGRESS),
@@ -902,7 +903,7 @@ async fn ramp(
     let (_, config_version_id) = fetch_cac_config(&data, &workspace_request).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
-    let webhook_event = if new_traffic_percentage == 0
+    let webhook_event = if new_traffic_percentage.into_inner() == 0
         && matches!(experiment.status, ExperimentStatusType::CREATED)
     {
         WebhookEvent::ExperimentStarted
