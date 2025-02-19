@@ -299,6 +299,7 @@ pub fn monaco_input(
     value: Value,
     on_change: Callback<Value, ()>,
     schema_type: SchemaType,
+    #[prop(default = false)] disabled: bool,
     #[prop(default = None)] operator: Option<Operator>,
 ) -> impl IntoView {
     let id = store_value(id);
@@ -363,15 +364,16 @@ pub fn monaco_input(
                 {move || {
                     let display_value = value_rs.get().html_display();
                     view! {
-                        <div class="absolute top-[10px] right-[10px]">
-                            <i
-                                class="ri-pencil-line text-gray-500 cursor-pointer"
-                                on:click=move |e| {
-                                    on_edit_click.call(e);
-                                }
-                            >
-                            </i>
-                        </div>
+                        <Show when=move || !disabled>
+                            <div class="absolute top-[10px] right-[10px]">
+                                <i
+                                    class="ri-pencil-line text-gray-500 cursor-pointer"
+                                    on:click=move |e| {
+                                        on_edit_click.call(e);
+                                    }
+                                />
+                            </div>
+                        </Show>
                         <andypf-json-viewer
                             indent="4"
                             expanded="true"
@@ -495,7 +497,7 @@ pub fn input(
         InputType::Select(ref options) => view! { <Select id name class value on_change disabled options=options.0.clone()/> }
         .into_view(),
         InputType::Monaco => {
-            view! { <MonacoInput id class value on_change schema_type operator/> }.into_view()
+            view! { <MonacoInput id class value on_change disabled schema_type operator/> }.into_view()
         }
         _ => {
             view! {
