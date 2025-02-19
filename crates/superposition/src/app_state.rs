@@ -1,12 +1,14 @@
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     sync::{Arc, Mutex},
 };
 
 #[cfg(feature = "high-performance-mode")]
 use std::time::Duration;
 
+use cac_toml::ContextAwareConfig;
 use context_aware_config::helpers::get_meta_schema;
+use superposition_types::TenantConfig;
 
 #[cfg(feature = "high-performance-mode")]
 use fred::{
@@ -21,11 +23,14 @@ use service_utils::{
 };
 use snowflake::SnowflakeIdGenerator;
 
+const TENANT_CONFIG_FILE: &str = "crates/superposition/Superposition.cac.toml";
+
 pub async fn get(
     app_env: AppEnv,
     kms_client: &Option<aws_sdk_kms::Client>,
     service_prefix: String,
     base: &String,
+    tenants: &HashSet<String>,
 ) -> AppState {
     let cac_host =
         get_from_env_unsafe::<String>("CAC_HOST").expect("CAC host is not set") + base;
@@ -33,6 +38,22 @@ pub async fn get(
 
     let snowflake_generator = Arc::new(Mutex::new(SnowflakeIdGenerator::new(1, 1)));
 
+    let cac = ContextAwareConfig::parse(TENANT_CONFIG_FILE)
+        .expect(&format!("File {TENANT_CONFIG_FILE} not found"));
+
+    let tenant_configs = tenants
+        .clone()
+        .into_iter()
+        .filter_map(|tenant| {
+            serde_json::to_value(cac.get_resolved_config(&HashMap::from_iter(vec![(
+                String::from("tenant"),
+                toml::Value::String(tenant.clone()),
+            )])))
+            .and_then(serde_json::from_value::<TenantConfig>)
+            .map(|config| (tenant, config))
+            .ok()
+        })
+        .collect::<HashMap<_, _>>();
     cfg_if::cfg_if! {
         if #[cfg(feature = "high-performance-mode")] {
             let redis_url =
@@ -103,5 +124,6 @@ pub async fn get(
         redis: redis_pool,
         http_client: reqwest::Client::new(),
         kms_client: kms_client.clone(),
+        tenant_configs,
     }
 }

@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     future::{ready, Ready},
     str::FromStr,
     sync::Arc,
@@ -13,6 +13,7 @@ use diesel::r2d2::{ConnectionManager, PooledConnection};
 use diesel::{Connection, PgConnection};
 use jsonschema::JSONSchema;
 use snowflake::SnowflakeIdGenerator;
+use superposition_types::TenantConfig;
 
 use crate::db::PgSchemaConnectionPool;
 
@@ -53,6 +54,7 @@ pub struct AppState {
     pub redis: fred::clients::RedisPool,
     pub http_client: reqwest::Client,
     pub kms_client: Option<Client>,
+    pub tenant_configs: HashMap<String, TenantConfig>,
 }
 
 impl FromStr for AppEnv {

@@ -174,7 +174,7 @@ impl FromRequest for TenantConfig {
 impl Default for TenantConfig {
     fn default() -> Self {
         Self {
-            experiments_webhook_config: WebhookConfig::Disbled,
+            experiments_webhook_config: WebhookConfig::Disabled,
         }
     }
 }

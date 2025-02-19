@@ -108,17 +108,26 @@ where
                 let workspace_id = match (enable_workspace_id, req.get_workspace_id()) {
                     (true, None) => return Err(error::ErrorBadRequest("The parameter workspace id is required, and must be passed through headers/url params/query params.")),
                     (true, Some(WorkspaceId(workspace_id))) => workspace_id,
-                    (false, _) => String::from("public"),
+                    (false, _) => String::from("test"),
                 };
 
                 let org = req.get_organisation_id();
-
                 // TODO: validate the workspace, get correct TenantConfig
                 let (schema_name, tenant_config) =  match (enable_org_id, &org) {
                     (true, None) => return Err(error::ErrorBadRequest("The parameter org id is required, and must be passed through headers/url params/query params.")),
                     (true, Some(OrganisationId(org_id))) => {
+                        let tenant_config = app_state
+                            .tenant_configs
+                            .get(&workspace_id)
+                            .cloned()
+                            .ok_or_else(|| {
+                                error::ErrorInternalServerError(format!(
+                                    "tenant config not found for {}",
+                                    workspace_id
+                                ))
+                            })?;
                         let schema = format!("{org_id}_{workspace_id}");
-                        (SchemaName(schema), TenantConfig::default())
+                        (SchemaName(schema), tenant_config)
                     },
                     (false, _) => (SchemaName("public".into()), TenantConfig::default()),
                 };
