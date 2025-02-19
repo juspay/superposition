@@ -1,11 +1,11 @@
-use std::{collections::HashMap, fmt::Display};
+use std::{collections::HashMap, fmt::Display, str::FromStr};
 
 use core::fmt;
 use derive_more::{Deref, DerefMut};
 use regex::Regex;
 use serde::{
-    de::{self, DeserializeOwned, IntoDeserializer},
-    Deserialize, Deserializer,
+    de::{self, DeserializeOwned},
+    Deserialize, Deserializer, Serialize,
 };
 use serde_json::{Map, Value};
 
@@ -243,48 +243,44 @@ impl<'de> Deserialize<'de> for PaginationParams {
     }
 }
 
-#[derive(Debug, Deserialize, Clone, Deref)]
+#[derive(Debug, Clone, Deref, PartialEq)]
 #[deref(forward)]
-pub struct CommaSeparatedStringQParams(
-    #[serde(deserialize_with = "deserialize_stringified_list")] pub Vec<String>,
-);
+pub struct CommaSeparatedQParams<T: Display + FromStr>(pub Vec<T>);
 
-pub fn deserialize_stringified_list<'de, D, I>(
-    deserializer: D,
-) -> std::result::Result<Vec<I>, D::Error>
-where
-    D: de::Deserializer<'de>,
-    I: de::DeserializeOwned,
-{
-    struct StringVecVisitor<I>(std::marker::PhantomData<I>);
-
-    impl<'de, I> de::Visitor<'de> for StringVecVisitor<I>
-    where
-        I: de::DeserializeOwned,
-    {
-        type Value = Vec<I>;
-
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str(
-                "a string containing comma separated values eg: CREATED,INPROGRESS",
-            )
-        }
-
-        fn visit_str<E>(self, v: &str) -> std::result::Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            let mut query_vector = Vec::new();
-            for param in v.split(',') {
-                let p: I = I::deserialize(param.into_deserializer())?;
-                query_vector.push(p);
-            }
-            Ok(query_vector)
-        }
+impl<T: Display + FromStr> Display for CommaSeparatedQParams<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_arr = self.0.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        write!(f, "{}", str_arr.join(","))
     }
-
-    deserializer.deserialize_any(StringVecVisitor(std::marker::PhantomData::<I>))
 }
+
+impl<'de, T: Display + FromStr> Deserialize<'de> for CommaSeparatedQParams<T> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let items = String::deserialize(deserializer)?
+            .split(',')
+            .map(|item| item.trim().to_string())
+            .map(|s| T::from_str(&s))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|_| {
+                serde::de::Error::custom(String::from("Error in converting type"))
+            })?;
+        Ok(Self(items))
+    }
+}
+
+impl<T: Display + FromStr> Serialize for CommaSeparatedQParams<T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+pub type CommaSeparatedStringQParams = CommaSeparatedQParams<String>;
 
 #[cfg(test)]
 mod tests {
