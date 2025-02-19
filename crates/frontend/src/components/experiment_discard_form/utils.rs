@@ -1,31 +1,30 @@
-use leptos::logging::log;
-use serde_json::json;
+use superposition_types::{
+    api::experiments::{DiscardExperimentRequest, ExperimentResponse},
+    database::models::ChangeReason,
+};
 
-use crate::{types::ExperimentResponse, utils::get_host};
+use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
 
 pub async fn discard_experiment(
     exp_id: &String,
     tenant: &String,
     org_id: &String,
-    change_reason: &String,
+    change_reason: String,
 ) -> Result<ExperimentResponse, String> {
-    let client = reqwest::Client::new();
+    let payload = DiscardExperimentRequest {
+        change_reason: ChangeReason::try_from(change_reason)?,
+    };
+
     let host = get_host();
-    match client
-        .patch(format!("{host}/experiments/{}/discard", exp_id))
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .json(&json!({"change_reason": change_reason }))
-        .send()
-        .await
-    {
-        Ok(experiment) => {
-            log!("experiment response {:?}", experiment);
-            Ok(experiment
-                .json::<ExperimentResponse>()
-                .await
-                .map_err(|err| err.to_string())?)
-        }
-        Err(e) => Err(e.to_string()),
-    }
+    let url = format!("{host}/experiments/{exp_id}/discard");
+
+    let response = request(
+        url,
+        reqwest::Method::PATCH,
+        Some(payload),
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
 }
