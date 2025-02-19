@@ -1896,7 +1896,6 @@ dependencies = [
  "jsonlogic",
  "once_cell",
  "reqwest",
- "serde",
  "serde_json",
  "superposition_types",
  "tokio",
