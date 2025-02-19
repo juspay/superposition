@@ -21,6 +21,7 @@ log = { workspace = true }
 regex = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+strum = { workspace = true, optional = true }
 strum_macros = { workspace = true }
 superposition_derives = { path = "../superposition_derives", optional = true }
 thiserror = { version = "1.0.57", optional = true }
@@ -36,7 +37,7 @@ diesel_derives = [
 disable_db_data_validation = []
 result = ["dep:diesel", "dep:anyhow", "dep:thiserror", "dep:actix-web"]
 server = ["dep:actix-web"]
-experimentation = []
+experimentation = ["dep:strum"]
 api = []
 
 [lints]
