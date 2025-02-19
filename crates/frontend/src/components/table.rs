@@ -46,8 +46,8 @@ pub fn table(
                                                     {
                                                         match (currently_sorted, sort_by) {
                                                             (false, _) => view! { <i class="ri-expand-up-down-line"></i> },
-                                                            (_, SortBy::Desc) => view! { <i class="ri-arrow-down-s-line"></i> },
-                                                            (_, SortBy::Asc) => view! { <i class="ri-arrow-up-s-line"></i> },
+                                                            (true, SortBy::Desc) => view! { <i class="ri-arrow-down-s-line"></i> },
+                                                            (true, SortBy::Asc) => view! { <i class="ri-arrow-up-s-line"></i> },
                                                         }
                                                     }
 

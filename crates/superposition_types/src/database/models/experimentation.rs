@@ -15,7 +15,7 @@ use crate::{Condition, Exp, Overrides};
 use super::super::schema::*;
 
 #[derive(
-    Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display,
+    Debug, Clone, Copy, Eq, Hash, PartialEq, Deserialize, Serialize, strum_macros::Display,
 )]
 #[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "UPPERCASE")]
