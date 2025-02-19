@@ -24,7 +24,7 @@ pub async fn conclude_experiment(
         url,
         reqwest::Method::PATCH,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
     )
     .await?;
 
