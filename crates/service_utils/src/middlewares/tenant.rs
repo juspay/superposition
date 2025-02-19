@@ -108,7 +108,7 @@ where
                 let workspace_id = match (enable_workspace_id, req.get_workspace_id()) {
                     (true, None) => return Err(error::ErrorBadRequest("The parameter workspace id is required, and must be passed through headers/url params/query params.")),
                     (true, Some(WorkspaceId(workspace_id))) => workspace_id,
-                    (false, _) => String::from("public"),
+                    (false, _) => String::from("test"),
                 };
 
                 let org = req.get_organisation_id();
