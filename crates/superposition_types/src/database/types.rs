@@ -2,9 +2,7 @@ use chrono::{offset::Utc, DateTime, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::Position;
-
-use super::models::cac::Dimension;
+use super::models::cac::{Dimension, Position};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DimensionWithMandatory {

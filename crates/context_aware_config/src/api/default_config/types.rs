@@ -3,7 +3,8 @@ use diesel::AsChangeset;
 use serde::{Deserialize, Deserializer};
 use serde_json::{Map, Value};
 use superposition_types::{
-    api::function::FunctionNameEnum, database::schema::default_configs, RegexEnum,
+    database::models::cac::deserialize_function_name, database::schema::default_configs,
+    RegexEnum,
 };
 
 #[derive(Debug, Deserialize)]
@@ -16,36 +17,13 @@ pub struct CreateReq {
     pub change_reason: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, AsChangeset)]
+#[diesel(table_name = default_configs)]
 pub struct UpdateReq {
     #[serde(default, deserialize_with = "deserialize_option")]
     pub value: Option<Value>,
-    pub schema: Option<Map<String, Value>>,
-    pub function_name: Option<FunctionNameEnum>,
-    pub description: Option<String>,
-    pub change_reason: String,
-}
-
-impl From<UpdateReq> for UpdateReqChangeset {
-    fn from(req: UpdateReq) -> Self {
-        Self {
-            value: req.value,
-            schema: req.schema.map(Value::Object),
-            function_name: req.function_name.map(|x| x.to_option()),
-            description: req.description,
-            change_reason: req.change_reason,
-        }
-    }
-}
-
-//changeset type for update request type
-#[derive(AsChangeset)]
-#[diesel(table_name = default_configs)]
-pub struct UpdateReqChangeset {
-    pub value: Option<Value>,
     pub schema: Option<Value>,
-    //function_name is nullable column, so to support null update with changeset
-    //we had to make it Option<Option<String>>
+    #[serde(deserialize_with = "deserialize_function_name")]
     pub function_name: Option<Option<String>>,
     pub description: Option<String>,
     pub change_reason: String,

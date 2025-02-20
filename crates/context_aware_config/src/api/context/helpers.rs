@@ -1,10 +1,7 @@
-extern crate base64;
-
 use std::collections::HashMap;
 use std::str;
 
 use actix_web::web::Json;
-use base64::prelude::*;
 use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
@@ -161,15 +158,7 @@ pub fn validate_value_with_function(
     key: &String,
     value: &Value,
 ) -> superposition::Result<()> {
-    let base64_decoded = BASE64_STANDARD.decode(function).map_err(|err| {
-        log::error!("Failed to decode function code: {}", err);
-        unexpected_error!("Failed to decode function code: {}", err)
-    })?;
-    let utf8_decoded = str::from_utf8(&base64_decoded).map_err(|err| {
-        log::error!("Failed to parse function code in UTF-8: {}", err);
-        unexpected_error!("Failed to parse function code in UTF-8: {}", err)
-    })?;
-    if let Err((err, stdout)) = execute_fn(utf8_decoded, key, value.to_owned()) {
+    if let Err((err, stdout)) = execute_fn(function, key, value.to_owned()) {
         let stdout = stdout.unwrap_or(String::new());
         log::error!("function validation failed for {key} with error: {err}");
         return Err(validation_error!(

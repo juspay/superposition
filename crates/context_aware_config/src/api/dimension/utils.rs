@@ -6,10 +6,10 @@ use std::collections::HashMap;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     database::{
-        models::cac::{Context, Dimension},
+        models::cac::{Context, Dimension, Position},
         schema::{contexts::dsl::contexts, dimensions::dsl::*},
     },
-    result as superposition, Cac, Condition, DBConnection, Position,
+    result as superposition, Cac, Condition, DBConnection,
 };
 
 use super::types::DimensionName;
@@ -38,7 +38,7 @@ pub fn get_dimension_data_map(
                 item.dimension.clone(),
                 DimensionData {
                     schema: compiled_schema,
-                    position: item.position.clone().into(),
+                    position: item.position.into(),
                 },
             ))
         })

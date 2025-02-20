@@ -1,5 +1,3 @@
-extern crate base64;
-
 use std::{cmp::min, collections::HashSet};
 
 #[cfg(feature = "high-performance-mode")]
@@ -83,7 +81,7 @@ async fn put_handler(
 
             let put_response = operations::put(
                 Json(req.into_inner()),
-                description.clone(),
+                description,
                 transaction_conn,
                 true,
                 &user,
@@ -438,7 +436,7 @@ async fn bulk_operations(
 
                         let description = if put_req.description.is_none() {
                             query_description(
-                                ctx_condition_value.clone(),
+                                ctx_condition_value,
                                 transaction_conn,
                                 &schema_name,
                             )?
@@ -471,8 +469,25 @@ async fn bulk_operations(
                         response.push(ContextBulkResponse::Put(put_resp));
                     }
                     ContextAction::Replace(put_req) => {
+                        let ctx_condition = put_req.context.to_owned().into_inner();
+                        let ctx_condition_value =
+                            Value::Object(ctx_condition.clone().into());
+                        let description = if put_req.description.is_none() {
+                            query_description(
+                                ctx_condition_value,
+                                transaction_conn,
+                                &schema_name,
+                            )?
+                        } else {
+                            put_req
+                                .description
+                                .clone()
+                                .expect("Description should not be empty")
+                        };
+
                         let put_resp = operations::put(
                             Json(put_req.clone()),
+                            description.clone(),
                             transaction_conn,
                             true,
                             &user,
@@ -487,7 +502,7 @@ async fn bulk_operations(
                             err
                         })?;
 
-                        all_descriptions.push(put_resp.description.clone());
+                        all_descriptions.push(description);
                         all_change_reasons.push(put_req.change_reason.clone());
                         response.push(ContextBulkResponse::Replace(put_resp));
                     }

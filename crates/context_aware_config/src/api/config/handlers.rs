@@ -506,7 +506,7 @@ async fn reduce_config_key(
                                         put_req.context.clone().into_inner().into(),
                                     ),
                                     conn,
-                                    &schema_name,
+                                    schema_name,
                                 )?,
                             };
                             let _ = context::put(

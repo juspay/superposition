@@ -1,5 +1,3 @@
-extern crate base64;
-
 use actix_web::{
     delete, get, post, put,
     web::{self, Data, Json, Path, Query},
@@ -30,7 +28,7 @@ use crate::helpers::put_config_in_redis;
 use crate::{
     api::{
         context::helpers::validate_value_with_function,
-        default_config::types::{DefaultConfigKey, UpdateReqChangeset},
+        default_config::types::DefaultConfigKey,
         functions::helpers::get_published_function_code,
     },
     helpers::add_config_version,
@@ -188,7 +186,6 @@ async fn update_default_config(
     let schema = req
         .schema
         .clone()
-        .map(Value::Object)
         .unwrap_or_else(|| existing.schema.clone());
 
     let jschema = JSONSchema::options()
@@ -210,10 +207,10 @@ async fn update_default_config(
         ));
     }
 
-    let function_name = req
+    let function_name: Option<String> = req
         .function_name
         .clone()
-        .map_or_else(|| existing.function_name.clone(), |f| f.to_option());
+        .unwrap_or(existing.function_name.clone());
 
     if let Err(e) = validate_and_get_function_code(
         &mut conn,
@@ -231,7 +228,7 @@ async fn update_default_config(
             let val = diesel::update(dsl::default_configs)
                 .filter(dsl::key.eq(key_str.clone()))
                 .set((
-                    UpdateReqChangeset::from(req),
+                    req,
                     dsl::last_modified_at.eq(Utc::now().naive_utc()),
                     dsl::last_modified_by.eq(user.get_email()),
                 ))

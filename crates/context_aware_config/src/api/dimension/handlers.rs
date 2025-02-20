@@ -1,5 +1,3 @@
-extern crate base64;
-
 use actix_web::{
     delete, get, post, put,
     web::{self, Data, Json, Path, Query},
@@ -14,16 +12,19 @@ use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     custom_query::PaginationParams,
     database::{
-        models::{cac::Dimension, Workspace},
+        models::{
+            cac::{Dimension, Position},
+            Workspace,
+        },
         schema::dimensions::{self, dsl::*},
         types::DimensionWithMandatory,
     },
-    result as superposition, PaginatedResponse, Position, User,
+    result as superposition, PaginatedResponse, User,
 };
 
 use crate::{
     api::dimension::{
-        types::{CreateReq, UpdateReqChangeset},
+        types::CreateReq,
         utils::{get_dimension_usage_context_ids, validate_dimension_position},
     },
     helpers::{get_workspace, validate_jsonschema},
@@ -63,14 +64,14 @@ async fn create(
 
     validate_dimension_position(
         create_req.dimension.clone(),
-        create_req.position.clone(),
+        create_req.position,
         num_rows,
     )?;
     validate_jsonschema(&state.meta_schema, &schema_value)?;
 
     let dimension_data = Dimension {
         dimension: create_req.dimension.into(),
-        position: create_req.position.into(),
+        position: create_req.position,
         schema: schema_value,
         created_by: user.get_email(),
         created_at: Utc::now(),
@@ -83,7 +84,7 @@ async fn create(
 
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
         diesel::update(dimensions::table)
-            .filter(dimensions::position.ge(dimension_data.position.clone()))
+            .filter(dimensions::position.ge(dimension_data.position))
             .set((
                 last_modified_at.eq(Utc::now().naive_utc()),
                 last_modified_by.eq(user.get_email()),
@@ -115,11 +116,12 @@ async fn create(
                 diesel::result::DatabaseErrorKind::ForeignKeyViolation,
                 e,
             )) => {
-                let fun_name = create_req.function_name;
+                let fun_name = create_req.function_name.clone();
                 log::error!("{fun_name:?} function not found with error: {e:?}");
                 Err(bad_argument!(
                     "Function {} doesn't exists",
-                    fun_name.unwrap_or_default()
+                    Into::<Option<String>>::into(create_req.function_name.clone())
+                        .unwrap_or_default()
                 ))
             }
             Err(e) => {
@@ -158,7 +160,7 @@ async fn update(
             db_error!(err)
         })?;
 
-    let mut update_req = req.into_inner();
+    let update_req = req.into_inner();
 
     if let Some(schema_value) = update_req.schema.clone() {
         validate_jsonschema(&state.meta_schema, &schema_value)?;
@@ -166,15 +168,14 @@ async fn update(
 
     let result =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let mut new_position = existing_position.clone();
-            if let Some(position_val) = update_req.position.clone() {
-                new_position = position_val.clone();
+            if let Some(position_val) = update_req.position {
+                let new_position = position_val;
                 validate_dimension_position(
                     path.into_inner(),
                     position_val,
                     num_rows - 1,
                 )?;
-                let previous_position = existing_position.clone();
+                let previous_position = existing_position;
 
                 diesel::update(dimensions)
                     .filter(dsl::dimension.eq(&name))
@@ -213,11 +214,10 @@ async fn update(
                         .execute(transaction_conn)?
                 };
             }
-            update_req.position = Some(new_position.clone());
             diesel::update(dimensions)
                 .filter(dsl::dimension.eq(name))
                 .set((
-                    UpdateReqChangeset::from(update_req),
+                    update_req,
                     dimensions::last_modified_at.eq(Utc::now().naive_utc()),
                     dimensions::last_modified_by.eq(user.get_email()),
                 ))

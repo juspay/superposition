@@ -2,13 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
-use diesel::{
-    deserialize::{FromSql, FromSqlRow, Result as DResult},
-    expression::AsExpression,
-    pg::{Pg, PgValue},
-    serialize::{Output, Result as SResult, ToSql},
-    sql_types::{Integer, Json},
-};
+use diesel::{deserialize::FromSqlRow, expression::AsExpression, sql_types::Json};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{json, Map, Value};
 #[cfg(feature = "diesel_derives")]
@@ -211,57 +205,6 @@ impl Config {
             overrides: filtered_overrides,
             default_configs: filtered_default_config,
         }
-    }
-}
-
-#[derive(
-    Deserialize,
-    Serialize,
-    Default,
-    Clone,
-    Deref,
-    DerefMut,
-    Debug,
-    PartialEq,
-    Eq,
-    Ord,
-    PartialOrd,
-    Into,
-)]
-#[cfg_attr(feature = "diesel_derives", derive(AsExpression, FromSqlRow))]
-#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Integer))]
-#[serde(try_from = "i32")]
-pub struct Position(i32);
-impl Position {
-    fn validate_data(position_val: i32) -> Result<Self, String> {
-        if position_val < 0 {
-            Err("Position should be greater than equal to 0".to_string())
-        } else {
-            Ok(Self(position_val))
-        }
-    }
-}
-
-impl TryFrom<i32> for Position {
-    type Error = String;
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        Self::validate_data(value)
-    }
-}
-
-#[cfg(feature = "diesel_derives")]
-impl FromSql<Integer, Pg> for Position {
-    fn from_sql(bytes: PgValue<'_>) -> DResult<Self> {
-        let value = <i32 as FromSql<Integer, Pg>>::from_sql(bytes)?;
-        Ok(Position(value))
-    }
-}
-
-#[cfg(feature = "diesel_derives")]
-impl ToSql<Integer, Pg> for Position {
-    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> SResult {
-        let value = self.to_owned().into();
-        <i32 as ToSql<Integer, Pg>>::to_sql(&value, &mut out.reborrow())
     }
 }
 

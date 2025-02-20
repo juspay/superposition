@@ -1,34 +1,18 @@
-use base64::prelude::*;
 use derive_more::{AsRef, Deref, DerefMut, Into};
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use superposition_types::{database::schema::functions, RegexEnum};
+use superposition_types::{
+    database::{models::cac::FunctionCode, schema::functions},
+    RegexEnum,
+};
 
-#[derive(Debug, Deserialize)]
-pub struct UpdateFunctionRequest {
-    pub function: Option<String>,
-    pub runtime_version: Option<String>,
-    pub description: Option<String>,
-    pub change_reason: String,
-}
-
-impl From<UpdateFunctionRequest> for UpdateFunctionRequestChangeset {
-    fn from(req: UpdateFunctionRequest) -> Self {
-        Self {
-            draft_code: req.function.map(|x| BASE64_STANDARD.encode(x)),
-            draft_runtime_version: req.runtime_version,
-            description: req.description,
-            change_reason: req.change_reason,
-        }
-    }
-}
-
-//changeset type for update request type
-#[derive(AsChangeset)]
+#[derive(Debug, Deserialize, AsChangeset)]
 #[diesel(table_name = functions)]
-pub struct UpdateFunctionRequestChangeset {
-    pub draft_code: Option<String>,
+pub struct UpdateFunctionRequest {
+    #[serde(rename = "function")]
+    pub draft_code: Option<FunctionCode>,
+    #[serde(rename = "runtime_version")]
     pub draft_runtime_version: Option<String>,
     pub description: Option<String>,
     pub change_reason: String,
@@ -37,7 +21,7 @@ pub struct UpdateFunctionRequestChangeset {
 #[derive(Debug, Deserialize)]
 pub struct CreateFunctionRequest {
     pub function_name: FunctionName,
-    pub function: String,
+    pub function: FunctionCode,
     pub runtime_version: String,
     pub description: String,
     pub change_reason: String,
@@ -65,7 +49,7 @@ impl TryFrom<String> for FunctionName {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FunctionResponse {
     pub function_name: String,
-    pub function: String,
+    pub function: FunctionCode,
     pub function_description: String,
     pub runtime_version: String,
     pub status: String,

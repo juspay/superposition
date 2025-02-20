@@ -1,11 +1,8 @@
-extern crate base64;
-
 use actix_web::{
     delete, get, patch, post, put,
     web::{self, Json, Path, Query},
     HttpResponse, Result, Scope,
 };
-use base64::prelude::*;
 use chrono::Utc;
 use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::json;
@@ -25,13 +22,11 @@ use superposition_types::{
 use validation_functions::{compile_fn, execute_fn};
 
 use crate::{
-    api::functions::types::{
-        Stage, TestFunctionRequest, TestParam, UpdateFunctionRequestChangeset,
-    },
+    api::functions::types::{Stage, TestFunctionRequest, TestParam},
     validation_functions,
 };
 
-use super::helpers::{decode_function, fetch_function};
+use super::helpers::fetch_function;
 use super::types::{CreateFunctionRequest, FunctionName, UpdateFunctionRequest};
 
 pub fn endpoints() -> Scope {
@@ -59,7 +54,7 @@ async fn create(
 
     let function = Function {
         function_name: req.function_name.into(),
-        draft_code: BASE64_STANDARD.encode(req.function),
+        draft_code: (req.function),
         draft_runtime_version: req.runtime_version,
         draft_edited_by: user.get_email(),
         draft_edited_at: Utc::now().naive_utc(),
@@ -80,10 +75,7 @@ async fn create(
         .get_result(&mut conn);
 
     match insert {
-        Ok(mut res) => {
-            decode_function(&mut res)?;
-            Ok(Json(res))
-        }
+        Ok(res) => Ok(Json(res)),
         Err(e) => match e {
             diesel::result::Error::DatabaseError(kind, e) => {
                 log::error!("Function error: {:?}", e);
@@ -119,14 +111,14 @@ async fn update(
     let f_name: String = params.into_inner().into();
 
     // Function Linter Check
-    if let Some(function) = &req.function {
-        compile_fn(function)?;
+    if let Some(function) = &req.draft_code {
+        compile_fn(function.0.as_ref())?;
     }
 
-    let mut updated_function = diesel::update(functions)
+    let updated_function = diesel::update(functions)
         .filter(schema::functions::function_name.eq(f_name))
         .set((
-            UpdateFunctionRequestChangeset::from(req),
+            req,
             dsl::draft_edited_by.eq(user.get_email()),
             dsl::draft_edited_at.eq(Utc::now().naive_utc()),
             dsl::last_modified_by.eq(user.get_email()),
@@ -136,7 +128,6 @@ async fn update(
         .schema_name(&schema_name)
         .get_result::<Function>(&mut conn)?;
 
-    decode_function(&mut updated_function)?;
     Ok(Json(updated_function))
 }
 
@@ -148,9 +139,8 @@ async fn get(
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let f_name: String = params.into_inner().into();
-    let mut function = fetch_function(&f_name, &mut conn, &schema_name)?;
+    let function = fetch_function(&f_name, &mut conn, &schema_name)?;
 
-    decode_function(&mut function)?;
     Ok(Json(function))
 }
 
@@ -162,7 +152,7 @@ async fn list_functions(
 ) -> superposition::Result<Json<PaginatedResponse<Function>>> {
     let DbConnection(mut conn) = db_conn;
 
-    let (total_pages, total_items, mut data) = match filters.all {
+    let (total_pages, total_items, data) = match filters.all {
         Some(true) => {
             let result: Vec<Function> =
                 functions.schema_name(&schema_name).get_results(&mut conn)?;
@@ -189,9 +179,6 @@ async fn list_functions(
         }
     };
 
-    for function in data.iter_mut() {
-        decode_function(function)?;
-    }
     Ok(Json(PaginatedResponse {
         total_pages,
         total_items,
@@ -247,7 +234,7 @@ async fn test(
     let path_params = params.into_inner();
     let fun_name: &String = &path_params.function_name.into();
     let req = request.into_inner();
-    let mut function = match fetch_function(fun_name, &mut conn, &schema_name) {
+    let function = match fetch_function(fun_name, &mut conn, &schema_name) {
         Ok(val) => val,
         Err(superposition::AppError::DbError(diesel::result::Error::NotFound)) => {
             log::error!("Function not found.");
@@ -261,7 +248,6 @@ async fn test(
         }
     };
 
-    decode_function(&mut function)?;
     let result = match path_params.stage {
         Stage::Draft => execute_fn(&function.draft_code, &req.key, req.value),
         Stage::Published => match function.published_code {
