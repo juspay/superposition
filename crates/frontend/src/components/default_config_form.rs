@@ -17,7 +17,7 @@ use crate::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         input::{Input, InputType},
     },
-    schema::{EnumVariants, JsonSchemaType, SchemaType},
+    schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
     types::FunctionsName,
 };
 use crate::{
@@ -57,8 +57,15 @@ where
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
-    let (schema_type_rs, schema_type_ws) = create_signal(Err("".to_string()));
-    let (enum_variants_rs, enum_variants_ws) = create_signal(Err("".to_string()));
+
+    let schema_type_s = Signal::derive(move || {
+        SchemaType::try_from(config_schema_rs.get())
+            .map_err(|err| format!("Failed to get schema type: {}", err))
+    });
+    let enum_variants_s = Signal::derive(move || {
+        EnumVariants::try_from(config_schema_rs.get())
+            .map_err(|err| format!("Failed to get enum variants: {}", err))
+    });
 
     let functions_resource: Resource<(String, String), Vec<Function>> =
         create_blocking_resource(
@@ -260,8 +267,6 @@ where
                                         );
                                         config_type_ws.set(selected_item.type_name);
                                         config_schema_ws.set(type_schema);
-                                        schema_type_ws.set(parsed_schema_type.clone());
-                                        enum_variants_ws.set(parsed_enum_variants.clone());
                                         if let (Ok(schema_type), Ok(enum_variants)) = (
                                             parsed_schema_type,
                                             parsed_enum_variants,
@@ -285,6 +290,16 @@ where
                                     })
                                     r#type=InputType::Monaco
                                 />
+
+                                <Show when=move || {
+                                    !config_schema_rs.get().is_null()
+                                        && schema_type_s.get().is_err()
+                                }>
+                                    <span class="flex gap-2 py-2 text-xs font-semibold text-red-600">
+                                        <i class="ri-close-circle-line"></i>
+                                        {schema_type_s.get().unwrap_err()}
+                                    </span>
+                                </Show>
                             </div>
                         }
                     }}
@@ -292,63 +307,65 @@ where
                 </Suspense>
 
                 {move || {
-                    let input_format = match (schema_type_rs.get(), enum_variants_rs.get()) {
-                        (Ok(schema_type), Ok(enum_variants)) => {
-                            let input_type = InputType::from((schema_type.clone(), enum_variants));
-                            let class = match input_type {
-                                InputType::Toggle => String::new(),
-                                InputType::Select(_) => "mt-2".into(),
-                                InputType::Integer | InputType::Number => "w-full max-w-md".into(),
-                                _ => "rounded-md resize-y w-full max-w-md".into(),
-                            };
-                            view! {
-                                <Input
-                                    id="default-config-value-input"
-                                    class
-                                    schema_type
-                                    value=config_value_rs.get()
-                                    on_change=Callback::new(move |new_default_config: Value| {
-                                        logging::log!(
-                                            "new value entered for default config = {:?}", new_default_config
-                                        );
-                                        config_value_ws.set(new_default_config);
-                                    })
-                                    r#type=input_type
-                                />
-                            }
-                                .into_view()
+                    let schema_type = schema_type_s.get();
+                    let enum_variants = enum_variants_s.get();
+                    if schema_type.is_err() || enum_variants.is_err() {
+                        let tooltip_txt = if config_schema_rs.get().is_null() {
+                            "Please select a schema type".to_string()
+                        } else {
+                            schema_type_s.get().unwrap_err()
+                        };
+                        return view! {
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Default Value</span>
+                                </label>
+                                <div class="tooltip text-left w-full max-w-md" data-tip=tooltip_txt>
+                                    <textarea
+                                        type="text"
+                                        placeholder="Value"
+                                        class="input input-bordered w-full pt-3"
+                                        disabled=true
+                                    >
+                                        {config_value_rs.get().html_display()}
+                                    </textarea>
+                                </div>
+                            </div>
                         }
-                        _ => {
-                            let config_value = match config_value_rs.get() {
-                                Value::String(s) => s,
-                                _ => String::new(),
-                            };
-                            view! {
-                                <textarea
-                                    type="text"
-                                    placeholder="Value"
-                                    class="input input-bordered w-full max-w-md pt-3"
-                                    on:change=move |ev| {
-                                        logging::log!(
-                                            "changing default config value with a text area = {:?}", event_target_value(&ev)
-                                        );
-                                        config_value_ws.set(Value::String(event_target_value(&ev)));
-                                    }
-                                >
-                                    {config_value}
-                                </textarea>
-                            }
-                                .into_view()
-                        }
+                            .into_view();
+                    }
+                    let input_type = InputType::from((
+                        schema_type.clone().unwrap(),
+                        enum_variants.unwrap(),
+                    ));
+                    let class = match input_type {
+                        InputType::Toggle => String::new(),
+                        InputType::Select(_) => "mt-2".into(),
+                        InputType::Integer | InputType::Number => "w-full max-w-md".into(),
+                        _ => "rounded-md resize-y w-full max-w-md".into(),
                     };
                     view! {
                         <div class="form-control">
                             <label class="label">
                                 <span class="label-text">Default Value</span>
                             </label>
-                            {input_format}
+
+                            <Input
+                                id="default-config-value-input"
+                                class
+                                schema_type=schema_type.unwrap()
+                                value=config_value_rs.get()
+                                on_change=Callback::new(move |new_default_config: Value| {
+                                    logging::log!(
+                                        "new value entered for default config = {:?}", new_default_config
+                                    );
+                                    config_value_ws.set(new_default_config);
+                                })
+                                r#type=input_type
+                            />
                         </div>
                     }
+                        .into_view()
                 }}
 
                 <Suspense>
