@@ -98,17 +98,17 @@ pub fn dimensions() -> impl IntoView {
             let edit_click_handler = move |_| {
                 let row_data = RowData {
                     dimension: row_dimension.clone(),
-                    position: row_position.clone(),
+                    position: row_position,
                     schema: schema.clone(),
                     function_name: fun_name.clone(),
-                    mandatory: mandatory.clone(),
+                    mandatory,
                 };
                 logging::log!("{:?}", row_data);
                 selected_dimension.set(Some(row_data));
                 open_drawer("dimension_drawer");
             };
 
-            if dimension_name.clone() == String::from("variantIds") {
+            if dimension_name.clone() == *"variantIds" {
                 view! {
                     <div class="join">
                         <span class="cursor-pointer" on:click=edit_click_handler>
@@ -191,18 +191,16 @@ pub fn dimensions() -> impl IntoView {
                             <DimensionForm handle_submit=move || {
                                 dimensions_resource.refetch();
                                 close_drawer("dimension_drawer");
-                            }/>
+                            } />
                         </Drawer>
                     }
                 }
             }}
             <Suspense fallback=move || {
-                view! { <Skeleton/> }
+                view! { <Skeleton /> }
             }>
                 {move || {
-                    let value = dimensions_resource
-                        .get()
-                        .unwrap_or_default();
+                    let value = dimensions_resource.get().unwrap_or_default();
                     let total_items = value.data.len().to_string();
                     let table_rows = value
                         .data
@@ -228,7 +226,7 @@ pub fn dimensions() -> impl IntoView {
                     };
                     view! {
                         <div class="pb-4">
-                            <Stat heading="Dimensions" icon="ri-ruler-2-fill" number=total_items/>
+                            <Stat heading="Dimensions" icon="ri-ruler-2-fill" number=total_items />
                         </div>
                         <div class="card rounded-xl w-full bg-base-100 shadow">
                             <div class="card-body">

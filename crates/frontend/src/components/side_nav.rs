@@ -116,7 +116,7 @@ pub fn side_nav(
                 </A>
             </div>
             <Suspense fallback=move || {
-                view! { <Skeleton variant=SkeletonVariant::Content/> }
+                view! { <Skeleton variant=SkeletonVariant::Content /> }
             }>
                 <select
                     value=tenant_rws.get().0
@@ -137,7 +137,13 @@ pub fn side_nav(
                             .collect::<Vec<String>>()
                             .join("/");
                         tenant_rws.set(Tenant(selected_tenant.clone()));
-                        set_app_routes.set(create_routes(org_rws.get_untracked().as_str(), selected_tenant.as_str()));
+                        set_app_routes
+                            .set(
+                                create_routes(
+                                    org_rws.get_untracked().as_str(),
+                                    selected_tenant.as_str(),
+                                ),
+                            );
                         let navigate = use_navigate();
                         navigate(redirect_url.as_str(), Default::default())
                     }

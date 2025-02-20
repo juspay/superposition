@@ -35,7 +35,7 @@ impl FunctionName {
 impl TryFrom<String> for FunctionName {
     type Error = String;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Ok(Self::validate_data(value)?)
+        Self::validate_data(value)
     }
 }
 

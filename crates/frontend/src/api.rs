@@ -28,7 +28,7 @@ pub async fn fetch_dimensions(
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let url = format!("{}/dimension?{}", host, filters.to_string());
+    let url = format!("{}/dimension?{}", host, filters);
     let response: PaginatedResponse<DimensionWithMandatory> = client
         .get(url)
         .header("x-tenant", &tenant)
@@ -52,7 +52,7 @@ pub async fn fetch_default_config(
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let url = format!("{}/default-config?{}", host, filters.to_string());
+    let url = format!("{}/default-config?{}", host, filters);
     let response: PaginatedResponse<DefaultConfig> = client
         .get(url)
         .header("x-tenant", tenant)
@@ -74,7 +74,7 @@ pub async fn fetch_snapshots(
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let url = format!("{host}/config/versions?{}", filters.to_string());
+    let url = format!("{host}/config/versions?{}", filters);
     let response: PaginatedResponse<ConfigVersion> = client
         .get(url)
         .header("x-tenant", tenant)
@@ -129,14 +129,9 @@ pub async fn fetch_experiments(
     let pagination = pagination.to_string();
 
     let url = if pagination.is_empty() {
-        format!("{}/experiments?{}", host, filters.to_string())
+        format!("{}/experiments?{}", host, filters)
     } else {
-        format!(
-            "{}/experiments?{}&{}",
-            host,
-            filters.to_string(),
-            pagination
-        )
+        format!("{}/experiments?{}&{}", host, filters, pagination)
     };
     let response: PaginatedResponse<ExperimentResponse> = client
         .get(url)
@@ -160,7 +155,7 @@ pub async fn fetch_functions(
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let url = format!("{}/function?{}", host, filters.to_string());
+    let url = format!("{}/function?{}", host, filters);
     let response: PaginatedResponse<Function> = client
         .get(url)
         .header("x-tenant", tenant)
@@ -318,7 +313,7 @@ pub async fn fetch_types(
     org_id: String,
 ) -> Result<PaginatedResponse<TypeTemplate>, ServerFnError> {
     let host = use_host_server();
-    let url = format!("{host}/types?{}", filters.to_string());
+    let url = format!("{host}/types?{}", filters);
     let err_handler = |e: String| ServerFnError::new(e.to_string());
     let response = request::<()>(
         url,
@@ -340,7 +335,7 @@ pub async fn fetch_workspaces(
 ) -> Result<PaginatedResponse<Workspace>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
-    let url = format!("{}/workspaces?{}", host, filters.to_string());
+    let url = format!("{}/workspaces?{}", host, filters);
     let response: PaginatedResponse<Workspace> = client
         .get(url)
         .header("x-org-id", org_id)

@@ -39,7 +39,7 @@ pub async fn get(
     let snowflake_generator = Arc::new(Mutex::new(SnowflakeIdGenerator::new(1, 1)));
 
     let cac = ContextAwareConfig::parse(TENANT_CONFIG_FILE)
-        .expect(&format!("File {TENANT_CONFIG_FILE} not found"));
+        .unwrap_or_else(|_| panic!("File {TENANT_CONFIG_FILE} not found"));
 
     let tenant_configs = tenants
         .clone()
@@ -90,7 +90,7 @@ pub async fn get(
     }
 
     AppState {
-        db_pool: init_pool_manager(&kms_client, &app_env, max_pool_size).await,
+        db_pool: init_pool_manager(kms_client, &app_env, max_pool_size).await,
         cac_host,
         cac_version: get_from_env_unsafe("SUPERPOSITION_VERSION")
             .expect("SUPERPOSITION_VERSION is not set"),
@@ -119,7 +119,7 @@ pub async fn get(
         .map(String::from)
         .collect::<HashSet<_>>(),
         service_prefix,
-        superposition_token: get_superposition_token(&kms_client, &app_env).await,
+        superposition_token: get_superposition_token(kms_client, &app_env).await,
         #[cfg(feature = "high-performance-mode")]
         redis: redis_pool,
         http_client: reqwest::Client::new(),

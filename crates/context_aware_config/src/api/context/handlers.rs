@@ -178,6 +178,7 @@ async fn update_override_handler(
     Ok(http_resp.json(override_resp))
 }
 
+#[allow(clippy::too_many_arguments)]
 #[put("/move/{ctx_id}")]
 async fn move_handler(
     state: Data<AppState>,
@@ -613,7 +614,7 @@ async fn weight_recompute(
                 diesel::update(contexts.filter(id.eq(context_id)))
                     .set((
                         weight.eq(context_weight),
-                        last_modified_at.eq(last_modified_time.clone()),
+                        last_modified_at.eq(last_modified_time),
                         last_modified_by.eq(user.get_email())
                     ))
                     .schema_name(&schema_name)

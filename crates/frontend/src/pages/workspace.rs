@@ -78,7 +78,7 @@ pub fn workspace() -> impl IntoView {
                 let row_data = RowData {
                     workspace_name: workspace_name.clone(),
                     workspace_schema_name: workspace_schema_name.clone(),
-                    workspace_status: workspace_status.clone(),
+                    workspace_status,
                     workspace_admin_email: workspace_admin_email.clone(),
                     mandatory_dimensions: Some(mandatory_dimensions.clone()),
                     created_by: created_by.clone(),
@@ -112,7 +112,9 @@ pub fn workspace() -> impl IntoView {
             view! {
                 <span
                     class="cursor-pointer text-blue-500"
-                    on:click=move |_| { navigate_to_workspace(org_id.clone(), navigated_workspace_name.clone()) }
+                    on:click=move |_| {
+                        navigate_to_workspace(org_id.clone(), navigated_workspace_name.clone())
+                    }
                 >
 
                     {workspace_name}

@@ -156,7 +156,9 @@ where
                                 class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
                                 schema_type
                                 value=schem
-                                on_change=Callback::new(move |new_type_schema| type_schema_ws.set(new_type_schema))
+                                on_change=Callback::new(move |new_type_schema| {
+                                    type_schema_ws.set(new_type_schema)
+                                })
                                 r#type=InputType::Monaco
                             />
                         </EditorProvider>

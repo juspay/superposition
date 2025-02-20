@@ -200,7 +200,7 @@ impl Client {
     }
 
     pub async fn get_last_modified(&self) -> DateTime<Utc> {
-        self.last_modified.read().await.clone()
+        *self.last_modified.read().await
     }
 
     pub async fn get_resolved_config(

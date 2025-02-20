@@ -93,7 +93,7 @@ pub fn experiment_page() -> impl IntoView {
         <Suspense fallback=move || {
             view! {
                 <div class="m-4">
-                    <Skeleton variant=SkeletonVariant::DetailPage/>
+                    <Skeleton variant=SkeletonVariant::DetailPage />
                 </div>
             }
         }>
@@ -111,7 +111,6 @@ pub fn experiment_page() -> impl IntoView {
                         let experiment_cf = experiment.clone();
                         let experiment_ef = experiment.clone();
                         let experiment_df = experiment.clone();
-
                         view! {
                             <Experiment
                                 experiment=experiment.clone()
@@ -123,7 +122,9 @@ pub fn experiment_page() -> impl IntoView {
                             />
                             <Modal
                                 id="experiment_discard_form_modal".to_string()
-                                handle_close=move || { close_modal("experiment_discard_form_modal") }
+                                handle_close=move || {
+                                    close_modal("experiment_discard_form_modal")
+                                }
                             >
                                 <ExperimentDiscardForm
                                     experiment=experiment_df

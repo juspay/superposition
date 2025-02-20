@@ -48,7 +48,9 @@ where
 
     view! {
         <h3 class="font-bold text-lg">Discard Experiment</h3>
-        <p class="py-4">Safely discard the experiment without affecting any pre-existing overrides</p>
+        <p class="py-4">
+            Safely discard the experiment without affecting any pre-existing overrides
+        </p>
         <form>
             <div class="form-control pb-4">
                 <label class="label">
@@ -68,7 +70,11 @@ where
             {move || {
                 let loading = req_inprogess_rs.get();
                 view! {
-                    <Button text="Discard".to_string() on_click=handle_discard_experiment.clone() loading/>
+                    <Button
+                        text="Discard".to_string()
+                        on_click=handle_discard_experiment.clone()
+                        loading
+                    />
                 }
             }}
 

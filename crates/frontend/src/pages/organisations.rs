@@ -25,7 +25,6 @@ pub fn organisations() -> impl IntoView {
         let navigate = move |_: &str, row: &Map<String, Value>| {
             let organisation_id = row["organisation_id"]
                 .as_str()
-                .clone()
                 .unwrap_or_default()
                 .to_string();
             view! {
@@ -54,21 +53,24 @@ pub fn organisations() -> impl IntoView {
             }>
                 {move || {
                     let organisations = organisation_resource.get().unwrap_or_default();
-                    let table_rows = organisations.clone()
+                    let table_rows = organisations
+                        .clone()
                         .into_iter()
                         .map(|organisation| {
                             let mut map = Map::new();
-                            map.insert(String::from("organisation_id"), Value::String(organisation));
+                            map.insert(
+                                String::from("organisation_id"),
+                                Value::String(organisation),
+                            );
                             map
                         })
                         .collect::<Vec<Map<String, Value>>>();
-
                     view! {
                         <div class="pb-4">
                             <Stat
                                 heading="Oraganisations"
                                 icon="ri-building-fill"
-                                number={organisations.len().to_string()}
+                                number=organisations.len().to_string()
                             />
                         </div>
                         <Table

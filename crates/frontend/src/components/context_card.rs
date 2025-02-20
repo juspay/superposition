@@ -70,16 +70,14 @@ pub fn context_card(
                                 on:click=move |_| {
                                     handle_edit.call((context.get_value(), overrides.get_value()));
                                 }
-                            >
-                            </i>
+                            />
 
                             <i
                                 class="ri-file-copy-line ri-lg text-blue-500 cursor-pointer"
                                 on:click=move |_| {
                                     handle_clone.call((context.get_value(), overrides.get_value()));
                                 }
-                            >
-                            </i>
+                            />
 
                         </Show>
                         <Show when=move || edit_unsupported>
@@ -93,8 +91,7 @@ pub fn context_card(
                                 let context_id = context_id.get_value();
                                 handle_delete.call(context_id);
                             }
-                        >
-                        </i>
+                        />
 
                     </div>
                 </Show>

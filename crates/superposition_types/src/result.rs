@@ -125,7 +125,7 @@ impl error::ResponseError for AppError {
 
             AppError::WebhookError(error) => Self::generate_err_response(
                 StatusCode::from_u16(512).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
-                &error,
+                error,
             ),
         }
     }

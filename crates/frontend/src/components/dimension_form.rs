@@ -102,7 +102,7 @@ where
                     let update_payload = DimensionUpdateReq {
                         position: Some(function_position),
                         schema: Some(function_schema),
-                        function_name: function_name,
+                        function_name,
                         description: description_rs.get(),
                         change_reason: change_reason_rs.get(),
                     };
@@ -118,7 +118,7 @@ where
                         dimension: dimension_name,
                         position: function_position,
                         schema: function_schema,
-                        function_name: function_name,
+                        function_name,
                         description: description_rs.get(),
                         change_reason: change_reason_rs.get(),
                     };
@@ -210,7 +210,9 @@ where
                     } else {
                         dimension_type_rs.get()
                     };
-                    let dimension_type_schema = SchemaType::Single(JsonSchemaType::from(&dimension_schema_rs.get()));
+                    let dimension_type_schema = SchemaType::Single(
+                        JsonSchemaType::from(&dimension_schema_rs.get()),
+                    );
                     view! {
                         <div class="form-control">
                             <label class="label">
@@ -235,7 +237,9 @@ where
                                     class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
                                     schema_type=dimension_type_schema
                                     value=dimension_schema_rs.get()
-                                    on_change=Callback::new(move |new_type_schema| dimension_schema_ws.set(new_type_schema))
+                                    on_change=Callback::new(move |new_type_schema| {
+                                        dimension_schema_ws.set(new_type_schema)
+                                    })
                                     r#type=InputType::Monaco
                                 />
                             </EditorProvider>
