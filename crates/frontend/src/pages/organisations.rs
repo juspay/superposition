@@ -41,9 +41,10 @@ pub fn organisations() -> impl IntoView {
 
         vec![Column::new(
             "organisation_id".to_string(),
-            None,
+            false,
             navigate,
             ColumnSortable::No,
+            true,
         )]
     });
 

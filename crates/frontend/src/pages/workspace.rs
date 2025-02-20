@@ -124,9 +124,10 @@ pub fn workspace() -> impl IntoView {
         vec![
             Column::new(
                 "workspace_name".to_string(),
-                None,
+                false,
                 navigate,
                 ColumnSortable::No,
+                true,
             ),
             Column::default("workspace_admin_email".to_string()),
             Column::default("mandatory_dimensions".to_string()),
@@ -134,9 +135,10 @@ pub fn workspace() -> impl IntoView {
             Column::default("created_at".to_string()),
             Column::new(
                 "actions".to_string(),
-                None,
+                false,
                 actions_col_formatter,
                 ColumnSortable::No,
+                true,
             ),
         ]
     });
