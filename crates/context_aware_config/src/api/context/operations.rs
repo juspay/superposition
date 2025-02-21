@@ -17,8 +17,8 @@ use crate::{
     api::{
         context::{
             helpers::{
-                create_ctx_from_put_req, ensure_description, hash,
-                replace_override_of_existing_ctx, update_override_of_existing_ctx,
+                create_ctx_from_put_req, hash, replace_override_of_existing_ctx,
+                update_override_of_existing_ctx,
                 validate_condition_with_mandatory_dimensions,
             },
             validations::validate_dimensions,
@@ -35,6 +35,7 @@ use super::{
 
 pub fn put(
     req: Json<PutReq>,
+    description: String,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
@@ -42,7 +43,7 @@ pub fn put(
     replace: bool,
 ) -> result::Result<PutResp> {
     use contexts::dsl::contexts;
-    let new_ctx = create_ctx_from_put_req(req, conn, user, schema_name)?;
+    let new_ctx = create_ctx_from_put_req(req, description, conn, user, schema_name)?;
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
@@ -75,6 +76,7 @@ pub fn put(
 pub fn r#move(
     old_ctx_id: String,
     req: Json<MoveReq>,
+    req_description: String,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
@@ -84,11 +86,6 @@ pub fn r#move(
     let req = req.into_inner();
     let ctx_condition = req.context.to_owned().into_inner();
     let ctx_condition_value = Value::Object(ctx_condition.clone().into());
-    let description = if let Some(description) = req.description {
-        description
-    } else {
-        ensure_description(ctx_condition_value.clone(), conn, schema_name)?
-    };
     let change_reason = req.change_reason.clone();
 
     let new_ctx_id = hash(&ctx_condition_value);
@@ -133,7 +130,7 @@ pub fn r#move(
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
         weight,
-        description,
+        description: req_description,
         change_reason,
     };
 

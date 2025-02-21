@@ -16,6 +16,7 @@ use std::future::{ready, Ready};
 
 #[cfg(feature = "server")]
 use actix_web::{dev::Payload, FromRequest, HttpMessage, HttpRequest};
+use base64 as _;
 #[cfg(feature = "diesel_derives")]
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 #[cfg(feature = "diesel_derives")]

@@ -1311,7 +1311,6 @@ dependencies = [
  "actix-http",
  "actix-web",
  "anyhow",
- "base64 0.21.2",
  "bigdecimal",
  "blake3",
  "cac_client",
@@ -4670,6 +4669,7 @@ version = "0.12.1"
 dependencies = [
  "actix-web",
  "anyhow",
+ "base64 0.21.2",
  "bigdecimal",
  "chrono",
  "derive_more",

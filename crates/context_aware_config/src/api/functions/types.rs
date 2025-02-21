@@ -1,12 +1,19 @@
 use derive_more::{AsRef, Deref, DerefMut, Into};
+use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use superposition_types::RegexEnum;
+use superposition_types::{
+    database::{models::cac::FunctionCode, schema::functions},
+    RegexEnum,
+};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, AsChangeset)]
+#[diesel(table_name = functions)]
 pub struct UpdateFunctionRequest {
-    pub function: Option<String>,
-    pub runtime_version: Option<String>,
+    #[serde(rename = "function")]
+    pub draft_code: Option<FunctionCode>,
+    #[serde(rename = "runtime_version")]
+    pub draft_runtime_version: Option<String>,
     pub description: Option<String>,
     pub change_reason: String,
 }
@@ -14,7 +21,7 @@ pub struct UpdateFunctionRequest {
 #[derive(Debug, Deserialize)]
 pub struct CreateFunctionRequest {
     pub function_name: FunctionName,
-    pub function: String,
+    pub function: FunctionCode,
     pub runtime_version: String,
     pub description: String,
     pub change_reason: String,
@@ -42,7 +49,7 @@ impl TryFrom<String> for FunctionName {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FunctionResponse {
     pub function_name: String,
-    pub function: String,
+    pub function: FunctionCode,
     pub function_description: String,
     pub runtime_version: String,
     pub status: String,

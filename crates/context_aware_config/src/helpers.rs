@@ -294,7 +294,6 @@ pub fn add_config_version(
     state: &Data<AppState>,
     tags: Option<Vec<String>>,
     description: String,
-    change_reason: String,
     db_conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<i64> {
@@ -310,7 +309,6 @@ pub fn add_config_version(
         tags,
         created_at: Utc::now().naive_utc(),
         description,
-        change_reason,
     };
     diesel::insert_into(config_versions)
         .values(&config_version)

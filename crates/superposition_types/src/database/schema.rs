@@ -14,7 +14,6 @@ diesel::table! {
         tags -> Nullable<Array<Varchar>>,
         created_at -> Timestamp,
         description -> Text,
-        change_reason -> Text,
     }
 }
 
