@@ -164,6 +164,7 @@ pub fn experiment_page() -> impl IntoView {
                                         id=experiment.id
                                         name=experiment_ef.name
                                         context=experiment_ef.context.clone()
+                                        overrides=vec![]
                                         variants=FromIterator::from_iter(experiment_ef.variants)
                                         default_config=default_config
                                         dimensions=dimensions
