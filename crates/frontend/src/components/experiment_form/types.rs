@@ -1,42 +1,22 @@
-use serde::Serialize;
-use serde_json::{Map, Value};
-use superposition_types::database::models::experimentation::Variant;
+use serde_json::Map;
+use superposition_types::{api::experiments::VariantUpdateRequest, Exp, Overrides};
 
 use crate::types::VariantFormT;
 
-#[derive(Serialize)]
-pub struct ExperimentCreateRequest {
-    pub name: String,
-    pub context: Value,
-    pub variants: Vec<Variant>,
-    pub description: String,
-    pub change_reason: String,
-}
-
-#[derive(Serialize, Debug)]
-pub struct VariantUpdateRequest {
-    pub id: String,
-    pub overrides: Map<String, Value>,
-}
-
-impl From<VariantFormT> for VariantUpdateRequest {
-    fn from(value: VariantFormT) -> Self {
-        Self {
+impl TryFrom<VariantFormT> for VariantUpdateRequest {
+    type Error = String;
+    fn try_from(value: VariantFormT) -> Result<Self, Self::Error> {
+        Ok(Self {
             id: value.id,
-            overrides: Map::from_iter(value.overrides),
-        }
+            overrides: Exp::<Overrides>::try_from(Map::from_iter(value.overrides))?,
+        })
     }
 }
 
-impl FromIterator<VariantFormT> for Vec<VariantUpdateRequest> {
+impl FromIterator<VariantFormT> for Result<Vec<VariantUpdateRequest>, String> {
     fn from_iter<T: IntoIterator<Item = VariantFormT>>(iter: T) -> Self {
-        iter.into_iter().map(VariantUpdateRequest::from).collect()
+        iter.into_iter()
+            .map(VariantUpdateRequest::try_from)
+            .collect()
     }
-}
-
-#[derive(Serialize, Debug)]
-pub struct ExperimentUpdateRequest {
-    pub variants: Vec<VariantUpdateRequest>,
-    pub description: Option<String>,
-    pub change_reason: String,
 }
