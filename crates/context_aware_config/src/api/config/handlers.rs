@@ -58,7 +58,7 @@ pub fn endpoints() -> Scope {
         .service(reduce_config)
         .service(get_config_versions);
     #[cfg(feature = "high-performance-mode")]
-    scope.service(get_config_fast);
+    let scope = scope.service(get_config_fast);
     scope
 }
 
