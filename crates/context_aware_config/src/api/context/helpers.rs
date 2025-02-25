@@ -1,14 +1,11 @@
-extern crate base64;
-
 use std::collections::HashMap;
 use std::str;
 
 use actix_web::web::Json;
-use base64::prelude::*;
 use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
@@ -161,15 +158,7 @@ pub fn validate_value_with_function(
     key: &String,
     value: &Value,
 ) -> superposition::Result<()> {
-    let base64_decoded = BASE64_STANDARD.decode(function).map_err(|err| {
-        log::error!("Failed to decode function code: {}", err);
-        unexpected_error!("Failed to decode function code: {}", err)
-    })?;
-    let utf8_decoded = str::from_utf8(&base64_decoded).map_err(|err| {
-        log::error!("Failed to parse function code in UTF-8: {}", err);
-        unexpected_error!("Failed to parse function code in UTF-8: {}", err)
-    })?;
-    if let Err((err, stdout)) = execute_fn(utf8_decoded, key, value.to_owned()) {
+    if let Err((err, stdout)) = execute_fn(function, key, value.to_owned()) {
         let stdout = stdout.unwrap_or(String::new());
         log::error!("function validation failed for {key} with error: {err}");
         return Err(validation_error!(
@@ -182,7 +171,7 @@ pub fn validate_value_with_function(
     Ok(())
 }
 
-pub fn ensure_description(
+pub fn query_description(
     context: Value,
     transaction_conn: &mut diesel::PgConnection,
     schema_name: &SchemaName,
@@ -213,6 +202,7 @@ pub fn ensure_description(
 
 pub fn create_ctx_from_put_req(
     req: Json<PutReq>,
+    req_description: String,
     conn: &mut DBConnection,
     user: &User,
     schema_name: &SchemaName,
@@ -221,12 +211,6 @@ pub fn create_ctx_from_put_req(
     let condition_val = Value::Object(ctx_condition.clone().into());
     let r_override = req.r#override.clone().into_inner();
     let ctx_override = Value::Object(r_override.clone().into());
-    let description = if let Some(description) = req.description.clone() {
-        description
-    } else {
-        let ctx_condition_value = json!(ctx_condition);
-        ensure_description(ctx_condition_value, conn, schema_name)?
-    };
 
     let workspace_settings = get_workspace(schema_name, conn)?;
 
@@ -258,7 +242,7 @@ pub fn create_ctx_from_put_req(
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
         weight,
-        description,
+        description: req_description,
         change_reason,
     })
 }

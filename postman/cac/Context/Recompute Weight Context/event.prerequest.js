@@ -3,8 +3,8 @@ const org_id = pm.variables.get("org_id");
 
 function update_dimension_position() {
     const options = {
-        'method': 'POST',
-        'url': `${host}/dimension`,
+        'method': 'PUT',
+        'url': `${host}/dimension/clientId`,
         'header': {
             'x-tenant': 'test',
             'Content-Type': 'application/json',
@@ -13,7 +13,6 @@ function update_dimension_position() {
         "body": {
             "mode": "raw",
             "raw": JSON.stringify({
-                "dimension": "clientId",
                 "position": 1,
                 "schema": {
                     "type": "string",

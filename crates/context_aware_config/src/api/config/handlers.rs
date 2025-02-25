@@ -41,8 +41,11 @@ use superposition_types::{
 };
 use uuid::Uuid;
 
-use crate::{api::context, helpers::DimensionData};
 use crate::{api::context::PutReq, helpers::generate_cac};
+use crate::{
+    api::context::{self, helpers::query_description},
+    helpers::DimensionData,
+};
 use crate::{
     api::dimension::{get_dimension_data, get_dimension_data_map},
     helpers::calculate_context_weight,
@@ -496,8 +499,19 @@ async fn reduce_config_key(
                     if is_approve {
                         let _ = context::delete(cid.clone(), user, conn, schema_name);
                         if let Ok(put_req) = construct_new_payload(request_payload) {
+                            let description = match put_req.description.clone() {
+                                Some(val) => val,
+                                None => query_description(
+                                    Value::Object(
+                                        put_req.context.clone().into_inner().into(),
+                                    ),
+                                    conn,
+                                    schema_name,
+                                )?,
+                            };
                             let _ = context::put(
                                 put_req,
+                                description,
                                 conn,
                                 false,
                                 user,
