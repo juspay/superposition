@@ -9,7 +9,7 @@ use leptos_router::use_params_map;
 use serde::{Deserialize, Serialize};
 use strum::EnumProperty;
 use strum_macros::Display;
-use superposition_types::database::models::cac::Function;
+use superposition_types::database::models::cac::{Function, FunctionCode};
 use utils::publish_function;
 use web_sys::{HtmlButtonElement, MouseEvent};
 
@@ -377,13 +377,13 @@ pub fn function_page() -> impl IntoView {
 
                                                             {
                                                                 let (fun_code_rs, fun_code_ws) = create_signal(
-                                                                    function_rs
+                                                                    Into::<String>::into(function_rs
                                                                         .get()
                                                                         .published_code
                                                                         .unwrap_or(
-                                                                            "// Code not published yet, publish function to see it here!"
-                                                                                .to_string(),
-                                                                        ),
+                                                                            FunctionCode("// Code not published yet, publish function to see it here!"
+                                                                                .to_string()),
+                                                                        )),
                                                                 );
                                                                 let on_change = move |value| fun_code_ws.set(value);
                                                                 view! {
@@ -424,10 +424,12 @@ pub fn function_page() -> impl IntoView {
 
                                                             {
                                                                 let (fun_code_rs, fun_code_ws) = create_signal(
-                                                                    function_rs.get().draft_code,
+                                                                    Into::<String>::into(function_rs.get().draft_code),
                                                                 );
+                                                                let fun_code: String = Into::<String>::into(function_rs.get().draft_code);
                                                                 let on_change = move |value| fun_code_ws.set(value);
                                                                 view! {
+
                                                                     <Show when=move || {
                                                                         !editor_mode_rs.get() && !test_mode_rs.get()
                                                                     }>
@@ -435,7 +437,7 @@ pub fn function_page() -> impl IntoView {
                                                                             <FunctionEditor
                                                                                 edit=true
                                                                                 function_name=function_rs.get().function_name
-                                                                                function=function_rs.get().draft_code
+                                                                                function=fun_code.clone()
                                                                                 runtime_version=function_rs.get().draft_runtime_version
                                                                                 description=function_rs.get().description
                                                                                 handle_submit=move || {

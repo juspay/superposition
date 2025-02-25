@@ -1,5 +1,3 @@
-extern crate base64;
-
 use actix_web::{
     delete, get, post, put,
     web::{self, Data, Json, Path, Query},
@@ -14,7 +12,10 @@ use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     custom_query::PaginationParams,
     database::{
-        models::{cac::Dimension, Workspace},
+        models::{
+            cac::{Dimension, Position},
+            Workspace,
+        },
         schema::dimensions::{self, dsl::*},
         types::DimensionWithMandatory,
     },
@@ -23,7 +24,7 @@ use superposition_types::{
 
 use crate::{
     api::dimension::{
-        types::{CreateReq, FunctionNameEnum},
+        types::CreateReq,
         utils::{get_dimension_usage_context_ids, validate_dimension_position},
     },
     helpers::{get_workspace, validate_jsonschema},
@@ -63,14 +64,14 @@ async fn create(
 
     validate_dimension_position(
         create_req.dimension.clone(),
-        create_req.position.clone(),
+        create_req.position,
         num_rows,
     )?;
     validate_jsonschema(&state.meta_schema, &schema_value)?;
 
     let dimension_data = Dimension {
         dimension: create_req.dimension.into(),
-        position: create_req.position.into(),
+        position: create_req.position,
         schema: schema_value,
         created_by: user.get_email(),
         created_at: Utc::now(),
@@ -115,11 +116,12 @@ async fn create(
                 diesel::result::DatabaseErrorKind::ForeignKeyViolation,
                 e,
             )) => {
-                let fun_name = create_req.function_name;
+                let fun_name = create_req.function_name.clone();
                 log::error!("{fun_name:?} function not found with error: {e:?}");
                 Err(bad_argument!(
                     "Function {} doesn't exists",
-                    fun_name.unwrap_or_default()
+                    Into::<Option<String>>::into(create_req.function_name.clone())
+                        .unwrap_or_default()
                 ))
             }
             Err(e) => {
@@ -143,10 +145,11 @@ async fn update(
     use dimensions::dsl;
     let DbConnection(mut conn) = db_conn;
 
-    let mut dimension_row: Dimension = dsl::dimensions
+    let existing_position: Position = dsl::dimensions
+        .select(dimensions::position)
         .filter(dimensions::dimension.eq(name.clone()))
         .schema_name(&schema_name)
-        .get_result::<Dimension>(&mut conn)?;
+        .get_result::<Position>(&mut conn)?;
 
     let num_rows = dimensions
         .count()
@@ -159,36 +162,23 @@ async fn update(
 
     let update_req = req.into_inner();
 
-    if let Some(schema_value) = update_req.schema {
+    if let Some(schema_value) = update_req.schema.clone() {
         validate_jsonschema(&state.meta_schema, &schema_value)?;
-        dimension_row.schema = schema_value;
     }
-
-    dimension_row.change_reason = update_req.change_reason;
-    dimension_row.description =
-        update_req.description.unwrap_or(dimension_row.description);
-
-    dimension_row.function_name = match update_req.function_name {
-        Some(FunctionNameEnum::Name(func_name)) => Some(func_name),
-        Some(FunctionNameEnum::Remove) => None,
-        None => dimension_row.function_name,
-    };
 
     let result =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let mut new_position = dimension_row.position;
-
             if let Some(position_val) = update_req.position {
-                new_position = position_val.clone().into();
+                let new_position = position_val;
                 validate_dimension_position(
                     path.into_inner(),
                     position_val,
                     num_rows - 1,
                 )?;
-                let previous_position = dimension_row.position;
+                let previous_position = existing_position;
 
                 diesel::update(dimensions)
-                    .filter(dsl::dimension.eq(&dimension_row.dimension))
+                    .filter(dsl::dimension.eq(&name))
                     .set((
                         dsl::last_modified_at.eq(Utc::now().naive_utc()),
                         dsl::last_modified_by.eq(user.get_email()),
@@ -201,7 +191,7 @@ async fn update(
                 if previous_position < new_position {
                     diesel::update(dsl::dimensions)
                         .filter(dimensions::position.gt(previous_position))
-                        .filter(dimensions::position.le(new_position))
+                        .filter(dimensions::position.le(&new_position))
                         .set((
                             dsl::last_modified_at.eq(Utc::now().naive_utc()),
                             dsl::last_modified_by.eq(user.get_email()),
@@ -213,7 +203,7 @@ async fn update(
                 } else {
                     diesel::update(dsl::dimensions)
                         .filter(dimensions::position.lt(previous_position))
-                        .filter(dimensions::position.ge(new_position))
+                        .filter(dimensions::position.ge(&new_position))
                         .set((
                             dsl::last_modified_at.eq(Utc::now().naive_utc()),
                             dsl::last_modified_by.eq(user.get_email()),
@@ -224,17 +214,12 @@ async fn update(
                         .execute(transaction_conn)?
                 };
             }
-
             diesel::update(dimensions)
-                .filter(dsl::dimension.eq(&dimension_row.dimension))
+                .filter(dsl::dimension.eq(name))
                 .set((
+                    update_req,
                     dimensions::last_modified_at.eq(Utc::now().naive_utc()),
                     dimensions::last_modified_by.eq(user.get_email()),
-                    dimensions::function_name.eq(dimension_row.function_name),
-                    dimensions::schema.eq(dimension_row.schema),
-                    dimensions::position.eq(new_position),
-                    dimensions::description.eq(dimension_row.description),
-                    dimensions::change_reason.eq(dimension_row.change_reason),
                 ))
                 .returning(Dimension::as_returning())
                 .schema_name(&schema_name)

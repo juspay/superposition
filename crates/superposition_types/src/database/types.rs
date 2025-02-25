@@ -2,12 +2,12 @@ use chrono::{offset::Utc, DateTime, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::models::cac::Dimension;
+use super::models::cac::{Dimension, Position};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DimensionWithMandatory {
     pub dimension: String,
-    pub position: i32,
+    pub position: Position,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: Value,
