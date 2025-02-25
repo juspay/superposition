@@ -159,7 +159,7 @@ where
                                 on_change=Callback::new(move |new_type_schema| {
                                     type_schema_ws.set(new_type_schema)
                                 })
-                                r#type=InputType::Monaco
+                                r#type=InputType::Monaco(vec![])
                             />
                         </EditorProvider>
                     }
