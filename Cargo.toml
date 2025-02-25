@@ -45,6 +45,7 @@ diesel = { git = "https://github.com/juspay/diesel.git", branch = "dynamic-schem
     "chrono",
     "uuid",
     "postgres_backend",
+    "i-implement-a-third-party-backend-and-opt-into-breaking-changes"
 ] }
 fred = { version = "9.2.1" }
 futures-util = "0.3.28"
