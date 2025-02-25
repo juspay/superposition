@@ -288,7 +288,7 @@ where
                                     on_change=Callback::new(move |new_config_schema| {
                                         config_schema_ws.set(new_config_schema)
                                     })
-                                    r#type=InputType::Monaco
+                                    r#type=InputType::Monaco(vec![])
                                 />
 
                                 <Show when=move || {
