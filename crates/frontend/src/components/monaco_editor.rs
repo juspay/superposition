@@ -1,9 +1,16 @@
 use std::borrow::Borrow;
+use std::collections::HashSet;
 use std::rc::Rc;
 
 use leptos::*;
 use monaco::api::CodeEditor;
 use monaco::sys::editor::{IEditorMinimapOptions, IStandaloneEditorConstructionOptions};
+use monaco::sys::languages::{register_completion_item_provider, CompletionItemProvider};
+use monaco::sys::IDisposable;
+use serde_json::Value;
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
+
 #[derive(Debug, Clone, strum_macros::Display)]
 #[strum(serialize_all = "lowercase")]
 pub enum Languages {
@@ -12,6 +19,58 @@ pub enum Languages {
 }
 
 pub type EditorModelCell = Rc<Option<CodeEditor>>;
+
+#[wasm_bindgen(module = "/src-js/utils.js")]
+extern "C" {
+    #[wasm_bindgen(js_name = newSuggestionsProvider)]
+    fn new_suggestions_provider(
+        trigers: JsValue,
+        suggestions: JsValue,
+    ) -> CompletionItemProvider;
+}
+
+/// Returns an object which allows removing the suggestions.
+fn set_monaco_suggestions(lang_id: &str, suggestions: &[Value]) -> Option<IDisposable> {
+    let mut triggers = HashSet::new();
+    for s in suggestions {
+        match s {
+            Value::Array(_) => triggers.insert('['),
+            Value::Object(_) => triggers.insert('{'),
+            Value::Bool(true) => triggers.insert('t'),
+            Value::Bool(false) => triggers.insert('f'),
+            // This will take care of negative numbers as well.
+            Value::Number(n) => triggers.insert(n.to_string().chars().next().unwrap()),
+            Value::String(_) => triggers.insert('"'),
+            Value::Null => false,
+        };
+    }
+    logging::debug_warn!(
+            "Trying to set monaco suggestions: {:?}, for lang-id: {lang_id}, w/ triggers: {:?}",
+            suggestions,
+            &triggers
+        );
+    let triggers = JsValue::from(
+        triggers
+            .into_iter()
+            .map(|c| c.to_string())
+            .collect::<Vec<String>>(),
+    );
+    match serde_wasm_bindgen::to_value(suggestions) {
+        Ok(jsv) => {
+            let provider = new_suggestions_provider(triggers, jsv);
+            Some(register_completion_item_provider(lang_id, &provider))
+        }
+        Err(e) => {
+            logging::error!(
+                r#"
+                Failed to convert monaco suggestions to native JS values.
+                Error: {e}
+                "#
+            );
+            None
+        }
+    }
+}
 
 #[component]
 pub fn monaco_editor(
@@ -22,10 +81,19 @@ pub fn monaco_editor(
     #[prop(default = vec!["min-h-50"])] classes: Vec<&'static str>,
     #[prop(default = false)] _validation: bool,
     #[prop(default = false)] read_only: bool,
+    #[prop(default = vec![])] suggestions: Vec<Value>,
 ) -> impl IntoView {
     let editor_ref = create_node_ref::<html::Div>();
     let (editor_rs, editor_ws) = create_signal(Rc::new(None));
     let styling = classes.join(" ");
+    let idp = set_monaco_suggestions(language.to_string().as_str(), &suggestions);
+    on_cleanup(move || {
+        // Running to un-register completions, otherwise these suggestions will come up in other
+        // monaco instances when using the same language.
+        if let Some(i) = idp {
+            i.dispose()
+        }
+    });
     create_effect(move |_| {
         if let Some(node) = editor_ref.get() {
             monaco::workers::ensure_environment_set();
@@ -45,7 +113,6 @@ pub fn monaco_editor(
             editor_settings.set_read_only(Some(read_only));
             editor_settings.set_minimap(Some(&minimap_settings));
             let editor = CodeEditor::create(&node, Some(editor_settings));
-
             editor_ws.set(Rc::new(Some(editor)));
         }
     });
