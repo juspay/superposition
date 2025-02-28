@@ -6,6 +6,7 @@ use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use superposition_types::{
+    api::experiments::{ExperimentListFilters, ExperimentResponse, ExperimentSortOn},
     custom_query::PaginationParams,
     database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
     PaginatedResponse, SortBy,
@@ -20,14 +21,14 @@ use crate::logic::Conditions;
 
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
-use crate::types::{ExperimentListFilters, ExperimentResponse, VariantFormTs};
+use crate::types::VariantFormTs;
 use crate::utils::update_page_direction;
 use crate::{
     api::{fetch_default_config, fetch_dimensions, fetch_experiments},
     types::{OrganisationId, Tenant},
 };
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 struct CombinedResource {
     experiments: PaginatedResponse<ExperimentResponse>,
     dimensions: Vec<DimensionWithMandatory>,
@@ -47,7 +48,7 @@ pub fn experiment_list() -> impl IntoView {
         experiment_ids: None,
         created_by: None,
         context: None,
-        sort_on: Some(utils::ExperimentSortOn::LastModifiedAt),
+        sort_on: Some(ExperimentSortOn::LastModifiedAt),
         sort_by: Some(SortBy::Desc),
     });
 
