@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.21.1 - 2025-02-28
+#### Bug Fixes
+- optimize db query for update (#390) - (258933f) - PRATIK MISHRA
+- removed err as a default value for schema type and enum variants - (3a01314) - Shubhranshu Sanjeev
+- Fixed clippy warnings - (88bbfe9) - ShreyBana
+- Disable monaco edit on override update (#425) - (1037d3e) - Ayush Jain
+
+- - -
+
 ## frontend-v0.21.0 - 2025-02-14
 #### Bug Fixes
 - Update experiments page - (d0c8d4e) - ayush.jain@juspay.in

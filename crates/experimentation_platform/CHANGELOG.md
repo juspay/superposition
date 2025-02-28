@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.26.2 - 2025-02-28
+#### Bug Fixes
+- Fixed clippy warnings - (88bbfe9) - ShreyBana
+
+- - -
+
 ## experimentation_platform-v0.26.1 - 2025-02-19
 #### Bug Fixes
 - Unsafe error handling in experimentation (#421) - (2cb6840) - Ayush Jain

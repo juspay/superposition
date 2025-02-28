@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.12.2 - 2025-02-28
+#### Bug Fixes
+- optimize db query for update (#390) - (258933f) - PRATIK MISHRA
+- Fixed clippy warnings - (88bbfe9) - ShreyBana
+
+- - -
+
 ## superposition_types-v0.12.1 - 2025-02-19
 #### Bug Fixes
 - tenant config - (416f066) - Ankit Kumar Mahato

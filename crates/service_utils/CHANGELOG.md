@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.26.3 - 2025-02-28
+#### Bug Fixes
+- Fixed clippy warnings - (88bbfe9) - ShreyBana
+
+- - -
+
 ## service_utils-v0.26.2 - 2025-02-19
 #### Bug Fixes
 - tenant config - (416f066) - Ankit Kumar Mahato

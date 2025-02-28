@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.46.2 - 2025-02-28
+#### Bug Fixes
+- optimize db query for update (#390) - (258933f) - PRATIK MISHRA
+- scope ownership in get config HP mode - (e9470c2) - Kartik
+- Fixed clippy warnings - (88bbfe9) - ShreyBana
+
+- - -
+
 ## context_aware_config-v0.46.1 - 2025-02-14
 #### Bug Fixes
 - Update experiments page - (d0c8d4e) - ayush.jain@juspay.in

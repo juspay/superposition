@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.66.2 - 2025-02-28
+### Package updates
+- frontend bumped to frontend-v0.21.1
+- context_aware_config bumped to context_aware_config-v0.46.2
+- experimentation_platform bumped to experimentation_platform-v0.26.2
+- cac_client bumped to cac_client-v0.16.2
+- service_utils bumped to service_utils-v0.26.3
+- superposition_types bumped to superposition_types-v0.12.2
+### Global changes
+#### Bug Fixes
+- Fixed local db init. - (6ff2518) - Shrey Bana
+- Fixed clippy warnings - (88bbfe9) - ShreyBana
+- optimize db query for update (#390) - (258933f) - PRATIK MISHRA
+
+- - -
+
 ## v0.66.1 - 2025-02-19
 ### Package updates
 - superposition_types bumped to superposition_types-v0.12.1
