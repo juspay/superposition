@@ -2085,6 +2085,7 @@ dependencies = [
  "once_cell",
  "reqwest",
  "serde",
+ "serde-wasm-bindgen",
  "serde_json",
  "strum",
  "strum_macros",

@@ -20,7 +20,8 @@ pub enum InputType {
     Number,
     Integer,
     Toggle,
-    Monaco,
+    /// Accepts a vector of JSON values to provide as suggestions/completions.
+    Monaco(Vec<Value>),
     Select(EnumVariants),
     Disabled,
 }
@@ -31,7 +32,7 @@ impl InputType {
             InputType::Text
             | InputType::Disabled
             | InputType::Toggle
-            | InputType::Monaco
+            | InputType::Monaco(_)
             | InputType::Select(_) => "text",
 
             InputType::Number | InputType::Integer => "number",
@@ -51,13 +52,13 @@ impl From<(SchemaType, EnumVariants)> for InputType {
             SchemaType::Single(JsonSchemaType::Boolean) => InputType::Toggle,
             SchemaType::Single(JsonSchemaType::String) => InputType::Text,
             SchemaType::Single(JsonSchemaType::Null) => InputType::Disabled,
-            SchemaType::Single(JsonSchemaType::Array) => InputType::Monaco,
-            SchemaType::Single(JsonSchemaType::Object) => InputType::Monaco,
+            SchemaType::Single(JsonSchemaType::Array) => InputType::Monaco(vec![]),
+            SchemaType::Single(JsonSchemaType::Object) => InputType::Monaco(vec![]),
             SchemaType::Multiple(types)
                 if types.contains(&JsonSchemaType::Object)
                     || types.contains(&JsonSchemaType::Array) =>
             {
-                InputType::Monaco
+                InputType::Monaco(vec![])
             }
             SchemaType::Multiple(_) => InputType::Text,
         }
@@ -69,7 +70,8 @@ impl From<(SchemaType, EnumVariants, Operator)> for InputType {
         (schema_type, enum_variants, operator): (SchemaType, EnumVariants, Operator),
     ) -> Self {
         if operator == Operator::In {
-            return InputType::Monaco;
+            let EnumVariants(ev) = enum_variants;
+            return InputType::Monaco(ev);
         }
 
         InputType::from((schema_type, enum_variants))
@@ -300,10 +302,12 @@ pub fn monaco_input(
     on_change: Callback<Value, ()>,
     schema_type: SchemaType,
     #[prop(default = false)] disabled: bool,
+    suggestions: Vec<Value>,
     #[prop(default = None)] operator: Option<Operator>,
 ) -> impl IntoView {
     let id = store_value(id);
     let schema_type = store_value(schema_type);
+    let suggestions = store_value(suggestions);
     let (value_rs, value_ws) = create_signal(value);
     let (expand_rs, expand_ws) = create_signal(false);
     let (error_rs, error_ws) = create_signal::<Option<String>>(None);
@@ -418,6 +422,7 @@ pub fn monaco_input(
 
                                 language=Languages::Json
                                 classes=vec!["h-full"]
+                                suggestions=suggestions.get_value()
                             />
                             <div class="absolute top-[0px] right-[0px]">
                                 <button
@@ -496,8 +501,8 @@ pub fn input(
         },
         InputType::Select(ref options) => view! { <Select id name class value on_change disabled options=options.0.clone() /> }
         .into_view(),
-        InputType::Monaco => {
-            view! { <MonacoInput id class value on_change disabled schema_type operator/> }.into_view()
+        InputType::Monaco(suggestions) => {
+            view! { <MonacoInput id class value on_change disabled schema_type suggestions operator /> }.into_view()
         }
         _ => {
             view! {
