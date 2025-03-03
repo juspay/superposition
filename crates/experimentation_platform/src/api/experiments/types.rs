@@ -208,7 +208,7 @@ pub struct ExperimentListFilters {
     pub experiment_name: Option<String>,
     pub experiment_ids: Option<CommaSeparatedStringQParams>,
     pub created_by: Option<CommaSeparatedStringQParams>,
-    pub context: Option<String>,
+    pub context: Option<CommaSeparatedStringQParams>,
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
 }
