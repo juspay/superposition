@@ -34,6 +34,7 @@
         }:
         {
           formatter = pkgs.nixpkgs-fmt;
+          packages.smithy-cli = pkgs.callPackage ./nix/smithy-cli.nix {};
           devShells.default = pkgs.mkShell {
             inputsFrom = [
               self'.devShells.rust
@@ -42,6 +43,7 @@
             ];
             # Add your devShell tools here
             packages = with pkgs; [
+              self'.packages.smithy-cli
               docker-compose
               gnumake
               # Why do we need this?
