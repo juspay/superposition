@@ -6,12 +6,11 @@ pub fn apply_prefix_filter_to_config(
     mut config: Config,
 ) -> superposition::Result<Config> {
     if let Some(prefix) = query_params_map
-        .get("prefix")
-        .and_then(|prefix| prefix.as_str())
+        .remove("prefix")
+        .and_then(|prefix| prefix.as_str().map(String::from))
     {
         config = config.filter_by_prefix(&prefix.split(',').map(String::from).collect());
     }
 
-    query_params_map.remove("prefix");
     Ok(config)
 }

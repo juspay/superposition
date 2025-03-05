@@ -307,7 +307,7 @@ pub fn add_config_version(
         config: json_config,
         config_hash,
         tags,
-        created_at: Utc::now().naive_utc(),
+        created_at: Utc::now(),
         description,
     };
     diesel::insert_into(config_versions)

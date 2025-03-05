@@ -71,7 +71,7 @@ async fn create_workspace(
     let org_info: Organisation = organisations::dsl::organisations
         .filter(organisations::id.eq(&org_id.0))
         .get_result::<Organisation>(&mut conn)?;
-    let timestamp = Utc::now().naive_utc();
+    let timestamp = Utc::now();
     let request = request.into_inner();
     let email = user.get_email();
     validate_workspace_name(&request.workspace_name)?;
@@ -113,7 +113,7 @@ async fn update_workspace(
 ) -> superposition::Result<Json<Workspace>> {
     let request = request.into_inner();
     let workspace_name = workspace_name.into_inner();
-    let timestamp = Utc::now().naive_utc();
+    let timestamp = Utc::now();
     let DbConnection(mut conn) = db_conn;
     let updated_workspace =
         conn.transaction::<Workspace, superposition::AppError, _>(|transaction_conn| {
