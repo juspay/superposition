@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use chrono::{DateTime, Utc};
 use leptos::*;
 use serde_json::{json, Map, Value};
 
@@ -476,6 +477,58 @@ pub fn monaco_input(
                 }}
 
             </Show>
+        </div>
+    }
+}
+
+#[component]
+pub fn date_input(
+    id: String,
+    class: String,
+    name: String,
+    on_change: Callback<DateTime<Utc>, ()>,
+    #[prop(into, default = Utc::now().format("%Y-%m-%d").to_string())] value: String,
+    #[prop(default = false)] disabled: bool,
+    #[prop(default = false)] required: bool,
+    #[prop(into, default = (Utc::now() - chrono::Duration::weeks(4)).format("%Y-%m-%d").to_string())]
+    min: String,
+    #[prop(into, default = Utc::now().format("%Y-%m-%d").to_string())] max: String,
+) -> impl IntoView {
+    let (error_rs, error_ws) = create_signal::<String>(String::new());
+    view! {
+        <div class="flex flex-col gap-1">
+            <input
+                id=id
+                name=name
+                type="date"
+                class=format!("input input-bordered {}", class)
+                required=required
+                disabled=disabled
+                min=min
+                max=max
+                value=value
+                on:change=move |e| {
+                    let date = format!("{}T00:00:00Z", event_target_value(&e));
+                    logging::log!("The date selected is: {}", date);
+                    match DateTime::parse_from_rfc3339(&date) {
+                        Ok(v) => {
+                            error_ws.set(String::new());
+                            on_change.call(v.to_utc());
+                        }
+                        Err(e) => {
+                            logging::log!("error occurred: {:?}", e);
+                            error_ws.set(e.to_string());
+                        },
+                    }
+                }
+            />
+            <Show when=move || !error_rs.get().is_empty() >
+                <span class="flex gap-2 px-4 text-xs font-semibold text-red-600">
+                    <i class="ri-close-circle-line"></i>
+                    {move || error_rs.get()}
+                </span>
+            </Show>
+
         </div>
     }
 }
