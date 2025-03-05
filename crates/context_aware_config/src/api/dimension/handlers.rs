@@ -81,7 +81,7 @@ async fn create(
         created_by: user.get_email(),
         created_at: Utc::now(),
         function_name: create_req.function_name.clone(),
-        last_modified_at: Utc::now().naive_utc(),
+        last_modified_at: Utc::now(),
         last_modified_by: user.get_email(),
         description: create_req.description,
         change_reason: create_req.change_reason,
@@ -94,7 +94,7 @@ async fn create(
         diesel::update(dimensions::table)
             .filter(dimensions::position.ge(dimension_data.position))
             .set((
-                last_modified_at.eq(Utc::now().naive_utc()),
+                last_modified_at.eq(Utc::now()),
                 last_modified_by.eq(user.get_email()),
                 dimensions::position.eq(dimensions::position + 1),
             ))
@@ -196,7 +196,7 @@ async fn update(
                 diesel::update(dimensions)
                     .filter(dsl::dimension.eq(&name))
                     .set((
-                        dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                        dsl::last_modified_at.eq(Utc::now()),
                         dsl::last_modified_by.eq(user.get_email()),
                         dimensions::position.eq((num_rows + 100) as i32),
                     ))
@@ -209,7 +209,7 @@ async fn update(
                         .filter(dimensions::position.gt(previous_position))
                         .filter(dimensions::position.le(&new_position))
                         .set((
-                            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                            dsl::last_modified_at.eq(Utc::now()),
                             dsl::last_modified_by.eq(user.get_email()),
                             dimensions::position.eq(dimensions::position - 1),
                         ))
@@ -221,7 +221,7 @@ async fn update(
                         .filter(dimensions::position.lt(previous_position))
                         .filter(dimensions::position.ge(&new_position))
                         .set((
-                            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                            dsl::last_modified_at.eq(Utc::now()),
                             dsl::last_modified_by.eq(user.get_email()),
                             dimensions::position.eq(dimensions::position + 1),
                         ))
@@ -245,7 +245,7 @@ async fn update(
                 .filter(dsl::dimension.eq(name))
                 .set((
                     update_req,
-                    dimensions::last_modified_at.eq(Utc::now().naive_utc()),
+                    dimensions::last_modified_at.eq(Utc::now()),
                     dimensions::last_modified_by.eq(user.get_email()),
                 ))
                 .returning(Dimension::as_returning())
@@ -351,7 +351,7 @@ async fn delete_dimension(
             diesel::update(dsl::dimensions)
                 .filter(dsl::dimension.eq(&name))
                 .set((
-                    dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                    dsl::last_modified_at.eq(Utc::now()),
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
                 .returning(Dimension::as_returning())

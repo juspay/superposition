@@ -1,8 +1,8 @@
 use std::{collections::HashMap, fmt::Display};
 
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Utc};
 use core::fmt;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use strum_macros::Display;
 
@@ -141,6 +141,38 @@ impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ApplicableVariantsRequest {
+    pub context: Map<String, Value>,
+    #[serde(deserialize_with = "deserialize_toss")]
+    pub toss: i8,
+}
+
+impl From<ApplicableVariantsRequest> for ApplicableVariantsQuery {
+    fn from(value: ApplicableVariantsRequest) -> Self {
+        value.into()
+    }
+}
+
+fn deserialize_toss<'de, D>(deserializer: D) -> Result<i8, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let toss: i8 = Deserialize::deserialize(deserializer)?;
+    if -1 <= toss && toss <= 100 {
+        Ok(toss)
+    } else {
+        Err(serde::de::Error::custom(
+            "toss should be a an interger between -1 and 100 (included)",
+        ))
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ApplicableVariantsResponse {
+    pub applicable_variants: Vec<Variant>,
+}
+
 /********** List API Filter Type *************/
 
 #[derive(Copy, Display, Deserialize, Serialize, Debug, Clone, PartialEq)]
@@ -241,8 +273,8 @@ pub struct OverrideKeysUpdateRequest {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct AuditQueryFilters {
-    pub from_date: Option<NaiveDateTime>,
-    pub to_date: Option<NaiveDateTime>,
+    pub from_date: Option<DateTime<Utc>>,
+    pub to_date: Option<DateTime<Utc>>,
     pub table: Option<CommaSeparatedStringQParams>,
     pub action: Option<CommaSeparatedStringQParams>,
     pub username: Option<String>,

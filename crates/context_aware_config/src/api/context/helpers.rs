@@ -296,7 +296,7 @@ pub fn create_ctx_from_put_req(
         override_: r_override,
         created_at: Utc::now(),
         created_by: user.get_email(),
-        last_modified_at: Utc::now().naive_utc(),
+        last_modified_at: Utc::now(),
         last_modified_by: user.get_email(),
         weight,
         description: req_description,
@@ -316,7 +316,7 @@ fn db_update_override(
         .set((
             dsl::override_.eq(ctx.override_),
             dsl::override_id.eq(ctx.override_id),
-            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_at.eq(Utc::now()),
             dsl::last_modified_by.eq(user.get_email()),
             dsl::description.eq(ctx.description),
             dsl::change_reason.eq(ctx.change_reason),

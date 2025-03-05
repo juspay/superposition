@@ -1,4 +1,4 @@
-use chrono::{offset::Utc, DateTime, NaiveDateTime};
+use chrono::{offset::Utc, DateTime};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -12,7 +12,7 @@ pub struct DimensionWithMandatory {
     pub created_by: String,
     pub schema: Value,
     pub function_name: Option<String>,
-    pub last_modified_at: NaiveDateTime,
+    pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub mandatory: bool,
     pub dependency_graph: DependencyGraph,

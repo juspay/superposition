@@ -2,11 +2,11 @@ use std::collections::{HashMap, HashSet};
 
 use actix_http::header::{self};
 use actix_web::{
-    get, patch, post, put,
+    get, patch, post, put, route,
     web::{self, Data, Json, Query},
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
-use chrono::{DateTime, Duration, NaiveDateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use diesel::{
     dsl::sql,
     r2d2::{ConnectionManager, PooledConnection},
@@ -27,9 +27,10 @@ use service_utils::{
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
     api::experiments::{
-        ApplicableVariantsQuery, AuditQueryFilters, ConcludeExperimentRequest,
-        DiscardExperimentRequest, ExperimentCreateRequest, ExperimentListFilters,
-        ExperimentResponse, ExperimentSortOn, OverrideKeysUpdateRequest, RampRequest,
+        ApplicableVariantsQuery, ApplicableVariantsRequest, ApplicableVariantsResponse,
+        AuditQueryFilters, ConcludeExperimentRequest, DiscardExperimentRequest,
+        ExperimentCreateRequest, ExperimentListFilters, ExperimentResponse,
+        ExperimentSortOn, OverrideKeysUpdateRequest, RampRequest,
     },
     custom_query::PaginationParams,
     database::{
@@ -48,12 +49,13 @@ use superposition_types::{
 use super::{
     helpers::{
         add_variant_dimension_to_ctx, check_variant_types,
-        check_variants_override_coverage, construct_header_map, decide_variant,
-        extract_override_keys, fetch_cac_config, validate_experiment,
-        validate_override_keys,
+        check_variants_override_coverage, extract_override_keys, fetch_cac_config,
+        validate_experiment, validate_override_keys,
     },
     types::{ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq},
 };
+
+use crate::api::experiments::helpers::{construct_header_map, decide_variant};
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
@@ -667,15 +669,19 @@ pub async fn discard(
     Ok((updated_experiment, config_version_id))
 }
 
-#[get("/applicable-variants")]
+#[route("/resolve", method = "GET", method = "POST")]
 async fn get_applicable_variants(
+    req: HttpRequest,
     db_conn: DbConnection,
+    req_body: web::Json<ApplicableVariantsRequest>,
     query_data: Query<ApplicableVariantsQuery>,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let query_data = query_data.into_inner();
-
+    let mut req_data = query_data.into_inner();
+    if req.method() == actix_web::http::Method::POST {
+        req_data = req_body.into_inner().into();
+    }
     let experiments = experiments::experiments
         .filter(experiments::status.ne_all(vec![
             ExperimentStatusType::CONCLUDED,
@@ -689,7 +695,7 @@ async fn get_applicable_variants(
         context.is_empty()
             || jsonlogic::apply(
                 &Value::Object(context),
-                &Value::Object(query_data.context.clone()),
+                &Value::Object(req_data.context.clone()),
             ) == Ok(Value::Bool(true))
     });
 
@@ -698,7 +704,7 @@ async fn get_applicable_variants(
         if let Some(v) = decide_variant(
             *exp.traffic_percentage,
             exp.variants.into_inner(),
-            query_data.toss,
+            req_data.toss,
         )
         .map_err(|e| {
             log::error!("Unable to decide variant {e}");
@@ -707,7 +713,11 @@ async fn get_applicable_variants(
             variants.push(v)
         }
     }
-
+    if req.method() == actix_web::http::Method::POST {
+        return Ok(HttpResponse::Ok().json(ApplicableVariantsResponse {
+            applicable_variants: variants,
+        }));
+    }
     Ok(HttpResponse::Ok().json(variants))
 }
 
@@ -734,7 +744,7 @@ async fn list_experiments(
         );
     }
 
-    let max_event_timestamp: Option<NaiveDateTime> = event_log::event_log
+    let max_event_timestamp: Option<DateTime<Utc>> = event_log::event_log
         .filter(event_log::table_name.eq("experiments"))
         .select(diesel::dsl::max(event_log::timestamp))
         .schema_name(&schema_name)
@@ -746,7 +756,7 @@ async fn list_experiments(
         .and_then(|header_val| header_val.to_str().ok())
         .and_then(|header_str| {
             DateTime::parse_from_rfc2822(header_str)
-                .map(|datetime| datetime.with_timezone(&Utc).naive_utc())
+                .map(|datetime| datetime.with_timezone(&Utc))
                 .ok()
         });
 
@@ -1190,7 +1200,7 @@ async fn get_audit_logs(
         if let Some(username) = filters.username.clone() {
             builder = builder.filter(event_log::user_name.eq(username));
         }
-        let now = Utc::now().naive_utc();
+        let now = Utc::now();
         builder
             .filter(
                 event_log::timestamp
