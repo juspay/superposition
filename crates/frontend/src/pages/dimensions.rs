@@ -6,7 +6,7 @@ use crate::api::{delete_dimension, fetch_dimensions};
 use crate::components::dimension_form::DimensionForm;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
-use crate::components::table::types::ColumnSortable;
+use crate::components::table::types::{ColumnSortable, Expandable};
 use crate::components::{
     delete_modal::DeleteModal,
     stat::Stat,
@@ -136,7 +136,7 @@ pub fn dimensions() -> impl IntoView {
             }
         };
         vec![
-            Column::default("dimension".to_string()),
+            Column::default_no_collapse("dimension".to_string()),
             Column::default("position".to_string()),
             Column::default("schema".to_string()),
             Column::default("mandatory".to_string()),
@@ -145,9 +145,10 @@ pub fn dimensions() -> impl IntoView {
             Column::default("created_at".to_string()),
             Column::new(
                 "actions".to_string(),
-                None,
+                false,
                 action_col_formatter,
                 ColumnSortable::No,
+                Expandable::Enabled(100),
             ),
         ]
     });
@@ -240,7 +241,6 @@ pub fn dimensions() -> impl IntoView {
                                     </DrawerBtn>
                                 </div>
                                 <Table
-                                    cell_class="min-w-48 font-mono".to_string()
                                     rows=table_rows
                                     key_column="id".to_string()
                                     columns=table_columns.get()

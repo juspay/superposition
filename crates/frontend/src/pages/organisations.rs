@@ -2,6 +2,7 @@ use leptos::*;
 use serde_json::{Map, Value};
 
 use crate::api::fetch_organisations;
+use crate::components::table::types::Expandable;
 use crate::components::{
     skeleton::Skeleton,
     stat::Stat,
@@ -40,9 +41,10 @@ pub fn organisations() -> impl IntoView {
 
         vec![Column::new(
             "organisation_id".to_string(),
-            None,
+            false,
             navigate,
             ColumnSortable::No,
+            Expandable::Disabled,
         )]
     });
 
@@ -75,7 +77,6 @@ pub fn organisations() -> impl IntoView {
                         </div>
                         <Table
                             class="card-body card rounded-lg w-full bg-base-100 shadow"
-                            cell_class="min-w-48 font-mono".to_string()
                             rows=table_rows
                             key_column="id".to_string()
                             columns=table_columns.get()

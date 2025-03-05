@@ -2,10 +2,54 @@ pub mod types;
 
 use crate::{components::pagination::Pagination, schema::HtmlDisplay};
 
-use self::types::{Column, TablePaginationProps};
+use self::types::{Column, Expandable, TablePaginationProps};
 use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::SortBy;
+
+#[component]
+pub fn expandable_text(
+    value: String,
+    formatter: types::CellFormatter,
+    row: Map<String, Value>,
+    class_name: String,
+    is_expandable: Expandable,
+) -> impl IntoView {
+    let stored_value = StoredValue::new(value);
+    let get_child = move |val: &str| formatter(val, &row);
+    let (is_expanded_rs, is_expanded_ws) = create_signal(false);
+    view! {
+        <td class=format!("{} align-top", class_name)>
+            {move || {
+                let value = stored_value.get_value();
+                let is_expanded = is_expanded_rs.get();
+                let (should_expand, displayed_text) = match is_expandable {
+                    Expandable::Enabled(len) if value.len() > len => {
+                        (true, if is_expanded { &value } else { &value[..len] })
+                    }
+                    _ => (false, value.as_str()),
+                };
+                view! {
+                    {get_child(displayed_text).into_view()}
+                    {should_expand
+                        .then(|| {
+                            view! {
+                                <div
+                                    class=format!(
+                                        "inline w-fit text-[#4a00ff] cursor-pointer {}",
+                                        if is_expanded { "pl-2" } else { "" },
+                                    )
+                                    on:click=move |_| is_expanded_ws.update(|val| *val = !*val)
+                                >
+                                    {if is_expanded { "less" } else { "...more" }}
+                                </div>
+                            }
+                        })}
+                }
+            }}
+        </td>
+    }
+}
 
 #[component]
 pub fn table(
@@ -19,18 +63,27 @@ pub fn table(
 ) -> impl IntoView {
     let pagination_props = StoredValue::new(pagination);
     let container_style = format!("{} overflow-x-auto", class);
+    let get_sticky_position_classes = |index: usize| {
+        match index {
+        0 => "sticky left-20 z-20 bg-inherit after:content-[''] after:absolute after:right-0 after:top-0 after:bottom-[-1px] after:w-[5px] after:bg-[linear-gradient(90deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0)_100%)]",
+        _ => "",
+    }
+    };
+
     view! {
         <div class=container_style>
             <table class="table table-zebra">
                 <thead class=head_class>
-                    <tr>
-                        <th></th>
+                    <tr class="bg-white">
+                        <th class="sticky left-0 bg-inherit min-w-[5rem] px-3"></th>
 
                         {columns
                             .iter()
                             .filter(|column| !column.hidden)
-                            .map(|column| {
+                            .enumerate()
+                            .map(|(index, column)| {
                                 let column_name = column.name.replace('_', " ");
+                                let sticky_class = get_sticky_position_classes(index);
                                 match column.sortable.clone() {
                                     types::ColumnSortable::Yes {
                                         sort_fn,
@@ -39,7 +92,10 @@ pub fn table(
                                     } => {
                                         view! {
                                             <th
-                                                class="uppercase cursor-pointer"
+                                                class=format!(
+                                                    "uppercase cursor-pointer px-3 {}",
+                                                    sticky_class,
+                                                )
                                                 on:click=move |_| sort_fn.call(())
                                             >
                                                 {column_name}
@@ -59,7 +115,12 @@ pub fn table(
                                         }
                                     }
                                     types::ColumnSortable::No => {
-                                        view! { <th class="uppercase">{column_name}</th> }
+                                        view! {
+                                            <th class=format!(
+                                                "uppercase px-3 {}",
+                                                sticky_class,
+                                            )>{column_name}</th>
+                                        }
                                     }
                                 }
                             })
@@ -86,31 +147,39 @@ pub fn table(
                             } else {
                                 index as i64 + 1
                             };
+                            let cell_class_clone = cell_class.clone();
                             view! {
-                                <tr id=row_id>
-                                    <th class="w-20">{row_num}</th>
+                                <tr id=row_id class="odd:bg-white even:bg-[#f2f2f2]">
+                                    <td class="sticky z-20 bg-inherit left-0 min-w-[5rem] px-3 align-top">
+                                        {row_num}
+                                    </td>
 
                                     {columns
                                         .iter()
                                         .filter(|column| !column.hidden)
-                                        .map(|column| {
-                                            let cname = &column.name;
+                                        .enumerate()
+                                        .map(move |(index, column)| {
+                                            let column = column.clone();
                                             let value: String = row
-                                                .get(cname)
+                                                .get(&column.name)
                                                 .unwrap_or(&Value::String(String::new()))
                                                 .html_display();
+                                            let sticky_class = get_sticky_position_classes(index);
                                             view! {
-                                                <td class=cell_class
-                                                    .to_string()>{(column.formatter)(&value, row)}</td>
+                                                <ExpandableText
+                                                    value
+                                                    formatter=column.formatter
+                                                    row=row.clone()
+                                                    class_name=format!("min-w-48 max-w-106 px-3 break-words font-mono {cell_class_clone} {sticky_class}")
+                                                    is_expandable=column.expandable
+                                                />
                                             }
                                         })
                                         .collect_view()}
-
                                 </tr>
                             }
                         })
                         .collect_view()}
-
                 </tbody>
             </table>
         </div>

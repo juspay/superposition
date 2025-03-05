@@ -3,7 +3,7 @@ use serde::Deserialize;
 use serde_json::{json, Map, Value};
 use superposition_types::custom_query::PaginationParams;
 
-use crate::components::table::types::ColumnSortable;
+use crate::components::table::types::{ColumnSortable, Expandable};
 use crate::components::type_template_form::utils::delete_type;
 use crate::components::{
     alert::AlertType,
@@ -76,14 +76,14 @@ pub fn types_page() -> impl IntoView {
     let selected_type = create_rw_signal::<Option<TypeTemplateRow>>(None);
     let table_columns = create_memo(move |_| {
         vec![
-            Column::default("type_name".to_string()),
+            Column::default_no_collapse("type_name".to_string()),
             Column::default("type_schema".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
             Column::default("last_modified_at".to_string()),
             Column::new(
                 "actions".into(),
-                None,
+                false,
                 move |_: &str, row: &Map<String, Value>| {
                     let edit_row_json = json!(row);
                     let delete_row_json = edit_row_json.clone();
@@ -116,6 +116,7 @@ pub fn types_page() -> impl IntoView {
                     .into_view()
                 },
                 ColumnSortable::No,
+                Expandable::Enabled(100),
             ),
         ]
     });
@@ -211,7 +212,6 @@ pub fn types_page() -> impl IntoView {
                                         </div>
                                     </div>
                                     <Table
-                                        cell_class="".to_string()
                                         rows=data
                                         key_column="id".to_string()
                                         columns=table_columns.get()

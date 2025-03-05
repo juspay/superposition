@@ -88,6 +88,10 @@
     min-width: 12rem;
 }
 
+.max-w-106 {
+    max-width: 26.5rem;
+}
+
 .text-wrap {
     text-wrap: wrap;
 }

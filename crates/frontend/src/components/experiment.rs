@@ -21,13 +21,13 @@ fn badge_class(status_type: ExperimentStatusType) -> &'static str {
     }
 }
 
-use super::table::types::ColumnSortable;
+use super::table::types::{ColumnSortable, Expandable};
 
 #[allow(clippy::type_complexity)]
 pub fn gen_variant_table(
     variants: &[Variant],
 ) -> Result<(Vec<Map<String, Value>>, Vec<Column>), String> {
-    let mut columns = vec![Column::default("Config Key".into())];
+    let mut columns = vec![Column::default_no_collapse("Config Key".into())];
     let mut row_map: HashMap<String, Map<String, Value>> = HashMap::new();
     for (i, variant) in variants.iter().enumerate() {
         let name = match variant.variant_type {
@@ -36,9 +36,10 @@ pub fn gen_variant_table(
         };
         columns.push(Column::new(
             name.clone(),
-            None,
+            false,
             |value: &str, _| view! { <span>{value.to_string()}</span> }.into_view(),
             ColumnSortable::No,
+            Expandable::Enabled(100),
         ));
         for (config, value) in variant.overrides.clone().into_inner().into_iter() {
             match row_map.get_mut(&config) {
@@ -238,7 +239,6 @@ where
                     <h2 class="card-title">Variants</h2>
 
                     <Table
-                        cell_class="min-w-48 font-mono".to_string()
                         rows=variant_rows
                         key_column="overrides".to_string()
                         columns=variant_col
