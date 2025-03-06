@@ -1,8 +1,9 @@
 use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
-    custom_query::CommaSeparatedStringQParams, database::models::cac::Context, Cac,
-    Condition, Overrides, SortBy,
+    custom_query::CommaSeparatedStringQParams,
+    database::models::cac::{Context, FunctionCode},
+    Cac, Condition, Overrides, SortBy,
 };
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
@@ -90,10 +91,10 @@ pub enum ContextBulkResponse {
     Move(PutResp),
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Clone)]
 pub struct FunctionsInfo {
     pub name: String,
-    pub code: Option<String>,
+    pub code: Option<FunctionCode>,
 }
 
 #[derive(Serialize)]

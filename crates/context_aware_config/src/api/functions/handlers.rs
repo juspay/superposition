@@ -112,7 +112,7 @@ async fn update(
 
     // Function Linter Check
     if let Some(function) = &req.draft_code {
-        compile_fn(function.0.as_ref())?;
+        compile_fn(function)?;
     }
 
     let updated_function = diesel::update(functions)

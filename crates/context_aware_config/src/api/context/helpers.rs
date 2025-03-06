@@ -10,7 +10,7 @@ use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     database::{
-        models::cac::Context,
+        models::cac::{Context, FunctionCode},
         schema::{contexts, default_configs::dsl, dimensions},
     },
     result as superposition, Cac, Condition, DBConnection, Overrides, User,
@@ -124,7 +124,7 @@ fn get_functions_map(
     keys_function_array: Vec<(String, String)>,
     schema_name: &SchemaName,
 ) -> superposition::Result<HashMap<String, FunctionsInfo>> {
-    let functions_map: HashMap<String, Option<String>> =
+    let functions_map: HashMap<String, Option<FunctionCode>> =
         get_published_functions_by_names(
             conn,
             keys_function_array
@@ -154,7 +154,7 @@ fn get_functions_map(
 
 pub fn validate_value_with_function(
     _fun_name: &str,
-    function: &str,
+    function: &FunctionCode,
     key: &String,
     value: &Value,
 ) -> superposition::Result<()> {

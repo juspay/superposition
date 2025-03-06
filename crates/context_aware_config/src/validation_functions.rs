@@ -2,12 +2,12 @@ use serde_json::Value;
 use std::process::Command;
 use std::str;
 use superposition_macros::{unexpected_error, validation_error};
-use superposition_types::result as superposition;
+use superposition_types::{database::models::cac::FunctionCode, result as superposition};
 
 static FUNCTION_ENV_VARIABLES: &str =
     "HTTP_PROXY,HTTPS_PROXY,HTTP_PROXY_HOST,HTTP_PROXY_PORT,NO_PROXY";
 
-fn type_check_validate(code_str: &str) -> String {
+fn type_check_validate(code_str: &FunctionCode) -> String {
     format!(
         r#"const vm = require("node:vm")
         const axios = require("./target/node_modules/axios/dist/node/axios.cjs")
@@ -22,11 +22,11 @@ fn type_check_validate(code_str: &str) -> String {
 
         script.runInNewContext({{axios,console}}, {{ timeout: 1500}});
         "#,
-        code_str
+        code_str.0
     )
 }
 
-fn execute_validate_fun(code_str: &str, key: String, value: Value) -> String {
+fn execute_validate_fun(code_str: &FunctionCode, key: String, value: Value) -> String {
     format!(
         r#"
         const vm = require("node:vm")
@@ -46,7 +46,7 @@ fn execute_validate_fun(code_str: &str, key: String, value: Value) -> String {
 
         script.runInNewContext({{axios,console}}, {{ timeout: 1500}});
         "#,
-        code_str, key, value
+        code_str.0, key, value
     )
 }
 
@@ -113,7 +113,7 @@ fn generate_code(code_str: &str) -> String {
 }
 
 pub fn execute_fn(
-    code_str: &str,
+    code_str: &FunctionCode,
     key: &str,
     value: Value,
 ) -> Result<String, (String, Option<String>)> {
@@ -148,7 +148,7 @@ pub fn execute_fn(
     }
 }
 
-pub fn compile_fn(code_str: &str) -> superposition::Result<()> {
+pub fn compile_fn(code_str: &FunctionCode) -> superposition::Result<()> {
     let type_check_code = type_check_validate(code_str);
     let output = Command::new("node")
         .arg("-e")
