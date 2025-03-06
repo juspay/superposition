@@ -6,6 +6,7 @@ use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use superposition_types::{
+    api::default_config::DefaultConfigFilters,
     custom_query::PaginationParams,
     database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
     PaginatedResponse, SortBy,
@@ -71,6 +72,7 @@ pub fn experiment_list() -> impl IntoView {
         |(current_tenant, filters, pagination_filters, org_id)| async move {
             // Perform all fetch operations concurrently
             let fetch_all_filters = PaginationParams::all_entries();
+            let default_config_filters = DefaultConfigFilters::default();
             let experiments_future = fetch_experiments(
                 &filters,
                 &pagination_filters,
@@ -84,6 +86,7 @@ pub fn experiment_list() -> impl IntoView {
             );
             let config_future = fetch_default_config(
                 &fetch_all_filters,
+                &default_config_filters,
                 current_tenant.to_string(),
                 org_id.clone(),
             );

@@ -3,6 +3,7 @@ use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
+    api::default_config::DefaultConfigFilters,
     custom_query::PaginationParams,
     database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
     Config, Context,
@@ -202,6 +203,7 @@ pub fn context_override() -> impl IntoView {
             move || (tenant_rws.get().0, org_rws.get().0),
             |(current_tenant, org_id)| async move {
                 let empty_list_filters = PaginationParams::all_entries();
+                let default_config_filters = DefaultConfigFilters::default();
                 let (config_result, dimensions_result, default_config_result) = join!(
                     fetch_config(current_tenant.to_string(), None, org_id.clone()),
                     fetch_dimensions(
@@ -211,6 +213,7 @@ pub fn context_override() -> impl IntoView {
                     ),
                     fetch_default_config(
                         &empty_list_filters,
+                        &default_config_filters,
                         current_tenant.to_string(),
                         org_id.clone()
                     )

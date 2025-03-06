@@ -3,12 +3,15 @@ use std::collections::HashSet;
 use leptos::*;
 use leptos_router::{use_navigate, use_query_map};
 use serde_json::{json, Map, Value};
-use superposition_types::custom_query::PaginationParams;
+use superposition_types::{
+    api::default_config::DefaultConfigFilters, custom_query::PaginationParams,
+};
 
 use crate::api::{delete_default_config, fetch_default_config};
 use crate::components::table::types::Expandable;
 use crate::components::{
     alert::AlertType,
+    button::Button,
     default_config_form::DefaultConfigForm,
     delete_modal::DeleteModal,
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
@@ -39,15 +42,22 @@ pub fn default_config() -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let enable_grouping = create_rw_signal(false);
-    let (filters, set_filters) = create_signal(PaginationParams::default());
-
+    let (pagination_rs, pagination_ws) = create_signal(PaginationParams::default());
+    let filters_rws = create_rw_signal(DefaultConfigFilters::default());
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_key_rs, delete_key_ws) = create_signal::<Option<String>>(None);
 
     let default_config_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, filters.get(), org_rws.get().0),
-        |(current_tenant, filters, org_id)| async move {
-            fetch_default_config(&filters, current_tenant, org_id)
+        move || {
+            (
+                tenant_rws.get().0,
+                pagination_rs.get(),
+                org_rws.get().0,
+                filters_rws.get(),
+            )
+        },
+        |(current_tenant, pagination, org_id, filters)| async move {
+            fetch_default_config(&pagination, &filters, current_tenant, org_id)
                 .await
                 .unwrap_or_default()
         },
@@ -58,9 +68,9 @@ pub fn default_config() -> impl IntoView {
     let query_params = use_query_map();
     let bread_crums = Signal::derive(move || get_bread_crums(key_prefix.get()));
 
-    let set_filters_none = move || set_filters.set(PaginationParams::all_entries());
+    let set_filters_none = move || pagination_ws.set(PaginationParams::all_entries());
 
-    let set_filters_default = move || set_filters.set(PaginationParams::default());
+    let set_filters_default = move || pagination_ws.set(PaginationParams::default());
 
     let confirm_delete = Callback::new(move |_| {
         let tenant = tenant_rws.get().0;
@@ -128,13 +138,13 @@ pub fn default_config() -> impl IntoView {
     };
 
     let handle_next_click = Callback::new(move |total_pages: i64| {
-        set_filters.update(|f| {
+        pagination_ws.update(|f| {
             f.page = update_page_direction(f.page, total_pages, true);
         });
     });
 
     let handle_prev_click = Callback::new(move |_| {
-        set_filters.update(|f| {
+        pagination_ws.update(|f| {
             f.page = update_page_direction(f.page, 1, false);
         });
     });
@@ -325,7 +335,7 @@ pub fn default_config() -> impl IntoView {
                         filtered_rows = modify_rows(filtered_rows.clone(), key_prefix.get(), cols);
                     }
                     let total_default_config_keys = default_config.total_items.to_string();
-                    let filters = filters.get();
+                    let filters = pagination_rs.get();
                     let (current_page, total_pages) = if enable_grouping.get() {
                         (1, 1)
                     } else {
@@ -385,6 +395,10 @@ pub fn default_config() -> impl IntoView {
                                         </DrawerBtn>
                                     </div>
                                 </div>
+                                <DefaultConfigFilterWidget
+                                    filters_rws
+                                    key_prefix
+                                />
                                 <Table
                                     rows=filtered_rows
                                     key_column="id".to_string()
@@ -485,6 +499,87 @@ pub fn get_bread_crums(key_prefix: Option<String>) -> Vec<BreadCrums> {
         last_crumb.is_link = false;
     }
     bread_crums
+}
+
+#[component]
+fn default_config_filter_widget(
+    filters_rws: RwSignal<DefaultConfigFilters>,
+    key_prefix: RwSignal<Option<String>>,
+) -> impl IntoView {
+    let filters = filters_rws.get_untracked();
+    let filters_buffer_rws = create_rw_signal(filters.clone());
+    view! {
+        <DrawerBtn
+            drawer_id="default_config_filter_drawer".into()
+            style="cursor-pointer btn btn-purple-outline m-1 w-[8rem]".to_string()
+        >
+            Filters
+            <i class="ri-filter-3-line"></i>
+        </DrawerBtn>
+        <Drawer
+            id="default_config_filter_drawer".to_string()
+            header="Default Config Filters"
+            drawer_width="w-[50vw]"
+            handle_close=move || {
+                close_drawer("default_config_filter_drawer");
+            }
+        >
+            <div class="card-body">
+                <div class="form-control flex flex-col gap-9 justify-between">
+                    <label class="label">
+                        <span class="label-text">Configuration Name</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="default-config-name-filter"
+                        placeholder="eg: city"
+                        class="input input-bordered rounded-md resize-y w-full max-w-md"
+                        value=move || {
+                            let prefix = key_prefix.get();
+                            if prefix.is_some() && filters_buffer_rws.get().name.is_none() {
+                                prefix
+                            } else {
+                                filters_buffer_rws.get().name
+                            }
+                        }
+                        on:change=move |event| {
+                            let key_name = event_target_value(&event);
+                            let key_name = if key_name.is_empty() {
+                                None
+                            } else {
+                                Some(key_name)
+                            };
+                            let filters = DefaultConfigFilters { name: key_name };
+                            filters_buffer_rws.set(filters);
+                        }
+                    />
+                </div>
+                <div class="flex justify-start">
+                    <Button
+                        class="h-12 w-48 px-[70px]".to_string()
+                        text="Submit".to_string()
+                        on_click=move |event| {
+                            event.prevent_default();
+                            let filter = filters_buffer_rws.get();
+                            filters_rws.set(filter);
+                            close_drawer("default_config_filter_drawer")
+                        }
+                    />
+                    <Button
+                        class="h-12 w-48 px-[70px]".to_string()
+                        text="Reset".to_string()
+                        on_click=move |event| {
+                            event.prevent_default();
+                            let filters = DefaultConfigFilters::default();
+                            filters_rws.set(filters);
+                            close_drawer("default_config_filter_drawer")
+                        }
+                    />
+
+                </div>
+            </div>
+        </Drawer>
+    }
 }
 
 pub fn modify_rows(

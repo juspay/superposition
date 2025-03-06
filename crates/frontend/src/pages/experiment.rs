@@ -3,6 +3,7 @@ use leptos::*;
 use leptos_router::use_params_map;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
+    api::default_config::DefaultConfigFilters,
     custom_query::PaginationParams,
     database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
 };
@@ -48,6 +49,7 @@ pub fn experiment_page() -> impl IntoView {
     let combined_resource: Resource<(String, String, String), CombinedResource> =
         create_blocking_resource(source, |(exp_id, tenant, org_id)| async move {
             // Perform all fetch operations concurrently
+            let default_config_filters = DefaultConfigFilters::default();
             let experiments_future =
                 fetch_experiment(exp_id.to_string(), tenant.to_string(), org_id.clone());
             let empty_list_filters = PaginationParams::all_entries();
@@ -55,6 +57,7 @@ pub fn experiment_page() -> impl IntoView {
                 fetch_dimensions(&empty_list_filters, tenant.to_string(), org_id.clone());
             let config_future = fetch_default_config(
                 &empty_list_filters,
+                &default_config_filters,
                 tenant.to_string(),
                 org_id.clone(),
             );
