@@ -116,34 +116,10 @@ impl Expression {
             }
         }
     }
-    fn to_expression_query_str(&self, var: &str) -> String {
+    fn to_expression_query_str(&self, var: &str) -> Option<String> {
         match self {
-            Expression::Is(c) => {
-                format!("{}{}{}", var, "==", c.html_display())
-            }
-            Expression::In(c) => {
-                format!("{}{}{}", var, "in", c.html_display())
-            }
-            Expression::Has(c) => {
-                format!("{}{}{}", var, "in", c.html_display())
-            }
-            Expression::Between(c1, c2) => {
-                let c_str = format!("{},{}", c1.html_display(), c2.html_display());
-                format!("{}{}{}", var, "<=", c_str)
-            }
-            Expression::Other(operator, operands) => {
-                let c_str = operands
-                    .iter()
-                    .filter_map(|operand| {
-                        if is_variable(operand) {
-                            return None;
-                        }
-                        Some(operand.html_display())
-                    })
-                    .collect::<Vec<String>>()
-                    .join(",");
-                format!("{}{}{}", var, operator, c_str)
-            }
+            Expression::Is(c) => Some(format!("{var}={value}", value = c.html_display())),
+            _ => None,
         }
     }
     pub fn to_constants_vec(&self) -> Vec<serde_json::Value> {
@@ -304,7 +280,7 @@ impl Condition {
         self.expression.to_expression_json(&self.variable)
     }
 
-    pub fn to_condition_query_str(&self) -> String {
+    pub fn to_condition_query_str(&self) -> Option<String> {
         self.expression.to_expression_query_str(&self.variable)
     }
 }
@@ -343,7 +319,7 @@ impl Conditions {
     }
     pub fn to_query_string(self) -> String {
         self.iter()
-            .map(|v| v.to_condition_query_str())
+            .filter_map(|v| v.to_condition_query_str())
             .collect::<Vec<String>>()
             .join("&")
     }
