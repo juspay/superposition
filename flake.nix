@@ -34,7 +34,7 @@
         }:
         {
           formatter = pkgs.nixpkgs-fmt;
-          packages.smithy-cli = pkgs.callPackage ./nix/smithy-cli.nix {};
+          packages.smithy-cli = pkgs.callPackage ./nix/smithy-cli.nix { };
           devShells.default = pkgs.mkShell {
             inputsFrom = [
               self'.devShells.rust

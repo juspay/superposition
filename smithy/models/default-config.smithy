@@ -5,8 +5,14 @@ namespace cac.default_config
 
 use aws.protocols#restJson1
 
+@title("Default Config Service")
 @restJson1
-service DefaultConfigService { version: "2025-03-05" }
+service DefaultConfigService {
+    version: "2025-03-05"
+    resources: [
+        DefaultConfig
+    ]
+}
 
 resource DefaultConfig {
     identifiers: {

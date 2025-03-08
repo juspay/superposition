@@ -32,7 +32,8 @@
           in
           lib.cleanSourceWith {
             src = inputs.self;
-            filter = path: type:
+            filter =
+              path: type:
               filterCargoSources path type
               ## Include js files from frontend.
               || (lib.hasInfix "frontend/src-js" path && lib.hasSuffix ".js" path);

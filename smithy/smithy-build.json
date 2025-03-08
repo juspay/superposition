@@ -5,13 +5,19 @@
     "dependencies": [
       "software.amazon.smithy:smithy-aws-traits:1.55.0",
       "software.amazon.smithy:smithy-validation-model:1.55.0",
-      "software.amazon.smithy.typescript:smithy-aws-typescript-codegen:0.26.0"
+      "software.amazon.smithy.typescript:smithy-aws-typescript-codegen:0.26.0",
+      "software.amazon.smithy:smithy-openapi:1.55.0"
     ]
   },
   "plugins": {
     "typescript-client-codegen": {
       "package": "@io.juspay/superposition-sdk",
       "packageVersion": "0.0.1"
+    },
+    "openapi": {
+      "service": "cac.default_config#DefaultConfigService",
+      "protocol": "aws.protocols#restJson1",
+      "version": "3.1.0"
     }
   }
 }
