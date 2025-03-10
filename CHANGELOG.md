@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.67.0 - 2025-03-10
+### Package updates
+- superposition_types bumped to superposition_types-v0.13.0
+- context_aware_config bumped to context_aware_config-v0.47.0
+- frontend bumped to frontend-v0.22.0
+### Global changes
+#### Features
+- Added support for completions in monaco editor. - (b840133) - Shrey Bana
+
+- - -
+
 ## v0.66.2 - 2025-02-28
 ### Package updates
 - frontend bumped to frontend-v0.21.1

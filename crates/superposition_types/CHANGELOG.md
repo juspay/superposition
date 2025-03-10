@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.13.0 - 2025-03-10
+#### Features
+- add key filter for default config - (d29bc18) - Datron
+
+- - -
+
 ## superposition_types-v0.12.2 - 2025-02-28
 #### Bug Fixes
 - optimize db query for update (#390) - (258933f) - PRATIK MISHRA

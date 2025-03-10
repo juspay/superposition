@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.22.0 - 2025-03-10
+#### Bug Fixes
+- z-index of delete modal - (7daded3) - ayush.jain@juspay.in
+- Params being sent in resolve page (#435) - (2bdcb2a) - Ayush Jain
+- horizontal scroll - (5eaa6b9) - Ankit Kumar Mahato
+#### Features
+- add key filter for default config - (d29bc18) - Datron
+- Added support for completions in monaco editor. - (b840133) - Shrey Bana
+
+- - -
+
 ## frontend-v0.21.1 - 2025-02-28
 #### Bug Fixes
 - optimize db query for update (#390) - (258933f) - PRATIK MISHRA
