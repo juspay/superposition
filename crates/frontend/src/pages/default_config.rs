@@ -9,7 +9,8 @@ use superposition_types::{
 
 use crate::api::{delete_default_config, fetch_default_config};
 use crate::components::table::types::Expandable;
-use crate::components::{
+use crate::components::{ 
+    info_modal::{ConfigInfo, InfoModal},
     alert::AlertType,
     button::Button,
     default_config_form::DefaultConfigForm,
@@ -35,6 +36,8 @@ pub struct RowData {
     pub value: Value,
     pub schema: Value,
     pub function_name: Option<Value>,
+    pub description: String, 
+    pub change_reason: String,
 }
 
 #[component]
@@ -46,6 +49,9 @@ pub fn default_config() -> impl IntoView {
     let filters_rws = create_rw_signal(DefaultConfigFilters::default());
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_key_rs, delete_key_ws) = create_signal::<Option<String>>(None);
+    let (info_modal_visible_rs, info_modal_visible_ws) = create_signal(false);
+    let (selected_info, set_selected_info) = create_signal::<Option<ConfigInfo>>(None);
+
 
     let default_config_resource = create_blocking_resource(
         move || {
@@ -166,7 +172,19 @@ pub fn default_config() -> impl IntoView {
                 _ => Some(json!(function_name.replace('"', ""))),
             };
 
+            let description = row.get("description")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        
+            let change_reason = row.get("change_reason")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+
             let key_name = StoredValue::new(row_key.clone());
+            let stored_description = StoredValue::new(description.clone());
+            let stored_change_reason = StoredValue::new(change_reason.clone());
 
             let edit_click_handler = move |_| {
                 let row_data = RowData {
@@ -174,6 +192,8 @@ pub fn default_config() -> impl IntoView {
                     value: row_value.clone(),
                     schema: schema_object.clone(),
                     function_name: fun_name.clone(),
+                    description: stored_description.get_value(),
+                    change_reason: stored_change_reason.get_value(),
                 };
                 logging::log!("{:?}", row_data);
                 selected_config.set(Some(row_data));
@@ -184,12 +204,23 @@ pub fn default_config() -> impl IntoView {
                 delete_key_ws.set(Some(key_name.get_value()));
                 delete_modal_visible_ws.set(true);
             };
+            let show_info_modal = move |_: web_sys::MouseEvent| {
+                set_selected_info.set(Some(ConfigInfo {
+                    description: stored_description.get_value(),
+                    change_reason: stored_change_reason.get_value(),
+                }));
+                info_modal_visible_ws.set(true);
+            };
+        
 
             if is_folder && grouping_enabled {
                 view! { <span>{"-"}</span> }.into_view()
             } else {
                 view! {
                     <div class="join">
+                       <span class="cursor-pointer" on:click=show_info_modal>
+                        <i class="ri-information-line ri-xl text-gray-500 hover:text-gray-700"></i>
+                       </span>
                         <span class="cursor-pointer" on:click=edit_click_handler>
                             <i class="ri-pencil-line ri-xl text-blue-500"></i>
                         </span>
@@ -407,6 +438,12 @@ pub fn default_config() -> impl IntoView {
                                 />
                             </div>
                         </div>
+                        <InfoModal
+                            modal_visible=info_modal_visible_rs
+                            description=selected_info.get().map_or("".to_string(), |info| info.description)
+                            change_reason=selected_info.get().map_or("".to_string(), |info| info.change_reason)
+                            set_modal_visible=info_modal_visible_ws
+                        />
                         <DeleteModal
                             modal_visible=delete_modal_visible_rs
                             confirm_delete=confirm_delete

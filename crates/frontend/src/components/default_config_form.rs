@@ -13,6 +13,7 @@ use crate::{
     api::{fetch_functions, fetch_types},
     components::{
         alert::AlertType,
+        change_form::ChangeForm,
         button::Button,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         input::{Input, InputType},
@@ -202,35 +203,20 @@ where
 
                 </div>
 
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Description</span>
-                    </label>
-                    <textarea
-                        placeholder="Enter a description"
-                        class="textarea textarea-bordered w-full max-w-md"
-                        value=description_rs.get_untracked()
-                        on:change=move |ev| {
-                            let value = event_target_value(&ev);
-                            description_ws.set(value);
-                        }
-                    />
-                </div>
-
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Reason for Change</span>
-                    </label>
-                    <textarea
-                        placeholder="Enter a reason for this change"
-                        class="textarea textarea-bordered w-full max-w-md"
-                        value=change_reason_rs.get_untracked()
-                        on:change=move |ev| {
-                            let value = event_target_value(&ev);
-                            change_reason_ws.set(value);
-                        }
-                    />
-                </div>
+                <ChangeForm 
+                 title = "Description".to_string()
+                 placeholder = "Enter a description".to_string() 
+                 class = "textarea textarea-bordered w-full max-w-md".to_string() 
+                 read_signal = description_rs
+                 write_signal = description_ws.clone() 
+                /> 
+                <ChangeForm 
+                 title = "Reason for Change".to_string()
+                 placeholder = "Enter a reason for this change".to_string() 
+                 class = "textarea textarea-bordered w-full max-w-md".to_string() 
+                 read_signal = change_reason_rs
+                 write_signal = change_reason_ws.clone() 
+                />
                 <Suspense>
                     {move || {
                         let options = type_template_resource.get().unwrap_or(vec![]);

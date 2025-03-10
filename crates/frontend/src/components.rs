@@ -28,3 +28,5 @@ pub mod toast;
 pub mod type_template_form;
 pub mod variant_form;
 pub mod workspace_form;
+pub mod change_form; 
+pub mod info_modal;
