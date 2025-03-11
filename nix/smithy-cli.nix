@@ -7,7 +7,6 @@
 
 let
   version = "1.55.0";
-  sha256 = "sha256-L4xWsgzGOIbfT9fTFyEjZBIo7GA2cn10/m6YzJjWxcU=";
   smithy-platform = lib.pipe stdenv.hostPlatform.system (
     with builtins;
     [
@@ -18,6 +17,12 @@ let
       (concatStringsSep "-")
     ]
   );
+  sha256 =
+    if smithy-platform == "darwin-aarch64" then
+      "sha256-08uJuB9We4EVlxt7gh07/mxYZqma9B7VZ/vflposwZU="
+    ## FIXME Defaulting to linux-x86_64 SHA.
+    else
+      "sha256-L4xWsgzGOIbfT9fTFyEjZBIo7GA2cn10/m6YzJjWxcU=";
 in
 stdenv.mkDerivation {
   name = "smithy-cli";
@@ -43,6 +48,6 @@ stdenv.mkDerivation {
     homepage = "https://github.com/smithy-lang/smithy";
     license = licenses.asl20;
     platforms = platforms.all;
-    maintainers = with maintainers; [ ];
+    maintainers = [ ];
   };
 }
