@@ -201,19 +201,16 @@ pub fn get_default_config(filter_keys: Option<Vec<String>>) -> Result<Map<String
 
 Add the following to your inputs
 
-```
-crane.url = "github:ipetkov/crane/54b63c8eae4c50172cb50b612946ff1d2bc1c75c";
-crane.inputs.nixpkgs.follows = "common/nixpkgs";
+```nix
 superposition = {
     url = "github:juspay/superposition";
     inputs.nixpkgs.follows = "common/nixpkgs";
-    inputs.crane.follows = "crane";
 };
 ```
 
 then, add the following to your imports section in outputs:
 
-```
+```nix
 imports = [
     ......
     inputs.superposition.haskellFlakeProjectModules.output
