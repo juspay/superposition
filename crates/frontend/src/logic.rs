@@ -150,7 +150,7 @@ impl From<(SchemaType, Operator)> for Expression {
     fn from((r#type, operator): (SchemaType, Operator)) -> Self {
         match operator {
             Operator::Is => Expression::Is(r#type.default_value()),
-            Operator::In => Expression::In(Value::Array(vec![r#type.default_value()])),
+            Operator::In => Expression::In(Value::Array(vec![])),
             Operator::Has => Expression::Has(r#type.default_value()),
             Operator::Between => {
                 Expression::Between(r#type.default_value(), r#type.default_value())
