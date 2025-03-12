@@ -12,6 +12,9 @@ service DefaultConfigService {
     resources: [
         DefaultConfig
     ]
+    errors: [
+        InternalServerError
+    ]
 }
 
 resource DefaultConfig {
@@ -30,7 +33,45 @@ resource DefaultConfig {
         last_modified_by: String
     }
     read: GetDefaultConfig
-    put: CreateDefaultConfig
+    post: CreateDefaultConfig
+    put: UpdateDefaultConfig
+    delete: DeleteDefaultConfig
+}
+
+// Using in input for create API.
+@mixin
+structure DefaultConfigMixin for DefaultConfig {
+    @required
+    $key
+
+    @required
+    $value
+
+    @required
+    $schema
+
+    @required
+    $description
+
+    @required
+    $change_reason
+
+    /// Optional
+    $function_name
+}
+
+structure DefaultConfigFull for DefaultConfig with [DefaultConfigMixin] {
+    @required
+    $created_at
+
+    @required
+    $created_by
+
+    @required
+    $last_modified_at
+
+    @required
+    $last_modified_by
 }
 
 // Errors
@@ -45,64 +86,10 @@ structure InternalServerError {
 structure DefaultConfigNotFound {}
 
 // Operations
-@idempotent
-@http(method: "PUT", uri: "/default-config")
+@http(method: "POST", uri: "/default-config")
 operation CreateDefaultConfig {
-    input := for DefaultConfig {
-        @required
-        $key
-
-        @required
-        $value
-
-        @required
-        $schema
-
-        @required
-        $description
-
-        @required
-        $change_reason
-
-        /// Optional
-        $function_name
-    }
-
-    output := for DefaultConfig {
-        @required
-        $key
-
-        @required
-        $value
-
-        @required
-        $schema
-
-        @required
-        $description
-
-        @required
-        $change_reason
-
-        /// Optional
-        $function_name
-
-        @required
-        $created_at
-
-        @required
-        $created_by
-
-        @required
-        $last_modified_at
-
-        @required
-        $last_modified_by
-    }
-
-    errors: [
-        InternalServerError
-    ]
+    input := with [DefaultConfigMixin] {}
+    output: DefaultConfigFull
 }
 
 @readonly
@@ -114,37 +101,50 @@ operation GetDefaultConfig {
         $key
     }
 
-    output := for DefaultConfig {
+    output: DefaultConfigFull
+
+    errors: [
+        DefaultConfigNotFound
+    ]
+}
+
+@idempotent
+@http(method: "PUT", uri: "/default-config/{key}")
+operation UpdateDefaultConfig {
+    input := for DefaultConfig {
+        @httpLabel
         @required
         $key
 
         @required
-        $value
-
-        @required
-        $schema
-
-        @required
-        $description
-
-        @required
         $change_reason
 
-        /// Optional
+        $value
+
+        $schema
+
         $function_name
 
-        @required
-        $created_at
-
-        @required
-        $created_by
-
-        @required
-        $last_modified_at
-
-        @required
-        $last_modified_by
+        $description
     }
+
+    output: DefaultConfigFull
+
+    errors: [
+        DefaultConfigNotFound
+    ]
+}
+
+@idempotent
+@http(method: "DELETE", uri: "/default-config/{key}")
+operation DeleteDefaultConfig {
+    input := for DefaultConfig {
+        @httpLabel
+        @required
+        $key
+    }
+
+    output := {}
 
     errors: [
         DefaultConfigNotFound
