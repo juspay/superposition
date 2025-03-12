@@ -7,6 +7,16 @@ module.exports = {
         './src/components/**/*.rs',
         './src/hoc/**/*.rs',
     ],
+    safelist: [
+        "peer/concluded-checkbox",
+        "peer/created-checkbox",
+        "peer/inprogress-checkbox",
+        "peer/discarded-checkbox",
+        "peer-checked/discarded-checkbox:badge-neutral",
+        "peer-checked/concluded-checkbox:badge-success",
+        "peer-checked/created-checkbox:badge-info",
+        "peer-checked/inprogress-checkbox:badge-warning",
+    ],
     theme: {
         extend: {
             keyframes: {

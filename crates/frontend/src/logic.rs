@@ -223,7 +223,7 @@ impl Display for Operator {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Condition {
     pub variable: String,
     pub expression: Expression,
@@ -288,6 +288,7 @@ impl Condition {
 #[derive(
     Clone,
     Debug,
+    PartialEq,
     derive_more::Deref,
     derive_more::DerefMut,
     Serialize,
@@ -312,12 +313,12 @@ impl Conditions {
             None => Condition::try_from_condition_map(context).map(|v| vec![v])?,
         }))
     }
-    pub fn to_context_json(self) -> serde_json::Value {
+    pub fn as_context_json(&self) -> serde_json::Value {
         json!({
             "and": self.iter().map(|v| v.to_condition_json()).collect::<Vec<serde_json::Value>>()
         })
     }
-    pub fn to_query_string(self) -> String {
+    pub fn as_query_string(&self) -> String {
         self.iter()
             .filter_map(|v| v.to_condition_query_str())
             .collect::<Vec<String>>()
