@@ -1,5 +1,6 @@
 pub mod alert;
 pub mod button;
+pub mod change_form;
 pub mod condition_pills;
 pub mod context_card;
 pub mod context_form;
@@ -14,6 +15,7 @@ pub mod experiment_discard_form;
 pub mod experiment_form;
 pub mod experiment_ramp_form;
 pub mod function_form;
+pub mod info_modal;
 pub mod input;
 pub mod modal;
 pub mod monaco_editor;
