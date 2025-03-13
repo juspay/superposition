@@ -1219,3 +1219,13 @@ ALTER TABLE localorg_dev.functions ADD COLUMN function_type public.FUNCTION_TYPE
 
 
 COMMIT
+
+ALTER TABLE localorg_test.dimensions 
+ADD COLUMN dependency_graph JSON,
+ADD COLUMN immediate_parents TEXT[],
+ADD COLUMN immediate_childrens TEXT[];
+
+ALTER TABLE localorg_dev.dimensions 
+ADD COLUMN dependency_graph JSON,
+ADD COLUMN immediate_parents TEXT[],
+ADD COLUMN immediate_childrens TEXT[];

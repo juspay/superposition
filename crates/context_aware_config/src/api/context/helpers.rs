@@ -58,6 +58,40 @@ pub fn validate_condition_with_mandatory_dimensions(
     Ok(())
 }
 
+pub fn validate_condition_with_dependent_dimensions(
+    conn: &mut DBConnection,
+    context: &Condition,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    use dimensions::dsl;
+    let context_map = extract_dimensions(context)?;
+    for (key, _) in context_map.iter() {
+        let dependency_list: Option<Value> = dsl::dimensions
+            .filter(dsl::dimension.eq(key))
+            .select(dsl::dependency_graph)
+            .schema_name(schema_name)
+            .get_result::<Option<Value>>(conn)?;
+
+        let dependency_list: Vec<String> = dependency_list
+            .iter()
+            .filter_map(|val| val.as_object())
+            .flat_map(|val| val.keys().cloned())
+            .filter(|val| val != key)
+            .collect();
+        let all_dependencies_present = dependency_list
+            .iter()
+            .all(|dimension| context_map.contains_key(dimension));
+        if !all_dependencies_present {
+            return Err(validation_error!(
+                "The context should contain all the dependent dimensions for {} : {:?}.",
+                key,
+                dependency_list,
+            ));
+        }
+    }
+    Ok(())
+}
+
 pub fn validate_condition_with_functions(
     conn: &mut DBConnection,
     context: &Condition,
@@ -241,10 +275,12 @@ pub fn create_ctx_from_put_req(
     let workspace_settings = get_workspace(schema_name, conn)?;
 
     let change_reason = req.change_reason.clone();
+    // Remove this after the chenges for mandatory dimensions are done
     validate_condition_with_mandatory_dimensions(
         &ctx_condition,
         &workspace_settings.mandatory_dimensions.unwrap_or_default(),
     )?;
+    validate_condition_with_dependent_dimensions(conn, &ctx_condition, schema_name)?;
     validate_override_with_default_configs(conn, &r_override, schema_name)?;
     validate_condition_with_functions(conn, &ctx_condition, schema_name)?;
     validate_override_with_functions(conn, &r_override, schema_name)?;

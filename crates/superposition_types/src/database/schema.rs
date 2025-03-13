@@ -68,6 +68,9 @@ diesel::table! {
         position -> Int4,
         description -> Text,
         change_reason -> Text,
+        dependency_graph -> Nullable<Json>,
+        immediate_parents -> Nullable<Array<Text>>,
+        immediate_childrens -> Nullable<Array<Text>>,
     }
 }
 

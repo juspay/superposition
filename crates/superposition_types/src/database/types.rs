@@ -15,6 +15,9 @@ pub struct DimensionWithMandatory {
     pub last_modified_at: NaiveDateTime,
     pub last_modified_by: String,
     pub mandatory: bool,
+    pub dependency_graph: Option<Value>,
+    pub immediate_parents: Option<Vec<String>>,
+    pub immediate_childrens: Option<Vec<String>>,
     pub description: String,
     pub change_reason: String,
 }
@@ -31,6 +34,9 @@ impl DimensionWithMandatory {
             last_modified_at: value.last_modified_at,
             last_modified_by: value.last_modified_by,
             mandatory,
+            dependency_graph: value.dependency_graph,
+            immediate_parents: value.immediate_parents,
+            immediate_childrens: value.immediate_childrens,
             description: value.description,
             change_reason: value.change_reason,
         }

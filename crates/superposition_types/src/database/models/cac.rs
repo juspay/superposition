@@ -17,7 +17,7 @@ use diesel::{
     AsChangeset, Insertable, QueryId, Queryable, Selectable,
 };
 use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::Value;
+use serde_json::{Map, Value};
 
 use crate::{Cac, Condition, Contextual, Overridden, Overrides};
 
@@ -80,6 +80,9 @@ pub struct Dimension {
     pub position: Position,
     pub description: String,
     pub change_reason: String,
+    pub dependency_graph: Option<Value>,
+    pub immediate_parents: Option<Vec<String>>,
+    pub immediate_childrens: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -333,5 +336,16 @@ where
                 "Expected a string or null literal as the function name.",
             ))
         }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Deref, Into, AsRef)]
+#[cfg_attr(feature = "diesel_derives", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = diesel::sql_types::Text))]
+pub struct DependencyGraph(Map<String, Value>);
+
+impl DependencyGraph {
+    pub fn new(map: Map<String, Value>) -> Self {
+        Self(map)
     }
 }
