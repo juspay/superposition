@@ -1,21 +1,7 @@
 // Smithy version, not API version.
 $version: "2.0"
 
-namespace cac.default_config
-
-use aws.protocols#restJson1
-
-@title("Default Config Service")
-@restJson1
-service DefaultConfigService {
-    version: "2025-03-05"
-    resources: [
-        DefaultConfig
-    ]
-    errors: [
-        InternalServerError
-    ]
-}
+namespace io.superposition
 
 resource DefaultConfig {
     identifiers: {
@@ -32,10 +18,12 @@ resource DefaultConfig {
         last_modified_at: Timestamp
         last_modified_by: String
     }
-    read: GetDefaultConfig
-    post: CreateDefaultConfig
+    list: ListDefaultConfigs
     put: UpdateDefaultConfig
     delete: DeleteDefaultConfig
+    operations: [
+        CreateDefaultConfig
+    ]
 }
 
 // Using in input for create API.
@@ -74,16 +62,9 @@ structure DefaultConfigFull for DefaultConfig with [DefaultConfigMixin] {
     $last_modified_by
 }
 
-// Errors
-@httpError(500)
-@error("server")
-structure InternalServerError {
-    message: String
+list ListDefaultConfigOut {
+    member: DefaultConfigFull
 }
-
-@httpError(404)
-@error("client")
-structure DefaultConfigNotFound {}
 
 // Operations
 @http(method: "POST", uri: "/default-config")
@@ -93,18 +74,14 @@ operation CreateDefaultConfig {
 }
 
 @readonly
-@http(method: "GET", uri: "/default-config/{key}")
-operation GetDefaultConfig {
-    input := for DefaultConfig {
-        @httpLabel
-        @required
-        $key
+@http(method: "GET", uri: "/default-config")
+operation ListDefaultConfigs {
+    input := with [PaginationParams] {}
+    output := with [PaginatedResponse] {
+        data: ListDefaultConfigOut
     }
-
-    output: DefaultConfigFull
-
     errors: [
-        DefaultConfigNotFound
+        ResourceNotFound
     ]
 }
 
@@ -131,7 +108,7 @@ operation UpdateDefaultConfig {
     output: DefaultConfigFull
 
     errors: [
-        DefaultConfigNotFound
+        ResourceNotFound
     ]
 }
 
@@ -147,6 +124,6 @@ operation DeleteDefaultConfig {
     output := {}
 
     errors: [
-        DefaultConfigNotFound
+        ResourceNotFound
     ]
 }
