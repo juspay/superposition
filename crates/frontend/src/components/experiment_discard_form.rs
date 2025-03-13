@@ -3,17 +3,19 @@ pub mod utils;
 use std::rc::Rc;
 
 use leptos::*;
+use superposition_types::api::experiments::ExperimentResponse;
 use utils::discard_experiment;
 use web_sys::MouseEvent;
 
 use crate::{
-    components::button::Button,
-    types::{Experiment, OrganisationId, Tenant},
+    components::{alert::AlertType, button::Button},
+    providers::alert_provider::enqueue_alert,
+    types::{OrganisationId, Tenant},
 };
 
 #[component]
 pub fn experiment_discard_form<NF>(
-    experiment: Experiment,
+    experiment: ExperimentResponse,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -34,13 +36,25 @@ where
             let tenant = tenant_rws.get().0;
             let org = org_rws.get().0;
             let change_reason_value = change_reason.get();
-            let _ = discard_experiment(
+            let result = discard_experiment(
                 &experiment_clone.id,
                 &tenant,
                 &org,
-                &change_reason_value,
+                change_reason_value,
             )
             .await;
+            match result {
+                Ok(_) => {
+                    enqueue_alert(
+                        String::from("Experiment discarded successfully!"),
+                        AlertType::Success,
+                        5000,
+                    );
+                }
+                Err(e) => {
+                    enqueue_alert(e, AlertType::Error, 5000);
+                }
+            }
             req_inprogress_ws.set(false);
             handle_submit_clone()
         });
