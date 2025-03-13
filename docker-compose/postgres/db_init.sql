@@ -1211,3 +1211,13 @@ INSERT INTO superposition.workspaces (
     null
 );
 COMMIT
+
+ALTER TABLE localorg_test.dimensions 
+ADD COLUMN dependency_graph JSON,
+ADD COLUMN immediate_parents TEXT[],
+ADD COLUMN immediate_childrens TEXT[];
+
+ALTER TABLE localorg_dev.dimensions 
+ADD COLUMN dependency_graph JSON,
+ADD COLUMN immediate_parents TEXT[],
+ADD COLUMN immediate_childrens TEXT[];
