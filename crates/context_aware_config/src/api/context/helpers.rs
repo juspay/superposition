@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::str;
 
 use actix_web::web::Json;
@@ -64,29 +64,26 @@ pub fn validate_condition_with_dependent_dimensions(
 ) -> superposition::Result<()> {
     use dimensions::dsl;
     let context_map = extract_dimensions(context)?;
-    for (key, _) in context_map.iter() {
-        let dependency_list: Option<Value> = dsl::dimensions
-            .filter(dsl::dimension.eq(key))
-            .select(dsl::dependency_graph)
-            .schema_name(schema_name)
-            .get_result::<Option<Value>>(conn)?;
-
-        let dependency_list: Vec<String> = dependency_list
-            .iter()
-            .filter_map(|val| val.as_object())
-            .flat_map(|val| val.keys().cloned())
-            .filter(|val| val != key)
-            .collect();
-        let all_dependencies_present = dependency_list
-            .iter()
-            .all(|dimension| context_map.contains_key(dimension));
-        if !all_dependencies_present {
-            return Err(validation_error!(
-                "The context should contain all the dependent dimensions for {} : {:?}.",
-                key,
-                dependency_list,
-            ));
-        }
+    let keys = context_map.keys();
+    let dependency_lists: Vec<Option<Value>> = dsl::dimensions
+        .filter(dsl::dimension.eq_any(keys))
+        .select(dsl::dependency_graph)
+        .schema_name(schema_name)
+        .load::<Option<Value>>(conn)?;
+    let dependency_list: HashSet<String> = dependency_lists
+        .iter()
+        .flatten()
+        .filter_map(|val| val.as_object())
+        .flat_map(|val| val.keys().cloned())
+        .collect();
+    let all_dependencies_present = dependency_list
+        .iter()
+        .all(|dimension| context_map.contains_key(dimension));
+    if !all_dependencies_present {
+        return Err(validation_error!(
+            "The context should contain all the dependent dimensions : {:?}.",
+            dependency_list,
+        ));
     }
     Ok(())
 }
