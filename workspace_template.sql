@@ -456,3 +456,18 @@ DO $$ BEGIN
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
+
+DO $$ BEGIN
+    CREATE TYPE public.function_types AS ENUM (
+    'VALIDATION',
+    'AUTOCOMPLETE'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TABLE {replaceme}.functions ADD COLUMN function_type public.FUNCTION_TYPES NOT NULL DEFAULT 'VALIDATION';
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
