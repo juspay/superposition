@@ -79,6 +79,9 @@ pub struct Dimension {
     pub position: Position,
     pub description: String,
     pub change_reason: String,
+    pub dependency_graph: Option<Value>,
+    pub immediate_parents: Option<Vec<String>>,
+    pub immediate_childrens: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

@@ -5,8 +5,11 @@ use actix_web::{
 };
 use chrono::Utc;
 use diesel::{
-    delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
+    delete,
+    r2d2::{ConnectionManager, PooledConnection},
+    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
 };
+use serde_json::{Map, Value};
 use service_utils::service::types::{AppState, DbConnection, SchemaName};
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
@@ -38,6 +41,7 @@ pub fn endpoints() -> Scope {
         .service(update)
         .service(get)
         .service(delete_dimension)
+        .service(list_dependent_dimensions)
 }
 
 #[post("")]
@@ -49,7 +53,6 @@ async fn create(
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-
     let create_req = req.into_inner();
     let schema_value = create_req.schema;
 
@@ -69,7 +72,7 @@ async fn create(
     )?;
     validate_jsonschema(&state.meta_schema, &schema_value)?;
 
-    let dimension_data = Dimension {
+    let mut dimension_data = Dimension {
         dimension: create_req.dimension.into(),
         position: create_req.position,
         schema: schema_value,
@@ -80,6 +83,9 @@ async fn create(
         last_modified_by: user.get_email(),
         description: create_req.description,
         change_reason: create_req.change_reason,
+        dependency_graph: None,
+        immediate_parents: None,
+        immediate_childrens: create_req.dependent_dimensions,
     };
 
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -93,6 +99,14 @@ async fn create(
             .returning(Dimension::as_returning())
             .schema_name(&schema_name)
             .execute(transaction_conn)?;
+
+        dimension_data.dependency_graph = validate_and_initialize_dimension_hierarchy(
+            &dimension_data.dimension,
+            &dimension_data.immediate_childrens,
+            &schema_name,
+            transaction_conn,
+        )?;
+
         let insert_resp = diesel::insert_into(dimensions::table)
             .values(&dimension_data)
             .returning(Dimension::as_returning())
@@ -214,6 +228,14 @@ async fn update(
                         .execute(transaction_conn)?
                 };
             }
+
+            validate_and_update_dimension_hierarchy(
+                &name,
+                &update_req.dependent_dimensions,
+                &schema_name,
+                transaction_conn,
+            )?;
+
             diesel::update(dimensions)
                 .filter(dsl::dimension.eq(name))
                 .set((
@@ -306,11 +328,20 @@ async fn delete_dimension(
         .select(Dimension::as_select())
         .schema_name(&schema_name)
         .get_result(&mut conn)?;
+
     let context_ids = get_dimension_usage_context_ids(&name, &mut conn, &schema_name)
         .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             use dimensions::dsl;
+
+            validate_dimension_deletability(
+                &name,
+                &dimension_data,
+                transaction_conn,
+                &schema_name,
+            )?;
+
             diesel::update(dsl::dimensions)
                 .filter(dsl::dimension.eq(&name))
                 .set((
@@ -343,5 +374,454 @@ async fn delete_dimension(
             "Given key already in use in contexts: {}",
             context_ids.join(",")
         ))
+    }
+}
+
+#[get("/{name}/dependent_dimensions")]
+async fn list_dependent_dimensions(
+    path: Path<String>,
+    db_conn: DbConnection,
+    schema_name: SchemaName,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let dimension_name = path.into_inner();
+    let dimension_data = dimensions::dsl::dimensions
+        .filter(dimensions::dimension.eq(dimension_name.clone()))
+        .select(dimensions::dependency_graph)
+        .schema_name(&schema_name)
+        .get_result::<Option<Value>>(&mut conn)?;
+    Ok(HttpResponse::Ok().json(dimension_data))
+}
+
+pub fn validate_dimension_deletability(
+    dimension_name: &str,
+    dimension_data: &Dimension,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    // If someone is dependent on this i.e. check the parents, then don't let it be deleted
+    let has_parent_dependencies = dimension_data
+        .immediate_parents
+        .as_ref()
+        .map_or(false, |parents| !parents.is_empty());
+
+    if has_parent_dependencies {
+        let parent_dimensions =
+            dimension_data.immediate_parents.clone().unwrap_or_default();
+        let parent_list = parent_dimensions.join(", ");
+
+        return Err(bad_argument!(
+            "Cannot delete dimension `{}`: it is used as a dependency by: {}",
+            dimension_name,
+            parent_list
+        ));
+    }
+
+    // If this is dependent on someone i.e. check the children, then clean up the dependencies
+    let immediate_children_list = dimension_data
+        .immediate_childrens
+        .clone()
+        .unwrap_or_default();
+
+    if !immediate_children_list.is_empty() {
+        // Remove the dimension from the children's immediate_parents
+        update_parent_references_for_removed_children(
+            dimension_name,
+            &immediate_children_list,
+            schema_name,
+            conn,
+        )?;
+        // No need to Remove the dimension's immediate_childrens to [] and dependency_graph to {} and Recompute the dimension's dependency graph as we are already deleting it 🥲
+        // No need to update the parent's dependency graph as there shouldn't be any immediate_parents, if allowed till here
+    }
+
+    Ok(())
+}
+
+pub fn validate_and_update_dimension_hierarchy(
+    dimension_name: &str,
+    dependent_dimensions: &Option<Vec<String>>,
+    schema_name: &SchemaName,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> superposition::Result<()> {
+    // if no dependent dimensions provided return OK(())
+    let Some(dependent_dimensions) = dependent_dimensions else {
+        return Ok(());
+    };
+
+    // If self loop return error
+    if dependent_dimensions.contains(&dimension_name.to_string()) {
+        log::error!("Failed to update dependent dimensions: found self cycle while dependent dimension for {}", dimension_name);
+        return Err(bad_argument!(
+                "Failed to update dependent dimensions: found self cycle while updating dependent dimension for {}", dimension_name
+            ));
+    }
+
+    // Fetch the current dimension data
+    let dimension_data: Dimension = dimensions::dsl::dimensions
+        .filter(dimensions::dimension.eq(dimension_name))
+        .schema_name(schema_name)
+        .get_result::<Dimension>(conn)?;
+
+    // Return Ok if the dependent_dimension is same as the current immediate_children_list (no change)
+    if let Some(children) = &dimension_data.immediate_childrens {
+        if children == dependent_dimensions {
+            return Ok(());
+        }
+    }
+
+    // Distinguish between the children that are removed and the ones that are being added
+    let (children_to_remove, children_to_add) =
+        compute_children_diff(&dimension_data.immediate_childrens, dependent_dimensions);
+
+    // Validate no cycles will be introduced
+    validate_no_cycles(&children_to_add, dimension_name, schema_name, conn)?;
+
+    // Recompute parent's dependency graph and update added children's immediate_parents
+    let new_parent_dependency_list = build_dependency_graph_and_update_childrens_parent(
+        dimension_name,
+        dependent_dimensions,
+        schema_name,
+        conn,
+    )?;
+
+    // Update removed childrens' immediate_parents
+    update_parent_references_for_removed_children(
+        dimension_name,
+        &children_to_remove,
+        schema_name,
+        conn,
+    )?;
+
+    // Update the parent's dependency graph in the db
+    update_dependency_graph(
+        dimension_name,
+        if dependent_dimensions.is_empty() {
+            Value::Null
+        } else {
+            Value::Object(new_parent_dependency_list)
+        },
+        schema_name,
+        conn,
+    )?;
+
+    // Update the ancestor's dimension_graphs of the parent dimension
+    update_parent_dependency_graphs_dfs(
+        dimension_data.immediate_parents,
+        schema_name,
+        conn,
+    )?;
+
+    Ok(())
+}
+
+pub fn validate_and_initialize_dimension_hierarchy(
+    parent_dimension: &str,
+    dependent_dimensions: &Option<Vec<String>>,
+    schema_name: &SchemaName,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> superposition::Result<Option<Value>> {
+    match dependent_dimensions {
+        None => Ok(None),
+        Some(dependents) => {
+            let mut dependency_map = Map::new();
+
+            for dependent in dependents {
+                let dependent_dimension = dimensions::dsl::dimensions
+                    .filter(dimensions::dimension.eq(dependent.clone()))
+                    .schema_name(schema_name)
+                    .get_result::<Dimension>(conn)?;
+
+                // Update immediate_children_list's parent list
+                update_parent_relationships(
+                    &dependent_dimension,
+                    parent_dimension,
+                    schema_name,
+                    conn,
+                )?;
+
+                // Merge the dependent's graph into the parent's graph
+                merge_dependency_graph(
+                    &mut dependency_map,
+                    &dependent_dimension,
+                    dependent,
+                );
+            }
+
+            // Add parent dimension with dependent dimensions to its dependency graph
+            dependency_map.insert(
+                parent_dimension.to_string(),
+                Value::Array(
+                    dependents
+                        .iter()
+                        .map(|d| Value::String(d.clone()))
+                        .collect(),
+                ),
+            );
+
+            Ok(Some(Value::Object(dependency_map)))
+        }
+    }
+}
+
+pub fn update_parent_dependency_graphs_dfs(
+    parents: Option<Vec<String>>,
+    schema_name: &SchemaName,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> superposition::Result<()> {
+    // Early return if no parents
+    let Some(parents) = parents else {
+        return Ok(());
+    };
+
+    for parent in parents {
+        let parent_dimension: Dimension = dimensions::dsl::dimensions
+            .filter(dimensions::dimension.eq(&parent))
+            .schema_name(schema_name)
+            .get_result::<Dimension>(conn)?;
+
+        let immediate_children_list = parent_dimension
+            .immediate_childrens
+            .clone()
+            .unwrap_or_default();
+
+        // Recompute the parent's dependency list
+        let new_parent_dependency_list =
+            build_dependency_graph_and_update_childrens_parent(
+                &parent,
+                &immediate_children_list,
+                schema_name,
+                conn,
+            )?;
+
+        // Update the parent's dependency graph
+        update_dependency_graph(
+            &parent,
+            Value::Object(new_parent_dependency_list),
+            schema_name,
+            conn,
+        )?;
+
+        // Recursively update ancestors' dependency graphs
+        update_parent_dependency_graphs_dfs(
+            parent_dimension.immediate_parents,
+            schema_name,
+            conn,
+        )?;
+    }
+
+    Ok(())
+}
+
+fn compute_children_diff(
+    current_children: &Option<Vec<String>>,
+    new_children: &[String],
+) -> (Vec<String>, Vec<String>) {
+    match current_children {
+        Some(children) => {
+            let remove_children: Vec<String> = children
+                .iter()
+                .filter(|child| !new_children.contains(child))
+                .cloned()
+                .collect();
+
+            let add_children: Vec<String> = new_children
+                .iter()
+                .filter(|child| !children.contains(child))
+                .cloned()
+                .collect();
+
+            (remove_children, add_children)
+        }
+        None => (vec![], new_children.to_vec()),
+    }
+}
+
+fn validate_no_cycles(
+    children_to_add: &Vec<String>,
+    dimension_name: &str,
+    schema_name: &SchemaName,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> superposition::Result<()> {
+    for child in children_to_add {
+        let child_dimension: Dimension = dimensions::dsl::dimensions
+            .filter(dimensions::dimension.eq(child.clone()))
+            .schema_name(schema_name)
+            .get_result::<Dimension>(conn)?;
+
+        if let Some(dependency_list_val) = &child_dimension.dependency_graph {
+            let dependency_object = dependency_list_val
+                .as_object()
+                .ok_or_else(|| {
+                    log::error!("Could not convert dependency list to object");
+                    unexpected_error!(
+                        "Something went wrong, failed to update the dependent dimensions"
+                    )
+                })?
+                .clone();
+
+            if dependency_object.contains_key(dimension_name) {
+                log::error!("Failed to update dependent dimensions: found cycle while adding dimension {}", child);
+                return Err(bad_argument!(
+                    "Failed to update dependent dimensions: found cycle while adding dimension {}", 
+                    child
+                ));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn build_dependency_graph_and_update_childrens_parent(
+    dimension_name: &str,
+    dependent_dimensions: &Vec<String>,
+    schema_name: &SchemaName,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> superposition::Result<Map<String, Value>> {
+    let mut new_parent_dependency_list: Map<String, Value> = Map::new();
+
+    // Add the dependent_dimensions(immediate_children_list) to the parent dependency list
+    new_parent_dependency_list.insert(
+        dimension_name.to_string(),
+        Value::Array(
+            dependent_dimensions
+                .clone()
+                .into_iter()
+                .map(Value::String)
+                .collect(),
+        ),
+    );
+
+    // Add child dependencies to the new parent dependency list and update the immediate_parents of the child
+    for dependent in dependent_dimensions {
+        let dependent_dimension: Dimension = dimensions::dsl::dimensions
+            .filter(dimensions::dimension.eq(dependent.clone()))
+            .schema_name(schema_name)
+            .get_result::<Dimension>(conn)?;
+
+        merge_dependency_graph(
+            &mut new_parent_dependency_list,
+            &dependent_dimension,
+            dependent,
+        );
+
+        let child_dependency_list = dependent_dimension
+            .dependency_graph
+            .clone()
+            .unwrap_or_default()
+            .as_object()
+            .cloned()
+            .unwrap_or_else(|| {
+                [(dependent.clone(), Value::Array(vec![]))]
+                    .iter()
+                    .cloned()
+                    .collect::<Map<String, Value>>()
+            });
+
+        for (key, value) in &child_dependency_list {
+            new_parent_dependency_list.insert(key.clone(), value.clone());
+        }
+
+        // If needed Update immediate_children_list's parent list
+        update_parent_relationships(
+            &dependent_dimension,
+            dimension_name,
+            schema_name,
+            conn,
+        )?;
+    }
+
+    Ok(new_parent_dependency_list)
+}
+
+fn update_parent_references_for_removed_children(
+    dimension_name: &str,
+    children_to_remove: &Vec<String>,
+    schema_name: &SchemaName,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> superposition::Result<()> {
+    for child in children_to_remove {
+        let child_dimension: Dimension = dimensions::dsl::dimensions
+            .filter(dimensions::dimension.eq(child.clone()))
+            .schema_name(schema_name)
+            .get_result::<Dimension>(conn)?;
+
+        let mut child_parents = child_dimension
+            .immediate_parents
+            .clone()
+            .unwrap_or_default();
+
+        child_parents.retain(|parent| parent != dimension_name);
+
+        diesel::update(dimensions::dsl::dimensions)
+            .filter(dimensions::dimension.eq(child.clone()))
+            .set(dimensions::immediate_parents.eq(child_parents))
+            .schema_name(schema_name)
+            .execute(conn)?;
+    }
+
+    Ok(())
+}
+
+fn update_dependency_graph(
+    dimension_name: &str,
+    new_parent_dependency_list: Value,
+    schema_name: &SchemaName,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> superposition::Result<()> {
+    diesel::update(dimensions::dsl::dimensions)
+        .filter(dimensions::dimension.eq(dimension_name))
+        .set(dimensions::dependency_graph.eq(new_parent_dependency_list))
+        .schema_name(schema_name)
+        .execute(conn)?;
+
+    Ok(())
+}
+
+fn update_parent_relationships(
+    dependent_dimension: &Dimension,
+    parent_dimension: &str,
+    schema_name: &SchemaName,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> superposition::Result<()> {
+    let mut parents = dependent_dimension
+        .immediate_parents
+        .clone()
+        .unwrap_or_default();
+
+    // Add parent if not already present
+    if !parents.contains(&parent_dimension.to_string()) {
+        parents.push(parent_dimension.to_string());
+
+        diesel::update(dimensions)
+            .filter(dimension.eq(&dependent_dimension.dimension))
+            .set(immediate_parents.eq(parents))
+            .schema_name(schema_name)
+            .get_result::<Dimension>(conn)?;
+    }
+    Ok(())
+}
+
+fn merge_dependency_graph(
+    dependency_map: &mut Map<String, Value>,
+    dependent_dimension: &Dimension,
+    dependent_name: &str,
+) {
+    let dependent_graph = dependent_dimension
+        .dependency_graph
+        .clone()
+        .unwrap_or_default()
+        .as_object()
+        .cloned()
+        .unwrap_or_else(|| {
+            [(dependent_name.to_string(), Value::Array(vec![]))]
+                .iter()
+                .cloned()
+                .collect::<Map<String, Value>>()
+        });
+
+    for (key, value) in dependent_graph {
+        dependency_map.insert(key, value);
     }
 }
