@@ -7,10 +7,13 @@
     "test": "./node_modules/.bin/newman dir-run ./postman/superposition --environment ./postman/starting_env.json --export-environment ./postman/superposition_env.json && ./node_modules/.bin/newman dir-run ./postman/cac --environment ./postman/superposition_env.json && ./node_modules/.bin/newman dir-run --environment ./postman/superposition_env.json ./postman/experimentation-platform ",
     "load_superposition_tests": "npx newman dir-import postman/superposition -o postman/superposition.postman_collection.json",
     "load_exp_tests": "npx newman dir-import postman/experimentation-platform -o postman/experimentation-platform.postman_collection.json",
-    "load_cac_tests": "npx newman dir-import postman/cac -o postman/cac.postman_collection.json"
+    "load_cac_tests": "npx newman dir-import postman/cac -o postman/cac.postman_collection.json",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
   },
   "devDependencies": {
     "axios": "^1.8.2",
+    "cypress": "^13.8.0",
     "daisyui": "^4.3.1",
     "newman": "git+ssh://git@github.com:knutties/newman.git#feature/newman-dir",
     "tailwindcss": "^3.3.5"
