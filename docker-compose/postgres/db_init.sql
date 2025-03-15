@@ -1209,4 +1209,13 @@ INSERT INTO superposition.workspaces (
     'admin@localorg.io',
     null
 );
+
+CREATE TYPE public.function_types AS ENUM (
+'VALIDATION',
+'AUTOCOMPLETE'
+);
+
+ALTER TABLE localorg_dev.functions ADD COLUMN function_type public.FUNCTION_TYPES NOT NULL DEFAULT 'VALIDATION';
+
+
 COMMIT

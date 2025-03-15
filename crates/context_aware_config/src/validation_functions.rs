@@ -1,128 +1,169 @@
-use serde_json::Value;
 use std::process::Command;
 use std::str;
 use superposition_macros::{unexpected_error, validation_error};
-use superposition_types::{database::models::cac::FunctionCode, result as superposition};
+use superposition_types::{
+    api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
+    database::models::cac::{FunctionCode, FunctionTypes},
+    result as superposition,
+};
 
 static FUNCTION_ENV_VARIABLES: &str =
     "HTTP_PROXY,HTTPS_PROXY,HTTP_PROXY_HOST,HTTP_PROXY_PORT,NO_PROXY";
 
-fn type_check_validate(code_str: &FunctionCode) -> String {
-    format!(
-        r#"const vm = require("node:vm")
+const CODE_TOKEN: &str = "{replaceme-with-code}";
+
+const FUNCTION_ENV_TOKEN: &str = "{function-envs}";
+
+const FUNCTION_NAME_TOKEN: &str = "{function-name}";
+
+const FUNCTION_TYPE_CHECK_SNIPPET: &str = r#"const vm = require("node:vm")
         const axios = require("./target/node_modules/axios/dist/node/axios.cjs")
         const script = new vm.Script(\`
 
-        {}
+        {replaceme-with-code}
 
-        if(typeof(validate)!="function")
-        {{
-            throw Error("validate is not of function type")
-        }}\`);
+        if(typeof({function-name})!="function")
+        {
+            throw Error("{function-name} is not of function type")
+        }\`);
 
-        script.runInNewContext({{axios,console}}, {{ timeout: 1500}});
-        "#,
-        code_str.0
-    )
-}
+        script.runInNewContext({axios,console}, { timeout: 1500 });
+        "#;
 
-fn execute_validate_fun(code_str: &FunctionCode, key: String, value: Value) -> String {
-    format!(
-        r#"
+const FUNCTION_EXECUTION_SNIPPET: &str = r#"
         const vm = require("node:vm")
         const axios = require("./target/node_modules/axios/dist/node/axios.cjs")
+        const { parentPort } = require("node:worker_threads")
         const script = new vm.Script(\`
 
-        {}
-        Promise.resolve(validate({}, {})).then((output) => {{
-
-            if(output!=true){{
-                throw new Error("The function did not return true as expected. Check the conditions or logic inside the function.")
-            }}
+        {replaceme-with-code}
+        Promise.resolve({function-invocation}).then((output) => {
+            if({condition}) {
+                throw new Error("The function did not return a value that was expected. Check the return type and logic of the function")
+            }
+            parentPort.postMessage({tag: "result", value: output});
             return output;
-        }}).catch((err)=> {{
+        }).catch((err)=> {
             throw new Error(err)
-        }});\`);
+        });\`);
 
-        script.runInNewContext({{axios,console}}, {{ timeout: 1500}});
-        "#,
-        code_str.0, key, value
-    )
-}
+        script.runInNewContext({ axios, console, parentPort }, { timeout: 1500 });
+        "#;
 
-fn generate_code(code_str: &str) -> String {
-    format!(
-        r#"
-    const {{ Worker, isMainThread, threadId }} =  require("node:worker_threads");
-    if (isMainThread) {{
-        let function_env_variables = "{}"
+const CODE_GENERATION_SNIPPET: &str = r#"
+    const { Worker, isMainThread, threadId } =  require("node:worker_threads");
+    if (isMainThread) {
+        let function_env_variables = "{function-envs}"
         let variablesToKeep = []
         variablesToKeep = function_env_variables.split(',').map(variable => variable.trim());
-        for (const key in process.env) {{
-            if (!variablesToKeep.includes(key)) {{
+        for (const key in process.env) {
+            if (!variablesToKeep.includes(key)) {
                 delete process.env[key];
-            }}
-        }}
+            }
+        }
 
 
     // starting worker thread , making separated from the main thread
-    function runService() {{
-        return new Promise((resolve, reject) => {{
+    function runService() {
+        return new Promise((resolve, reject) => {
+        let result = null;
         const worker = new Worker(
-            `{}`,{{eval:true}}
+            `{replaceme-with-code}`,{ eval:true }
         );
-        worker.on("message", (msg) => {{
-            console.log(msg);
-        }});
-        worker.on("error", (err) => {{
+        worker.on("message", (msg) => {
+            if (typeof msg === 'object' && 'tag' in msg) {
+                result = msg;
+            } else {
+                console.log(msg);
+            }
+        });
+        worker.on("error", (err) => {
             clearTimeout(tl);
             console.error(err.message);
             process.exit(1);
-        }});
-        worker.on("exit", (code) => {{
+        });
+        worker.on("exit", (code) => {
             clearTimeout(tl);
-            if (code !== 0) {{
-                console.error(`Script stopped with exit code ${{code}}`);
-                process.exit(code);
-            }} else {{
+            if (code != 0) {
+                console.error(`Script stopped with exit code ${code}`);
                 worker.terminate();
-            }}
-        }});
+                throw new Error(code);
+            } else {
+                resolve(result);
+            }
+        });
 
-        function timelimit() {{
+        function timelimit() {
             worker.terminate();
             throw new Error("time limit exceeded");
-        }}
+        }
 
-        // terminate worker thread if execution time exceed 2 secs
-
+        // terminate worker thread if execution time exceed 10 secs
         var tl = setTimeout(timelimit, 10000);
-        }});
-    }}
+        return result;
+        });
+    }
 
-    async function run() {{
-        const result = await runService();
-        console.log("result output: ", result);
-    }}
-    run().catch((err) => console.error(err));
-    }}
+    runService()
+        .then((v) => console.log(v.value))
+        .catch((err) => console.error(err));
+    }
+    "#;
 
-    "#,
-        FUNCTION_ENV_VARIABLES, code_str
-    )
+fn type_check(code_str: &FunctionCode, function_name: &str) -> String {
+    FUNCTION_TYPE_CHECK_SNIPPET
+        .replace(FUNCTION_NAME_TOKEN, function_name)
+        .replace(CODE_TOKEN, code_str)
+}
+
+fn generate_fn_code(
+    code_str: &FunctionCode,
+    function_args: &FunctionExecutionRequest,
+) -> String {
+    let (function_invocation, output_check) = match function_args {
+        FunctionExecutionRequest::ValidateFunctionRequest { key, value } => (
+            FunctionTypes::Validation
+                .get_fn_signature()
+                .replace("{key}", format!("\"{}\"", &key).as_str())
+                .replace("{value}", &value.to_string()),
+            "output!=true",
+        ),
+        FunctionExecutionRequest::AutocompleteFunctionRequest {
+            name,
+            prefix,
+            environment,
+        } => (
+            FunctionTypes::Autocomplete
+                .get_fn_signature()
+                .replace("{name}", format!("\"{}\"", &name).as_str())
+                .replace("{prefix}", format!("\"{}\"", &prefix).as_str())
+                .replace("{environment}", &environment.to_string()),
+            "!(output instanceof Array)",
+        ),
+    };
+    FUNCTION_EXECUTION_SNIPPET
+        .replace("{condition}", output_check)
+        .replace("{function-invocation}", &function_invocation)
+        .replace(CODE_TOKEN, code_str)
+}
+
+fn generate_wrapper_runtime(code_str: &str) -> String {
+    CODE_GENERATION_SNIPPET
+        .replace(FUNCTION_ENV_TOKEN, FUNCTION_ENV_VARIABLES)
+        .replace(CODE_TOKEN, code_str)
 }
 
 pub fn execute_fn(
     code_str: &FunctionCode,
-    key: &str,
-    value: Value,
-) -> Result<String, (String, Option<String>)> {
-    let exec_code = execute_validate_fun(code_str, format!(r#""{key}""#), value);
+    args: &FunctionExecutionRequest,
+) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
+    let exec_code = generate_fn_code(code_str, args);
+    log::trace!("{}", format!("Running function code: {:?}", exec_code));
     let output = Command::new("node")
         .arg("-e")
-        .arg(generate_code(&exec_code))
+        .arg(generate_wrapper_runtime(&exec_code))
         .output();
-    log::trace!("{}", format!("validation function output : {:?}", output));
+    log::trace!("{}", format!("Running function output : {:?}", output));
     match output {
         Ok(val) => {
             let stdout = str::from_utf8(&val.stdout)
@@ -138,7 +179,29 @@ pub fn execute_fn(
                 );
                 Err((stderr, Some(stdout)))
             } else {
-                Ok(stdout)
+                let function_type = match args {
+                    FunctionExecutionRequest::ValidateFunctionRequest { .. } => {
+                        FunctionTypes::Validation
+                    }
+                    FunctionExecutionRequest::AutocompleteFunctionRequest { .. } => {
+                        FunctionTypes::Autocomplete
+                    }
+                };
+                let stdout_vec = stdout.trim().split('\n').collect::<Vec<_>>();
+                let fn_output = stdout_vec
+                    .last()
+                    .map(|i| i.to_string())
+                    .unwrap_or_default()
+                    .replace('\'', "\"");
+
+                log::trace!("Function output in rust {:?}", fn_output);
+                let fn_output = serde_json::from_str::<serde_json::Value>(&fn_output)
+                    .unwrap_or_default();
+                Ok(FunctionExecutionResponse {
+                    fn_output,
+                    stdout: stdout_vec[0..stdout_vec.len() - 1].join("\n"),
+                    function_type,
+                })
             }
         }
         Err(e) => {
@@ -148,11 +211,21 @@ pub fn execute_fn(
     }
 }
 
-pub fn compile_fn(code_str: &FunctionCode) -> superposition::Result<()> {
-    let type_check_code = type_check_validate(code_str);
+pub fn compile_fn(
+    function_name: &str,
+    code_str: &FunctionCode,
+) -> superposition::Result<()> {
+    let type_check_code = type_check(code_str, function_name);
+    log::trace!(
+        "{}",
+        format!(
+            "validation function code : {:?}",
+            generate_wrapper_runtime(&type_check_code)
+        )
+    );
     let output = Command::new("node")
         .arg("-e")
-        .arg(generate_code(&type_check_code))
+        .arg(generate_wrapper_runtime(&type_check_code))
         .output();
 
     log::trace!("{}", format!("validation function output : {:?}", output));

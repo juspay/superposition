@@ -9,8 +9,9 @@ use serde_json::{Map, Value};
 use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
+    api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
     database::{
-        models::cac::{Context, FunctionCode},
+        models::cac::{Context, FunctionCode, FunctionTypes},
         schema::{contexts, default_configs::dsl, dimensions},
     },
     result as superposition, Cac, Condition, DBConnection, Overrides, User,
@@ -158,17 +159,42 @@ pub fn validate_value_with_function(
     key: &String,
     value: &Value,
 ) -> superposition::Result<()> {
-    if let Err((err, stdout)) = execute_fn(function, key, value.to_owned()) {
-        let stdout = stdout.unwrap_or(String::new());
-        log::error!("function validation failed for {key} with error: {err}");
-        return Err(validation_error!(
-            "Function validation failed for {} with error {}. {}",
-            key,
-            err,
-            stdout
-        ));
+    match execute_fn(
+        function,
+        &FunctionExecutionRequest::ValidateFunctionRequest {
+            key: key.clone(),
+            value: value.to_owned(),
+        },
+    ) {
+        Err((err, stdout)) => {
+            let stdout = stdout.unwrap_or(String::new());
+            log::error!("function validation failed for {key} with error: {err}");
+            Err(validation_error!(
+                "Function validation failed for {} with error {}. {}",
+                key,
+                err,
+                stdout
+            ))
+        }
+        Ok(FunctionExecutionResponse {
+            fn_output,
+            stdout,
+            function_type,
+        }) => match function_type {
+            FunctionTypes::Validation => {
+                log::debug!("Function execution returned: {:?}", fn_output);
+                if fn_output.is_boolean() && fn_output == Value::Bool(true) {
+                    Ok(())
+                } else {
+                    log::error!("Validation function returned false, logs are {stdout}");
+                    Err(validation_error!(
+                            "The validation function returned false, please check your inputs",
+                        ))
+                }
+            }
+            FunctionTypes::Autocomplete => Ok(()),
+        },
     }
-    Ok(())
 }
 
 pub fn query_description(

@@ -1,19 +1,20 @@
-use serde_json::Value;
-use superposition_types::database::models::cac::Function;
-
-use crate::{
-    types::FunctionTestResponse,
-    utils::{construct_request_headers, get_host, parse_json_response, request},
+use superposition_types::{
+    api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
+    database::models::cac::{Function, FunctionTypes},
 };
+
+use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
 
 use super::types::{FunctionCreateRequest, FunctionUpdateRequest};
 
+#[allow(clippy::too_many_arguments)]
 pub async fn create_function(
     function_name: String,
     function: String,
     runtime_version: String,
     description: String,
     change_reason: String,
+    function_type: FunctionTypes,
     tenant: String,
     org_id: String,
 ) -> Result<Function, String> {
@@ -23,6 +24,7 @@ pub async fn create_function(
         runtime_version,
         description,
         change_reason,
+        function_type,
     };
 
     let host = get_host();
@@ -38,12 +40,14 @@ pub async fn create_function(
     parse_json_response(response).await
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn update_function(
     function_name: String,
     function: String,
     runtime_version: String,
     description: String,
     change_reason: String,
+    function_type: FunctionTypes,
     tenant: String,
     org_id: String,
 ) -> Result<Function, String> {
@@ -52,6 +56,7 @@ pub async fn update_function(
         runtime_version,
         description,
         change_reason,
+        function_type,
     };
 
     let host = get_host();
@@ -70,17 +75,17 @@ pub async fn update_function(
 pub async fn test_function(
     function_name: String,
     stage: String,
-    val: Value,
+    function_args: &FunctionExecutionRequest,
     tenant: String,
     org_id: String,
-) -> Result<FunctionTestResponse, String> {
+) -> Result<FunctionExecutionResponse, String> {
     let host = get_host();
     let url = format!("{host}/function/{function_name}/{stage}/test");
 
     let response = request(
         url,
         reqwest::Method::PUT,
-        Some(val),
+        Some(function_args),
         construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;

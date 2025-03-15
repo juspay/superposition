@@ -1,13 +1,20 @@
-use derive_more::{AsRef, Deref, DerefMut, Into};
-use diesel::AsChangeset;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use superposition_types::{
-    database::{models::cac::FunctionCode, schema::functions},
+#[cfg(feature = "diesel_derives")]
+use crate::database::schema::functions;
+use crate::{
+    database::models::cac::{FunctionCode, FunctionTypes},
     RegexEnum,
 };
 
-#[derive(Debug, Deserialize, AsChangeset)]
+use derive_more::{AsRef, Deref, DerefMut, Into};
+
+#[cfg(feature = "diesel_derives")]
+use diesel::AsChangeset;
+
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
+
+#[derive(Debug, Serialize, Deserialize, AsChangeset)]
+#[cfg(feature = "diesel_derives")]
 #[diesel(table_name = functions)]
 pub struct UpdateFunctionRequest {
     #[serde(rename = "function")]
@@ -16,20 +23,24 @@ pub struct UpdateFunctionRequest {
     pub draft_runtime_version: Option<String>,
     pub description: Option<String>,
     pub change_reason: String,
+    #[serde(default = "FunctionTypes::default")]
+    pub function_type: FunctionTypes,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateFunctionRequest {
     pub function_name: FunctionName,
     pub function: FunctionCode,
+    #[serde(default = "FunctionTypes::default")]
+    pub function_type: FunctionTypes,
     pub runtime_version: String,
     pub description: String,
     pub change_reason: String,
 }
 
-#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
+#[derive(Debug, Serialize, Deserialize, AsRef, Deref, DerefMut, Into)]
 #[serde(try_from = "String")]
-pub struct FunctionName(String);
+pub struct FunctionName(pub String);
 impl FunctionName {
     pub fn validate_data(name: String) -> Result<Self, String> {
         let name = name.trim();
@@ -71,8 +82,41 @@ pub struct TestParam {
     pub stage: Stage,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TestFunctionRequest {
-    pub key: String,
-    pub value: Value,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum FunctionExecutionRequest {
+    ValidateFunctionRequest {
+        key: String,
+        value: Value,
+    },
+    AutocompleteFunctionRequest {
+        name: String,
+        prefix: String,
+        environment: Value,
+    },
+}
+
+impl FunctionExecutionRequest {
+    pub fn validation_default() -> Self {
+        Self::ValidateFunctionRequest {
+            key: String::new(),
+            value: Value::String(String::new()),
+        }
+    }
+    pub fn autocomplete_default() -> Self {
+        Self::AutocompleteFunctionRequest {
+            name: String::new(),
+            prefix: String::new(),
+            environment: json!({
+                "context": [],
+                "overrides": {}
+            }),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionExecutionResponse {
+    pub fn_output: Value,
+    pub stdout: String,
+    pub function_type: FunctionTypes,
 }
