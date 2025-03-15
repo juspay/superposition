@@ -9,6 +9,7 @@ use serde_json::{Map, Value};
 use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
+    api::functions::FunctionExecutionRequest,
     database::{
         models::cac::{Context, FunctionCode},
         schema::{contexts, default_configs::dsl, dimensions},
@@ -158,7 +159,13 @@ pub fn validate_value_with_function(
     key: &String,
     value: &Value,
 ) -> superposition::Result<()> {
-    if let Err((err, stdout)) = execute_fn(function, key, value.to_owned()) {
+    if let Err((err, stdout)) = execute_fn(
+        function,
+        &FunctionExecutionRequest::ValidateFunctionRequest {
+            key: key.clone(),
+            value: value.to_owned(),
+        },
+    ) {
         let stdout = stdout.unwrap_or(String::new());
         log::error!("function validation failed for {key} with error: {err}");
         return Err(validation_error!(

@@ -1,3 +1,4 @@
+use std::fmt::Display;
 #[cfg(feature = "diesel_derives")]
 use std::str;
 
@@ -13,7 +14,7 @@ use diesel::{
     pg::{Pg, PgValue},
     serialize::{Output, Result as SResult, ToSql},
     sql_types::Integer,
-    AsChangeset, Insertable, Queryable, Selectable,
+    AsChangeset, Insertable, QueryId, Queryable, Selectable,
 };
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
@@ -102,6 +103,52 @@ pub struct DefaultConfig {
     pub change_reason: String,
 }
 
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Deserialize,
+    Serialize,
+    Default,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+)]
+#[serde(rename_all = "UPPERCASE")]
+#[strum(serialize_all = "UPPERCASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(diesel_derive_enum::DbEnum, QueryId)
+)]
+#[cfg_attr(feature = "diesel_derives", DbValueStyle = "UPPERCASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    ExistingTypePath = "crate::database::schema::sql_types::FunctionTypes"
+)]
+pub enum FunctionTypes {
+    #[default]
+    Validation,
+    Autocomplete,
+}
+
+impl FunctionTypes {
+    pub fn get_fn_signature(&self) -> String {
+        match self {
+            FunctionTypes::Validation => "validate({key}, {value})".to_string(),
+            FunctionTypes::Autocomplete => {
+                "autocomplete({name}, {prefix}, {environment})".to_string()
+            }
+        }
+    }
+
+    pub fn get_js_fn_name(&self) -> String {
+        match self {
+            FunctionTypes::Validation => "validate".to_string(),
+            FunctionTypes::Autocomplete => "autocomplete".to_string(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
@@ -123,6 +170,7 @@ pub struct Function {
     pub last_modified_at: NaiveDateTime,
     pub last_modified_by: String,
     pub change_reason: String,
+    pub function_type: FunctionTypes,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -223,6 +271,12 @@ impl ToSql<Integer, Pg> for Position {
 #[cfg_attr(feature = "diesel_derives", derive(AsExpression, FromSqlRow))]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = diesel::sql_types::Text))]
 pub struct FunctionCode(pub String);
+
+impl Display for FunctionCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 #[cfg(feature = "diesel_derives")]
 impl FromSql<diesel::sql_types::Text, Pg> for FunctionCode {
