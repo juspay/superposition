@@ -135,7 +135,7 @@ superposition_dev:
 
 frontend:
 	cd crates/frontend && \
-		wasm-pack build --target web $(WASM_PACK_MODE) --no-default-features --features hydrate
+		wasm-pack build --locked --target web $(WASM_PACK_MODE) --no-default-features --features hydrate
 	cd crates/frontend && \
 		npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css
 	-rm -rf target/site

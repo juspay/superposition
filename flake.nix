@@ -42,7 +42,8 @@
             ];
             # Add your devShell tools here
             packages = with pkgs; [
-              docker-compose
+              # docker-compose
+              podman-compose
               gnumake
               # Why do we need this?
               stdenv.cc
