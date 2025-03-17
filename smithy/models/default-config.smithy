@@ -6,6 +6,7 @@ namespace io.superposition
 resource DefaultConfig {
     identifiers: {
         key: String
+        workspace_id: String
     }
     properties: {
         value: Document
@@ -69,14 +70,14 @@ list ListDefaultConfigOut {
 // Operations
 @http(method: "POST", uri: "/default-config")
 operation CreateDefaultConfig {
-    input := with [DefaultConfigMixin] {}
+    input := with [DefaultConfigMixin, WorkspaceMixin] {}
     output: DefaultConfigFull
 }
 
 @readonly
 @http(method: "GET", uri: "/default-config")
 operation ListDefaultConfigs {
-    input := with [PaginationParams] {}
+    input := with [PaginationParams, WorkspaceMixin] {}
     output := with [PaginatedResponse] {
         data: ListDefaultConfigOut
     }
@@ -88,7 +89,7 @@ operation ListDefaultConfigs {
 @idempotent
 @http(method: "PUT", uri: "/default-config/{key}")
 operation UpdateDefaultConfig {
-    input := for DefaultConfig {
+    input := for DefaultConfig with [WorkspaceMixin] {
         @httpLabel
         @required
         $key
@@ -115,7 +116,7 @@ operation UpdateDefaultConfig {
 @idempotent
 @http(method: "DELETE", uri: "/default-config/{key}")
 operation DeleteDefaultConfig {
-    input := for DefaultConfig {
+    input := for DefaultConfig with [WorkspaceMixin] {
         @httpLabel
         @required
         $key

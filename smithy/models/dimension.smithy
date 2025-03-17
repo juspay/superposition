@@ -6,6 +6,7 @@ namespace io.superposition
 resource Dimension {
     identifiers: {
         dimension: String
+        workspace_id: String
     }
     properties: {
         position: Integer
@@ -69,7 +70,7 @@ list DimensionExtList {
 
 @http(method: "POST", uri: "/dimension")
 operation CreateDimension {
-    input := for Dimension {
+    input := for Dimension with [WorkspaceMixin] {
         @required
         $dimension
 
@@ -94,7 +95,7 @@ operation CreateDimension {
 @readonly
 @http(method: "GET", uri: "/dimension")
 operation ListDimensions {
-    input := with [PaginationParams] {}
+    input := with [PaginationParams, WorkspaceMixin] {}
     output := with [PaginatedResponse] {
         data: DimensionExtList
     }
@@ -103,7 +104,7 @@ operation ListDimensions {
 @idempotent
 @http(method: "PUT", uri: "/dimension/{dimension}")
 operation UpdateDimension {
-    input := for Dimension {
+    input := for Dimension with [WorkspaceMixin] {
         @httpLabel
         @required
         $dimension
@@ -128,7 +129,7 @@ operation UpdateDimension {
 @idempotent
 @http(method: "DELETE", uri: "/dimension/{dimension}")
 operation DeleteDimension {
-    input := for Dimension {
+    input := for Dimension with [WorkspaceMixin] {
         @httpLabel
         @required
         $dimension

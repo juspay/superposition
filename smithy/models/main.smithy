@@ -28,6 +28,13 @@ structure PaginationParams {
 }
 
 @mixin
+structure WorkspaceMixin {
+    @required
+    @httpHeader("x-workspace-id")
+    workspace_id: String
+}
+
+@mixin
 structure PaginatedResponse {
     total_pages: Integer
     total_items: Integer
