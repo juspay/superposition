@@ -7,11 +7,13 @@ use aws.protocols#restJson1
 
 @title("Superposition")
 @restJson1
+@httpBearerAuth
 service Superposition {
     version: "2025-03-05"
     resources: [
         DefaultConfig
         Dimension
+        Context
     ]
     errors: [
         InternalServerError
@@ -30,8 +32,13 @@ structure PaginationParams {
 @mixin
 structure WorkspaceMixin {
     @required
-    @httpHeader("x-workspace-id")
+    @httpHeader("x-tenant")
     workspace_id: String
+
+    @required
+    @httpHeader("x-org-id")
+    @default("juspay")
+    org_id: String
 }
 
 @mixin

@@ -7,6 +7,7 @@ resource DefaultConfig {
     identifiers: {
         key: String
         workspace_id: String
+        org_id: String
     }
     properties: {
         value: Document
@@ -114,7 +115,7 @@ operation UpdateDefaultConfig {
 }
 
 @idempotent
-@http(method: "DELETE", uri: "/default-config/{key}")
+@http(method: "DELETE", uri: "/default-config/{key}", code: 201)
 operation DeleteDefaultConfig {
     input := for DefaultConfig with [WorkspaceMixin] {
         @httpLabel

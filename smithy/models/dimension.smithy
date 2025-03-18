@@ -7,6 +7,7 @@ resource Dimension {
     identifiers: {
         dimension: String
         workspace_id: String
+        org_id: String
     }
     properties: {
         position: Integer
@@ -127,7 +128,7 @@ operation UpdateDimension {
 }
 
 @idempotent
-@http(method: "DELETE", uri: "/dimension/{dimension}")
+@http(method: "DELETE", uri: "/dimension/{dimension}", code: 201)
 operation DeleteDimension {
     input := for Dimension with [WorkspaceMixin] {
         @httpLabel
