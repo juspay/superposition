@@ -1,0 +1,19 @@
+diff --git a/crates/superposition_types/src/database/superposition_schema.rs b/crates/superposition_types/src/database/superposition_schema.rs
+index eed781eb..251e7fa8 100644
+--- a/crates/superposition_types/src/database/superposition_schema.rs
++++ b/crates/superposition_types/src/database/superposition_schema.rs
+@@ -50,13 +50,13 @@ pub mod superposition {
+             workspace_status -> WorkspaceStatus,
+             workspace_admin_email -> Text,
+             created_by -> Text,
+             last_modified_by -> Text,
+             last_modified_at -> Timestamp,
+             created_at -> Timestamp,
+-            mandatory_dimensions -> Nullable<Array<Nullable<Text>>>,
++            mandatory_dimensions -> Nullable<Array<Text>>,
+         }
+     }
+ 
+     diesel::joinable!(workspaces -> organisations (organisation_id));
+ 
+     diesel::allow_tables_to_appear_in_same_query!(
