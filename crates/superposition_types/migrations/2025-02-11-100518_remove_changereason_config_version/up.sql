@@ -1,3 +1,3 @@
 -- Your SQL goes here
 ALTER TABLE public.config_versions
-DROP COLUMN description;
+DROP COLUMN change_reason;
