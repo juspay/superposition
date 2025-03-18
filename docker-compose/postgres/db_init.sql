@@ -210,7 +210,8 @@ DO $$ BEGIN
     CREATE TYPE public.experiment_status_type AS ENUM (
         'CREATED',
         'CONCLUDED',
-        'INPROGRESS'
+        'INPROGRESS',
+        'DISCARDED'
     );
 EXCEPTION
     WHEN duplicate_object THEN null;
@@ -489,7 +490,6 @@ ALTER TABLE localorg_test.functions ALTER COLUMN description SET DEFAULT '';
 ALTER TABLE localorg_test.functions ALTER COLUMN description SET NOT NULL;
 
 ALTER TABLE localorg_test.config_versions ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE localorg_test.config_versions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
 
 ALTER TABLE localorg_test.experiments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
 ALTER TABLE localorg_test.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
@@ -1065,7 +1065,6 @@ ALTER TABLE localorg_dev.functions ALTER COLUMN description SET DEFAULT '';
 ALTER TABLE localorg_dev.functions ALTER COLUMN description SET NOT NULL;
 
 ALTER TABLE localorg_dev.config_versions ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE localorg_dev.config_versions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
 
 ALTER TABLE localorg_dev.experiments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
 ALTER TABLE localorg_dev.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
