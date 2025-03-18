@@ -58,6 +58,7 @@
               leptosfmt
               wasm-pack
               yq
+              openapi-generator-cli
               # go client
               # go
             ];
