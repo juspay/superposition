@@ -104,7 +104,7 @@ function fetch_experiment_n_test(experiment_id, expected_context, expected_varai
 // check experiment creation in experiment
 pm.test("200 OK", function () {
     const response = pm.response.json();
-    const experiment_id = response.experiment_id;
+    const experiment_id = response.id;
 
     pm.environment.set("experiment_id", experiment_id);
     pm.response.to.have.status(200);
@@ -114,7 +114,7 @@ pm.test("200 OK", function () {
 // check for contexts in CAC
 pm.test("Test created contexts", function() {
     const response = pm.response.json();
-    const experiment_id = response.experiment_id;
+    const experiment_id = response.id;
 
 
     const expected_context = {
