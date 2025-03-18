@@ -15,7 +15,16 @@ use crate::{Condition, Exp, Overrides};
 use super::super::schema::*;
 
 #[derive(
-    Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display,
+    Debug,
+    Clone,
+    Copy,
+    Eq,
+    Hash,
+    PartialEq,
+    Deserialize,
+    Serialize,
+    strum_macros::Display,
+    strum_macros::EnumIter,
 )]
 #[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "UPPERCASE")]
@@ -30,8 +39,8 @@ use super::super::schema::*;
 )]
 pub enum ExperimentStatusType {
     CREATED,
-    CONCLUDED,
     INPROGRESS,
+    CONCLUDED,
     DISCARDED,
 }
 
@@ -47,6 +56,15 @@ impl ExperimentStatusType {
         match self {
             Self::CREATED => true,
             Self::INPROGRESS | Self::CONCLUDED | Self::DISCARDED => false,
+        }
+    }
+
+    pub fn badge_color(&self) -> &'static str {
+        match self {
+            Self::CREATED => "badge-info",
+            Self::INPROGRESS => "badge-warning",
+            Self::CONCLUDED => "badge-success",
+            Self::DISCARDED => "badge-neutral",
         }
     }
 }
