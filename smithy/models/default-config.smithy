@@ -15,9 +15,9 @@ resource DefaultConfig {
         function_name: String
         description: String
         change_reason: String
-        created_at: Timestamp
+        created_at: DateTime
         created_by: String
-        last_modified_at: Timestamp
+        last_modified_at: DateTime
         last_modified_by: String
     }
     list: ListDefaultConfigs

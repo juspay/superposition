@@ -59,6 +59,7 @@
               wasm-pack
               yq
               openapi-generator-cli
+              jdk21_headless
               # go client
               # go
             ];

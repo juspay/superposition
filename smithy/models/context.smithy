@@ -26,18 +26,21 @@ resource Context {
         override_with_keys: OverrideWithKeys
         description: String
         change_reason: String
-        created_at: Timestamp
+        created_at: DateTime
         created_by: String
-        last_modified_at: Timestamp
+        last_modified_at: DateTime
         last_modified_by: String
     }
+    // TODO Figure out how to model bulk context API.
+    delete: DeleteContext
+    put: CreateContext
     operations: [
-        CreateContext
         MoveContext
         UpdateOverride
         GetContext
         GetContextFromCondition
         ListContexts
+        WeightRecompute
     ]
 }
 
@@ -59,7 +62,6 @@ structure ContextFull for Context {
 
     $change_reason
 
-    @timestampFormat("date-time")
     $created_at
 
     $created_by
@@ -88,7 +90,8 @@ structure ContextActionResponse for Context {
     $change_reason
 }
 
-@http(method: "PUT", uri: "/context/")
+@idempotent
+@http(method: "PUT", uri: "/context")
 operation CreateContext {
     input := for Context with [WorkspaceMixin] {
         // TODO Find re-name functionality.
@@ -121,6 +124,10 @@ operation GetContext {
     }
 
     output: ContextFull
+
+    errors: [
+        ResourceNotFound
+    ]
 }
 
 @http(method: "PUT", uri: "/context/move/{id}")
@@ -141,6 +148,10 @@ operation MoveContext {
     }
 
     output: ContextActionResponse
+
+    errors: [
+        ResourceNotFound
+    ]
 }
 
 @http(method: "PUT", uri: "/context/overrides")
@@ -166,6 +177,10 @@ operation UpdateOverride {
     }
 
     output: ContextActionResponse
+
+    errors: [
+        ResourceNotFound
+    ]
 }
 
 @http(method: "POST", uri: "/context/get")
@@ -177,6 +192,10 @@ operation GetContextFromCondition {
     }
 
     output: ContextFull
+
+    errors: [
+        ResourceNotFound
+    ]
 }
 
 enum ContextFilterSortOn {
@@ -231,5 +250,47 @@ operation ListContexts {
 
         @notProperty
         data: ListContextOut
+    }
+}
+
+@idempotent
+@http(method: "DELETE", uri: "/context/{id}", code: 201)
+operation DeleteContext {
+    input := for Context with [WorkspaceMixin] {
+        @httpLabel
+        @required
+        $id
+
+        @httpHeader("x-config-tags")
+        @notProperty
+        config_tags: String
+    }
+
+    output := {}
+
+    errors: [
+        ResourceNotFound
+    ]
+}
+
+@http(method: "PUT", uri: "/weight/recompute")
+operation WeightRecompute {
+    input := with [WorkspaceMixin] {
+        @httpHeader("x-config-tags")
+        @notProperty
+        config_tags: String
+    }
+
+    output := for Context {
+        $id
+
+        @notProperty
+        condition: Condition
+
+        @notProperty
+        old_weight: Integer
+
+        @notProperty
+        new_weight: Integer
     }
 }

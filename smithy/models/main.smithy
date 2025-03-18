@@ -57,3 +57,6 @@ structure InternalServerError {
 @httpError(404)
 @error("client")
 structure ResourceNotFound {}
+
+@timestampFormat("date-time")
+timestamp DateTime
