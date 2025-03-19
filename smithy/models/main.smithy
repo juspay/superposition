@@ -16,6 +16,11 @@ service Superposition {
         Context
         Config
         AuditLog
+        Function
+        TypeTemplates
+        Organisation
+        Workspace
+        Experiments
     ]
     errors: [
         InternalServerError
