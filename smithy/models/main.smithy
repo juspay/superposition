@@ -14,6 +14,11 @@ service Superposition {
         DefaultConfig
         Dimension
         Context
+        Function
+        TypeTemplates
+        Organisation
+        Workspace
+        Experiments
     ]
     errors: [
         InternalServerError
