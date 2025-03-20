@@ -14,6 +14,8 @@ service Superposition {
         DefaultConfig
         Dimension
         Context
+        Config
+        AuditLog
     ]
     errors: [
         InternalServerError
