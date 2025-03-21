@@ -45,3 +45,12 @@ export function newSuggestionsProvider(triggers, suggestions) {
         triggerCharacters: triggers,
     };
 }
+
+/**
+ * @param {string} code - code that replaces everything in the editor
+ * @returns {Nothing}
+ */
+export function setEditorCode(code) {
+    const editor = monaco.editor.getEditors()[0];
+    editor.setValue(code);
+}

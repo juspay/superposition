@@ -9,25 +9,28 @@ use serde_json::json;
 use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
+    api::functions::{
+        CreateFunctionRequest, FunctionExecutionRequest, FunctionName, Stage, TestParam,
+        UpdateFunctionRequest,
+    },
     custom_query::PaginationParams,
     database::{
         models::cac::Function,
         schema::{
             self,
-            functions::{dsl, dsl::functions, function_name, last_modified_at},
+            functions::{
+                dsl::{self, functions},
+                function_name, last_modified_at,
+            },
         },
     },
     result as superposition, PaginatedResponse, User,
 };
 use validation_functions::{compile_fn, execute_fn};
 
-use crate::{
-    api::functions::types::{Stage, TestFunctionRequest, TestParam},
-    validation_functions,
-};
+use crate::validation_functions;
 
 use super::helpers::fetch_function;
-use super::types::{CreateFunctionRequest, FunctionName, UpdateFunctionRequest};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -50,7 +53,7 @@ async fn create(
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
 
-    compile_fn(&req.function)?;
+    compile_fn(&req.function_type.get_js_fn_name(), &req.function)?;
 
     let function = Function {
         function_name: req.function_name.into(),
@@ -66,6 +69,7 @@ async fn create(
         last_modified_at: Utc::now().naive_utc(),
         last_modified_by: user.get_email(),
         change_reason: req.change_reason,
+        function_type: req.function_type,
     };
 
     let insert: Result<Function, diesel::result::Error> = diesel::insert_into(functions)
@@ -112,7 +116,7 @@ async fn update(
 
     // Function Linter Check
     if let Some(function) = &req.draft_code {
-        compile_fn(function)?;
+        compile_fn(&req.function_type.get_js_fn_name(), function)?;
     }
 
     let updated_function = diesel::update(functions)
@@ -226,7 +230,7 @@ async fn delete_function(
 #[put("/{function_name}/{stage}/test")]
 async fn test(
     params: Path<TestParam>,
-    request: web::Json<TestFunctionRequest>,
+    request: web::Json<FunctionExecutionRequest>,
     db_conn: DbConnection,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
@@ -249,9 +253,9 @@ async fn test(
     };
 
     let result = match path_params.stage {
-        Stage::Draft => execute_fn(&function.draft_code, &req.key, req.value),
+        Stage::Draft => execute_fn(&function.draft_code, &req),
         Stage::Published => match function.published_code {
-            Some(code) => execute_fn(&code, &req.key, req.value),
+            Some(code) => execute_fn(&code, &req),
             None => {
                 log::error!("Function test failed: function not published yet");
                 Err((
@@ -264,8 +268,12 @@ async fn test(
 
     match result {
         Ok(stdout) => Ok(HttpResponse::Ok()
-            .json(json!({"message": "Function validated the given value successfully", "stdout": stdout}))),
-        Err((e, stdout)) => Err(bad_argument!("Function validation failed with error: {}, stdout: {:?}", e, stdout.unwrap_or(String::new()))),
+            .json(json!({"message": "Function ran successfully", "stdout": stdout}))),
+        Err((e, stdout)) => Err(bad_argument!(
+            "Function failed with error: {}, stdout: {:?}",
+            e,
+            stdout.unwrap_or(String::new())
+        )),
     }
 }
 

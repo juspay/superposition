@@ -9,7 +9,8 @@ use leptos_router::use_params_map;
 use serde::{Deserialize, Serialize};
 use strum::EnumProperty;
 use strum_macros::Display;
-use superposition_types::database::models::cac::{Function, FunctionCode};
+use superposition_types::api::functions::FunctionExecutionRequest;
+use superposition_types::database::models::cac::{Function, FunctionCode, FunctionTypes};
 use utils::publish_function;
 use web_sys::{HtmlButtonElement, MouseEvent};
 
@@ -118,7 +119,7 @@ pub fn function_page() -> impl IntoView {
 
                                 <div class="flex bg-base-100 flex-row gap-3 justify-between flex-wrap shadow m-5">
                                     <div class="stat w-2/12">
-                                        <div class="stat-title">Function Name</div>
+                                        <div class="stat-title">Name</div>
                                         <div>{function_rs.get().function_name}</div>
                                     </div>
                                     <div class="stat w-2/12">
@@ -131,11 +132,15 @@ pub fn function_page() -> impl IntoView {
                                         </div>
                                     </div>
                                     <div class="stat w-2/12">
-                                        <div class="stat-title">Function Description</div>
+                                        <div class="stat-title">Description</div>
                                         <div>{function_rs.get().description.to_string()}</div>
                                     </div>
                                     <div class="stat w-2/12">
-                                        <div class="stat-title">Function Change Reason</div>
+                                        <div class="stat-title">Function Type</div>
+                                        <div>{function_rs.get().function_type.to_string()}</div>
+                                    </div>
+                                    <div class="stat w-2/12">
+                                        <div class="stat-title">Change Reason</div>
                                         <div>{function_rs.get().change_reason.to_string()}</div>
                                     </div>
                                     <div class="stat w-2/12">
@@ -377,13 +382,19 @@ pub fn function_page() -> impl IntoView {
 
                                                             {
                                                                 let (fun_code_rs, fun_code_ws) = create_signal(
-                                                                    Into::<String>::into(function_rs
-                                                                        .get()
-                                                                        .published_code
-                                                                        .unwrap_or(
-                                                                            FunctionCode("// Code not published yet, publish function to see it here!"
-                                                                                .to_string()),
-                                                                        )),
+                                                                    Into::<
+                                                                        String,
+                                                                    >::into(
+                                                                        function_rs
+                                                                            .get()
+                                                                            .published_code
+                                                                            .unwrap_or(
+                                                                                FunctionCode(
+                                                                                    "// Code not published yet, publish function to see it here!"
+                                                                                        .to_string(),
+                                                                                ),
+                                                                            ),
+                                                                    ),
                                                                 );
                                                                 let on_change = move |value| fun_code_ws.set(value);
                                                                 view! {
@@ -402,6 +413,14 @@ pub fn function_page() -> impl IntoView {
 
                                                                             <TestForm
                                                                                 function_name=function_rs.get().function_name
+                                                                                function_args=match function_rs.get().function_type {
+                                                                                    FunctionTypes::Validation => {
+                                                                                        FunctionExecutionRequest::validation_default()
+                                                                                    }
+                                                                                    FunctionTypes::Autocomplete => {
+                                                                                        FunctionExecutionRequest::autocomplete_default()
+                                                                                    }
+                                                                                }
                                                                                 stage="PUBLISHED".to_string()
                                                                             />
 
@@ -426,10 +445,12 @@ pub fn function_page() -> impl IntoView {
                                                                 let (fun_code_rs, fun_code_ws) = create_signal(
                                                                     Into::<String>::into(function_rs.get().draft_code),
                                                                 );
-                                                                let fun_code: String = Into::<String>::into(function_rs.get().draft_code);
+                                                                let fun_code: String = Into::<
+                                                                    String,
+                                                                >::into(function_rs.get().draft_code);
+                                                                let function_type = function_rs.get().function_type;
                                                                 let on_change = move |value| fun_code_ws.set(value);
                                                                 view! {
-
                                                                     <Show when=move || {
                                                                         !editor_mode_rs.get() && !test_mode_rs.get()
                                                                     }>
@@ -438,6 +459,7 @@ pub fn function_page() -> impl IntoView {
                                                                                 edit=true
                                                                                 function_name=function_rs.get().function_name
                                                                                 function=fun_code.clone()
+                                                                                function_type
                                                                                 runtime_version=function_rs.get().draft_runtime_version
                                                                                 description=function_rs.get().description
                                                                                 handle_submit=move || {
@@ -474,6 +496,14 @@ pub fn function_page() -> impl IntoView {
                                                                                 />
                                                                                 <TestForm
                                                                                     function_name=function_rs.get().function_name
+                                                                                    function_args=match function_rs.get().function_type {
+                                                                                        FunctionTypes::Validation => {
+                                                                                            FunctionExecutionRequest::validation_default()
+                                                                                        }
+                                                                                        FunctionTypes::Autocomplete => {
+                                                                                            FunctionExecutionRequest::autocomplete_default()
+                                                                                        }
+                                                                                    }
                                                                                     stage="DRAFT".to_string()
                                                                                 />
                                                                             </div>
