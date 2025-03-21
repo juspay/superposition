@@ -15,7 +15,7 @@ use diesel::{
     sql_types::Integer,
     AsChangeset, Insertable, Queryable, Selectable,
 };
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 
 use crate::{Cac, Condition, Contextual, Overridden, Overrides};
@@ -60,6 +60,20 @@ impl Overridden<Cac<Overrides>> for Context {
     }
 }
 
+pub fn serialize_naive_date_time<S>(
+    datetime: &NaiveDateTime,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    // Convert NaiveDateTime to a DateTime with a UTC timezone
+    datetime
+        .and_utc()
+        .to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
+        .serialize(serializer)
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 #[cfg_attr(
     feature = "diesel_derives",
@@ -74,6 +88,7 @@ pub struct Dimension {
     pub created_by: String,
     pub schema: Value,
     pub function_name: Option<String>,
+    #[serde(serialize_with = "serialize_naive_date_time")]
     pub last_modified_at: NaiveDateTime,
     pub last_modified_by: String,
     pub position: Position,
