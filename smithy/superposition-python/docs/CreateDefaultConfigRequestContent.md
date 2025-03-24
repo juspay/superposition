@@ -1,0 +1,34 @@
+# CreateDefaultConfigRequestContent
+
+
+## Properties
+
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**key** | **str** |  | 
+**value** | **object** |  | 
+**var_schema** | **object** |  | 
+**description** | **str** |  | 
+**change_reason** | **str** |  | 
+**function_name** | **str** | Optional | [optional] 
+
+## Example
+
+```python
+from superposition_sdk_python.models.create_default_config_request_content import CreateDefaultConfigRequestContent
+
+# TODO update the JSON string below
+json = "{}"
+# create an instance of CreateDefaultConfigRequestContent from a JSON string
+create_default_config_request_content_instance = CreateDefaultConfigRequestContent.from_json(json)
+# print the JSON string representation of the object
+print(CreateDefaultConfigRequestContent.to_json())
+
+# convert the object into a dict
+create_default_config_request_content_dict = create_default_config_request_content_instance.to_dict()
+# create an instance of CreateDefaultConfigRequestContent from a dict
+create_default_config_request_content_from_dict = CreateDefaultConfigRequestContent.from_dict(create_default_config_request_content_dict)
+```
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
+
+

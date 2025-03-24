@@ -17,14 +17,14 @@ resource Function {
         description: String
         published_runtime_version: String
         draft_runtime_version: String
-        published_at: Timestamp
-        draft_edited_at: Timestamp
+        published_at: DateTime
+        draft_edited_at: DateTime
         published_by: String
         draft_edited_by: String
-        last_modified_at: Timestamp
+        last_modified_at: DateTime
         last_modified_by: String
         change_reason: String
-        stage: String
+        stage: Stage
         runtime_version: String
         function: String
     }
@@ -33,6 +33,11 @@ resource Function {
     put: UpdateFunction
     delete: DeleteFunction
     operations: [CreateFunction, Test, Publish]
+}
+
+enum Stage {
+    DRAFT = "draft",
+    PUBLISHED = "published",
 }
 
 structure CreateFunctionRequest for Function with [WorkspaceMixin]{

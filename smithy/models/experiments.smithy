@@ -12,14 +12,14 @@ resource Experiments {
         org_id: String
     }
     properties: {
-        created_at: Timestamp
+        created_at: DateTime
         created_by: String
-        last_modified: Timestamp
+        last_modified: DateTime
         name: String
         override_keys: ListOverrideKeys
-        status: String
+        status: ExperimentStatusType
         traffic_percentage: Integer
-        context: Document
+        context: Condition
         variants: ListVariant
         last_modified_by: String
         chosen_variant: String
@@ -40,6 +40,13 @@ list ListOverrideKeys {
 
 list ListOverride {
     member: Document
+}
+
+enum ExperimentStatusType {
+    CREATED,
+    CONCLUDED,
+    INPROGRESS,
+    DISCARDED,
 }
 
 structure Variant {
@@ -142,7 +149,8 @@ structure UpdateOverrideRequest for Experiments with [WorkspaceMixin] {
 
     //it does not support same field name with to data types, conflicting with resource
     @required
-    $variants
+    @notProperty
+    variants: ListVariant
     
     $description
 
@@ -275,7 +283,10 @@ operation ListExperiment {
         all: Boolean
     }
 
-    output : ExperimentListResponse
+    output := {
+        content: ExperimentListResponse
+    }
 }
+
 
 //cannot generate ApplicableVariants

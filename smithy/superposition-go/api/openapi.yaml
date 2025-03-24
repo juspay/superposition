@@ -1,0 +1,4487 @@
+openapi: 3.1.0
+info:
+  title: Superposition
+  version: 2025-03-05
+servers:
+- url: /
+security:
+- smithy.api.httpBearerAuth: []
+paths:
+  /audit:
+    get:
+      operationId: ListAuditLogs
+      parameters:
+      - explode: true
+        in: query
+        name: count
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: from_date
+        required: false
+        schema:
+          format: date-time
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: to_date
+        required: false
+        schema:
+          format: date-time
+          type: string
+        style: form
+      - description: Comma serparated list of tables.
+        explode: true
+        in: query
+        name: table
+        required: false
+        schema:
+          description: Comma serparated list of tables.
+          type: string
+        style: form
+      - description: Comma serparated list of actions.
+        explode: true
+        in: query
+        name: action
+        required: false
+        schema:
+          description: Comma serparated list of actions.
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: username
+        required: false
+        schema:
+          type: string
+        style: form
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListAuditLogsResponseContent'
+          description: ListAuditLogs 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /config/fast:
+    get:
+      operationId: GetConfigFast
+      parameters:
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetConfigFastOutputPayload'
+          description: GetConfigFast 200 response
+          headers:
+            last-modified:
+              explode: false
+              schema:
+                type: string
+              style: simple
+            x-audit-id:
+              explode: false
+              schema:
+                type: string
+              style: simple
+            x-config-version:
+              explode: false
+              schema:
+                type: string
+              style: simple
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /config/versions:
+    get:
+      operationId: ListVersions
+      parameters:
+      - explode: true
+        in: query
+        name: count
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListVersionsResponseContent'
+          description: ListVersions 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /context:
+    put:
+      operationId: CreateContext
+      parameters:
+      - explode: false
+        in: header
+        name: x-config-tags
+        required: false
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContextRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateContextResponseContent'
+          description: CreateContext 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /context/get:
+    post:
+      operationId: GetContextFromCondition
+      parameters:
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetContextFromConditionInputPayload'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetContextFromConditionResponseContent'
+          description: GetContextFromCondition 200 response
+        "404":
+          description: ResourceNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /context/list:
+    get:
+      operationId: ListContexts
+      parameters:
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: size
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: prefix
+        required: false
+        schema:
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: sort_on
+        required: false
+        schema:
+          $ref: '#/components/schemas/ContextFilterSortOn'
+        style: form
+      - explode: true
+        in: query
+        name: sort_by
+        required: false
+        schema:
+          $ref: '#/components/schemas/SortBy'
+        style: form
+      - explode: true
+        in: query
+        name: created_by
+        required: false
+        schema:
+          type: string
+        style: form
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListContextsResponseContent'
+          description: ListContexts 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /context/move/{id}:
+    put:
+      operationId: MoveContext
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoveContextRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoveContextResponseContent'
+          description: MoveContext 200 response
+        "404":
+          description: ResourceNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /context/overrides:
+    put:
+      operationId: UpdateOverride
+      parameters:
+      - explode: false
+        in: header
+        name: x-config-tags
+        required: false
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOverrideRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateOverrideResponseContent'
+          description: UpdateOverride 200 response
+        "404":
+          description: ResourceNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /context/{id}:
+    delete:
+      operationId: DeleteContext
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-config-tags
+        required: false
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "201":
+          description: DeleteContext 201 response
+        "404":
+          description: ResourceNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+    get:
+      operationId: GetContext
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetContextResponseContent'
+          description: GetContext 200 response
+        "404":
+          description: ResourceNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /default-config:
+    get:
+      operationId: ListDefaultConfigs
+      parameters:
+      - explode: true
+        in: query
+        name: count
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDefaultConfigsResponseContent'
+          description: ListDefaultConfigs 200 response
+        "404":
+          description: ResourceNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+    post:
+      operationId: CreateDefaultConfig
+      parameters:
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDefaultConfigRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDefaultConfigResponseContent'
+          description: CreateDefaultConfig 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /default-config/{key}:
+    delete:
+      operationId: DeleteDefaultConfig
+      parameters:
+      - explode: false
+        in: path
+        name: key
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "201":
+          description: DeleteDefaultConfig 201 response
+        "404":
+          description: ResourceNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+    put:
+      operationId: UpdateDefaultConfig
+      parameters:
+      - explode: false
+        in: path
+        name: key
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDefaultConfigRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateDefaultConfigResponseContent'
+          description: UpdateDefaultConfig 200 response
+        "404":
+          description: ResourceNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /dimension:
+    get:
+      operationId: ListDimensions
+      parameters:
+      - explode: true
+        in: query
+        name: count
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDimensionsResponseContent'
+          description: ListDimensions 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+    post:
+      operationId: CreateDimension
+      parameters:
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimensionRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDimensionResponseContent'
+          description: CreateDimension 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /dimension/{dimension}:
+    delete:
+      operationId: DeleteDimension
+      parameters:
+      - explode: false
+        in: path
+        name: dimension
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "201":
+          description: DeleteDimension 201 response
+        "404":
+          description: ResourceNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+    put:
+      operationId: UpdateDimension
+      parameters:
+      - explode: false
+        in: path
+        name: dimension
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimensionRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateDimensionResponseContent'
+          description: UpdateDimension 200 response
+        "404":
+          description: ResourceNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /experiments:
+    get:
+      operationId: ListExperiment
+      parameters:
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: count
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: all
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListExperimentResponseContent'
+          description: ListExperiment 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+    post:
+      operationId: CreateExperiment
+      parameters:
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExperimentRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateExperimentResponseContent'
+          description: CreateExperiment 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /experiments/{id}:
+    get:
+      operationId: GetExperiment
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetExperimentResponseContent'
+          description: GetExperiment 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /experiments/{id}/conclude:
+    patch:
+      operationId: ConcludeExperiment
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConcludeExperimentRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConcludeExperimentResponseContent'
+          description: ConcludeExperiment 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /experiments/{id}/discard:
+    patch:
+      operationId: DiscardExperiment
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiscardExperimentRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscardExperimentResponseContent'
+          description: DiscardExperiment 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /experiments/{id}/overrides:
+    put:
+      operationId: UpdateOverridesExperiment
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOverridesExperimentRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateOverridesExperimentResponseContent'
+          description: UpdateOverridesExperiment 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /experiments/{id}/ramp:
+    patch:
+      operationId: RampExperiment
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RampExperimentRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RampExperimentResponseContent'
+          description: RampExperiment 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /function:
+    post:
+      operationId: CreateFunction
+      parameters:
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFunctionRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateFunctionResponseContent'
+          description: CreateFunction 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /function/{function_name}:
+    delete:
+      operationId: DeleteFunction
+      parameters:
+      - explode: false
+        in: path
+        name: function_name
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: DeleteFunction 200 response
+        "404":
+          description: FunctionNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+    get:
+      operationId: GetFunction
+      parameters:
+      - explode: false
+        in: path
+        name: function_name
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetFunctionResponseContent'
+          description: GetFunction 200 response
+        "404":
+          description: FunctionNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+    patch:
+      operationId: UpdateFunction
+      parameters:
+      - explode: false
+        in: path
+        name: function_name
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFunctionRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateFunctionResponseContent'
+          description: UpdateFunction 200 response
+        "404":
+          description: FunctionNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /function/{function_name}/publish:
+    put:
+      operationId: Publish
+      parameters:
+      - explode: false
+        in: path
+        name: function_name
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublishResponseContent'
+          description: Publish 200 response
+        "404":
+          description: FunctionNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /function/{function_name}/{stage}/test:
+    put:
+      operationId: Test
+      parameters:
+      - explode: false
+        in: path
+        name: function_name
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: stage
+        required: true
+        schema:
+          $ref: '#/components/schemas/Stage'
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: Test 200 response
+        "404":
+          description: FunctionNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /superposition/organisations:
+    get:
+      operationId: ListOrganisation
+      parameters:
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: count
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: all
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOrganisationResponseContent'
+          description: ListOrganisation 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+    post:
+      operationId: CreaterOrganisation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreaterOrganisationRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreaterOrganisationResponseContent'
+          description: CreaterOrganisation 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /superposition/organisations/{id}:
+    get:
+      operationId: GetOrganisation
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetOrganisationResponseContent'
+          description: GetOrganisation 200 response
+        "404":
+          description: OrganisationNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+    put:
+      operationId: UpdateOrganisation
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrganisationRequestContent'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateOrganisationResponseContent'
+          description: UpdateOrganisation 200 response
+        "404":
+          description: OrganisationNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /types:
+    get:
+      operationId: GetTypeTemplatesList
+      parameters:
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: count
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: all
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetTypeTemplatesListResponseContent'
+          description: GetTypeTemplatesList 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+    post:
+      operationId: CreateTypeTemplates
+      parameters:
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTypeTemplatesRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTypeTemplatesResponseContent'
+          description: CreateTypeTemplates 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /types/{type_name}:
+    delete:
+      operationId: DeleteTypeTemplates
+      parameters:
+      - explode: false
+        in: path
+        name: type_name
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: DeleteTypeTemplates 200 response
+        "404":
+          description: TypeTemplatesNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+    put:
+      operationId: UpdateTypeTemplates
+      parameters:
+      - explode: false
+        in: path
+        name: type_name
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTypeTemplatesRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateTypeTemplatesResponseContent'
+          description: UpdateTypeTemplates 200 response
+        "404":
+          description: TypeTemplatesNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /weight/recompute:
+    put:
+      operationId: WeightRecompute
+      parameters:
+      - explode: false
+        in: header
+        name: x-config-tags
+        required: false
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-tenant
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeightRecomputeResponseContent'
+          description: WeightRecompute 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /workspaces:
+    get:
+      operationId: ListWorkspace
+      parameters:
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: count
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: all
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWorkspaceResponseContent'
+          description: ListWorkspace 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+    post:
+      operationId: CreateWorkspace
+      parameters:
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkspaceRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateWorkspaceResponseContent'
+          description: CreateWorkspace 200 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+  /workspaces/{workspace_name}:
+    put:
+      operationId: UpdateWorkspace
+      parameters:
+      - explode: false
+        in: path
+        name: workspace_name
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: x-org-id
+        required: true
+        schema:
+          default: juspay
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkspaceRequestContent'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateWorkspaceResponseContent'
+          description: UpdateWorkspace 200 response
+        "404":
+          description: WorkspaceNotFound 404 response
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponseContent'
+          description: InternalServerError 500 response
+components:
+  schemas:
+    AuditLogFull:
+      example:
+        original_data: ""
+        user_name: user_name
+        query: query
+        new_data: ""
+        action: action
+        table_name: table_name
+        timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        table_name:
+          type: string
+        user_name:
+          type: string
+        timestamp:
+          format: date-time
+          type: string
+        action:
+          type: string
+        original_data: {}
+        new_data: {}
+        query:
+          type: string
+    ConcludeExperimentRequestContent:
+      example:
+        change_reason: change_reason
+        chosen_variant: chosen_variant
+        description: description
+      properties:
+        chosen_variant:
+          type: string
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - chosen_variant
+    ConcludeExperimentResponseContent:
+      example:
+        chosen_variant: chosen_variant
+        created_at: 2000-01-23T04:56:07.000+00:00
+        description: description
+        variants:
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        last_modified_by: last_modified_by
+        override_keys:
+        - override_keys
+        - override_keys
+        created_by: created_by
+        change_reason: change_reason
+        traffic_percentage: 1.4658129805029452
+        name: name
+        context:
+          key: ""
+        id: id
+        last_modified: 2000-01-23T04:56:07.000+00:00
+        status: CREATED
+      properties:
+        id:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        last_modified:
+          format: date-time
+          type: string
+        name:
+          type: string
+        override_keys:
+          items:
+            type: string
+          type: array
+        status:
+          $ref: '#/components/schemas/ExperimentStatusType'
+        traffic_percentage:
+          type: number
+        context:
+          additionalProperties: {}
+        variants:
+          items:
+            $ref: '#/components/schemas/Variant'
+          type: array
+        last_modified_by:
+          type: string
+        chosen_variant:
+          type: string
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - chosen_variant
+      - context
+      - created_at
+      - created_by
+      - description
+      - id
+      - last_modified
+      - last_modified_by
+      - name
+      - override_keys
+      - status
+      - traffic_percentage
+      - variants
+    Condition:
+      additionalProperties: {}
+    ContextFilterSortOn:
+      enum:
+      - CreatedAt
+      - Weight
+      type: string
+    ContextFull:
+      example:
+        change_reason: change_reason
+        override_id: override_id
+        weight: 0.8008281904610115
+        override_with_keys:
+        - override_with_keys
+        - override_with_keys
+        description: description
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: id
+        override:
+          key: ""
+        last_modified_by: last_modified_by
+        value:
+          key: ""
+        created_by: created_by
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          type: string
+        value:
+          additionalProperties: {}
+        override:
+          additionalProperties: {}
+        override_id:
+          type: string
+        weight:
+          type: number
+        override_with_keys:
+          items:
+            type: string
+          type: array
+        description:
+          type: string
+        change_reason:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+      required:
+      - id
+    CreateContextRequestContent:
+      example:
+        change_reason: change_reason
+        context:
+          key: ""
+        description: description
+        override:
+          key: ""
+      properties:
+        context:
+          additionalProperties: {}
+        override:
+          additionalProperties: {}
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - context
+      - override
+    CreateContextResponseContent:
+      example:
+        change_reason: change_reason
+        override_id: override_id
+        weight: 0.8008281904610115
+        description: description
+        context_id: context_id
+      properties:
+        context_id:
+          type: string
+        override_id:
+          type: string
+        weight:
+          type: number
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - context_id
+      - description
+      - override_id
+      - weight
+    CreateDefaultConfigRequestContent:
+      example:
+        schema: ""
+        change_reason: change_reason
+        function_name: function_name
+        description: description
+        value: ""
+        key: key
+      properties:
+        key:
+          type: string
+        value: {}
+        schema: {}
+        description:
+          type: string
+        change_reason:
+          type: string
+        function_name:
+          description: Optional
+          type: string
+      required:
+      - change_reason
+      - description
+      - key
+      - schema
+      - value
+    CreateDefaultConfigResponseContent:
+      example:
+        schema: ""
+        change_reason: change_reason
+        function_name: function_name
+        description: description
+        created_at: 2000-01-23T04:56:07.000+00:00
+        last_modified_by: last_modified_by
+        value: ""
+        created_by: created_by
+        key: key
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        key:
+          type: string
+        value: {}
+        schema: {}
+        description:
+          type: string
+        change_reason:
+          type: string
+        function_name:
+          description: Optional
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+      required:
+      - change_reason
+      - created_at
+      - created_by
+      - description
+      - key
+      - last_modified_at
+      - last_modified_by
+      - schema
+      - value
+    CreateDimensionRequestContent:
+      example:
+        schema: ""
+        change_reason: change_reason
+        function_name: function_name
+        description: description
+        position: 0.8008281904610115
+        dimension: dimension
+      properties:
+        dimension:
+          type: string
+        position:
+          type: number
+        schema: {}
+        function_name:
+          type: string
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - description
+      - dimension
+      - position
+      - schema
+    CreateDimensionResponseContent:
+      example:
+        schema: ""
+        change_reason: change_reason
+        function_name: function_name
+        description: description
+        created_at: 2000-01-23T04:56:07.000+00:00
+        position: 1.4658129805029452
+        last_modified_by: last_modified_by
+        dimension: dimension
+        created_by: created_by
+        mandatory: true
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        dimension:
+          type: string
+        position:
+          type: number
+        schema: {}
+        function_name:
+          type: string
+        description:
+          type: string
+        change_reason:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        mandatory:
+          type: boolean
+      required:
+      - change_reason
+      - created_at
+      - created_by
+      - description
+      - dimension
+      - last_modified_at
+      - last_modified_by
+      - position
+      - schema
+    CreateExperimentRequestContent:
+      example:
+        change_reason: change_reason
+        name: name
+        context:
+          key: ""
+        description: description
+        variants:
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+      properties:
+        name:
+          type: string
+        context:
+          additionalProperties: {}
+        variants:
+          items:
+            $ref: '#/components/schemas/Variant'
+          type: array
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - context
+      - description
+      - name
+      - variants
+    CreateExperimentResponseContent:
+      example:
+        id: id
+      properties:
+        id:
+          type: string
+      required:
+      - id
+    CreateFunctionRequestContent:
+      example:
+        change_reason: change_reason
+        runtime_version: runtime_version
+        function_name: function_name
+        function: function
+        description: description
+      properties:
+        function_name:
+          type: string
+        description:
+          type: string
+        change_reason:
+          type: string
+        function:
+          type: string
+        runtime_version:
+          type: string
+      required:
+      - change_reason
+      - description
+      - function
+      - function_name
+      - runtime_version
+    CreateFunctionResponseContent:
+      example:
+        published_runtime_version: published_runtime_version
+        description: description
+        last_modified_by: last_modified_by
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+        published_by: published_by
+        change_reason: change_reason
+        draft_edited_by: draft_edited_by
+        function_name: function_name
+        draft_edited_at: 2000-01-23T04:56:07.000+00:00
+        draft_code: draft_code
+        draft_runtime_version: draft_runtime_version
+        published_at: 2000-01-23T04:56:07.000+00:00
+        published_code: published_code
+      properties:
+        function_name:
+          type: string
+        published_code:
+          type: string
+        draft_code:
+          type: string
+        published_runtime_version:
+          type: string
+        draft_runtime_version:
+          type: string
+        published_at:
+          format: date-time
+          type: string
+        draft_edited_at:
+          format: date-time
+          type: string
+        published_by:
+          type: string
+        draft_edited_by:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+        change_reason:
+          type: string
+        description:
+          type: string
+      required:
+      - change_reason
+      - description
+      - draft_code
+      - draft_edited_at
+      - draft_edited_by
+      - draft_runtime_version
+      - function_name
+      - last_modified_at
+      - last_modified_by
+    CreateTypeTemplatesRequestContent:
+      example:
+        type_name: type_name
+        change_reason: change_reason
+        type_schema: ""
+        description: description
+      properties:
+        type_name:
+          type: string
+        type_schema: {}
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - description
+      - type_name
+      - type_schema
+    CreateTypeTemplatesResponseContent:
+      example:
+        type_name: type_name
+        change_reason: change_reason
+        type_schema: ""
+        description: description
+        created_at: 2000-01-23T04:56:07.000+00:00
+        last_modified_by: last_modified_by
+        created_by: created_by
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        type_name:
+          type: string
+        type_schema: {}
+        description:
+          type: string
+        change_reason:
+          type: string
+        created_by:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+      required:
+      - change_reason
+      - created_at
+      - created_by
+      - description
+      - last_modified_at
+      - last_modified_by
+      - type_name
+      - type_schema
+    CreateWorkspaceRequestContent:
+      example:
+        workspace_admin_email: workspace_admin_email
+        workspace_name: workspace_name
+        workspace_status: workspace_status
+      properties:
+        workspace_admin_email:
+          type: string
+        workspace_name:
+          type: string
+        workspace_status:
+          type: string
+      required:
+      - workspace_admin_email
+      - workspace_name
+    CreateWorkspaceResponseContent:
+      example:
+        organisation_id: organisation_id
+        workspace_admin_email: workspace_admin_email
+        workspace_schema_name: workspace_schema_name
+        created_at: 2000-01-23T04:56:07.000+00:00
+        organisation_name: organisation_name
+        last_modified_by: last_modified_by
+        created_by: created_by
+        workspace_name: workspace_name
+        mandatory_dimensions:
+        - mandatory_dimensions
+        - mandatory_dimensions
+        workspace_status: workspace_status
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        workspace_name:
+          type: string
+        organisation_id:
+          type: string
+        organisation_name:
+          type: string
+        workspace_schema_name:
+          type: string
+        workspace_status:
+          type: string
+        workspace_admin_email:
+          type: string
+        created_by:
+          type: string
+        last_modified_by:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        mandatory_dimensions:
+          items:
+            type: string
+          type: array
+      required:
+      - created_at
+      - created_by
+      - last_modified_at
+      - last_modified_by
+      - organisation_id
+      - organisation_name
+      - workspace_admin_email
+      - workspace_name
+      - workspace_schema_name
+      - workspace_status
+    CreaterOrganisationRequestContent:
+      example:
+        country_code: country_code
+        contact_phone: contact_phone
+        name: name
+        sector: sector
+        admin_email: admin_email
+        contact_email: contact_email
+      properties:
+        country_code:
+          type: string
+        contact_email:
+          type: string
+        contact_phone:
+          type: string
+        admin_email:
+          type: string
+        name:
+          type: string
+        sector:
+          type: string
+      required:
+      - admin_email
+      - name
+    CreaterOrganisationResponseContent:
+      example:
+        country_code: country_code
+        contact_phone: contact_phone
+        updated_at: 2000-01-23T04:56:07.000+00:00
+        name: name
+        updated_by: updated_by
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: id
+        created_by: created_by
+        sector: sector
+        admin_email: admin_email
+        contact_email: contact_email
+        status: status
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        country_code:
+          type: string
+        contact_email:
+          type: string
+        contact_phone:
+          type: string
+        created_by:
+          type: string
+        admin_email:
+          type: string
+        status:
+          type: string
+        sector:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        updated_by:
+          type: string
+      required:
+      - admin_email
+      - created_at
+      - created_by
+      - id
+      - name
+      - status
+      - updated_at
+      - updated_by
+    DefaultConfigFull:
+      example:
+        schema: ""
+        change_reason: change_reason
+        function_name: function_name
+        description: description
+        created_at: 2000-01-23T04:56:07.000+00:00
+        last_modified_by: last_modified_by
+        value: ""
+        created_by: created_by
+        key: key
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        key:
+          type: string
+        value: {}
+        schema: {}
+        description:
+          type: string
+        change_reason:
+          type: string
+        function_name:
+          description: Optional
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+      required:
+      - change_reason
+      - created_at
+      - created_by
+      - description
+      - key
+      - last_modified_at
+      - last_modified_by
+      - schema
+      - value
+    DimensionExt:
+      example:
+        schema: ""
+        change_reason: change_reason
+        function_name: function_name
+        description: description
+        created_at: 2000-01-23T04:56:07.000+00:00
+        position: 1.4658129805029452
+        last_modified_by: last_modified_by
+        dimension: dimension
+        created_by: created_by
+        mandatory: true
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        dimension:
+          type: string
+        position:
+          type: number
+        schema: {}
+        function_name:
+          type: string
+        description:
+          type: string
+        change_reason:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        mandatory:
+          type: boolean
+      required:
+      - change_reason
+      - created_at
+      - created_by
+      - description
+      - dimension
+      - last_modified_at
+      - last_modified_by
+      - position
+      - schema
+    DiscardExperimentRequestContent:
+      example:
+        change_reason: change_reason
+      properties:
+        change_reason:
+          type: string
+      required:
+      - change_reason
+    DiscardExperimentResponseContent:
+      example:
+        chosen_variant: chosen_variant
+        created_at: 2000-01-23T04:56:07.000+00:00
+        description: description
+        variants:
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        last_modified_by: last_modified_by
+        override_keys:
+        - override_keys
+        - override_keys
+        created_by: created_by
+        change_reason: change_reason
+        traffic_percentage: 1.4658129805029452
+        name: name
+        context:
+          key: ""
+        id: id
+        last_modified: 2000-01-23T04:56:07.000+00:00
+        status: CREATED
+      properties:
+        id:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        last_modified:
+          format: date-time
+          type: string
+        name:
+          type: string
+        override_keys:
+          items:
+            type: string
+          type: array
+        status:
+          $ref: '#/components/schemas/ExperimentStatusType'
+        traffic_percentage:
+          type: number
+        context:
+          additionalProperties: {}
+        variants:
+          items:
+            $ref: '#/components/schemas/Variant'
+          type: array
+        last_modified_by:
+          type: string
+        chosen_variant:
+          type: string
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - chosen_variant
+      - context
+      - created_at
+      - created_by
+      - description
+      - id
+      - last_modified
+      - last_modified_by
+      - name
+      - override_keys
+      - status
+      - traffic_percentage
+      - variants
+    ExperimentListResponse:
+      example:
+        data:
+        - chosen_variant: chosen_variant
+          created_at: 2000-01-23T04:56:07.000+00:00
+          description: description
+          variants:
+          - override_id: override_id
+            variant_type: variant_type
+            context_id: context_id
+            id: id
+            overrides:
+            - ""
+            - ""
+          - override_id: override_id
+            variant_type: variant_type
+            context_id: context_id
+            id: id
+            overrides:
+            - ""
+            - ""
+          last_modified_by: last_modified_by
+          override_keys:
+          - override_keys
+          - override_keys
+          created_by: created_by
+          change_reason: change_reason
+          traffic_percentage: 1.4658129805029452
+          name: name
+          context:
+            key: ""
+          id: id
+          last_modified: 2000-01-23T04:56:07.000+00:00
+          status: CREATED
+        - chosen_variant: chosen_variant
+          created_at: 2000-01-23T04:56:07.000+00:00
+          description: description
+          variants:
+          - override_id: override_id
+            variant_type: variant_type
+            context_id: context_id
+            id: id
+            overrides:
+            - ""
+            - ""
+          - override_id: override_id
+            variant_type: variant_type
+            context_id: context_id
+            id: id
+            overrides:
+            - ""
+            - ""
+          last_modified_by: last_modified_by
+          override_keys:
+          - override_keys
+          - override_keys
+          created_by: created_by
+          change_reason: change_reason
+          traffic_percentage: 1.4658129805029452
+          name: name
+          context:
+            key: ""
+          id: id
+          last_modified: 2000-01-23T04:56:07.000+00:00
+          status: CREATED
+        total_pages: 0.8008281904610115
+        total_items: 6.027456183070403
+      properties:
+        total_pages:
+          type: number
+        total_items:
+          type: number
+        data:
+          items:
+            $ref: '#/components/schemas/ExperimentResponse'
+          type: array
+      required:
+      - data
+      - total_items
+      - total_pages
+    ExperimentResponse:
+      example:
+        chosen_variant: chosen_variant
+        created_at: 2000-01-23T04:56:07.000+00:00
+        description: description
+        variants:
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        last_modified_by: last_modified_by
+        override_keys:
+        - override_keys
+        - override_keys
+        created_by: created_by
+        change_reason: change_reason
+        traffic_percentage: 1.4658129805029452
+        name: name
+        context:
+          key: ""
+        id: id
+        last_modified: 2000-01-23T04:56:07.000+00:00
+        status: CREATED
+      properties:
+        id:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        last_modified:
+          format: date-time
+          type: string
+        name:
+          type: string
+        override_keys:
+          items:
+            type: string
+          type: array
+        status:
+          $ref: '#/components/schemas/ExperimentStatusType'
+        traffic_percentage:
+          type: number
+        context:
+          additionalProperties: {}
+        variants:
+          items:
+            $ref: '#/components/schemas/Variant'
+          type: array
+        last_modified_by:
+          type: string
+        chosen_variant:
+          type: string
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - chosen_variant
+      - context
+      - created_at
+      - created_by
+      - description
+      - id
+      - last_modified
+      - last_modified_by
+      - name
+      - override_keys
+      - status
+      - traffic_percentage
+      - variants
+    ExperimentStatusType:
+      enum:
+      - CREATED
+      - CONCLUDED
+      - INPROGRESS
+      - DISCARDED
+      type: string
+    GetConfigFastOutputPayload: {}
+    GetContextFromConditionInputPayload: {}
+    GetContextFromConditionResponseContent:
+      example:
+        change_reason: change_reason
+        override_id: override_id
+        weight: 0.8008281904610115
+        override_with_keys:
+        - override_with_keys
+        - override_with_keys
+        description: description
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: id
+        override:
+          key: ""
+        last_modified_by: last_modified_by
+        value:
+          key: ""
+        created_by: created_by
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          type: string
+        value:
+          additionalProperties: {}
+        override:
+          additionalProperties: {}
+        override_id:
+          type: string
+        weight:
+          type: number
+        override_with_keys:
+          items:
+            type: string
+          type: array
+        description:
+          type: string
+        change_reason:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+      required:
+      - id
+    GetContextResponseContent:
+      example:
+        change_reason: change_reason
+        override_id: override_id
+        weight: 0.8008281904610115
+        override_with_keys:
+        - override_with_keys
+        - override_with_keys
+        description: description
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: id
+        override:
+          key: ""
+        last_modified_by: last_modified_by
+        value:
+          key: ""
+        created_by: created_by
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          type: string
+        value:
+          additionalProperties: {}
+        override:
+          additionalProperties: {}
+        override_id:
+          type: string
+        weight:
+          type: number
+        override_with_keys:
+          items:
+            type: string
+          type: array
+        description:
+          type: string
+        change_reason:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+      required:
+      - id
+    GetExperimentResponseContent:
+      example:
+        chosen_variant: chosen_variant
+        created_at: 2000-01-23T04:56:07.000+00:00
+        description: description
+        variants:
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        last_modified_by: last_modified_by
+        override_keys:
+        - override_keys
+        - override_keys
+        created_by: created_by
+        change_reason: change_reason
+        traffic_percentage: 1.4658129805029452
+        name: name
+        context:
+          key: ""
+        id: id
+        last_modified: 2000-01-23T04:56:07.000+00:00
+        status: CREATED
+      properties:
+        id:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        last_modified:
+          format: date-time
+          type: string
+        name:
+          type: string
+        override_keys:
+          items:
+            type: string
+          type: array
+        status:
+          $ref: '#/components/schemas/ExperimentStatusType'
+        traffic_percentage:
+          type: number
+        context:
+          additionalProperties: {}
+        variants:
+          items:
+            $ref: '#/components/schemas/Variant'
+          type: array
+        last_modified_by:
+          type: string
+        chosen_variant:
+          type: string
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - chosen_variant
+      - context
+      - created_at
+      - created_by
+      - description
+      - id
+      - last_modified
+      - last_modified_by
+      - name
+      - override_keys
+      - status
+      - traffic_percentage
+      - variants
+    GetFunctionResponseContent:
+      example:
+        published_runtime_version: published_runtime_version
+        description: description
+        last_modified_by: last_modified_by
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+        published_by: published_by
+        change_reason: change_reason
+        draft_edited_by: draft_edited_by
+        function_name: function_name
+        draft_edited_at: 2000-01-23T04:56:07.000+00:00
+        draft_code: draft_code
+        draft_runtime_version: draft_runtime_version
+        published_at: 2000-01-23T04:56:07.000+00:00
+        published_code: published_code
+      properties:
+        function_name:
+          type: string
+        published_code:
+          type: string
+        draft_code:
+          type: string
+        published_runtime_version:
+          type: string
+        draft_runtime_version:
+          type: string
+        published_at:
+          format: date-time
+          type: string
+        draft_edited_at:
+          format: date-time
+          type: string
+        published_by:
+          type: string
+        draft_edited_by:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+        change_reason:
+          type: string
+        description:
+          type: string
+      required:
+      - change_reason
+      - description
+      - draft_code
+      - draft_edited_at
+      - draft_edited_by
+      - draft_runtime_version
+      - function_name
+      - last_modified_at
+      - last_modified_by
+    GetOrganisationResponseContent:
+      example:
+        country_code: country_code
+        contact_phone: contact_phone
+        updated_at: 2000-01-23T04:56:07.000+00:00
+        name: name
+        updated_by: updated_by
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: id
+        created_by: created_by
+        sector: sector
+        admin_email: admin_email
+        contact_email: contact_email
+        status: status
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        country_code:
+          type: string
+        contact_email:
+          type: string
+        contact_phone:
+          type: string
+        created_by:
+          type: string
+        admin_email:
+          type: string
+        status:
+          type: string
+        sector:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        updated_by:
+          type: string
+      required:
+      - admin_email
+      - created_at
+      - created_by
+      - id
+      - name
+      - status
+      - updated_at
+      - updated_by
+    GetTypeTemplatesListResponseContent:
+      example:
+        data:
+        - type_name: type_name
+          change_reason: change_reason
+          type_schema: ""
+          description: description
+          created_at: 2000-01-23T04:56:07.000+00:00
+          last_modified_by: last_modified_by
+          created_by: created_by
+          last_modified_at: 2000-01-23T04:56:07.000+00:00
+        - type_name: type_name
+          change_reason: change_reason
+          type_schema: ""
+          description: description
+          created_at: 2000-01-23T04:56:07.000+00:00
+          last_modified_by: last_modified_by
+          created_by: created_by
+          last_modified_at: 2000-01-23T04:56:07.000+00:00
+        total_pages: 0.8008281904610115
+        total_items: 6.027456183070403
+      properties:
+        total_pages:
+          type: number
+        total_items:
+          type: number
+        data:
+          items:
+            $ref: '#/components/schemas/TypeTemplatesResponse'
+          type: array
+      required:
+      - data
+      - total_items
+      - total_pages
+    InternalServerErrorResponseContent:
+      example:
+        message: message
+      properties:
+        message:
+          type: string
+    ListAuditLogsResponseContent:
+      example:
+        data:
+        - original_data: ""
+          user_name: user_name
+          query: query
+          new_data: ""
+          action: action
+          table_name: table_name
+          timestamp: 2000-01-23T04:56:07.000+00:00
+        - original_data: ""
+          user_name: user_name
+          query: query
+          new_data: ""
+          action: action
+          table_name: table_name
+          timestamp: 2000-01-23T04:56:07.000+00:00
+        total_pages: 0.8008281904610115
+        total_items: 6.027456183070403
+      properties:
+        total_pages:
+          type: number
+        total_items:
+          type: number
+        data:
+          items:
+            $ref: '#/components/schemas/AuditLogFull'
+          type: array
+    ListContextsResponseContent:
+      example:
+        data:
+        - change_reason: change_reason
+          override_id: override_id
+          weight: 0.8008281904610115
+          override_with_keys:
+          - override_with_keys
+          - override_with_keys
+          description: description
+          created_at: 2000-01-23T04:56:07.000+00:00
+          id: id
+          override:
+            key: ""
+          last_modified_by: last_modified_by
+          value:
+            key: ""
+          created_by: created_by
+          last_modified_at: 2000-01-23T04:56:07.000+00:00
+        - change_reason: change_reason
+          override_id: override_id
+          weight: 0.8008281904610115
+          override_with_keys:
+          - override_with_keys
+          - override_with_keys
+          description: description
+          created_at: 2000-01-23T04:56:07.000+00:00
+          id: id
+          override:
+            key: ""
+          last_modified_by: last_modified_by
+          value:
+            key: ""
+          created_by: created_by
+          last_modified_at: 2000-01-23T04:56:07.000+00:00
+        total_pages: 0.8008281904610115
+        total_items: 6.027456183070403
+      properties:
+        total_pages:
+          type: number
+        total_items:
+          type: number
+        data:
+          items:
+            $ref: '#/components/schemas/ContextFull'
+          type: array
+    ListDefaultConfigsResponseContent:
+      example:
+        data:
+        - schema: ""
+          change_reason: change_reason
+          function_name: function_name
+          description: description
+          created_at: 2000-01-23T04:56:07.000+00:00
+          last_modified_by: last_modified_by
+          value: ""
+          created_by: created_by
+          key: key
+          last_modified_at: 2000-01-23T04:56:07.000+00:00
+        - schema: ""
+          change_reason: change_reason
+          function_name: function_name
+          description: description
+          created_at: 2000-01-23T04:56:07.000+00:00
+          last_modified_by: last_modified_by
+          value: ""
+          created_by: created_by
+          key: key
+          last_modified_at: 2000-01-23T04:56:07.000+00:00
+        total_pages: 0.8008281904610115
+        total_items: 6.027456183070403
+      properties:
+        total_pages:
+          type: number
+        total_items:
+          type: number
+        data:
+          items:
+            $ref: '#/components/schemas/DefaultConfigFull'
+          type: array
+    ListDimensionsResponseContent:
+      example:
+        data:
+        - schema: ""
+          change_reason: change_reason
+          function_name: function_name
+          description: description
+          created_at: 2000-01-23T04:56:07.000+00:00
+          position: 1.4658129805029452
+          last_modified_by: last_modified_by
+          dimension: dimension
+          created_by: created_by
+          mandatory: true
+          last_modified_at: 2000-01-23T04:56:07.000+00:00
+        - schema: ""
+          change_reason: change_reason
+          function_name: function_name
+          description: description
+          created_at: 2000-01-23T04:56:07.000+00:00
+          position: 1.4658129805029452
+          last_modified_by: last_modified_by
+          dimension: dimension
+          created_by: created_by
+          mandatory: true
+          last_modified_at: 2000-01-23T04:56:07.000+00:00
+        total_pages: 0.8008281904610115
+        total_items: 6.027456183070403
+      properties:
+        total_pages:
+          type: number
+        total_items:
+          type: number
+        data:
+          items:
+            $ref: '#/components/schemas/DimensionExt'
+          type: array
+    ListExperimentResponseContent:
+      example:
+        content:
+          data:
+          - chosen_variant: chosen_variant
+            created_at: 2000-01-23T04:56:07.000+00:00
+            description: description
+            variants:
+            - override_id: override_id
+              variant_type: variant_type
+              context_id: context_id
+              id: id
+              overrides:
+              - ""
+              - ""
+            - override_id: override_id
+              variant_type: variant_type
+              context_id: context_id
+              id: id
+              overrides:
+              - ""
+              - ""
+            last_modified_by: last_modified_by
+            override_keys:
+            - override_keys
+            - override_keys
+            created_by: created_by
+            change_reason: change_reason
+            traffic_percentage: 1.4658129805029452
+            name: name
+            context:
+              key: ""
+            id: id
+            last_modified: 2000-01-23T04:56:07.000+00:00
+            status: CREATED
+          - chosen_variant: chosen_variant
+            created_at: 2000-01-23T04:56:07.000+00:00
+            description: description
+            variants:
+            - override_id: override_id
+              variant_type: variant_type
+              context_id: context_id
+              id: id
+              overrides:
+              - ""
+              - ""
+            - override_id: override_id
+              variant_type: variant_type
+              context_id: context_id
+              id: id
+              overrides:
+              - ""
+              - ""
+            last_modified_by: last_modified_by
+            override_keys:
+            - override_keys
+            - override_keys
+            created_by: created_by
+            change_reason: change_reason
+            traffic_percentage: 1.4658129805029452
+            name: name
+            context:
+              key: ""
+            id: id
+            last_modified: 2000-01-23T04:56:07.000+00:00
+            status: CREATED
+          total_pages: 0.8008281904610115
+          total_items: 6.027456183070403
+      properties:
+        content:
+          $ref: '#/components/schemas/ExperimentListResponse'
+    ListOrganisationResponseContent:
+      example:
+        data:
+        - country_code: country_code
+          contact_phone: contact_phone
+          updated_at: 2000-01-23T04:56:07.000+00:00
+          name: name
+          updated_by: updated_by
+          created_at: 2000-01-23T04:56:07.000+00:00
+          id: id
+          created_by: created_by
+          sector: sector
+          admin_email: admin_email
+          contact_email: contact_email
+          status: status
+        - country_code: country_code
+          contact_phone: contact_phone
+          updated_at: 2000-01-23T04:56:07.000+00:00
+          name: name
+          updated_by: updated_by
+          created_at: 2000-01-23T04:56:07.000+00:00
+          id: id
+          created_by: created_by
+          sector: sector
+          admin_email: admin_email
+          contact_email: contact_email
+          status: status
+        total_pages: 0.8008281904610115
+        total_items: 6.027456183070403
+      properties:
+        total_pages:
+          type: number
+        total_items:
+          type: number
+        data:
+          items:
+            $ref: '#/components/schemas/OrganisationResponse'
+          type: array
+      required:
+      - data
+      - total_items
+      - total_pages
+    ListVersionsResponseContent:
+      example:
+        data:
+        - data
+        - data
+        total_pages: 0.8008281904610115
+        total_items: 6.027456183070403
+      properties:
+        total_pages:
+          type: number
+        total_items:
+          type: number
+        data:
+          items:
+            type: string
+          type: array
+    ListWorkspaceResponseContent:
+      example:
+        data:
+        - organisation_id: organisation_id
+          workspace_admin_email: workspace_admin_email
+          workspace_schema_name: workspace_schema_name
+          created_at: 2000-01-23T04:56:07.000+00:00
+          organisation_name: organisation_name
+          last_modified_by: last_modified_by
+          created_by: created_by
+          workspace_name: workspace_name
+          mandatory_dimensions:
+          - mandatory_dimensions
+          - mandatory_dimensions
+          workspace_status: workspace_status
+          last_modified_at: 2000-01-23T04:56:07.000+00:00
+        - organisation_id: organisation_id
+          workspace_admin_email: workspace_admin_email
+          workspace_schema_name: workspace_schema_name
+          created_at: 2000-01-23T04:56:07.000+00:00
+          organisation_name: organisation_name
+          last_modified_by: last_modified_by
+          created_by: created_by
+          workspace_name: workspace_name
+          mandatory_dimensions:
+          - mandatory_dimensions
+          - mandatory_dimensions
+          workspace_status: workspace_status
+          last_modified_at: 2000-01-23T04:56:07.000+00:00
+        total_pages: 0.8008281904610115
+        total_items: 6.027456183070403
+      properties:
+        total_pages:
+          type: number
+        total_items:
+          type: number
+        data:
+          items:
+            $ref: '#/components/schemas/WorkspaceResponse'
+          type: array
+      required:
+      - data
+      - total_items
+      - total_pages
+    MoveContextRequestContent:
+      example:
+        change_reason: change_reason
+        context:
+          key: ""
+        description: description
+      properties:
+        context:
+          additionalProperties: {}
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - context
+    MoveContextResponseContent:
+      example:
+        change_reason: change_reason
+        override_id: override_id
+        weight: 0.8008281904610115
+        description: description
+        context_id: context_id
+      properties:
+        context_id:
+          type: string
+        override_id:
+          type: string
+        weight:
+          type: number
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - context_id
+      - description
+      - override_id
+      - weight
+    OrganisationResponse:
+      example:
+        country_code: country_code
+        contact_phone: contact_phone
+        updated_at: 2000-01-23T04:56:07.000+00:00
+        name: name
+        updated_by: updated_by
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: id
+        created_by: created_by
+        sector: sector
+        admin_email: admin_email
+        contact_email: contact_email
+        status: status
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        country_code:
+          type: string
+        contact_email:
+          type: string
+        contact_phone:
+          type: string
+        created_by:
+          type: string
+        admin_email:
+          type: string
+        status:
+          type: string
+        sector:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        updated_by:
+          type: string
+      required:
+      - admin_email
+      - created_at
+      - created_by
+      - id
+      - name
+      - status
+      - updated_at
+      - updated_by
+    Overrides:
+      additionalProperties: {}
+    PublishResponseContent:
+      example:
+        published_runtime_version: published_runtime_version
+        description: description
+        last_modified_by: last_modified_by
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+        published_by: published_by
+        change_reason: change_reason
+        draft_edited_by: draft_edited_by
+        function_name: function_name
+        draft_edited_at: 2000-01-23T04:56:07.000+00:00
+        draft_code: draft_code
+        draft_runtime_version: draft_runtime_version
+        published_at: 2000-01-23T04:56:07.000+00:00
+        published_code: published_code
+      properties:
+        function_name:
+          type: string
+        published_code:
+          type: string
+        draft_code:
+          type: string
+        published_runtime_version:
+          type: string
+        draft_runtime_version:
+          type: string
+        published_at:
+          format: date-time
+          type: string
+        draft_edited_at:
+          format: date-time
+          type: string
+        published_by:
+          type: string
+        draft_edited_by:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+        change_reason:
+          type: string
+        description:
+          type: string
+      required:
+      - change_reason
+      - description
+      - draft_code
+      - draft_edited_at
+      - draft_edited_by
+      - draft_runtime_version
+      - function_name
+      - last_modified_at
+      - last_modified_by
+    RampExperimentRequestContent:
+      example:
+        change_reason: change_reason
+        traffic_percentage: 0.8008281904610115
+      properties:
+        change_reason:
+          type: string
+        traffic_percentage:
+          type: number
+      required:
+      - change_reason
+      - traffic_percentage
+    RampExperimentResponseContent:
+      example:
+        chosen_variant: chosen_variant
+        created_at: 2000-01-23T04:56:07.000+00:00
+        description: description
+        variants:
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        last_modified_by: last_modified_by
+        override_keys:
+        - override_keys
+        - override_keys
+        created_by: created_by
+        change_reason: change_reason
+        traffic_percentage: 1.4658129805029452
+        name: name
+        context:
+          key: ""
+        id: id
+        last_modified: 2000-01-23T04:56:07.000+00:00
+        status: CREATED
+      properties:
+        id:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        last_modified:
+          format: date-time
+          type: string
+        name:
+          type: string
+        override_keys:
+          items:
+            type: string
+          type: array
+        status:
+          $ref: '#/components/schemas/ExperimentStatusType'
+        traffic_percentage:
+          type: number
+        context:
+          additionalProperties: {}
+        variants:
+          items:
+            $ref: '#/components/schemas/Variant'
+          type: array
+        last_modified_by:
+          type: string
+        chosen_variant:
+          type: string
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - chosen_variant
+      - context
+      - created_at
+      - created_by
+      - description
+      - id
+      - last_modified
+      - last_modified_by
+      - name
+      - override_keys
+      - status
+      - traffic_percentage
+      - variants
+    SortBy:
+      enum:
+      - Desc
+      - Asc
+      type: string
+    Stage:
+      enum:
+      - draft
+      - published
+      type: string
+    TypeTemplatesResponse:
+      example:
+        type_name: type_name
+        change_reason: change_reason
+        type_schema: ""
+        description: description
+        created_at: 2000-01-23T04:56:07.000+00:00
+        last_modified_by: last_modified_by
+        created_by: created_by
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        type_name:
+          type: string
+        type_schema: {}
+        description:
+          type: string
+        change_reason:
+          type: string
+        created_by:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+      required:
+      - change_reason
+      - created_at
+      - created_by
+      - description
+      - last_modified_at
+      - last_modified_by
+      - type_name
+      - type_schema
+    UpdateDefaultConfigRequestContent:
+      example:
+        schema: ""
+        change_reason: change_reason
+        function_name: function_name
+        description: description
+        value: ""
+      properties:
+        change_reason:
+          type: string
+        value: {}
+        schema: {}
+        function_name:
+          type: string
+        description:
+          type: string
+      required:
+      - change_reason
+    UpdateDefaultConfigResponseContent:
+      example:
+        schema: ""
+        change_reason: change_reason
+        function_name: function_name
+        description: description
+        created_at: 2000-01-23T04:56:07.000+00:00
+        last_modified_by: last_modified_by
+        value: ""
+        created_by: created_by
+        key: key
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        key:
+          type: string
+        value: {}
+        schema: {}
+        description:
+          type: string
+        change_reason:
+          type: string
+        function_name:
+          description: Optional
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+      required:
+      - change_reason
+      - created_at
+      - created_by
+      - description
+      - key
+      - last_modified_at
+      - last_modified_by
+      - schema
+      - value
+    UpdateDimensionRequestContent:
+      example:
+        schema: ""
+        change_reason: change_reason
+        function_name: function_name
+        description: description
+      properties:
+        schema: {}
+        function_name:
+          type: string
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+    UpdateDimensionResponseContent:
+      example:
+        schema: ""
+        change_reason: change_reason
+        function_name: function_name
+        description: description
+        created_at: 2000-01-23T04:56:07.000+00:00
+        position: 1.4658129805029452
+        last_modified_by: last_modified_by
+        dimension: dimension
+        created_by: created_by
+        mandatory: true
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        dimension:
+          type: string
+        position:
+          type: number
+        schema: {}
+        function_name:
+          type: string
+        description:
+          type: string
+        change_reason:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        mandatory:
+          type: boolean
+      required:
+      - change_reason
+      - created_at
+      - created_by
+      - description
+      - dimension
+      - last_modified_at
+      - last_modified_by
+      - position
+      - schema
+    UpdateFunctionRequestContent:
+      example:
+        change_reason: change_reason
+        runtime_version: runtime_version
+        function: function
+        description: description
+      properties:
+        description:
+          type: string
+        change_reason:
+          type: string
+        function:
+          type: string
+        runtime_version:
+          type: string
+      required:
+      - change_reason
+      - function
+      - runtime_version
+    UpdateFunctionResponseContent:
+      example:
+        published_runtime_version: published_runtime_version
+        description: description
+        last_modified_by: last_modified_by
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+        published_by: published_by
+        change_reason: change_reason
+        draft_edited_by: draft_edited_by
+        function_name: function_name
+        draft_edited_at: 2000-01-23T04:56:07.000+00:00
+        draft_code: draft_code
+        draft_runtime_version: draft_runtime_version
+        published_at: 2000-01-23T04:56:07.000+00:00
+        published_code: published_code
+      properties:
+        function_name:
+          type: string
+        published_code:
+          type: string
+        draft_code:
+          type: string
+        published_runtime_version:
+          type: string
+        draft_runtime_version:
+          type: string
+        published_at:
+          format: date-time
+          type: string
+        draft_edited_at:
+          format: date-time
+          type: string
+        published_by:
+          type: string
+        draft_edited_by:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+        change_reason:
+          type: string
+        description:
+          type: string
+      required:
+      - change_reason
+      - description
+      - draft_code
+      - draft_edited_at
+      - draft_edited_by
+      - draft_runtime_version
+      - function_name
+      - last_modified_at
+      - last_modified_by
+    UpdateOrganisationRequestContent:
+      example:
+        country_code: country_code
+        contact_phone: contact_phone
+        sector: sector
+        admin_email: admin_email
+        contact_email: contact_email
+        status: status
+      properties:
+        country_code:
+          type: string
+        contact_email:
+          type: string
+        contact_phone:
+          type: string
+        admin_email:
+          type: string
+        sector:
+          type: string
+        status:
+          type: string
+    UpdateOrganisationResponseContent:
+      example:
+        country_code: country_code
+        contact_phone: contact_phone
+        updated_at: 2000-01-23T04:56:07.000+00:00
+        name: name
+        updated_by: updated_by
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: id
+        created_by: created_by
+        sector: sector
+        admin_email: admin_email
+        contact_email: contact_email
+        status: status
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        country_code:
+          type: string
+        contact_email:
+          type: string
+        contact_phone:
+          type: string
+        created_by:
+          type: string
+        admin_email:
+          type: string
+        status:
+          type: string
+        sector:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        updated_by:
+          type: string
+      required:
+      - admin_email
+      - created_at
+      - created_by
+      - id
+      - name
+      - status
+      - updated_at
+      - updated_by
+    UpdateOverrideRequestContent:
+      example:
+        change_reason: change_reason
+        context:
+          key: ""
+        description: description
+        override:
+          key: ""
+      properties:
+        context:
+          additionalProperties: {}
+        override:
+          additionalProperties: {}
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - context
+      - override
+    UpdateOverrideResponseContent:
+      example:
+        change_reason: change_reason
+        override_id: override_id
+        weight: 0.8008281904610115
+        description: description
+        context_id: context_id
+      properties:
+        context_id:
+          type: string
+        override_id:
+          type: string
+        weight:
+          type: number
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - context_id
+      - description
+      - override_id
+      - weight
+    UpdateOverridesExperimentRequestContent:
+      example:
+        change_reason: change_reason
+        description: description
+        variants:
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+      properties:
+        variants:
+          items:
+            $ref: '#/components/schemas/Variant'
+          type: array
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - variants
+    UpdateOverridesExperimentResponseContent:
+      example:
+        chosen_variant: chosen_variant
+        created_at: 2000-01-23T04:56:07.000+00:00
+        description: description
+        variants:
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        - override_id: override_id
+          variant_type: variant_type
+          context_id: context_id
+          id: id
+          overrides:
+          - ""
+          - ""
+        last_modified_by: last_modified_by
+        override_keys:
+        - override_keys
+        - override_keys
+        created_by: created_by
+        change_reason: change_reason
+        traffic_percentage: 1.4658129805029452
+        name: name
+        context:
+          key: ""
+        id: id
+        last_modified: 2000-01-23T04:56:07.000+00:00
+        status: CREATED
+      properties:
+        id:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        created_by:
+          type: string
+        last_modified:
+          format: date-time
+          type: string
+        name:
+          type: string
+        override_keys:
+          items:
+            type: string
+          type: array
+        status:
+          $ref: '#/components/schemas/ExperimentStatusType'
+        traffic_percentage:
+          type: number
+        context:
+          additionalProperties: {}
+        variants:
+          items:
+            $ref: '#/components/schemas/Variant'
+          type: array
+        last_modified_by:
+          type: string
+        chosen_variant:
+          type: string
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - chosen_variant
+      - context
+      - created_at
+      - created_by
+      - description
+      - id
+      - last_modified
+      - last_modified_by
+      - name
+      - override_keys
+      - status
+      - traffic_percentage
+      - variants
+    UpdateTypeTemplatesRequestContent:
+      example:
+        change_reason: change_reason
+        type_schema: ""
+        description: description
+      properties:
+        type_schema: {}
+        description:
+          type: string
+        change_reason:
+          type: string
+      required:
+      - change_reason
+      - type_schema
+    UpdateTypeTemplatesResponseContent:
+      example:
+        type_name: type_name
+        change_reason: change_reason
+        type_schema: ""
+        description: description
+        created_at: 2000-01-23T04:56:07.000+00:00
+        last_modified_by: last_modified_by
+        created_by: created_by
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        type_name:
+          type: string
+        type_schema: {}
+        description:
+          type: string
+        change_reason:
+          type: string
+        created_by:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        last_modified_by:
+          type: string
+      required:
+      - change_reason
+      - created_at
+      - created_by
+      - description
+      - last_modified_at
+      - last_modified_by
+      - type_name
+      - type_schema
+    UpdateWorkspaceRequestContent:
+      example:
+        workspace_admin_email: workspace_admin_email
+        mandatory_dimensions:
+        - mandatory_dimensions
+        - mandatory_dimensions
+        workspace_status: workspace_status
+      properties:
+        workspace_admin_email:
+          type: string
+        mandatory_dimensions:
+          items:
+            type: string
+          type: array
+        workspace_status:
+          type: string
+      required:
+      - workspace_admin_email
+    UpdateWorkspaceResponseContent:
+      example:
+        organisation_id: organisation_id
+        workspace_admin_email: workspace_admin_email
+        workspace_schema_name: workspace_schema_name
+        created_at: 2000-01-23T04:56:07.000+00:00
+        organisation_name: organisation_name
+        last_modified_by: last_modified_by
+        created_by: created_by
+        workspace_name: workspace_name
+        mandatory_dimensions:
+        - mandatory_dimensions
+        - mandatory_dimensions
+        workspace_status: workspace_status
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        workspace_name:
+          type: string
+        organisation_id:
+          type: string
+        organisation_name:
+          type: string
+        workspace_schema_name:
+          type: string
+        workspace_status:
+          type: string
+        workspace_admin_email:
+          type: string
+        created_by:
+          type: string
+        last_modified_by:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        mandatory_dimensions:
+          items:
+            type: string
+          type: array
+      required:
+      - created_at
+      - created_by
+      - last_modified_at
+      - last_modified_by
+      - organisation_id
+      - organisation_name
+      - workspace_admin_email
+      - workspace_name
+      - workspace_schema_name
+      - workspace_status
+    Variant:
+      example:
+        override_id: override_id
+        variant_type: variant_type
+        context_id: context_id
+        id: id
+        overrides:
+        - ""
+        - ""
+      properties:
+        id:
+          type: string
+        variant_type:
+          type: string
+        context_id:
+          type: string
+        override_id:
+          type: string
+        overrides:
+          items: {}
+          type: array
+      required:
+      - id
+      - overrides
+      - variant_type
+    WeightRecomputeResponseContent:
+      example:
+        condition:
+          key: ""
+        id: id
+        new_weight: 6.027456183070403
+        old_weight: 0.8008281904610115
+      properties:
+        id:
+          type: string
+        condition:
+          additionalProperties: {}
+        old_weight:
+          type: number
+        new_weight:
+          type: number
+    WorkspaceResponse:
+      example:
+        organisation_id: organisation_id
+        workspace_admin_email: workspace_admin_email
+        workspace_schema_name: workspace_schema_name
+        created_at: 2000-01-23T04:56:07.000+00:00
+        organisation_name: organisation_name
+        last_modified_by: last_modified_by
+        created_by: created_by
+        workspace_name: workspace_name
+        mandatory_dimensions:
+        - mandatory_dimensions
+        - mandatory_dimensions
+        workspace_status: workspace_status
+        last_modified_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        workspace_name:
+          type: string
+        organisation_id:
+          type: string
+        organisation_name:
+          type: string
+        workspace_schema_name:
+          type: string
+        workspace_status:
+          type: string
+        workspace_admin_email:
+          type: string
+        created_by:
+          type: string
+        last_modified_by:
+          type: string
+        last_modified_at:
+          format: date-time
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        mandatory_dimensions:
+          items:
+            type: string
+          type: array
+      required:
+      - created_at
+      - created_by
+      - last_modified_at
+      - last_modified_by
+      - organisation_id
+      - organisation_name
+      - workspace_admin_email
+      - workspace_name
+      - workspace_schema_name
+      - workspace_status
+  securitySchemes:
+    smithy.api.httpBearerAuth:
+      description: HTTP Bearer authentication
+      scheme: Bearer
+      type: http

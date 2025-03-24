@@ -16,8 +16,8 @@ resource TypeTemplates {
         description: String
         change_reason: String
         created_by: String
-        created_at: Timestamp
-        last_modified_at: Timestamp
+        created_at: DateTime
+        last_modified_at: DateTime
         last_modified_by: String
     }
     list: GetTypeTemplatesList

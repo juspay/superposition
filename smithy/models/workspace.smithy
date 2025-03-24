@@ -8,7 +8,6 @@ use aws.protocols#restJson1
 resource Workspace {
     identifiers: {
         workspace_name: String
-        workspace_id: String
         org_id: String
     }
     properties: {
@@ -19,8 +18,8 @@ resource Workspace {
         workspace_admin_email: String
         created_by: String
         last_modified_by: String
-        last_modified_at: Timestamp
-        created_at: Timestamp
+        last_modified_at: DateTime
+        created_at: DateTime
         mandatory_dimensions: ListMandatoryDimensions
     }
 
@@ -35,7 +34,7 @@ list ListMandatoryDimensions {
 }
 
 
-structure CreateWorkspaceRequest for Workspace with [WorkspaceMixin] {
+structure CreateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     @required
     $workspace_admin_email
 
@@ -47,7 +46,7 @@ structure CreateWorkspaceRequest for Workspace with [WorkspaceMixin] {
 }
 
 
-structure UpdateWorkspaceRequest for Workspace with [WorkspaceMixin] {
+structure UpdateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
 
     @httpLabel
     @required
@@ -144,7 +143,7 @@ operation UpdateWorkspace {
 @readonly
 @http(method: "GET", uri: "/workspaces")
 operation ListWorkspace {
-    input :=  for Workspace with [WorkspaceMixin]{
+    input :=  for Workspace with [CreateWorkspaceMixin]{
         @httpQuery("page")
         page: Long
 
