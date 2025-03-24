@@ -103,7 +103,8 @@ pub extern "C" fn cac_new_client(
     update_frequency: c_ulong,
     hostname: *const c_char,
 ) -> c_int {
-    let duration = Duration::new(update_frequency, 0);
+    #[allow(clippy::useless_conversion)] // done for windows support
+    let duration = Duration::new(update_frequency.into(), 0);
     let tenant = unwrap_safe!(cstring_to_rstring(tenant), return 1);
     let hostname = unwrap_safe!(cstring_to_rstring(hostname), return 1);
     // println!("Creating cac client thread for tenant {tenant}");
@@ -130,19 +131,21 @@ pub extern "C" fn cac_new_client_with_cache_properties(
     cache_ttl: c_ulong,
     cache_tti: c_ulong,
 ) -> c_int {
-    let duration = Duration::new(update_frequency, 0);
+    #[allow(clippy::useless_conversion)] // done for windows support
+    let duration = Duration::new(update_frequency.into(), 0);
     let tenant = unwrap_safe!(cstring_to_rstring(tenant), return 1);
     let hostname = unwrap_safe!(cstring_to_rstring(hostname), return 1);
     // println!("Creating cac client thread for tenant {tenant}");
     CAC_RUNTIME.block_on(async move {
+        #[allow(clippy::useless_conversion)]
         match CLIENT_FACTORY
             .create_client_with_cache_properties(
                 tenant.clone(),
                 duration,
                 hostname,
-                cache_max_capacity,
-                cache_ttl,
-                cache_tti,
+                cache_max_capacity.into(),
+                cache_ttl.into(),
+                cache_tti.into(),
             )
             .await
         {
