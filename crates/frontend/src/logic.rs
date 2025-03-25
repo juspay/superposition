@@ -314,6 +314,9 @@ impl Conditions {
         }))
     }
     pub fn as_context_json(&self) -> serde_json::Value {
+        if self.is_empty() {
+            return json!({});
+        }
         json!({
             "and": self.iter().map(|v| v.to_condition_json()).collect::<Vec<serde_json::Value>>()
         })
