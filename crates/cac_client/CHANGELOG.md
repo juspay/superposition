@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.17.0 - 2025-03-26
+#### Features
+- generate multiple binaries for clients based on platform (#445) - (cd6d30b) - Datron
+
+- - -
+
 ## cac_client-v0.16.2 - 2025-02-28
 #### Bug Fixes
 - Fixed clippy warnings - (88bbfe9) - ShreyBana

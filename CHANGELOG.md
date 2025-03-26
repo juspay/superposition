@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.68.0 - 2025-03-26
+### Package updates
+- experimentation_client bumped to experimentation_client-v0.12.0
+- experimentation_platform bumped to experimentation_platform-v0.27.0
+- superposition_types bumped to superposition_types-v0.14.0
+- frontend bumped to frontend-v0.23.0
+- cac_client bumped to cac_client-v0.17.0
+### Global changes
+#### Features
+- experiment filters in UI - (d4604e4) - Kartik
+- generate multiple binaries for clients based on platform (#445) - (cd6d30b) - Datron
+#### Miscellaneous Chores
+- **(deps)** bump jinja2 from 3.1.5 to 3.1.6 in /locust - (bc31cb6) - dependabot[bot]
+- **(deps-dev)** bump axios from 1.7.4 to 1.8.2 - (a326d64) - dependabot[bot]
+- **(docs)** Correct flake inputs - (334e955) - Sridhar Ratnakumar
+
+- - -
+
 ## v0.67.0 - 2025-03-10
 ### Package updates
 - superposition_types bumped to superposition_types-v0.13.0

@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.12.0 - 2025-03-26
+#### Features
+- generate multiple binaries for clients based on platform (#445) - (cd6d30b) - Datron
+
+- - -
+
 ## experimentation_client-v0.11.0 - 2025-02-14
 #### Features
 - Discard experiment - (42ac967) - ayush.jain@juspay.in

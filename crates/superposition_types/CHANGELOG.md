@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.14.0 - 2025-03-26
+#### Features
+- experiment filters in UI - (d4604e4) - Kartik
+
+- - -
+
 ## superposition_types-v0.13.0 - 2025-03-10
 #### Features
 - add key filter for default config - (d29bc18) - Datron

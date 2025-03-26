@@ -982,7 +982,7 @@ dependencies = [
 
 [[package]]
 name = "cac_client"
-version = "0.16.2"
+version = "0.17.0"
 dependencies = [
  "actix-web",
  "cbindgen",
@@ -1887,7 +1887,7 @@ dependencies = [
 
 [[package]]
 name = "experimentation_client"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "cbindgen",
  "chrono",
@@ -1912,7 +1912,7 @@ dependencies = [
 
 [[package]]
 name = "experimentation_platform"
-version = "0.26.2"
+version = "0.27.0"
 dependencies = [
  "actix-http",
  "actix-web",
@@ -2069,7 +2069,7 @@ dependencies = [
 
 [[package]]
 name = "frontend"
-version = "0.22.0"
+version = "0.23.0"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -4666,7 +4666,7 @@ version = "0.2.0"
 
 [[package]]
 name = "superposition_types"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "actix-web",
  "anyhow",

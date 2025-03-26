@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.23.0 - 2025-03-26
+#### Bug Fixes
+- removing `and` block if context is empty - (dfd5cc2) - Shubhranshu Sanjeev
+- Default value for dimensions while using in operator - (08614ad) - ayush.jain@juspay.in
+#### Features
+- experiment filters in UI - (d4604e4) - Kartik
+- Create Experiments From Overrides - (25617d7) - yuvrajjsingh0
+
+- - -
+
 ## frontend-v0.22.0 - 2025-03-10
 #### Bug Fixes
 - z-index of delete modal - (7daded3) - ayush.jain@juspay.in

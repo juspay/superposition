@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.27.0 - 2025-03-26
+#### Features
+- experiment filters in UI - (d4604e4) - Kartik
+
+- - -
+
 ## experimentation_platform-v0.26.2 - 2025-02-28
 #### Bug Fixes
 - Fixed clippy warnings - (88bbfe9) - ShreyBana
