@@ -14,7 +14,7 @@ resource Workspace {
         organisation_id: String
         organisation_name: String
         workspace_schema_name: String
-        workspace_status: String
+        workspace_status: WorkspaceStatus
         workspace_admin_email: String
         created_by: String
         last_modified_by: String
@@ -27,6 +27,11 @@ resource Workspace {
     put: UpdateWorkspace
     operations: [CreateWorkspace]
 
+}
+
+enum WorkspaceStatus {
+    ENABLED,
+    DISABLED,
 }
 
 list ListMandatoryDimensions {

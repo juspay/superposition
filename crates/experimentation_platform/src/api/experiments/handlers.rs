@@ -53,7 +53,7 @@ use super::{
         RampRequest,
     },
 };
-use crate::api::experiments::{helpers::construct_header_map, types::ExperimentSortOn};
+use crate::api::experiments::{helpers::construct_header_map, types::{ApplicableVriantsOutput, ExperimentSortOn}};
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
@@ -66,6 +66,7 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(get_experiment_handler)
         .service(ramp)
         .service(update_overrides)
+        .service(get_applicable_variants_v2)
 }
 
 fn add_config_version_to_header(
@@ -710,6 +711,54 @@ async fn get_applicable_variants(
 
     Ok(HttpResponse::Ok().json(variants))
 }
+
+
+#[get("/v2/applicable-variants")]
+async fn get_applicable_variants_v2(
+    db_conn: DbConnection,
+    query_data: Query<ApplicableVariantsQuery>,
+    schema_name: SchemaName,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let query_data = query_data.into_inner();
+
+    let experiments = experiments::experiments
+        .filter(experiments::status.ne_all(vec![
+            ExperimentStatusType::CONCLUDED,
+            ExperimentStatusType::DISCARDED,
+        ]))
+        .schema_name(&schema_name)
+        .load::<Experiment>(&mut conn)?;
+
+    let experiments = experiments.into_iter().filter(|exp| {
+        let context: Map<String, Value> = exp.context.clone().into();
+        context.is_empty()
+            || jsonlogic::apply(
+                &Value::Object(context),
+                &Value::Object(query_data.context.clone()),
+            ) == Ok(Value::Bool(true))
+    });
+
+    let mut variants = Vec::new();
+    for exp in experiments {
+        if let Some(v) = decide_variant(
+            exp.traffic_percentage as u8,
+            exp.variants.into_inner(),
+            query_data.toss,
+        )
+        .map_err(|e| {
+            log::error!("Unable to decide variant {e}");
+            unexpected_error!("Something went wrong.")
+        })? {
+            variants.push(v)
+        }
+    }
+
+    Ok(HttpResponse::Ok().json(ApplicableVriantsOutput{
+        applicable_variants: variants
+    }))
+}
+
 
 #[get("")]
 async fn list_experiments(

@@ -155,7 +155,7 @@ operation DeleteTypeTemplates {
         $type_name
     }
 
-    output := {}
+    output : TypeTemplatesResponse
 
     errors: [
         TypeTemplatesNotFound

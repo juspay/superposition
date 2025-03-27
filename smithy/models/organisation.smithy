@@ -16,7 +16,7 @@ resource Organisation {
         contact_phone: String
         created_by: String
         admin_email: String
-        status: String
+        status: OrgStatus
         sector: String
         created_at: DateTime
         updated_at: DateTime
@@ -27,6 +27,12 @@ resource Organisation {
     list: ListOrganisation
     put: UpdateOrganisation
 
+}
+
+enum OrgStatus {
+    Active = "Active",
+    Inactive = "Inactive",
+    PendingKyb = "PendingKyb"
 }
 
 structure CreateOrganisationRequest for Organisation {
