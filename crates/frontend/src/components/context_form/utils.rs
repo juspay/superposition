@@ -51,7 +51,7 @@ pub async fn update_context(
     description: String,
     change_reason: String,
     org_id: String,
-) -> Result<serde_json::Value, String> {
+) -> Result<Value, String> {
     let host = get_host();
     let url = format!("{host}/context/overrides");
     let request_payload =
