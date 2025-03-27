@@ -4,6 +4,10 @@ pub mod sql_types {
     #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "experiment_status_type"))]
     pub struct ExperimentStatusType;
+
+    #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "function_types"))]
+    pub struct FunctionTypes;
 }
 
 diesel::table! {
@@ -636,6 +640,9 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::FunctionTypes;
+
     functions (function_name) {
         function_name -> Text,
         published_code -> Nullable<Text>,
@@ -653,6 +660,7 @@ diesel::table! {
         #[max_length = 200]
         last_modified_by -> Varchar,
         change_reason -> Text,
+        function_type -> FunctionTypes,
     }
 }
 

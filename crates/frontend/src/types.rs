@@ -60,13 +60,6 @@ pub struct Envs {
     pub service_prefix: &'static str,
 }
 
-/*************************Function Type ***************************/
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct FunctionTestResponse {
-    pub message: String,
-    pub stdout: String,
-}
-
 /*********************** Experimentation Types ****************************************/
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
