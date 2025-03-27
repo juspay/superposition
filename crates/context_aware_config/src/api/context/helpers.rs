@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::str;
 
 use actix_web::web::Json;
@@ -52,6 +52,37 @@ pub fn validate_condition_with_mandatory_dimensions(
         return Err(validation_error!(
             "The context should contain all the mandatory dimensions : {:?}.",
             mandatory_dimensions,
+        ));
+    }
+    Ok(())
+}
+
+pub fn validate_condition_with_dependent_dimensions(
+    conn: &mut DBConnection,
+    context: &Condition,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    use dimensions::dsl;
+    let context_map = extract_dimensions(context)?;
+    let keys = context_map.keys();
+    let dependency_lists: Vec<Option<Value>> = dsl::dimensions
+        .filter(dsl::dimension.eq_any(keys))
+        .select(dsl::dependency_graph)
+        .schema_name(schema_name)
+        .load::<Option<Value>>(conn)?;
+    let dependency_list: HashSet<String> = dependency_lists
+        .iter()
+        .flatten()
+        .filter_map(|val| val.as_object())
+        .flat_map(|val| val.keys().cloned())
+        .collect();
+    let all_dependencies_present = dependency_list
+        .iter()
+        .all(|dimension| context_map.contains_key(dimension));
+    if !all_dependencies_present {
+        return Err(validation_error!(
+            "The context should contain all the dependent dimensions : {:?}.",
+            dependency_list,
         ));
     }
     Ok(())
@@ -215,10 +246,12 @@ pub fn create_ctx_from_put_req(
     let workspace_settings = get_workspace(schema_name, conn)?;
 
     let change_reason = req.change_reason.clone();
+    // Remove this after the chenges for mandatory dimensions are done
     validate_condition_with_mandatory_dimensions(
         &ctx_condition,
         &workspace_settings.mandatory_dimensions.unwrap_or_default(),
     )?;
+    validate_condition_with_dependent_dimensions(conn, &ctx_condition, schema_name)?;
     validate_override_with_default_configs(conn, &r_override, schema_name)?;
     validate_condition_with_functions(conn, &ctx_condition, schema_name)?;
     validate_override_with_functions(conn, &r_override, schema_name)?;
