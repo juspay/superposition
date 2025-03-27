@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
@@ -245,8 +245,8 @@ pub struct ContextMoveReq {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct AuditQueryFilters {
-    pub from_date: Option<NaiveDateTime>,
-    pub to_date: Option<NaiveDateTime>,
+    pub from_date: Option<DateTime<Utc>>,
+    pub to_date: Option<DateTime<Utc>>,
     pub table: Option<CommaSeparatedStringQParams>,
     pub action: Option<CommaSeparatedStringQParams>,
     pub username: Option<String>,

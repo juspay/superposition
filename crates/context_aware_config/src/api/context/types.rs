@@ -104,6 +104,16 @@ pub struct WeightRecomputeResponse {
     pub new_weight: BigDecimal,
 }
 
+#[derive(Deserialize)]
+pub struct BulkOperation {
+    pub operations: Vec<ContextAction>,
+}
+
+#[derive(Serialize)]
+pub struct BulkOperationResponse {
+    pub output: Vec<ContextBulkResponse>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -9,8 +9,9 @@ use crate::{
             helpers::query_description,
             operations,
             types::{
-                ContextAction, ContextBulkResponse, ContextFilterSortOn, ContextFilters,
-                MoveReq, PutReq, WeightRecomputeResponse,
+                BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
+                ContextFilterSortOn, ContextFilters, MoveReq, PutReq,
+                WeightRecomputeResponse,
             },
         },
         dimension::{get_dimension_data, get_dimension_data_map},
@@ -21,7 +22,7 @@ use crate::{
 use actix_web::{
     delete, get, post, put,
     web::{Data, Json, Path},
-    HttpResponse, Scope,
+    Either, HttpResponse, Scope,
 };
 use bigdecimal::BigDecimal;
 use chrono::Utc;
@@ -413,13 +414,23 @@ async fn delete_context_handler(
 async fn bulk_operations(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
-    reqs: Json<Vec<ContextAction>>,
+    req: Either<Json<Vec<ContextAction>>, Json<BulkOperation>>,
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
     let DbConnection(mut conn) = db_conn;
+    let mut is_v2 = false;
+    let ops = match req {
+        Either::Left(o) => o.into_inner(),
+        Either::Right(bo) => {
+            is_v2 = true;
+            bo.into_inner().operations
+        }
+    };
+    // Marking immutable.
+    let is_v2 = is_v2;
     let mut all_descriptions = Vec::new();
     let mut all_change_reasons = Vec::new();
 
@@ -427,7 +438,7 @@ async fn bulk_operations(
     let (response, version_id) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let mut response = Vec::<ContextBulkResponse>::new();
-            for action in reqs.into_inner().into_iter() {
+            for action in ops.into_iter() {
                 match action {
                     ContextAction::Put(put_req) => {
                         let ctx_condition = put_req.context.to_owned().into_inner();
@@ -591,8 +602,8 @@ async fn bulk_operations(
             )?;
             Ok((response, version_id))
         })?;
-    let mut http_resp = HttpResponse::Ok();
-    http_resp.insert_header((
+    let mut resp_builder = HttpResponse::Ok();
+    resp_builder.insert_header((
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
@@ -600,7 +611,13 @@ async fn bulk_operations(
     // Commit the transaction
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
-    Ok(http_resp.json(response))
+
+    let http_resp = if is_v2 {
+        resp_builder.json(BulkOperationResponse { output: response })
+    } else {
+        resp_builder.json(response)
+    };
+    Ok(http_resp)
 }
 
 #[put("/weight/recompute")]
@@ -657,7 +674,7 @@ async fn weight_recompute(
         .collect::<superposition::Result<Vec<(BigDecimal, String)>>>()?;
 
     // Update database and add config version
-    let last_modified_time = Utc::now().naive_utc();
+    let last_modified_time = Utc::now();
     let config_version_id =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             for (context_weight, context_id) in contexts_new_weight.clone() {

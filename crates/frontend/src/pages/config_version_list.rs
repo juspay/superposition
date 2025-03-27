@@ -1,6 +1,6 @@
 use leptos::*;
 
-use chrono::NaiveDateTime;
+use chrono::DateTime;
 use leptos_router::A;
 use serde_json::{json, Map, Value};
 use superposition_types::{
@@ -172,7 +172,7 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
             None,
             |value: &str, _row: &Map<String, Value>| {
                 let formatted_date =
-                    match NaiveDateTime::parse_from_str(value, "%Y-%m-%dT%H:%M:%S%.f") {
+                    match DateTime::parse_from_str(value, "%Y-%m-%dT%H:%M:%S%.f") {
                         Ok(dt) => dt.format("%d-%b-%Y").to_string(),
                         Err(_) => {
                             logging::log!("Failed to parse date: {}", value);

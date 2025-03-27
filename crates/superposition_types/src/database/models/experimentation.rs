@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Utc};
 #[cfg(feature = "diesel_derives")]
 use diesel::{
     deserialize::FromSqlRow, expression::AsExpression, sql_types::Json, Insertable,
@@ -124,7 +124,7 @@ pub struct EventLog {
     pub id: uuid::Uuid,
     pub table_name: String,
     pub user_name: String,
-    pub timestamp: NaiveDateTime,
+    pub timestamp: DateTime<Utc>,
     pub action: String,
     pub original_data: Option<Value>,
     pub new_data: Option<Value>,

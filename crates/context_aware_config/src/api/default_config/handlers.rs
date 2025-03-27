@@ -74,7 +74,7 @@ async fn create_default_config(
         function_name: req.function_name,
         created_by: user.get_email(),
         created_at: Utc::now(),
-        last_modified_at: Utc::now().naive_utc(),
+        last_modified_at: Utc::now(),
         last_modified_by: user.get_email(),
         description: description.clone(),
         change_reason: change_reason.clone(),
@@ -229,7 +229,7 @@ async fn update_default_config(
                 .filter(dsl::key.eq(key_str.clone()))
                 .set((
                     req,
-                    dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                    dsl::last_modified_at.eq(Utc::now()),
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
                 .schema_name(&schema_name)
@@ -382,7 +382,7 @@ async fn delete(
                 diesel::update(dsl::default_configs)
                     .filter(dsl::key.eq(&key))
                     .set((
-                        dsl::last_modified_at.eq(Utc::now().naive_utc()),
+                        dsl::last_modified_at.eq(Utc::now()),
                         dsl::last_modified_by.eq(user.get_email()),
                     ))
                     .schema_name(&schema_name)

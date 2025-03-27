@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, ops::Deref, str::FromStr};
 
 use actix_http::header::HeaderValue;
 #[cfg(feature = "high-performance-mode")]
@@ -13,7 +13,7 @@ use actix_web::{
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
-use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
+use chrono::{DateTime, Timelike, Utc};
 use diesel::{dsl::max, ExpressionMethods, QueryDsl, RunQueryDsl};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
@@ -41,7 +41,6 @@ use superposition_types::{
 };
 use uuid::Uuid;
 
-use crate::{api::context::PutReq, helpers::generate_cac};
 use crate::{
     api::context::{self, helpers::query_description},
     helpers::DimensionData,
@@ -50,8 +49,12 @@ use crate::{
     api::dimension::{get_dimension_data, get_dimension_data_map},
     helpers::calculate_context_weight,
 };
+use crate::{
+    api::{config::XConfigVersion, context::PutReq},
+    helpers::generate_cac,
+};
 
-use super::helpers::apply_prefix_filter_to_config;
+use super::{helpers::apply_prefix_filter_to_config, XConfigPrefix};
 
 #[allow(clippy::let_and_return)]
 pub fn endpoints() -> Scope {
@@ -100,12 +103,11 @@ pub fn add_audit_id_to_header(
 }
 
 fn add_last_modified_to_header(
-    max_created_at: Option<NaiveDateTime>,
+    max_created_at: Option<DateTime<Utc>>,
     resp_builder: &mut HttpResponseBuilder,
 ) {
-    if let Some(ele) = max_created_at {
-        let datetime_utc: DateTime<Utc> = TimeZone::from_utc_datetime(&Utc, &ele);
-        let value = HeaderValue::from_str(&DateTime::to_rfc2822(&datetime_utc));
+    if let Some(date) = max_created_at {
+        let value = HeaderValue::from_str(date.to_string().as_str());
         if let Ok(header_value) = value {
             resp_builder
                 .insert_header((AppHeader::LastModified.to_string(), header_value));
@@ -130,29 +132,29 @@ fn add_config_version_to_header(
 fn get_max_created_at(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
-) -> Result<NaiveDateTime, diesel::result::Error> {
+) -> Result<DateTime<Utc>, diesel::result::Error> {
     event_log::event_log
         .select(max(event_log::timestamp))
         .filter(event_log::table_name.eq_any(vec!["contexts", "default_configs"]))
         .schema_name(schema_name)
-        .first::<Option<NaiveDateTime>>(conn)
+        .first::<Option<DateTime<Utc>>>(conn)
         .and_then(|res| res.ok_or(diesel::result::Error::NotFound))
 }
 
-fn is_not_modified(max_created_at: Option<NaiveDateTime>, req: &HttpRequest) -> bool {
-    let nanosecond_erasure = |t: NaiveDateTime| t.with_nanosecond(0);
+fn is_not_modified(max_created_at: Option<DateTime<Utc>>, req: &HttpRequest) -> bool {
+    let nanosecond_erasure = |t: DateTime<Utc>| t.with_nanosecond(0);
     let last_modified = req
         .headers()
         .get("If-Modified-Since")
         .and_then(|header_val| {
             let header_str = header_val.to_str().ok()?;
             DateTime::parse_from_rfc2822(header_str)
-                .map(|datetime| datetime.with_timezone(&Utc).naive_utc())
+                .map(|datetime| datetime.with_timezone(&Utc))
                 .ok()
         })
         .and_then(nanosecond_erasure);
     log::info!("last modified {last_modified:?}");
-    let parsed_max: Option<NaiveDateTime> = max_created_at.and_then(nanosecond_erasure);
+    let parsed_max: Option<DateTime<Utc>> = max_created_at.and_then(nanosecond_erasure);
     max_created_at.is_some() && parsed_max <= last_modified
 }
 
@@ -691,6 +693,8 @@ async fn get_config_fast(
 async fn get_config(
     req: HttpRequest,
     db_conn: DbConnection,
+    config_version: Option<XConfigVersion>,
+    config_prefix: Option<XConfigPrefix>,
     query_map: superposition_query::Query<QueryMap>,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
@@ -709,11 +713,11 @@ async fn get_config(
     }
 
     let mut query_params_map = query_map.into_inner();
-    let mut config_version = validate_version_in_params(&mut query_params_map)?;
-    let mut config =
-        generate_config_from_version(&mut config_version, &mut conn, &schema_name)?;
+    let mut version = validate_version_in_params(&mut query_params_map)?
+        .or_else(|| config_version.map(|v| v.0));
+    let mut config = generate_config_from_version(&mut version, &mut conn, &schema_name)?;
 
-    config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
+    config = apply_prefix_filter_to_config(&mut query_params_map, config_prefix, config)?;
 
     if !query_params_map.is_empty() {
         config = config.filter_by_dimensions(&query_params_map)
@@ -722,7 +726,7 @@ async fn get_config(
     let mut response = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, &mut response);
     add_audit_id_to_header(&mut conn, &mut response, &schema_name);
-    add_config_version_to_header(&config_version, &mut response);
+    add_config_version_to_header(&version, &mut response);
     Ok(response.json(config))
 }
 
@@ -730,6 +734,8 @@ async fn get_config(
 async fn get_resolved_config(
     req: HttpRequest,
     db_conn: DbConnection,
+    config_version: Option<XConfigVersion>,
+    config_prefix: Option<XConfigPrefix>,
     query_map: superposition_query::Query<QueryMap>,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
@@ -746,11 +752,12 @@ async fn get_resolved_config(
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    let mut config_version = validate_version_in_params(&mut query_params_map)?;
+    let mut config_version = validate_version_in_params(&mut query_params_map)?
+        .or_else(|| config_version.map(|v| v.0));
     let mut config =
         generate_config_from_version(&mut config_version, &mut conn, &schema_name)?;
 
-    config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
+    config = apply_prefix_filter_to_config(&mut query_params_map, config_prefix, config)?;
 
     let merge_strategy = req
         .headers()

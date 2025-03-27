@@ -1,19 +1,8 @@
-use chrono::{offset::Utc, DateTime, NaiveDateTime};
-use serde::{Deserialize, Serialize, Serializer};
+use chrono::{offset::Utc, DateTime};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::models::cac::{Dimension, Position};
-
-pub fn serialize_naive_date_time<S>(
-    datetime: &NaiveDateTime,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    // Convert NaiveDateTime to a DateTime with a UTC timezone
-    datetime.and_utc().serialize(serializer)
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DimensionWithMandatory {
@@ -23,8 +12,7 @@ pub struct DimensionWithMandatory {
     pub created_by: String,
     pub schema: Value,
     pub function_name: Option<String>,
-    #[serde(serialize_with = "serialize_naive_date_time")]
-    pub last_modified_at: NaiveDateTime,
+    pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub mandatory: bool,
     pub description: String,

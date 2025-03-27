@@ -6,7 +6,7 @@ use actix_web::{
     web::{self, Data, Json, Query},
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
-use chrono::{DateTime, Duration, NaiveDateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use diesel::{
     dsl::sql,
     r2d2::{ConnectionManager, PooledConnection},
@@ -734,7 +734,7 @@ async fn list_experiments(
         );
     }
 
-    let max_event_timestamp: Option<NaiveDateTime> = event_log::event_log
+    let max_event_timestamp: Option<DateTime<Utc>> = event_log::event_log
         .filter(event_log::table_name.eq("experiments"))
         .select(diesel::dsl::max(event_log::timestamp))
         .schema_name(&schema_name)
@@ -746,7 +746,7 @@ async fn list_experiments(
         .and_then(|header_val| header_val.to_str().ok())
         .and_then(|header_str| {
             DateTime::parse_from_rfc2822(header_str)
-                .map(|datetime| datetime.with_timezone(&Utc).naive_utc())
+                .map(|datetime| datetime.with_timezone(&Utc))
                 .ok()
         });
 
@@ -1188,7 +1188,7 @@ async fn get_audit_logs(
         if let Some(username) = filters.username.clone() {
             builder = builder.filter(event_log::user_name.eq(username));
         }
-        let now = Utc::now().naive_utc();
+        let now = Utc::now();
         builder
             .filter(
                 event_log::timestamp

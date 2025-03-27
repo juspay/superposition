@@ -41,6 +41,7 @@ resource Context {
         GetContextFromCondition
         ListContexts
         WeightRecompute
+        BulkOperation
     ]
 }
 
@@ -273,7 +274,7 @@ operation DeleteContext {
     ]
 }
 
-@http(method: "PUT", uri: "/weight/recompute")
+@http(method: "PUT", uri: "/context/weight/recompute")
 operation WeightRecompute {
     input := with [WorkspaceMixin] {
         @httpHeader("x-config-tags")
@@ -292,5 +293,86 @@ operation WeightRecompute {
 
         @notProperty
         new_weight: Integer
+    }
+}
+
+structure ContextPut for Context {
+    @required
+    condition: Condition
+
+    @required
+    $override
+
+    $description
+
+    @required
+    $change_reason
+}
+
+structure ContextMove for Context {
+    $id
+
+    @required
+    condition: Condition
+
+    $description
+
+    @required
+    $change_reason
+}
+
+union ContextAction {
+    PUT: ContextPut
+    REPLACE: ContextPut
+    DELETE: String
+    MOVE: ContextMove
+}
+list BulkOperationList {
+    member: ContextAction
+}
+structure BulkOperationReq {
+    operations: BulkOperationList
+}
+
+@mixin
+structure ContextPutOutMixin for Context {
+    context_id: String
+    override_id: String
+    weight: Integer
+    description: String
+    change_reason: String
+}
+structure ContextPutOut with [ContextPutOutMixin] {}
+structure ContextMoveOut with [ContextPutOutMixin] {}
+union ContextActionOut for Context {
+    PUT: ContextPutOut
+    REPLACE: ContextPutOut
+    DELETE: String
+    MOVE: ContextMoveOut
+}
+list BulkOperationOutList {
+    member: ContextActionOut
+}
+structure BulkOperationOut {
+    output: BulkOperationOutList
+}
+
+@http(method: "PUT", uri:"/context/bulk-operations")
+operation BulkOperation {
+    input := for Context with [WorkspaceMixin] {
+        @httpHeader("x-config-tags")
+        @notProperty
+        config_tags: String
+
+        @httpPayload
+        @required
+        @notProperty
+        bulk_operation: BulkOperationReq
+    }
+
+    output := {
+        @httpPayload
+        @notProperty
+        bulk_operation_output: BulkOperationOut
     }
 }
