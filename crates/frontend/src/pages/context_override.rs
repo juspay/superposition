@@ -400,9 +400,9 @@ pub fn context_override() -> impl IntoView {
                                                 <ExperimentForm
                                                     name="".to_string()
                                                     context=data.context
-                                                    variants=VariantFormTs(crate::components::experiment_form::default_variants_for_form(
-                                                        data.overrides
-                                                    ).into_iter().map(|(_, value)| value).collect())
+                                                    variants=VariantFormTs::default_with_overrides(
+                                                        data.overrides,
+                                                    )
                                                     dimensions=dimensions
                                                     default_config=default_config
                                                     handle_submit=handle_submit_experiment_form
@@ -410,16 +410,13 @@ pub fn context_override() -> impl IntoView {
                                             }
                                                 .into_view()
                                         }
-                                        None => {
-                                            view! {}.into_view()
-                                        }
+                                        None => view! {}.into_view(),
                                     }}
 
                                 </EditorProvider>
                             </Drawer>
                         }
                     }}
-
                     {move || {
                         let PageResource { config: _, dimensions, default_config } = page_resource
                             .get()

@@ -202,12 +202,35 @@ impl From<Variant> for VariantFormT {
     }
 }
 
-#[derive(Deref, Default)]
+#[derive(Deref)]
 pub struct VariantFormTs(pub Vec<VariantFormT>);
 
 impl FromIterator<Variant> for VariantFormTs {
     fn from_iter<T: IntoIterator<Item = Variant>>(iter: T) -> Self {
         Self(iter.into_iter().map(VariantFormT::from).collect())
+    }
+}
+
+impl VariantFormTs {
+    pub fn default_with_overrides(overrides: Vec<(String, Value)>) -> Self {
+        Self(vec![
+            VariantFormT {
+                id: "control".to_string(),
+                variant_type: VariantType::CONTROL,
+                overrides: overrides.clone(),
+            },
+            VariantFormT {
+                id: "experimental".to_string(),
+                variant_type: VariantType::EXPERIMENTAL,
+                overrides: overrides.clone(),
+            },
+        ])
+    }
+}
+
+impl Default for VariantFormTs {
+    fn default() -> Self {
+        Self::default_with_overrides(Vec::new())
     }
 }
 

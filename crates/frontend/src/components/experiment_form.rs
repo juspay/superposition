@@ -2,10 +2,8 @@ pub mod types;
 pub mod utils;
 
 use leptos::*;
-use serde_json::Value;
-use superposition_types::{
-    database::models::experimentation::VariantType,
-    database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
+use superposition_types::database::{
+    models::cac::DefaultConfig, types::DimensionWithMandatory,
 };
 use utils::{create_experiment, update_experiment};
 use web_sys::MouseEvent;
@@ -20,29 +18,6 @@ use crate::{
 };
 
 use crate::logic::Conditions;
-
-pub fn default_variants_for_form(
-    overrides: Vec<(String, Value)>,
-) -> Vec<(String, VariantFormT)> {
-    vec![
-        (
-            "control-variant".to_string(),
-            VariantFormT {
-                id: "control".to_string(),
-                variant_type: VariantType::CONTROL,
-                overrides: overrides.clone(),
-            },
-        ),
-        (
-            "experimental-variant".to_string(),
-            VariantFormT {
-                id: "experimental".to_string(),
-                variant_type: VariantType::EXPERIMENTAL,
-                overrides: overrides.clone(),
-            },
-        ),
-    ]
-}
 
 fn get_init_state(variants: &[VariantFormT]) -> Vec<(String, VariantFormT)> {
     variants
