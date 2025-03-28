@@ -427,7 +427,6 @@ ALTER TABLE {replaceme}.functions ALTER COLUMN description SET DEFAULT '';
 ALTER TABLE {replaceme}.functions ALTER COLUMN description SET NOT NULL;
 
 ALTER TABLE {replaceme}.config_versions ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE {replaceme}.config_versions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
 
 ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
 ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;

@@ -197,3 +197,10 @@ amend-no-edit: COMMIT_FLAGS += --no-edit
 amend-no-edit: amend
 
 default: dev-build
+
+schema-file:
+	diesel migration run --config-file=crates/superposition_types/src/database/diesel.toml
+	diesel print-schema > crates/superposition_types/src/database/schema.rs
+	git apply crates/superposition_types/src/database/schema.patch
+	diesel print-schema --schema superposition > crates/superposition_types/src/database/superposition_schema.rs
+	git apply crates/superposition_types/src/database/superposition_schema.patch
