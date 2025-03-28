@@ -42,3 +42,6 @@ test_logs
 build
 .java~
 postman/superposition_env.json
+
+#smithy
+smithy/output

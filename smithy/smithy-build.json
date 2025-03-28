@@ -1,6 +1,7 @@
 {
   "version": "0.1",
   "sources": ["models/"],
+  "outputDirectory": "output",
   "maven": {
     "dependencies": [
       "software.amazon.smithy:smithy-aws-traits:1.55.0",

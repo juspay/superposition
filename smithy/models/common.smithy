@@ -11,3 +11,12 @@ map Overrides {
     key: String
     value: Document
 }
+
+map Object {
+    key: String
+    value: Document
+}
+
+list StringList {
+    member: String
+}

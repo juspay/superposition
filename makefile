@@ -1,3 +1,5 @@
+SMITHY_BUILD_SRC := smithy/output/source
+SMITHY_CLIENT_DIR := clients/generated/smithy
 IMAGE_NAME ?= context-aware-config
 DOCKER_DNS ?= localhost
 TENANT ?= dev
@@ -166,9 +168,20 @@ test: setup frontend superposition
 	@timeout 20s bash -c \
 		"while ! curl --silent 'http://localhost:8080/health' 2>&1 > /dev/null; do sleep 0.5; done"
 	npm run test
+## Running Jest tests for verifying client integration.
+	cd $(SMITHY_CLIENT_DIR)/ts && npm test
 
 tailwind:
 	cd crates/frontend && npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css --watch
+
+smithy-build:
+	cd smithy && smithy build
+
+ts-client: smithy-build
+	mkdir -p $(SMITHY_CLIENT_DIR)
+	cp -r $(SMITHY_BUILD_SRC)/typescript-client-codegen $(SMITHY_CLIENT_DIR)/ts
+
+clients: smithy-build ts-client
 
 leptosfmt:
 	leptosfmt $(LEPTOS_FMT_FLAGS) crates/frontend
@@ -196,4 +209,4 @@ amend: commit
 amend-no-edit: COMMIT_FLAGS += --no-edit
 amend-no-edit: amend
 
-default: dev-build
+default: superposition frontend

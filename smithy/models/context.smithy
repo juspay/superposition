@@ -327,9 +327,11 @@ union ContextAction {
     DELETE: String
     MOVE: ContextMove
 }
+
 list BulkOperationList {
     member: ContextAction
 }
+
 structure BulkOperationReq {
     operations: BulkOperationList
 }
@@ -342,22 +344,27 @@ structure ContextPutOutMixin for Context {
     description: String
     change_reason: String
 }
+
 structure ContextPutOut with [ContextPutOutMixin] {}
+
 structure ContextMoveOut with [ContextPutOutMixin] {}
+
 union ContextActionOut for Context {
     PUT: ContextPutOut
     REPLACE: ContextPutOut
     DELETE: String
     MOVE: ContextMoveOut
 }
+
 list BulkOperationOutList {
     member: ContextActionOut
 }
+
 structure BulkOperationOut {
     output: BulkOperationOutList
 }
 
-@http(method: "PUT", uri:"/context/bulk-operations")
+@http(method: "PUT", uri: "/context/bulk-operations")
 operation BulkOperation {
     input := for Context with [WorkspaceMixin] {
         @httpHeader("x-config-tags")

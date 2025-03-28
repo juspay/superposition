@@ -16,12 +16,18 @@ structure AuditLogFull {
     // REVIEW Technically this should have been properties of the resource
     // but since we're not using these directly in an input or output, smithy
     // will complain about them and fail the build.
-    table_name: String,
-    user_name: String,
-    timestamp: DateTime,
-    action: String,
-    original_data: Document,
-    new_data: Document,
+    table_name: String
+
+    user_name: String
+
+    timestamp: DateTime
+
+    action: String
+
+    original_data: Document
+
+    new_data: Document
+
     query: String
 }
 
@@ -35,26 +41,27 @@ operation ListAuditLogs {
     input := with [WorkspaceMixin, PaginationParams] {
         @httpQuery("from_date")
         @notProperty
-        from_date: DateTime,
+        from_date: DateTime
 
         @httpQuery("to_date")
         @notProperty
-        to_date: DateTime,
+        to_date: DateTime
 
         /// Comma serparated list of tables.
         @httpQuery("table")
         @notProperty
-        tables: String,
+        tables: String
 
         /// Comma serparated list of actions.
         @httpQuery("action")
         @notProperty
-        action: String,
+        action: String
 
         @httpQuery("username")
         @notProperty
-        username: String,
+        username: String
     }
+
     output := with [PaginatedResponse] {
         data: AuditLogList
     }

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::Deref, str::FromStr};
+use std::{collections::HashMap, str::FromStr};
 
 use actix_http::header::HeaderValue;
 #[cfg(feature = "high-performance-mode")]
@@ -8,7 +8,7 @@ use actix_web::http::header::ContentType;
 #[cfg(feature = "high-performance-mode")]
 use actix_web::web::Data;
 use actix_web::{
-    get, put,
+    get, put, route,
     web::{self, Json, Query},
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
@@ -41,6 +41,7 @@ use superposition_types::{
 };
 use uuid::Uuid;
 
+use crate::{api::context::PutReq, helpers::generate_cac};
 use crate::{
     api::context::{self, helpers::query_description},
     helpers::DimensionData,
@@ -49,12 +50,8 @@ use crate::{
     api::dimension::{get_dimension_data, get_dimension_data_map},
     helpers::calculate_context_weight,
 };
-use crate::{
-    api::{config::XConfigVersion, context::PutReq},
-    helpers::generate_cac,
-};
 
-use super::{helpers::apply_prefix_filter_to_config, XConfigPrefix};
+use super::helpers::apply_prefix_filter_to_config;
 
 #[allow(clippy::let_and_return)]
 pub fn endpoints() -> Scope {
@@ -689,12 +686,12 @@ async fn get_config_fast(
     }
 }
 
-#[get("")]
+// TODO Add use body when method is POST.
+#[route("", method = "GET", method = "POST")]
 async fn get_config(
     req: HttpRequest,
+    body: Option<Json<QueryMap>>,
     db_conn: DbConnection,
-    config_version: Option<XConfigVersion>,
-    config_prefix: Option<XConfigPrefix>,
     query_map: superposition_query::Query<QueryMap>,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
@@ -713,14 +710,24 @@ async fn get_config(
     }
 
     let mut query_params_map = query_map.into_inner();
-    let mut version = validate_version_in_params(&mut query_params_map)?
-        .or_else(|| config_version.map(|v| v.0));
+    let mut version = validate_version_in_params(&mut query_params_map)?;
     let mut config = generate_config_from_version(&mut version, &mut conn, &schema_name)?;
 
-    config = apply_prefix_filter_to_config(&mut query_params_map, config_prefix, config)?;
-
-    if !query_params_map.is_empty() {
-        config = config.filter_by_dimensions(&query_params_map)
+    config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
+    let context = if req.method() == actix_web::http::Method::GET {
+        query_params_map
+    } else {
+        match body {
+            Some(b) => b.into_inner(),
+            None => {
+                return Err(bad_argument!(
+                    "When using POST, context needs to be provided in the body."
+                ))
+            }
+        }
+    };
+    if !context.is_empty() {
+        config = config.filter_by_dimensions(&context)
     }
 
     let mut response = HttpResponse::Ok();
@@ -730,12 +737,11 @@ async fn get_config(
     Ok(response.json(config))
 }
 
-#[get("/resolve")]
+#[route("/resolve", method = "GET", method = "POST")]
 async fn get_resolved_config(
     req: HttpRequest,
+    body: Option<Json<QueryMap>>,
     db_conn: DbConnection,
-    config_version: Option<XConfigVersion>,
-    config_prefix: Option<XConfigPrefix>,
     query_map: superposition_query::Query<QueryMap>,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
@@ -752,12 +758,11 @@ async fn get_resolved_config(
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    let mut config_version = validate_version_in_params(&mut query_params_map)?
-        .or_else(|| config_version.map(|v| v.0));
+    let mut config_version = validate_version_in_params(&mut query_params_map)?;
     let mut config =
         generate_config_from_version(&mut config_version, &mut conn, &schema_name)?;
 
-    config = apply_prefix_filter_to_config(&mut query_params_map, config_prefix, config)?;
+    config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
 
     let merge_strategy = req
         .headers()
@@ -770,14 +775,28 @@ async fn get_resolved_config(
     for (key, val) in config.overrides {
         override_map.insert(key, val);
     }
-
-    let response = if let Some(Value::String(_)) = query_params_map.get("show_reasoning")
-    {
+    let show_reason = matches!(
+        query_params_map.get("show_reasoning"),
+        Some(Value::String(_))
+    );
+    let context = if req.method() == actix_web::http::Method::GET {
+        query_params_map
+    } else {
+        match body {
+            Some(b) => b.into_inner(),
+            None => {
+                return Err(bad_argument!(
+                    "When using POST, context needs to be provided in the body."
+                ))
+            }
+        }
+    };
+    let response = if show_reason {
         eval_cac_with_reasoning(
             config.default_configs,
             &config.contexts,
             &override_map,
-            &query_params_map,
+            &context,
             merge_strategy,
         )
         .map_err(|err| {
@@ -789,7 +808,7 @@ async fn get_resolved_config(
             config.default_configs,
             &config.contexts,
             &override_map,
-            &query_params_map,
+            &context,
             merge_strategy,
         )
         .map_err(|err| {
