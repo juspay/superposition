@@ -1,5 +1,6 @@
 pub mod utils;
 
+use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 
 use crate::components::input::{Input, InputType};
@@ -10,7 +11,7 @@ use crate::{
     schema::SchemaType,
 };
 use leptos::*;
-use serde_json::Value;
+use serde_json::{Map, Value};
 use superposition_types::database::types::DimensionWithMandatory;
 
 #[component]
@@ -24,6 +25,7 @@ pub fn condition_input(
     #[prop(into)] on_remove: Callback<String, ()>,
     #[prop(into)] on_value_change: Callback<Expression, ()>,
     #[prop(into)] on_operator_change: Callback<Operator, ()>,
+    tooltip_text: String,
 ) -> impl IntoView {
     let (dimension, operator): (String, Operator) =
         condition.with_value(|v| (v.variable.clone(), v.into()));
@@ -140,7 +142,6 @@ pub fn condition_input(
                                 value=value
                                 schema_type=schema_type.get_value()
                                 on_change=on_change
-
                                 r#type=input_type.get_value()
                                 disabled=disabled
                                 id=format!(
@@ -155,7 +156,6 @@ pub fn condition_input(
                                         }),
                                     idx,
                                 )
-
                                 class="w-[450px]"
                                 name=""
                                 operator=Some(operator.clone())
@@ -164,15 +164,18 @@ pub fn condition_input(
                     })
                     .collect_view()} <Show when=move || allow_remove>
                     <button
-                        class="btn btn-ghost btn-circle btn-sm mt-1"
+                        class="btn btn-ghost btn-circle btn-sm"
                         disabled=disabled
                         on:click=move |_| {
                             on_remove.call(condition.with_value(|v| v.variable.clone()));
                         }
                     >
-
                         <i class="ri-delete-bin-2-line text-2xl font-bold"></i>
                     </button>
+                </Show> <Show when=move || !allow_remove>
+                    <div class="tooltip" data-tip=tooltip_text.clone()>
+                        <i class="ri-information-line text-2xl"></i>
+                    </div>
                 </Show>
             </div>
         </div>
@@ -204,7 +207,6 @@ where
             .map(|condition| condition.variable.clone())
             .collect::<HashSet<String>>(),
     );
-    let (context_rs, context_ws) = create_signal(context.clone());
 
     let dimensions = StoredValue::new(dimensions);
     let mandatory_dimensions = StoredValue::new(
@@ -216,19 +218,91 @@ where
             .collect::<HashSet<String>>(),
     );
 
+    let (dependent_dimension_locks_rs, dependent_dimension_locks_ws) =
+        create_signal(used_dimensions_rs.get());
+
+    let update_context_with_dependent_dimensions =
+        move |dimension_info: &DimensionWithMandatory,
+              update_context_callback: &dyn Fn(String, SchemaType)| {
+            if let Some(dependency_graph) = dimension_info
+                .dependency_graph
+                .clone()
+                .and_then(|val| serde_json::from_value::<Map<String, Value>>(val).ok())
+            {
+                let dependent_dimensions = dependency_graph
+                    .keys()
+                    .filter(|key| **key != dimension_info.dimension.clone())
+                    .cloned()
+                    .collect::<Vec<String>>();
+                dependent_dimensions.iter().for_each(|dependent| {
+                    if !used_dimensions_rs.get().contains(dependent) {
+                        used_dimensions_ws.update(|value: &mut HashSet<String>| {
+                            value.insert(dependent.clone());
+                        });
+                        if let Some(Ok(r#type)) = dimension_map
+                            .get_value()
+                            .get(dependent)
+                            .map(|d| SchemaType::try_from(d.schema.clone()))
+                        {
+                            update_context_callback(dependent.to_string(), r#type);
+                        }
+                    }
+                    dependent_dimension_locks_ws.update(|value| {
+                        value.insert(dependent.clone());
+                    });
+                });
+            }
+        };
+
+    let context_data = {
+        let context = RefCell::new(context.clone());
+        if !disabled {
+            dimensions
+                .get_value()
+                .into_iter()
+                .filter(|dim| dim.mandatory)
+                .for_each(|dimension_info| {
+                    if !used_dimensions_rs.get().contains(&dimension_info.dimension) {
+                        used_dimensions_ws.update(|value: &mut HashSet<String>| {
+                            value.insert(dimension_info.dimension.clone());
+                        });
+                        context.borrow_mut().push(
+                            Condition::new_with_default_expression(
+                                dimension_info.dimension.clone(),
+                                SchemaType::try_from(dimension_info.schema.clone())
+                                    .unwrap(),
+                            ),
+                        );
+                    }
+                    // Not checking for used_dimensions_rs here as the dependent dimensions may not be a part of the context
+                    update_context_with_dependent_dimensions(
+                        &dimension_info,
+                        &|d_name, r#type| {
+                            context.borrow_mut().push(
+                                Condition::new_with_default_expression(d_name, r#type),
+                            );
+                        },
+                    );
+                });
+        }
+        context.into_inner()
+    };
+
+    let (context_rs, context_ws) = create_signal(context_data);
+
     let last_idx = create_memo(move |_| context_rs.get().len().max(1) - 1);
 
     create_effect(move |_| {
-        let f_context = context_rs.get(); // context will now be a Value
+        let f_context = context_rs.get();
         logging::log!("Context form effect {:?}", f_context);
-        handle_change(f_context.clone()); // handle_change now expects Value
+        handle_change(f_context.clone());
     });
 
     let on_select_dimension =
         Callback::new(move |selected_dimension: DimensionWithMandatory| {
-            let dimension_name = selected_dimension.dimension;
+            let dimension_name = selected_dimension.dimension.clone();
 
-            if let Ok(r#type) = SchemaType::try_from(selected_dimension.schema) {
+            if let Ok(r#type) = SchemaType::try_from(selected_dimension.schema.clone()) {
                 used_dimensions_ws.update(|value: &mut HashSet<String>| {
                     value.insert(dimension_name.clone());
                 });
@@ -238,8 +312,17 @@ where
                         r#type,
                     ))
                 });
+                update_context_with_dependent_dimensions(
+                    &selected_dimension,
+                    &|d_name, r#type| {
+                        context_ws.update(|value| {
+                            value.push(Condition::new_with_default_expression(
+                                d_name, r#type,
+                            ))
+                        });
+                    },
+                );
             }
-            // TODO show alert in case of invalid dimension
         });
 
     let on_operator_change =
@@ -266,7 +349,51 @@ where
         context_ws.update(|v| {
             v.remove(idx);
         });
+        if let Some(removed_dimension) = dimensions
+            .get_value()
+            .iter()
+            .find(|d| d.dimension == d_name)
+        {
+            if let Some(immediate_childrens) =
+                removed_dimension.immediate_childrens.as_ref()
+            {
+                immediate_childrens.iter().for_each(|dependent| {
+                    dependent_dimension_locks_ws.update(|value| {
+                        value.remove(dependent);
+                    });
+                })
+            }
+        }
     });
+
+    let get_tool_tip_text = move |condition: StoredValue<Condition>| {
+        let variable = condition.get_value().variable;
+        if mandatory_dimensions.get_value().contains(&variable) {
+            return "Mandatory Dimension".to_string();
+        }
+        if dependent_dimension_locks_rs.get().contains(&variable) {
+            if let Some(parents) = dimension_map
+                .get_value()
+                .get(&variable)
+                .and_then(|d| d.immediate_parents.as_ref())
+            {
+                if parents
+                    .iter()
+                    .all(|parent| used_dimensions_rs.get().contains(parent))
+                {
+                    return format!(
+                        "Dependent on: {}",
+                        parents
+                            .iter()
+                            .map(ToString::to_string)
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    );
+                }
+            }
+        }
+        "Blocked Removal".to_string()
+    };
 
     view! {
         <div class="form-control w-full">
@@ -301,12 +428,13 @@ where
                                 .collect::<Vec<(usize, Condition)>>()
                         }
 
-                        key=|(idx, condition)| {
+                        key=move |(idx, condition)| {
                             format!(
-                                "{}-{}-{}",
+                                "{}-{}-{}-{}",
                                 condition.variable,
                                 idx,
                                 condition.expression.to_operator(),
+                                dependent_dimension_locks_rs.get().contains(&condition.variable),
                             )
                         }
 
@@ -326,7 +454,10 @@ where
                             }
                             let schema_type = store_value(schema_type.unwrap());
                             let allow_remove = !disabled
-                                && !mandatory_dimensions.get_value().contains(&condition.variable);
+                                && !mandatory_dimensions.get_value().contains(&condition.variable)
+                                && !dependent_dimension_locks_rs
+                                    .get()
+                                    .contains(&condition.variable);
                             let input_type = store_value(
                                 InputType::from((
                                     schema_type.get_value(),
@@ -346,6 +477,7 @@ where
                                         Expression::from((schema_type.get_value(), operator)),
                                     ))
                             };
+                            let tooltip_text = get_tool_tip_text(condition);
                             view! {
                                 <ConditionInput
                                     disabled
@@ -357,6 +489,7 @@ where
                                     on_remove
                                     on_value_change
                                     on_operator_change
+                                    tooltip_text
                                 />
                                 {move || {
                                     if last_idx.get() != idx {
