@@ -8,8 +8,6 @@ use aws.protocols#restJson1
 resource Organisation {
     identifiers: {
         id: String
-        workspace_id: String
-        org_id: String
     }
     properties: {
         name: String
@@ -18,10 +16,10 @@ resource Organisation {
         contact_phone: String
         created_by: String
         admin_email: String
-        status: String
+        status: OrgStatus
         sector: String
-        created_at: Timestamp
-        updated_at: Timestamp
+        created_at: DateTime
+        updated_at: DateTime
         updated_by: String
     }
     create: CreaterOrganisation
@@ -31,7 +29,13 @@ resource Organisation {
 
 }
 
-structure CreateOrganisationRequest for Organisation with [WorkspaceMixin] {
+enum OrgStatus {
+    Active = "Active",
+    Inactive = "Inactive",
+    PendingKyb = "PendingKyb"
+}
+
+structure CreateOrganisationRequest for Organisation {
     $country_code
 
     $contact_email
@@ -49,7 +53,7 @@ structure CreateOrganisationRequest for Organisation with [WorkspaceMixin] {
 }
 
 
-structure UpdateOrganisationRequest for Organisation with [WorkspaceMixin] {
+structure UpdateOrganisationRequest for Organisation {
 
     @httpLabel
     @required
@@ -138,7 +142,7 @@ operation CreaterOrganisation {
 @readonly
 @http(method: "GET", uri: "/superposition/organisations/{id}")
 operation GetOrganisation {
-    input := for Organisation with [WorkspaceMixin]{
+    input := for Organisation {
         @httpLabel
         @required
         $id
@@ -166,7 +170,7 @@ operation UpdateOrganisation {
 @readonly
 @http(method: "GET", uri: "/superposition/organisations")
 operation ListOrganisation {
-    input :=  for Organisation with [WorkspaceMixin]{
+    input :=  for Organisation {
         @httpQuery("page")
         page: Long
 

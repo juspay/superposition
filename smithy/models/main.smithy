@@ -49,6 +49,15 @@ structure WorkspaceMixin {
 }
 
 @mixin
+structure CreateWorkspaceMixin {
+    @required
+    @httpHeader("x-org-id")
+    @default("juspay")
+    org_id: String
+}
+
+
+@mixin
 structure PaginatedResponse {
     total_pages: Integer
     total_items: Integer

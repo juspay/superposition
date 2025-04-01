@@ -7,19 +7,19 @@ use aws.protocols#restJson1
 
 resource Experiments {
     identifiers: {
-        id: String
         workspace_id: String
         org_id: String
     }
     properties: {
-        created_at: Timestamp
+        id: String
+        created_at: DateTime
         created_by: String
-        last_modified: Timestamp
+        last_modified: DateTime
         name: String
         override_keys: ListOverrideKeys
-        status: String
+        status: ExperimentStatusType
         traffic_percentage: Integer
-        context: Document
+        context: Condition
         variants: ListVariant
         last_modified_by: String
         chosen_variant: String
@@ -28,9 +28,7 @@ resource Experiments {
     }
 
     read: GetExperiment
-    list: ListExperiment
-    create: CreateExperiment
-    operations: [ConcludeExperiment, DiscardExperiment, RampExperiment, UpdateOverridesExperiment]
+    operations: [ListExperiment, CreateExperiment,ConcludeExperiment, DiscardExperiment, RampExperiment, UpdateOverridesExperiment, ApplicableVariants]
 
 }
 
@@ -38,8 +36,17 @@ list ListOverrideKeys {
     member: String
 }
 
-list ListOverride {
-    member: Document
+
+enum ExperimentStatusType {
+    CREATED,
+    CONCLUDED,
+    INPROGRESS,
+    DISCARDED,
+}
+
+enum VariantType {
+    CONTROL,
+    EXPERIMENTAL,
 }
 
 structure Variant {
@@ -47,18 +54,25 @@ structure Variant {
     id: String
 
     @required
-    variant_type: String
+    variant_type: VariantType
 
     context_id: String
     override_id: String
 
     @required
-    overrides: ListOverride
+    overrides: Document
 }
 
 list ListVariant {
     member: Variant
 }
+
+structure ApplicableVariantsOutput {
+    @required
+    @notProperty
+    applicable_variants: ListVariant
+}
+
 
 structure ExperimentResponse for Experiments {
 
@@ -95,7 +109,6 @@ structure ExperimentResponse for Experiments {
     @required
     $last_modified_by
     
-    @required
     $chosen_variant
     
     @required
@@ -142,7 +155,8 @@ structure UpdateOverrideRequest for Experiments with [WorkspaceMixin] {
 
     //it does not support same field name with to data types, conflicting with resource
     @required
-    $variants
+    @notProperty
+    variant_list: ListVariantUpdateRequest
     
     $description
 
@@ -152,9 +166,10 @@ structure UpdateOverrideRequest for Experiments with [WorkspaceMixin] {
 }
 
 
-structure CreateExperimentResponse for Experiments{
+structure CreateExperimentResponse{
     @required
-    $id
+    @notProperty
+    experiment_id: String
 }
 
 list ExperimentList {
@@ -164,12 +179,15 @@ list ExperimentList {
 structure ExperimentListResponse for Experiments{
 
     @required
+    @notProperty
     total_pages: Long
 
     @required
+    @notProperty
     total_items: Long
 
     @required
+    @notProperty
     data: ExperimentList
     
 }
@@ -264,18 +282,30 @@ operation GetExperiment {
 @readonly
 @http(method: "GET", uri: "/experiments")
 operation ListExperiment {
-    input :=  for Experiments with [WorkspaceMixin] {
+    input :=  with [WorkspaceMixin] {
         @httpQuery("page")
+        @notProperty
         page: Long
 
         @httpQuery("count")
+        @notProperty
         count: Long
 
         @httpQuery("all")
+        @notProperty
         all: Boolean
     }
 
     output : ExperimentListResponse
 }
 
-//cannot generate ApplicableVariants
+
+
+@readonly
+@http(method: "GET", uri: "/experiments/v2/applicable-variants")
+operation ApplicableVariants {
+    input := with [WorkspaceMixin] {
+    }
+
+    output : ApplicableVariantsOutput
+}

@@ -230,6 +230,7 @@ pub struct VariantUpdateRequest {
 
 #[derive(Deserialize, Debug)]
 pub struct OverrideKeysUpdateRequest {
+    #[serde(alias = "variant_list")]
     pub variants: Vec<VariantUpdateRequest>,
     pub description: Option<String>,
     #[serde(default = "default_change_reason")]
@@ -252,4 +253,9 @@ pub struct AuditQueryFilters {
     pub username: Option<String>,
     pub count: Option<i64>,
     pub page: Option<i64>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ApplicableVriantsOutput  {
+    pub applicable_variants: Vec<Variant>
 }
