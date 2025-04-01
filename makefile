@@ -108,6 +108,7 @@ ifdef CI
 endif
 setup: $(SETUP_DEPS)
 	npm ci
+	cd $(SMITHY_CLIENT_DIR)/ts && npm ci
 
 kill:
 	-@pkill -f target/debug/superposition &
