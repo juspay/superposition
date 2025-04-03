@@ -7,6 +7,7 @@ import           Client             (cacStartPolling, createCacClient,
                                      getFullConfigStateWithFilter,
                                      getResolvedConfig)
 import           Control.Concurrent
+import           Data.Aeson
 import           Prelude
 
 main :: IO ()
@@ -21,7 +22,7 @@ main = do
         Right client -> do
             config          <- getFullConfigStateWithFilter client Nothing Nothing
             lastModified    <- getCacLastModified client
-            overrides       <- getResolvedConfig client "{\"country\": \"India\"}" $ Just ["country_image_url", "hyperpay_version"]
+            overrides :: (Either String Value) <- getResolvedConfig client "{\"country\": \"India\"}" $ Just ["country_image_url", "hyperpay_version"]
             defaults        <- getDefaultConfig client $ Just ["country_image_url", "hyperpay_version"]
             filteredConfig  <- getFullConfigStateWithFilter client (Just "{\"os\": \"android\"}") $ Just ["hyperpay"]
             print config

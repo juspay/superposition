@@ -15,8 +15,10 @@ module Client
 ) where
 
 import           Data.Aeson
+import           Data.Text.Encoding    (encodeUtf8)
 import           Data.Functor          (($>))
 import           Data.List             (intercalate)
+import           Data.Text (pack)
 import           Foreign.C.String      (CString, newCString, peekCString)
 import           Foreign.C.Types       (CInt (CInt), CULong (..))
 import           Foreign.ForeignPtr
@@ -131,7 +133,7 @@ getFullConfigStateWithFilter client mbFilters mbPrefix = do
         then Left <$> getError
         else do
             fptrConfig <- newForeignPtr c_free_string config
-            Right . toJSON <$> withForeignPtr fptrConfig peekCString
+            (maybe (Left "Failed to decode resolved config") Right . decodeStrict <$> encodeUtf8) . pack <$> withForeignPtr fptrConfig peekCString
 
 getCacLastModified :: ForeignPtr CacClient -> IO (Either Error String)
 getCacLastModified client = do
@@ -142,7 +144,7 @@ getCacLastModified client = do
             fptrLastModified <- newForeignPtr c_free_string lastModified
             Right <$> withForeignPtr fptrLastModified peekCString
 
-getResolvedConfigWithStrategy :: ForeignPtr CacClient -> String -> Maybe [String] -> MergeStrategy -> IO (Either Error Value)
+getResolvedConfigWithStrategy :: FromJSON a => ForeignPtr CacClient -> String -> Maybe [String] -> MergeStrategy -> IO (Either Error a)
 getResolvedConfigWithStrategy client context mbKeys mergeStrat = do
     cContext    <- newCString context
     cMergeStrat <- newCString (show mergeStrat)
@@ -155,7 +157,8 @@ getResolvedConfigWithStrategy client context mbKeys mergeStrat = do
         then Left <$> getError
         else do
             fptrOverrides <- newForeignPtr c_free_string overrides
-            Right . toJSON <$> withForeignPtr fptrOverrides peekCString
+            (maybe (Left "Failed to decode resolved config") Right . decodeStrict <$> encodeUtf8) . pack <$> withForeignPtr fptrOverrides peekCString
+
 
 getDefaultConfig :: ForeignPtr CacClient -> Maybe [String] -> IO (Either Error Value)
 getDefaultConfig client mbKeys = do
@@ -170,5 +173,5 @@ getDefaultConfig client mbKeys = do
             fptrOverrides <- newForeignPtr c_free_string overrides
             Right . toJSON <$> withForeignPtr fptrOverrides peekCString
 
-getResolvedConfig :: ForeignPtr CacClient -> String -> Maybe [String] -> IO (Either Error Value)
+getResolvedConfig :: FromJSON a => ForeignPtr CacClient -> String -> Maybe [String] -> IO (Either Error a)
 getResolvedConfig client context mbKeys = getResolvedConfigWithStrategy client context mbKeys MERGE
