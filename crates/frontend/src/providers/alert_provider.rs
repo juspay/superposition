@@ -1,4 +1,4 @@
-use std::time::Duration;
+use cfg_if::cfg_if;
 
 use leptos::*;
 
@@ -10,23 +10,28 @@ pub struct AlertQueue {
     pub alerts: Vec<Alert>,
 }
 
-fn enqueue(alert: Alert, set_queue: WriteSignal<AlertQueue>) {
-    set_queue.update(|v| {
-        v.counter += 1;
-        v.alerts.push(alert.clone());
-    });
+fn enqueue(_alert: Alert, _set_queue: WriteSignal<AlertQueue>) {
+    cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            use std::time::Duration;
 
-    set_timeout(
-        move || {
-            set_queue.update(|v| {
-                let pos = v.alerts.iter().position(|item| item.id == alert.id);
-                if let Some(i) = pos {
-                    v.alerts.remove(i);
-                }
-            })
-        },
-        Duration::from_millis(alert.timeout),
-    )
+            _set_queue.update(|v| {
+                v.counter += 1;
+                v.alerts.push(_alert.clone());
+            });
+            set_timeout(
+                move || {
+                    _set_queue.update(|v| {
+                        let pos = v.alerts.iter().position(|item| item.id == _alert.id);
+                        if let Some(i) = pos {
+                            v.alerts.remove(i);
+                        }
+                    })
+                },
+                Duration::from_millis(_alert.timeout),
+            )
+        } else {}
+    }
 }
 
 pub fn enqueue_alert_default(text: String) {
