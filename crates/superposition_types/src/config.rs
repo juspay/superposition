@@ -598,3 +598,35 @@ pub(crate) mod tests {
         );
     }
 }
+
+#[derive(Deserialize, Serialize, Clone, Deref, Debug, PartialEq, Into, AsRef)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
+pub struct DependencyGraph(Map<String, Value>);
+
+impl DependencyGraph {
+    pub fn new() -> Self {
+        DependencyGraph(Map::new())
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn insert<K, V>(&mut self, key: K, value: V) -> Option<Value>
+    where
+        K: Into<String>,
+        V: Into<Value>,
+    {
+        self.0.insert(key.into(), value.into())
+    }
+}
+
+impl Default for DependencyGraph {
+    fn default() -> Self {
+        DependencyGraph(Map::new())
+    }
+}

@@ -8,13 +8,14 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::{Map, Value};
 use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
 use superposition_macros::{unexpected_error, validation_error};
+use superposition_types::DependencyGraph;
 use superposition_types::{
     api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
     database::{
         models::cac::{Context, FunctionCode, FunctionTypes},
         schema::{contexts, default_configs::dsl, dimensions},
     },
-    result as superposition, Cac, Condition, DBConnection, Overrides, User,
+    result as superposition, Cac, DBConnection, Overrides, User,
 };
 
 use crate::validation_functions::execute_fn;
@@ -41,10 +42,9 @@ pub fn hash(val: &Value) -> String {
 }
 
 pub fn validate_condition_with_mandatory_dimensions(
-    context: &Condition,
+    context_map: &Map<String, Value>,
     mandatory_dimensions: &Vec<String>,
 ) -> superposition::Result<()> {
-    let context_map = extract_dimensions(context)?;
     let dimensions_list: Vec<String> = context_map.keys().cloned().collect();
     let all_mandatory_present = mandatory_dimensions
         .iter()
@@ -60,31 +60,20 @@ pub fn validate_condition_with_mandatory_dimensions(
 
 pub fn validate_condition_with_dependent_dimensions(
     conn: &mut DBConnection,
-    context: &Condition,
+    context_map: &Map<String, Value>,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     use dimensions::dsl;
-    let context_map = extract_dimensions(context)?;
     let keys = context_map.keys();
-    let dependency_lists: Vec<Option<Value>> = dsl::dimensions
+    let dependency_lists: Vec<DependencyGraph> = dsl::dimensions
         .filter(dsl::dimension.eq_any(keys))
         .select(dsl::dependency_graph)
         .schema_name(schema_name)
-        .load::<Option<Value>>(conn)?;
+        .load::<DependencyGraph>(conn)?;
     let dependency_list: HashSet<String> = dependency_lists
         .iter()
-        .flatten()
-        .map(|val| {
-            val.as_object().ok_or_else(|| {
-                unexpected_error!(
-                    "Failed to convert the dependency list to object : {:?}.",
-                    val,
-                )
-            })
-        })
-        .collect::<Result<Vec<_>, _>>()?
-        .into_iter()
-        .flat_map(|obj| obj.keys().cloned())
+        .flat_map(|obj| obj.keys())
+        .cloned()
         .collect();
 
     let all_dependencies_present = dependency_list
@@ -101,12 +90,11 @@ pub fn validate_condition_with_dependent_dimensions(
 
 pub fn validate_condition_with_functions(
     conn: &mut DBConnection,
-    context: &Condition,
+    context_map: &Map<String, Value>,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     use dimensions::dsl;
-    let context = extract_dimensions(context)?;
-    let dimensions_list: Vec<String> = context.keys().cloned().collect();
+    let dimensions_list: Vec<String> = context_map.keys().cloned().collect();
     let keys_function_array: Vec<(String, Option<String>)> = dsl::dimensions
         .filter(dsl::dimension.eq_any(dimensions_list))
         .select((dsl::dimension, dsl::function_name))
@@ -119,7 +107,7 @@ pub fn validate_condition_with_functions(
 
     let dimension_functions_map =
         get_functions_map(conn, new_keys_function_array, schema_name)?;
-    for (key, value) in context.iter() {
+    for (key, value) in context_map.iter() {
         if let Some(functions_map) = dimension_functions_map.get(key) {
             if let (function_name, Some(function_code)) =
                 (functions_map.name.clone(), functions_map.code.clone())
@@ -282,14 +270,15 @@ pub fn create_ctx_from_put_req(
     let workspace_settings = get_workspace(schema_name, conn)?;
 
     let change_reason = req.change_reason.clone();
-    // Remove this after the chenges for mandatory dimensions are done
+    let context_map = extract_dimensions(&ctx_condition)?;
+
     validate_condition_with_mandatory_dimensions(
-        &ctx_condition,
+        &context_map,
         &workspace_settings.mandatory_dimensions.unwrap_or_default(),
     )?;
-    validate_condition_with_dependent_dimensions(conn, &ctx_condition, schema_name)?;
+    validate_condition_with_dependent_dimensions(conn, &context_map, schema_name)?;
     validate_override_with_default_configs(conn, &r_override, schema_name)?;
-    validate_condition_with_functions(conn, &ctx_condition, schema_name)?;
+    validate_condition_with_functions(conn, &context_map, schema_name)?;
     validate_override_with_functions(conn, &r_override, schema_name)?;
 
     let dimension_data = get_dimension_data(conn, schema_name)?;

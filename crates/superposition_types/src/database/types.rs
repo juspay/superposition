@@ -1,3 +1,4 @@
+use crate::config::DependencyGraph;
 use chrono::{offset::Utc, DateTime, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -15,9 +16,9 @@ pub struct DimensionWithMandatory {
     pub last_modified_at: NaiveDateTime,
     pub last_modified_by: String,
     pub mandatory: bool,
-    pub dependency_graph: Option<Value>,
-    pub immediate_parents: Option<Vec<String>>,
-    pub immediate_childrens: Option<Vec<String>>,
+    pub dependency_graph: DependencyGraph,
+    pub immediate_parents: Vec<String>,
+    pub immediate_childrens: Vec<String>,
     pub description: String,
     pub change_reason: String,
 }

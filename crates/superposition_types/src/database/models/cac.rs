@@ -19,7 +19,7 @@ use diesel::{
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
-use crate::{Cac, Condition, Contextual, Overridden, Overrides};
+use crate::{config::DependencyGraph, Cac, Condition, Contextual, Overridden, Overrides};
 
 #[cfg(feature = "diesel_derives")]
 use super::super::schema::{
@@ -80,9 +80,9 @@ pub struct Dimension {
     pub position: Position,
     pub description: String,
     pub change_reason: String,
-    pub dependency_graph: Option<Value>,
-    pub immediate_parents: Option<Vec<String>>,
-    pub immediate_childrens: Option<Vec<String>>,
+    pub dependency_graph: DependencyGraph,
+    pub immediate_parents: Vec<String>,
+    pub immediate_childrens: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

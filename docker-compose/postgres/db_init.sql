@@ -1221,11 +1221,11 @@ ALTER TABLE localorg_dev.functions ADD COLUMN function_type public.FUNCTION_TYPE
 COMMIT
 
 ALTER TABLE localorg_test.dimensions 
-ADD COLUMN dependency_graph JSON,
-ADD COLUMN immediate_parents TEXT[],
-ADD COLUMN immediate_childrens TEXT[];
+ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
+ADD COLUMN immediate_parents TEXT[] default '{}' NOT NULL,
+ADD COLUMN immediate_childrens TEXT[] default '{}' NOT NULL;
 
 ALTER TABLE localorg_dev.dimensions 
-ADD COLUMN dependency_graph JSON,
-ADD COLUMN immediate_parents TEXT[],
-ADD COLUMN immediate_childrens TEXT[];
+ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
+ADD COLUMN immediate_parents TEXT[] default '{}' NOT NULL,
+ADD COLUMN immediate_childrens TEXT[] default '{}' NOT NULL;
