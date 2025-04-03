@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.48.0 - 2025-04-03
+#### Features
+- add autocomplete functions - (1f39003) - Kartik
+#### Miscellaneous Chores
+- **(deps)** bump axios in /crates/context_aware_config - (530a917) - dependabot[bot]
+
+- - -
+
 ## context_aware_config-v0.47.0 - 2025-03-10
 #### Bug Fixes
 - function bug fix (#433) - (6041461) - PRATIK MISHRA

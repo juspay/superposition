@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.24.0 - 2025-04-03
+#### Bug Fixes
+- Create experiment - (34b80cc) - ayush.jain@juspay.in
+#### Features
+- add autocomplete functions - (1f39003) - Kartik
+
+- - -
+
 ## frontend-v0.23.0 - 2025-03-26
 #### Bug Fixes
 - removing `and` block if context is empty - (dfd5cc2) - Shubhranshu Sanjeev

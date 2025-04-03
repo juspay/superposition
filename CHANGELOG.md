@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.69.0 - 2025-04-03
+### Package updates
+- frontend bumped to frontend-v0.24.0
+- context_aware_config bumped to context_aware_config-v0.48.0
+- superposition_types bumped to superposition_types-v0.15.0
+### Global changes
+#### Bug Fixes
+- config version alter query - (a4ddf7c) - Kartik
+#### Features
+- add autocomplete functions - (1f39003) - Kartik
+
+- - -
+
 ## v0.68.0 - 2025-03-26
 ### Package updates
 - experimentation_client bumped to experimentation_client-v0.12.0
