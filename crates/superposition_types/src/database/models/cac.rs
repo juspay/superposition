@@ -82,7 +82,7 @@ pub struct Dimension {
     pub description: String,
     pub change_reason: String,
     pub dependency_graph: DependencyGraph,
-    pub immediate_parents: Vec<String>,
+    pub dependents: Vec<String>,
     pub immediate_childrens: Vec<String>,
 }
 

@@ -83,7 +83,7 @@ async fn create(
         description: create_req.description,
         change_reason: create_req.change_reason,
         dependency_graph: DependencyGraph::default(),
-        immediate_parents: Vec::new(),
+        dependents: Vec::new(),
         immediate_childrens: create_req.dependent_dimensions.unwrap_or_default(),
     };
 

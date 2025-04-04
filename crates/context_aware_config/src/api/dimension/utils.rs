@@ -220,10 +220,7 @@ pub fn validate_and_update_dimension_hierarchy(
     )?;
 
     // Update the ancestor's dimension_graphs of the parent dimension
-    update_parent_dependency_graphs_dfs(
-        &dimension_data.immediate_parents,
-        &mut dimensions_map,
-    )?;
+    update_parent_dependency_graphs_dfs(&dimension_data.dependents, &mut dimensions_map)?;
 
     update_dimensions_in_db(
         &mut dimensions_map,
@@ -246,8 +243,8 @@ pub fn validate_dimension_deletability(
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     // If someone is dependent on this i.e. check the parents, then don't let it be deleted
-    if !dimension_data.immediate_parents.is_empty() {
-        let parent_dimensions = dimension_data.immediate_parents.clone();
+    if !dimension_data.dependents.is_empty() {
+        let parent_dimensions = dimension_data.dependents.clone();
         let parent_list = parent_dimensions.join(", ");
 
         return Err(bad_argument!(
@@ -257,7 +254,7 @@ pub fn validate_dimension_deletability(
         ));
     }
 
-    // If this is dependent on someone i.e. check the children, then clean up the dependencies
+    // If this is dependent on someone i.e. check the children, then clean up the immediate_childrens
     let immediate_dependency_list = dimension_data.immediate_childrens.clone();
 
     if !immediate_dependency_list.is_empty() {
@@ -268,7 +265,7 @@ pub fn validate_dimension_deletability(
             &immediate_dependency_list,
             &mut dimensions_map,
         )?;
-        // No need to Remove the dimension's dependencies to [] and dependency_graph to {} and Recompute the dimension's dependency graph as we are already deleting it 🥲
+        // No need to Remove the dimension's immediate_childrens to [] and dependency_graph to {} and Recompute the dimension's dependency graph as we are already deleting it 🥲
         // No need to update the parent's dependency graph as there shouldn't be any dependents, if allowed till here
         update_dimensions_in_db(
             &mut dimensions_map,
@@ -318,7 +315,7 @@ fn update_parent_dependency_graphs_dfs(
 
         // Recursively update ancestors' dependency graphs
         update_parent_dependency_graphs_dfs(
-            &parent_dimension.immediate_parents,
+            &parent_dimension.dependents,
             dimensions_map,
         )?;
     }
@@ -391,7 +388,7 @@ fn build_dependency_graph_and_update_childrens_parent(
         .map(|(dimension_data, _)| dimension_data.clone())
         .collect::<Vec<Dimension>>();
 
-    // Add child dependencies to the new parent dependency list and update the dependents of the child
+    // Add child immediate_childrens to the new parent dependency list and update the dependents of the child
     for dependent_dimension in dependent_dimensions_data {
         new_parent_dependency_graph.insert_dependents(&dependent_dimension);
 
@@ -430,7 +427,7 @@ fn update_parent_references_for_removed_children(
         .collect::<Vec<Dimension>>();
 
     for children_data in children_to_remove_data {
-        let mut child_parents = children_data.immediate_parents.clone();
+        let mut child_parents = children_data.dependents.clone();
         child_parents.retain(|parent| parent != dimension_name);
         update_dependents(&children_data.dimension, child_parents, dimensions_map)?;
     }
@@ -442,7 +439,7 @@ fn update_parent_relationships(
     parent_dimension: &str,
     dimensions_map: &mut HashMap<String, (Dimension, bool)>,
 ) -> superposition::Result<()> {
-    let mut parents = dependent_dimension.immediate_parents.clone();
+    let mut parents = dependent_dimension.dependents.clone();
 
     // Add parent if not already present
     if !parents.contains(&parent_dimension.to_string()) {
@@ -459,7 +456,7 @@ fn update_dependents(
 ) -> superposition::Result<()> {
     // Update the dependents of the dimension in dimensions_map and make is_updated true
     if let Some(dimension_data) = dimensions_map.get_mut(dimension_name) {
-        dimension_data.0.immediate_parents = parents.clone();
+        dimension_data.0.dependents = parents.clone();
         dimension_data.1 = true;
         Ok(())
     } else {

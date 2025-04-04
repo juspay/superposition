@@ -2,4 +2,4 @@
 ALTER TABLE public.dimensions 
 DROP COLUMN dependency_graph,
 DROP COLUMN dependents,
-DROP COLUMN dependencies;
+DROP COLUMN immediate_childrens;

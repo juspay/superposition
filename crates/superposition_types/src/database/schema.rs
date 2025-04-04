@@ -69,7 +69,7 @@ diesel::table! {
         description -> Text,
         change_reason -> Text,
         dependency_graph -> Json,
-        immediate_parents -> Array<Text>,
+        dependents -> Array<Text>,
         immediate_childrens -> Array<Text>,
     }
 }
