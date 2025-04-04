@@ -9,8 +9,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use strum::IntoEnumIterator;
 use superposition_types::{
-    api::default_config::DefaultConfigFilters,
-    custom_query::PaginationParams,
+    api::{
+        default_config::DefaultConfigFilters,
+        experiments::{ExperimentListFilters, ExperimentResponse},
+    },
+    custom_query::{CommaSeparatedQParams, PaginationParams},
     database::{
         models::{cac::DefaultConfig, experimentation::ExperimentStatusType},
         types::DimensionWithMandatory,
@@ -32,19 +35,19 @@ use crate::{
         stat::Stat,
         table::{types::TablePaginationProps, Table},
     },
-    types::StatusTypes,
+    logic::Condition,
 };
 
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
-use crate::types::{ExperimentListFilters, ExperimentResponse, VariantFormTs};
+use crate::types::VariantFormTs;
 use crate::utils::update_page_direction;
 use crate::{
     api::{fetch_default_config, fetch_dimensions, fetch_experiments},
     types::{OrganisationId, Tenant},
 };
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 struct CombinedResource {
     experiments: PaginatedResponse<ExperimentResponse>,
     dimensions: Vec<DimensionWithMandatory>,
@@ -58,7 +61,19 @@ fn experiment_table_filter_widget(
 ) -> impl IntoView {
     let filters = filters_rws.get_untracked();
     let filters_buffer_rws = create_rw_signal(filters.clone());
-    let context = filters.context.unwrap_or_default();
+    let context: Conditions = filters
+        .context
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| {
+                    v.parse()
+                        .ok()
+                        .and_then(|v| Condition::try_from_condition_json(&v).ok())
+                })
+                .collect()
+        })
+        .map(Conditions)
+        .unwrap_or_default();
 
     let dim = combined_resource.dimensions;
 
@@ -66,7 +81,7 @@ fn experiment_table_filter_widget(
         move |checked: bool, filter_status: ExperimentStatusType| {
             let status_types = filters_buffer_rws.get().status.unwrap_or_default();
             let mut old_status_vector: HashSet<ExperimentStatusType> =
-                HashSet::from_iter(status_types.clone().0);
+                HashSet::from_iter(status_types.0);
 
             if checked {
                 old_status_vector.insert(filter_status);
@@ -75,7 +90,7 @@ fn experiment_table_filter_widget(
             }
             let new_status_vector = old_status_vector.into_iter().collect();
             let filters = ExperimentListFilters {
-                status: Some(StatusTypes(new_status_vector)),
+                status: Some(CommaSeparatedQParams(new_status_vector)),
                 ..filters_buffer_rws.get()
             };
             filters_buffer_rws.set(filters)
@@ -104,7 +119,7 @@ fn experiment_table_filter_widget(
                             let current_filters = filters_buffer_rws.get();
                             filters_buffer_rws
                                 .set(ExperimentListFilters {
-                                    context: Some(context),
+                                    context: Some(CommaSeparatedQParams(context.iter().map(|v| v.to_condition_json().to_string()).collect::<Vec<_>>())),
                                     ..current_filters
                                 });
                         }
@@ -234,14 +249,14 @@ fn experiment_table_filter_widget(
                             type="text"
                             id="experiment-id-filter"
                             class="input input-bordered rounded-md resize-y w-full max-w-md"
-                            value=move || filters_rws.get().experiment_ids
+                            value=move || filters_rws.get().experiment_ids.map(|d| d.to_string())
                             placeholder="eg: 7259558160762015744"
                             on:change=move |event| {
-                                let id = event_target_value(&event);
-                                let id = if id.is_empty() { None } else { Some(id) };
+                                let ids = event_target_value(&event);
+                                let ids = (!ids.is_empty()).then(|| serde_json::from_str(&ids).ok()).flatten();
                                 filters_buffer_rws
                                     .update(|filter| {
-                                        filter.experiment_ids = id;
+                                        filter.experiment_ids = ids;
                                     });
                             }
                         />
@@ -255,13 +270,13 @@ fn experiment_table_filter_widget(
                             id="experiment-user-filter"
                             class="input input-bordered rounded-md resize-y w-full max-w-md"
                             placeholder="eg: user@superposition.io"
-                            value=move || filters_rws.get().created_by
+                            value=move || filters_rws.get().created_by.map(|d| d.to_string())
                             on:change=move |event| {
                                 let user_names = event_target_value(&event);
                                 let user_names = if user_names.is_empty() {
                                     None
                                 } else {
-                                    Some(user_names)
+                                    serde_json::from_str(&user_names).ok()
                                 };
                                 let filters = filters_buffer_rws.get();
                                 let filters = ExperimentListFilters {

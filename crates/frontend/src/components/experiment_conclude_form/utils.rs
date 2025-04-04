@@ -1,7 +1,9 @@
-use leptos::logging::log;
-use serde_json::json;
+use superposition_types::{
+    api::experiments::{ConcludeExperimentRequest, ExperimentResponse},
+    database::models::ChangeReason,
+};
 
-use crate::{types::ExperimentResponse, utils::get_host};
+use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
 
 pub async fn conclude_experiment(
     exp_id: String,
@@ -9,23 +11,22 @@ pub async fn conclude_experiment(
     tenant: &String,
     org_id: &String,
 ) -> Result<ExperimentResponse, String> {
-    let client = reqwest::Client::new();
+    let payload = ConcludeExperimentRequest {
+        change_reason: ChangeReason::try_from(String::from("concluding experiment"))?,
+        chosen_variant: variant_id,
+        description: None,
+    };
+
     let host = get_host();
-    match client
-        .patch(format!("{host}/experiments/{}/conclude", exp_id))
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .json(&json!({ "chosen_variant": variant_id, "change_reason": "concluding experiment" }))
-        .send()
-        .await
-    {
-        Ok(experiment) => {
-            log!("experiment response {:?}", experiment);
-            Ok(experiment
-                .json::<ExperimentResponse>()
-                .await
-                .map_err(|err| err.to_string())?)
-        }
-        Err(e) => Err(e.to_string()),
-    }
+    let url = format!("{host}/experiments/{exp_id}/conclude");
+
+    let response = request(
+        url,
+        reqwest::Method::PATCH,
+        Some(payload),
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
 }

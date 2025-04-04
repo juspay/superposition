@@ -4,8 +4,11 @@ use serde_json::{json, Map, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::ExperimentationFlags;
 use superposition_types::{
-    database::models::experimentation::{
-        Experiment, ExperimentStatusType, Variant, Variants,
+    database::models::{
+        experimentation::{
+            Experiment, ExperimentStatusType, TrafficPercentage, Variant, Variants,
+        },
+        ChangeReason, Description,
     },
     result as superposition, Cac, Condition, Exp, Overrides,
 };
@@ -66,15 +69,15 @@ fn experiment_gen(
         last_modified: Utc::now(),
         last_modified_by: "test".to_string(),
         name: "experiment-test".to_string(),
-        traffic_percentage: 0,
+        traffic_percentage: TrafficPercentage::default(),
 
         override_keys: override_keys.to_vec(),
         status,
         context: context.clone(),
         variants: Variants::new(variants.to_owned()),
         chosen_variant: None,
-        description: "".to_string(),
-        change_reason: "".to_string(),
+        description: Description::try_from(String::from("test")).unwrap(),
+        change_reason: ChangeReason::try_from(String::from("test")).unwrap(),
     }
 }
 

@@ -4,31 +4,14 @@ use crate::{
         table::types::{Column, ColumnSortable, Expandable},
     },
     logic::Conditions,
-    types::ExperimentListFilters,
 };
 use core::time::Duration;
 use leptos::*;
 use leptos_router::A;
-use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::vec::Vec;
-use strum_macros::Display;
+use superposition_types::api::experiments::{ExperimentListFilters, ExperimentSortOn};
 use web_sys::MouseEvent;
-
-#[derive(Copy, Display, Debug, Clone, Deserialize, Serialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
-pub enum ExperimentSortOn {
-    #[strum(to_string = "last_modified_at")]
-    LastModifiedAt,
-    #[strum(to_string = "created_at")]
-    CreatedAt,
-}
-
-impl Default for ExperimentSortOn {
-    fn default() -> Self {
-        Self::LastModifiedAt
-    }
-}
 
 pub fn experiment_table_columns(
     filters_rws: RwSignal<ExperimentListFilters>,

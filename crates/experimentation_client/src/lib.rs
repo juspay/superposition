@@ -10,15 +10,22 @@ use std::{
 use chrono::{DateTime, TimeZone, Utc};
 use derive_more::{Deref, DerefMut};
 use serde_json::Value;
+use strum::IntoEnumIterator;
 use superposition_types::{
-    database::models::experimentation::VariantType, Overridden, PaginatedResponse,
+    api::experiments::ExperimentListFilters,
+    custom_query::{CommaSeparatedQParams, PaginationParams},
+    database::models::experimentation::{ExperimentStatusType, Variant, VariantType},
+    Overridden, PaginatedResponse,
+};
+pub use superposition_types::{
+    api::experiments::ExperimentResponse, database::models::experimentation::Variants,
 };
 use tokio::{
     sync::RwLock,
     time::{self, Duration},
 };
-pub use types::{Config, Experiment, Experiments, Variants};
-use types::{ExperimentStore, Variant};
+use types::ExperimentStore;
+pub use types::{Config, Experiments};
 use utils::MapError;
 
 #[derive(Clone, Debug)]
@@ -57,7 +64,7 @@ impl Client {
                 let experiments = get_experiments(
                     hostname.clone(),
                     self.http_client.clone(),
-                    start_date.to_string(),
+                    *start_date,
                     self.client_config.tenant.to_string(),
                 )
                 .await
@@ -87,7 +94,7 @@ impl Client {
         let mut variants: Vec<String> = Vec::new();
         for exp in experiments {
             if let Some(v) =
-                self.decide_variant(exp.traffic_percentage, exp.variants, toss)?
+                self.decide_variant(*exp.traffic_percentage, exp.variants, toss)?
             {
                 variants.push(v.id)
             }
@@ -106,12 +113,11 @@ impl Client {
             .await
             .iter()
             .filter(|(_, exp)| {
-                let is_empty = exp
-                    .context
-                    .as_object()
-                    .map_or(false, |context| context.is_empty());
-                is_empty
-                    || jsonlogic::apply(&exp.context, context) == Ok(Value::Bool(true))
+                exp.context.is_empty()
+                    || jsonlogic::apply(
+                        &Value::Object(exp.context.clone().into()),
+                        context,
+                    ) == Ok(Value::Bool(true))
             })
             .map(|(_, exp)| exp.clone())
             .collect::<Experiments>();
@@ -136,14 +142,13 @@ impl Client {
         let filtered_running_experiments = experiments
             .iter()
             .filter_map(|(_, exp)| {
-                let is_empty = exp
-                    .context
-                    .as_object()
-                    .map_or(false, |context| context.is_empty());
-                if is_empty {
+                if exp.context.is_empty() {
                     Some(exp.clone())
                 } else {
-                    match jsonlogic::partial_apply(&exp.context, context) {
+                    match jsonlogic::partial_apply(
+                        &Value::Object(exp.context.clone().into()),
+                        context,
+                    ) {
                         Ok(jsonlogic::PartialApplyOutcome::Resolved(Value::Bool(
                             true,
                         )))
@@ -154,7 +159,7 @@ impl Client {
                     }
                 }
             })
-            .collect::<Vec<Experiment>>();
+            .collect::<Vec<_>>();
 
         if let Some(prefix_list) = prefix {
             return Ok(Self::filter_experiments_by_prefix(
@@ -173,15 +178,16 @@ impl Client {
     }
 
     fn filter_experiments_by_prefix(
-        experiments: Vec<Experiment>,
+        experiments: Vec<ExperimentResponse>,
         prefix_list: Vec<String>,
-    ) -> Vec<Experiment> {
+    ) -> Vec<ExperimentResponse> {
         let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
         experiments
             .into_iter()
             .filter_map(|experiment| {
-                let variants: Vec<Variant> = experiment
+                let variants: Vec<_> = experiment
                     .variants
+                    .into_inner()
                     .into_iter()
                     .filter_map(|mut variant| {
                         Variant::filter_keys_by_prefix(&variant, &prefix_list)
@@ -194,8 +200,8 @@ impl Client {
                     .collect();
 
                 if !variants.is_empty() {
-                    Some(Experiment {
-                        variants,
+                    Some(ExperimentResponse {
+                        variants: Variants::new(variants),
                         ..experiment
                     })
                 } else {
@@ -239,26 +245,41 @@ impl Client {
 async fn get_experiments(
     hostname: String,
     http_client: reqwest::Client,
-    start_date: String,
+    start_date: DateTime<Utc>,
     tenant: String,
 ) -> Result<ExperimentStore, String> {
     let mut curr_exp_store: ExperimentStore = HashMap::new();
-    let requesting_count = 10;
+    let mut pagination_params = PaginationParams::default();
     let mut page = 1;
-    let now = Utc::now();
+
+    let list_filters = ExperimentListFilters {
+        status: Some(CommaSeparatedQParams(
+            ExperimentStatusType::iter().collect(),
+        )),
+        from_date: Some(start_date),
+        to_date: Some(Utc::now()),
+        experiment_name: None,
+        experiment_ids: None,
+        created_by: None,
+        context: None,
+        sort_on: None,
+        sort_by: None,
+    };
+
     loop {
-        let endpoint = format!(
-            "{hostname}/experiments?from_date={start_date}&to_date={now}&page={page}&count={requesting_count}"
-        );
+        pagination_params = PaginationParams {
+            page: Some(page),
+            ..pagination_params
+        };
+        let endpoint =
+            format!("{hostname}/experiments?{pagination_params}&{list_filters}");
         let list_experiments_response = http_client
-            .get(format!(
-                "{endpoint}&status=CREATED,INPROGRESS,CONCLUDED,DISCARDED"
-            ))
+            .get(endpoint)
             .header("x-tenant", tenant.to_string())
             .send()
             .await
             .map_err_to_string()?
-            .json::<PaginatedResponse<Experiment>>()
+            .json::<PaginatedResponse<ExperimentResponse>>()
             .await
             .map_err_to_string()?;
 

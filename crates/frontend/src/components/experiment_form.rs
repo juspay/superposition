@@ -113,9 +113,7 @@ where
 
                 match result {
                     Ok(res) => {
-                        handle_submit_clone(
-                            res["experiment_id"].as_str().unwrap_or("").to_string(),
-                        );
+                        handle_submit_clone(res.id);
                         let success_message = if edit {
                             "Experiment updated successfully!"
                         } else {

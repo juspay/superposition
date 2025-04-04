@@ -156,7 +156,7 @@ run: kill db localstack frontend superposition
 	@./target/debug/superposition
 
 run_legacy: kill build db localstack superposition_legacy
-	@./target/debug/superposition_legacy
+	@./target/debug/superposition
 
 test: WASM_PACK_MODE=--profiling
 test: setup frontend superposition

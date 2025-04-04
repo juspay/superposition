@@ -1,14 +1,146 @@
-use chrono::NaiveDateTime;
-#[cfg(feature = "diesel_derives")]
-use diesel::{AsChangeset, Insertable, QueryId, Queryable, Selectable};
-use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 pub mod cac;
 #[cfg(feature = "experimentation")]
 pub mod experimentation;
 
+use std::str::FromStr;
+
+use chrono::NaiveDateTime;
+#[cfg(feature = "diesel_derives")]
+use diesel::{
+    sql_types::Text, AsChangeset, AsExpression, FromSqlRow, Insertable, QueryId,
+    Queryable, Selectable,
+};
+use serde::{Deserialize, Serialize};
+#[cfg(all(
+    feature = "diesel_derives",
+    not(feature = "disable_db_data_validation")
+))]
+use superposition_derives::TextFromSql;
+#[cfg(all(feature = "diesel_derives", feature = "disable_db_data_validation"))]
+use superposition_derives::TextFromSqlNoValidation;
+#[cfg(feature = "diesel_derives")]
+use superposition_derives::TextToSql;
+
 #[cfg(feature = "diesel_derives")]
 use super::superposition_schema::superposition::*;
+#[cfg(feature = "disable_db_data_validation")]
+use super::DisableDBValidation;
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(try_from = "String")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, TextToSql)
+)]
+#[cfg_attr(
+    all(
+        feature = "diesel_derives",
+        not(feature = "disable_db_data_validation")
+    ),
+    derive(TextFromSql)
+)]
+#[cfg_attr(
+    all(feature = "diesel_derives", feature = "disable_db_data_validation"),
+    derive(TextFromSqlNoValidation)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
+pub struct ChangeReason(String);
+const CHANGE_REASON_CHAR_LIMIT: usize = 255;
+
+impl Default for ChangeReason {
+    fn default() -> Self {
+        Self(String::from("Change Reason not provided"))
+    }
+}
+
+#[cfg(feature = "disable_db_data_validation")]
+impl DisableDBValidation for ChangeReason {
+    type Source = String;
+    fn from_db_unvalidated(data: Self::Source) -> Self {
+        // Defaulting, to convert "" entries to Self::default
+        Self::try_from(data).unwrap_or_default()
+    }
+}
+
+impl From<&ChangeReason> for String {
+    fn from(value: &ChangeReason) -> String {
+        value.0.clone()
+    }
+}
+
+impl TryFrom<String> for ChangeReason {
+    type Error = String;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.is_empty() {
+            return Err(String::from("Empty reason not allowed"));
+        }
+        let len = value.len();
+        if len > CHANGE_REASON_CHAR_LIMIT {
+            return Err(format!(
+                "Reason longer than {CHANGE_REASON_CHAR_LIMIT} characters not allowed, current length: {len}",
+            ));
+        }
+        Ok(Self(value))
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(try_from = "String")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, TextToSql)
+)]
+#[cfg_attr(
+    all(
+        feature = "diesel_derives",
+        not(feature = "disable_db_data_validation")
+    ),
+    derive(TextFromSql)
+)]
+#[cfg_attr(
+    all(feature = "diesel_derives", feature = "disable_db_data_validation"),
+    derive(TextFromSqlNoValidation)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
+pub struct Description(String);
+const DESCRIPTION_CHAR_LIMIT: usize = 1024;
+
+impl Default for Description {
+    fn default() -> Self {
+        Self(String::from("Description not provided"))
+    }
+}
+
+#[cfg(feature = "disable_db_data_validation")]
+impl DisableDBValidation for Description {
+    type Source = String;
+    fn from_db_unvalidated(data: Self::Source) -> Self {
+        // Defaulting, to convert "" entries to Self::default
+        Self::try_from(data).unwrap_or_default()
+    }
+}
+
+impl From<&Description> for String {
+    fn from(value: &Description) -> String {
+        value.0.clone()
+    }
+}
+
+impl TryFrom<String> for Description {
+    type Error = String;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.is_empty() {
+            return Err(String::from("Empty description not allowed"));
+        }
+        let len = value.len();
+        if len > DESCRIPTION_CHAR_LIMIT {
+            return Err(format!(
+                "Description longer than {DESCRIPTION_CHAR_LIMIT} characters not allowed, current length: {len}",
+            ));
+        }
+        Ok(Self(value))
+    }
+}
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display,

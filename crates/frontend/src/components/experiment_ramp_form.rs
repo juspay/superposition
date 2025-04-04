@@ -3,23 +3,25 @@ pub mod utils;
 use std::rc::Rc;
 
 use leptos::{logging::log, *};
+use superposition_types::api::experiments::ExperimentResponse;
 use web_sys::MouseEvent;
 
 use self::utils::ramp_experiment;
 use crate::{
-    components::button::Button,
-    types::{Experiment, OrganisationId, Tenant},
+    components::{alert::AlertType, button::Button},
+    providers::alert_provider::enqueue_alert,
+    types::{OrganisationId, Tenant},
 };
 
 #[component]
 pub fn experiment_ramp_form<NF>(
-    experiment: Experiment,
+    experiment: ExperimentResponse,
     handle_submit: NF,
 ) -> impl IntoView
 where
     NF: Fn() + 'static + Clone,
 {
-    let (traffic, set_traffic) = create_signal(experiment.traffic_percentage);
+    let (traffic, set_traffic) = create_signal(*experiment.traffic_percentage);
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
@@ -34,8 +36,20 @@ where
             let tenant = tenant_rws.get().0;
             let org = org_rws.get().0;
             let traffic_value = traffic.get();
-            let _ =
+            let result =
                 ramp_experiment(&experiment_clone.id, traffic_value, &tenant, &org).await;
+            match result {
+                Ok(_) => {
+                    enqueue_alert(
+                        String::from("Experiment rampped successfully!"),
+                        AlertType::Success,
+                        5000,
+                    );
+                }
+                Err(e) => {
+                    enqueue_alert(e, AlertType::Error, 5000);
+                }
+            }
             req_inprogress_ws.set(false);
             handle_submit_clone()
         });

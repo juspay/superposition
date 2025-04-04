@@ -313,13 +313,18 @@ impl Conditions {
             None => Condition::try_from_condition_map(context).map(|v| vec![v])?,
         }))
     }
-    pub fn as_context_json(&self) -> serde_json::Value {
+    pub fn as_context_json(&self) -> Map<String, Value> {
         if self.is_empty() {
-            return json!({});
+            return Map::new();
         }
-        json!({
-            "and": self.iter().map(|v| v.to_condition_json()).collect::<Vec<serde_json::Value>>()
-        })
+        Map::from_iter([(
+            String::from("and"),
+            Value::Array(
+                self.iter()
+                    .map(|v| v.to_condition_json())
+                    .collect::<Vec<serde_json::Value>>(),
+            ),
+        )])
     }
     pub fn as_query_string(&self) -> String {
         self.iter()
