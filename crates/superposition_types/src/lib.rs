@@ -26,7 +26,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use webhook::WebhookConfig;
 
-pub use crate::config::{Condition, Config, Context, DependencyGraph, Overrides};
+pub use crate::config::{Condition, Config, Context, Overrides};
 pub use crate::contextual::Contextual;
 pub use crate::overridden::Overridden;
 

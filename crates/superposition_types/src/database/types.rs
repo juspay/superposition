@@ -1,9 +1,11 @@
-use crate::config::DependencyGraph;
 use chrono::{offset::Utc, DateTime, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::models::cac::{Dimension, Position};
+use super::models::{
+    cac::{Dimension, Position},
+    DependencyGraph,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DimensionWithMandatory {

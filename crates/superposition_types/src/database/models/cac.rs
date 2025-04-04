@@ -19,13 +19,14 @@ use diesel::{
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
-use crate::{config::DependencyGraph, Cac, Condition, Contextual, Overridden, Overrides};
+use crate::{Cac, Condition, Contextual, Overridden, Overrides};
 
 #[cfg(feature = "diesel_derives")]
 use super::super::schema::{
     config_versions, contexts, default_configs, dimensions, event_log, functions,
     type_templates,
 };
+use super::DependencyGraph;
 
 #[derive(Clone, Serialize, Debug)]
 #[cfg_attr(
