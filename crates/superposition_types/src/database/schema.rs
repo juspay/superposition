@@ -68,6 +68,9 @@ diesel::table! {
         position -> Int4,
         description -> Text,
         change_reason -> Text,
+        dependency_graph -> Json,
+        dependents -> Array<Text>,
+        dependencies -> Array<Text>,
     }
 }
 

@@ -14,6 +14,7 @@ pub struct CreateReq {
     pub position: Position,
     pub schema: Value,
     pub function_name: Option<String>,
+    pub dependencies: Option<Vec<String>>,
     pub description: String,
     pub change_reason: String,
 }
@@ -25,6 +26,7 @@ pub struct UpdateReq {
     pub schema: Option<Value>,
     #[serde(default, deserialize_with = "deserialize_function_name")]
     pub function_name: Option<Option<String>>,
+    pub dependencies: Option<Vec<String>>,
     pub description: Option<String>,
     pub change_reason: String,
 }

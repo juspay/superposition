@@ -1,10 +1,8 @@
 use chrono::NaiveDateTime;
 #[cfg(feature = "diesel_derives")]
 use diesel::{AsChangeset, Insertable, QueryId, Queryable, Selectable};
-use std::str::FromStr;
-
 use serde::{Deserialize, Serialize};
-
+use std::str::FromStr;
 pub mod cac;
 #[cfg(feature = "experimentation")]
 pub mod experimentation;

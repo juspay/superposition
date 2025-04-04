@@ -13,7 +13,7 @@ use superposition_types::{
     custom_query::PaginationParams,
     database::{
         models::{
-            cac::{Dimension, Position},
+            cac::{DependencyGraph, Dimension},
             Workspace,
         },
         schema::dimensions::{self, dsl::*},
@@ -25,12 +25,18 @@ use superposition_types::{
 use crate::{
     api::dimension::{
         types::CreateReq,
-        utils::{get_dimension_usage_context_ids, validate_dimension_position},
+        utils::{
+            get_dimension_usage_context_ids, validate_and_update_dimension_hierarchy,
+            validate_dimension_deletability, validate_dimension_position,
+        },
     },
     helpers::{get_workspace, validate_jsonschema},
 };
 
-use super::types::{DeleteReq, DimensionName, UpdateReq};
+use super::{
+    types::{DeleteReq, DimensionName, UpdateReq},
+    utils::validate_and_initialize_dimension_hierarchy,
+};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -49,7 +55,6 @@ async fn create(
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-
     let create_req = req.into_inner();
     let schema_value = create_req.schema;
 
@@ -69,7 +74,7 @@ async fn create(
     )?;
     validate_jsonschema(&state.meta_schema, &schema_value)?;
 
-    let dimension_data = Dimension {
+    let mut dimension_data = Dimension {
         dimension: create_req.dimension.into(),
         position: create_req.position,
         schema: schema_value,
@@ -80,6 +85,9 @@ async fn create(
         last_modified_by: user.get_email(),
         description: create_req.description,
         change_reason: create_req.change_reason,
+        dependency_graph: DependencyGraph::default(),
+        dependents: Vec::new(),
+        dependencies: create_req.dependencies.unwrap_or_default(),
     };
 
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -93,6 +101,15 @@ async fn create(
             .returning(Dimension::as_returning())
             .schema_name(&schema_name)
             .execute(transaction_conn)?;
+
+        dimension_data.dependency_graph = validate_and_initialize_dimension_hierarchy(
+            &dimension_data.dimension,
+            &dimension_data.dependencies,
+            &user.get_email(),
+            &schema_name,
+            transaction_conn,
+        )?;
+
         let insert_resp = diesel::insert_into(dimensions::table)
             .values(&dimension_data)
             .returning(Dimension::as_returning())
@@ -145,11 +162,10 @@ async fn update(
     use dimensions::dsl;
     let DbConnection(mut conn) = db_conn;
 
-    let existing_position: Position = dsl::dimensions
-        .select(dimensions::position)
+    let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(name.clone()))
         .schema_name(&schema_name)
-        .get_result::<Position>(&mut conn)?;
+        .get_result::<Dimension>(&mut conn)?;
 
     let num_rows = dimensions
         .count()
@@ -175,7 +191,7 @@ async fn update(
                     position_val,
                     num_rows - 1,
                 )?;
-                let previous_position = existing_position;
+                let previous_position = dimension_data.position;
 
                 diesel::update(dimensions)
                     .filter(dsl::dimension.eq(&name))
@@ -214,6 +230,17 @@ async fn update(
                         .execute(transaction_conn)?
                 };
             }
+
+            if let Some(dependent_dimension) = &update_req.dependencies {
+                validate_and_update_dimension_hierarchy(
+                    &dimension_data,
+                    dependent_dimension,
+                    &user.get_email(),
+                    &schema_name,
+                    transaction_conn,
+                )?;
+            }
+
             diesel::update(dimensions)
                 .filter(dsl::dimension.eq(name))
                 .set((
@@ -306,11 +333,21 @@ async fn delete_dimension(
         .select(Dimension::as_select())
         .schema_name(&schema_name)
         .get_result(&mut conn)?;
+
     let context_ids = get_dimension_usage_context_ids(&name, &mut conn, &schema_name)
         .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             use dimensions::dsl;
+
+            validate_dimension_deletability(
+                &name,
+                &dimension_data,
+                &user.get_email(),
+                transaction_conn,
+                &schema_name,
+            )?;
+
             diesel::update(dsl::dimensions)
                 .filter(dsl::dimension.eq(&name))
                 .set((
