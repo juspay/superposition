@@ -8,12 +8,10 @@ use serde_json::Value;
 use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
 use std::collections::HashMap;
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
+use superposition_types::database::models::cac::DependencyGraph;
 use superposition_types::{
     database::{
-        models::{
-            cac::{Context, Dimension, Position},
-            DependencyGraph,
-        },
+        models::cac::{Context, Dimension, Position},
         schema::{contexts::dsl::contexts, dimensions::dsl::*},
     },
     result as superposition, Cac, Condition, DBConnection,
@@ -113,7 +111,7 @@ pub fn validate_dimension_position(
 
 pub fn validate_and_initialize_dimension_hierarchy(
     dimension_name: &str,
-    dependent_dimensions: &Vec<String>,
+    dependent_dimensions: &[String],
     user_email: &str,
     schema_name: &SchemaName,
     conn: &mut DBConnection,
@@ -130,24 +128,18 @@ pub fn validate_and_initialize_dimension_hierarchy(
 
     // fetch all dependent_dimensions from dimensions_map at once
     let dependent_dimensions_data = dependent_dimensions
-        .into_iter()
+        .iter()
         .filter_map(|d| dimensions_map.get(d))
         .map(|(dimension_data, _)| dimension_data.clone())
         .collect::<Vec<Dimension>>();
 
     for dependent_data in dependent_dimensions_data {
-        // Update immediate_dependency_list's parent list
-        update_parent_relationships(
-            &dependent_data,
-            dimension_name,
-            &mut dimensions_map,
-        )?;
+        // Update dependencies' dependents list
+        update_dependents(&dependent_data, dimension_name, &mut dimensions_map)?;
 
-        // Insert the dependent's graph into the parent's graph
         dependency_map.insert_dependents(&dependent_data);
     }
 
-    // If dependent_dimensions not empty, Add parent dimension with dependent dimensions to its dependency graph
     if !dependent_dimensions.is_empty() {
         dependency_map.insert(
             dimension_name.to_string(),
@@ -175,13 +167,13 @@ pub fn validate_and_initialize_dimension_hierarchy(
 
 pub fn validate_and_update_dimension_hierarchy(
     dimension_data: &Dimension,
-    dependent_dimensions: &Vec<String>,
+    dependent_dimensions: &[String],
     user_email: &str,
     schema_name: &SchemaName,
     conn: &mut DBConnection,
 ) -> superposition::Result<()> {
-    // Return Ok if the dependent_dimension is same as the current immediate_dependency_list (no change)
-    if &dimension_data.immediate_childrens == dependent_dimensions {
+    // Return Ok if the dependent_dimension is same as the current dependencies (no change)
+    if *dimension_data.dependencies == *dependent_dimensions {
         return Ok(());
     }
 
@@ -189,38 +181,37 @@ pub fn validate_and_update_dimension_hierarchy(
 
     detect_self_loop(dimension_name, dependent_dimensions)?;
 
-    // Distinguish between the children that are removed and the ones that are being added
-    let (children_to_remove, children_to_add) =
-        compute_children_diff(&dimension_data.immediate_childrens, dependent_dimensions);
+    // Distinguish between the dependencies that are removed and the ones that are being added
+    let (dependencies_to_remove, dependencies_to_add) =
+        compute_dependencies_diff(&dimension_data.dependencies, dependent_dimensions);
 
     let mut dimensions_map = fetch_dimensions_map(conn, schema_name)?;
 
     // Validate no cycles will be introduced
-    validate_no_cycles(&children_to_add, dimension_name, &mut dimensions_map)?;
+    validate_no_cycles(&dependencies_to_add, dimension_name, &mut dimensions_map)?;
 
-    // Recompute parent's dependency graph and update added children's dependents
-    let new_parent_dependency_list = build_dependency_graph_and_update_childrens_parent(
+    // Recompute dimension's dependency graph and update added dependencies
+    let new_dependency_graph = build_dependency_graph_and_update_dependencies(
         dimension_name,
         dependent_dimensions,
         &mut dimensions_map,
     )?;
 
-    // Update removed childrens' dependents
-    update_parent_references_for_removed_children(
+    // Update removed dependencies
+    update_dependents_for_removed_dependencies(
         dimension_name,
-        &children_to_remove,
+        &dependencies_to_remove,
         &mut dimensions_map,
     )?;
 
-    // Update the parent's dependency graph in the db
-    update_dependency_graph(
-        dimension_name,
-        new_parent_dependency_list,
+    // Update the dimension's dependency graph in dimensions_map
+    update_dependency_graph(dimension_name, new_dependency_graph, &mut dimensions_map)?;
+
+    // Update the ancestor's dimension_graphs of the dimension
+    update_dependents_dependency_graphs_dfs(
+        &dimension_data.dependents,
         &mut dimensions_map,
     )?;
-
-    // Update the ancestor's dimension_graphs of the parent dimension
-    update_parent_dependency_graphs_dfs(&dimension_data.dependents, &mut dimensions_map)?;
 
     update_dimensions_in_db(
         &mut dimensions_map,
@@ -242,31 +233,31 @@ pub fn validate_dimension_deletability(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
-    // If someone is dependent on this i.e. check the parents, then don't let it be deleted
+    // If someone is dependent on this i.e. check the dependents, then don't let it be deleted
     if !dimension_data.dependents.is_empty() {
-        let parent_dimensions = dimension_data.dependents.clone();
-        let parent_list = parent_dimensions.join(", ");
-
+        let dependents_list = dimension_data.dependents.clone().join(", ");
+        log::error!(
+            "Cannot delete dimension `{}`: it is used as a dependency by: {}",
+            dimension_name,
+            dependents_list
+        );
         return Err(bad_argument!(
             "Cannot delete dimension `{}`: it is used as a dependency by: {}",
             dimension_name,
-            parent_list
+            dependents_list
         ));
     }
 
-    // If this is dependent on someone i.e. check the children, then clean up the immediate_childrens
-    let immediate_dependency_list = dimension_data.immediate_childrens.clone();
+    let dependencies_list = dimension_data.dependencies.clone();
 
-    if !immediate_dependency_list.is_empty() {
-        // Remove the dimension from the children's dependents
+    if !dependencies_list.is_empty() {
+        // Remove the dimension from the dependencies' dependents
         let mut dimensions_map = fetch_dimensions_map(conn, schema_name)?;
-        update_parent_references_for_removed_children(
+        update_dependents_for_removed_dependencies(
             dimension_name,
-            &immediate_dependency_list,
+            &dependencies_list,
             &mut dimensions_map,
         )?;
-        // No need to Remove the dimension's immediate_childrens to [] and dependency_graph to {} and Recompute the dimension's dependency graph as we are already deleting it 🥲
-        // No need to update the parent's dependency graph as there shouldn't be any dependents, if allowed till here
         update_dimensions_in_db(
             &mut dimensions_map,
             user_email,
@@ -279,43 +270,42 @@ pub fn validate_dimension_deletability(
     Ok(())
 }
 
-fn update_parent_dependency_graphs_dfs(
-    parents: &Vec<String>,
+fn update_dependents_dependency_graphs_dfs(
+    dependents_list: &[String],
     dimensions_map: &mut HashMap<String, (Dimension, bool)>,
 ) -> superposition::Result<()> {
-    // Early return if no parents
-    if parents.is_empty() {
+    // Early return if no dependents
+    if dependents_list.is_empty() {
         return Ok(());
     };
 
-    // fetch all parent dimensions from the dimension_map at once
-    let parent_dimensions_data: Vec<Dimension> = parents
+    // fetch all dependents from the dimension_map at once
+    let dependents_dimension_data: Vec<Dimension> = dependents_list
         .iter()
         .filter_map(|d| dimensions_map.get(d))
         .map(|(dimension_data, _)| dimension_data.clone())
         .collect();
 
-    for parent_dimension in parent_dimensions_data {
-        let immediate_dependency_list = parent_dimension.immediate_childrens.clone();
+    for dependents_dimension in dependents_dimension_data {
+        let dependencies_list = dependents_dimension.dependencies.clone();
 
-        // Recompute the parent's dependency list
-        let new_parent_dependency_list =
-            build_dependency_graph_and_update_childrens_parent(
-                &parent_dimension.dimension,
-                &immediate_dependency_list,
-                dimensions_map,
-            )?;
-
-        // Update the parent's dependency graph
-        update_dependency_graph(
-            &parent_dimension.dimension,
-            new_parent_dependency_list,
+        // Recompute the dimension's dependency graph
+        let new_dependency_graph = build_dependency_graph_and_update_dependencies(
+            &dependents_dimension.dimension,
+            &dependencies_list,
             dimensions_map,
         )?;
 
-        // Recursively update ancestors' dependency graphs
-        update_parent_dependency_graphs_dfs(
-            &parent_dimension.dependents,
+        // Update the dimension's dependency graph
+        update_dependency_graph(
+            &dependents_dimension.dimension,
+            new_dependency_graph,
+            dimensions_map,
+        )?;
+
+        // Recursively update dependents' dependency graphs
+        update_dependents_dependency_graphs_dfs(
+            &dependents_dimension.dependents,
             dimensions_map,
         )?;
     }
@@ -323,145 +313,152 @@ fn update_parent_dependency_graphs_dfs(
     Ok(())
 }
 
-fn compute_children_diff(
-    current_children: &[String],
-    new_children: &[String],
+fn compute_dependencies_diff(
+    current_dependencies: &[String],
+    new_dependencies: &[String],
 ) -> (Vec<String>, Vec<String>) {
-    let remove_children: Vec<String> = current_children
+    let dependencies_to_remove: Vec<String> = current_dependencies
         .iter()
-        .filter(|child| !new_children.contains(child))
+        .filter(|d| !new_dependencies.contains(d))
         .cloned()
         .collect();
 
-    let add_children: Vec<String> = new_children
+    let dependencies_to_add: Vec<String> = new_dependencies
         .iter()
-        .filter(|child| !current_children.contains(child))
+        .filter(|d| !current_dependencies.contains(d))
         .cloned()
         .collect();
 
-    (remove_children, add_children)
+    (dependencies_to_remove, dependencies_to_add)
 }
 
 fn validate_no_cycles(
-    children_to_add: &Vec<String>,
+    dependencies_to_add: &[String],
     dimension_name: &str,
     dimensions_map: &mut HashMap<String, (Dimension, bool)>,
 ) -> superposition::Result<()> {
-    // fetch all children_to_add dimensions from dimensions_map at once
-    let children_to_add_dimensions = children_to_add
-        .into_iter()
+    // fetch all dependencies_to_add dimensions from dimensions_map at once
+    let dependencies_to_add_data = dependencies_to_add
+        .iter()
         .filter_map(|d| dimensions_map.get(d))
         .map(|(dimension_data, _)| dimension_data.clone())
         .collect::<Vec<Dimension>>();
 
-    for child_dimension in children_to_add_dimensions {
-        if child_dimension
+    for dependencies_data in dependencies_to_add_data {
+        if dependencies_data
             .dependency_graph
             .contains_key(dimension_name)
         {
-            log::error!("Failed to update dependent dimensions: found cycle while adding dimension {}", child_dimension.dimension);
+            log::error!(
+                "Failed to update dependencies: found cycle while adding dimension {}",
+                dependencies_data.dimension
+            );
             return Err(bad_argument!(
-                "Failed to update dependent dimensions: found cycle while adding dimension {}", 
-                child_dimension.dimension
+                "Failed to update dependencies: found cycle while adding dimension {}",
+                dependencies_data.dimension
             ));
         }
     }
     Ok(())
 }
 
-fn build_dependency_graph_and_update_childrens_parent(
+fn build_dependency_graph_and_update_dependencies(
     dimension_name: &str,
-    dependent_dimensions: &Vec<String>,
+    dependent_dimensions: &[String],
     dimensions_map: &mut HashMap<String, (Dimension, bool)>,
 ) -> superposition::Result<DependencyGraph> {
-    let mut new_parent_dependency_graph = DependencyGraph::new();
+    let mut new_dependency_graph = DependencyGraph::new();
 
-    // If no dependent dimensions, return empty dependency graph
+    // If no dependencies, return empty dependency graph
     if dependent_dimensions.is_empty() {
-        return Ok(new_parent_dependency_graph);
+        return Ok(new_dependency_graph);
     }
 
     // fetch all dependent_dimensions from dimensions_map at once
     let dependent_dimensions_data = dependent_dimensions
-        .into_iter()
+        .iter()
         .filter_map(|d| dimensions_map.get(d))
         .map(|(dimension_data, _)| dimension_data.clone())
         .collect::<Vec<Dimension>>();
 
-    // Add child immediate_childrens to the new parent dependency list and update the dependents of the child
+    // Add dependencies to the new dependency graph and update the dependencies
     for dependent_dimension in dependent_dimensions_data {
-        new_parent_dependency_graph.insert_dependents(&dependent_dimension);
+        new_dependency_graph.insert_dependents(&dependent_dimension);
 
-        // If needed Update immediate_dependency_list's parent list
-        update_parent_relationships(
-            &dependent_dimension,
-            dimension_name,
-            dimensions_map,
-        )?;
+        // If needed Update dependecies' depedents
+        update_dependents(&dependent_dimension, dimension_name, dimensions_map)?;
     }
 
-    // Add the dependent_dimensions to the parent dependency list
-    new_parent_dependency_graph.insert(
+    // Add the dependencies to the new dependency graph
+    new_dependency_graph.insert(
         dimension_name.to_string(),
         Value::Array(
             dependent_dimensions
-                .into_iter()
+                .iter()
                 .map(|s| Value::String(s.to_string()))
                 .collect(),
         ),
     );
 
-    Ok(new_parent_dependency_graph)
+    Ok(new_dependency_graph)
 }
 
-fn update_parent_references_for_removed_children(
+fn update_dependents_for_removed_dependencies(
     dimension_name: &str,
-    children_to_remove: &Vec<String>,
+    dependencies_to_remove: &[String],
     dimensions_map: &mut HashMap<String, (Dimension, bool)>,
 ) -> superposition::Result<()> {
-    // fetch all children_to_remove dimensions from the dimensions_map at once
-    let children_to_remove_data = children_to_remove
-        .into_iter()
+    // fetch all dependencies_to_remove dimensions from the dimensions_map at once
+    let dependencies_to_remove_data = dependencies_to_remove
+        .iter()
         .filter_map(|d| dimensions_map.get(d))
         .map(|(dimension_data, _)| dimension_data.clone())
         .collect::<Vec<Dimension>>();
 
-    for children_data in children_to_remove_data {
-        let mut child_parents = children_data.dependents.clone();
-        child_parents.retain(|parent| parent != dimension_name);
-        update_dependents(&children_data.dimension, child_parents, dimensions_map)?;
-    }
-    Ok(())
-}
-
-fn update_parent_relationships(
-    dependent_dimension: &Dimension,
-    parent_dimension: &str,
-    dimensions_map: &mut HashMap<String, (Dimension, bool)>,
-) -> superposition::Result<()> {
-    let mut parents = dependent_dimension.dependents.clone();
-
-    // Add parent if not already present
-    if !parents.contains(&parent_dimension.to_string()) {
-        parents.push(parent_dimension.to_string());
-        update_dependents(&dependent_dimension.dimension, parents, dimensions_map)?;
+    for dependencies_data in dependencies_to_remove_data {
+        let mut dependents_list = dependencies_data.dependents.clone();
+        dependents_list.retain(|dependent| dependent != dimension_name);
+        update_dependents_in_dimensions_map(
+            &dependencies_data.dimension,
+            dependents_list,
+            dimensions_map,
+        )?;
     }
     Ok(())
 }
 
 fn update_dependents(
+    dependent_dimension: &Dimension,
     dimension_name: &str,
-    parents: Vec<String>,
+    dimensions_map: &mut HashMap<String, (Dimension, bool)>,
+) -> superposition::Result<()> {
+    let mut dependents_list = dependent_dimension.dependents.clone();
+
+    // Add dependents if not already present
+    if !dependents_list.contains(&dimension_name.to_string()) {
+        dependents_list.push(dimension_name.to_string());
+        update_dependents_in_dimensions_map(
+            &dependent_dimension.dimension,
+            dependents_list,
+            dimensions_map,
+        )?;
+    }
+    Ok(())
+}
+
+fn update_dependents_in_dimensions_map(
+    dimension_name: &str,
+    dependents_list: Vec<String>,
     dimensions_map: &mut HashMap<String, (Dimension, bool)>,
 ) -> superposition::Result<()> {
     // Update the dependents of the dimension in dimensions_map and make is_updated true
     if let Some(dimension_data) = dimensions_map.get_mut(dimension_name) {
-        dimension_data.0.dependents = parents.clone();
+        dimension_data.0.dependents.clone_from(&dependents_list);
         dimension_data.1 = true;
         Ok(())
     } else {
         log::error!("Dimension {} not found in dimensions_map", dimension_name);
-        return Err(not_found!("Dimension {} not found", dimension_name));
+        Err(not_found!("Dimension {} not found", dimension_name))
     }
 }
 
@@ -477,18 +474,18 @@ fn update_dependency_graph(
         Ok(())
     } else {
         log::error!("Dimension {} not found in dimensions_map", dimension_name);
-        return Err(not_found!("Dimension {} not found", dimension_name));
+        Err(not_found!("Dimension {} not found", dimension_name))
     }
 }
 
 fn detect_self_loop(
     dimension_name: &str,
-    dependent_dimensions: &Vec<String>,
+    dependent_dimensions: &[String],
 ) -> superposition::Result<()> {
     if dependent_dimensions.contains(&dimension_name.to_string()) {
-        log::error!("Failed to update dependent dimensions: found self cycle while dependent dimension for {}", dimension_name);
+        log::error!("Failed to update dependencies: found self cycle while dependent dimension for {}", dimension_name);
         return Err(bad_argument!(
-                "Failed to update dependent dimensions: found self cycle while updating dependent dimension for {}", dimension_name
+                "Failed to update dependencies: found self cycle while updating dependent dimension for {}", dimension_name
             ));
     }
     Ok(())

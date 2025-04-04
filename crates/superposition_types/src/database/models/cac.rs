@@ -13,11 +13,13 @@ use diesel::{
     expression::AsExpression,
     pg::{Pg, PgValue},
     serialize::{Output, Result as SResult, ToSql},
-    sql_types::Integer,
+    sql_types::{Integer, Json},
     AsChangeset, Insertable, QueryId, Queryable, Selectable,
 };
 use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::Value;
+use serde_json::{Map, Value};
+#[cfg(feature = "diesel_derives")]
+use superposition_derives::{JsonFromSql, JsonToSql};
 
 use crate::{Cac, Condition, Contextual, Overridden, Overrides};
 
@@ -26,7 +28,6 @@ use super::super::schema::{
     config_versions, contexts, default_configs, dimensions, event_log, functions,
     type_templates,
 };
-use super::DependencyGraph;
 
 #[derive(Clone, Serialize, Debug)]
 #[cfg_attr(
@@ -83,7 +84,7 @@ pub struct Dimension {
     pub change_reason: String,
     pub dependency_graph: DependencyGraph,
     pub dependents: Vec<String>,
-    pub immediate_childrens: Vec<String>,
+    pub dependencies: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -336,6 +337,50 @@ where
             Err(serde::de::Error::custom(
                 "Expected a string or null literal as the function name.",
             ))
+        }
+    }
+}
+
+#[derive(
+    Deserialize, Serialize, Clone, Deref, Debug, PartialEq, Into, AsRef, Default,
+)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
+pub struct DependencyGraph(Map<String, Value>);
+
+impl DependencyGraph {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn insert<K, V>(&mut self, key: K, value: V) -> Option<Value>
+    where
+        K: Into<String>,
+        V: Into<Value>,
+    {
+        self.0.insert(key.into(), value.into())
+    }
+
+    pub fn insert_dependents(&mut self, dependent_dimension: &Dimension) {
+        if dependent_dimension.dependency_graph.is_empty() {
+            self.0.insert(
+                dependent_dimension.dimension.to_string(),
+                Value::Array(vec![]),
+            );
+        } else {
+            dependent_dimension
+                .dependency_graph
+                .iter()
+                .for_each(|(key, value)| {
+                    self.0.insert(key.to_string(), value.clone());
+                });
         }
     }
 }

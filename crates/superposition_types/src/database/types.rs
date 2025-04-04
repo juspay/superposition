@@ -2,10 +2,7 @@ use chrono::{offset::Utc, DateTime, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::models::{
-    cac::{Dimension, Position},
-    DependencyGraph,
-};
+use super::models::cac::{DependencyGraph, Dimension, Position};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DimensionWithMandatory {
@@ -20,7 +17,7 @@ pub struct DimensionWithMandatory {
     pub mandatory: bool,
     pub dependency_graph: DependencyGraph,
     pub dependents: Vec<String>,
-    pub immediate_childrens: Vec<String>,
+    pub dependencies: Vec<String>,
     pub description: String,
     pub change_reason: String,
 }
@@ -39,7 +36,7 @@ impl DimensionWithMandatory {
             mandatory,
             dependency_graph: value.dependency_graph,
             dependents: value.dependents,
-            immediate_childrens: value.immediate_childrens,
+            dependencies: value.dependencies,
             description: value.description,
             change_reason: value.change_reason,
         }

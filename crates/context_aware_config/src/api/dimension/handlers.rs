@@ -12,7 +12,10 @@ use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     custom_query::PaginationParams,
     database::{
-        models::{cac::Dimension, DependencyGraph, Workspace},
+        models::{
+            cac::{DependencyGraph, Dimension},
+            Workspace,
+        },
         schema::dimensions::{self, dsl::*},
         types::DimensionWithMandatory,
     },
@@ -84,7 +87,7 @@ async fn create(
         change_reason: create_req.change_reason,
         dependency_graph: DependencyGraph::default(),
         dependents: Vec::new(),
-        immediate_childrens: create_req.dependent_dimensions.unwrap_or_default(),
+        dependencies: create_req.dependencies.unwrap_or_default(),
     };
 
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -101,7 +104,7 @@ async fn create(
 
         dimension_data.dependency_graph = validate_and_initialize_dimension_hierarchy(
             &dimension_data.dimension,
-            &dimension_data.immediate_childrens,
+            &dimension_data.dependencies,
             &user.get_email(),
             &schema_name,
             transaction_conn,
@@ -228,7 +231,7 @@ async fn update(
                 };
             }
 
-            if let Some(dependent_dimension) = &update_req.dependent_dimensions {
+            if let Some(dependent_dimension) = &update_req.dependencies {
                 validate_and_update_dimension_hierarchy(
                     &dimension_data,
                     dependent_dimension,

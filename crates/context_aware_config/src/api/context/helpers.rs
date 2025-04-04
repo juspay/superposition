@@ -8,11 +8,10 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::{Map, Value};
 use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
 use superposition_macros::{unexpected_error, validation_error};
-use superposition_types::database::models::DependencyGraph;
 use superposition_types::{
     api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
     database::{
-        models::cac::{Context, FunctionCode, FunctionTypes},
+        models::cac::{Context, DependencyGraph, FunctionCode, FunctionTypes},
         schema::{contexts, default_configs::dsl, dimensions},
     },
     result as superposition, Cac, DBConnection, Overrides, User,

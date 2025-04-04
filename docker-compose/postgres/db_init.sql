@@ -1223,9 +1223,9 @@ COMMIT
 ALTER TABLE localorg_test.dimensions 
 ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
 ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
-ADD COLUMN immediate_childrens TEXT[] default '{}' NOT NULL;
+ADD COLUMN dependencies TEXT[] default '{}' NOT NULL;
 
 ALTER TABLE localorg_dev.dimensions 
 ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
 ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
-ADD COLUMN immediate_childrens TEXT[] default '{}' NOT NULL;
+ADD COLUMN dependencies TEXT[] default '{}' NOT NULL;

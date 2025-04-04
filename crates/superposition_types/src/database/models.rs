@@ -1,21 +1,11 @@
 use chrono::NaiveDateTime;
-use derive_more::{AsRef, Deref, Into};
 #[cfg(feature = "diesel_derives")]
-use diesel::{
-    deserialize::FromSqlRow, expression::AsExpression, sql_types::Json, AsChangeset,
-    Insertable, QueryId, Queryable, Selectable,
-};
+use diesel::{AsChangeset, Insertable, QueryId, Queryable, Selectable};
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
 use std::str::FromStr;
-#[cfg(feature = "diesel_derives")]
-use superposition_derives::{JsonFromSql, JsonToSql};
-
 pub mod cac;
 #[cfg(feature = "experimentation")]
 pub mod experimentation;
-
-use self::cac::Dimension;
 
 #[cfg(feature = "diesel_derives")]
 use super::superposition_schema::superposition::*;
@@ -115,52 +105,4 @@ pub struct Workspace {
     pub last_modified_at: NaiveDateTime,
     pub created_at: NaiveDateTime,
     pub mandatory_dimensions: Option<Vec<String>>,
-}
-
-#[derive(Deserialize, Serialize, Clone, Deref, Debug, PartialEq, Into, AsRef)]
-#[cfg_attr(
-    feature = "diesel_derives",
-    derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
-)]
-#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
-pub struct DependencyGraph(Map<String, Value>);
-
-impl DependencyGraph {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    pub fn insert<K, V>(&mut self, key: K, value: V) -> Option<Value>
-    where
-        K: Into<String>,
-        V: Into<Value>,
-    {
-        self.0.insert(key.into(), value.into())
-    }
-
-    pub fn insert_dependents(&mut self, dependent_dimension: &Dimension) {
-        if dependent_dimension.dependency_graph.is_empty() {
-            self.0.insert(
-                dependent_dimension.dimension.to_string(),
-                Value::Array(vec![]),
-            );
-        } else {
-            dependent_dimension
-                .dependency_graph
-                .iter()
-                .for_each(|(key, value)| {
-                    self.0.insert(key.to_string(), value.clone());
-                });
-        }
-    }
-}
-
-impl Default for DependencyGraph {
-    fn default() -> Self {
-        DependencyGraph(Map::new())
-    }
 }
