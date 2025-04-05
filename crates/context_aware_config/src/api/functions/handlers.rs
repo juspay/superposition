@@ -59,13 +59,13 @@ async fn create(
         draft_code: (req.function),
         draft_runtime_version: req.runtime_version,
         draft_edited_by: user.get_email(),
-        draft_edited_at: Utc::now().naive_utc(),
+        draft_edited_at: Utc::now(),
         published_code: None,
         published_at: None,
         published_by: None,
         published_runtime_version: None,
         description: req.description,
-        last_modified_at: Utc::now().naive_utc(),
+        last_modified_at: Utc::now(),
         last_modified_by: user.get_email(),
         change_reason: req.change_reason,
         function_type: req.function_type,
@@ -123,9 +123,9 @@ async fn update(
         .set((
             req,
             dsl::draft_edited_by.eq(user.get_email()),
-            dsl::draft_edited_at.eq(Utc::now().naive_utc()),
+            dsl::draft_edited_at.eq(Utc::now()),
             dsl::last_modified_by.eq(user.get_email()),
-            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_at.eq(Utc::now()),
         ))
         .returning(Function::as_returning())
         .schema_name(&schema_name)
@@ -202,7 +202,7 @@ async fn delete_function(
     diesel::update(functions)
         .filter(function_name.eq(&f_name))
         .set((
-            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_at.eq(Utc::now()),
             dsl::last_modified_by.eq(user.get_email()),
         ))
         .returning(Function::as_returning())
@@ -306,7 +306,7 @@ async fn publish(
             dsl::published_runtime_version
                 .eq(Some(function.draft_runtime_version.clone())),
             dsl::published_by.eq(Some(user.get_email())),
-            dsl::published_at.eq(Some(Utc::now().naive_utc())),
+            dsl::published_at.eq(Some(Utc::now())),
         ))
         .returning(Function::as_returning())
         .schema_name(&schema_name)

@@ -514,7 +514,7 @@ fn update_dimensions_in_db(
         if *is_updated {
             dimension_data.change_reason = reason.to_string();
             dimension_data.last_modified_by = user_email.to_string();
-            dimension_data.last_modified_at = Utc::now().naive_utc();
+            dimension_data.last_modified_at = Utc::now();
             diesel::update(dimensions)
                 .filter(dimension.eq(dimension_name.to_string()))
                 .set(dimension_data.clone())

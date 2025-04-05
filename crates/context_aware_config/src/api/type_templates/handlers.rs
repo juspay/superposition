@@ -114,7 +114,7 @@ async fn update_type(
         }
     };
     let change_reason = request.change_reason;
-    let timestamp = Utc::now().naive_utc();
+    let timestamp = Utc::now();
     let updated_type = diesel::update(type_templates::table)
         .filter(type_templates::type_name.eq(type_name))
         .set((
@@ -146,7 +146,7 @@ async fn delete_type(
     diesel::update(dsl::type_templates)
         .filter(dsl::type_name.eq(type_name.clone()))
         .set((
-            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_at.eq(Utc::now()),
             dsl::last_modified_by.eq(user.email.clone()),
         ))
         .returning(TypeTemplate::as_returning())

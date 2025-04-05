@@ -36,7 +36,7 @@ async fn get_audit_logs(
         if let Some(username) = filters.username.clone() {
             builder = builder.filter(event_log::user_name.eq(username));
         }
-        let now = Utc::now().naive_utc();
+        let now = Utc::now();
         builder
             .filter(
                 event_log::timestamp

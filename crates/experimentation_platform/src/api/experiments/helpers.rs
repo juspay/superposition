@@ -1,19 +1,23 @@
 use actix_http::header::{self, HeaderMap, HeaderName, HeaderValue};
-use actix_web::web::Data;
+use actix_web::web::{Data, Query};
 use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::{
-    AppState, ExperimentationFlags, OrganisationId, SchemaName, WorkspaceContext,
-    WorkspaceId,
+    AppState, DbConnection, ExperimentationFlags, OrganisationId, SchemaName,
+    WorkspaceContext, WorkspaceId,
 };
 use std::collections::HashSet;
 use std::str::FromStr;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    database::models::experimentation::{
-        Experiment, ExperimentStatusType, Variant, VariantType,
+    api::experiments::ApplicableVariantsQuery,
+    database::{
+        models::experimentation::{
+            Experiment, ExperimentStatusType, Variant, VariantType,
+        },
+        schema::experiments::dsl as experiments,
     },
     result as superposition, Condition, Config, Exp, Overrides,
 };
@@ -351,4 +355,46 @@ pub async fn fetch_cac_config(
             Err(unexpected_error!(error))
         }
     }
+}
+
+pub fn fetch_applicable_variants(
+    db_conn: DbConnection,
+    query_data: Query<ApplicableVariantsQuery>,
+    schema_name: SchemaName,
+) -> superposition::Result<Vec<Variant>> {
+    let DbConnection(mut conn) = db_conn;
+    let query_data = query_data.into_inner();
+
+    let experiments = experiments::experiments
+        .filter(experiments::status.ne_all(vec![
+            ExperimentStatusType::CONCLUDED,
+            ExperimentStatusType::DISCARDED,
+        ]))
+        .schema_name(&schema_name)
+        .load::<Experiment>(&mut conn)?;
+
+    let experiments = experiments.into_iter().filter(|exp| {
+        let context: Map<String, Value> = exp.context.clone().into();
+        context.is_empty()
+            || jsonlogic::apply(
+                &Value::Object(context),
+                &Value::Object(query_data.context.clone()),
+            ) == Ok(Value::Bool(true))
+    });
+
+    let mut variants = Vec::new();
+    for exp in experiments {
+        if let Some(v) = decide_variant(
+            *exp.traffic_percentage,
+            exp.variants.into_inner(),
+            query_data.toss,
+        )
+        .map_err(|e| {
+            log::error!("Unable to decide variant {e}");
+            unexpected_error!("Something went wrong.")
+        })? {
+            variants.push(v)
+        }
+    }
+    Ok(variants)
 }

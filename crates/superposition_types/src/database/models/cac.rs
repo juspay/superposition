@@ -5,7 +5,7 @@ use std::str;
 #[cfg(feature = "diesel_derives")]
 use base64::prelude::*;
 use bigdecimal::BigDecimal;
-use chrono::{offset::Utc, DateTime, NaiveDateTime};
+use chrono::{offset::Utc, DateTime};
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::{
@@ -44,7 +44,7 @@ pub struct Context {
     pub created_by: String,
     #[serde(rename(serialize = "override"))]
     pub override_: Overrides,
-    pub last_modified_at: NaiveDateTime,
+    pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub weight: BigDecimal,
     pub description: String,
@@ -77,7 +77,7 @@ pub struct Dimension {
     pub created_by: String,
     pub schema: Value,
     pub function_name: Option<String>,
-    pub last_modified_at: NaiveDateTime,
+    pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub position: Position,
     pub description: String,
@@ -102,7 +102,7 @@ pub struct DefaultConfig {
     pub created_by: String,
     pub schema: Value,
     pub function_name: Option<String>,
-    pub last_modified_at: NaiveDateTime,
+    pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub description: String,
     pub change_reason: String,
@@ -168,11 +168,11 @@ pub struct Function {
     pub description: String,
     pub published_runtime_version: Option<String>,
     pub draft_runtime_version: String,
-    pub published_at: Option<NaiveDateTime>,
-    pub draft_edited_at: NaiveDateTime,
+    pub published_at: Option<DateTime<Utc>>,
+    pub draft_edited_at: DateTime<Utc>,
     pub published_by: Option<String>,
     pub draft_edited_by: String,
-    pub last_modified_at: NaiveDateTime,
+    pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub change_reason: String,
     pub function_type: FunctionTypes,
@@ -187,7 +187,7 @@ pub struct EventLog {
     pub id: uuid::Uuid,
     pub table_name: String,
     pub user_name: String,
-    pub timestamp: NaiveDateTime,
+    pub timestamp: DateTime<Utc>,
     pub action: String,
     pub original_data: Option<Value>,
     pub new_data: Option<Value>,
@@ -203,7 +203,7 @@ pub struct ConfigVersion {
     pub config: Value,
     pub config_hash: String,
     pub tags: Option<Vec<String>>,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTime<Utc>,
     pub description: String,
 }
 
@@ -218,8 +218,8 @@ pub struct TypeTemplate {
     pub type_name: String,
     pub type_schema: Value,
     pub created_by: String,
-    pub created_at: NaiveDateTime,
-    pub last_modified_at: NaiveDateTime,
+    pub created_at: DateTime<Utc>,
+    pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub description: String,
     pub change_reason: String,

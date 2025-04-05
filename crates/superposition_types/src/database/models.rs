@@ -2,15 +2,14 @@ pub mod cac;
 #[cfg(feature = "experimentation")]
 pub mod experimentation;
 
-use std::str::FromStr;
-
-use chrono::NaiveDateTime;
+use chrono::{DateTime, Utc};
 #[cfg(feature = "diesel_derives")]
 use diesel::{
     sql_types::Text, AsChangeset, AsExpression, FromSqlRow, Insertable, QueryId,
     Queryable, Selectable,
 };
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 #[cfg(all(
     feature = "diesel_derives",
     not(feature = "disable_db_data_validation")
@@ -179,8 +178,8 @@ pub struct Organisation {
     pub admin_email: String,
     pub status: OrgStatus,
     pub sector: Option<String>,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
     pub updated_by: String,
 }
 
@@ -234,7 +233,7 @@ pub struct Workspace {
     pub workspace_admin_email: String,
     pub created_by: String,
     pub last_modified_by: String,
-    pub last_modified_at: NaiveDateTime,
-    pub created_at: NaiveDateTime,
+    pub last_modified_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
     pub mandatory_dimensions: Option<Vec<String>>,
 }
