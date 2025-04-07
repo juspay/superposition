@@ -224,3 +224,4 @@ schema-file:
 	git apply crates/superposition_types/src/database/schema.patch
 	diesel print-schema --schema superposition > crates/superposition_types/src/database/superposition_schema.rs
 	git apply crates/superposition_types/src/database/superposition_schema.patch
+	git apply crates/superposition_types/src/database/schema-timestamp-migration.patch
