@@ -1216,6 +1216,7 @@ CREATE TYPE public.function_types AS ENUM (
 );
 
 ALTER TABLE localorg_dev.functions ADD COLUMN function_type public.FUNCTION_TYPES NOT NULL DEFAULT 'VALIDATION';
+ALTER TABLE localorg_test.functions ADD COLUMN function_type public.FUNCTION_TYPES NOT NULL DEFAULT 'VALIDATION';
 
 
 COMMIT
@@ -1229,3 +1230,19 @@ ALTER TABLE localorg_dev.dimensions
 ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
 ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
 ADD COLUMN dependencies TEXT[] default '{}' NOT NULL;
+
+ALTER TABLE localorg_dev.dimensions ADD COLUMN autocomplete_function_name text NULL;
+
+ALTER TABLE localorg_dev.dimensions ADD FOREIGN KEY(autocomplete_function_name) REFERENCES localorg_dev.functions(function_name);
+
+ALTER TABLE localorg_dev.default_configs ADD COLUMN autocomplete_function_name text NULL;
+
+ALTER TABLE localorg_dev.default_configs ADD FOREIGN KEY(autocomplete_function_name) REFERENCES localorg_dev.functions(function_name);
+
+ALTER TABLE localorg_test.dimensions ADD COLUMN autocomplete_function_name text NULL;
+
+ALTER TABLE localorg_test.dimensions ADD FOREIGN KEY(autocomplete_function_name) REFERENCES localorg_test.functions(function_name);
+
+ALTER TABLE localorg_test.default_configs ADD COLUMN autocomplete_function_name text NULL;
+
+ALTER TABLE localorg_test.default_configs ADD FOREIGN KEY(autocomplete_function_name) REFERENCES localorg_test.functions(function_name);

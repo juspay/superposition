@@ -23,7 +23,8 @@ pub struct RowData {
     pub dimension: String,
     pub position: u32,
     pub schema: Value,
-    pub function_name: Option<Value>,
+    pub function_name: Option<String>,
+    pub autocomplete_function_name: Option<String>,
     pub mandatory: bool,
 }
 
@@ -87,11 +88,12 @@ pub fn dimensions() -> impl IntoView {
             let schema = row["schema"].clone().to_string();
             let schema = serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
 
-            let function_name = row["function_name"].to_string();
-            let fun_name = match function_name.as_str() {
-                "null" => None,
-                _ => Some(json!(function_name.replace('"', ""))),
-            };
+            let validation_function_name = row
+                .get("function_name")
+                .map(|v| v.as_str().unwrap_or_default().to_string());
+            let autocomplete_function_name = row
+                .get("autocomplete_function_name")
+                .map(|v| v.as_str().unwrap_or_default().to_string());
             let mandatory = row["mandatory"].as_bool().unwrap_or(false);
             let dimension_name = row_dimension.clone();
 
@@ -100,7 +102,8 @@ pub fn dimensions() -> impl IntoView {
                     dimension: row_dimension.clone(),
                     position: row_position,
                     schema: schema.clone(),
-                    function_name: fun_name.clone(),
+                    function_name: validation_function_name.clone(),
+                    autocomplete_function_name: autocomplete_function_name.clone(),
                     mandatory,
                 };
                 logging::log!("{:?}", row_data);
@@ -141,6 +144,7 @@ pub fn dimensions() -> impl IntoView {
             Column::default("schema".to_string()),
             Column::default("mandatory".to_string()),
             Column::default("function_name".to_string()),
+            Column::default("autocomplete_function_name".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
             Column::new(
@@ -172,7 +176,8 @@ pub fn dimensions() -> impl IntoView {
                                 position=selected_dimension_data.position
                                 dimension_name=selected_dimension_data.dimension
                                 dimension_schema=selected_dimension_data.schema
-                                function_name=selected_dimension_data.function_name
+                                validation_function_name=selected_dimension_data.function_name
+                                autocomplete_function_name=selected_dimension_data.autocomplete_function_name
                                 handle_submit=move || {
                                     dimensions_resource.refetch();
                                     selected_dimension.set(None);

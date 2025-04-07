@@ -1,3 +1,6 @@
+use core::fmt;
+use std::fmt::Display;
+
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::AsChangeset;
@@ -7,6 +10,7 @@ use serde_json::{json, Value};
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::functions;
 use crate::{
+    custom_query::CommaSeparatedQParams,
     database::models::cac::{FunctionCode, FunctionTypes},
     RegexEnum,
 };
@@ -117,4 +121,20 @@ pub struct FunctionExecutionResponse {
     pub fn_output: Value,
     pub stdout: String,
     pub function_type: FunctionTypes,
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+
+pub struct ListFunctionFilters {
+    pub function_type: Option<CommaSeparatedQParams<FunctionTypes>>,
+}
+
+impl Display for ListFunctionFilters {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut query_params = vec![];
+        if let Some(fntype) = &self.function_type {
+            query_params.push(format!("function_type={}", fntype));
+        }
+        write!(f, "{}", query_params.join("&"))
+    }
 }

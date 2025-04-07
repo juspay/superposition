@@ -1,10 +1,8 @@
 [print_schema]
 file = "schema.rs"
-patch_file = "schema.patch"
 
 [print_schema.superposition]
 file = "superposition_schema.rs"
-patch_file = "superposition_schema.patch"
 
 [migrations_directory]
 dir = "../../migrations"

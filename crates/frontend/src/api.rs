@@ -1,7 +1,10 @@
 use leptos::ServerFnError;
 use superposition_types::{
-    api::default_config::DefaultConfigFilters,
-    api::experiments::{ExperimentListFilters, ExperimentResponse},
+    api::{
+        default_config::DefaultConfigFilters,
+        experiments::{ExperimentListFilters, ExperimentResponse},
+        functions::ListFunctionFilters,
+    },
     custom_query::PaginationParams,
     database::{
         models::{
@@ -147,14 +150,19 @@ pub async fn fetch_experiments(
 }
 
 pub async fn fetch_functions(
-    filters: &PaginationParams,
+    pagination: &PaginationParams,
+    filters: &ListFunctionFilters,
     tenant: String,
     org_id: String,
 ) -> Result<PaginatedResponse<Function>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
-
-    let url = format!("{}/function?{}", host, filters);
+    let pagination = pagination.to_string();
+    let url = if pagination.is_empty() {
+        format!("{}/function?{}", host, filters)
+    } else {
+        format!("{}/function?{}&{}", host, filters, pagination)
+    };
     let response: PaginatedResponse<Function> = client
         .get(url)
         .header("x-tenant", tenant)

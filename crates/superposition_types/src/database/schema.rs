@@ -52,6 +52,7 @@ diesel::table! {
         last_modified_by -> Varchar,
         description -> Text,
         change_reason -> Text,
+        autocomplete_function_name -> Nullable<Text>,
     }
 }
 
@@ -71,6 +72,7 @@ diesel::table! {
         dependency_graph -> Json,
         dependents -> Array<Text>,
         dependencies -> Array<Text>,
+        autocomplete_function_name -> Nullable<Text>,
     }
 }
 

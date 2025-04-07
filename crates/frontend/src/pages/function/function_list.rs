@@ -3,6 +3,7 @@ use leptos::*;
 use leptos_router::A;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
+use superposition_types::api::functions::ListFunctionFilters;
 use superposition_types::{
     custom_query::PaginationParams, database::models::cac::Function, PaginatedResponse,
 };
@@ -25,14 +26,22 @@ struct CombinedResource {
 pub fn function_list() -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
-    let (filters, set_filters) = create_signal(PaginationParams::default());
+    let (pagination_rs, pagination_ws) = create_signal(PaginationParams::default());
+    let (filters_rs, _) = create_signal(ListFunctionFilters::default());
     let table_columns = create_memo(move |_| function_table_columns());
 
     let combined_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, filters.get(), org_rws.get().0),
-        |(current_tenant, filters, org)| async move {
+        move || {
+            (
+                tenant_rws.get().0,
+                pagination_rs.get(),
+                filters_rs.get(),
+                org_rws.get().0,
+            )
+        },
+        |(current_tenant, pagination, filters, org)| async move {
             let functions_future =
-                fetch_functions(&filters, current_tenant.to_string(), org);
+                fetch_functions(&pagination, &filters, current_tenant.to_string(), org);
 
             let functions_result = functions_future.await;
             CombinedResource {
@@ -42,13 +51,13 @@ pub fn function_list() -> impl IntoView {
     );
 
     let handle_next_click = Callback::new(move |total_pages: i64| {
-        set_filters.update(|f| {
+        pagination_ws.update(|f| {
             f.page = update_page_direction(f.page, total_pages, true);
         });
     });
 
     let handle_prev_click = Callback::new(move |_| {
-        set_filters.update(|f| {
+        pagination_ws.update(|f| {
             f.page = update_page_direction(f.page, 1, false);
         });
     });
@@ -91,7 +100,7 @@ pub fn function_list() -> impl IntoView {
 
                             {move || {
                                 let value = combined_resource.get();
-                                let filters = filters.get();
+                                let filters = pagination_rs.get();
                                 match value {
                                     Some(v) => {
                                         let data = v
