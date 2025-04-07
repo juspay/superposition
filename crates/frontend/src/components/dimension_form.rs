@@ -15,11 +15,6 @@ use types::{DimensionCreateReq, DimensionUpdateReq};
 use utils::{create_dimension, update_dimension};
 use web_sys::MouseEvent;
 
-use crate::components::{
-    alert::AlertType,
-    dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-    input::{Input, InputType},
-};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{JsonSchemaType, SchemaType};
@@ -28,6 +23,14 @@ use crate::{api::fetch_functions, components::button::Button};
 use crate::{
     api::fetch_types,
     types::{OrganisationId, Tenant},
+};
+use crate::{
+    components::{
+        alert::AlertType,
+        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        input::{Input, InputType},
+    },
+    utils::function_updater,
 };
 
 #[component]
@@ -89,16 +92,6 @@ where
                 .map_or_else(|_| vec![], |response| response.data)
         },
     );
-
-    let function_updater = |selected_function: FunctionsName, value: &mut Option<String>| {
-        let function_name = selected_function.clone();
-        leptos::logging::log!("function selected: {:?}", function_name);
-        let fun_name = match function_name.as_str() {
-            "None" => None,
-            _ => Some(function_name),
-        };
-        *value = fun_name;
-    };
 
     let handle_select_dropdown_option_validation =
         Callback::new(move |selected_function: FunctionsName| {
