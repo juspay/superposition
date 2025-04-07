@@ -69,9 +69,7 @@ where
             move || (tenant_rws.get().0, org_rws.get().0),
             |(current_tenant, org)| async move {
                 let fn_filters = ListFunctionFilters {
-                    function_type: Some(CommaSeparatedQParams(vec![
-                        FunctionType::Validation,
-                    ])),
+                    function_type: None,
                 };
                 fetch_functions(
                     &PaginationParams::all_entries(),
