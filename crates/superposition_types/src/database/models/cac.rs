@@ -85,6 +85,7 @@ pub struct Dimension {
     pub dependency_graph: DependencyGraph,
     pub dependents: Vec<String>,
     pub dependencies: Vec<String>,
+    pub autocomplete_function_name: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -106,6 +107,7 @@ pub struct DefaultConfig {
     pub last_modified_by: String,
     pub description: String,
     pub change_reason: String,
+    pub autocomplete_function_name: Option<String>,
 }
 
 #[derive(
@@ -118,6 +120,7 @@ pub struct DefaultConfig {
     Default,
     strum_macros::Display,
     strum_macros::EnumIter,
+    strum_macros::EnumString,
 )]
 #[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "UPPERCASE")]
@@ -130,17 +133,17 @@ pub struct DefaultConfig {
     feature = "diesel_derives",
     ExistingTypePath = "crate::database::schema::sql_types::FunctionTypes"
 )]
-pub enum FunctionTypes {
+pub enum FunctionType {
     #[default]
     Validation,
     Autocomplete,
 }
 
-impl FunctionTypes {
+impl FunctionType {
     pub fn get_fn_signature(&self) -> String {
         match self {
-            FunctionTypes::Validation => "validate({key}, {value})".to_string(),
-            FunctionTypes::Autocomplete => {
+            FunctionType::Validation => "validate({key}, {value})".to_string(),
+            FunctionType::Autocomplete => {
                 "autocomplete({name}, {prefix}, {environment})".to_string()
             }
         }
@@ -148,8 +151,8 @@ impl FunctionTypes {
 
     pub fn get_js_fn_name(&self) -> String {
         match self {
-            FunctionTypes::Validation => "validate".to_string(),
-            FunctionTypes::Autocomplete => "autocomplete".to_string(),
+            FunctionType::Validation => "validate".to_string(),
+            FunctionType::Autocomplete => "autocomplete".to_string(),
         }
     }
 }
@@ -175,7 +178,7 @@ pub struct Function {
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub change_reason: String,
-    pub function_type: FunctionTypes,
+    pub function_type: FunctionType,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

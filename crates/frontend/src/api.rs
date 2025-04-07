@@ -4,6 +4,7 @@ use superposition_types::{
         context::ContextListFilters,
         default_config::DefaultConfigFilters,
         experiments::{ExperimentListFilters, ExperimentResponse},
+        functions::ListFunctionFilters,
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap},
     database::{
@@ -150,14 +151,14 @@ pub async fn fetch_experiments(
 }
 
 pub async fn fetch_functions(
-    filters: &PaginationParams,
+    pagination: &PaginationParams,
+    filters: &ListFunctionFilters,
     tenant: String,
     org_id: String,
 ) -> Result<PaginatedResponse<Function>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
-
-    let url = format!("{}/function?{}", host, filters);
+    let url = format!("{}/function?{}&{}", host, filters, pagination);
     let response: PaginatedResponse<Function> = client
         .get(url)
         .header("x-tenant", tenant)

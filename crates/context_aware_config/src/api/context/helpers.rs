@@ -11,7 +11,7 @@ use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
     database::{
-        models::cac::{Context, DependencyGraph, FunctionCode, FunctionTypes},
+        models::cac::{Context, DependencyGraph, FunctionCode, FunctionType},
         schema::{contexts, default_configs::dsl, dimensions},
     },
     result as superposition, Cac, DBConnection, Overrides, User,
@@ -165,20 +165,20 @@ fn get_functions_map(
         .into_iter()
         .collect();
 
-    let default_config_functions_map: HashMap<String, FunctionsInfo> =
-        keys_function_array
-            .into_iter()
-            .map(|(key, function_name)| {
-                (
-                    key.clone(),
-                    FunctionsInfo {
-                        name: function_name.clone(),
-                        code: functions_map.get(&function_name).cloned().flatten(),
-                    },
-                )
-            })
-            .collect();
-    Ok(default_config_functions_map)
+    // primitives here either imply dimensions or default configs based on who is calling it
+    let function_to_primitives_map: HashMap<String, FunctionsInfo> = keys_function_array
+        .into_iter()
+        .map(|(key, function_name)| {
+            (
+                key.clone(),
+                FunctionsInfo {
+                    name: function_name.clone(),
+                    code: functions_map.get(&function_name).cloned().flatten(),
+                },
+            )
+        })
+        .collect();
+    Ok(function_to_primitives_map)
 }
 
 pub fn validate_value_with_function(
@@ -209,7 +209,7 @@ pub fn validate_value_with_function(
             stdout,
             function_type,
         }) => match function_type {
-            FunctionTypes::Validation => {
+            FunctionType::Validation => {
                 log::debug!("Function execution returned: {:?}", fn_output);
                 if fn_output.is_boolean() && fn_output == Value::Bool(true) {
                     Ok(())
@@ -220,7 +220,7 @@ pub fn validate_value_with_function(
                         ))
                 }
             }
-            FunctionTypes::Autocomplete => Ok(()),
+            FunctionType::Autocomplete => Ok(()),
         },
     }
 }

@@ -2,11 +2,12 @@ pub mod types;
 pub mod utils;
 
 use leptos::*;
-use serde_json::{json, Value};
+use serde_json::Value;
 use superposition_types::{
+    api::functions::ListFunctionFilters,
     custom_query::PaginationParams,
     database::{
-        models::cac::{Function, TypeTemplate},
+        models::cac::{Function, FunctionType, TypeTemplate},
         types::DimensionWithMandatory,
     },
 };
@@ -37,7 +38,8 @@ pub fn dimension_form<NF>(
     #[prop(default = String::new())] dimension_type: String,
     #[prop(default = Value::Null)] dimension_schema: Value,
     #[prop(default = Vec::new())] dependencies: Vec<String>,
-    #[prop(default = None)] function_name: Option<Value>,
+    #[prop(default = None)] validation_function_name: Option<String>,
+    #[prop(default = None)] autocomplete_function_name: Option<String>,
     #[prop(default = String::new())] description: String,
     #[prop(default = String::new())] change_reason: String,
     dimensions: Vec<DimensionWithMandatory>,
@@ -53,18 +55,29 @@ where
     let (dimension_name_rs, dimension_name_ws) = create_signal(dimension_name);
     let (dimension_type_rs, dimension_type_ws) = create_signal(dimension_type);
     let (dimension_schema_rs, dimension_schema_ws) = create_signal(dimension_schema);
-    let (function_name, set_function_name) = create_signal(function_name);
     let (dependencies_rs, dependencies_ws) = create_signal(dependencies);
+    let (validation_fn_name_rs, validation_fn_name_ws) =
+        create_signal(validation_function_name);
+    let (autocomplete_fn_name_rs, autocomplete_fn_name_ws) =
+        create_signal(autocomplete_function_name);
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
-    let functions_resource: Resource<(String, String), Vec<Function>> =
+    let validation_functions_resource: Resource<(String, String), Vec<Function>> =
         create_blocking_resource(
             move || (tenant_rws.get().0, org_rws.get().0),
             |(current_tenant, org)| async move {
-                fetch_functions(&PaginationParams::all_entries(), current_tenant, org)
-                    .await
-                    .map_or_else(|_| vec![], |list| list.data)
+                let fn_filters = ListFunctionFilters {
+                    function_type: None,
+                };
+                fetch_functions(
+                    &PaginationParams::all_entries(),
+                    &fn_filters,
+                    current_tenant,
+                    org,
+                )
+                .await
+                .map_or_else(|_| vec![], |list| list.data)
             },
         );
 
@@ -77,17 +90,25 @@ where
         },
     );
 
-    let handle_select_dropdown_option =
+    let function_updater = |selected_function: FunctionsName,
+                            value: &mut Option<String>| {
+        let function_name = selected_function.clone();
+        leptos::logging::log!("function selected: {:?}", function_name);
+        let fun_name = match function_name.as_str() {
+            "None" => None,
+            _ => Some(function_name),
+        };
+        *value = fun_name;
+    };
+
+    let handle_validation_fn_select =
         Callback::new(move |selected_function: FunctionsName| {
-            set_function_name.update(|value| {
-                let function_name = selected_function.clone();
-                logging::log!("function selected: {:?}", function_name);
-                let fun_name = match function_name.as_str() {
-                    "None" => None,
-                    _ => Some(json!(function_name)),
-                };
-                *value = fun_name;
-            });
+            validation_fn_name_ws.update(|v| function_updater(selected_function, v));
+        });
+
+    let handle_autocomplete_fn_select =
+        Callback::new(move |selected_function: FunctionsName| {
+            autocomplete_fn_name_ws.update(|v| function_updater(selected_function, v));
         });
 
     let handle_select_dependencies_dropdown_option =
@@ -111,7 +132,8 @@ where
         ev.prevent_default();
         let function_position = position_rs.get();
         let dimension_name = dimension_name_rs.get();
-        let function_name = function_name.get();
+        let validation_fn_name = validation_fn_name_rs.get();
+        let autocomplete_fn_name = autocomplete_fn_name_rs.get();
         let function_schema = dimension_schema_rs.get();
         let dependencies = dependencies_rs.get();
 
@@ -123,8 +145,9 @@ where
                     let update_payload = DimensionUpdateReq {
                         position: Some(function_position),
                         schema: Some(function_schema),
-                        function_name,
                         dependencies,
+                        function_name: validation_fn_name,
+                        autocomplete_function_name: autocomplete_fn_name,
                         description: description_rs.get(),
                         change_reason: change_reason_rs.get(),
                     };
@@ -140,8 +163,9 @@ where
                         dimension: dimension_name,
                         position: function_position,
                         schema: function_schema,
-                        function_name,
                         dependencies,
+                        function_name: validation_fn_name,
+                        autocomplete_function_name: autocomplete_fn_name,
                         description: description_rs.get(),
                         change_reason: change_reason_rs.get(),
                     };
@@ -184,7 +208,7 @@ where
                     type="text"
                     placeholder="Dimension"
                     class="input input-bordered w-full max-w-md"
-                    value=dimension_name_rs.get()
+                    value=move || dimension_name_rs.get()
                     on:change=move |ev| {
                         let value = event_target_value(&ev);
                         dimension_name_ws.set(value);
@@ -336,19 +360,23 @@ where
 
             <Suspense>
                 {move || {
-                    let mut functions = functions_resource.get().unwrap_or_default();
-                    let mut function_names: Vec<FunctionsName> = vec!["None".to_string()];
+                    let mut functions = validation_functions_resource.get().unwrap_or_default();
+                    let mut validation_function_names: Vec<FunctionsName> = vec!["None".to_string()];
+                    let mut autocomplete_function_names: Vec<FunctionsName> = vec!["None".to_string()];
                     functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
-                    functions
-                        .into_iter()
+                    functions.iter()
                         .for_each(|ele| {
-                            function_names.push(ele.function_name);
+                            if ele.function_type == FunctionType::Validation {
+                                validation_function_names.push(ele.function_name.clone());
+                            } else {
+                                autocomplete_function_names.push(ele.function_name.clone());
+                            }
                         });
                     view! {
                         <div class="form-control">
                             <div class="gap-1">
                                 <label class="label flex-col justify-center items-start">
-                                    <span class="label-text">Function Name</span>
+                                    <span class="label-text">Validation Function Name</span>
                                     <span class="label-text text-slate-400">
                                         Assign Function validation to your key
                                     </span>
@@ -359,17 +387,38 @@ where
                                 <Dropdown
                                     dropdown_width="w-100"
                                     dropdown_icon="".to_string()
-                                    dropdown_text=function_name
+                                    dropdown_text=validation_fn_name_rs
                                         .get()
-                                        .and_then(|v| match v {
-                                            Value::String(s) => Some(s),
-                                            _ => None,
-                                        })
                                         .map_or("Add Function".to_string(), |v| v.to_string())
                                     dropdown_direction=DropdownDirection::Down
                                     dropdown_btn_type=DropdownBtnType::Select
-                                    dropdown_options=function_names
-                                    on_select=handle_select_dropdown_option
+                                    dropdown_options=validation_function_names
+                                    on_select=handle_validation_fn_select
+                                />
+                            </div>
+                        </div>
+
+                        <div class="form-control">
+                            <div class="gap-1">
+                                <label class="label flex-col justify-center items-start">
+                                    <span class="label-text">AutoComplete Function Name</span>
+                                    <span class="label-text text-slate-400">
+                                        Assign Autocomplete Function to your key
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div class="mt-2">
+                                <Dropdown
+                                    dropdown_width="w-100"
+                                    dropdown_icon="".to_string()
+                                    dropdown_text=autocomplete_fn_name_rs
+                                        .get()
+                                        .map_or("Add Function".to_string(), |v| v.to_string())
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_options=autocomplete_function_names
+                                    on_select=handle_autocomplete_fn_select
                                 />
                             </div>
                         </div>

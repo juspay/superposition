@@ -21,7 +21,7 @@ pub fn fetch_function(
 
 pub fn get_published_function_code(
     conn: &mut DBConnection,
-    f_name: String,
+    f_name: &String,
     schema_name: &SchemaName,
 ) -> superposition::Result<Option<FunctionCode>> {
     let function: Option<FunctionCode> = functions

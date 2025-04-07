@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
+    api::functions::ListFunctionFilters,
     custom_query::{CustomQuery, PaginationParams, Query},
     database::models::cac::Function,
     PaginatedResponse,
@@ -32,8 +33,13 @@ pub fn function_list() -> impl IntoView {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
 
-    use_param_updater(move || box_params!(pagination_params_rws.get()));
+    let filters_rws = use_signal_from_query(move |query_string| {
+        Query::<ListFunctionFilters>::extract_non_empty(&query_string).into_inner()
+    });
 
+    use_param_updater(move || {
+        box_params![pagination_params_rws.get(), filters_rws.get()]
+    });
     let table_columns = create_memo(move |_| function_table_columns());
 
     let combined_resource = create_blocking_resource(
@@ -41,12 +47,13 @@ pub fn function_list() -> impl IntoView {
             (
                 tenant_rws.get().0,
                 pagination_params_rws.get(),
+                filters_rws.get(),
                 org_rws.get().0,
             )
         },
-        |(current_tenant, pagination_params, org)| async move {
+        |(current_tenant, pagination, filters, org)| async move {
             let functions_future =
-                fetch_functions(&pagination_params, current_tenant.to_string(), org);
+                fetch_functions(&pagination, &filters, current_tenant.to_string(), org);
 
             let functions_result = functions_future.await;
             CombinedResource {

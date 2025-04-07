@@ -4,8 +4,9 @@ pub mod utils;
 use leptos::*;
 use serde_json::{json, Value};
 use superposition_types::{
-    custom_query::PaginationParams,
-    database::models::cac::{Function, TypeTemplate},
+    api::functions::ListFunctionFilters,
+    custom_query::{CommaSeparatedQParams, PaginationParams},
+    database::models::cac::{Function, FunctionType, TypeTemplate},
 };
 use web_sys::MouseEvent;
 
@@ -67,13 +68,23 @@ where
             .map_err(|err| format!("Failed to get enum variants: {}", err))
     });
 
-    let functions_resource: Resource<(String, String), Vec<Function>> =
+    let validation_functions_resource: Resource<(String, String), Vec<Function>> =
         create_blocking_resource(
             move || (tenant_rws.get().0, org_rws.get().0),
             |(current_tenant, org)| async move {
-                fetch_functions(&PaginationParams::all_entries(), current_tenant, org)
-                    .await
-                    .map_or_else(|_| vec![], |data| data.data)
+                let fn_filters = ListFunctionFilters {
+                    function_type: Some(CommaSeparatedQParams(vec![
+                        FunctionType::Validation,
+                    ])),
+                };
+                fetch_functions(
+                    &PaginationParams::all_entries(),
+                    &fn_filters,
+                    current_tenant,
+                    org,
+                )
+                .await
+                .map_or_else(|_| vec![], |data| data.data)
             },
         );
 
@@ -370,7 +381,7 @@ where
 
                 <Suspense>
                     {move || {
-                        let functions = functions_resource.get().unwrap_or_default();
+                        let functions = validation_functions_resource.get().unwrap_or_default();
                         let mut function_names: Vec<FunctionsName> = vec![];
                         functions
                             .into_iter()

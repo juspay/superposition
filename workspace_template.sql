@@ -472,7 +472,36 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-ALTER TABLE {replaceme}.dimensions 
-ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
-ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
-ADD COLUMN dependencies TEXT[] default '{}' NOT NULL;
+DO $$ BEGIN
+    ALTER TABLE {replaceme}.dimensions 
+    ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
+    ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
+    ADD COLUMN dependencies TEXT[] default '{}' NOT NULL;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+
+DO $$ BEGIN
+    ALTER TABLE {replaceme}.dimensions ADD COLUMN autocomplete_function_name text NULL;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TABLE {replaceme}.dimensions ADD FOREIGN KEY(autocomplete_function_name) REFERENCES {replaceme}.functions(function_name);
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TABLE {replaceme}.default_configs ADD COLUMN autocomplete_function_name text NULL;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TABLE {replaceme}.default_configs ADD FOREIGN KEY(autocomplete_function_name) REFERENCES {replaceme}.functions(function_name);
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;

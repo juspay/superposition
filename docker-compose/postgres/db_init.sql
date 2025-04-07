@@ -1228,4 +1228,20 @@ ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
 ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
 ADD COLUMN dependencies TEXT[] default '{}' NOT NULL;
 
+ALTER TABLE localorg_dev.dimensions ADD COLUMN autocomplete_function_name text NULL;
+
+ALTER TABLE localorg_dev.dimensions ADD FOREIGN KEY(autocomplete_function_name) REFERENCES localorg_dev.functions(function_name);
+
+ALTER TABLE localorg_dev.default_configs ADD COLUMN autocomplete_function_name text NULL;
+
+ALTER TABLE localorg_dev.default_configs ADD FOREIGN KEY(autocomplete_function_name) REFERENCES localorg_dev.functions(function_name);
+
+ALTER TABLE localorg_test.dimensions ADD COLUMN autocomplete_function_name text NULL;
+
+ALTER TABLE localorg_test.dimensions ADD FOREIGN KEY(autocomplete_function_name) REFERENCES localorg_test.functions(function_name);
+
+ALTER TABLE localorg_test.default_configs ADD COLUMN autocomplete_function_name text NULL;
+
+ALTER TABLE localorg_test.default_configs ADD FOREIGN KEY(autocomplete_function_name) REFERENCES localorg_test.functions(function_name);
+
 COMMIT;

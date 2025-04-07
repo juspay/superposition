@@ -3,7 +3,7 @@ use std::str;
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
-    database::models::cac::{FunctionCode, FunctionTypes},
+    database::models::cac::{FunctionCode, FunctionType},
     result as superposition,
 };
 
@@ -122,7 +122,7 @@ fn generate_fn_code(
 ) -> String {
     let (function_invocation, output_check) = match function_args {
         FunctionExecutionRequest::ValidateFunctionRequest { key, value } => (
-            FunctionTypes::Validation
+            FunctionType::Validation
                 .get_fn_signature()
                 .replace("{key}", format!("\"{}\"", &key).as_str())
                 .replace("{value}", &value.to_string()),
@@ -133,7 +133,7 @@ fn generate_fn_code(
             prefix,
             environment,
         } => (
-            FunctionTypes::Autocomplete
+            FunctionType::Autocomplete
                 .get_fn_signature()
                 .replace("{name}", format!("\"{}\"", &name).as_str())
                 .replace("{prefix}", format!("\"{}\"", &prefix).as_str())
@@ -181,10 +181,10 @@ pub fn execute_fn(
             } else {
                 let function_type = match args {
                     FunctionExecutionRequest::ValidateFunctionRequest { .. } => {
-                        FunctionTypes::Validation
+                        FunctionType::Validation
                     }
                     FunctionExecutionRequest::AutocompleteFunctionRequest { .. } => {
-                        FunctionTypes::Autocomplete
+                        FunctionType::Autocomplete
                     }
                 };
                 let stdout_vec = stdout.trim().split('\n').collect::<Vec<_>>();
