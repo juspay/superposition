@@ -673,15 +673,20 @@ pub async fn discard(
 async fn get_applicable_variants(
     req: HttpRequest,
     db_conn: DbConnection,
-    req_body: web::Json<ApplicableVariantsRequest>,
-    query_data: Query<ApplicableVariantsQuery>,
+    req_body: Option<Json<ApplicableVariantsRequest>>,
+    query_data: Option<Query<ApplicableVariantsQuery>>,
     schema_name: SchemaName,
 ) -> superposition::Result<Either<Json<Vec<Variant>>, Json<ListResponse<Variant>>>> {
     let DbConnection(mut conn) = db_conn;
-    let mut req_data = query_data.into_inner();
-    if req.method() == actix_web::http::Method::POST {
-        req_data = req_body.into_inner().into();
-    }
+    let req_data = match (req.method().clone(), query_data, req_body) {
+        (actix_web::http::Method::GET, Some(query_data), None) => query_data.into_inner(),
+        (actix_web::http::Method::POST, None, Some(req_body)) => {
+            req_body.into_inner().into()
+        }
+        _ => {
+            return Err(bad_argument!("Invalid input for the method"));
+        }
+    };
     let experiments = experiments::experiments
         .filter(experiments::status.ne_all(vec![
             ExperimentStatusType::CONCLUDED,
