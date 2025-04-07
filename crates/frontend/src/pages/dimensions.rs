@@ -23,7 +23,8 @@ pub struct RowData {
     pub dimension: String,
     pub position: u32,
     pub schema: Value,
-    pub function_name: Option<Value>,
+    pub function_name: Option<String>,
+    pub autocomplete_function_name: Option<String>,
     pub mandatory: bool,
     pub dependencies: Vec<String>,
 }
@@ -88,12 +89,12 @@ pub fn dimensions() -> impl IntoView {
             let schema = row["schema"].clone().to_string();
             let schema = serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
 
-            let function_name = row["function_name"].to_string();
-            let fun_name = match function_name.as_str() {
-                "null" => None,
-                _ => Some(json!(function_name.replace('"', ""))),
-            };
-
+            let validation_function_name = row
+                .get("function_name")
+                .map(|v| v.as_str().unwrap_or_default().to_string());
+            let autocomplete_function_name = row
+                .get("autocomplete_function_name")
+                .map(|v| v.as_str().unwrap_or_default().to_string());
             let mandatory = row["mandatory"].as_bool().unwrap_or(false);
 
             let dependencies = row["dependencies"]
@@ -110,7 +111,8 @@ pub fn dimensions() -> impl IntoView {
                     dimension: row_dimension.clone(),
                     position: row_position,
                     schema: schema.clone(),
-                    function_name: fun_name.clone(),
+                    function_name: validation_function_name.clone(),
+                    autocomplete_function_name: autocomplete_function_name.clone(),
                     mandatory,
                     dependencies: dependencies.clone(),
                 };
@@ -153,6 +155,7 @@ pub fn dimensions() -> impl IntoView {
             Column::default("mandatory".to_string()),
             Column::default("function_name".to_string()),
             Column::default("dependencies".to_string()),
+            Column::default("autocomplete_function_name".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
             Column::new(
@@ -167,6 +170,49 @@ pub fn dimensions() -> impl IntoView {
 
     view! {
         <div class="p-8">
+            {move || {
+                let handle_close = move || {
+                    close_drawer("dimension_drawer");
+                    selected_dimension.set(None);
+                };
+                if let Some(selected_dimension_data) = selected_dimension.get() {
+                    view! {
+                        <Drawer
+                            id="dimension_drawer".to_string()
+                            header="Edit Dimension"
+                            handle_close=handle_close
+                        >
+                            <DimensionForm
+                                edit=true
+                                position=selected_dimension_data.position
+                                dimension_name=selected_dimension_data.dimension
+                                dimension_schema=selected_dimension_data.schema
+                                validation_function_name=selected_dimension_data.function_name
+                                autocomplete_function_name=selected_dimension_data.autocomplete_function_name
+                                handle_submit=move || {
+                                    dimensions_resource.refetch();
+                                    selected_dimension.set(None);
+                                    close_drawer("dimension_drawer");
+                                }
+                            />
+
+                        </Drawer>
+                    }
+                } else {
+                    view! {
+                        <Drawer
+                            id="dimension_drawer".to_string()
+                            header="Create New Dimension"
+                            handle_close=handle_close
+                        >
+                            <DimensionForm handle_submit=move || {
+                                dimensions_resource.refetch();
+                                close_drawer("dimension_drawer");
+                            } />
+                        </Drawer>
+                    }
+                }
+            }}
             <Suspense fallback=move || {
                 view! { <Skeleton /> }
             }>

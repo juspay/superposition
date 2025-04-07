@@ -85,6 +85,7 @@ pub struct Dimension {
     pub dependency_graph: DependencyGraph,
     pub dependents: Vec<String>,
     pub dependencies: Vec<String>,
+    pub autocomplete_function_name: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -106,6 +107,7 @@ pub struct DefaultConfig {
     pub last_modified_by: String,
     pub description: String,
     pub change_reason: String,
+    pub autocomplete_function_name: Option<String>,
 }
 
 #[derive(
@@ -118,6 +120,7 @@ pub struct DefaultConfig {
     Default,
     strum_macros::Display,
     strum_macros::EnumIter,
+    strum_macros::EnumString,
 )]
 #[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "UPPERCASE")]
