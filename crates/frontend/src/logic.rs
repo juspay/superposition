@@ -298,6 +298,10 @@ impl Condition {
 pub struct Conditions(pub Vec<Condition>);
 
 impl Conditions {
+    pub fn includes(&self, variable: &String) -> bool {
+        self.iter().any(|c| c.variable == *variable)
+    }
+
     pub fn from_context_json(
         context: &Map<String, serde_json::Value>,
     ) -> Result<Self, &'static str> {
