@@ -15,12 +15,6 @@ use types::{DimensionCreateReq, DimensionUpdateReq};
 use utils::{create_dimension, update_dimension};
 use web_sys::MouseEvent;
 
-use crate::components::{
-    alert::AlertType,
-    change_form::ChangeForm,
-    dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-    input::{Input, InputType},
-};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{JsonSchemaType, SchemaType};
@@ -29,6 +23,15 @@ use crate::{api::fetch_functions, components::button::Button};
 use crate::{
     api::fetch_types,
     types::{OrganisationId, Tenant},
+};
+use crate::{
+    components::{
+        alert::AlertType,
+        change_form::ChangeForm,
+        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        input::{Input, InputType},
+    },
+    utils::function_updater,
 };
 
 #[component]
