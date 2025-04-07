@@ -268,19 +268,15 @@ operation DeleteContext {
     ]
 }
 
-
 structure WeightRecomputeResponse for Context {
-     $id
-
-     condition: Condition
-
-     old_weight: Weight
-
-     new_weight: Weight
+    $id
+    condition: Condition
+    old_weight: Weight
+    new_weight: Weight
 }
 
 list WeightRecomputeResponses {
-     member: WeightRecomputeResponse
+    member: WeightRecomputeResponse
 }
 
 @http(method: "PUT", uri: "/context/weight/recompute")

@@ -1,9 +1,6 @@
-
 $version: "2.0"
 
 namespace io.superposition
-
-use aws.protocols#restJson1
 
 resource Workspace {
     identifiers: {
@@ -22,22 +19,21 @@ resource Workspace {
         created_at: DateTime
         mandatory_dimensions: ListMandatoryDimensions
     }
-
     list: ListWorkspace
     put: UpdateWorkspace
-    operations: [CreateWorkspace]
-
+    operations: [
+        CreateWorkspace
+    ]
 }
 
 enum WorkspaceStatus {
-    ENABLED,
-    DISABLED,
+    ENABLED
+    DISABLED
 }
 
 list ListMandatoryDimensions {
     member: String
 }
-
 
 structure CreateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     @required
@@ -47,12 +43,9 @@ structure CreateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     $workspace_name
 
     $workspace_status
-
 }
 
-
 structure UpdateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
-
     @httpLabel
     @required
     $workspace_name
@@ -63,11 +56,9 @@ structure UpdateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     $mandatory_dimensions
 
     $workspace_status
-
 }
 
 structure WorkspaceResponse for Workspace {
-
     @required
     $workspace_name
 
@@ -99,15 +90,13 @@ structure WorkspaceResponse for Workspace {
     $created_at
 
     $mandatory_dimensions
-
 }
 
 list WorkspaceList {
     member: WorkspaceResponse
 }
 
-structure WorkspaceListResponse for Workspace{
-
+structure WorkspaceListResponse for Workspace {
     @required
     total_pages: Long
 
@@ -116,30 +105,24 @@ structure WorkspaceListResponse for Workspace{
 
     @required
     data: WorkspaceList
-    
 }
-
 
 @httpError(404)
 @error("client")
 structure WorkspaceNotFound {}
 
-
 // Operations
 @http(method: "POST", uri: "/workspaces")
 operation CreateWorkspace {
-    input : CreateWorkspaceRequest
+    input: CreateWorkspaceRequest
     output: WorkspaceResponse
 }
-
 
 @idempotent
 @http(method: "PUT", uri: "/workspaces/{workspace_name}")
 operation UpdateWorkspace {
-    input : UpdateWorkspaceRequest
-
+    input: UpdateWorkspaceRequest
     output: WorkspaceResponse
-
     errors: [
         WorkspaceNotFound
     ]
@@ -148,6 +131,6 @@ operation UpdateWorkspace {
 @readonly
 @http(method: "GET", uri: "/workspaces")
 operation ListWorkspace {
-    input :=  with [PaginationParams, CreateWorkspaceMixin] {}
-    output : WorkspaceListResponse
+    input := with [PaginationParams, CreateWorkspaceMixin] {}
+    output: WorkspaceListResponse
 }

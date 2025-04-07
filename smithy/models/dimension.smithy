@@ -15,6 +15,9 @@ resource Dimension {
         function_name: String
         description: String
         change_reason: String
+        dependencies: Dependencies
+        dependents: Dependents
+        dependency_graph: Object
         created_at: DateTime
         created_by: String
         last_modified_at: DateTime
@@ -26,6 +29,14 @@ resource Dimension {
     operations: [
         CreateDimension
     ]
+}
+
+list Dependencies {
+    member: String
+}
+
+list Dependents {
+    member: String
 }
 
 @mixin
@@ -58,6 +69,15 @@ structure DimensionMixin for Dimension {
 
     @required
     $created_by
+
+    @required
+    $dependencies
+
+    @required
+    $dependents
+
+    @required
+    $dependency_graph
 }
 
 structure DimensionExt with [DimensionMixin] {
@@ -82,6 +102,8 @@ operation CreateDimension {
         $schema
 
         $function_name
+
+        $dependencies
 
         @required
         $description
@@ -115,6 +137,8 @@ operation UpdateDimension {
         $function_name
 
         $description
+
+        $dependencies
 
         @required
         $change_reason

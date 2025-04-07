@@ -1,9 +1,6 @@
-
 $version: "2.0"
 
 namespace io.superposition
-
-use aws.protocols#restJson1
 
 resource Organisation {
     identifiers: {
@@ -22,16 +19,15 @@ resource Organisation {
         updated_at: DateTime
         updated_by: String
     }
-    create: CreaterOrganisation
+    create: CreateOrganisation
     read: GetOrganisation
     list: ListOrganisation
     put: UpdateOrganisation
-
 }
 
 enum OrgStatus {
-    Active = "Active",
-    Inactive = "Inactive",
+    Active = "Active"
+    Inactive = "Inactive"
     PendingKyb = "PendingKyb"
 }
 
@@ -49,12 +45,9 @@ structure CreateOrganisationRequest for Organisation {
     $name
 
     $sector
-
 }
 
-
 structure UpdateOrganisationRequest for Organisation {
-
     @httpLabel
     @required
     $id
@@ -70,17 +63,15 @@ structure UpdateOrganisationRequest for Organisation {
     $sector
 
     $status
-
 }
 
 structure OrganisationResponse for Organisation {
-
     @required
     $id
 
     @required
     $name
- 
+
     $country_code
 
     $contact_email
@@ -92,7 +83,7 @@ structure OrganisationResponse for Organisation {
 
     @required
     $admin_email
-    
+
     @required
     $status
 
@@ -100,29 +91,26 @@ structure OrganisationResponse for Organisation {
 
     @required
     $created_at
-    
+
     @required
     $updated_at
 
     @required
     $updated_by
-
 }
 
 list OrganisationList {
     member: OrganisationResponse
 }
 
-
 @httpError(404)
 @error("client")
 structure OrganisationNotFound {}
 
-
 // Operations
 @http(method: "POST", uri: "/superposition/organisations")
-operation CreaterOrganisation {
-    input : CreateOrganisationRequest
+operation CreateOrganisation {
+    input: CreateOrganisationRequest
     output: OrganisationResponse
 }
 
@@ -145,10 +133,8 @@ operation GetOrganisation {
 @idempotent
 @http(method: "PUT", uri: "/superposition/organisations/{id}")
 operation UpdateOrganisation {
-    input : UpdateOrganisationRequest
-
+    input: UpdateOrganisationRequest
     output: OrganisationResponse
-
     errors: [
         OrganisationNotFound
     ]
@@ -157,7 +143,7 @@ operation UpdateOrganisation {
 @readonly
 @http(method: "GET", uri: "/superposition/organisations")
 operation ListOrganisation {
-    input :=  with [PaginationParams] {}
+    input := with [PaginationParams] {}
     output := with [PaginatedResponse] {
         data: OrganisationList
     }

@@ -56,7 +56,6 @@ structure CreateWorkspaceMixin {
     org_id: String
 }
 
-
 @mixin
 structure PaginatedResponse {
     total_pages: Integer

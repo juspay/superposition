@@ -72,7 +72,7 @@ operation ListVersions {
 
 @length(max: 1)
 list OverrideWithKeys {
-     member: String
+    member: String
 }
 
 structure ContextPartial {

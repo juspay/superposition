@@ -3,8 +3,6 @@ $version: "2.0"
 
 namespace io.superposition
 
-use aws.protocols#restJson1
-
 resource Function {
     identifiers: {
         function_name: String
@@ -24,24 +22,63 @@ resource Function {
         last_modified_at: DateTime
         last_modified_by: String
         change_reason: String
+        function_type: FunctionTypes
     }
-
     read: GetFunction
     put: UpdateFunction
     delete: DeleteFunction
     list: ListFunction
-    operations: [CreateFunction, Test, Publish]
+    operations: [
+        CreateFunction
+        Test
+        Publish
+    ]
+}
+
+structure FunctionExecutionResponse {
+    @notProperty
+    @required
+    fn_output: Document
+
+    @notProperty
+    @required
+    stdout: String
+
+    @notProperty
+    @required
+    function_type: FunctionTypes
+}
+
+union FunctionExecutionRequest for Function {
+    ValidateFunctionRequest: ValidateFunctionRequest
+    AutocompleteFunctionRequest: AutocompleteFunctionRequest
+}
+
+structure ValidateFunctionRequest {
+    key: String
+    value: Document
+}
+
+structure AutocompleteFunctionRequest {
+    name: String
+    prefix: String
+    environment: Document
+}
+
+enum FunctionTypes {
+    Validation = "VALIDATION"
+    Autocomplete = "AUTOCOMPLETE"
 }
 
 enum Stage {
-    DRAFT = "draft",
-    PUBLISHED = "published",
+    DRAFT = "draft"
+    PUBLISHED = "published"
 }
 
-structure CreateFunctionRequest for Function with [WorkspaceMixin]{
+structure CreateFunctionRequest for Function with [WorkspaceMixin] {
     @required
     $function_name
-    
+
     @required
     $description
 
@@ -56,14 +93,15 @@ structure CreateFunctionRequest for Function with [WorkspaceMixin]{
     @notProperty
     runtime_version: String
 
+    @required
+    $function_type
 }
 
-structure UpdateFunctionRequest for Function with [WorkspaceMixin]{
-
+structure UpdateFunctionRequest for Function with [WorkspaceMixin] {
     @httpLabel
     @required
     $function_name
-    
+
     $description
 
     @required
@@ -76,9 +114,11 @@ structure UpdateFunctionRequest for Function with [WorkspaceMixin]{
     @required
     @notProperty
     runtime_version: String
+
+    $function_type
 }
 
-structure FunctionResponse for Function{
+structure FunctionResponse for Function {
     @required
     $function_name
 
@@ -114,29 +154,29 @@ structure FunctionResponse for Function{
     @required
     $description
 
+    @required
+    $function_type
 }
 
 list FunctionListResponse {
     member: FunctionResponse
 }
 
-
 @httpError(404)
 @error("client")
 structure FunctionNotFound {}
 
-
 // Operations
 @http(method: "POST", uri: "/function")
 operation CreateFunction {
-    input : CreateFunctionRequest
+    input: CreateFunctionRequest
     output: FunctionResponse
 }
 
 @readonly
 @http(method: "GET", uri: "/function/{function_name}")
 operation GetFunction {
-    input := for Function with [WorkspaceMixin]{
+    input := for Function with [WorkspaceMixin] {
         @httpLabel
         @required
         $function_name
@@ -152,20 +192,17 @@ operation GetFunction {
 @readonly
 @http(method: "GET", uri: "/function")
 operation ListFunction {
-    input :=  with [PaginationParams, WorkspaceMixin] {}
-    output:= with [PaginatedResponse] {
+    input := with [PaginationParams, WorkspaceMixin] {}
+    output := with [PaginatedResponse] {
         data: FunctionListResponse
     }
-
 }
 
 @idempotent
 @http(method: "PATCH", uri: "/function/{function_name}")
 operation UpdateFunction {
-    input : UpdateFunctionRequest
-
+    input: UpdateFunctionRequest
     output: FunctionResponse
-
     errors: [
         FunctionNotFound
     ]
@@ -174,7 +211,7 @@ operation UpdateFunction {
 @idempotent
 @http(method: "DELETE", uri: "/function/{function_name}")
 operation DeleteFunction {
-    input := for Function with [WorkspaceMixin]{
+    input := for Function with [WorkspaceMixin] {
         @httpLabel
         @required
         $function_name
@@ -190,7 +227,7 @@ operation DeleteFunction {
 @idempotent
 @http(method: "PUT", uri: "/function/{function_name}/{stage}/test")
 operation Test {
-    input := for Function with [WorkspaceMixin]{
+    input := for Function with [WorkspaceMixin] {
         @httpLabel
         @required
         $function_name
@@ -199,13 +236,14 @@ operation Test {
         @required
         @notProperty
         stage: Stage
-    }
 
-    output := for Function{
+        @httpPayload
         @required
         @notProperty
-        message: String
+        request: FunctionExecutionRequest
     }
+
+    output: FunctionExecutionResponse
 
     errors: [
         FunctionNotFound
@@ -215,13 +253,13 @@ operation Test {
 @idempotent
 @http(method: "PUT", uri: "/function/{function_name}/publish")
 operation Publish {
-    input := for Function with [WorkspaceMixin]{
+    input := for Function with [WorkspaceMixin] {
         @httpLabel
         @required
         $function_name
     }
 
-    output : FunctionResponse
+    output: FunctionResponse
 
     errors: [
         FunctionNotFound

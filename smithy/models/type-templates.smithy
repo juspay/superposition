@@ -3,8 +3,6 @@ $version: "2.0"
 
 namespace io.superposition
 
-use aws.protocols#restJson1
-
 resource TypeTemplates {
     identifiers: {
         type_name: String
@@ -23,17 +21,18 @@ resource TypeTemplates {
     list: GetTypeTemplatesList
     put: UpdateTypeTemplates
     delete: DeleteTypeTemplates
-    operations: [CreateTypeTemplates]
+    operations: [
+        CreateTypeTemplates
+    ]
 }
 
-
-structure CreateTypeTemplatesRequest for TypeTemplates with [WorkspaceMixin]{
+structure CreateTypeTemplatesRequest for TypeTemplates with [WorkspaceMixin] {
     @required
     $type_name
 
     @required
     $type_schema
-    
+
     @required
     $description
 
@@ -41,28 +40,27 @@ structure CreateTypeTemplatesRequest for TypeTemplates with [WorkspaceMixin]{
     $change_reason
 }
 
-structure UpdateTypeTemplatesRequest for TypeTemplates with [WorkspaceMixin]{
+structure UpdateTypeTemplatesRequest for TypeTemplates with [WorkspaceMixin] {
     @httpLabel
     @required
     $type_name
 
     @required
     $type_schema
-    
+
     $description
 
     @required
     $change_reason
 }
 
-structure TypeTemplatesResponse for TypeTemplates{
-
+structure TypeTemplatesResponse for TypeTemplates {
     @required
     $type_name
 
     @required
     $type_schema
-    
+
     @required
     $description
 
@@ -74,31 +72,26 @@ structure TypeTemplatesResponse for TypeTemplates{
 
     @required
     $created_at
-    
+
     @required
     $last_modified_at
 
     @required
     $last_modified_by
-    
 }
-
 
 list TypeTemplatesList {
     member: TypeTemplatesResponse
 }
 
-
 @httpError(404)
 @error("client")
 structure TypeTemplatesNotFound {}
 
-
-
 // Operations
 @http(method: "POST", uri: "/types")
 operation CreateTypeTemplates {
-    input : CreateTypeTemplatesRequest
+    input: CreateTypeTemplatesRequest
     output: TypeTemplatesResponse
 }
 
@@ -106,19 +99,16 @@ operation CreateTypeTemplates {
 @http(method: "GET", uri: "/types")
 operation GetTypeTemplatesList {
     input := with [PaginationParams, WorkspaceMixin] {}
-    output:= with [PaginatedResponse] {
+    output := with [PaginatedResponse] {
         data: TypeTemplatesList
     }
-
 }
 
 @idempotent
 @http(method: "PUT", uri: "/types/{type_name}")
 operation UpdateTypeTemplates {
-    input : UpdateTypeTemplatesRequest
-
+    input: UpdateTypeTemplatesRequest
     output: TypeTemplatesResponse
-
     errors: [
         TypeTemplatesNotFound
     ]
@@ -127,16 +117,15 @@ operation UpdateTypeTemplates {
 @idempotent
 @http(method: "DELETE", uri: "/types/{type_name}")
 operation DeleteTypeTemplates {
-    input := for TypeTemplates with [WorkspaceMixin]{
+    input := for TypeTemplates with [WorkspaceMixin] {
         @httpLabel
         @required
         $type_name
     }
 
-    output : TypeTemplatesResponse
+    output: TypeTemplatesResponse
 
     errors: [
         TypeTemplatesNotFound
     ]
 }
-
