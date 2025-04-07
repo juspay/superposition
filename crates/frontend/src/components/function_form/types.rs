@@ -1,5 +1,5 @@
 use serde::Serialize;
-use superposition_types::database::models::cac::FunctionTypes;
+use superposition_types::database::models::cac::FunctionType;
 
 #[derive(Serialize)]
 pub struct FunctionCreateRequest {
@@ -8,7 +8,7 @@ pub struct FunctionCreateRequest {
     pub runtime_version: String,
     pub description: String,
     pub change_reason: String,
-    pub function_type: FunctionTypes,
+    pub function_type: FunctionType,
 }
 
 #[derive(Serialize)]
@@ -17,5 +17,5 @@ pub struct FunctionUpdateRequest {
     pub runtime_version: String,
     pub description: String,
     pub change_reason: String,
-    pub function_type: FunctionTypes,
+    pub function_type: FunctionType,
 }

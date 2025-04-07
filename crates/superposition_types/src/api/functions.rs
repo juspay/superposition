@@ -1,14 +1,19 @@
+use core::fmt;
+use std::fmt::Display;
+
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use superposition_derives::IsEmpty;
 
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::functions;
 use crate::{
-    database::models::cac::{FunctionCode, FunctionTypes},
-    RegexEnum,
+    custom_query::CommaSeparatedQParams,
+    database::models::cac::{FunctionCode, FunctionType},
+    IsEmpty, RegexEnum,
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -21,16 +26,16 @@ pub struct UpdateFunctionRequest {
     pub draft_runtime_version: Option<String>,
     pub description: Option<String>,
     pub change_reason: String,
-    #[serde(default = "FunctionTypes::default")]
-    pub function_type: FunctionTypes,
+    #[serde(default = "FunctionType::default")]
+    pub function_type: FunctionType,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateFunctionRequest {
     pub function_name: FunctionName,
     pub function: FunctionCode,
-    #[serde(default = "FunctionTypes::default")]
-    pub function_type: FunctionTypes,
+    #[serde(default = "FunctionType::default")]
+    pub function_type: FunctionType,
     pub runtime_version: String,
     pub description: String,
     pub change_reason: String,
@@ -116,5 +121,20 @@ impl FunctionExecutionRequest {
 pub struct FunctionExecutionResponse {
     pub fn_output: Value,
     pub stdout: String,
-    pub function_type: FunctionTypes,
+    pub function_type: FunctionType,
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, IsEmpty)]
+pub struct ListFunctionFilters {
+    pub function_type: Option<CommaSeparatedQParams<FunctionType>>,
+}
+
+impl Display for ListFunctionFilters {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut query_params = vec![];
+        if let Some(fntype) = &self.function_type {
+            query_params.push(format!("function_type={}", fntype));
+        }
+        write!(f, "{}", query_params.join("&"))
+    }
 }

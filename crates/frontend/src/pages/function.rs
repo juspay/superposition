@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use strum::EnumProperty;
 use strum_macros::Display;
 use superposition_types::api::functions::FunctionExecutionRequest;
-use superposition_types::database::models::cac::{Function, FunctionCode, FunctionTypes};
+use superposition_types::database::models::cac::{Function, FunctionCode, FunctionType};
 use utils::publish_function;
 use web_sys::{HtmlButtonElement, MouseEvent};
 
@@ -414,10 +414,10 @@ pub fn function_page() -> impl IntoView {
                                                                             <TestForm
                                                                                 function_name=function_rs.get().function_name
                                                                                 function_args=match function_rs.get().function_type {
-                                                                                    FunctionTypes::Validation => {
+                                                                                    FunctionType::Validation => {
                                                                                         FunctionExecutionRequest::validation_default()
                                                                                     }
-                                                                                    FunctionTypes::Autocomplete => {
+                                                                                    FunctionType::Autocomplete => {
                                                                                         FunctionExecutionRequest::autocomplete_default()
                                                                                     }
                                                                                 }
@@ -497,10 +497,10 @@ pub fn function_page() -> impl IntoView {
                                                                                 <TestForm
                                                                                     function_name=function_rs.get().function_name
                                                                                     function_args=match function_rs.get().function_type {
-                                                                                        FunctionTypes::Validation => {
+                                                                                        FunctionType::Validation => {
                                                                                             FunctionExecutionRequest::validation_default()
                                                                                         }
-                                                                                        FunctionTypes::Autocomplete => {
+                                                                                        FunctionType::Autocomplete => {
                                                                                             FunctionExecutionRequest::autocomplete_default()
                                                                                         }
                                                                                     }

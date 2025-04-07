@@ -82,6 +82,7 @@ async fn create_default_config(
         last_modified_by: user.get_email(),
         description: description.clone(),
         change_reason: change_reason.clone(),
+        autocomplete_function_name: req.autocomplete_function_name,
     };
 
     let schema_compile_result = JSONSchema::options()
@@ -206,14 +207,12 @@ async fn update_default_config(
         ));
     }
 
-    let function_name: Option<String> = req
-        .function_name
-        .clone()
-        .unwrap_or(existing.function_name.clone());
+    let validation_function_name: Option<String> =
+        req.function_name.clone().unwrap_or(existing.function_name);
 
     if let Err(e) = validate_and_get_function_code(
         &mut conn,
-        function_name.as_ref(),
+        validation_function_name.as_ref(),
         &key_str,
         &value,
         &schema_name,
@@ -264,9 +263,8 @@ fn validate_and_get_function_code(
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     if let Some(f_name) = function_name {
-        let function_code =
-            get_published_function_code(conn, f_name.clone(), schema_name)
-                .map_err(|_| bad_argument!("Function {} doesn't exist.", f_name))?;
+        let function_code = get_published_function_code(conn, f_name, schema_name)
+            .map_err(|_| bad_argument!("Function {} doesn't exist.", f_name))?;
         if let Some(f_code) = function_code {
             validate_value_with_function(
                 f_name.as_str(),

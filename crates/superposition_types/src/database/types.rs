@@ -20,6 +20,7 @@ pub struct DimensionWithMandatory {
     pub dependencies: Vec<String>,
     pub description: String,
     pub change_reason: String,
+    pub autocomplete_function_name: Option<String>,
 }
 
 impl DimensionWithMandatory {
@@ -39,6 +40,7 @@ impl DimensionWithMandatory {
             dependencies: value.dependencies,
             description: value.description,
             change_reason: value.change_reason,
+            autocomplete_function_name: value.autocomplete_function_name,
         }
     }
 }

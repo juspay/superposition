@@ -18,7 +18,7 @@ use strum::IntoEnumIterator;
 use superposition_types::api::functions::{
     FunctionExecutionRequest, FunctionExecutionResponse,
 };
-use superposition_types::database::models::cac::FunctionTypes;
+use superposition_types::database::models::cac::FunctionType;
 use wasm_bindgen::prelude::*;
 use web_sys::MouseEvent;
 
@@ -41,7 +41,7 @@ async function autocomplete(name, prefix, environment) {
 }
 "#;
 
-impl DropdownOption for FunctionTypes {
+impl DropdownOption for FunctionType {
     fn key(&self) -> String {
         self.to_string()
     }
@@ -65,7 +65,7 @@ pub fn function_editor<NF>(
     #[prop(default = String::new())] runtime_version: String,
     #[prop(default = String::new())] description: String,
     #[prop(default = String::new())] change_reason: String,
-    #[prop(default = FunctionTypes::Validation)] function_type: FunctionTypes,
+    #[prop(default = FunctionType::Validation)] function_type: FunctionType,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -184,11 +184,11 @@ where
                                     dropdown_icon="ri-functions".to_string()
                                     dropdown_text=function_type_rs.get().to_string()
                                     dropdown_direction=DropdownDirection::Down
-                                    dropdown_options=FunctionTypes::iter().collect()
-                                    on_select=Callback::new(move |selected: FunctionTypes| {
+                                    dropdown_options=FunctionType::iter().collect()
+                                    on_select=Callback::new(move |selected: FunctionType| {
                                         let code = match selected {
-                                            FunctionTypes::Validation => VALIDATE_TEMPLATE_FN,
-                                            FunctionTypes::Autocomplete => AUTOCOMPLETE_TEMPLATE_FN,
+                                            FunctionType::Validation => VALIDATE_TEMPLATE_FN,
+                                            FunctionType::Autocomplete => AUTOCOMPLETE_TEMPLATE_FN,
                                         };
                                         function_code_ws.set(code.to_string());
                                         function_type_ws.set(selected);

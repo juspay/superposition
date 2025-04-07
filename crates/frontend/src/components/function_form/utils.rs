@@ -1,6 +1,6 @@
 use superposition_types::{
     api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
-    database::models::cac::{Function, FunctionTypes},
+    database::models::cac::{Function, FunctionType},
 };
 
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
@@ -14,7 +14,7 @@ pub async fn create_function(
     runtime_version: String,
     description: String,
     change_reason: String,
-    function_type: FunctionTypes,
+    function_type: FunctionType,
     tenant: String,
     org_id: String,
 ) -> Result<Function, String> {
@@ -47,7 +47,7 @@ pub async fn update_function(
     runtime_version: String,
     description: String,
     change_reason: String,
-    function_type: FunctionTypes,
+    function_type: FunctionType,
     tenant: String,
     org_id: String,
 ) -> Result<Function, String> {

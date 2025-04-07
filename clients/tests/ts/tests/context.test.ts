@@ -35,7 +35,7 @@ describe("Context API Integration Tests", () => {
         client = superpositionClient;
         testWorkspaceId = ENV.workspace_id;
         testOrgId = ENV.org_id;
-
+        console.log(`Using org ${testOrgId} with workspace ${testWorkspaceId}`)
         await addMandatoryDimension(client);
         await setupDimensionsAndConfigs(client);
     });
@@ -467,7 +467,7 @@ describe("Context API Integration Tests", () => {
             // Deserialization error: to see the raw response, inspect the hidden field {error}.$response on this object.
             // TODO: Check client implementation for better error handling
             const cmd = new CreateContextCommand(input);
-            await expect(client.send(cmd)).rejects.toThrow();
+            expect(client.send(cmd)).rejects.toThrow();
         });
 
         test("should fail with missing required dimension", async () => {
@@ -484,7 +484,7 @@ describe("Context API Integration Tests", () => {
             };
 
             const cmd = new CreateContextCommand(input);
-            await expect(client.send(cmd)).rejects.toThrow(
+            expect(client.send(cmd)).rejects.toThrow(
                 /The context should contain all the mandatory dimensions/i
             );
         });
@@ -506,7 +506,7 @@ describe("Context API Integration Tests", () => {
 
             const cmd = new CreateContextCommand(input);
             // TODO: Write a display fmt for JSONSchema enum to get rid of Single from the message
-            await expect(client.send(cmd)).rejects.toThrow(
+            expect(client.send(cmd)).rejects.toThrow(
                 "schema validation failed for key1: value doesn't match the required type(s) `Single(String)`"
             );
         });
@@ -754,7 +754,7 @@ describe("Context API Integration Tests", () => {
                 org_id: testOrgId,
                 id: sourceId,
             });
-            await expect(client.send(getCmd)).rejects.toThrow(
+            expect(client.send(getCmd)).rejects.toThrow(
                 "No records found. Please refine or correct your search parameters"
             );
 
@@ -811,7 +811,7 @@ describe("Context API Integration Tests", () => {
             });
 
             // Warn(TODO): validation for context's content is made beforehand the valid id check
-            await expect(client.send(moveCmd)).rejects.toThrow(
+            expect(client.send(moveCmd)).rejects.toThrow(
                 "No records found. Please refine or correct your search parameters"
             );
         });
@@ -1009,7 +1009,7 @@ describe("Context API Integration Tests", () => {
                 },
             });
 
-            await expect(client.send(bulkCmd)).rejects.toThrow(
+            expect(client.send(bulkCmd)).rejects.toThrow(
                 "schema validation failed for invalidKey: value doesn't match the required type(s) `Single(String)`"
             );
             // TODO: Should add fetching a context by jsonlogic and then assert the first context creation was rolled back

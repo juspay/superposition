@@ -9,19 +9,13 @@ use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
     api::functions::{
-        CreateFunctionRequest, FunctionExecutionRequest, FunctionName, Stage, TestParam,
-        UpdateFunctionRequest,
+        CreateFunctionRequest, FunctionExecutionRequest, FunctionName,
+        ListFunctionFilters, Stage, TestParam, UpdateFunctionRequest,
     },
     custom_query::PaginationParams,
     database::{
         models::cac::Function,
-        schema::{
-            self,
-            functions::{
-                dsl::{self, functions},
-                function_name, last_modified_at,
-            },
-        },
+        schema::{self, functions::dsl as functions},
     },
     result as superposition, PaginatedResponse, User,
 };
@@ -71,11 +65,12 @@ async fn create(
         function_type: req.function_type,
     };
 
-    let insert: Result<Function, diesel::result::Error> = diesel::insert_into(functions)
-        .values(&function)
-        .returning(Function::as_returning())
-        .schema_name(&schema_name)
-        .get_result(&mut conn);
+    let insert: Result<Function, diesel::result::Error> =
+        diesel::insert_into(functions::functions)
+            .values(&function)
+            .returning(Function::as_returning())
+            .schema_name(&schema_name)
+            .get_result(&mut conn);
 
     match insert {
         Ok(res) => Ok(Json(res)),
@@ -118,14 +113,14 @@ async fn update(
         compile_fn(&req.function_type.get_js_fn_name(), function)?;
     }
 
-    let updated_function = diesel::update(functions)
+    let updated_function = diesel::update(functions::functions)
         .filter(schema::functions::function_name.eq(f_name))
         .set((
             req,
-            dsl::draft_edited_by.eq(user.get_email()),
-            dsl::draft_edited_at.eq(Utc::now()),
-            dsl::last_modified_by.eq(user.get_email()),
-            dsl::last_modified_at.eq(Utc::now()),
+            functions::draft_edited_by.eq(user.get_email()),
+            functions::draft_edited_at.eq(Utc::now()),
+            functions::last_modified_by.eq(user.get_email()),
+            functions::last_modified_at.eq(Utc::now()),
         ))
         .returning(Function::as_returning())
         .schema_name(&schema_name)
@@ -150,41 +145,35 @@ async fn get(
 #[get("")]
 async fn list_functions(
     db_conn: DbConnection,
-    filters: Query<PaginationParams>,
+    pagination: Query<PaginationParams>,
+    filters: Query<ListFunctionFilters>,
     schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<Function>>> {
     let DbConnection(mut conn) = db_conn;
-
-    let (total_pages, total_items, data) = match filters.all {
-        Some(true) => {
-            let result: Vec<Function> =
-                functions.schema_name(&schema_name).get_results(&mut conn)?;
-            (1, result.len() as i64, result)
+    let filters = filters.into_inner();
+    let query_builder = |f: &ListFunctionFilters| {
+        let mut builder = functions::functions.schema_name(&schema_name).into_boxed();
+        if let Some(ref fntype) = f.function_type {
+            builder = builder.filter(functions::function_type.eq_any(fntype.0.clone()));
         }
-        _ => {
-            let n_functions: i64 = functions
-                .count()
-                .schema_name(&schema_name)
-                .get_result(&mut conn)?;
-            let limit = filters.count.unwrap_or(10);
-            let mut builder = functions
-                .order(last_modified_at.desc())
-                .limit(limit)
-                .schema_name(&schema_name)
-                .into_boxed();
-            if let Some(page) = filters.page {
-                let offset = (page - 1) * limit;
-                builder = builder.offset(offset);
-            }
-            let result: Vec<Function> = builder.load(&mut conn)?;
-            let total_pages = (n_functions as f64 / limit as f64).ceil() as i64;
-            (total_pages, n_functions, result)
-        }
+        builder
     };
-
+    if let Some(true) = pagination.all {
+        let result: Vec<Function> = query_builder(&filters).get_results(&mut conn)?;
+        return Ok(Json(PaginatedResponse::all(result)));
+    }
+    let n_functions: i64 = query_builder(&filters).count().get_result(&mut conn)?;
+    let limit = pagination.count.unwrap_or(10);
+    let offset = (pagination.page.unwrap_or(1) - 1) * limit;
+    let data: Vec<Function> = query_builder(&filters)
+        .order(functions::last_modified_at.desc())
+        .limit(limit)
+        .offset(offset)
+        .load(&mut conn)?;
+    let total_pages = (n_functions as f64 / limit as f64).ceil() as i64;
     Ok(Json(PaginatedResponse {
         total_pages,
-        total_items,
+        total_items: n_functions,
         data,
     }))
 }
@@ -199,18 +188,19 @@ async fn delete_function(
     let DbConnection(mut conn) = db_conn;
     let f_name: String = params.into_inner().into();
 
-    diesel::update(functions)
-        .filter(function_name.eq(&f_name))
+    diesel::update(functions::functions)
+        .filter(functions::function_name.eq(&f_name))
         .set((
-            dsl::last_modified_at.eq(Utc::now()),
-            dsl::last_modified_by.eq(user.get_email()),
+            functions::last_modified_at.eq(Utc::now()),
+            functions::last_modified_by.eq(user.get_email()),
         ))
         .returning(Function::as_returning())
         .schema_name(&schema_name)
         .execute(&mut conn)?;
-    let deleted_row = delete(functions.filter(function_name.eq(&f_name)))
-        .schema_name(&schema_name)
-        .execute(&mut conn);
+    let deleted_row =
+        delete(functions::functions.filter(functions::function_name.eq(&f_name)))
+            .schema_name(&schema_name)
+            .execute(&mut conn);
     match deleted_row {
         Ok(0) => Err(not_found!("Function {} doesn't exists", f_name)),
         Ok(_) => {
@@ -299,14 +289,14 @@ async fn publish(
         }
     };
 
-    let updated_function = diesel::update(functions)
-        .filter(dsl::function_name.eq(fun_name.clone()))
+    let updated_function = diesel::update(functions::functions)
+        .filter(functions::function_name.eq(fun_name.clone()))
         .set((
-            dsl::published_code.eq(Some(function.draft_code.clone())),
-            dsl::published_runtime_version
+            functions::published_code.eq(Some(function.draft_code.clone())),
+            functions::published_runtime_version
                 .eq(Some(function.draft_runtime_version.clone())),
-            dsl::published_by.eq(Some(user.get_email())),
-            dsl::published_at.eq(Some(Utc::now())),
+            functions::published_by.eq(Some(user.get_email())),
+            functions::published_at.eq(Some(Utc::now())),
         ))
         .returning(Function::as_returning())
         .schema_name(&schema_name)
