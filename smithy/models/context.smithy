@@ -293,7 +293,7 @@ operation WeightRecompute {
 
     output := {
         @notProperty
-        results: WeightRecomputeResponses
+        data: WeightRecomputeResponses
     }
 }
 

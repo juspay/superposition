@@ -28,7 +28,7 @@ use bigdecimal::BigDecimal;
 use chrono::Utc;
 use diesel::SelectableHelper;
 use diesel::{delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use service_utils::{
     helpers::parse_config_tags,
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
@@ -40,7 +40,8 @@ use superposition_types::{
         models::cac::Context,
         schema::contexts::{self, id},
     },
-    result as superposition, Contextual, Overridden, PaginatedResponse, SortBy, User,
+    result as superposition, Contextual, ListResponse, Overridden, PaginatedResponse,
+    SortBy, User,
 };
 
 pub fn endpoints() -> Scope {
@@ -705,6 +706,5 @@ async fn weight_recompute(
         AppHeader::XConfigVersion.to_string(),
         config_version_id.to_string(),
     ));
-    // FIXME Should go a in more generic struct like `ListResponse<Response>`.
-    Ok(http_resp.json(json!({ "results": response })))
+    Ok(http_resp.json(ListResponse { data: response }))
 }
