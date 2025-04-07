@@ -36,7 +36,8 @@ pub struct RowData {
     pub key: String,
     pub value: Value,
     pub schema: Value,
-    pub function_name: Option<Value>,
+    pub validation_function_name: Option<String>,
+    pub autocomplete_function_name: Option<String>,
 }
 
 #[component]
@@ -163,12 +164,14 @@ pub fn default_config() -> impl IntoView {
             let schema = row["schema"].clone().to_string();
             let schema_object =
                 serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
-
-            let function_name = row["function_name"].to_string();
-            let fun_name = match function_name.as_str() {
-                "null" => None,
-                _ => Some(json!(function_name.replace('"', ""))),
-            };
+            
+            // keeping the function_name field the same for backwards compatibility
+            let validation_function_name = row
+                .get("function_name")
+                .map(|v| v.as_str().unwrap_or_default().to_string());
+            let autocomplete_function_name = row
+                .get("autocomplete_function_name")
+                .map(|v| v.as_str().unwrap_or_default().to_string());
 
             let key_name = StoredValue::new(row_key.clone());
 
@@ -177,7 +180,8 @@ pub fn default_config() -> impl IntoView {
                     key: row_key.clone(),
                     value: row_value.clone(),
                     schema: schema_object.clone(),
-                    function_name: fun_name.clone(),
+                    validation_function_name: validation_function_name.clone(),
+                    autocomplete_function_name: autocomplete_function_name.clone(),
                 };
                 logging::log!("{:?}", row_data);
                 selected_config.set(Some(row_data));
@@ -244,6 +248,7 @@ pub fn default_config() -> impl IntoView {
             Column::default("schema".to_string()),
             Column::default("value".to_string()),
             Column::default("function_name".to_string()),
+            Column::default("autocomplete_function_name".to_string()),
             Column::default("created_at".to_string()),
             Column::default("created_by".to_string()),
             Column::new(
@@ -281,7 +286,8 @@ pub fn default_config() -> impl IntoView {
                                     config_key=selected_config_data.key
                                     config_value=selected_config_data.value
                                     type_schema=selected_config_data.schema
-                                    function_name=selected_config_data.function_name
+                                    validation_function_name=selected_config_data.validation_function_name
+                                    autocomplete_function_name=selected_config_data.autocomplete_function_name
                                     prefix
                                     handle_submit=move || {
                                         default_config_resource.refetch();

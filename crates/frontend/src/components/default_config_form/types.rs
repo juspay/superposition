@@ -6,7 +6,8 @@ pub struct DefaultConfigCreateReq {
     pub key: String,
     pub schema: Value,
     pub value: Value,
-    pub function_name: Option<Value>,
+    pub function_name: Option<String>,
+    pub autocomplete_function_name: Option<String>,
     pub description: String,
     pub change_reason: String,
 }
@@ -15,7 +16,8 @@ pub struct DefaultConfigCreateReq {
 pub struct DefaultConfigUpdateReq {
     pub schema: Value,
     pub value: Value,
-    pub function_name: Option<Value>,
+    pub function_name: Option<String>,
+    pub autocomplete_function_name: Option<String>,
     pub description: String,
     pub change_reason: String,
 }

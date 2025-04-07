@@ -10,7 +10,7 @@ use wasm_bindgen::JsCast;
 use crate::{
     components::alert::AlertType,
     providers::alert_provider::enqueue_alert,
-    types::{Envs, ErrorResponse},
+    types::{Envs, ErrorResponse, FunctionsName},
 };
 
 #[allow(dead_code)]
@@ -296,4 +296,14 @@ pub fn set_local_storage(_key: &str, _value: &str) -> Option<()> {
             None
         }
     }
+}
+
+pub fn function_updater(selected_function: FunctionsName, value: &mut Option<String>) {
+    let function_name = selected_function.clone();
+    leptos::logging::log!("function selected: {:?}", function_name);
+    let fun_name = match function_name.as_str() {
+        "None" => None,
+        _ => Some(function_name),
+    };
+    *value = fun_name;
 }
