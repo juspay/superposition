@@ -168,11 +168,6 @@ where
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ApplicableVariantsResponse {
-    pub applicable_variants: Vec<Variant>,
-}
-
 /********** List API Filter Type *************/
 
 #[derive(Copy, Display, Deserialize, Serialize, Debug, Clone, PartialEq)]

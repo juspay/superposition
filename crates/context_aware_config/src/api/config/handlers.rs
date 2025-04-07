@@ -29,6 +29,7 @@ use service_utils::{
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
+    api::config::ContextPayload,
     custom_query::{
         self as superposition_query, CustomQuery, PaginationParams, QueryMap,
     },
@@ -51,7 +52,7 @@ use crate::{
     helpers::calculate_context_weight,
 };
 
-use super::{helpers::apply_prefix_filter_to_config, ContextPayload};
+use super::helpers::apply_prefix_filter_to_config;
 
 #[allow(clippy::let_and_return)]
 pub fn endpoints() -> Scope {

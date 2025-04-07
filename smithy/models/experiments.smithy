@@ -70,7 +70,7 @@ list ListVariant {
 structure ApplicableVariantsOutput {
     @required
     @notProperty
-    applicable_variants: ListVariant
+    data: ListVariant
 }
 
 

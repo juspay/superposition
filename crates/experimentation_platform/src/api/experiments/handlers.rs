@@ -4,7 +4,7 @@ use actix_http::header::{self};
 use actix_web::{
     get, patch, post, put, route,
     web::{self, Data, Json, Query},
-    HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
+    Either, HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 use chrono::{DateTime, Duration, Utc};
 use diesel::{
@@ -27,10 +27,10 @@ use service_utils::{
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
     api::experiments::{
-        ApplicableVariantsQuery, ApplicableVariantsRequest, ApplicableVariantsResponse,
-        AuditQueryFilters, ConcludeExperimentRequest, DiscardExperimentRequest,
-        ExperimentCreateRequest, ExperimentListFilters, ExperimentResponse,
-        ExperimentSortOn, OverrideKeysUpdateRequest, RampRequest,
+        ApplicableVariantsQuery, ApplicableVariantsRequest, AuditQueryFilters,
+        ConcludeExperimentRequest, DiscardExperimentRequest, ExperimentCreateRequest,
+        ExperimentListFilters, ExperimentResponse, ExperimentSortOn,
+        OverrideKeysUpdateRequest, RampRequest,
     },
     custom_query::PaginationParams,
     database::{
@@ -42,8 +42,8 @@ use superposition_types::{
     },
     result as superposition,
     webhook::{WebhookConfig, WebhookEvent},
-    Condition, DBConnection, Exp, Overrides, PaginatedResponse, SortBy, TenantConfig,
-    User,
+    Condition, DBConnection, Exp, ListResponse, Overrides, PaginatedResponse, SortBy,
+    TenantConfig, User,
 };
 
 use super::{
@@ -669,14 +669,14 @@ pub async fn discard(
     Ok((updated_experiment, config_version_id))
 }
 
-#[route("/resolve", method = "GET", method = "POST")]
+#[route("/applicable-variants", method = "GET", method = "POST")]
 async fn get_applicable_variants(
     req: HttpRequest,
     db_conn: DbConnection,
     req_body: web::Json<ApplicableVariantsRequest>,
     query_data: Query<ApplicableVariantsQuery>,
     schema_name: SchemaName,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Either<Json<Vec<Variant>>, Json<ListResponse<Variant>>>> {
     let DbConnection(mut conn) = db_conn;
     let mut req_data = query_data.into_inner();
     if req.method() == actix_web::http::Method::POST {
@@ -713,12 +713,12 @@ async fn get_applicable_variants(
             variants.push(v)
         }
     }
-    if req.method() == actix_web::http::Method::POST {
-        return Ok(HttpResponse::Ok().json(ApplicableVariantsResponse {
-            applicable_variants: variants,
-        }));
+    match *req.method() {
+        actix_web::http::Method::POST => {
+            Ok(Either::Right(Json(ListResponse::new(variants))))
+        }
+        _ => Ok(Either::Left(Json(variants))),
     }
-    Ok(HttpResponse::Ok().json(variants))
 }
 
 #[get("")]
