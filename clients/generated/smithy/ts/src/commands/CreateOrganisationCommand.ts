@@ -9,8 +9,8 @@ import {
   OrganisationResponse,
 } from "../models/models_0";
 import {
-  de_CreaterOrganisationCommand,
-  se_CreaterOrganisationCommand,
+  de_CreateOrganisationCommand,
+  se_CreateOrganisationCommand,
 } from "../protocols/Aws_restJson1";
 import { getSerdePlugin } from "@smithy/middleware-serde";
 import { Command as $Command } from "@smithy/smithy-client";
@@ -24,15 +24,15 @@ export { $Command };
 /**
  * @public
  *
- * The input for {@link CreaterOrganisationCommand}.
+ * The input for {@link CreateOrganisationCommand}.
  */
-export interface CreaterOrganisationCommandInput extends CreateOrganisationRequest {}
+export interface CreateOrganisationCommandInput extends CreateOrganisationRequest {}
 /**
  * @public
  *
- * The output of {@link CreaterOrganisationCommand}.
+ * The output of {@link CreateOrganisationCommand}.
  */
-export interface CreaterOrganisationCommandOutput extends OrganisationResponse, __MetadataBearer {}
+export interface CreateOrganisationCommandOutput extends OrganisationResponse, __MetadataBearer {}
 
 /**
  * @public
@@ -40,8 +40,8 @@ export interface CreaterOrganisationCommandOutput extends OrganisationResponse, 
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, CreaterOrganisationCommand } from "@io.juspay/superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, CreaterOrganisationCommand } = require("@io.juspay/superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, CreateOrganisationCommand } from "@io.juspay/superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, CreateOrganisationCommand } = require("@io.juspay/superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // CreateOrganisationRequest
  *   country_code: "STRING_VALUE",
@@ -51,7 +51,7 @@ export interface CreaterOrganisationCommandOutput extends OrganisationResponse, 
  *   name: "STRING_VALUE", // required
  *   sector: "STRING_VALUE",
  * };
- * const command = new CreaterOrganisationCommand(input);
+ * const command = new CreateOrganisationCommand(input);
  * const response = await client.send(command);
  * // { // OrganisationResponse
  * //   id: "STRING_VALUE", // required
@@ -70,37 +70,32 @@ export interface CreaterOrganisationCommandOutput extends OrganisationResponse, 
  *
  * ```
  *
- * @param CreaterOrganisationCommandInput - {@link CreaterOrganisationCommandInput}
- * @returns {@link CreaterOrganisationCommandOutput}
- * @see {@link CreaterOrganisationCommandInput} for command's `input` shape.
- * @see {@link CreaterOrganisationCommandOutput} for command's `response` shape.
+ * @param CreateOrganisationCommandInput - {@link CreateOrganisationCommandInput}
+ * @returns {@link CreateOrganisationCommandOutput}
+ * @see {@link CreateOrganisationCommandInput} for command's `input` shape.
+ * @see {@link CreateOrganisationCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
  *
  * @throws {@link InternalServerError} (server fault)
- *
- * @throws {@link ValidationException} (client fault)
- *  A standard error for input validation failures.
- * This should be thrown by services when a member of the input structure
- * falls outside of the modeled or documented constraints.
  *
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
  */
-export class CreaterOrganisationCommand extends $Command.classBuilder<CreaterOrganisationCommandInput, CreaterOrganisationCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
+export class CreateOrganisationCommand extends $Command.classBuilder<CreateOrganisationCommandInput, CreateOrganisationCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {
           return [
 
   getSerdePlugin(config, this.serialize, this.deserialize),
       ];
   })
-  .s("Superposition", "CreaterOrganisation", {
+  .s("Superposition", "CreateOrganisation", {
 
   })
-  .n("SuperpositionClient", "CreaterOrganisationCommand")
+  .n("SuperpositionClient", "CreateOrganisationCommand")
   .f(void 0, void 0)
-  .ser(se_CreaterOrganisationCommand)
-  .de(de_CreaterOrganisationCommand)
+  .ser(se_CreateOrganisationCommand)
+  .de(de_CreateOrganisationCommand)
 .build() {
 /** @internal type navigation helper, not in runtime. */
 declare protected static __types: {
@@ -109,8 +104,8 @@ declare protected static __types: {
       output: OrganisationResponse;
   };
   sdk: {
-      input: CreaterOrganisationCommandInput;
-      output: CreaterOrganisationCommandOutput;
+      input: CreateOrganisationCommandInput;
+      output: CreateOrganisationCommandOutput;
   };
 };
 }

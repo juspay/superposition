@@ -38,6 +38,10 @@ import {
   CreateFunctionCommandOutput,
 } from "./commands/CreateFunctionCommand";
 import {
+  CreateOrganisationCommandInput,
+  CreateOrganisationCommandOutput,
+} from "./commands/CreateOrganisationCommand";
+import {
   CreateTypeTemplatesCommandInput,
   CreateTypeTemplatesCommandOutput,
 } from "./commands/CreateTypeTemplatesCommand";
@@ -45,10 +49,6 @@ import {
   CreateWorkspaceCommandInput,
   CreateWorkspaceCommandOutput,
 } from "./commands/CreateWorkspaceCommand";
-import {
-  CreaterOrganisationCommandInput,
-  CreaterOrganisationCommandOutput,
-} from "./commands/CreaterOrganisationCommand";
 import {
   DeleteContextCommandInput,
   DeleteContextCommandOutput,
@@ -271,9 +271,9 @@ export type ServiceInputTypes =
   | CreateDimensionCommandInput
   | CreateExperimentCommandInput
   | CreateFunctionCommandInput
+  | CreateOrganisationCommandInput
   | CreateTypeTemplatesCommandInput
   | CreateWorkspaceCommandInput
-  | CreaterOrganisationCommandInput
   | DeleteContextCommandInput
   | DeleteDefaultConfigCommandInput
   | DeleteDimensionCommandInput
@@ -324,9 +324,9 @@ export type ServiceOutputTypes =
   | CreateDimensionCommandOutput
   | CreateExperimentCommandOutput
   | CreateFunctionCommandOutput
+  | CreateOrganisationCommandOutput
   | CreateTypeTemplatesCommandOutput
   | CreateWorkspaceCommandOutput
-  | CreaterOrganisationCommandOutput
   | DeleteContextCommandOutput
   | DeleteDefaultConfigCommandOutput
   | DeleteDimensionCommandOutput

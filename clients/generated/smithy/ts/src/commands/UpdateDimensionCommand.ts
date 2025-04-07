@@ -50,6 +50,9 @@ export interface UpdateDimensionCommandOutput extends DimensionExt, __MetadataBe
  *   schema: "DOCUMENT_VALUE",
  *   function_name: "STRING_VALUE",
  *   description: "STRING_VALUE",
+ *   dependencies: [ // Dependencies
+ *     "STRING_VALUE",
+ *   ],
  *   change_reason: "STRING_VALUE", // required
  * };
  * const command = new UpdateDimensionCommand(input);
@@ -65,6 +68,15 @@ export interface UpdateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * //   last_modified_by: "STRING_VALUE", // required
  * //   created_at: new Date("TIMESTAMP"), // required
  * //   created_by: "STRING_VALUE", // required
+ * //   dependencies: [ // Dependencies // required
+ * //     "STRING_VALUE",
+ * //   ],
+ * //   dependents: [ // Dependents // required
+ * //     "STRING_VALUE",
+ * //   ],
+ * //   dependency_graph: { // Object // required
+ * //     "<keys>": "DOCUMENT_VALUE",
+ * //   },
  * //   mandatory: true || false,
  * // };
  *

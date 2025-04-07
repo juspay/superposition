@@ -46,11 +46,15 @@ export interface ApplicableVariantsCommandOutput extends ApplicableVariantsOutpu
  * const input = { // ApplicableVariantsInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   context: { // Condition // required
+ *     "<keys>": "DOCUMENT_VALUE",
+ *   },
+ *   toss: Number("int"), // required
  * };
  * const command = new ApplicableVariantsCommand(input);
  * const response = await client.send(command);
  * // { // ApplicableVariantsOutput
- * //   applicable_variants: [ // ListVariant // required
+ * //   data: [ // ListVariant // required
  * //     { // Variant
  * //       id: "STRING_VALUE", // required
  * //       variant_type: "CONTROL" || "EXPERIMENTAL", // required

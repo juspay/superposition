@@ -7,7 +7,7 @@ export * from "./CreateDefaultConfigCommand";
 export * from "./CreateDimensionCommand";
 export * from "./CreateExperimentCommand";
 export * from "./CreateFunctionCommand";
-export * from "./CreaterOrganisationCommand";
+export * from "./CreateOrganisationCommand";
 export * from "./CreateTypeTemplatesCommand";
 export * from "./CreateWorkspaceCommand";
 export * from "./DeleteContextCommand";

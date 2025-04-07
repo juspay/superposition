@@ -50,6 +50,9 @@ export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBe
  *   position: Number("int"), // required
  *   schema: "DOCUMENT_VALUE", // required
  *   function_name: "STRING_VALUE",
+ *   dependencies: [ // Dependencies
+ *     "STRING_VALUE",
+ *   ],
  *   description: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
  * };
@@ -66,6 +69,15 @@ export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * //   last_modified_by: "STRING_VALUE", // required
  * //   created_at: new Date("TIMESTAMP"), // required
  * //   created_by: "STRING_VALUE", // required
+ * //   dependencies: [ // Dependencies // required
+ * //     "STRING_VALUE",
+ * //   ],
+ * //   dependents: [ // Dependents // required
+ * //     "STRING_VALUE",
+ * //   ],
+ * //   dependency_graph: { // Object // required
+ * //     "<keys>": "DOCUMENT_VALUE",
+ * //   },
  * //   mandatory: true || false,
  * // };
  *

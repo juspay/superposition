@@ -44,6 +44,11 @@ import {
   CreateFunctionCommandOutput,
 } from "./commands/CreateFunctionCommand";
 import {
+  CreateOrganisationCommand,
+  CreateOrganisationCommandInput,
+  CreateOrganisationCommandOutput,
+} from "./commands/CreateOrganisationCommand";
+import {
   CreateTypeTemplatesCommand,
   CreateTypeTemplatesCommandInput,
   CreateTypeTemplatesCommandOutput,
@@ -53,11 +58,6 @@ import {
   CreateWorkspaceCommandInput,
   CreateWorkspaceCommandOutput,
 } from "./commands/CreateWorkspaceCommand";
-import {
-  CreaterOrganisationCommand,
-  CreaterOrganisationCommandInput,
-  CreaterOrganisationCommandOutput,
-} from "./commands/CreaterOrganisationCommand";
 import {
   DeleteContextCommand,
   DeleteContextCommandInput,
@@ -255,7 +255,7 @@ const commands = {
   CreateDimensionCommand,
   CreateExperimentCommand,
   CreateFunctionCommand,
-  CreaterOrganisationCommand,
+  CreateOrganisationCommand,
   CreateTypeTemplatesCommand,
   CreateWorkspaceCommand,
   DeleteContextCommand,
@@ -435,20 +435,20 @@ export interface Superposition {
   ): void;
 
   /**
-   * @see {@link CreaterOrganisationCommand}
+   * @see {@link CreateOrganisationCommand}
    */
-  createrOrganisation(
-    args: CreaterOrganisationCommandInput,
+  createOrganisation(
+    args: CreateOrganisationCommandInput,
     options?: __HttpHandlerOptions,
-  ): Promise<CreaterOrganisationCommandOutput>;
-  createrOrganisation(
-    args: CreaterOrganisationCommandInput,
-    cb: (err: any, data?: CreaterOrganisationCommandOutput) => void
+  ): Promise<CreateOrganisationCommandOutput>;
+  createOrganisation(
+    args: CreateOrganisationCommandInput,
+    cb: (err: any, data?: CreateOrganisationCommandOutput) => void
   ): void;
-  createrOrganisation(
-    args: CreaterOrganisationCommandInput,
+  createOrganisation(
+    args: CreateOrganisationCommandInput,
     options: __HttpHandlerOptions,
-    cb: (err: any, data?: CreaterOrganisationCommandOutput) => void
+    cb: (err: any, data?: CreateOrganisationCommandOutput) => void
   ): void;
 
   /**

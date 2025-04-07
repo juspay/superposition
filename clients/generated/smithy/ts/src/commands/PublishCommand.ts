@@ -64,6 +64,7 @@ export interface PublishCommandOutput extends FunctionResponse, __MetadataBearer
  * //   last_modified_by: "STRING_VALUE", // required
  * //   change_reason: "STRING_VALUE", // required
  * //   description: "STRING_VALUE", // required
+ * //   function_type: "VALIDATION" || "AUTOCOMPLETE", // required
  * // };
  *
  * ```

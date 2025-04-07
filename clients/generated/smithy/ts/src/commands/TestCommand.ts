@@ -5,8 +5,8 @@ import {
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
 import {
+  FunctionExecutionResponse,
   TestInput,
-  TestOutput,
 } from "../models/models_0";
 import {
   de_TestCommand,
@@ -32,7 +32,7 @@ export interface TestCommandInput extends TestInput {}
  *
  * The output of {@link TestCommand}.
  */
-export interface TestCommandOutput extends TestOutput, __MetadataBearer {}
+export interface TestCommandOutput extends FunctionExecutionResponse, __MetadataBearer {}
 
 /**
  * @public
@@ -48,11 +48,24 @@ export interface TestCommandOutput extends TestOutput, __MetadataBearer {}
  *   org_id: "STRING_VALUE", // required
  *   function_name: "STRING_VALUE", // required
  *   stage: "draft" || "published", // required
+ *   request: { // FunctionExecutionRequest Union: only one key present
+ *     ValidateFunctionRequest: { // ValidateFunctionRequest
+ *       key: "STRING_VALUE",
+ *       value: "DOCUMENT_VALUE",
+ *     },
+ *     AutocompleteFunctionRequest: { // AutocompleteFunctionRequest
+ *       name: "STRING_VALUE",
+ *       prefix: "STRING_VALUE",
+ *       environment: "DOCUMENT_VALUE",
+ *     },
+ *   },
  * };
  * const command = new TestCommand(input);
  * const response = await client.send(command);
- * // { // TestOutput
- * //   message: "STRING_VALUE", // required
+ * // { // FunctionExecutionResponse
+ * //   fn_output: "DOCUMENT_VALUE", // required
+ * //   stdout: "STRING_VALUE", // required
+ * //   function_type: "VALIDATION" || "AUTOCOMPLETE", // required
  * // };
  *
  * ```
@@ -90,7 +103,7 @@ export class TestCommand extends $Command.classBuilder<TestCommandInput, TestCom
 declare protected static __types: {
   api: {
       input: TestInput;
-      output: TestOutput;
+      output: FunctionExecutionResponse;
   };
   sdk: {
       input: TestCommandInput;

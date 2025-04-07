@@ -51,7 +51,7 @@ export interface WeightRecomputeCommandOutput extends WeightRecomputeOutput, __M
  * const command = new WeightRecomputeCommand(input);
  * const response = await client.send(command);
  * // { // WeightRecomputeOutput
- * //   results: [ // WeightRecomputeResponses
+ * //   data: [ // WeightRecomputeResponses
  * //     { // WeightRecomputeResponse
  * //       id: "STRING_VALUE",
  * //       condition: { // Condition

@@ -9,6 +9,8 @@ import { DocumentType as __DocumentType } from "@smithy/types";
 export interface ApplicableVariantsInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  context: Record<string, __DocumentType> | undefined;
+  toss: number | undefined;
 }
 
 /**
@@ -39,7 +41,7 @@ export interface Variant {
  * @public
  */
 export interface ApplicableVariantsOutput {
-  applicable_variants: (Variant)[] | undefined;
+  data: (Variant)[] | undefined;
 }
 
 /**
@@ -106,6 +108,15 @@ export interface ListAuditLogsOutput {
   total_pages?: number | undefined;
   total_items?: number | undefined;
   data?: (AuditLogFull)[] | undefined;
+}
+
+/**
+ * @public
+ */
+export interface AutocompleteFunctionRequest {
+  name?: string | undefined;
+  prefix?: string | undefined;
+  environment?: __DocumentType | undefined;
 }
 
 /**
@@ -694,7 +705,7 @@ export interface WeightRecomputeResponse {
  * @public
  */
 export interface WeightRecomputeOutput {
-  results?: (WeightRecomputeResponse)[] | undefined;
+  data?: (WeightRecomputeResponse)[] | undefined;
 }
 
 /**
@@ -747,6 +758,7 @@ export interface CreateDimensionInput {
   position: number | undefined;
   schema: __DocumentType | undefined;
   function_name?: string | undefined;
+  dependencies?: (string)[] | undefined;
   description: string | undefined;
   change_reason: string | undefined;
 }
@@ -765,6 +777,9 @@ export interface DimensionExt {
   last_modified_by: string | undefined;
   created_at: Date | undefined;
   created_by: string | undefined;
+  dependencies: (string)[] | undefined;
+  dependents: (string)[] | undefined;
+  dependency_graph: Record<string, __DocumentType> | undefined;
   mandatory?: boolean | undefined;
 }
 
@@ -790,6 +805,19 @@ export interface CreateExperimentResponse {
 
 /**
  * @public
+ * @enum
+ */
+export const FunctionTypes = {
+  Autocomplete: "AUTOCOMPLETE",
+  Validation: "VALIDATION",
+} as const
+/**
+ * @public
+ */
+export type FunctionTypes = typeof FunctionTypes[keyof typeof FunctionTypes]
+
+/**
+ * @public
  */
 export interface CreateFunctionRequest {
   workspace_id: string | undefined;
@@ -799,6 +827,7 @@ export interface CreateFunctionRequest {
   change_reason: string | undefined;
   function: string | undefined;
   runtime_version: string | undefined;
+  function_type: FunctionTypes | undefined;
 }
 
 /**
@@ -818,6 +847,7 @@ export interface FunctionResponse {
   last_modified_by: string | undefined;
   change_reason: string | undefined;
   description: string | undefined;
+  function_type: FunctionTypes | undefined;
 }
 
 /**
@@ -1084,6 +1114,7 @@ export interface UpdateDimensionInput {
   schema?: __DocumentType | undefined;
   function_name?: string | undefined;
   description?: string | undefined;
+  dependencies?: (string)[] | undefined;
   change_reason: string | undefined;
 }
 
@@ -1196,6 +1227,74 @@ export interface PublishInput {
 
 /**
  * @public
+ */
+export interface FunctionExecutionResponse {
+  fn_output: __DocumentType | undefined;
+  stdout: string | undefined;
+  function_type: FunctionTypes | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ValidateFunctionRequest {
+  key?: string | undefined;
+  value?: __DocumentType | undefined;
+}
+
+/**
+ * @public
+ */
+export type FunctionExecutionRequest =
+  | FunctionExecutionRequest.AutocompleteFunctionRequestMember
+  | FunctionExecutionRequest.ValidateFunctionRequestMember
+  | FunctionExecutionRequest.$UnknownMember
+
+/**
+ * @public
+ */
+export namespace FunctionExecutionRequest {
+
+  export interface ValidateFunctionRequestMember {
+    ValidateFunctionRequest: ValidateFunctionRequest;
+    AutocompleteFunctionRequest?: never;
+    $unknown?: never;
+  }
+
+  export interface AutocompleteFunctionRequestMember {
+    ValidateFunctionRequest?: never;
+    AutocompleteFunctionRequest: AutocompleteFunctionRequest;
+    $unknown?: never;
+  }
+
+  /**
+   * @public
+   */
+  export interface $UnknownMember {
+    ValidateFunctionRequest?: never;
+    AutocompleteFunctionRequest?: never;
+    $unknown: [string, any];
+  }
+
+  export interface Visitor<T> {
+    ValidateFunctionRequest: (value: ValidateFunctionRequest) => T;
+    AutocompleteFunctionRequest: (value: AutocompleteFunctionRequest) => T;
+    _: (name: string, value: any) => T;
+  }
+
+  export const visit = <T>(
+    value: FunctionExecutionRequest,
+    visitor: Visitor<T>
+  ): T => {
+    if (value.ValidateFunctionRequest !== undefined) return visitor.ValidateFunctionRequest(value.ValidateFunctionRequest);
+    if (value.AutocompleteFunctionRequest !== undefined) return visitor.AutocompleteFunctionRequest(value.AutocompleteFunctionRequest);
+    return visitor._(value.$unknown[0], value.$unknown[1]);
+  }
+
+}
+
+/**
+ * @public
  * @enum
  */
 export const Stage = {
@@ -1215,13 +1314,7 @@ export interface TestInput {
   org_id: string | undefined;
   function_name: string | undefined;
   stage: Stage | undefined;
-}
-
-/**
- * @public
- */
-export interface TestOutput {
-  message: string | undefined;
+  request: FunctionExecutionRequest | undefined;
 }
 
 /**
@@ -1235,6 +1328,7 @@ export interface UpdateFunctionRequest {
   change_reason: string | undefined;
   function: string | undefined;
   runtime_version: string | undefined;
+  function_type?: FunctionTypes | undefined;
 }
 
 /**

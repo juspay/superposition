@@ -134,7 +134,7 @@ enum MergeStrategy {
     REPLACE
 }
 
-@http(method: "POST", uri: "/config/resolved")
+@http(method: "POST", uri: "/config/resolve")
 operation GetResolvedConfig {
     input := with [WorkspaceMixin] {
         @httpQuery("prefix")

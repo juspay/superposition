@@ -32,6 +32,10 @@ import {
   CreateFunctionCommandOutput,
 } from "../commands/CreateFunctionCommand";
 import {
+  CreateOrganisationCommandInput,
+  CreateOrganisationCommandOutput,
+} from "../commands/CreateOrganisationCommand";
+import {
   CreateTypeTemplatesCommandInput,
   CreateTypeTemplatesCommandOutput,
 } from "../commands/CreateTypeTemplatesCommand";
@@ -39,10 +43,6 @@ import {
   CreateWorkspaceCommandInput,
   CreateWorkspaceCommandOutput,
 } from "../commands/CreateWorkspaceCommand";
-import {
-  CreaterOrganisationCommandInput,
-  CreaterOrganisationCommandOutput,
-} from "../commands/CreaterOrganisationCommand";
 import {
   DeleteContextCommandInput,
   DeleteContextCommandOutput,
@@ -194,6 +194,7 @@ import {
 import { SuperpositionServiceException as __BaseException } from "../models/SuperpositionServiceException";
 import {
   AuditLogFull,
+  AutocompleteFunctionRequest,
   BulkOperationReq,
   ContextAction,
   ContextFull,
@@ -203,6 +204,7 @@ import {
   DefaultConfigFull,
   DimensionExt,
   ExperimentResponse,
+  FunctionExecutionRequest,
   FunctionNotFound,
   FunctionResponse,
   InternalServerError,
@@ -211,6 +213,7 @@ import {
   ResourceNotFound,
   TypeTemplatesNotFound,
   TypeTemplatesResponse,
+  ValidateFunctionRequest,
   Variant,
   VariantUpdateRequest,
   WeightRecomputeResponse,
@@ -262,12 +265,17 @@ export const se_ApplicableVariantsCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
     [_xt]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
-  b.bp("/experiments/v2/applicable-variants");
+  b.bp("/experiments/applicable-variants");
   let body: any;
-  b.m("GET")
+  body = JSON.stringify(take(input, {
+    'context': _ => se_Condition(_, context),
+    'toss': [],
+  }));
+  b.m("POST")
   .h(headers)
   .b(body);
   return b.build();
@@ -403,6 +411,7 @@ export const se_CreateDimensionCommand = async(
   let body: any;
   body = JSON.stringify(take(input, {
     'change_reason': [],
+    'dependencies': _ => _json(_),
     'description': [],
     'dimension': [],
     'function_name': [],
@@ -463,6 +472,7 @@ export const se_CreateFunctionCommand = async(
     'description': [],
     'function': [],
     'function_name': [],
+    'function_type': [],
     'runtime_version': [],
   }));
   b.m("POST")
@@ -472,10 +482,10 @@ export const se_CreateFunctionCommand = async(
 }
 
 /**
- * serializeAws_restJson1CreaterOrganisationCommand
+ * serializeAws_restJson1CreateOrganisationCommand
  */
-export const se_CreaterOrganisationCommand = async(
-  input: CreaterOrganisationCommandInput,
+export const se_CreateOrganisationCommand = async(
+  input: CreateOrganisationCommandInput,
   context: __SerdeContext
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
@@ -854,7 +864,7 @@ export const se_GetResolvedConfigCommand = async(
     [_xt]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
-  b.bp("/config/resolved");
+  b.bp("/config/resolve");
   const query: any = map({
     [_p]: [,input[_p]!],
     [_v]: [,input[_v]!],
@@ -1212,6 +1222,7 @@ export const se_TestCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
     [_xt]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
@@ -1219,6 +1230,13 @@ export const se_TestCommand = async(
   b.p('function_name', () => input.function_name!, '{function_name}', false)
   b.p('stage', () => input.stage!, '{stage}', false)
   let body: any;
+  if (input.request !== undefined) {
+    body = se_FunctionExecutionRequest(input.request, context);
+  }
+  if (body === undefined) {
+    body = {};
+  }
+  body = JSON.stringify(body);
   b.m("PUT")
   .h(headers)
   .b(body);
@@ -1272,6 +1290,7 @@ export const se_UpdateDimensionCommand = async(
   let body: any;
   body = JSON.stringify(take(input, {
     'change_reason': [],
+    'dependencies': _ => _json(_),
     'description': [],
     'function_name': [],
     'schema': _ => se_Document(_, context),
@@ -1302,6 +1321,7 @@ export const se_UpdateFunctionCommand = async(
     'change_reason': [],
     'description': [],
     'function': [],
+    'function_type': [],
     'runtime_version': [],
   }));
   b.m("PATCH")
@@ -1482,7 +1502,7 @@ export const de_ApplicableVariantsCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'applicable_variants': _ => de_ListVariant(_, context),
+    'data': _ => de_ListVariant(_, context),
   });
   Object.assign(contents, doc);
   return contents;
@@ -1613,6 +1633,9 @@ export const de_CreateDimensionCommand = async(
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
+    'dependencies': _json,
+    'dependency_graph': _ => de_Object(_, context),
+    'dependents': _json,
     'description': __expectString,
     'dimension': __expectString,
     'function_name': __expectString,
@@ -1669,6 +1692,7 @@ export const de_CreateFunctionCommand = async(
     'draft_edited_by': __expectString,
     'draft_runtime_version': __expectString,
     'function_name': __expectString,
+    'function_type': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'published_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
@@ -1681,12 +1705,12 @@ export const de_CreateFunctionCommand = async(
 }
 
 /**
- * deserializeAws_restJson1CreaterOrganisationCommand
+ * deserializeAws_restJson1CreateOrganisationCommand
  */
-export const de_CreaterOrganisationCommand = async(
+export const de_CreateOrganisationCommand = async(
   output: __HttpResponse,
   context: __SerdeContext
-): Promise<CreaterOrganisationCommandOutput> => {
+): Promise<CreateOrganisationCommandOutput> => {
   if (output.statusCode !== 200 && output.statusCode >= 300) {
     return de_CommandError(output, context);
   }
@@ -2067,6 +2091,7 @@ export const de_GetFunctionCommand = async(
     'draft_edited_by': __expectString,
     'draft_runtime_version': __expectString,
     'function_name': __expectString,
+    'function_type': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'published_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
@@ -2409,6 +2434,7 @@ export const de_PublishCommand = async(
     'draft_edited_by': __expectString,
     'draft_runtime_version': __expectString,
     'function_name': __expectString,
+    'function_type': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'published_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
@@ -2469,7 +2495,9 @@ export const de_TestCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'message': __expectString,
+    'fn_output': _ => de_Document(_, context),
+    'function_type': __expectString,
+    'stdout': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -2523,6 +2551,9 @@ export const de_UpdateDimensionCommand = async(
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
+    'dependencies': _json,
+    'dependency_graph': _ => de_Object(_, context),
+    'dependents': _json,
     'description': __expectString,
     'dimension': __expectString,
     'function_name': __expectString,
@@ -2558,6 +2589,7 @@ export const de_UpdateFunctionCommand = async(
     'draft_edited_by': __expectString,
     'draft_runtime_version': __expectString,
     'function_name': __expectString,
+    'function_type': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'published_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
@@ -2734,7 +2766,7 @@ export const de_WeightRecomputeCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'results': _ => de_WeightRecomputeResponses(_, context),
+    'data': _ => de_WeightRecomputeResponses(_, context),
   });
   Object.assign(contents, doc);
   return contents;
@@ -2904,6 +2936,20 @@ const de_CommandError = async(
   };
 
   /**
+   * serializeAws_restJson1AutocompleteFunctionRequest
+   */
+  const se_AutocompleteFunctionRequest = (
+    input: AutocompleteFunctionRequest,
+    context: __SerdeContext
+  ): any => {
+    return take(input, {
+      'environment': _ => se_Document(_, context),
+      'name': [],
+      'prefix': [],
+    });
+  }
+
+  /**
    * serializeAws_restJson1BulkOperationList
    */
   const se_BulkOperationList = (
@@ -3005,6 +3051,22 @@ const de_CommandError = async(
     });
   }
 
+  // se_Dependencies omitted.
+
+  /**
+   * serializeAws_restJson1FunctionExecutionRequest
+   */
+  const se_FunctionExecutionRequest = (
+    input: FunctionExecutionRequest,
+    context: __SerdeContext
+  ): any => {
+    return FunctionExecutionRequest.visit(input, {
+      AutocompleteFunctionRequest: value => ({ "AutocompleteFunctionRequest": se_AutocompleteFunctionRequest(value, context) }),
+      ValidateFunctionRequest: value => ({ "ValidateFunctionRequest": se_ValidateFunctionRequest(value, context) }),
+      _: (name, value) => ({ name: value } as any)
+    });
+  }
+
   // se_ListMandatoryDimensions omitted.
 
   /**
@@ -3045,6 +3107,19 @@ const de_CommandError = async(
       acc[key] = se_Document(value, context);
       return acc;
     }, {});
+  }
+
+  /**
+   * serializeAws_restJson1ValidateFunctionRequest
+   */
+  const se_ValidateFunctionRequest = (
+    input: ValidateFunctionRequest,
+    context: __SerdeContext
+  ): any => {
+    return take(input, {
+      'key': [],
+      'value': _ => se_Document(_, context),
+    });
   }
 
   /**
@@ -3215,6 +3290,10 @@ const de_CommandError = async(
     }) as any;
   }
 
+  // de_Dependencies omitted.
+
+  // de_Dependents omitted.
+
   /**
    * deserializeAws_restJson1DimensionExt
    */
@@ -3226,6 +3305,9 @@ const de_CommandError = async(
       'change_reason': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,
+      'dependencies': _json,
+      'dependency_graph': (_: any) => de_Object(_, context),
+      'dependents': _json,
       'description': __expectString,
       'dimension': __expectString,
       'function_name': __expectString,
@@ -3316,6 +3398,7 @@ const de_CommandError = async(
       'draft_edited_by': __expectString,
       'draft_runtime_version': __expectString,
       'function_name': __expectString,
+      'function_type': __expectString,
       'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'last_modified_by': __expectString,
       'published_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
