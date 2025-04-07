@@ -26,7 +26,7 @@ pub struct RowData {
     pub dimension: String,
     pub position: u32,
     pub schema: Value,
-    pub function_name: Option<String>,
+    pub validation_function_name: Option<String>,
     pub autocomplete_function_name: Option<String>,
     pub mandatory: bool,
     pub dependencies: Vec<String>,
@@ -102,7 +102,8 @@ pub fn dimensions() -> impl IntoView {
 
             let schema = row["schema"].clone().to_string();
             let schema = serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
-
+            
+            // keeping the function_name field the same for backwards compatibility
             let validation_function_name = row
                 .get("function_name")
                 .map(|v| v.as_str().unwrap_or_default().to_string());
@@ -125,7 +126,7 @@ pub fn dimensions() -> impl IntoView {
                     dimension: row_dimension.clone(),
                     position: row_position,
                     schema: schema.clone(),
-                    function_name: validation_function_name.clone(),
+                    validation_function_name: validation_function_name.clone(),
                     autocomplete_function_name: autocomplete_function_name.clone(),
                     description: row_description.clone(),
                     change_reason: row_change_reason.clone(),
