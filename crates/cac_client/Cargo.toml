@@ -20,7 +20,7 @@ serde_json = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 superposition_types = { path = "../superposition_types" }
-tokio = { version = "1.29.1", features = ["full"] }
+tokio = { version = "1.43.1", features = ["full"] }
 
 [lib]
 name = "cac_client"

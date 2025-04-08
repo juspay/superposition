@@ -15,7 +15,7 @@ superposition_types = { path = "../superposition_types", features = [
     "experimentation",
     "api",
 ] }
-tokio = { version = "1.29.1", features = ["full"] }
+tokio = { version = "1.43.1", features = ["full"] }
 
 [lib]
 name = "experimentation_client"
