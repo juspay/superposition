@@ -8,12 +8,12 @@ use actix_web::http::header::ContentType;
 #[cfg(feature = "high-performance-mode")]
 use actix_web::web::Data;
 use actix_web::{
-    get, put,
+    get, put, route,
     web::{self, Json, Query},
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
-use chrono::{DateTime, NaiveDateTime, TimeZone, Timelike, Utc};
+use chrono::{DateTime, Timelike, Utc};
 use diesel::{dsl::max, ExpressionMethods, QueryDsl, RunQueryDsl};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
@@ -29,6 +29,7 @@ use service_utils::{
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
+    api::config::ContextPayload,
     custom_query::{
         self as superposition_query, CustomQuery, PaginationParams, QueryMap,
     },
@@ -100,12 +101,18 @@ pub fn add_audit_id_to_header(
 }
 
 fn add_last_modified_to_header(
-    max_created_at: Option<NaiveDateTime>,
+    max_created_at: Option<DateTime<Utc>>,
+    is_smithy: bool,
     resp_builder: &mut HttpResponseBuilder,
 ) {
-    if let Some(ele) = max_created_at {
-        let datetime_utc: DateTime<Utc> = TimeZone::from_utc_datetime(&Utc, &ele);
-        let value = HeaderValue::from_str(&DateTime::to_rfc2822(&datetime_utc));
+    if let Some(date) = max_created_at {
+        let value = if is_smithy {
+            // Smithy needs to be in this format otherwise they can't
+            // deserialize it.
+            HeaderValue::from_str(date.to_rfc3339().as_str())
+        } else {
+            HeaderValue::from_str(date.to_rfc2822().as_str())
+        };
         if let Ok(header_value) = value {
             resp_builder
                 .insert_header((AppHeader::LastModified.to_string(), header_value));
@@ -130,29 +137,29 @@ fn add_config_version_to_header(
 fn get_max_created_at(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
-) -> Result<NaiveDateTime, diesel::result::Error> {
+) -> Result<DateTime<Utc>, diesel::result::Error> {
     event_log::event_log
         .select(max(event_log::timestamp))
         .filter(event_log::table_name.eq_any(vec!["contexts", "default_configs"]))
         .schema_name(schema_name)
-        .first::<Option<NaiveDateTime>>(conn)
+        .first::<Option<DateTime<Utc>>>(conn)
         .and_then(|res| res.ok_or(diesel::result::Error::NotFound))
 }
 
-fn is_not_modified(max_created_at: Option<NaiveDateTime>, req: &HttpRequest) -> bool {
-    let nanosecond_erasure = |t: NaiveDateTime| t.with_nanosecond(0);
+fn is_not_modified(max_created_at: Option<DateTime<Utc>>, req: &HttpRequest) -> bool {
+    let nanosecond_erasure = |t: DateTime<Utc>| t.with_nanosecond(0);
     let last_modified = req
         .headers()
         .get("If-Modified-Since")
         .and_then(|header_val| {
             let header_str = header_val.to_str().ok()?;
             DateTime::parse_from_rfc2822(header_str)
-                .map(|datetime| datetime.with_timezone(&Utc).naive_utc())
+                .map(|datetime| datetime.with_timezone(&Utc))
                 .ok()
         })
         .and_then(nanosecond_erasure);
     log::info!("last modified {last_modified:?}");
-    let parsed_max: Option<NaiveDateTime> = max_created_at.and_then(nanosecond_erasure);
+    let parsed_max: Option<DateTime<Utc>> = max_created_at.and_then(nanosecond_erasure);
     max_created_at.is_some() && parsed_max <= last_modified
 }
 
@@ -687,9 +694,10 @@ async fn get_config_fast(
     }
 }
 
-#[get("")]
+#[route("", method = "GET", method = "POST")]
 async fn get_config(
     req: HttpRequest,
+    body: Option<Json<ContextPayload>>,
     db_conn: DbConnection,
     query_map: superposition_query::Query<QueryMap>,
     schema_name: SchemaName,
@@ -709,26 +717,38 @@ async fn get_config(
     }
 
     let mut query_params_map = query_map.into_inner();
-    let mut config_version = validate_version_in_params(&mut query_params_map)?;
-    let mut config =
-        generate_config_from_version(&mut config_version, &mut conn, &schema_name)?;
+    let mut version = validate_version_in_params(&mut query_params_map)?;
+    let mut config = generate_config_from_version(&mut version, &mut conn, &schema_name)?;
 
     config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
-
-    if !query_params_map.is_empty() {
-        config = config.filter_by_dimensions(&query_params_map)
+    let is_smithy: bool;
+    let context = if req.method() == actix_web::http::Method::GET {
+        is_smithy = false;
+        query_params_map
+    } else {
+        // Assuming smithy.
+        is_smithy = true;
+        body.ok_or(bad_argument!(
+            "When using POST, context needs to be provided in the body."
+        ))?
+        .into_inner()
+        .context
+    };
+    if !context.is_empty() {
+        config = config.filter_by_dimensions(&context)
     }
 
     let mut response = HttpResponse::Ok();
-    add_last_modified_to_header(max_created_at, &mut response);
+    add_last_modified_to_header(max_created_at, is_smithy, &mut response);
     add_audit_id_to_header(&mut conn, &mut response, &schema_name);
-    add_config_version_to_header(&config_version, &mut response);
+    add_config_version_to_header(&version, &mut response);
     Ok(response.json(config))
 }
 
-#[get("/resolve")]
+#[route("/resolve", method = "GET", method = "POST")]
 async fn get_resolved_config(
     req: HttpRequest,
+    body: Option<Json<ContextPayload>>,
     db_conn: DbConnection,
     query_map: superposition_query::Query<QueryMap>,
     schema_name: SchemaName,
@@ -763,14 +783,29 @@ async fn get_resolved_config(
     for (key, val) in config.overrides {
         override_map.insert(key, val);
     }
-
-    let response = if let Some(Value::String(_)) = query_params_map.get("show_reasoning")
-    {
+    let show_reason = matches!(
+        query_params_map.get("show_reasoning"),
+        Some(Value::String(_))
+    );
+    let is_smithy: bool;
+    let context = if req.method() == actix_web::http::Method::GET {
+        is_smithy = false;
+        query_params_map
+    } else {
+        // Must be smithy calling w/ POST :D
+        is_smithy = true;
+        body.ok_or(bad_argument!(
+            "When using POST, context needs to be provided in the body."
+        ))?
+        .into_inner()
+        .context
+    };
+    let response = if show_reason {
         eval_cac_with_reasoning(
             config.default_configs,
             &config.contexts,
             &override_map,
-            &query_params_map,
+            &context,
             merge_strategy,
         )
         .map_err(|err| {
@@ -782,7 +817,7 @@ async fn get_resolved_config(
             config.default_configs,
             &config.contexts,
             &override_map,
-            &query_params_map,
+            &context,
             merge_strategy,
         )
         .map_err(|err| {
@@ -791,7 +826,7 @@ async fn get_resolved_config(
         })?
     };
     let mut resp = HttpResponse::Ok();
-    add_last_modified_to_header(max_created_at, &mut resp);
+    add_last_modified_to_header(max_created_at, is_smithy, &mut resp);
     add_audit_id_to_header(&mut conn, &mut resp, &schema_name);
     add_config_version_to_header(&config_version, &mut resp);
 

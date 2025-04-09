@@ -196,6 +196,17 @@ impl<T> Default for PaginatedResponse<T> {
     }
 }
 
+#[derive(Serialize, Clone, Deserialize)]
+pub struct ListResponse<T> {
+    pub data: Vec<T>,
+}
+
+impl<T: Serialize + for<'a> Deserialize<'a>> ListResponse<T> {
+    pub fn new(response: Vec<T>) -> Self {
+        Self { data: response }
+    }
+}
+
 #[derive(
     Debug, Serialize, Deserialize, Clone, PartialEq, PartialOrd, derive_more::Display,
 )]

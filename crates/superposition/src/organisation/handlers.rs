@@ -39,7 +39,7 @@ pub async fn create_organisation(
     // Generating a numeric ID from IdInstance and prefixing it with `orgid`
     let numeric_id = IdInstance::next_id();
     let org_id = format!("orgid{}", numeric_id);
-    let now = Utc::now().naive_utc();
+    let now = Utc::now();
     let req = request.into_inner();
 
     let new_org = Organisation {
@@ -79,7 +79,7 @@ pub async fn update_organisation(
 ) -> superposition::Result<Json<Organisation>> {
     let DbConnection(mut conn) = db_conn;
     let org_id = org_id.into_inner();
-    let now = Utc::now().naive_utc();
+    let now = Utc::now();
     let req = request.into_inner();
 
     let org: Organisation = organisations::table

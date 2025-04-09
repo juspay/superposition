@@ -113,7 +113,7 @@ pub fn r#move(
             dsl::id.eq(&new_ctx_id),
             dsl::value.eq(&ctx_condition_value),
             dsl::weight.eq(&weight),
-            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_at.eq(Utc::now()),
             dsl::last_modified_by.eq(user.get_email()),
         ))
         .returning(Context::as_returning())
@@ -127,7 +127,7 @@ pub fn r#move(
         created_by: user.get_email(),
         override_id: ctx.override_id,
         override_: ctx.override_,
-        last_modified_at: Utc::now().naive_utc(),
+        last_modified_at: Utc::now(),
         last_modified_by: user.get_email(),
         weight,
         description: req_description,
@@ -181,7 +181,7 @@ pub fn delete(
     diesel::update(dsl::contexts)
         .filter(dsl::id.eq(&ctx_id))
         .set((
-            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+            dsl::last_modified_at.eq(Utc::now()),
             dsl::last_modified_by.eq(user.get_email()),
         ))
         .returning(Context::as_returning())

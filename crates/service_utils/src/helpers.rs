@@ -452,7 +452,7 @@ where
         .json(&WebhookResponse {
             event_info: WebhookEventInfo {
                 webhook_event: event,
-                time: Utc::now().naive_utc().to_string(),
+                time: Utc::now().to_string(),
                 workspace_id: workspace_request.workspace_id.to_string(),
                 organisation_id: workspace_request.organisation_id.to_string(),
                 config_version: config_version_opt.clone(),

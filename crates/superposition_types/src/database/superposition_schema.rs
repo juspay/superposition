@@ -30,8 +30,8 @@ pub mod superposition {
             status -> OrgStatus,
             #[max_length = 100]
             sector -> Nullable<Varchar>,
-            created_at -> Timestamp,
-            updated_at -> Timestamp,
+            created_at -> Timestamptz,
+            updated_at -> Timestamptz,
             updated_by -> Text,
         }
     }
@@ -51,8 +51,8 @@ pub mod superposition {
             workspace_admin_email -> Text,
             created_by -> Text,
             last_modified_by -> Text,
-            last_modified_at -> Timestamp,
-            created_at -> Timestamp,
+            last_modified_at -> Timestamptz,
+            created_at -> Timestamptz,
             mandatory_dimensions -> Nullable<Array<Text>>,
         }
     }

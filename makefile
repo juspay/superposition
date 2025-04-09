@@ -1,3 +1,5 @@
+SMITHY_BUILD_SRC := smithy/output/source
+SMITHY_CLIENT_DIR := clients/generated/smithy
 IMAGE_NAME ?= context-aware-config
 DOCKER_DNS ?= localhost
 TENANT ?= dev
@@ -107,6 +109,7 @@ ifdef CI
 endif
 setup: $(SETUP_DEPS)
 	npm ci
+	cd $(SMITHY_CLIENT_DIR)/ts && npm ci
 
 kill:
 	-@pkill -f target/debug/superposition &
@@ -164,12 +167,28 @@ test: setup frontend superposition
 	@echo "Running superposition"
 	@./target/debug/superposition &
 	@echo "Awaiting superposition boot..."
+## FIXME Curl doesn't retry.
 	@timeout 20s bash -c \
 		"while ! curl --silent 'http://localhost:8080/health' 2>&1 > /dev/null; do sleep 0.5; done"
 	npm run test
+## FIXME Broken as requires hardcoded 'org_id'. Current test setup doesn't create
+## deterministic 'org_id'.
+# cd $(SMITHY_CLIENT_DIR)/ts && npm ci && npm test
 
 tailwind:
 	cd crates/frontend && npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css --watch
+
+smithy-build:
+	cd smithy && smithy build
+
+ts-client: smithy-build
+	mkdir -p $(SMITHY_CLIENT_DIR)
+# cp -r $(SMITHY_BUILD_SRC)/typescript-client-codegen $(SMITHY_CLIENT_DIR)/ts
+## Skipping package.json as we have installed jest, probably will have to change
+## this once we move to `smoke-tests`.
+	rsync -av --exclude="package.json" $(SMITHY_BUILD_SRC)/typescript-client-codegen/ $(SMITHY_CLIENT_DIR)/ts/
+
+clients: smithy-build ts-client
 
 leptosfmt:
 	leptosfmt $(LEPTOS_FMT_FLAGS) crates/frontend
@@ -197,7 +216,7 @@ amend: commit
 amend-no-edit: COMMIT_FLAGS += --no-edit
 amend-no-edit: amend
 
-default: dev-build
+default: dev-build frontend
 
 schema-file:
 	diesel migration run --config-file=crates/superposition_types/src/database/diesel.toml
@@ -205,3 +224,4 @@ schema-file:
 	git apply crates/superposition_types/src/database/schema.patch
 	diesel print-schema --schema superposition > crates/superposition_types/src/database/superposition_schema.rs
 	git apply crates/superposition_types/src/database/superposition_schema.patch
+	git apply crates/superposition_types/src/database/schema-timestamp-migration.patch

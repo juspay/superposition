@@ -11,11 +11,11 @@ This document outlines the setup process for the `Superposition Platform`.
 - **Install Docker**
 
 - **Installing Lib Dependencies & Tools :** <br>
-    `libpq`, `openssl`, `libiconv` are required for building the project. `diesel_cli` and `aws cli` is needed for dev.
+    `libpq`, `openssl`, `libiconv` are required for building the project. `diesel_cli`, `yq` and `aws cli` is needed for dev.
 
     For MacOS :
     ```bash
-    brew install libpq openssl libiconv awscli
+    brew install libpq openssl libiconv awscli yq
     ```
     Set the PQ_LIB_DIR environment variable for ensuring libpq is picked up by diesel and/or diesel_cli.
     ```bash
@@ -39,7 +39,7 @@ This document outlines the setup process for the `Superposition Platform`.
 - **Ensure `make` Command is Installed**
     - For Linux:
       ```bash
-      sudo apt-get install build-essential
+      sudo apt-get install build-essential yq
       ```
     - For MacOS:
       ```bash
