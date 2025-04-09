@@ -1,3 +1,6 @@
+use crate::utils::{
+    construct_request_headers, get_host, parse_json_response, request, use_host_server,
+};
 use leptos::ServerFnError;
 use serde_json::{Map, Value};
 use superposition_types::{
@@ -7,7 +10,9 @@ use superposition_types::{
         experiments::{
             ExperimentListFilters, ExperimentResponse, ExperimentStateChangeRequest,
         },
-        functions::ListFunctionFilters,
+        functions::{
+            FunctionExecutionRequest, FunctionExecutionResponse, ListFunctionFilters,
+        },
         webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap},
@@ -20,10 +25,6 @@ use superposition_types::{
         types::DimensionWithMandatory,
     },
     Config, PaginatedResponse,
-};
-
-use crate::utils::{
-    construct_request_headers, get_host, parse_json_response, request, use_host_server,
 };
 
 // #[server(GetDimensions, "/fxn", "GetJson")]
@@ -617,4 +618,44 @@ pub async fn get_context_from_condition(
     .await?;
 
     parse_json_response(response).await
+}
+
+pub async fn execute_autocomplete_function(
+    name: &str,
+    value: &str,
+    environment: &Value,
+    fn_name: &String,
+    tenant: &String,
+    org_id: &String,
+) -> Result<Vec<String>, String> {
+    let host = use_host_server();
+    let url = format!("{}/function/{}/PUBLISHED/test", host, fn_name);
+    let payload = FunctionExecutionRequest::AutocompleteFunctionRequest {
+        name: name.to_owned(),
+        prefix: value.to_owned(),
+        environment: environment.clone(),
+    };
+    let resp = request(
+        url.clone(),
+        reqwest::Method::PUT,
+        Some(payload.clone()),
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    let function_execution_response =
+        parse_json_response::<FunctionExecutionResponse>(resp).await?;
+
+    let result = function_execution_response
+        .fn_output
+        .as_array()
+        .unwrap_or(&Vec::new())
+        .iter()
+        .map(|v| {
+            v.as_str()
+                .unwrap_or("Could not parse function execution response")
+                .to_string()
+        })
+        .collect();
+    Ok(result)
 }

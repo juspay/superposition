@@ -31,7 +31,7 @@ use crate::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         input::{Input, InputType},
     },
-    utils::function_updater,
+    utils::set_function,
 };
 
 #[component]
@@ -66,7 +66,7 @@ where
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
-    let validation_functions_resource: Resource<(String, String), Vec<Function>> =
+    let functions_resource: Resource<(String, String), Vec<Function>> =
         create_blocking_resource(
             move || (tenant_rws.get().0, org_rws.get().0),
             |(current_tenant, org)| async move {
@@ -93,25 +93,14 @@ where
         },
     );
 
-    let function_updater = |selected_function: FunctionsName,
-                            value: &mut Option<String>| {
-        let function_name = selected_function.clone();
-        leptos::logging::log!("function selected: {:?}", function_name);
-        let fun_name = match function_name.as_str() {
-            "None" => None,
-            _ => Some(function_name),
-        };
-        *value = fun_name;
-    };
-
     let handle_validation_fn_select =
         Callback::new(move |selected_function: FunctionsName| {
-            validation_fn_name_ws.update(|v| function_updater(selected_function, v));
+            validation_fn_name_ws.update(|v| set_function(selected_function, v));
         });
 
     let handle_autocomplete_fn_select =
         Callback::new(move |selected_function: FunctionsName| {
-            autocomplete_fn_name_ws.update(|v| function_updater(selected_function, v));
+            autocomplete_fn_name_ws.update(|v| set_function(selected_function, v));
         });
 
     let handle_select_dependencies_dropdown_option =
@@ -351,13 +340,9 @@ where
 
             <Suspense>
                 {move || {
-                    let mut functions = validation_functions_resource.get().unwrap_or_default();
-                    let mut validation_function_names: Vec<FunctionsName> = vec![
-                        "None".to_string(),
-                    ];
-                    let mut autocomplete_function_names: Vec<FunctionsName> = vec![
-                        "None".to_string(),
-                    ];
+                    let mut functions = functions_resource.get().unwrap_or_default();
+                    let mut validation_function_names: Vec<FunctionsName> = vec!["None".to_string()];
+                    let mut autocomplete_function_names: Vec<FunctionsName> = vec!["None".to_string()];
                     functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
                     functions
                         .iter()

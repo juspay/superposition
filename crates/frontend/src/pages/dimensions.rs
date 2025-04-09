@@ -102,7 +102,7 @@ pub fn dimensions() -> impl IntoView {
 
             let schema = row["schema"].clone().to_string();
             let schema = serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
-            
+
             // keeping the function_name field the same for backwards compatibility
             let validation_function_name = row
                 .get("function_name")
@@ -239,10 +239,8 @@ pub fn dimensions() -> impl IntoView {
                                     dimension_name=selected_dimension_data.dimension
                                     dimension_schema=selected_dimension_data.schema
                                     dependencies=selected_dimension_data.dependencies
-                                    validation_function_name=selected_dimension_data.function_name
-                                    autocomplete_function_name=selected_dimension_data
-                                        .autocomplete_function_name
-                                    description=selected_dimension_data.description
+                                    validation_function_name=selected_dimension_data.validation_function_name
+                                    autocomplete_function_name=selected_dimension_data.autocomplete_function_name
                                     dimensions
                                     handle_submit=move || {
                                         dimensions_resource.refetch();

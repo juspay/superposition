@@ -2,7 +2,7 @@ use futures::join;
 use leptos::*;
 use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 use strum::IntoEnumIterator;
 use superposition_macros::box_params;
 use superposition_types::{
@@ -22,39 +22,46 @@ use superposition_types::{
     PaginatedResponse, SortBy,
 };
 
-use crate::components::{
-    alert::AlertType,
-    button::Button,
-    change_form::ChangeForm,
-    context_card::ContextCard,
-    context_form::{
-        utils::{create_context, update_context},
-        ContextForm,
-    },
-    delete_modal::DeleteModal,
-    drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
-    dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-    experiment_form::{ExperimentForm, ExperimentFormType},
-    override_form::OverrideForm,
-    pagination::Pagination,
-    skeleton::Skeleton,
-    stat::Stat,
-};
-use crate::logic::{Condition, Conditions, Expression};
-use crate::providers::{
-    alert_provider::enqueue_alert,
-    condition_collapse_provider::ConditionCollapseProvider,
-    editor_provider::EditorProvider,
-};
-use crate::query_updater::{use_param_updater, use_signal_from_query};
-use crate::types::{OrganisationId, Tenant, VariantFormTs};
 use crate::{
     api::{
         delete_context, fetch_context, fetch_default_config, fetch_dimensions,
         get_context,
     },
-    components::skeleton::SkeletonVariant,
+    components::{
+        alert::AlertType,
+        button::Button,
+        change_form::ChangeForm,
+        context_card::ContextCard,
+        context_form::{
+            utils::{create_context, update_context},
+            ContextForm,
+        },
+        delete_modal::DeleteModal,
+        drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        experiment_form::{ExperimentForm, ExperimentFormType},
+        override_form::OverrideForm,
+        pagination::Pagination,
+        skeleton::{Skeleton, SkeletonVariant},
+        stat::Stat,
+    },
+    logic::{Condition, Conditions, Expression},
+    providers::{
+        alert_provider::enqueue_alert,
+        condition_collapse_provider::ConditionCollapseProvider,
+        editor_provider::EditorProvider,
+    },
+    query_updater::{use_param_updater, use_signal_from_query},
+    types::{OrganisationId, Tenant, VariantFormTs},
 };
+
+#[derive(Clone, Debug, Default)]
+pub struct Data {
+    pub context_id: String,
+    pub context: Conditions,
+    pub overrides: Vec<(String, Value)>,
+    pub description: String,
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct PageResource {
@@ -80,16 +87,25 @@ fn context_filter_drawer(
 ) -> impl IntoView {
     let filters_buffer_rws = RwSignal::new(context_filters_rws.get_untracked());
     let dimension_buffer_rws = RwSignal::new(dimension_params_rws.get_untracked());
-    let context = dimension_params_rws
-        .get_untracked()
-        .into_inner()
-        .iter()
-        .map(|(k, v)| Condition {
-            variable: k.clone(),
-            expression: Expression::Is(v.clone()),
-        })
-        .collect::<Conditions>();
+    let (context_rs, context_ws) = create_signal(
+        dimension_params_rws
+            .get_untracked()
+            .into_inner()
+            .iter()
+            .map(|(k, v)| Condition {
+                variable: k.clone(),
+                expression: Expression::Is(v.clone()),
+            })
+            .collect::<Conditions>(),
+    );
 
+    let fn_environment = create_memo(move |_| {
+        let context = context_rs.get();
+        json!({
+            "context": context,
+            "overrides": [],
+        })
+    });
     view! {
         <Drawer
             id="context_filter_drawer".to_string()
@@ -100,7 +116,9 @@ fn context_filter_drawer(
             <div class="flex flex-col gap-4">
                 <ContextForm
                     dimensions
-                    context
+                    context_rs
+                    context_ws
+                    fn_environment
                     dropdown_direction=DropdownDirection::Down
                     resolve_mode=true
                     handle_change=move |context: Conditions| {
@@ -253,8 +271,8 @@ fn form(
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
-    let (context, set_context) = create_signal(context);
-    let (overrides, set_overrides) = create_signal(overrides);
+    let (context_rs, context_ws) = create_signal(context);
+    let (overrides_rs, overrides_ws) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let edit_id = StoredValue::new(edit_id);
@@ -262,10 +280,19 @@ fn form(
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
 
+    let fn_environment = create_memo(move |_| {
+        let context = context_rs.get();
+        let overrides = overrides_rs.get();
+        json!({
+            "context": context,
+            "overrides": overrides,
+        })
+    });
+
     let on_submit = move |_| {
         req_inprogress_ws.set(true);
         spawn_local(async move {
-            let f_overrides = overrides.get_untracked();
+            let f_overrides = overrides_rs.get_untracked();
             let result = if let Some(context_id) = edit_id.get_value() {
                 update_context(
                     tenant_rws.get_untracked().0,
@@ -280,7 +307,7 @@ fn form(
                 create_context(
                     tenant_rws.get_untracked().0,
                     Map::from_iter(f_overrides),
-                    context.get_untracked(),
+                    context_rs.get_untracked(),
                     description_rs.get_untracked(),
                     change_reason_rs.get_untracked(),
                     org_rws.get_untracked().0,
@@ -316,10 +343,12 @@ fn form(
     view! {
         <ContextForm
             dimensions=dimensions.get_value()
-            context=context.get_untracked()
             resolve_mode=workspace_settings.get_value().strict_mode
+            context_rs
+            context_ws
+            fn_environment
             handle_change=move |new_context| {
-                set_context
+                context_ws
                     .update(|value| {
                         *value = new_context;
                     });
@@ -344,14 +373,15 @@ fn form(
         />
 
         <OverrideForm
-            overrides=overrides.get_untracked()
+            overrides=overrides_rs.get_untracked()
             default_config=default_config
             handle_change=move |new_overrides| {
-                set_overrides
+                overrides_ws
                     .update(|value| {
                         *value = new_overrides;
                     });
             }
+            fn_environment
         />
 
         <div class="flex justify-start w-full mt-10">

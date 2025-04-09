@@ -45,6 +45,7 @@ pub fn variant_form<HC>(
     variants: Vec<(String, VariantFormT)>,
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
+    fn_environment: Memo<Value>,
 ) -> impl IntoView
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
@@ -291,6 +292,7 @@ where
                                                         handle_change=handle_change
                                                         show_add_override=false
                                                         handle_key_remove=on_key_remove
+                                                        fn_environment
                                                     />
                                                 }
                                             } else {
@@ -302,6 +304,7 @@ where
                                                         handle_change=handle_change
                                                         show_add_override=false
                                                         disable_remove=true
+                                                        fn_environment
                                                     />
                                                 }
                                             }
@@ -343,6 +346,7 @@ pub fn delete_variant(
     #[prop(into)] on_variant_change: Callback<VariantFormT, ()>,
     #[prop(into)] on_override_change: Callback<Vec<(String, Value)>, ()>,
     #[prop(into)] on_delete_variant: Callback<(), ()>,
+    fn_environment: Memo<Value>,
 ) -> impl IntoView {
     let variant_rws = RwSignal::new(variant);
     let override_keys = Signal::derive(move || {
@@ -465,6 +469,7 @@ pub fn delete_variant(
                                             variant.overrides.retain(|(k, _)| *k != removed_key);
                                         });
                                 }
+                                fn_environment
                             />
                         }
                     }}
@@ -489,6 +494,7 @@ pub fn delete_variant_form<HC>(
     variants: Vec<(String, VariantFormT)>,
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
+    fn_environment: Memo<Value>,
 ) -> impl IntoView
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
@@ -680,6 +686,7 @@ where
                                         on_variant_change
                                         on_override_change
                                         on_delete_variant
+                                        fn_environment
                                     />
                                 }
                                     .into_view()
