@@ -13,7 +13,7 @@ use crate::{
         override_form::OverrideForm,
     },
     schema::SchemaType,
-    types::VariantFormT,
+    types::{AutoCompleteCallbacks, VariantFormT},
 };
 
 fn get_override_keys_from_variants(
@@ -41,6 +41,7 @@ pub fn variant_form<HC>(
     variants: Vec<(String, VariantFormT)>,
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
+    autocomplete_callbacks: AutoCompleteCallbacks,
 ) -> impl IntoView
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
@@ -57,6 +58,7 @@ where
     );
     let default_config = StoredValue::new(default_config);
     let handle_change = StoredValue::new(handle_change);
+    let autocomplete_callbacks = StoredValue::new(autocomplete_callbacks);
     let unused_config_keys = Signal::derive(move || {
         default_config
             .get_value()
@@ -290,6 +292,7 @@ where
                                     {move || {
                                         let variant = f_variants.get().get(idx).unwrap().clone();
                                         let overrides = variant.1.overrides;
+                                        let callback = autocomplete_callbacks.get_value();
                                         if is_control_variant {
                                             view! {
                                                 <OverrideForm
@@ -299,6 +302,7 @@ where
                                                     handle_change=handle_change
                                                     show_add_override=false
                                                     handle_key_remove=Some(Callback::new(on_key_remove))
+                                                    autocomplete_callbacks=callback
                                                 />
                                             }
                                         } else {
@@ -310,6 +314,7 @@ where
                                                     handle_change=handle_change
                                                     show_add_override=false
                                                     disable_remove=true
+                                                    autocomplete_callbacks=callback
                                                 />
                                             }
                                         }

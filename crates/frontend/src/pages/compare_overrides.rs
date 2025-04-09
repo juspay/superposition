@@ -150,6 +150,7 @@ pub fn compare_overrides() -> impl IntoView {
                     let table_columns = table_columns(contexts_vector_rws);
                     let dimensions = dimension_resource.get().unwrap_or_default();
                     let data = resolved_config_map.into_values().collect();
+                    let (empty_context_rs, empty_context_ws) = create_signal(Conditions::default());
                     view! {
                         <div class="card rounded-xl w-full bg-base-100 shadow">
                             <div class="card-body">
@@ -178,13 +179,15 @@ pub fn compare_overrides() -> impl IntoView {
                             <EditorProvider>
                                 <ContextForm
                                     dimensions=dimensions.data
-                                    context=Conditions::default()
+                                    context_rs=empty_context_rs
+                                    context_ws=empty_context_ws
                                     heading_sub_text="Compare to...".to_string()
                                     dropdown_direction=DropdownDirection::Right
                                     resolve_mode=true
                                     handle_change=move |new_context| {
                                         context_ws.update(|value| *value = new_context)
                                     }
+                                    autocomplete_callbacks=HashMap::new()
                                 />
                                 {move || {
                                     let loading = req_inprogess_rs.get();

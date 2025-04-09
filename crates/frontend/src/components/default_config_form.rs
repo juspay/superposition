@@ -4,7 +4,7 @@ use leptos::*;
 use serde_json::Value;
 use superposition_types::{
     api::functions::ListFunctionFilters,
-    custom_query::{CommaSeparatedQParams, PaginationParams},
+    custom_query::PaginationParams,
     database::models::cac::{Function, FunctionType, TypeTemplate},
 };
 use web_sys::MouseEvent;
@@ -20,7 +20,7 @@ use crate::{
     },
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
     types::FunctionsName,
-    utils::function_updater,
+    utils::set_function,
 };
 use crate::{
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
@@ -98,12 +98,12 @@ where
 
     let handle_select_dropdown_option_validation =
         Callback::new(move |selected_function: FunctionsName| {
-            validation_fn_name_ws.update(|v| function_updater(selected_function, v));
+            validation_fn_name_ws.update(|v| set_function(selected_function, v));
         });
 
     let handle_select_dropdown_option_autocomplete =
         Callback::new(move |selected_function: FunctionsName| {
-            autocomplete_fn_name_ws.update(|v| function_updater(selected_function, v));
+            autocomplete_fn_name_ws.update(|v| set_function(selected_function, v));
         });
 
     let on_submit = move |ev: MouseEvent| {
@@ -362,14 +362,12 @@ where
                         let mut autocomplete_function_names: Vec<FunctionsName> = vec!["None".to_string()];
                         functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
                         functions.iter()
-                            .filter(|func| func.function_type == FunctionTypes::Validation)
                             .for_each(|ele| {
-                                validation_function_names.push(ele.function_name.clone());
-                            });
-                        functions.iter()
-                            .filter(|func| func.function_type == FunctionTypes::Autocomplete)
-                            .for_each(|ele| {
-                                autocomplete_function_names.push(ele.function_name.clone());
+                                if ele.function_type == FunctionType::Validation {
+                                    validation_function_names.push(ele.function_name.clone());
+                                } else {
+                                    autocomplete_function_names.push(ele.function_name.clone());
+                                }
                             });
                         view! {
                             <div class="form-control">

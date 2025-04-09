@@ -2,7 +2,7 @@ use futures::join;
 use leptos::*;
 use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 use strum::IntoEnumIterator;
 use superposition_macros::box_params;
 use superposition_types::{
@@ -21,33 +21,36 @@ use superposition_types::{
     PaginatedResponse, SortBy,
 };
 
-use crate::api::{delete_context, fetch_context, fetch_default_config, fetch_dimensions};
-use crate::components::{
-    alert::AlertType,
-    button::Button,
-    change_form::ChangeForm,
-    context_card::ContextCard,
-    context_form::{
-        utils::{create_context, update_context},
-        ContextForm,
+use crate::{
+    api::{delete_context, fetch_context, fetch_default_config, fetch_dimensions},
+    components::{
+        alert::AlertType,
+        button::Button,
+        change_form::ChangeForm,
+        context_card::ContextCard,
+        context_form::{
+            utils::{create_context, update_context},
+            ContextForm,
+        },
+        delete_modal::DeleteModal,
+        drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        experiment_form::ExperimentForm,
+        override_form::OverrideForm,
+        pagination::Pagination,
+        skeleton::Skeleton,
+        stat::Stat,
     },
-    delete_modal::DeleteModal,
-    drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
-    dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-    experiment_form::ExperimentForm,
-    override_form::OverrideForm,
-    pagination::Pagination,
-    skeleton::Skeleton,
-    stat::Stat,
+    logic::{Condition, Conditions, Expression},
+    providers::{
+        alert_provider::enqueue_alert,
+        condition_collapse_provider::ConditionCollapseProvider,
+        editor_provider::EditorProvider,
+    },
+    query_updater::{use_param_updater, use_signal_from_query},
+    types::{AutoCompleteCallbacks, OrganisationId, Tenant, VariantFormTs},
+    utils::autocomplete_fn_generator,
 };
-use crate::logic::{Condition, Conditions, Expression};
-use crate::providers::{
-    alert_provider::enqueue_alert,
-    condition_collapse_provider::ConditionCollapseProvider,
-    editor_provider::EditorProvider,
-};
-use crate::query_updater::{use_param_updater, use_signal_from_query};
-use crate::types::{OrganisationId, Tenant, VariantFormTs};
 
 #[derive(Clone, Debug, Default)]
 pub struct Data {
@@ -77,17 +80,44 @@ fn context_filter_drawer(
     dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
     dimensions: Vec<DimensionWithMandatory>,
 ) -> impl IntoView {
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let filters_buffer_rws = RwSignal::new(context_filters_rws.get_untracked());
     let dimension_buffer_rws = RwSignal::new(dimension_params_rws.get_untracked());
-    let context = dimension_params_rws
-        .get_untracked()
-        .into_inner()
+    let (context_rs, context_ws) = create_signal(
+        dimension_params_rws
+            .get_untracked()
+            .into_inner()
+            .iter()
+            .map(|(k, v)| Condition {
+                variable: k.clone(),
+                expression: Expression::Is(v.clone()),
+            })
+            .collect::<Conditions>(),
+    );
+
+    let context_autocomplete_callbacks = dimensions
         .iter()
-        .map(|(k, v)| Condition {
-            variable: k.clone(),
-            expression: Expression::Is(v.clone()),
+        .filter(|d| d.autocomplete_function_name.is_some())
+        .map(|d| {
+            let fn_environment = create_memo(move |_| {
+                let context = context_rs.get();
+                json!({
+                    "context": context,
+                    "overrides": [],
+                })
+            });
+            let tenant = tenant_rws.get().0;
+            let org_id = org_rws.get().0;
+            autocomplete_fn_generator(
+                d.dimension.clone(),
+                d.autocomplete_function_name.clone().unwrap(),
+                fn_environment,
+                tenant,
+                org_id,
+            )
         })
-        .collect::<Conditions>();
+        .collect::<AutoCompleteCallbacks>();
 
     view! {
         <Drawer
@@ -99,7 +129,9 @@ fn context_filter_drawer(
             <div class="flex flex-col gap-4">
                 <ContextForm
                     dimensions
-                    context
+                    context_rs
+                    context_ws
+                    autocomplete_callbacks=context_autocomplete_callbacks
                     dropdown_direction=DropdownDirection::Down
                     resolve_mode=true
                     handle_change=move |context: Conditions| {
@@ -252,19 +284,63 @@ fn form(
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
-    let (context, set_context) = create_signal(context);
-    let (overrides, set_overrides) = create_signal(overrides);
+    let (context_rs, context_ws) = create_signal(context);
+    let (overrides_rs, overrides_ws) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
+    let default_configs = StoredValue::new(default_config.clone());
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let edit_id = StoredValue::new(edit_id);
 
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
 
+    let fn_environment = create_memo(move |_| {
+        let context = context_rs.get();
+        let overrides = overrides_rs.get();
+        json!({
+            "context": context,
+            "overrides": overrides,
+        })
+    });
+
+    let context_autocomplete_callbacks = dimensions
+        .get_value()
+        .iter()
+        .filter(|d| d.autocomplete_function_name.is_some())
+        .map(|d| {
+            let tenant = tenant_rws.get().0;
+            let org_id = org_rws.get().0;
+            autocomplete_fn_generator(
+                d.dimension.clone(),
+                d.autocomplete_function_name.clone().unwrap(),
+                fn_environment,
+                tenant,
+                org_id,
+            )
+        })
+        .collect::<AutoCompleteCallbacks>();
+
+    let overrides_autocomplete_callbacks = default_configs
+        .get_value()
+        .iter()
+        .filter(|default_config| default_config.autocomplete_function_name.is_some())
+        .map(|d| {
+            let tenant = tenant_rws.get().0;
+            let org_id = org_rws.get().0;
+            autocomplete_fn_generator(
+                d.key.clone(),
+                d.autocomplete_function_name.clone().unwrap(),
+                fn_environment,
+                tenant,
+                org_id,
+            )
+        })
+        .collect::<AutoCompleteCallbacks>();
+
     let on_submit = move |_| {
         req_inprogress_ws.set(true);
         spawn_local(async move {
-            let f_overrides = overrides.get_untracked();
+            let f_overrides = overrides_rs.get();
             let result = if let Some(context_id) = edit_id.get_value() {
                 update_context(
                     tenant_rws.get_untracked().0,
@@ -279,7 +355,7 @@ fn form(
                 create_context(
                     tenant_rws.get_untracked().0,
                     Map::from_iter(f_overrides),
-                    context.get_untracked(),
+                    context_rs.get_untracked(),
                     description_rs.get_untracked(),
                     change_reason_rs.get_untracked(),
                     org_rws.get_untracked().0,
@@ -315,10 +391,12 @@ fn form(
     view! {
         <ContextForm
             dimensions=dimensions.get_value()
-            context=context.get_untracked()
             resolve_mode=workspace_settings.get_value().strict_mode
+            context_rs
+            context_ws
+            autocomplete_callbacks=context_autocomplete_callbacks
             handle_change=move |new_context| {
-                set_context
+                context_ws
                     .update(|value| {
                         *value = new_context;
                     });
@@ -343,14 +421,15 @@ fn form(
         />
 
         <OverrideForm
-            overrides=overrides.get_untracked()
+            overrides=overrides_rs.get_untracked()
             default_config=default_config
             handle_change=move |new_overrides| {
-                set_overrides
+                overrides_ws
                     .update(|value| {
                         *value = new_overrides;
                     });
             }
+            autocomplete_callbacks=overrides_autocomplete_callbacks
         />
 
         <div class="flex justify-start w-full mt-10">

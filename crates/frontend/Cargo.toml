@@ -38,6 +38,13 @@ web-sys = { version = "0.3.64", features = [
     "Blob",
     "Window",
     "Storage",
+    "Element",
+    "HtmlElement",
+    "UiEvent",
+    "MouseEvent",
+    "KeyboardEvent",
+    "Document",
+    "Node"
 ] }
 serde-wasm-bindgen = "0.6.5"
 
