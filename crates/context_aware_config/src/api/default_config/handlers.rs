@@ -275,7 +275,7 @@ fn validate_and_get_function_code(
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     if let Some(f_name) = function_name {
-        let function_code = get_published_function_code(conn, &f_name, schema_name)
+        let function_code = get_published_function_code(conn, f_name, schema_name)
             .map_err(|_| bad_argument!("Function {} doesn't exist.", f_name))?;
         if let Some(f_code) = function_code {
             validate_value_with_function(

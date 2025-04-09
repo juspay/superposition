@@ -87,7 +87,7 @@ pub fn dimensions() -> impl IntoView {
 
             let schema = row["schema"].clone().to_string();
             let schema = serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
-            
+
             // keeping the function_name field the same for backwards compatibility
             let validation_function_name = row
                 .get("function_name")

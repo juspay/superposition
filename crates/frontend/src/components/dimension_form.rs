@@ -27,7 +27,7 @@ use crate::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         input::{Input, InputType},
     },
-    utils::function_updater,
+    utils::set_function,
 };
 
 #[component]
@@ -89,12 +89,12 @@ where
 
     let handle_select_dropdown_option_validation =
         Callback::new(move |selected_function: FunctionsName| {
-            validation_fn_name_ws.update(|v| function_updater(selected_function, v));
+            validation_fn_name_ws.update(|v| set_function(selected_function, v));
         });
 
     let handle_select_dropdown_option_autocomplete =
         Callback::new(move |selected_function: FunctionsName| {
-            autocomplete_fn_name_ws.update(|v| function_updater(selected_function, v));
+            autocomplete_fn_name_ws.update(|v| set_function(selected_function, v));
         });
 
     let (error_message, set_error_message) = create_signal("".to_string());

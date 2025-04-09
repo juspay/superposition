@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use leptos::*;
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 use strum::EnumProperty;
 use strum_macros::Display;
 use superposition_types::{custom_query::PaginationParams, Config};
@@ -12,7 +12,8 @@ use crate::components::condition_pills::Condition as ConditionComponent;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::logic::Conditions;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{AutoCompleteCallbacks, OrganisationId, Tenant};
+use crate::utils::autocomplete_fn_generator;
 use crate::{
     api::{fetch_config, fetch_dimensions},
     components::{
@@ -344,6 +345,26 @@ pub fn home() -> impl IntoView {
                     {move || {
                         dimension_resource
                             .with(|dimension| {
+                                let dimension = dimension.to_owned().unwrap_or_default().data;
+                                let context_autocomplete_callbacks = dimension
+                                    .iter()
+                                    .filter(|d| d.autocomplete_function_name.is_some())
+                                    .map(|d| {
+                                        let environment = json!({
+                                            "context": context_rs.get(),
+                                            "overrides": [],
+                                        });
+                                        let tenant = tenant_rws.get().0;
+                                        let org_id = org_rws.get().0;
+                                        autocomplete_fn_generator(
+                                            d.dimension.clone(),
+                                            d.autocomplete_function_name.clone().unwrap(),
+                                            environment,
+                                            tenant,
+                                            org_id,
+                                        )
+                                    })
+                                    .collect::<AutoCompleteCallbacks>();
                                 view! {
                                     <div class="card h-4/5 shadow bg-base-100">
                                         <div class="card flex flex-row m-2 bg-base-100">
@@ -351,7 +372,7 @@ pub fn home() -> impl IntoView {
                                                 <h2 class="card-title">Resolve Configs</h2>
 
                                                 <ContextForm
-                                                    dimensions=dimension.to_owned().unwrap_or_default().data
+                                                    dimensions=dimension
                                                     context=Conditions::default()
                                                     heading_sub_text="Query your configs".to_string()
                                                     dropdown_direction=DropdownDirection::Right
@@ -362,6 +383,7 @@ pub fn home() -> impl IntoView {
                                                                 *value = new_context;
                                                             });
                                                     }
+                                                    autocomplete_callbacks=context_autocomplete_callbacks
                                                 />
 
                                                 <div class="card-actions mt-6 justify-end">

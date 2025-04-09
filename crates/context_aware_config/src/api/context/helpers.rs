@@ -174,21 +174,20 @@ fn get_functions_map(
         )?
         .into_iter()
         .collect();
-    
+
     // primitives here either imply dimensions or default configs based on who is calling it
-    let function_to_primitives_map: HashMap<String, FunctionsInfo> =
-        keys_function_array
-            .into_iter()
-            .map(|(key, function_name)| {
-                (
-                    key.clone(),
-                    FunctionsInfo {
-                        name: function_name.clone(),
-                        code: functions_map.get(&function_name).cloned().flatten(),
-                    },
-                )
-            })
-            .collect();
+    let function_to_primitives_map: HashMap<String, FunctionsInfo> = keys_function_array
+        .into_iter()
+        .map(|(key, function_name)| {
+            (
+                key.clone(),
+                FunctionsInfo {
+                    name: function_name.clone(),
+                    code: functions_map.get(&function_name).cloned().flatten(),
+                },
+            )
+        })
+        .collect();
     Ok(function_to_primitives_map)
 }
 

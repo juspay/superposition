@@ -5,6 +5,7 @@ use std::collections::{HashMap, HashSet};
 use crate::components::input::{Input, InputType};
 use crate::logic::{Condition, Conditions, Expression, Operator};
 use crate::schema::EnumVariants;
+use crate::types::AutoCompleteCallbacks;
 use crate::{
     components::dropdown::{Dropdown, DropdownDirection},
     schema::SchemaType,
@@ -21,12 +22,15 @@ pub fn condition_input(
     condition: StoredValue<Condition>,
     input_type: StoredValue<InputType>,
     schema_type: StoredValue<SchemaType>,
+    autocomplete_callbacks: AutoCompleteCallbacks,
     #[prop(into)] on_remove: Callback<String, ()>,
     #[prop(into)] on_value_change: Callback<Expression, ()>,
     #[prop(into)] on_operator_change: Callback<Operator, ()>,
 ) -> impl IntoView {
     let (dimension, operator): (String, Operator) =
         condition.with_value(|v| (v.variable.clone(), v.into()));
+
+    let autocomplete_callback = autocomplete_callbacks.get(&dimension).cloned();
 
     let inputs: Vec<(Value, Callback<Value, ()>)> = match condition.get_value().expression
     {
@@ -159,6 +163,7 @@ pub fn condition_input(
                                 class="w-[450px]"
                                 name=""
                                 operator=Some(operator.clone())
+                                autocomplete_function=autocomplete_callback
                             />
                         }
                     })
@@ -184,6 +189,7 @@ pub fn context_form<NF>(
     handle_change: NF,
     context: Conditions,
     dimensions: Vec<DimensionWithMandatory>,
+    autocomplete_callbacks: AutoCompleteCallbacks,
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] resolve_mode: bool,
     #[prop(default = String::new())] heading_sub_text: String,
@@ -357,6 +363,7 @@ where
                                     on_remove
                                     on_value_change
                                     on_operator_change
+                                    autocomplete_callbacks = autocomplete_callbacks.clone()
                                 />
                                 {move || {
                                     if last_idx.get() != idx {
