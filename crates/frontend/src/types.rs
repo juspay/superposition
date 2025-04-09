@@ -202,3 +202,7 @@ impl DropdownOption for PayloadVersion {
         self.to_string()
     }
 }
+
+pub type AutoCompleteCallback = leptos::Callback<(String, WriteSignal<Vec<String>>), ()>;
+
+pub type AutoCompleteCallbacks = std::collections::HashMap<String, AutoCompleteCallback>;

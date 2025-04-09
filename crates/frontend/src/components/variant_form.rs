@@ -41,6 +41,7 @@ pub fn variant_form<HC>(
     variants: Vec<(String, VariantFormT)>,
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
+    fn_environment: Memo<Value>,
 ) -> impl IntoView
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
@@ -57,6 +58,7 @@ where
     );
     let default_config = StoredValue::new(default_config);
     let handle_change = StoredValue::new(handle_change);
+
     let unused_config_keys = Signal::derive(move || {
         default_config
             .get_value()
@@ -299,6 +301,7 @@ where
                                                     handle_change=handle_change
                                                     show_add_override=false
                                                     handle_key_remove=Some(Callback::new(on_key_remove))
+                                                    fn_environment
                                                 />
                                             }
                                         } else {
@@ -310,6 +313,7 @@ where
                                                     handle_change=handle_change
                                                     show_add_override=false
                                                     disable_remove=true
+                                                    fn_environment
                                                 />
                                             }
                                         }

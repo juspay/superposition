@@ -10,6 +10,8 @@ use crate::{
         input::{Input, InputType},
     },
     schema::{EnumVariants, SchemaType},
+    types::{AutoCompleteCallbacks, OrganisationId, Tenant},
+    utils::autocomplete_fn_generator,
 };
 
 #[component]
@@ -44,7 +46,9 @@ fn override_input(
     on_change: Callback<(String, Value), ()>,
     on_remove: Callback<String, ()>,
     allow_remove: bool,
+    autocomplete_callbacks: AutoCompleteCallbacks,
 ) -> impl IntoView {
+    let autocomplete_callback = autocomplete_callbacks.get(&key).cloned();
     let key = store_value(key);
 
     let input_type = match (r#type.clone(), variants) {
@@ -79,6 +83,7 @@ fn override_input(
                             on_change=Callback::new(move |value| {
                                 on_change.call((key.get_value(), value));
                             })
+                            autocomplete_function=autocomplete_callback
                         />
                     }
                         .into_view()
@@ -114,6 +119,7 @@ pub fn override_form<NF>(
     #[prop(default = false)] disable_remove: bool,
     #[prop(default = true)] show_add_override: bool,
     #[prop(into, default = None)] handle_key_remove: Option<Callback<String, ()>>,
+    fn_environment: Memo<Value>,
 ) -> impl IntoView
 where
     NF: Fn(Vec<(String, Value)>) + 'static,
@@ -172,6 +178,23 @@ where
             }
         };
     });
+
+    let autocomplete_callbacks = default_config
+        .get_value()
+        .iter()
+        .filter(|default_config| default_config.autocomplete_function_name.is_some())
+        .map(|d| {
+            let tenant = use_context::<RwSignal<Tenant>>().unwrap();
+            let org_id = use_context::<RwSignal<OrganisationId>>().unwrap();
+            autocomplete_fn_generator(
+                d.key.clone(),
+                d.autocomplete_function_name.clone().unwrap(),
+                fn_environment,
+                tenant.get_untracked().0,
+                org_id.get_untracked().0,
+            )
+        })
+        .collect::<AutoCompleteCallbacks>();
 
     create_effect(move |_| {
         let f_override = overrides.get();
@@ -241,6 +264,7 @@ where
                                         on_change=on_change
                                         on_remove=on_remove
                                         allow_remove=!disable_remove
+                                        autocomplete_callbacks=autocomplete_callbacks.clone()
                                     />
                                 }
                             }

@@ -2,6 +2,7 @@ pub mod types;
 pub mod utils;
 
 use leptos::*;
+use serde_json::json;
 use superposition_types::database::{
     models::{cac::DefaultConfig, Metrics, Workspace},
     types::DimensionWithMandatory,
@@ -52,8 +53,8 @@ where
     let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
 
     let (experiment_name, set_experiment_name) = create_signal(name);
-    let (f_context, set_context) = create_signal(context.clone());
-    let (f_variants, set_variants) = create_signal(init_variants);
+    let (context_rs, context_ws) = create_signal(context.clone());
+    let (variants_rs, variants_ws) = create_signal(init_variants);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
     let (description_rs, description_ws) = create_signal(description);
@@ -61,24 +62,38 @@ where
     let metrics_rws = RwSignal::new(metrics);
 
     let handle_context_form_change = move |updated_ctx: Conditions| {
-        set_context.set_untracked(updated_ctx);
+        context_ws.set_untracked(updated_ctx);
     };
 
     let handle_variant_form_change =
         move |updated_varaints: Vec<(String, VariantFormT)>| {
-            set_variants.set_untracked(updated_varaints);
+            variants_ws.set_untracked(updated_varaints);
         };
 
     let dimensions = StoredValue::new(dimensions);
+
+    let fn_environment = create_memo(move |_| {
+        let context = context_rs.get();
+        let overrides = variants_rs
+            .get()
+            .into_iter()
+            .map(|(variant_id, o)| (variant_id, o.overrides.clone()))
+            .collect::<Vec<_>>();
+        json!({
+            "context": context,
+            "overrides": overrides,
+        })
+    });
+
     let on_submit = move |event: MouseEvent| {
         req_inprogress_ws.set(true);
         event.prevent_default();
         logging::log!("Submitting experiment form");
-        logging::log!("Variant Ids{:?}", f_variants.get());
+        logging::log!("Variant Ids{:?}", variants_rs.get());
 
         let f_experiment_name = experiment_name.get();
-        let f_context = f_context.get();
-        let f_variants = f_variants
+        let f_context = context_rs.get();
+        let f_variants = variants_rs
             .get()
             .into_iter()
             .map(|(_, variant)| variant)
@@ -184,17 +199,18 @@ where
 
             <div class="my-4">
                 {move || {
-                    let context = f_context.get();
                     view! {
                         <ContextForm
                             dimensions=dimensions.get_value()
-                            context=context
+                            context_rs
+                            context_ws
                             handle_change=handle_context_form_change
                             resolve_mode=workspace_settings.get_value().strict_mode
                             disabled=edit
                             heading_sub_text=String::from(
                                 "Define rules under which this experiment would run",
                             )
+                            fn_environment
                         />
                     }
                 }}
@@ -202,13 +218,14 @@ where
             </div>
 
             {move || {
-                let variants = f_variants.get();
+                let variants = variants_rs.get();
                 view! {
                     <VariantForm
                         edit=edit
                         variants=variants
                         default_config=default_config.get_value()
                         handle_change=handle_variant_form_change
+                        fn_environment
                     />
                 }
             }}
