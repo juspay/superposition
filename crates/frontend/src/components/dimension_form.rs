@@ -30,7 +30,7 @@ use crate::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         input::{Input, InputType},
     },
-    utils::function_updater,
+    utils::set_function,
 };
 
 #[component]
@@ -95,17 +95,12 @@ where
 
     let handle_select_dropdown_option_validation =
         Callback::new(move |selected_function: FunctionsName| {
-
-                let fun_name = match function_name.as_str() {
-                    "None" => None,
-                    _ => Some(json!(function_name)),
-                };
-            validation_fn_name_ws.update(|v| function_updater(selected_function, v));
+            validation_fn_name_ws.update(|v| set_function(selected_function, v));
         });
 
     let handle_select_dropdown_option_autocomplete =
         Callback::new(move |selected_function: FunctionsName| {
-            autocomplete_fn_name_ws.update(|v| function_updater(selected_function, v));
+            autocomplete_fn_name_ws.update(|v| set_function(selected_function, v));
         });
 
     let handle_select_dependencies_dropdown_option =

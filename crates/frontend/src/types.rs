@@ -172,3 +172,7 @@ pub struct Tenant(pub String);
 
 #[derive(Deref, DerefMut, Clone, Debug)]
 pub struct OrganisationId(pub String);
+
+pub type AutoCompleteCallback = leptos::Callback<(String, WriteSignal<Vec<String>>), ()>;
+
+pub type AutoCompleteCallbacks = std::collections::HashMap<String, AutoCompleteCallback>;

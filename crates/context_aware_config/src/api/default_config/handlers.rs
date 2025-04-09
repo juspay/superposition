@@ -215,7 +215,7 @@ async fn update_default_config(
     let validation_function_name: Option<String> =
         req.function_name.clone().unwrap_or(existing.function_name);
 
-    let autocomplete_function_name = req
+    let autocomplete_function_name: Option<String> = req
         .autocomplete_function_name
         .clone()
         .unwrap_or(existing.autocomplete_function_name);
@@ -231,16 +231,20 @@ async fn update_default_config(
         return Err(e);
     }
 
+    let new_update_req = UpdateReq {
+        function_name: Some(validation_function_name),
+        autocomplete_function_name: Some(autocomplete_function_name),
+        ..req
+    };
+
     let (db_row, version_id) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let val = diesel::update(dsl::default_configs)
                 .filter(dsl::key.eq(key_str.clone()))
                 .set((
-                    req,
+                    new_update_req,
                     dsl::last_modified_at.eq(Utc::now()),
                     dsl::last_modified_by.eq(user.get_email()),
-                    dsl::autocomplete_function_name.eq(autocomplete_function_name),
-                    dsl::function_name.eq(validation_function_name),
                 ))
                 .schema_name(&schema_name)
                 .get_result::<DefaultConfig>(transaction_conn)?;
@@ -275,7 +279,7 @@ fn validate_and_get_function_code(
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     if let Some(f_name) = function_name {
-        let function_code = get_published_function_code(conn, &f_name, schema_name)
+        let function_code = get_published_function_code(conn, f_name, schema_name)
             .map_err(|_| bad_argument!("Function {} doesn't exist.", f_name))?;
         if let Some(f_code) = function_code {
             validate_value_with_function(

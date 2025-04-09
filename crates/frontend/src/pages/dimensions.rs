@@ -88,7 +88,7 @@ pub fn dimensions() -> impl IntoView {
 
             let schema = row["schema"].clone().to_string();
             let schema = serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
-            
+
             // keeping the function_name field the same for backwards compatibility
             let validation_function_name = row
                 .get("function_name")
@@ -176,6 +176,7 @@ pub fn dimensions() -> impl IntoView {
                     close_drawer("dimension_drawer");
                     selected_dimension.set(None);
                 };
+                let dimensions = dimensions_resource.get().unwrap_or_default().data;
                 if let Some(selected_dimension_data) = selected_dimension.get() {
                     view! {
                         <Drawer
@@ -190,6 +191,7 @@ pub fn dimensions() -> impl IntoView {
                                 dimension_schema=selected_dimension_data.schema
                                 validation_function_name=selected_dimension_data.validation_function_name
                                 autocomplete_function_name=selected_dimension_data.autocomplete_function_name
+                                dimensions
                                 handle_submit=move || {
                                     dimensions_resource.refetch();
                                     selected_dimension.set(None);
@@ -206,10 +208,13 @@ pub fn dimensions() -> impl IntoView {
                             header="Create New Dimension"
                             handle_close=handle_close
                         >
-                            <DimensionForm handle_submit=move || {
-                                dimensions_resource.refetch();
-                                close_drawer("dimension_drawer");
-                            } />
+                            <DimensionForm
+                                dimensions
+                                handle_submit=move || {
+                                    dimensions_resource.refetch();
+                                    close_drawer("dimension_drawer");
+                                }
+                            />
                         </Drawer>
                     }
                 }
@@ -236,7 +241,7 @@ pub fn dimensions() -> impl IntoView {
                                     dimension_name=selected_dimension_data.dimension
                                     dimension_schema=selected_dimension_data.schema
                                     dependencies=selected_dimension_data.dependencies
-                                    function_name=selected_dimension_data.function_name
+                                    validation_function_name=selected_dimension_data.validation_function_name
                                     dimensions
                                     handle_submit=move || {
                                         dimensions_resource.refetch();

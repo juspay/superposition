@@ -20,7 +20,7 @@ use crate::{
     },
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
     types::FunctionsName,
-    utils::function_updater,
+    utils::set_function,
 };
 use crate::{
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
@@ -102,12 +102,12 @@ where
 
     let handle_select_dropdown_option_validation =
         Callback::new(move |selected_function: FunctionsName| {
-            validation_fn_name_ws.update(|v| function_updater(selected_function, v));
+            validation_fn_name_ws.update(|v| set_function(selected_function, v));
         });
 
     let handle_select_dropdown_option_autocomplete =
         Callback::new(move |selected_function: FunctionsName| {
-            autocomplete_fn_name_ws.update(|v| function_updater(selected_function, v));
+            autocomplete_fn_name_ws.update(|v| set_function(selected_function, v));
         });
 
     let on_submit = move |ev: MouseEvent| {
@@ -121,6 +121,7 @@ where
         let f_value = config_value_rs.get();
 
         let fun_name = validation_fn_name_rs.get();
+        let autocomplete_fn_name = autocomplete_fn_name_rs.get();
         let description = description_rs.get();
         let change_reason = change_reason_rs.get();
 
@@ -131,7 +132,7 @@ where
             function_name: fun_name.clone(),
             description: description.clone(),
             change_reason: change_reason.clone(),
-            autocomplete_function_name: autocomplete_fn_name_rs.get(),
+            autocomplete_function_name: autocomplete_fn_name.clone(),
         };
 
         let update_payload = DefaultConfigUpdateReq {
@@ -140,7 +141,7 @@ where
             function_name: fun_name,
             description,
             change_reason,
-            autocomplete_function_name: autocomplete_fn_name_rs.get(),
+            autocomplete_function_name: autocomplete_fn_name,
         };
 
         let handle_submit_clone = handle_submit.clone();

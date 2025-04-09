@@ -2,7 +2,7 @@ use futures::join;
 use leptos::*;
 use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 use superposition_types::{
     api::default_config::DefaultConfigFilters,
     custom_query::PaginationParams,
@@ -12,8 +12,6 @@ use superposition_types::{
 
 use crate::components::alert::AlertType;
 use crate::components::context_card::ContextCard;
-use crate::components::context_form::utils::{create_context, update_context};
-use crate::components::context_form::ContextForm;
 use crate::components::delete_modal::DeleteModal;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::experiment_form::ExperimentForm;
@@ -28,6 +26,11 @@ use crate::{
     types::{OrganisationId, Tenant},
 };
 use crate::{components::button::Button, types::VariantFormTs};
+use crate::{
+    components::context_form::utils::{create_context, update_context},
+    types::AutoCompleteCallbacks,
+};
+use crate::{components::context_form::ContextForm, utils::autocomplete_fn_generator};
 
 #[derive(Clone, Debug, Default)]
 pub struct Data {
@@ -61,19 +64,63 @@ fn form(
 ) -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
-    let (context, set_context) = create_signal(context);
-    let (overrides, set_overrides) = create_signal(overrides);
+    let (context_rs, context_ws) = create_signal(context);
+    let (overrides_rs, overrides_ws) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
+    let default_configs = StoredValue::new(default_config.clone());
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
 
+    let fn_environment = create_memo(move |_| {
+        let context = context_rs.get();
+        let overrides = overrides_rs.get();
+        json!({
+            "context": context,
+            "overrides": overrides,
+        })
+    });
+
+    let context_autocomplete_callbacks = dimensions
+        .get_value()
+        .iter()
+        .filter(|d| d.autocomplete_function_name.is_some())
+        .map(|d| {
+            let tenant = tenant_rws.get().0;
+            let org_id = org_rws.get().0;
+            autocomplete_fn_generator(
+                d.dimension.clone(),
+                d.autocomplete_function_name.clone().unwrap(),
+                fn_environment,
+                tenant,
+                org_id,
+            )
+        })
+        .collect::<AutoCompleteCallbacks>();
+
+    let overrides_autocomplete_callbacks = default_configs
+        .get_value()
+        .iter()
+        .filter(|default_config| default_config.autocomplete_function_name.is_some())
+        .map(|d| {
+            let tenant = tenant_rws.get().0;
+            let org_id = org_rws.get().0;
+            autocomplete_fn_generator(
+                d.key.clone(),
+                d.autocomplete_function_name.clone().unwrap(),
+                fn_environment,
+                tenant,
+                org_id,
+            )
+        })
+        .collect::<AutoCompleteCallbacks>();
+
     let on_submit = move |_| {
         req_inprogress_ws.set(true);
         spawn_local(async move {
-            let f_context = context.get();
-            let f_overrides = overrides.get();
+            let f_context = context_rs.get();
+            let f_overrides = overrides_rs.get();
             let result = if edit {
                 update_context(
                     tenant_rws.get().0,
@@ -122,9 +169,11 @@ fn form(
     view! {
         <ContextForm
             dimensions=dimensions.get_value()
-            context=context.get_untracked()
+            context_rs
+            context_ws
+            autocomplete_callbacks=context_autocomplete_callbacks
             handle_change=move |new_context| {
-                set_context
+                context_ws
                     .update(|value| {
                         *value = new_context;
                     });
@@ -164,14 +213,15 @@ fn form(
         </div>
 
         <OverrideForm
-            overrides=overrides.get_untracked()
+            overrides=overrides_rs.get_untracked()
             default_config=default_config
             handle_change=move |new_overrides| {
-                set_overrides
+                overrides_ws
                     .update(|value| {
                         *value = new_overrides;
                     });
             }
+            autocomplete_callbacks=overrides_autocomplete_callbacks
         />
 
         <div class="flex justify-start w-full mt-10">

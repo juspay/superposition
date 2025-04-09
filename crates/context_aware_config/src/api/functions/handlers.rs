@@ -117,7 +117,6 @@ async fn update(
         .filter(schema::functions::function_name.eq(f_name))
         .set((
             req,
-
             functions::draft_edited_by.eq(user.get_email()),
             functions::draft_edited_at.eq(Utc::now()),
             functions::last_modified_by.eq(user.get_email()),
@@ -196,7 +195,6 @@ async fn delete_function(
     diesel::update(functions::functions)
         .filter(functions::function_name.eq(&f_name))
         .set((
-
             functions::last_modified_at.eq(Utc::now()),
             functions::last_modified_by.eq(user.get_email()),
         ))
@@ -301,7 +299,6 @@ async fn publish(
             functions::published_code.eq(Some(function.draft_code.clone())),
             functions::published_runtime_version
                 .eq(Some(function.draft_runtime_version.clone())),
-
             functions::published_by.eq(Some(user.get_email())),
             functions::published_at.eq(Some(Utc::now())),
         ))

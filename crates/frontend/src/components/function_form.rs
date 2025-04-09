@@ -34,8 +34,9 @@ async function validate(key, value) {
 
 const AUTOCOMPLETE_TEMPLATE_FN: &str = r#"// name: string - dimension or config name
 // prefix: string - characters entered in the input field
-// environment: object { context: Object, overrides: Object } - captures out elements in the form like context, overrides etc.
+// environment: object { context: [Object], overrides: [Object] } - captures out elements in the form like context, overrides etc.
 // returns: [string]
+// if you are getting an error that says the return type is wrong, try wrapping your return value with Array.from()
 async function autocomplete(name, prefix, environment) {
     return [];
 }
