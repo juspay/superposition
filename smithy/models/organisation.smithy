@@ -31,36 +31,27 @@ enum OrgStatus {
     PendingKyb = "PendingKyb"
 }
 
-structure CreateOrganisationRequest for Organisation {
+@mixin
+structure OrganisationFields for Organisation {
     $country_code
-
     $contact_email
-
     $contact_phone
+    $admin_email
+    $sector
+}
 
+structure CreateOrganisationRequest for Organisation with [OrganisationFields] {
     @required
     $admin_email
 
     @required
     $name
-
-    $sector
 }
 
-structure UpdateOrganisationRequest for Organisation {
+structure UpdateOrganisationRequest for Organisation with [OrganisationFields] {
     @httpLabel
     @required
     $id
-
-    $country_code
-
-    $contact_email
-
-    $contact_phone
-
-    $admin_email
-
-    $sector
 
     $status
 }
