@@ -5,6 +5,8 @@ use std::collections::{HashMap, HashSet};
 use crate::components::input::{Input, InputType};
 use crate::logic::{Condition, Conditions, Expression, Operator};
 use crate::schema::EnumVariants;
+use crate::types::{AutoCompleteCallbacks, OrganisationId, Tenant};
+use crate::utils::autocomplete_fn_generator;
 use crate::{
     components::dropdown::{Dropdown, DropdownDirection},
     schema::SchemaType,
@@ -21,6 +23,7 @@ pub fn condition_input(
     condition: StoredValue<Condition>,
     input_type: StoredValue<InputType>,
     schema_type: StoredValue<SchemaType>,
+    autocomplete_callbacks: AutoCompleteCallbacks,
     #[prop(into)] on_remove: Callback<String, ()>,
     #[prop(into)] on_value_change: Callback<Expression, ()>,
     #[prop(into)] on_operator_change: Callback<Operator, ()>,
@@ -29,6 +32,9 @@ pub fn condition_input(
     let (dimension, operator): (String, Operator) =
         condition.with_value(|v| (v.variable.clone(), v.into()));
     let tooltip_text = StoredValue::new(tooltip_text);
+
+    let autocomplete_callback = autocomplete_callbacks.get(&dimension).cloned();
+
     let inputs: Vec<(Value, Callback<Value, ()>)> = match condition.get_value().expression
     {
         Expression::Is(c) => {
@@ -158,6 +164,7 @@ pub fn condition_input(
                                 class="w-[450px]"
                                 name=""
                                 operator=Some(operator.clone())
+                                autocomplete_function=autocomplete_callback
                             />
                         }
                     })
@@ -184,8 +191,10 @@ pub fn condition_input(
 #[component]
 pub fn context_form<NF>(
     handle_change: NF,
-    context: Conditions,
+    context_rs: ReadSignal<Conditions>,
+    context_ws: WriteSignal<Conditions>,
     dimensions: Vec<DimensionWithMandatory>,
+    fn_environment: Memo<Value>,
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] resolve_mode: bool,
     #[prop(default = String::new())] heading_sub_text: String,
@@ -239,21 +248,14 @@ where
                 });
         };
 
-    let context_data = {
-        let mut context = context;
-        if !disabled && !resolve_mode {
-            dimensions
-                .get_value()
-                .into_iter()
-                .filter(|dim| dim.mandatory)
-                .for_each(|dimension| {
-                    insert_dimension(&mut context, &dimension);
-                });
-        }
-        context
-    };
+    if !disabled && !resolve_mode {
+        dimensions
+            .get_value()
+            .into_iter()
+            .filter(|dim| dim.mandatory)
+            .for_each(|dimension| context_ws.update(|c| insert_dimension(c, &dimension)));
+    }
 
-    let (context_rs, context_ws) = create_signal(context_data);
     let used_dimensions = Signal::derive(move || {
         context_rs
             .get()
@@ -344,6 +346,22 @@ where
         }
         String::new()
     };
+
+    let tenant = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_id = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let autocomplete_callbacks = dimensions
+        .get_value()
+        .iter()
+        .filter_map(|d| {
+            autocomplete_fn_generator(
+                d.dimension.clone(),
+                d.autocomplete_function_name.clone(),
+                fn_environment,
+                tenant.get_untracked().0,
+                org_id.get_untracked().0,
+            )
+        })
+        .collect::<AutoCompleteCallbacks>();
 
     view! {
         <div class="form-control w-full">
@@ -447,6 +465,7 @@ where
                                     on_value_change
                                     on_operator_change
                                     tooltip_text
+                                    autocomplete_callbacks = autocomplete_callbacks.clone()
                                 />
                                 {move || {
                                     if last_idx.get() != idx {

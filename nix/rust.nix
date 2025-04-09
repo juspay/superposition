@@ -47,6 +47,7 @@
                 buildInputs =
                   lib.optionals isDarwin ([
                     apple_sdk.frameworks.Security
+                    apple_sdk.frameworks.SystemConfiguration
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
@@ -69,6 +70,7 @@
                 buildInputs =
                   lib.optionals isDarwin ([
                     apple_sdk.frameworks.Security
+                    apple_sdk.frameworks.SystemConfiguration
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
@@ -90,6 +92,7 @@
                 buildInputs =
                   lib.optionals isDarwin ([
                     apple_sdk.frameworks.Security
+                    apple_sdk.frameworks.SystemConfiguration
                   ])
                   ++ [
                     pkgs.openssl
@@ -104,6 +107,7 @@
                 buildInputs =
                   lib.optionals isDarwin ([
                     apple_sdk.frameworks.Security
+                    apple_sdk.frameworks.SystemConfiguration
                   ])
                   ++ [
                     pkgs.openssl

@@ -10,6 +10,8 @@ use crate::{
         input::{Input, InputType},
     },
     schema::{EnumVariants, SchemaType},
+    types::{AutoCompleteCallbacks, OrganisationId, Tenant},
+    utils::autocomplete_fn_generator,
 };
 
 #[component]
@@ -45,7 +47,9 @@ fn override_input(
     on_remove: Callback<String, ()>,
     allow_remove: bool,
     disabled: bool,
+    autocomplete_callbacks: AutoCompleteCallbacks,
 ) -> impl IntoView {
+    let autocomplete_callback = autocomplete_callbacks.get(&key).cloned();
     let key = store_value(key);
 
     let input_type = match (r#type.clone(), variants) {
@@ -81,6 +85,7 @@ fn override_input(
                                 on_change.call((key.get_value(), value));
                             })
                             disabled
+                            autocomplete_function=autocomplete_callback
                         />
                     }
                         .into_view()
@@ -118,6 +123,7 @@ pub fn override_form(
     #[prop(default = true)] show_add_override: bool,
     #[prop(into, optional)] handle_key_remove: Option<Callback<String, ()>>,
     #[prop(default = false)] disabled: bool,
+    fn_environment: Memo<Value>,
 ) -> impl IntoView {
     let id = store_value(id);
     let default_config = store_value(default_config);
@@ -177,6 +183,23 @@ pub fn override_form(
             }
         };
     });
+
+    let tenant = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_id = use_context::<RwSignal<OrganisationId>>().unwrap();
+
+    let autocomplete_callbacks = default_config
+        .get_value()
+        .iter()
+        .filter_map(|d| {
+            autocomplete_fn_generator(
+                d.key.clone(),
+                d.autocomplete_function_name.clone(),
+                fn_environment,
+                tenant.get_untracked().0,
+                org_id.get_untracked().0,
+            )
+        })
+        .collect::<AutoCompleteCallbacks>();
 
     create_effect(move |_| {
         let f_override = overrides.get();
@@ -239,6 +262,7 @@ pub fn override_form(
                                         on_remove=on_remove
                                         allow_remove=!disable_remove
                                         disabled
+                                        autocomplete_callbacks=autocomplete_callbacks.clone()
                                     />
                                 }
                             }
