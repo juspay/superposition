@@ -161,11 +161,7 @@ pub async fn list_organisations(
             .order(organisations::created_at.desc())
             .get_results(&mut conn)?;
         log::info!("organisations: {result:?}");
-        return Ok(Json(PaginatedResponse {
-            total_pages: 1,
-            total_items: result.len() as i64,
-            data: result,
-        }));
+        return Ok(Json(PaginatedResponse::all(result)));
     }
 
     // Get total count of organisations

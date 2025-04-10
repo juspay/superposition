@@ -1,6 +1,6 @@
 use leptos::*;
 use serde_json::{Map, Value};
-use superposition_types::Context;
+use superposition_types::database::models::cac::Context;
 
 use crate::{
     components::{
@@ -66,52 +66,70 @@ pub fn context_card(
                 <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
                     "Condition"
                 </h3>
-                <Show when=move || actions_supported>
-                    <div class="h-fit text-right space-x-4">
-                        <Show when=move || !edit_unsupported>
-                            <i
-                                class="ri-test-tube-line ri-lg text-blue-500 cursor-pointer"
-                                on:click=move |_| {
-                                    handle_create_experiment.call((context.get_value(), overrides.get_value()));
-                                }
-                            >
-                            </i>
-
-                            <i
-                                class="ri-pencil-line ri-lg text-blue-500 cursor-pointer"
-                                on:click=move |_| {
-                                    handle_edit.call((context.get_value(), overrides.get_value()));
-                                }
-                            />
-
-                            <i
-                                class="ri-file-copy-line ri-lg text-blue-500 cursor-pointer"
-                                on:click=move |_| {
-                                    handle_clone.call((context.get_value(), overrides.get_value()));
-                                }
-                            />
-
-                        </Show>
-                        <Show when=move || edit_unsupported>
-                            <span class="badge badge-warning text-xs ml-2 flex items-center">
-                                {"Edit Unsupported"}
+                <div class="flex gap-8 items-center">
+                    <div class="flex gap-1 items-center justify-center text-xs text-gray-500">
+                        <i class="ri-calendar-line ri-lg" />
+                        <div class="flex flex-col">
+                            <span>{context.get_value().created_by}</span>
+                            <span>
+                                {context.get_value().created_at.format("%v %T").to_string()}
                             </span>
-                        </Show>
-                        <i
-                            class="ri-delete-bin-5-line ri-lg text-red-500 cursor-pointer"
-                            on:click=move |_| {
-                                let context_id = context_id.get_value();
-                                handle_delete.call(context_id);
-                            }
-                        />
-
+                        </div>
                     </div>
-                </Show>
-                <Show when=move || !actions_supported>
-                    <span class="badge badge-warning text-xs ml-2 flex items-center">
-                        {"Edit Unsupported"}
-                    </span>
-                </Show>
+                    <div class="flex gap-1 items-center justify-center text-xs text-gray-500">
+                        <i class="ri-edit-line ri-lg" />
+                        <div class="flex flex-col">
+                            <span>{context.get_value().last_modified_by}</span>
+                            <span>
+                                {context.get_value().last_modified_at.format("%v %T").to_string()}
+                            </span>
+                        </div>
+                    </div>
+                    <Show when=move || actions_supported>
+                        <div class="h-fit flex gap-4 text-right">
+                            <Show when=move || !edit_unsupported>
+                                <i
+                                    class="ri-test-tube-line ri-lg text-blue-500 cursor-pointer"
+                                    on:click=move |_| {
+                                        handle_create_experiment
+                                            .call((context.get_value(), overrides.get_value()));
+                                    }
+                                />
+                                <i
+                                    class="ri-pencil-line ri-lg text-blue-500 cursor-pointer"
+                                    on:click=move |_| {
+                                        handle_edit
+                                            .call((context.get_value(), overrides.get_value()));
+                                    }
+                                />
+                                <i
+                                    class="ri-file-copy-line ri-lg text-blue-500 cursor-pointer"
+                                    on:click=move |_| {
+                                        handle_clone
+                                            .call((context.get_value(), overrides.get_value()));
+                                    }
+                                />
+                                <i
+                                    class="ri-delete-bin-5-line ri-lg text-red-500 cursor-pointer"
+                                    on:click=move |_| {
+                                        let context_id = context_id.get_value();
+                                        handle_delete.call(context_id);
+                                    }
+                                />
+                            </Show>
+                            <Show when=move || edit_unsupported>
+                                <span class="badge badge-warning text-xs ml-2 flex items-center">
+                                    {"Edit Unsupported"}
+                                </span>
+                            </Show>
+                        </div>
+                    </Show>
+                    <Show when=move || !actions_supported>
+                        <span class="badge badge-warning text-xs ml-2 flex items-center">
+                            {"Edit Unsupported"}
+                        </span>
+                    </Show>
+                </div>
             </div>
 
             <div class="pl-5">

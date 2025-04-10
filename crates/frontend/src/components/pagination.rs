@@ -2,13 +2,14 @@ use leptos::*;
 
 #[component]
 pub fn pagination(
+    #[prop(default= String::new())] class: String,
     current_page: i64,
     total_pages: i64,
     next: Callback<i64>,
     previous: Callback<()>,
 ) -> impl IntoView {
     view! {
-        <div class="join">
+        <div class=format!("join {class}")>
             <button class="join-item btn" on:click=move |_| previous.call(())>
                 "«"
             </button>

@@ -155,11 +155,7 @@ async fn list_workspaces(
         let result: Vec<Workspace> = workspaces::dsl::workspaces
             .filter(workspaces::organisation_id.eq(&org_id.0))
             .get_results(&mut conn)?;
-        return Ok(Json(PaginatedResponse {
-            total_pages: 1,
-            total_items: result.len() as i64,
-            data: result,
-        }));
+        return Ok(Json(PaginatedResponse::all(result)));
     };
 
     let filters = filters.into_inner();

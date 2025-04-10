@@ -196,33 +196,56 @@ impl<T> Default for PaginatedResponse<T> {
     }
 }
 
+impl<T> PaginatedResponse<T> {
+    pub fn all(data: Vec<T>) -> Self {
+        Self {
+            total_pages: 1,
+            total_items: data.len() as i64,
+            data,
+        }
+    }
+}
+
 #[derive(Serialize, Clone, Deserialize)]
 pub struct ListResponse<T> {
     pub data: Vec<T>,
 }
 
-impl<T: Serialize + for<'a> Deserialize<'a>> ListResponse<T> {
+impl<T> ListResponse<T> {
     pub fn new(response: Vec<T>) -> Self {
         Self { data: response }
     }
 }
 
 #[derive(
-    Debug, Serialize, Deserialize, Clone, PartialEq, PartialOrd, derive_more::Display,
+    Debug,
+    Serialize,
+    Deserialize,
+    Clone,
+    PartialEq,
+    PartialOrd,
+    strum_macros::Display,
+    strum_macros::EnumIter,
 )]
 #[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
 pub enum SortBy {
-    #[display(fmt = "desc")]
     Desc,
-    #[display(fmt = "asc")]
     Asc,
 }
 
 impl SortBy {
     pub fn flip(&self) -> Self {
         match self {
-            SortBy::Desc => SortBy::Asc,
-            SortBy::Asc => SortBy::Desc,
+            Self::Desc => Self::Asc,
+            Self::Asc => Self::Desc,
+        }
+    }
+
+    pub fn label(&self) -> String {
+        match self {
+            Self::Desc => "Descending".to_string(),
+            Self::Asc => "Ascending".to_string(),
         }
     }
 }
