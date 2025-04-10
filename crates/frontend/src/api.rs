@@ -1,11 +1,14 @@
 use leptos::ServerFnError;
 use superposition_types::{
-    api::default_config::DefaultConfigFilters,
-    api::experiments::{ExperimentListFilters, ExperimentResponse},
-    custom_query::PaginationParams,
+    api::{
+        context::ContextListFilters,
+        default_config::DefaultConfigFilters,
+        experiments::{ExperimentListFilters, ExperimentResponse},
+    },
+    custom_query::{DimensionQuery, PaginationParams, QueryMap},
     database::{
         models::{
-            cac::{ConfigVersion, DefaultConfig, Function, TypeTemplate},
+            cac::{ConfigVersion, Context, DefaultConfig, Function, TypeTemplate},
             Workspace,
         },
         types::DimensionWithMandatory,
@@ -214,6 +217,36 @@ pub async fn fetch_config(
     {
         Ok(response) => {
             let config: Config = response
+                .json()
+                .await
+                .map_err(|e| ServerFnError::new(e.to_string()))?;
+            Ok(config)
+        }
+        Err(e) => Err(ServerFnError::new(e.to_string())),
+    }
+}
+
+pub async fn fetch_context(
+    tenant: String,
+    org_id: String,
+    pagination: &PaginationParams,
+    context_filters: &ContextListFilters,
+    dimension_params: &DimensionQuery<QueryMap>,
+) -> Result<PaginatedResponse<Context>, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = use_host_server();
+    let url =
+        format!("{host}/context/list?{pagination}&{context_filters}&{dimension_params}");
+
+    match client
+        .get(url)
+        .header("x-tenant", tenant)
+        .header("x-org-id", org_id)
+        .send()
+        .await
+    {
+        Ok(response) => {
+            let config = response
                 .json()
                 .await
                 .map_err(|e| ServerFnError::new(e.to_string()))?;

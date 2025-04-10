@@ -181,12 +181,12 @@ pub fn types_page() -> impl IntoView {
                                 ele_map
                                     .insert(
                                         "created_at".to_string(),
-                                        json!(ele.created_at.format("%v").to_string()),
+                                        json!(ele.created_at.format("%v %T").to_string()),
                                     );
                                 ele_map
                                     .insert(
                                         "last_modified_at".to_string(),
-                                        json!(ele.last_modified_at.format("%v").to_string()),
+                                        json!(ele.last_modified_at.format("%v %T").to_string()),
                                     );
                                 ele_map
                             })

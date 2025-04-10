@@ -22,12 +22,11 @@ use superposition_types::{
 };
 use utils::experiment_table_columns;
 
-use crate::logic::Conditions;
 use crate::{
     components::{
         button::Button,
         context_form::ContextForm,
-        drawer::{close_drawer, Drawer, DrawerBtn},
+        drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
         dropdown::DropdownDirection,
         experiment_form::ExperimentForm,
         input::DateInput,
@@ -37,6 +36,7 @@ use crate::{
     },
     logic::Condition,
 };
+use crate::{logic::Conditions, utils::PageDirection};
 
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
@@ -98,7 +98,7 @@ fn experiment_table_filter_widget(
     view! {
         <DrawerBtn
             drawer_id="experiment_filter_drawer".into()
-            style="cursor-pointer btn btn-purple-outline m-1 w-[8rem]".to_string()
+            style=DrawerButtonStyle::Outline
         >
             Filters
             <i class="ri-filter-3-line"></i>
@@ -388,13 +388,13 @@ pub fn experiment_list() -> impl IntoView {
 
     let handle_next_click = Callback::new(move |total_pages: i64| {
         pagination_filters_ws.update(|f| {
-            f.page = update_page_direction(f.page, total_pages, true);
+            f.page = update_page_direction(f.page, PageDirection::Next(total_pages));
         });
     });
 
     let handle_prev_click = Callback::new(move |_| {
         pagination_filters_ws.update(|f| {
-            f.page = update_page_direction(f.page, 1, false);
+            f.page = update_page_direction(f.page, PageDirection::Prev);
         });
     });
 
@@ -448,12 +448,12 @@ pub fn experiment_list() -> impl IntoView {
                                             ele_map
                                                 .insert(
                                                     "created_at".to_string(),
-                                                    json!(ele.created_at.format("%v").to_string()),
+                                                    json!(ele.created_at.format("%v %T").to_string()),
                                                 );
                                             ele_map
                                                 .insert(
                                                     "last_modified".to_string(),
-                                                    json!(ele.last_modified.format("%v").to_string()),
+                                                    json!(ele.last_modified.format("%v %T").to_string()),
                                                 );
                                             ele_map
                                         })

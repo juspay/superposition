@@ -740,13 +740,9 @@ async fn list_experiments(
         let result = experiments::experiments
             .schema_name(&schema_name)
             .get_results::<Experiment>(&mut conn)?;
-        return Ok(
-            HttpResponse::Ok().json(PaginatedResponse::<ExperimentResponse> {
-                total_pages: 1,
-                total_items: result.len() as i64,
-                data: result.into_iter().map(ExperimentResponse::from).collect(),
-            }),
-        );
+        return Ok(HttpResponse::Ok().json(PaginatedResponse::all(
+            result.into_iter().map(ExperimentResponse::from).collect(),
+        )));
     }
 
     let max_event_timestamp: Option<DateTime<Utc>> = event_log::event_log

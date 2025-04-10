@@ -29,7 +29,7 @@ use super::super::schema::{
     type_templates,
 };
 
-#[derive(Clone, Serialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)
@@ -42,7 +42,7 @@ pub struct Context {
     pub override_id: String,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
-    #[serde(rename(serialize = "override"))]
+    #[serde(rename = "override")]
     pub override_: Overrides,
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
