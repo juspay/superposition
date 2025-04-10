@@ -59,7 +59,7 @@ pub trait CustomQuery: Sized {
 }
 
 /// Provides struct to extract those query params from the request which are `wrapped` in `dimension[param_name]`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DimensionQuery<T: DeserializeOwned>(pub T);
 
 impl<T> CustomQuery for DimensionQuery<T>
@@ -147,8 +147,8 @@ where
 }
 
 /// Provides struct to `Deserialize` `HashMap<String, String>` as `serde_json::Map<String, serde_json::Value>`
-#[derive(Deserialize, Deref, DerefMut)]
-#[cfg_attr(test, derive(Debug, PartialEq))]
+#[derive(Deserialize, Deref, DerefMut, Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))]
 #[serde(from = "HashMap<String,String>")]
 pub struct QueryMap(Map<String, Value>);
 
@@ -160,6 +160,25 @@ impl From<HashMap<String, String>> for QueryMap {
             .collect::<Map<_, _>>();
 
         Self(value)
+    }
+}
+
+impl Display for DimensionQuery<QueryMap> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let parts = self
+            .clone()
+            .into_inner()
+            .iter()
+            .map(|(key, value)| format!("dimension[{key}]={value}"))
+            .collect::<Vec<_>>();
+
+        write!(f, "{}", parts.join("&"))
+    }
+}
+
+impl From<Map<String, Value>> for DimensionQuery<QueryMap> {
+    fn from(value: Map<String, Value>) -> Self {
+        Self(QueryMap(value))
     }
 }
 

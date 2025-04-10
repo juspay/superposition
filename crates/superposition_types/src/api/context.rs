@@ -1,0 +1,65 @@
+use std::fmt::{self, Display};
+
+use serde::Deserialize;
+
+use crate::{custom_query::CommaSeparatedStringQParams, SortBy};
+
+#[derive(
+    Deserialize, PartialEq, Clone, strum_macros::EnumIter, strum_macros::Display,
+)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+pub enum SortOn {
+    Weight,
+    CreatedAt,
+    LastModifiedAt,
+}
+
+impl SortOn {
+    pub fn label(&self) -> String {
+        match self {
+            Self::CreatedAt => "Created At".to_string(),
+            Self::LastModifiedAt => "Last Modified At".to_string(),
+            Self::Weight => "Weight".to_string(),
+        }
+    }
+}
+
+impl Default for SortOn {
+    fn default() -> Self {
+        Self::Weight
+    }
+}
+
+#[derive(Deserialize, PartialEq, Default, Clone)]
+pub struct ContextListFilters {
+    pub prefix: Option<CommaSeparatedStringQParams>,
+    pub sort_on: Option<SortOn>,
+    pub sort_by: Option<SortBy>,
+    pub created_by: Option<CommaSeparatedStringQParams>,
+    pub last_modified_by: Option<CommaSeparatedStringQParams>,
+}
+
+impl Display for ContextListFilters {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut parts = vec![];
+
+        if let Some(prefix) = &self.prefix {
+            parts.push(format!("prefix={prefix}"));
+        }
+
+        if let Some(sort_on) = &self.sort_on {
+            parts.push(format!("sort_on={sort_on}"));
+        }
+
+        if let Some(sort_by) = &self.sort_by {
+            parts.push(format!("sort_by={sort_by}"));
+        }
+
+        if let Some(created_by) = &self.created_by {
+            parts.push(format!("created_by={created_by}"));
+        }
+
+        write!(f, "{}", parts.join("&"))
+    }
+}

@@ -105,7 +105,7 @@ pub fn config_version_list() -> impl IntoView {
                                                 );
                                                 map.insert(
                                                     "created_at".to_string(),
-                                                    json!(config_version.created_at),
+                                                    json!(config_version.created_at.format("%v %T").to_string()),
                                                 );
                                                 map.insert("tags".to_string(), json!(config_version.tags));
                                                 map

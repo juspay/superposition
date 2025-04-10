@@ -2,9 +2,9 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
+use superposition_types::{database::models::cac::Context, Context as ConfigContext};
 
 use crate::schema::{HtmlDisplay, SchemaType};
-use superposition_types::Context;
 
 /// The `Expression` enum represents a JSONLogic expression and ensures
 /// the correct construction of expressions by tying operators and operands together.
@@ -347,6 +347,13 @@ impl FromIterator<Condition> for Conditions {
 impl TryFrom<&Context> for Conditions {
     type Error = &'static str;
     fn try_from(context: &Context) -> Result<Self, Self::Error> {
-        Self::from_context_json(context.condition.as_ref())
+        Self::from_context_json(&context.value)
+    }
+}
+
+impl TryFrom<&ConfigContext> for Conditions {
+    type Error = &'static str;
+    fn try_from(context: &ConfigContext) -> Result<Self, Self::Error> {
+        Self::from_context_json(&context.condition)
     }
 }

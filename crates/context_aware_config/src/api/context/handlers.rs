@@ -10,8 +10,7 @@ use crate::{
             operations,
             types::{
                 BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
-                ContextFilterSortOn, ContextFilters, MoveReq, PutReq,
-                WeightRecomputeResponse,
+                MoveReq, PutReq, WeightRecomputeResponse,
             },
         },
         dimension::{get_dimension_data, get_dimension_data_map},
@@ -35,7 +34,11 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    custom_query::{self as superposition_query, CustomQuery, DimensionQuery, QueryMap},
+    api::context::{ContextListFilters, SortOn},
+    custom_query::{
+        self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
+        QueryMap,
+    },
     database::{
         models::cac::Context,
         schema::contexts::{self, id},
@@ -280,7 +283,8 @@ async fn get_context(
 
 #[get("/list")]
 async fn list_contexts(
-    filter_params: superposition_query::Query<ContextFilters>,
+    filter_params: superposition_query::Query<ContextListFilters>,
+    pagination_params: superposition_query::Query<PaginationParams>,
     dimension_params: DimensionQuery<QueryMap>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -289,31 +293,34 @@ async fn list_contexts(
     let DbConnection(mut conn) = db_conn;
 
     let filter_params = filter_params.into_inner();
-    let page = filter_params.page.unwrap_or(1);
-    let size = filter_params.size.unwrap_or(10);
+    let pagination_params = pagination_params.into_inner();
 
-    if page < 1 {
-        return Err(bad_argument!("Param 'page' has to be at least 1."));
-    } else if size < 1 {
-        return Err(bad_argument!("Param 'size' has to be at least 1."));
-    }
+    let page = pagination_params.page.unwrap_or(1);
+    let count = pagination_params.count.unwrap_or(10);
+    let show_all = pagination_params.all.unwrap_or_default();
 
     let dimension_params = dimension_params.into_inner();
     let builder = contexts.schema_name(&schema_name).into_boxed();
 
     #[rustfmt::skip]
     let mut builder = match (filter_params.sort_on.unwrap_or_default(), filter_params.sort_by.unwrap_or(SortBy::Asc)) {
-        (ContextFilterSortOn::Weight,  SortBy::Asc)  => builder.order(weight.asc()),
-        (ContextFilterSortOn::Weight,  SortBy::Desc) => builder.order(weight.desc()),
-        (ContextFilterSortOn::CreatedAt, SortBy::Asc)  => builder.order(created_at.asc()),
-        (ContextFilterSortOn::CreatedAt, SortBy::Desc) => builder.order(created_at.desc()),
+        (SortOn::Weight,         SortBy::Asc)  => builder.order(weight.asc()),
+        (SortOn::Weight,         SortBy::Desc) => builder.order(weight.desc()),
+        (SortOn::CreatedAt,      SortBy::Asc)  => builder.order(created_at.asc()),
+        (SortOn::CreatedAt,      SortBy::Desc) => builder.order(created_at.desc()),
+        (SortOn::LastModifiedAt, SortBy::Asc)  => builder.order(last_modified_at.asc()),
+        (SortOn::LastModifiedAt, SortBy::Desc) => builder.order(last_modified_at.desc()),
     };
 
     if let Some(created_by_filter) = filter_params.created_by.clone() {
         builder = builder.filter(created_by.eq_any(created_by_filter.0))
     }
 
-    let (data, total_items) =
+    if let Some(last_modified_by_filter) = filter_params.last_modified_by.clone() {
+        builder = builder.filter(last_modified_by.eq_any(last_modified_by_filter.0))
+    }
+
+    let paginated_response =
         if dimension_params.len() > 0 || filter_params.prefix.is_some() {
             let mut all_contexts: Vec<Context> = builder.load(&mut conn)?;
             if let Some(prefix) = filter_params.prefix {
@@ -336,34 +343,49 @@ async fn list_contexts(
             let eval_filter_contexts =
                 Context::filter_by_eval(dimension_filter_contexts, &dimension_params);
 
-            let total_items = eval_filter_contexts.len();
-            let start = (size * (page - 1)) as usize;
-            let end = min((size * page) as usize, total_items);
-            let data = eval_filter_contexts
-                .get(start..end)
-                .map_or(vec![], |slice| slice.to_vec());
+            if show_all {
+                PaginatedResponse::all(eval_filter_contexts)
+            } else {
+                let total_items = eval_filter_contexts.len();
+                let start = (count * (page - 1)) as usize;
+                let end = min((count * page) as usize, total_items);
+                let data = eval_filter_contexts
+                    .get(start..end)
+                    .map_or(vec![], |slice| slice.to_vec());
 
-            (data, total_items as i64)
+                PaginatedResponse {
+                    total_pages: (total_items as f64 / count as f64).ceil() as i64,
+                    total_items: total_items as i64,
+                    data,
+                }
+            }
+        } else if show_all {
+            let data = builder.load::<Context>(&mut conn)?;
+            PaginatedResponse::all(data)
         } else {
             let mut total_count_builder = contexts.schema_name(&schema_name).into_boxed();
             if let Some(created_bys) = filter_params.created_by {
                 total_count_builder =
                     total_count_builder.filter(created_by.eq_any(created_bys.0))
             }
+            if let Some(last_modified_bys) = filter_params.last_modified_by.clone() {
+                total_count_builder = total_count_builder
+                    .filter(last_modified_by.eq_any(last_modified_bys.0))
+            }
             let total_items: i64 = total_count_builder.count().get_result(&mut conn)?;
             let data = builder
-                .limit(i64::from(size))
-                .offset(i64::from(size * (page - 1)))
+                .limit(count)
+                .offset(count * (page - 1))
                 .load::<Context>(&mut conn)?;
 
-            (data, total_items)
+            PaginatedResponse {
+                total_pages: (total_items as f64 / count as f64).ceil() as i64,
+                total_items,
+                data,
+            }
         };
 
-    Ok(Json(PaginatedResponse {
-        total_pages: (total_items as f64 / size as f64).ceil() as i64,
-        total_items,
-        data,
-    }))
+    Ok(Json(paginated_response))
 }
 
 #[delete("/{ctx_id}")]
@@ -706,5 +728,5 @@ async fn weight_recompute(
         AppHeader::XConfigVersion.to_string(),
         config_version_id.to_string(),
     ));
-    Ok(http_resp.json(ListResponse { data: response }))
+    Ok(http_resp.json(ListResponse::new(response)))
 }

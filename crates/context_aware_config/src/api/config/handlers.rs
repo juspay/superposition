@@ -845,11 +845,7 @@ async fn get_config_versions(
         let config_versions: Vec<ConfigVersion> = config_versions::config_versions
             .schema_name(&schema_name)
             .get_results(&mut conn)?;
-        return Ok(Json(PaginatedResponse {
-            total_pages: 1,
-            total_items: config_versions.len() as i64,
-            data: config_versions,
-        }));
+        return Ok(Json(PaginatedResponse::all(config_versions)));
     }
 
     let n_version: i64 = config_versions::config_versions
