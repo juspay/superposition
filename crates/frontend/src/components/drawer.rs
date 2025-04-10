@@ -21,18 +21,28 @@ pub fn close_drawer(id: &str) {
     };
 }
 
+pub enum DrawerButtonStyle {
+    Fill,
+    Outline,
+}
+
 #[component]
 pub fn drawer_btn(
     drawer_id: String,
     children: Children,
     #[prop(default = Callback::new(|_| {}))] on_click: Callback<MouseEvent, ()>,
-    #[prop(default = "btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 drawer-button".to_string())]
-    style: String,
+    #[prop(default = String::new())] class: String,
+    #[prop(default = DrawerButtonStyle::Fill)] style: DrawerButtonStyle,
 ) -> impl IntoView {
     let open_drawer_id = drawer_id.clone();
+    let style = match style {
+        DrawerButtonStyle::Fill => "btn-purple drawer-button me-2 mb-2 px-5 py-2.5 font-medium rounded-lg text-sm text-center",
+        DrawerButtonStyle::Outline => "btn btn-purple-outline w-[8rem] m-1 cursor-pointer",
+    }.to_string();
+
     view! {
         <button
-            class=style
+            class=format!("{style} {class}")
             id=format!("{}-btn", drawer_id)
             on:click=move |e| {
                 open_drawer(&open_drawer_id);
@@ -61,7 +71,7 @@ where
     };
 
     view! {
-        <div class="drawer drawer-end">
+        <div class="h-0 w-0 drawer drawer-end">
             <input id=id.clone() type="checkbox" class="drawer-toggle" />
 
             <div class="drawer-side drawer-zindex w-full">

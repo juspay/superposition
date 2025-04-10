@@ -62,7 +62,7 @@ pub fn table(
     #[prop(default = TablePaginationProps::default())] pagination: TablePaginationProps,
 ) -> impl IntoView {
     let pagination_props = StoredValue::new(pagination);
-    let container_style = format!("{} overflow-x-auto", class);
+    let container_style = format!("{} overflow-x-auto overflow-y-clip", class);
     let get_sticky_position_classes = |index: usize| {
         match index {
         0 => "sticky left-20 z-20 bg-inherit after:content-[''] after:absolute after:right-0 after:top-0 after:bottom-[-1px] after:w-[5px] after:bg-[linear-gradient(90deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0)_100%)]",

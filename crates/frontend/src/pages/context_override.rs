@@ -3,31 +3,46 @@ use leptos::*;
 use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use strum::IntoEnumIterator;
 use superposition_types::{
-    api::default_config::DefaultConfigFilters,
-    custom_query::PaginationParams,
-    database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
-    Config, Context,
+    api::{
+        context::{ContextListFilters, SortOn},
+        default_config::DefaultConfigFilters,
+    },
+    custom_query::{CustomQuery, DimensionQuery, PaginationParams, QueryMap},
+    database::{
+        models::cac::{Context, DefaultConfig},
+        types::DimensionWithMandatory,
+    },
+    PaginatedResponse, SortBy,
 };
 
-use crate::components::alert::AlertType;
-use crate::components::context_card::ContextCard;
-use crate::components::context_form::utils::{create_context, update_context};
-use crate::components::context_form::ContextForm;
-use crate::components::delete_modal::DeleteModal;
-use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
-use crate::components::experiment_form::ExperimentForm;
-use crate::components::override_form::OverrideForm;
-use crate::components::skeleton::{Skeleton, SkeletonVariant};
-use crate::logic::Conditions;
-use crate::providers::alert_provider::enqueue_alert;
-use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
-use crate::providers::editor_provider::EditorProvider;
-use crate::{
-    api::{delete_context, fetch_config, fetch_default_config, fetch_dimensions},
-    types::{OrganisationId, Tenant},
+use crate::api::{delete_context, fetch_context, fetch_default_config, fetch_dimensions};
+use crate::components::{
+    alert::AlertType,
+    button::Button,
+    context_card::ContextCard,
+    context_form::{
+        utils::{create_context, update_context},
+        ContextForm,
+    },
+    delete_modal::DeleteModal,
+    drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+    dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+    experiment_form::ExperimentForm,
+    override_form::OverrideForm,
+    pagination::Pagination,
+    skeleton::Skeleton,
+    stat::Stat,
 };
-use crate::{components::button::Button, types::VariantFormTs};
+use crate::logic::{Condition, Conditions, Expression};
+use crate::providers::{
+    alert_provider::enqueue_alert,
+    condition_collapse_provider::ConditionCollapseProvider,
+    editor_provider::EditorProvider,
+};
+use crate::types::{OrganisationId, Tenant, VariantFormTs};
+use crate::utils::{update_page_direction, PageDirection};
 
 #[derive(Clone, Debug, Default)]
 pub struct Data {
@@ -37,7 +52,7 @@ pub struct Data {
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct PageResource {
-    config: Config,
+    contexts: PaginatedResponse<Context>,
     dimensions: Vec<DimensionWithMandatory>,
     default_config: Vec<DefaultConfig>,
 }
@@ -46,6 +61,149 @@ struct PageResource {
 enum FormMode {
     Edit,
     Create,
+}
+
+#[component]
+fn context_filter_drawer(
+    context_filters_rws: RwSignal<ContextListFilters>,
+    dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
+    dimensions: Vec<DimensionWithMandatory>,
+) -> impl IntoView {
+    let filters_buffer_rws = create_rw_signal(context_filters_rws.get_untracked());
+    let dimension_buffer_rws = create_rw_signal(dimension_params_rws.get_untracked());
+    let context = dimension_params_rws
+        .get_untracked()
+        .into_inner()
+        .iter()
+        .map(|(k, v)| Condition {
+            variable: k.clone(),
+            expression: Expression::Is(v.clone()),
+        })
+        .collect::<Conditions>();
+
+    view! {
+        <Drawer
+            id="context_filter_drawer".to_string()
+            header="Context Filters"
+            drawer_width="w-[50vw]"
+            handle_close=move || close_drawer("context_filter_drawer")
+        >
+            <div class="flex flex-col gap-4">
+                <ContextForm
+                    dimensions
+                    context
+                    dropdown_direction=DropdownDirection::Down
+                    handle_change=move |context: Conditions| {
+                        let map = context
+                            .iter()
+                            .filter_map(|condition| {
+                                match condition.expression.clone() {
+                                    Expression::Is(value) => {
+                                        Some((condition.variable.clone(), value))
+                                    }
+                                    _ => None,
+                                }
+                            })
+                            .collect::<Map<_, _>>();
+                        dimension_buffer_rws.set(DimensionQuery::from(map));
+                    }
+                    heading_sub_text="Search By Context".to_string()
+                />
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">{"Key Prefix (Seperate by Comma)"}</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="context-key-prefix"
+                        class="input input-bordered rounded-md resize-y w-full max-w-md"
+                        placeholder="eg: key1,key2"
+                        value=move || context_filters_rws.get().prefix.map(|d| d.to_string())
+                        on:change=move |event| {
+                            let prefixes = event_target_value(&event);
+                            let prefixes = (!prefixes.is_empty())
+                                .then(|| serde_json::from_value(Value::String(prefixes)).ok())
+                                .flatten();
+                            filters_buffer_rws
+                                .update(|filter| {
+                                    filter.prefix = prefixes;
+                                });
+                        }
+                    />
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">{"Created By (Seperate by Comma)"}</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="context-creator-filter"
+                        class="input input-bordered rounded-md resize-y w-full max-w-md"
+                        placeholder="eg: user@superposition.io"
+                        value=move || context_filters_rws.get().created_by.map(|d| d.to_string())
+                        on:change=move |event| {
+                            let user_names = event_target_value(&event);
+                            let user_names = (!user_names.is_empty())
+                                .then(|| serde_json::from_value(Value::String(user_names)).ok())
+                                .flatten();
+                            filters_buffer_rws
+                                .update(|filter| {
+                                    filter.created_by = user_names;
+                                });
+                        }
+                    />
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">{"Last Modified By (Seperate by Comma)"}</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="context-modifier-filter"
+                        class="input input-bordered rounded-md resize-y w-full max-w-md"
+                        placeholder="eg: user@superposition.io"
+                        value=move || context_filters_rws.get().created_by.map(|d| d.to_string())
+                        on:change=move |event| {
+                            let user_names = event_target_value(&event);
+                            let user_names = (!user_names.is_empty())
+                                .then(|| serde_json::from_value(Value::String(user_names)).ok())
+                                .flatten();
+                            filters_buffer_rws
+                                .update(|filter| {
+                                    filter.last_modified_by = user_names;
+                                });
+                        }
+                    />
+                </div>
+                <div class="flex justify-end">
+                    <Button
+                        class="h-12 w-48".to_string()
+                        text="Submit".to_string()
+                        on_click=move |event| {
+                            event.prevent_default();
+                            let filter = filters_buffer_rws.get();
+                            context_filters_rws.set(filter);
+                            dimension_params_rws.set(dimension_buffer_rws.get());
+                            close_drawer("context_filter_drawer")
+                        }
+                    />
+                    <Button
+                        class="h-12 w-48".to_string()
+                        text="Reset".to_string()
+                        icon_class="ri-restart-line".into()
+                        on_click=move |event| {
+                            event.prevent_default();
+                            let filters = ContextListFilters::default();
+                            context_filters_rws.set(filters);
+                            dimension_params_rws.set(DimensionQuery::from(Map::new()));
+                            close_drawer("context_filter_drawer")
+                        }
+                    />
+
+                </div>
+            </div>
+        </Drawer>
+    }
 }
 
 #[component]
@@ -197,41 +355,72 @@ pub fn context_override() -> impl IntoView {
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let (selected_context_rs, selected_context_ws) = create_signal::<Option<Data>>(None);
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
-    let (modal_visible, set_modal_visible) = create_signal(false);
+    let (delete_modal, set_delete_modal) = create_signal(false);
     let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
+    let pagination_filters_rws = create_rw_signal(PaginationParams::default());
+    let context_filters_rws = create_rw_signal(ContextListFilters::default());
+    let dimension_params_rws = create_rw_signal(DimensionQuery::from(Map::new()));
 
-    let page_resource: Resource<(String, String), PageResource> =
-        create_blocking_resource(
-            move || (tenant_rws.get().0, org_rws.get().0),
-            |(current_tenant, org_id)| async move {
-                let empty_list_filters = PaginationParams::all_entries();
-                let default_config_filters = DefaultConfigFilters::default();
-                let (config_result, dimensions_result, default_config_result) = join!(
-                    fetch_config(current_tenant.to_string(), None, org_id.clone()),
-                    fetch_dimensions(
-                        &empty_list_filters,
-                        current_tenant.to_string(),
-                        org_id.clone()
-                    ),
-                    fetch_default_config(
-                        &empty_list_filters,
-                        &default_config_filters,
-                        current_tenant.to_string(),
-                        org_id.clone()
-                    )
-                );
-                PageResource {
-                    config: config_result.unwrap_or_default(),
-                    dimensions: dimensions_result
-                        .unwrap_or_default()
-                        .data
-                        .into_iter()
-                        .filter(|d| d.dimension != "variantIds")
-                        .collect(),
-                    default_config: default_config_result.unwrap_or_default().data,
-                }
-            },
-        );
+    let page_resource: Resource<
+        (
+            String,
+            String,
+            PaginationParams,
+            ContextListFilters,
+            DimensionQuery<QueryMap>,
+        ),
+        PageResource,
+    > = create_blocking_resource(
+        move || {
+            (
+                tenant_rws.get().0,
+                org_rws.get().0,
+                pagination_filters_rws.get(),
+                context_filters_rws.get(),
+                dimension_params_rws.get(),
+            )
+        },
+        |(
+            current_tenant,
+            org_id,
+            pagination_params,
+            context_filters,
+            dimension_params,
+        )| async move {
+            let empty_list_filters = PaginationParams::all_entries();
+            let default_config_filters = DefaultConfigFilters::default();
+            let (contexts_result, dimensions_result, default_config_result) = join!(
+                fetch_context(
+                    current_tenant.to_string(),
+                    org_id.clone(),
+                    &pagination_params,
+                    &context_filters,
+                    &dimension_params
+                ),
+                fetch_dimensions(
+                    &empty_list_filters,
+                    current_tenant.to_string(),
+                    org_id.clone()
+                ),
+                fetch_default_config(
+                    &empty_list_filters,
+                    &default_config_filters,
+                    current_tenant.to_string(),
+                    org_id.clone()
+                )
+            );
+            PageResource {
+                contexts: contexts_result.unwrap_or_default(),
+                dimensions: dimensions_result
+                    .unwrap_or_default()
+                    .data
+                    .into_iter()
+                    .filter(|d| d.dimension != "variantIds")
+                    .collect(),
+                default_config: default_config_result.unwrap_or_default().data,
+            }
+        },
+    );
 
     let on_create_context_click = Callback::new(move |_| {
         set_form_mode.set(Some(FormMode::Create));
@@ -248,7 +437,7 @@ pub fn context_override() -> impl IntoView {
 
     let on_context_edit = Callback::new(move |data: (Context, Map<String, Value>)| {
         let (context, overrides) = data;
-        match Conditions::from_context_json(&context.condition.into()) {
+        match Conditions::from_context_json(&context.value.into()) {
             Ok(conditions) => {
                 selected_context_ws.set(Some(Data {
                     context: conditions,
@@ -278,7 +467,7 @@ pub fn context_override() -> impl IntoView {
         Callback::new(move |data: (Context, Map<String, Value>)| {
             let (context, overrides) = data;
 
-            match Conditions::from_context_json(&context.condition.into()) {
+            match Conditions::from_context_json(&context.value.into()) {
                 Ok(conditions) => {
                     selected_context_ws.set(Some(Data {
                         context: conditions,
@@ -299,7 +488,7 @@ pub fn context_override() -> impl IntoView {
     let on_context_clone = Callback::new(move |data: (Context, Map<String, Value>)| {
         let (context, overrides) = data;
 
-        match Conditions::from_context_json(&context.condition.into()) {
+        match Conditions::from_context_json(&context.value.into()) {
             Ok(conditions) => {
                 selected_context_ws.set(Some(Data {
                     context: conditions,
@@ -318,7 +507,19 @@ pub fn context_override() -> impl IntoView {
 
     let on_context_delete = Callback::new(move |id: String| {
         set_delete_id.set(Some(id.clone()));
-        set_modal_visible.set(true);
+        set_delete_modal.set(true);
+    });
+
+    let handle_next_click = Callback::new(move |total_pages: i64| {
+        pagination_filters_rws.update(|f| {
+            f.page = update_page_direction(f.page, PageDirection::Next(total_pages));
+        });
+    });
+
+    let handle_prev_click = Callback::new(move |_| {
+        pagination_filters_rws.update(|f| {
+            f.page = update_page_direction(f.page, PageDirection::Prev);
+        });
     });
 
     let on_delete_confirm = Callback::new(move |_| {
@@ -339,198 +540,260 @@ pub fn context_override() -> impl IntoView {
             });
         }
         set_delete_id.set(None);
-        set_modal_visible.set(false);
+        set_delete_modal.set(false);
+    });
+
+    let on_sort_on_select = Callback::new(move |sort_on: SortOn| {
+        context_filters_rws.update(|filters| filters.sort_on = Some(sort_on));
+    });
+
+    let on_sort_by_select = Callback::new(move |sort_by: SortBy| {
+        context_filters_rws.update(|filters| filters.sort_by = Some(sort_by));
     });
 
     view! {
-        <div class="p-8">
-            <div class="flex justify-between">
-                <h2 class="card-title">Overrides</h2>
-                <DrawerBtn
-                    drawer_id="context_and_override_drawer".to_string()
-                    on_click=on_create_context_click
-                >
-                    Create Override
-                    <i class="ri-edit-2-line ml-2"></i>
-                </DrawerBtn>
-            </div>
-
-            <Suspense fallback=move || {
-                view! { <Skeleton variant=SkeletonVariant::Block /> }
-            }>
-                <div class="space-y-6">
-
-                    {move || {
-                        let PageResource { config: _, dimensions, default_config } = page_resource
-                            .get()
-                            .unwrap_or_default();
-                        let data = selected_context_rs.get();
-                        view! {
-                            <Drawer
-                                id="create_exp_drawer".to_string()
-                                header="Create Experiment"
-                                handle_close=move || {
-                                    close_drawer("create_exp_drawer");
-                                    selected_context_ws.set(None);
-                                }
-                            >
-
-                                <EditorProvider>
-                                    {match data {
-                                        Some(data) => {
-                                            view! {
-                                                <ExperimentForm
-                                                    name="".to_string()
-                                                    context=data.context
-                                                    variants=VariantFormTs::default_with_overrides(
-                                                        data.overrides,
-                                                    )
-                                                    dimensions=dimensions
-                                                    default_config=default_config
-                                                    handle_submit=handle_submit_experiment_form
-                                                />
-                                            }
-                                                .into_view()
-                                        }
-                                        None => view! {}.into_view(),
-                                    }}
-
-                                </EditorProvider>
-                            </Drawer>
-                        }
-                    }}
-                    {move || {
-                        let PageResource { config: _, dimensions, default_config } = page_resource
-                            .get()
-                            .unwrap_or_default();
-                        let data = selected_context_rs.get();
-                        let drawer_header = match form_mode.get() {
-                            Some(FormMode::Edit) => "Update Overrides",
-                            Some(FormMode::Create) => "Create Overrides",
-                            None => "",
-                        };
-                        view! {
-                            <Drawer
-                                id="context_and_override_drawer".to_string()
-                                header=drawer_header
-                                handle_close=move || {
-                                    close_drawer("context_and_override_drawer");
-                                    set_form_mode.set(None);
-                                    selected_context_ws.set(None);
-                                }
-                            >
-
-                                <EditorProvider>
-                                    {match (form_mode.get_untracked(), data) {
-                                        (Some(FormMode::Edit), Some(data)) => {
-                                            view! {
-                                                <Form
-                                                    context=data.context
-                                                    overrides=data.overrides
-                                                    dimensions=dimensions
-                                                    default_config=default_config
-                                                    handle_submit=on_submit
-                                                    edit=true
-                                                />
-                                            }
-                                                .into_view()
-                                        }
-                                        (Some(FormMode::Create), data) => {
-                                            let Data { context, overrides } = data.unwrap_or_default();
-                                            view! {
-                                                <Form
-                                                    context=context
-                                                    overrides=overrides
-                                                    dimensions=dimensions
-                                                    default_config=default_config
-                                                    handle_submit=on_submit
-                                                    edit=false
-                                                />
-                                            }
-                                                .into_view()
-                                        }
-                                        (Some(FormMode::Edit), None) => {
-                                            enqueue_alert(
-                                                String::from("Something went wrong, failed to load form"),
-                                                AlertType::Error,
-                                                5000,
-                                            );
-                                            view! {}.into_view()
-                                        }
-                                        (None, _) => view! {}.into_view(),
-                                    }}
-
-                                </EditorProvider>
-                            </Drawer>
-                        }
-                    }}
-                    {move || {
-                        let config = page_resource.get().map(|v| v.config).unwrap_or_default();
-                        let ctx_n_overrides = config
-                            .contexts
-                            .into_iter()
-                            .map(|context| {
-                                let overrides = context
-                                    .override_with_keys
-                                    .iter()
-                                    .flat_map(|id| {
-                                        config
-                                            .overrides
-                                            .get(id)
-                                            .cloned()
-                                            .map_or(Map::new(), |overrides| overrides.into())
-                                            .into_iter()
-                                            .collect::<Vec<(String, Value)>>()
-                                    })
-                                    .collect::<Map<String, Value>>();
-                                (context.clone(), overrides)
-                            })
-                            .collect::<Vec<(Context, Map<String, Value>)>>();
-                        let is_empty = ctx_n_overrides.is_empty();
-                        view! {
-                            <Show when=move || is_empty>
-                                <div class="flex-row" style="margin-top:20rem;">
-                                    <div class="flex justify-center text-gray-400">
-                                        <i class="ri-file-add-line ri-xl"></i>
+        <Suspense fallback=move || view! { <Skeleton /> }>
+            <div class="h-screen p-8 flex flex-col gap-8">
+                <div class="flex flex-col gap-6 flex-1 overflow-y-scroll">
+                    <div class="flex justify-between">
+                        {move || {
+                            let total_items = page_resource
+                                .get()
+                                .map(|v| v.contexts.total_items)
+                                .unwrap_or_default()
+                                .to_string();
+                            let context_filters = context_filters_rws.get();
+                            let selected_sort_by = context_filters.sort_by.unwrap_or_default();
+                            let sort_by_icon = match selected_sort_by {
+                                SortBy::Desc => "ri-sort-desc",
+                                SortBy::Asc => "ri-sort-asc",
+                            };
+                            view! {
+                                <div class="flex gap-2">
+                                    <Stat
+                                        heading="Overrides"
+                                        icon="ri-guide-fill"
+                                        number=total_items
+                                    />
+                                    <div class="w-max flex flex-col justify-end">
+                                        <Dropdown
+                                            class="!w-fit !h-fit".to_string()
+                                            dropdown_width="w-max".to_string()
+                                            dropdown_options=SortOn::iter().collect()
+                                            dropdown_text=format!(
+                                                "Sort On: {}",
+                                                context_filters.sort_on.unwrap_or_default().label(),
+                                            )
+                                            dropdown_icon="ri-arrow-up-down-line"
+                                            dropdown_btn_type=DropdownBtnType::Link
+                                            on_select=on_sort_on_select
+                                            searchable=false
+                                        />
+                                        <Dropdown
+                                            class="!w-fit !h-fit".to_string()
+                                            dropdown_width="w-max".to_string()
+                                            dropdown_options=SortBy::iter().collect()
+                                            dropdown_text=format!(
+                                                "Sort By: {}",
+                                                selected_sort_by.label(),
+                                            )
+                                            dropdown_icon=sort_by_icon
+                                            dropdown_btn_type=DropdownBtnType::Link
+                                            on_select=on_sort_by_select
+                                            searchable=false
+                                        />
                                     </div>
-                                    <div class="flex mt-4 font-semibold items-center text-gray-400 text-xl justify-center">
-                                        "Start with creating an override"
-                                    </div>
+                                    <DrawerBtn
+                                        drawer_id="context_filter_drawer".into()
+                                        style=DrawerButtonStyle::Outline
+                                        class="self-end".to_string()
+                                    >
+                                        "Filters"
+                                        <i class="ri-filter-3-line"></i>
+                                    </DrawerBtn>
                                 </div>
-                            </Show>
-                            <ConditionCollapseProvider>
-
-                                {ctx_n_overrides
-                                    .into_iter()
-                                    .map(|(context, overrides)| {
-                                        view! {
-                                            <ContextCard
-                                                context=context
-                                                overrides=overrides
-                                                handle_create_experiment=handle_create_experiment
-                                                handle_edit=on_context_edit
-                                                handle_clone=on_context_clone
-                                                handle_delete=on_context_delete
-                                            />
-                                        }
-                                    })
-                                    .collect_view()}
-
-                            </ConditionCollapseProvider>
+                                <DrawerBtn
+                                    class="self-end h-fit".to_string()
+                                    drawer_id="context_and_override_drawer".to_string()
+                                    on_click=on_create_context_click
+                                >
+                                    "Create Override"
+                                    <i class="ri-edit-2-line ml-2"></i>
+                                </DrawerBtn>
+                            }
+                        }}
+                    </div>
+                    {move || {
+                        match page_resource.get().map(|v| v.contexts) {
+                            Some(contexts) => {
+                                let is_empty = contexts.data.is_empty();
+                                view! {
+                                    <div class="flex flex-col gap-6">
+                                        <Show when=move || is_empty>
+                                            <div class="flex flex-col gap-4 justify-center items-center">
+                                                <div class="flex justify-center text-gray-400">
+                                                    <i class="ri-file-add-line ri-xl"></i>
+                                                </div>
+                                                <div class="flex font-semibold items-center text-gray-400 text-xl justify-center">
+                                                    "Start with creating an override"
+                                                </div>
+                                            </div>
+                                        </Show>
+                                        <ConditionCollapseProvider>
+                                            {contexts
+                                                .data
+                                                .into_iter()
+                                                .map(|context| {
+                                                    view! {
+                                                        <ContextCard
+                                                            context=context.clone()
+                                                            overrides=context.override_.into()
+                                                            handle_create_experiment=handle_create_experiment
+                                                            handle_edit=on_context_edit
+                                                            handle_clone=on_context_clone
+                                                            handle_delete=on_context_delete
+                                                        />
+                                                    }
+                                                })
+                                                .collect_view()}
+                                        </ConditionCollapseProvider>
+                                    </div>
+                                }
+                                    .into_view()
+                            }
+                            None => view! { <div>Loading....</div> }.into_view(),
                         }
                     }}
-
                 </div>
+                {move || {
+                    view! {
+                        <Pagination
+                            class="self-end".to_string()
+                            current_page=pagination_filters_rws.get().page.unwrap_or_default()
+                            total_pages=page_resource
+                                .get()
+                                .map(|d| d.contexts)
+                                .unwrap_or_default()
+                                .total_pages
+                            next=handle_next_click
+                            previous=handle_prev_click
+                        />
+                    }
+                }}
+            </div>
+            {move || {
+                let PageResource { dimensions, default_config, .. } = page_resource
+                    .get()
+                    .unwrap_or_default();
+                let data = selected_context_rs.get();
+                view! {
+                    <Drawer
+                        id="create_exp_drawer".to_string()
+                        header="Create Experiment"
+                        handle_close=move || {
+                            close_drawer("create_exp_drawer");
+                            selected_context_ws.set(None);
+                        }
+                    >
+                        <EditorProvider>
+                            {match data {
+                                Some(data) => {
+                                    view! {
+                                        <ExperimentForm
+                                            name="".to_string()
+                                            context=data.context
+                                            variants=VariantFormTs::default_with_overrides(
+                                                data.overrides,
+                                            )
+                                            dimensions=dimensions
+                                            default_config=default_config
+                                            handle_submit=handle_submit_experiment_form
+                                        />
+                                    }
+                                        .into_view()
+                                }
+                                None => view! {}.into_view(),
+                            }}
 
-                <DeleteModal
-                    modal_visible=modal_visible
-                    confirm_delete=on_delete_confirm
-                    set_modal_visible=set_modal_visible
-                    header_text="Are you sure you want to delete this context? Action is irreversible."
-                        .to_string()
-                />
-
-            </Suspense>
-        </div>
+                        </EditorProvider>
+                    </Drawer>
+                }
+            }}
+            {move || {
+                let PageResource { dimensions, default_config, .. } = page_resource
+                    .get()
+                    .unwrap_or_default();
+                let data = selected_context_rs.get();
+                let drawer_header = match form_mode.get() {
+                    Some(FormMode::Edit) => "Update Overrides",
+                    Some(FormMode::Create) => "Create Overrides",
+                    None => "",
+                };
+                view! {
+                    <Drawer
+                        id="context_and_override_drawer".to_string()
+                        header=drawer_header
+                        handle_close=move || {
+                            close_drawer("context_and_override_drawer");
+                            set_form_mode.set(None);
+                            selected_context_ws.set(None);
+                        }
+                    >
+                        <EditorProvider>
+                            {match (form_mode.get_untracked(), data) {
+                                (Some(FormMode::Edit), Some(data)) => {
+                                    view! {
+                                        <Form
+                                            context=data.context
+                                            overrides=data.overrides
+                                            dimensions=dimensions
+                                            default_config=default_config
+                                            handle_submit=on_submit
+                                            edit=true
+                                        />
+                                    }
+                                        .into_view()
+                                }
+                                (Some(FormMode::Create), data) => {
+                                    let Data { context, overrides } = data.unwrap_or_default();
+                                    view! {
+                                        <Form
+                                            context=context
+                                            overrides=overrides
+                                            dimensions=dimensions
+                                            default_config=default_config
+                                            handle_submit=on_submit
+                                            edit=false
+                                        />
+                                    }
+                                        .into_view()
+                                }
+                                (Some(FormMode::Edit), None) => {
+                                    enqueue_alert(
+                                        String::from("Something went wrong, failed to load form"),
+                                        AlertType::Error,
+                                        5000,
+                                    );
+                                    view! {}.into_view()
+                                }
+                                (None, _) => view! {}.into_view(),
+                            }}
+                        </EditorProvider>
+                    </Drawer>
+                }
+            }}
+            <ContextFilterDrawer
+                dimensions=page_resource.get().map(|r| r.dimensions).unwrap_or_default()
+                context_filters_rws
+                dimension_params_rws
+            />
+            <DeleteModal
+                modal_visible=delete_modal
+                confirm_delete=on_delete_confirm
+                set_modal_visible=set_delete_modal
+                header_text="Are you sure you want to delete this context? Action is irreversible."
+                    .to_string()
+            />
+        </Suspense>
     }
 }

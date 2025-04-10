@@ -320,11 +320,7 @@ async fn list_default_configs(
     if let Some(true) = pagination.all {
         let result: Vec<DefaultConfig> =
             query_builder(&filters).get_results(&mut conn)?;
-        return Ok(Json(PaginatedResponse {
-            total_pages: 1,
-            total_items: result.len() as i64,
-            data: result,
-        }));
+        return Ok(Json(PaginatedResponse::all(result)));
     }
 
     let base_query = query_builder(&filters);
