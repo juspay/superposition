@@ -25,6 +25,7 @@ pub struct RowData {
     pub schema: Value,
     pub function_name: Option<Value>,
     pub mandatory: bool,
+    pub dependencies: Vec<String>,
 }
 
 #[component]
@@ -92,7 +93,16 @@ pub fn dimensions() -> impl IntoView {
                 "null" => None,
                 _ => Some(json!(function_name.replace('"', ""))),
             };
+
             let mandatory = row["mandatory"].as_bool().unwrap_or(false);
+
+            let dependencies = row["dependencies"]
+                .as_array()
+                .unwrap_or(&vec![])
+                .iter()
+                .filter_map(|dep| dep.as_str().map(String::from))
+                .collect::<Vec<String>>();
+
             let dimension_name = row_dimension.clone();
 
             let edit_click_handler = move |_| {
@@ -102,6 +112,7 @@ pub fn dimensions() -> impl IntoView {
                     schema: schema.clone(),
                     function_name: fun_name.clone(),
                     mandatory,
+                    dependencies: dependencies.clone(),
                 };
                 logging::log!("{:?}", row_data);
                 selected_dimension.set(Some(row_data));
@@ -141,6 +152,7 @@ pub fn dimensions() -> impl IntoView {
             Column::default("schema".to_string()),
             Column::default("mandatory".to_string()),
             Column::default("function_name".to_string()),
+            Column::default("dependencies".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
             Column::new(
@@ -155,51 +167,57 @@ pub fn dimensions() -> impl IntoView {
 
     view! {
         <div class="p-8">
-            {move || {
-                let handle_close = move || {
-                    close_drawer("dimension_drawer");
-                    selected_dimension.set(None);
-                };
-                if let Some(selected_dimension_data) = selected_dimension.get() {
-                    view! {
-                        <Drawer
-                            id="dimension_drawer".to_string()
-                            header="Edit Dimension"
-                            handle_close=handle_close
-                        >
-                            <DimensionForm
-                                edit=true
-                                position=selected_dimension_data.position
-                                dimension_name=selected_dimension_data.dimension
-                                dimension_schema=selected_dimension_data.schema
-                                function_name=selected_dimension_data.function_name
-                                handle_submit=move || {
-                                    dimensions_resource.refetch();
-                                    selected_dimension.set(None);
-                                    close_drawer("dimension_drawer");
-                                }
-                            />
-
-                        </Drawer>
-                    }
-                } else {
-                    view! {
-                        <Drawer
-                            id="dimension_drawer".to_string()
-                            header="Create New Dimension"
-                            handle_close=handle_close
-                        >
-                            <DimensionForm handle_submit=move || {
-                                dimensions_resource.refetch();
-                                close_drawer("dimension_drawer");
-                            } />
-                        </Drawer>
-                    }
-                }
-            }}
             <Suspense fallback=move || {
                 view! { <Skeleton /> }
             }>
+                {move || {
+                    let handle_close = move || {
+                        close_drawer("dimension_drawer");
+                        selected_dimension.set(None);
+                    };
+                    let dimensions = dimensions_resource.get().unwrap_or_default().data;
+                    if let Some(selected_dimension_data) = selected_dimension.get() {
+                        view! {
+                            <Drawer
+                                id="dimension_drawer".to_string()
+                                header="Edit Dimension"
+                                handle_close=handle_close
+                            >
+                                <DimensionForm
+                                    edit=true
+                                    position=selected_dimension_data.position
+                                    dimension_name=selected_dimension_data.dimension
+                                    dimension_schema=selected_dimension_data.schema
+                                    dependencies=selected_dimension_data.dependencies
+                                    function_name=selected_dimension_data.function_name
+                                    dimensions
+                                    handle_submit=move || {
+                                        dimensions_resource.refetch();
+                                        selected_dimension.set(None);
+                                        close_drawer("dimension_drawer");
+                                    }
+                                />
+
+                            </Drawer>
+                        }
+                    } else {
+                        view! {
+                            <Drawer
+                                id="dimension_drawer".to_string()
+                                header="Create New Dimension"
+                                handle_close=handle_close
+                            >
+                                <DimensionForm
+                                    dimensions
+                                    handle_submit=move || {
+                                        dimensions_resource.refetch();
+                                        close_drawer("dimension_drawer");
+                                    }
+                                />
+                            </Drawer>
+                        }
+                    }
+                }}
                 {move || {
                     let value = dimensions_resource.get().unwrap_or_default();
                     let total_items = value.data.len().to_string();

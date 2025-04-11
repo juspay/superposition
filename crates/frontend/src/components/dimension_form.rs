@@ -5,7 +5,10 @@ use leptos::*;
 use serde_json::{json, Value};
 use superposition_types::{
     custom_query::PaginationParams,
-    database::models::cac::{Function, TypeTemplate},
+    database::{
+        models::cac::{Function, TypeTemplate},
+        types::DimensionWithMandatory,
+    },
 };
 use types::{DimensionCreateReq, DimensionUpdateReq};
 use utils::{create_dimension, update_dimension};
@@ -33,9 +36,11 @@ pub fn dimension_form<NF>(
     #[prop(default = String::new())] dimension_name: String,
     #[prop(default = String::new())] dimension_type: String,
     #[prop(default = Value::Null)] dimension_schema: Value,
+    #[prop(default = Vec::new())] dependencies: Vec<String>,
     #[prop(default = None)] function_name: Option<Value>,
     #[prop(default = String::new())] description: String,
     #[prop(default = String::new())] change_reason: String,
+    dimensions: Vec<DimensionWithMandatory>,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -49,6 +54,7 @@ where
     let (dimension_type_rs, dimension_type_ws) = create_signal(dimension_type);
     let (dimension_schema_rs, dimension_schema_ws) = create_signal(dimension_schema);
     let (function_name, set_function_name) = create_signal(function_name);
+    let (dependencies_rs, dependencies_ws) = create_signal(dependencies);
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
@@ -75,12 +81,26 @@ where
         Callback::new(move |selected_function: FunctionsName| {
             set_function_name.update(|value| {
                 let function_name = selected_function.clone();
-                leptos::logging::log!("function selected: {:?}", function_name);
+                logging::log!("function selected: {:?}", function_name);
                 let fun_name = match function_name.as_str() {
                     "None" => None,
                     _ => Some(json!(function_name)),
                 };
                 *value = fun_name;
+            });
+        });
+
+    let handle_select_dependencies_dropdown_option =
+        Callback::new(move |selected_dimension: String| {
+            dependencies_ws.update(|value| {
+                value.push(selected_dimension);
+            });
+        });
+
+    let handle_remove_dependencies_dropdown_option =
+        Callback::new(move |selected_dimension: String| {
+            dependencies_ws.update(|value| {
+                value.retain(|d| d != &selected_dimension);
             });
         });
 
@@ -93,6 +113,7 @@ where
         let dimension_name = dimension_name_rs.get();
         let function_name = function_name.get();
         let function_schema = dimension_schema_rs.get();
+        let dependencies = dependencies_rs.get();
 
         let handle_submit_clone = handle_submit.clone();
         spawn_local({
@@ -103,6 +124,7 @@ where
                         position: Some(function_position),
                         schema: Some(function_schema),
                         function_name,
+                        dependencies,
                         description: description_rs.get(),
                         change_reason: change_reason_rs.get(),
                     };
@@ -119,6 +141,7 @@ where
                         position: function_position,
                         schema: function_schema,
                         function_name,
+                        dependencies,
                         description: description_rs.get(),
                         change_reason: change_reason_rs.get(),
                     };
@@ -282,6 +305,31 @@ where
                             }
                         />
 
+                    </div>
+                }
+            }}
+
+            {move || {
+                let dropdown_options = dimensions
+                    .iter()
+                    .map(|d| d.dimension.clone())
+                    .filter(|d| { d != &dimension_name_rs.get() })
+                    .collect::<Vec<_>>();
+                view! {
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Dependencies</span>
+                        </label>
+                        <Dropdown
+                            dropdown_text="Add Dependencies".to_string()
+                            dropdown_direction=DropdownDirection::Down
+                            dropdown_btn_type=DropdownBtnType::Select
+                            dropdown_options
+                            selected=dependencies_rs.get()
+                            multi_select=true
+                            on_select=handle_select_dependencies_dropdown_option
+                            on_remove=handle_remove_dependencies_dropdown_option
+                        />
                     </div>
                 }
             }}
