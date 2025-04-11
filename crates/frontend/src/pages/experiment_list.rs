@@ -124,6 +124,7 @@ fn experiment_table_filter_widget(
                                 });
                         }
                         heading_sub_text=String::from("Search By Context")
+                        resolve_mode=true
                     />
 
                 </div>

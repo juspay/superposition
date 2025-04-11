@@ -24,6 +24,9 @@ pub enum DropdownDirection {
 pub fn dropdown<T>(
     dropdown_options: Vec<T>,
     on_select: Callback<T, ()>,
+    #[prop(into, default = false)] multi_select: bool,
+    #[prop(into, default = Vec::new())] selected: Vec<T>,
+    #[prop(into, default = Callback::from(|_| {}))] on_remove: Callback<T, ()>,
     #[prop(into)] dropdown_text: String,
     #[prop(into, default = String::new())] dropdown_icon: String,
     #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
@@ -36,16 +39,20 @@ pub fn dropdown<T>(
     #[prop(into, default = String::new())] id: String,
 ) -> impl IntoView
 where
-    T: DropdownOption + Clone + 'static,
+    T: DropdownOption + Clone + PartialEq + 'static,
 {
     let all_options = StoredValue::new(dropdown_options.clone());
+    let (selected_rs, selected_ws) = create_signal(selected);
     let (search_term, set_search_term) = create_signal(String::new());
     let dropdown_options = Signal::derive(move || {
         let term = search_term.get().to_lowercase();
         all_options
             .get_value()
             .into_iter()
-            .filter(|option| option.label().to_lowercase().contains(&term))
+            .filter(|option| {
+                !selected_rs.get().contains(option)
+                    && option.label().to_lowercase().contains(&term)
+            })
             .collect::<Vec<T>>()
     });
 
@@ -59,81 +66,118 @@ where
     let node_ref = create_node_ref::<html::Input>();
 
     view! {
-        <div
-            id=id
-            class="dropdown"
-            class=("disable-click", disabled)
-            class=("dropdown-right", dropdown_direction == DropdownDirection::Right)
-            class=("dropdown-left", dropdown_direction == DropdownDirection::Left)
-            class=("dropdown-top", dropdown_direction == DropdownDirection::Top)
-            class=("dropdown-down", dropdown_direction == DropdownDirection::Down)
-        >
-            <label
-                tabindex="0"
-                class=format!("{} {}", class, btn_class)
-                on:click:undelegated=move |_| {
-                    if let Some(element) = node_ref.get() {
-                        let _ = element.focus();
-                    }
-                }
+        <div class="">
+            <div
+                id=id
+                class="dropdown"
+                class=("disable-click", disabled)
+                class=("dropdown-right", dropdown_direction == DropdownDirection::Right)
+                class=("dropdown-left", dropdown_direction == DropdownDirection::Left)
+                class=("dropdown-top", dropdown_direction == DropdownDirection::Top)
+                class=("dropdown-down", dropdown_direction == DropdownDirection::Down)
             >
-
-                <i class=format!("{dropdown_icon}")></i>
-                {dropdown_text}
-            </label>
-            <ul
-                tabindex="0"
-                class=format!(
-                    "{dropdown_width} dropdown-content z-[1] menu flex-nowrap p-2 shadow bg-base-100 rounded-box max-h-96 overflow-y-scroll overflow-x-hidden",
-                )
-            >
-
-                {if searchable {
-                    view! {
-                        <div class="mb-3">
-                            <label class="input input-bordered flex items-center gap-2 h-10">
-                                <i class="ri-search-line"></i>
-                                <input
-                                    type="text"
-                                    class="grow"
-                                    placeholder="Search"
-                                    ref_=node_ref
-                                    name=name.clone()
-                                    value=search_term.get_untracked()
-                                    on:input=move |event| {
-                                        set_search_term.set(event_target_value(&event));
-                                    }
-                                />
-
-                            </label>
-                        </div>
-                    }
-                        .into_view()
-                } else {
-                    view! {}.into_view()
-                }}
-
-                <For
-                    each=move || dropdown_options.get()
-                    key=|option: &T| option.key()
-                    children=move |option: T| {
-                        let label = option.label();
-                        view! {
-                            <li
-                                class="w-full"
-                                on:click=move |_| {
-                                    let selected_option = option.clone();
-                                    on_select.call(selected_option);
-                                }
-                            >
-
-                                <a class="w-full word-break-break">{label.to_string()}</a>
-                            </li>
+                <label
+                    tabindex="0"
+                    class=format!("{} {}", class, btn_class)
+                    on:click:undelegated=move |_| {
+                        if let Some(element) = node_ref.get() {
+                            let _ = element.focus();
                         }
                     }
-                />
+                >
 
-            </ul>
+                    <i class=format!("{dropdown_icon}")></i>
+                    {dropdown_text}
+                </label>
+                <ul
+                    tabindex="0"
+                    class=format!(
+                        "{dropdown_width} dropdown-content z-[1] menu flex-nowrap p-2 shadow bg-base-100 rounded-box max-h-96 overflow-y-scroll overflow-x-hidden",
+                    )
+                >
+
+                    {if searchable {
+                        view! {
+                            <div class="mb-3">
+                                <label class="input input-bordered flex items-center gap-2 h-10">
+                                    <i class="ri-search-line"></i>
+                                    <input
+                                        type="text"
+                                        class="grow"
+                                        placeholder="Search"
+                                        ref_=node_ref
+                                        name=name.clone()
+                                        value=search_term.get_untracked()
+                                        on:input=move |event| {
+                                            set_search_term.set(event_target_value(&event));
+                                        }
+                                    />
+
+                                </label>
+                            </div>
+                        }
+                            .into_view()
+                    } else {
+                        view! {}.into_view()
+                    }}
+
+                    <For
+                        each=move || dropdown_options.get()
+                        key=|option: &T| option.key()
+                        children=move |option: T| {
+                            let label = option.label();
+                            view! {
+                                <li
+                                    class="w-full"
+                                    on:click=move |_| {
+                                        let selected_option = option.clone();
+                                        if multi_select {
+                                            selected_ws
+                                            .update(|selected| {
+                                                selected.push(selected_option.clone());
+                                            });
+                                        }
+                                        on_select.call(selected_option);
+                                    }
+                                >
+
+                                    <a class="w-full word-break-break">{label.to_string()}</a>
+                                </li>
+                            }
+                        }
+                    />
+
+                </ul>
+            </div>
+            <Show when=move || { !selected_rs.get().is_empty() }>
+                <div class="flex flex-wrap gap-2 break-words w-[28rem] mt-4">
+                    <For
+                        each=move || { selected_rs.get() }
+                        key=move |option| { option.key() }
+                        children=move |option| {
+                            let label = option.label();
+                            view! {
+                                <div class="flex justify-between badge badge-primary badge-outline">
+                                    {label.to_string()}
+                                    <button
+                                        class="btn btn-xs btn-circle btn-ghost"
+                                        on:click=move |_| {
+                                            let selected_option = option.clone();
+                                            selected_ws
+                                                .update(|selected| {
+                                                    selected.retain(|x| x.key() != selected_option.key());
+                                                });
+                                            on_remove.call(selected_option);
+                                        }
+                                    >
+                                        <i class="ri-close-line"></i>
+                                    </button>
+                                </div>
+                            }
+                        }
+                    />
+                </div>
+            </Show>
         </div>
     }
 }

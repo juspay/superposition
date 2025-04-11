@@ -4,7 +4,7 @@ use serde_json::Value;
 
 use super::models::cac::{DependencyGraph, Dimension, Position};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct DimensionWithMandatory {
     pub dimension: String,
     pub position: Position,
