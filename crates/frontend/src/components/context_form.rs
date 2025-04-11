@@ -28,7 +28,7 @@ pub fn condition_input(
 ) -> impl IntoView {
     let (dimension, operator): (String, Operator) =
         condition.with_value(|v| (v.variable.clone(), v.into()));
-
+    let tooltip_text = StoredValue::new(tooltip_text);
     let inputs: Vec<(Value, Callback<Value, ()>)> = match condition.get_value().expression
     {
         Expression::Is(c) => {
@@ -171,8 +171,8 @@ pub fn condition_input(
                     >
                         <i class="ri-delete-bin-2-line text-2xl font-bold"></i>
                     </button>
-                </Show> <Show when=move || !allow_remove>
-                    <div class="tooltip" data-tip=tooltip_text.clone()>
+                </Show> <Show when=move || !tooltip_text.get_value().is_empty()>
+                    <div class="tooltip" data-tip=tooltip_text.get_value()>
                         <i class="ri-information-line text-2xl"></i>
                     </div>
                 </Show>
@@ -211,45 +211,43 @@ where
             .collect::<HashSet<String>>(),
     );
 
-    let update_context_with_dimension =
-        move |context: &mut Conditions, dimension_info: &DimensionWithMandatory| {
-            if !context.includes(&dimension_info.dimension) {
+    let insert_dimension =
+        move |context: &mut Conditions, dimension: &DimensionWithMandatory| {
+            if !context.includes(&dimension.dimension) {
                 context.push(Condition::new_with_default_expression(
-                    dimension_info.dimension.clone(),
-                    SchemaType::try_from(dimension_info.schema.clone()).unwrap(),
+                    dimension.dimension.clone(),
+                    SchemaType::try_from(dimension.schema.clone()).unwrap(),
                 ));
             }
-            let dependencies: Vec<String> = dimension_info
+            dimension
                 .dependency_graph
                 .keys()
-                .filter(|key| **key != dimension_info.dimension)
-                .cloned()
-                .collect();
-            dependencies.into_iter().for_each(|dependency| {
-                if let Some(r#type) = dimension_map
-                    .get_value()
-                    .get(&dependency)
-                    .and_then(|d| SchemaType::try_from(d.schema.clone()).ok())
-                {
-                    if !context.includes(&dependency) {
-                        context.push(Condition::new_with_default_expression(
-                            dependency.clone(),
-                            r#type.clone(),
-                        ));
+                .filter(|key| **key != dimension.dimension)
+                .for_each(|dependency| {
+                    if let Some(r#type) = dimension_map
+                        .get_value()
+                        .get(dependency)
+                        .and_then(|d| SchemaType::try_from(d.schema.clone()).ok())
+                    {
+                        if !context.includes(dependency) {
+                            context.push(Condition::new_with_default_expression(
+                                dependency.clone(),
+                                r#type.clone(),
+                            ));
+                        }
                     }
-                }
-            });
+                });
         };
 
     let context_data = {
         let mut context = context;
-        if !disabled {
+        if !disabled && !resolve_mode {
             dimensions
                 .get_value()
                 .into_iter()
                 .filter(|dim| dim.mandatory)
-                .for_each(|dimension_info| {
-                    update_context_with_dimension(&mut context, &dimension_info);
+                .for_each(|dimension| {
+                    insert_dimension(&mut context, &dimension);
                 });
         }
         context
@@ -289,7 +287,14 @@ where
     let on_select_dimension =
         Callback::new(move |selected_dimension: DimensionWithMandatory| {
             let mut context = context_rs.get();
-            update_context_with_dimension(&mut context, &selected_dimension);
+            if !resolve_mode {
+                insert_dimension(&mut context, &selected_dimension);
+            } else {
+                context.push(Condition::new_with_default_expression(
+                    selected_dimension.dimension.clone(),
+                    SchemaType::try_from(selected_dimension.schema.clone()).unwrap(),
+                ));
+            }
             context_ws.update(|v| {
                 *v = context;
             });
@@ -379,7 +384,7 @@ where
                                 condition.variable,
                                 idx,
                                 condition.expression.to_operator(),
-                                context_dependencies.get().contains(&condition.variable),
+                                context_dependencies.with(|v| v.contains(&condition.variable)),
                             )
                         }
 
@@ -398,9 +403,15 @@ where
                                     .into_view();
                             }
                             let schema_type = store_value(schema_type.unwrap());
-                            let allow_remove = !disabled
-                                && !mandatory_dimensions.get_value().contains(&condition.variable)
-                                && !context_dependencies.get().contains(&condition.variable);
+                            let is_mandatory = mandatory_dimensions
+                                .with_value(|v| v.contains(&condition.variable));
+                            let has_context_dependency = context_dependencies
+                                .with(|v| v.contains(&condition.variable));
+                            let allow_remove = if resolve_mode {
+                                !disabled
+                            } else {
+                                !disabled && !is_mandatory && !has_context_dependency
+                            };
                             let input_type = store_value(
                                 InputType::from((
                                     schema_type.get_value(),
