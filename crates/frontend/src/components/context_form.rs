@@ -24,10 +24,11 @@ pub fn condition_input(
     #[prop(into)] on_remove: Callback<String, ()>,
     #[prop(into)] on_value_change: Callback<Expression, ()>,
     #[prop(into)] on_operator_change: Callback<Operator, ()>,
+    #[prop(default = String::new())] tooltip_text: String,
 ) -> impl IntoView {
     let (dimension, operator): (String, Operator) =
         condition.with_value(|v| (v.variable.clone(), v.into()));
-
+    let tooltip_text = StoredValue::new(tooltip_text);
     let inputs: Vec<(Value, Callback<Value, ()>)> = match condition.get_value().expression
     {
         Expression::Is(c) => {
@@ -140,7 +141,6 @@ pub fn condition_input(
                                 value=value
                                 schema_type=schema_type.get_value()
                                 on_change=on_change
-
                                 r#type=input_type.get_value()
                                 disabled=disabled
                                 id=format!(
@@ -155,7 +155,6 @@ pub fn condition_input(
                                         }),
                                     idx,
                                 )
-
                                 class="w-[450px]"
                                 name=""
                                 operator=Some(operator.clone())
@@ -164,15 +163,18 @@ pub fn condition_input(
                     })
                     .collect_view()} <Show when=move || allow_remove>
                     <button
-                        class="btn btn-ghost btn-circle btn-sm mt-1"
+                        class="btn btn-ghost btn-circle btn-sm"
                         disabled=disabled
                         on:click=move |_| {
                             on_remove.call(condition.with_value(|v| v.variable.clone()));
                         }
                     >
-
                         <i class="ri-delete-bin-2-line text-2xl font-bold"></i>
                     </button>
+                </Show> <Show when=move || !tooltip_text.get_value().is_empty()>
+                    <div class="tooltip" data-tip=tooltip_text.get_value()>
+                        <i class="ri-information-line text-2xl"></i>
+                    </div>
                 </Show>
             </div>
         </div>
@@ -198,13 +200,6 @@ where
             .map(|v| (v.dimension.clone(), v.clone()))
             .collect::<HashMap<String, DimensionWithMandatory>>(),
     );
-    let (used_dimensions_rs, used_dimensions_ws) = create_signal(
-        context
-            .iter()
-            .map(|condition| condition.variable.clone())
-            .collect::<HashSet<String>>(),
-    );
-    let (context_rs, context_ws) = create_signal(context.clone());
 
     let dimensions = StoredValue::new(dimensions);
     let mandatory_dimensions = StoredValue::new(
@@ -216,30 +211,93 @@ where
             .collect::<HashSet<String>>(),
     );
 
+    let insert_dimension =
+        move |context: &mut Conditions, dimension: &DimensionWithMandatory| {
+            if !context.includes(&dimension.dimension) {
+                context.push(Condition::new_with_default_expression(
+                    dimension.dimension.clone(),
+                    SchemaType::try_from(dimension.schema.clone()).unwrap(),
+                ));
+            }
+            dimension
+                .dependency_graph
+                .keys()
+                .filter(|key| **key != dimension.dimension)
+                .for_each(|dependency| {
+                    if let Some(r#type) = dimension_map
+                        .get_value()
+                        .get(dependency)
+                        .and_then(|d| SchemaType::try_from(d.schema.clone()).ok())
+                    {
+                        if !context.includes(dependency) {
+                            context.push(Condition::new_with_default_expression(
+                                dependency.clone(),
+                                r#type.clone(),
+                            ));
+                        }
+                    }
+                });
+        };
+
+    let context_data = {
+        let mut context = context;
+        if !disabled && !resolve_mode {
+            dimensions
+                .get_value()
+                .into_iter()
+                .filter(|dim| dim.mandatory)
+                .for_each(|dimension| {
+                    insert_dimension(&mut context, &dimension);
+                });
+        }
+        context
+    };
+
+    let (context_rs, context_ws) = create_signal(context_data);
+    let used_dimensions = Signal::derive(move || {
+        context_rs
+            .get()
+            .iter()
+            .map(|condition| condition.variable.clone())
+            .collect::<HashSet<_>>()
+    });
+
+    let context_dependencies = Signal::derive(move || {
+        used_dimensions
+            .get()
+            .iter()
+            .flat_map(|dimension| {
+                dimension_map
+                    .get_value()
+                    .get(dimension)
+                    .map(|d| d.dependencies.clone())
+                    .unwrap_or_default()
+            })
+            .collect::<HashSet<_>>()
+    });
+
     let last_idx = create_memo(move |_| context_rs.get().len().max(1) - 1);
 
     create_effect(move |_| {
-        let f_context = context_rs.get(); // context will now be a Value
+        let f_context = context_rs.get();
         logging::log!("Context form effect {:?}", f_context);
-        handle_change(f_context.clone()); // handle_change now expects Value
+        handle_change(f_context.clone());
     });
 
     let on_select_dimension =
         Callback::new(move |selected_dimension: DimensionWithMandatory| {
-            let dimension_name = selected_dimension.dimension;
-
-            if let Ok(r#type) = SchemaType::try_from(selected_dimension.schema) {
-                used_dimensions_ws.update(|value: &mut HashSet<String>| {
-                    value.insert(dimension_name.clone());
-                });
-                context_ws.update(|value| {
-                    value.push(Condition::new_with_default_expression(
-                        dimension_name,
-                        r#type,
-                    ))
-                });
+            let mut context = context_rs.get();
+            if !resolve_mode {
+                insert_dimension(&mut context, &selected_dimension);
+            } else {
+                context.push(Condition::new_with_default_expression(
+                    selected_dimension.dimension.clone(),
+                    SchemaType::try_from(selected_dimension.schema.clone()).unwrap(),
+                ));
             }
-            // TODO show alert in case of invalid dimension
+            context_ws.update(|v| {
+                *v = context;
+            });
         });
 
     let on_operator_change =
@@ -259,14 +317,33 @@ where
         })
     });
 
-    let on_remove = Callback::new(move |(idx, d_name): (usize, String)| {
-        used_dimensions_ws.update(|value| {
-            value.remove(&d_name);
-        });
+    let on_remove = Callback::new(move |(idx, _): (usize, String)| {
         context_ws.update(|v| {
             v.remove(idx);
         });
     });
+
+    let get_tool_tip_text = move |condition: StoredValue<Condition>| -> String {
+        let variable = condition.get_value().variable;
+        if mandatory_dimensions.get_value().contains(&variable) {
+            return "Mandatory Dimension".to_string();
+        }
+        if context_dependencies.get().contains(&variable) {
+            if let Some(parents) = dimension_map
+                .get_value()
+                .get(&variable)
+                .map(|d| d.dependents.clone())
+            {
+                let parents_in_context = parents
+                    .into_iter()
+                    .filter(|parent| used_dimensions.get().contains(parent))
+                    .collect::<Vec<String>>()
+                    .join(", ");
+                return format!("Required by: {parents_in_context}",);
+            }
+        }
+        String::new()
+    };
 
     view! {
         <div class="form-control w-full">
@@ -301,12 +378,13 @@ where
                                 .collect::<Vec<(usize, Condition)>>()
                         }
 
-                        key=|(idx, condition)| {
+                        key=move |(idx, condition)| {
                             format!(
-                                "{}-{}-{}",
+                                "{}-{}-{}-{}",
                                 condition.variable,
                                 idx,
                                 condition.expression.to_operator(),
+                                context_dependencies.with(|v| v.contains(&condition.variable)),
                             )
                         }
 
@@ -325,8 +403,15 @@ where
                                     .into_view();
                             }
                             let schema_type = store_value(schema_type.unwrap());
-                            let allow_remove = !disabled
-                                && !mandatory_dimensions.get_value().contains(&condition.variable);
+                            let is_mandatory = mandatory_dimensions
+                                .with_value(|v| v.contains(&condition.variable));
+                            let has_context_dependency = context_dependencies
+                                .with(|v| v.contains(&condition.variable));
+                            let allow_remove = if resolve_mode {
+                                !disabled
+                            } else {
+                                !disabled && !is_mandatory && !has_context_dependency
+                            };
                             let input_type = store_value(
                                 InputType::from((
                                     schema_type.get_value(),
@@ -346,6 +431,7 @@ where
                                         Expression::from((schema_type.get_value(), operator)),
                                     ))
                             };
+                            let tooltip_text = get_tool_tip_text(condition);
                             view! {
                                 <ConditionInput
                                     disabled
@@ -357,6 +443,7 @@ where
                                     on_remove
                                     on_value_change
                                     on_operator_change
+                                    tooltip_text
                                 />
                                 {move || {
                                     if last_idx.get() != idx {
@@ -383,7 +470,7 @@ where
                                     .get_value()
                                     .into_iter()
                                     .filter(|dimension| {
-                                        !used_dimensions_rs.get().contains(&dimension.dimension)
+                                        !used_dimensions.get().contains(&dimension.dimension)
                                     })
                                     .collect::<Vec<DimensionWithMandatory>>();
                                 view! {

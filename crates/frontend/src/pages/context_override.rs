@@ -10,6 +10,7 @@ use superposition_types::{
     Config, Context,
 };
 
+use crate::components::alert::AlertType;
 use crate::components::context_card::ContextCard;
 use crate::components::context_form::utils::{create_context, update_context};
 use crate::components::context_form::ContextForm;
@@ -18,7 +19,7 @@ use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::experiment_form::ExperimentForm;
 use crate::components::override_form::OverrideForm;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
-use crate::logic::{Condition, Conditions};
+use crate::logic::Conditions;
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
@@ -26,7 +27,6 @@ use crate::{
     api::{delete_context, fetch_config, fetch_default_config, fetch_dimensions},
     types::{OrganisationId, Tenant},
 };
-use crate::{components::alert::AlertType, schema::SchemaType};
 use crate::{components::button::Button, types::VariantFormTs};
 
 #[derive(Clone, Debug, Default)]
@@ -235,25 +235,7 @@ pub fn context_override() -> impl IntoView {
 
     let on_create_context_click = Callback::new(move |_| {
         set_form_mode.set(Some(FormMode::Create));
-        let PageResource { dimensions, .. } = page_resource.get().unwrap_or_default();
-        let mut default_ctx: Conditions = Conditions(vec![]);
-        for dim in dimensions.iter().filter(|v| v.mandatory) {
-            let r#type = SchemaType::try_from(dim.schema.clone());
-            if r#type.is_err() {
-                //TODO emit an alert and return
-                return;
-            }
-
-            default_ctx.push(Condition::new_with_default_expression(
-                dim.dimension.clone(),
-                r#type.unwrap(),
-            ));
-        }
-
-        selected_context_ws.set(Some(Data {
-            context: default_ctx,
-            overrides: vec![],
-        }));
+        selected_context_ws.set(Some(Data::default()));
         open_drawer("context_and_override_drawer");
     });
 

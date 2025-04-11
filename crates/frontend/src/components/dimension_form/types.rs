@@ -7,6 +7,7 @@ pub struct DimensionCreateReq {
     pub position: u32,
     pub schema: Value,
     pub function_name: Option<Value>,
+    pub dependencies: Vec<String>,
     pub description: String,
     pub change_reason: String,
 }
@@ -16,6 +17,7 @@ pub struct DimensionUpdateReq {
     pub position: Option<u32>,
     pub schema: Option<Value>,
     pub function_name: Option<Value>,
+    pub dependencies: Vec<String>,
     pub description: String,
     pub change_reason: String,
 }
