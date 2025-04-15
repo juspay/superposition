@@ -1,9 +1,10 @@
-import { SuperpositionClient, GetConfigCommand } from "../src";
+import { SuperpositionClient, GetConfigCommand } from "@io.juspay/superposition-sdk";
+import { ENV } from "./env.test.ts";
 
 describe("Config API", () => {
     test("GetConifg", async () => {
         const config = {
-            endpoint: "http://127.0.0.1:8080",
+            endpoint: ENV.baseUrl,
             token: {
                 token: "some-token",
             },

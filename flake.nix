@@ -43,6 +43,7 @@
             ];
             # Add your devShell tools here
             packages = with pkgs; [
+              bun
               self'.packages.smithy-cli
               docker-compose
               gnumake

@@ -44,12 +44,12 @@ export interface UpdateOrganisationCommandOutput extends OrganisationResponse, _
  * // const { SuperpositionClient, UpdateOrganisationCommand } = require("@io.juspay/superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // UpdateOrganisationRequest
- *   id: "STRING_VALUE", // required
  *   country_code: "STRING_VALUE",
  *   contact_email: "STRING_VALUE",
  *   contact_phone: "STRING_VALUE",
  *   admin_email: "STRING_VALUE",
  *   sector: "STRING_VALUE",
+ *   id: "STRING_VALUE", // required
  *   status: "Active" || "Inactive" || "PendingKyb",
  * };
  * const command = new UpdateOrganisationCommand(input);

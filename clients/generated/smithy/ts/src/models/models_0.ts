@@ -858,8 +858,8 @@ export interface CreateOrganisationRequest {
   contact_email?: string | undefined;
   contact_phone?: string | undefined;
   admin_email: string | undefined;
-  name: string | undefined;
   sector?: string | undefined;
+  name: string | undefined;
 }
 
 /**
@@ -1415,12 +1415,12 @@ export interface WorkspaceListResponse {
  * @public
  */
 export interface UpdateOrganisationRequest {
-  id: string | undefined;
   country_code?: string | undefined;
   contact_email?: string | undefined;
   contact_phone?: string | undefined;
   admin_email?: string | undefined;
   sector?: string | undefined;
+  id: string | undefined;
   status?: OrgStatus | undefined;
 }
 
