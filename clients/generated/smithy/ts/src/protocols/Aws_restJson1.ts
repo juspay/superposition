@@ -208,6 +208,7 @@ import {
   FunctionNotFound,
   FunctionResponse,
   InternalServerError,
+  ListVersionsMember,
   OrganisationNotFound,
   OrganisationResponse,
   ResourceNotFound,
@@ -2356,7 +2357,7 @@ export const de_ListVersionsCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'data': _json,
+    'data': _ => de_ListVersionsOut(_, context),
     'total_items': __expectInt32,
     'total_pages': __expectInt32,
   });
@@ -3451,7 +3452,35 @@ const de_CommandError = async(
     return retVal;
   }
 
-  // de_ListVersionsOut omitted.
+  /**
+   * deserializeAws_restJson1ListVersionsMember
+   */
+  const de_ListVersionsMember = (
+    output: any,
+    context: __SerdeContext
+  ): ListVersionsMember => {
+    return take(output, {
+      'config': (_: any) => de_Document(_, context),
+      'config_hash': __expectString,
+      'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'description': __expectString,
+      'id': __expectString,
+      'tags': _json,
+    }) as any;
+  }
+
+  /**
+   * deserializeAws_restJson1ListVersionsOut
+   */
+  const de_ListVersionsOut = (
+    output: any,
+    context: __SerdeContext
+  ): (ListVersionsMember)[] => {
+    const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
+      return de_ListVersionsMember(entry, context);
+    });
+    return retVal;
+  }
 
   /**
    * deserializeAws_restJson1Object
@@ -3538,6 +3567,8 @@ const de_CommandError = async(
     }, {} as Record<string, Record<string, __DocumentType>>);}
 
   // de_OverrideWithKeys omitted.
+
+  // de_StringList omitted.
 
   /**
    * deserializeAws_restJson1TypeTemplatesList

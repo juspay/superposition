@@ -1218,14 +1218,14 @@ CREATE TYPE public.function_types AS ENUM (
 ALTER TABLE localorg_dev.functions ADD COLUMN function_type public.FUNCTION_TYPES NOT NULL DEFAULT 'VALIDATION';
 
 
+ALTER TABLE localorg_test.dimensions
+ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
+ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
+ADD COLUMN dependencies TEXT[] default '{}' NOT NULL;
+
+ALTER TABLE localorg_dev.dimensions
+ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
+ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
+ADD COLUMN dependencies TEXT[] default '{}' NOT NULL;
+
 COMMIT
-
-ALTER TABLE localorg_test.dimensions 
-ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
-ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
-ADD COLUMN dependencies TEXT[] default '{}' NOT NULL;
-
-ALTER TABLE localorg_dev.dimensions 
-ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
-ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
-ADD COLUMN dependencies TEXT[] default '{}' NOT NULL;

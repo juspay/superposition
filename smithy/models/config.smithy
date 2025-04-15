@@ -41,8 +41,22 @@ operation GetConfigFast {
     }
 }
 
+structure ListVersionsMember for Config {
+    @required
+    id: String
+    @required
+    $config
+    @required
+    config_hash: String
+    @required
+    created_at: DateTime
+    @required
+    description: String
+    tags: StringList
+}
+
 list ListVersionsOut {
-    member: String
+    member: ListVersionsMember
 }
 
 @readonly
@@ -60,12 +74,15 @@ operation ListVersions {
 
     output := {
         @notProperty
+        @required
         total_pages: Integer
 
         @notProperty
+        @required
         total_items: Integer
 
         @notProperty
+        @required
         data: ListVersionsOut
     }
 }
