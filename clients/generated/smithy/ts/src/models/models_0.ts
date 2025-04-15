@@ -508,10 +508,22 @@ export interface ListVersionsInput {
 /**
  * @public
  */
+export interface ListVersionsMember {
+  id: string | undefined;
+  config: __DocumentType | undefined;
+  config_hash: string | undefined;
+  created_at: Date | undefined;
+  description: string | undefined;
+  tags?: (string)[] | undefined;
+}
+
+/**
+ * @public
+ */
 export interface ListVersionsOutput {
-  total_pages?: number | undefined;
-  total_items?: number | undefined;
-  data?: (string)[] | undefined;
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (ListVersionsMember)[] | undefined;
 }
 
 /**

@@ -6,20 +6,11 @@ import {
     UpdateOrganisationCommand,
 } from "@io.juspay/superposition-sdk";
 import { expect, describe, beforeAll, it, afterAll } from "bun:test";
-import { ENV } from "./env.test.ts";
+import { ENV, superpositionClient } from "./env.ts";
 
 describe("Organisation Tests", () => {
-    let client: SuperpositionClient;
+    let client: SuperpositionClient = superpositionClient;
     let createdOrgId: string;
-
-    beforeAll(() => {
-        client = new SuperpositionClient({
-            endpoint: ENV.baseUrl,
-            token: {
-                token: "some-token",
-            },
-        });
-    });
 
     describe("CreateOrganisationCommand", () => {
         it("should create an organisation successfully", async () => {
