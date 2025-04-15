@@ -48,8 +48,8 @@ export interface CreateOrganisationCommandOutput extends OrganisationResponse, _
  *   contact_email: "STRING_VALUE",
  *   contact_phone: "STRING_VALUE",
  *   admin_email: "STRING_VALUE", // required
- *   name: "STRING_VALUE", // required
  *   sector: "STRING_VALUE",
+ *   name: "STRING_VALUE", // required
  * };
  * const command = new CreateOrganisationCommand(input);
  * const response = await client.send(command);

@@ -109,7 +109,10 @@ ifdef CI
 endif
 setup: $(SETUP_DEPS)
 	npm ci
-	cd $(SMITHY_CLIENT_DIR)/ts && npm ci
+	cd $(SMITHY_CLIENT_DIR)/ts && npm ci &&\
+		npm run build:cjs &&\
+		npm run build:types &&\
+		npm run build:es
 
 kill:
 	-@pkill -f target/debug/superposition &
@@ -186,7 +189,7 @@ ts-client: smithy-build
 # cp -r $(SMITHY_BUILD_SRC)/typescript-client-codegen $(SMITHY_CLIENT_DIR)/ts
 ## Skipping package.json as we have installed jest, probably will have to change
 ## this once we move to `smoke-tests`.
-	rsync -av --exclude="package.json" $(SMITHY_BUILD_SRC)/typescript-client-codegen/ $(SMITHY_CLIENT_DIR)/ts/
+	rsync -av $(SMITHY_BUILD_SRC)/typescript-client-codegen/ $(SMITHY_CLIENT_DIR)/ts/
 
 clients: smithy-build ts-client
 

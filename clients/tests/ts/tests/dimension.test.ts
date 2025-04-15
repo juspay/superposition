@@ -1,9 +1,10 @@
-import { SuperpositionClient, ListDimensionsCommand } from "../src";
+import { SuperpositionClient, ListDimensionsCommand } from "@io.juspay/superposition-sdk";
+import { ENV } from "./env.test.ts";
 
 describe("Dimension API", () => {
     test("ListDimension", async () => {
         const config = {
-            endpoint: "http://127.0.0.1:8080",
+            endpoint: ENV.baseUrl,
             token: {
                 token: "some-token",
             },
