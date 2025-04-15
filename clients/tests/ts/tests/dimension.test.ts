@@ -1,5 +1,6 @@
 import { SuperpositionClient, ListDimensionsCommand } from "@io.juspay/superposition-sdk";
 import { ENV } from "./env.test.ts";
+import { describe, test } from "bun:test";
 
 describe("Dimension API", () => {
     test("ListDimension", async () => {
