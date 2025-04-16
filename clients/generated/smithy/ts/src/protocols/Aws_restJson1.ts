@@ -3031,7 +3031,7 @@ const de_CommandError = async(
   ): any => {
     return take(input, {
       'change_reason': [],
-      'condition': _ => se_Condition(_, context),
+      'context': _ => se_Condition(_, context),
       'description': [],
       'id': [],
     });
@@ -3046,7 +3046,7 @@ const de_CommandError = async(
   ): any => {
     return take(input, {
       'change_reason': [],
-      'condition': _ => se_Condition(_, context),
+      'context': _ => se_Condition(_, context),
       'description': [],
       'override': _ => se_Overrides(_, context),
     });

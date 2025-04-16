@@ -103,12 +103,16 @@ test-tenant: tenant
 dev-tenant: TENANT = 'dev'
 dev-tenant: tenant
 
+node_dependencies:
+	npm ci
+
 SETUP_DEPS = env-file db localstack
 ifdef CI
 	SETUP_DEPS += test-tenant
 endif
-setup: $(SETUP_DEPS)
-	npm ci
+setup: $(SETUP_DEPS) node_dependencies setup_clients
+
+setup_clients:
 	cd $(SMITHY_CLIENT_DIR)/ts && npm ci &&\
 		npm run build:cjs &&\
 		npm run build:types &&\

@@ -124,7 +124,7 @@ export interface AutocompleteFunctionRequest {
  */
 export interface ContextMove {
   id?: string | undefined;
-  condition: Record<string, __DocumentType> | undefined;
+  context: Record<string, __DocumentType> | undefined;
   description?: string | undefined;
   change_reason: string | undefined;
 }
@@ -133,7 +133,7 @@ export interface ContextMove {
  * @public
  */
 export interface ContextPut {
-  condition: Record<string, __DocumentType> | undefined;
+  context: Record<string, __DocumentType> | undefined;
   override: Record<string, __DocumentType> | undefined;
   description?: string | undefined;
   change_reason: string | undefined;

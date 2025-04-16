@@ -51,7 +51,7 @@ export interface BulkOperationCommandOutput extends BulkOperationOutput, __Metad
  *     operations: [ // BulkOperationList
  *       { // ContextAction Union: only one key present
  *         PUT: { // ContextPut
- *           condition: { // Condition // required
+ *           context: { // Condition // required
  *             "<keys>": "DOCUMENT_VALUE",
  *           },
  *           override: { // Overrides // required
@@ -61,7 +61,7 @@ export interface BulkOperationCommandOutput extends BulkOperationOutput, __Metad
  *           change_reason: "STRING_VALUE", // required
  *         },
  *         REPLACE: {
- *           condition: { // required
+ *           context: { // required
  *             "<keys>": "DOCUMENT_VALUE",
  *           },
  *           override: { // required
@@ -73,7 +73,7 @@ export interface BulkOperationCommandOutput extends BulkOperationOutput, __Metad
  *         DELETE: "STRING_VALUE",
  *         MOVE: { // ContextMove
  *           id: "STRING_VALUE",
- *           condition: { // required
+ *           context: { // required
  *             "<keys>": "DOCUMENT_VALUE",
  *           },
  *           description: "STRING_VALUE",
