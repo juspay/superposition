@@ -469,7 +469,9 @@ ALTER TABLE localorg_test.dimensions
 ALTER COLUMN priority SET DEFAULT 1;
 
 ALTER TABLE localorg_test.dimensions
-ADD CONSTRAINT dimension_unique_position UNIQUE (position);
+ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY IMMEDIATE;
+
+SET CONSTRAINTS localorg_test.dimension_unique_position DEFERRED;
 
 ALTER TABLE localorg_test.contexts ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
 ALTER TABLE localorg_test.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
@@ -1044,7 +1046,9 @@ ALTER TABLE localorg_dev.dimensions
 ALTER COLUMN priority SET DEFAULT 1;
 
 ALTER TABLE localorg_dev.dimensions
-ADD CONSTRAINT dimension_unique_position UNIQUE (position);
+ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY IMMEDIATE;
+
+SET CONSTRAINTS localorg_dev.dimension_unique_position DEFERRED;
 
 ALTER TABLE localorg_dev.contexts ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
 ALTER TABLE localorg_dev.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
@@ -1217,7 +1221,6 @@ CREATE TYPE public.function_types AS ENUM (
 
 ALTER TABLE localorg_dev.functions ADD COLUMN function_type public.FUNCTION_TYPES NOT NULL DEFAULT 'VALIDATION';
 
-
 ALTER TABLE localorg_test.dimensions
 ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
 ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
@@ -1228,4 +1231,4 @@ ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
 ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
 ADD COLUMN dependencies TEXT[] default '{}' NOT NULL;
 
-COMMIT
+COMMIT;

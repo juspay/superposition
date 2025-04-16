@@ -406,7 +406,9 @@ ALTER TABLE {replaceme}.dimensions
 ALTER COLUMN priority SET DEFAULT 1;
 
 ALTER TABLE {replaceme}.dimensions
-ADD CONSTRAINT dimension_unique_position UNIQUE (position);
+ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY IMMEDIATE;
+
+SET CONSTRAINTS {replaceme}.dimension_unique_position DEFERRED;
 
 ALTER TABLE {replaceme}.contexts ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
 ALTER TABLE {replaceme}.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
