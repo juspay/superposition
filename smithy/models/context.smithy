@@ -295,7 +295,7 @@ operation WeightRecompute {
 
 structure ContextPut for Context {
     @required
-    condition: Condition
+    context: Condition
 
     @required
     $override
@@ -310,7 +310,7 @@ structure ContextMove for Context {
     $id
 
     @required
-    condition: Condition
+    context: Condition
 
     $description
 

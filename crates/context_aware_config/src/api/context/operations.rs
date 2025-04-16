@@ -6,7 +6,7 @@ use diesel::{
     Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use serde_json::Value;
-use service_utils::service::types::SchemaName;
+use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
     database::{models::cac::Context, schema::contexts},
@@ -98,8 +98,9 @@ pub fn r#move(
 
     let workspace_settings = get_workspace(schema_name, conn)?;
 
+    let context_map = extract_dimensions(&req.context.into_inner())?;
     validate_condition_with_mandatory_dimensions(
-        &req.context.into_inner(),
+        &context_map,
         &workspace_settings.mandatory_dimensions.unwrap_or_default(),
     )?;
 
@@ -115,6 +116,7 @@ pub fn r#move(
             dsl::weight.eq(&weight),
             dsl::last_modified_at.eq(Utc::now()),
             dsl::last_modified_by.eq(user.get_email()),
+            dsl::description.eq(req_description.clone()),
         ))
         .returning(Context::as_returning())
         .schema_name(schema_name)
