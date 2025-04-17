@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.25.0 - 2025-04-17
+#### Bug Fixes
+- executing set_timeout only on wasm32 targets - (005b7c2) - Shubhranshu Sanjeev
+#### Features
+- Add dimension form support for dependent dimensions - (3929049) - Ankit.Mahato
+- dependent-dimensions-ui - (8b87186) - Ankit.Mahato
+- smithy models - (2958cce) - PRATIK MISHRA
+- Add types for experiment apis in superposition_types - (219a2eb) - Ayush Jain
+
+- - -
+
 ## frontend-v0.24.0 - 2025-04-03
 #### Bug Fixes
 - Create experiment - (34b80cc) - ayush.jain@juspay.in

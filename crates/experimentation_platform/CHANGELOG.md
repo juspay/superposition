@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.28.0 - 2025-04-17
+#### Features
+- smithy models - (2958cce) - PRATIK MISHRA
+- Add types for experiment apis in superposition_types - (219a2eb) - Ayush Jain
+
+- - -
+
 ## experimentation_platform-v0.27.0 - 2025-03-26
 #### Features
 - experiment filters in UI - (d4604e4) - Kartik

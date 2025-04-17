@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.27.0 - 2025-04-17
+#### Features
+- smithy models - (2958cce) - PRATIK MISHRA
+
+- - -
+
 ## service_utils-v0.26.3 - 2025-02-28
 #### Bug Fixes
 - Fixed clippy warnings - (88bbfe9) - ShreyBana

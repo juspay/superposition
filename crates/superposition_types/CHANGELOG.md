@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.16.0 - 2025-04-17
+#### Features
+- Add dimension form support for dependent dimensions - (3929049) - Ankit.Mahato
+- smithy models - (2958cce) - PRATIK MISHRA
+- Add types for experiment apis in superposition_types - (219a2eb) - Ayush Jain
+- dependent dimensions - (5a89f5b) - Ankit Kumar Mahato
+
+- - -
+
 ## superposition_types-v0.15.0 - 2025-04-03
 #### Bug Fixes
 - config version alter query - (a4ddf7c) - Kartik

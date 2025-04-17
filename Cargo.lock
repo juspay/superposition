@@ -1306,7 +1306,7 @@ checksum = "13418e745008f7349ec7e449155f419a61b92b58a99cc3616942b926825ec76b"
 
 [[package]]
 name = "context_aware_config"
-version = "0.48.0"
+version = "0.49.0"
 dependencies = [
  "actix-http",
  "actix-web",
@@ -1886,7 +1886,7 @@ dependencies = [
 
 [[package]]
 name = "experimentation_client"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "cbindgen",
  "chrono",
@@ -1911,7 +1911,7 @@ dependencies = [
 
 [[package]]
 name = "experimentation_platform"
-version = "0.27.0"
+version = "0.28.0"
 dependencies = [
  "actix-http",
  "actix-web",
@@ -2068,7 +2068,7 @@ dependencies = [
 
 [[package]]
 name = "frontend"
-version = "0.24.0"
+version = "0.25.0"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -4418,7 +4418,7 @@ dependencies = [
 
 [[package]]
 name = "service_utils"
-version = "0.26.3"
+version = "0.27.0"
 dependencies = [
  "actix-web",
  "anyhow",
@@ -4652,7 +4652,7 @@ dependencies = [
 
 [[package]]
 name = "superposition_derives"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4665,7 +4665,7 @@ version = "0.2.0"
 
 [[package]]
 name = "superposition_types"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "actix-web",
  "anyhow",

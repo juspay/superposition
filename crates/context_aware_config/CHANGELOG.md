@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.49.0 - 2025-04-17
+#### Bug Fixes
+- added tests for contexts (along with bug-fixes) - (1f53762) - Shubhranshu Sanjeev
+#### Features
+- smithy models - (2958cce) - PRATIK MISHRA
+- dependent dimensions - (5a89f5b) - Ankit Kumar Mahato
+
+- - -
+
 ## context_aware_config-v0.48.0 - 2025-04-03
 #### Features
 - add autocomplete functions - (1f39003) - Kartik

@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.13.0 - 2025-04-17
+#### Features
+- Add types for experiment apis in superposition_types - (219a2eb) - Ayush Jain
+
+- - -
+
 ## experimentation_client-v0.12.0 - 2025-03-26
 #### Features
 - generate multiple binaries for clients based on platform (#445) - (cd6d30b) - Datron

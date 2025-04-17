@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_derives-v0.2.0 - 2025-04-17
+#### Features
+- Add types for experiment apis in superposition_types - (219a2eb) - Ayush Jain
+
+- - -
+
 ## superposition_derives-v0.1.0 - 2024-10-17
 #### Features
 - use concrete Variant type in db model (#241) - (8ca8135) - Ayush Jain

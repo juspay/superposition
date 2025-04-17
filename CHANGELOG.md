@@ -2,6 +2,38 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.70.0 - 2025-04-17
+### Package updates
+- superposition_types bumped to superposition_types-v0.16.0
+- experimentation_client bumped to experimentation_client-v0.13.0
+- context_aware_config bumped to context_aware_config-v0.49.0
+- superposition_derives bumped to superposition_derives-v0.2.0
+- haskell_client bumped to haskell_client-v0.3.0
+- frontend bumped to frontend-v0.25.0
+- experimentation_platform bumped to experimentation_platform-v0.28.0
+- service_utils bumped to service_utils-v0.27.0
+### Global changes
+#### Bug Fixes
+- workspace_template.sql and db-init.sql - (cc9ed84) - Ayush Jain
+- added tests for contexts (along with bug-fixes) - (1f53762) - Shubhranshu Sanjeev
+#### Features
+- dependent dimensions - (5a89f5b) - Ankit Kumar Mahato
+- Add types for experiment apis in superposition_types - (219a2eb) - Ayush Jain
+- smithy models - (2958cce) - PRATIK MISHRA
+#### Miscellaneous Chores
+- **(deps)** bump openssl from 0.10.70 to 0.10.72 - (5960d2d) - dependabot[bot]
+#### Refactoring
+- Refactored organisation smtihy model w/ mixin for requests. (#455) - (fb37a62) - ShreyBana
+#### Tests
+- Scaffolding for ts client tests. - (4b6b29a) - Shrey Bana
+- tests for the org module in ts sdk - (1981658) - Kartik
+- Config & Dimension happy test cases w/ ts client. - (c0f6e48) - Shrey Bana
+- workspace and type template - (f9ccd41) - sauraww
+- added default-config endpoint tests - (5dc457d) - Shubhranshu Sanjeev
+- add function tests for ts sdk - (afd27bc) - Kartik
+
+- - -
+
 ## v0.69.0 - 2025-04-03
 ### Package updates
 - frontend bumped to frontend-v0.24.0

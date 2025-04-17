@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.3.0 - 2025-04-17
+#### Features
+- auto desearlizing resolved config - (3a58af5) - Shubhranshu Sanjeev
+
+- - -
+
 ## haskell_client-v0.2.1 - 2025-01-22
 #### Bug Fixes
 - haskell client encode fix - (48bdfaf) - Pratik Mishra
