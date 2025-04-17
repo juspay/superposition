@@ -6,17 +6,14 @@ import {
     MoveContextCommand,
     DeleteContextCommand,
     GetContextCommand,
-    ListContextsCommand,
     BulkOperationCommand,
     CreateDimensionCommand,
     DeleteDimensionCommand,
     CreateDefaultConfigCommand,
     DeleteDefaultConfigCommand,
     type CreateContextCommandOutput,
-    type GetConfigCommandOutput,
     type GetContextCommandOutput,
     WeightRecomputeCommand,
-    CreateWorkspaceCommand,
     WorkspaceStatus,
 } from "@io.juspay/superposition-sdk";
 import { ENV, superpositionClient } from "../env.ts";

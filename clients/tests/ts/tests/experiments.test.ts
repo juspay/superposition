@@ -1,0 +1,600 @@
+import {
+    ListExperimentCommand,
+    CreateExperimentCommand,
+    GetExperimentCommand,
+    UpdateOverridesExperimentCommand,
+    RampExperimentCommand,
+    ConcludeExperimentCommand,
+    type ExperimentResponse,
+    type Variant,
+    VariantType,
+    ExperimentStatusType,
+    type VariantUpdateRequest,
+    CreateDimensionCommand,
+    ListDimensionsCommand,
+    CreateDefaultConfigCommand,
+    ListDefaultConfigsCommand,
+    DeleteDimensionCommand,
+    ListContextsCommand,
+    DeleteContextCommand,
+    GetContextCommand,
+} from "@io.juspay/superposition-sdk";
+import { superpositionClient, ENV } from "../env.ts";
+import { expect, describe, test, beforeAll, afterAll } from "bun:test";
+
+describe("Experiments API", () => {
+    let experimentId1: string | undefined;
+    let experiment1Variants: Variant[] | undefined;
+
+    const defaultChangeReason = "Automated Test";
+    const defaultDescription = "Created by automated test";
+
+    const experiment1Context = {
+        and: [
+            { "==": [{ var: "os" }, "ios"] },
+            { "==": [{ var: "clientId" }, "testClientCac1"] },
+        ],
+    };
+    const experiment1InitialVariants: Omit<
+        Variant,
+        "id" | "context_id" | "override_id"
+    >[] = [
+        {
+            variant_type: VariantType.CONTROL,
+            overrides: {
+                pmTestKey1: "value1-control",
+                pmTestKey2: "value1-control",
+            },
+        },
+        {
+            variant_type: VariantType.EXPERIMENTAL,
+            overrides: { pmTestKey1: "value2-test", pmTestKey2: "value2-test" },
+        },
+    ];
+
+    const experiment2Context = {
+        and: [
+            { "==": [{ var: "os" }, "ios"] },
+            { "==": [{ var: "clientId" }, "testClientCac02"] },
+        ],
+    };
+    const experiment2InitialVariants: Omit<
+        Variant,
+        "id" | "context_id" | "override_id"
+    >[] = [
+        {
+            variant_type: VariantType.CONTROL,
+            overrides: {
+                pmTestKey3: "value3-control",
+                pmTestKey4: "value3-control",
+            },
+        },
+        {
+            variant_type: VariantType.EXPERIMENTAL,
+            overrides: { pmTestKey3: "value4-test", pmTestKey4: "value4-test" },
+        },
+    ];
+
+    beforeAll(async () => {
+        const cmd = new ListDimensionsCommand({
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            count: 100,
+            page: 1,
+        });
+        const out = await superpositionClient.send(cmd);
+        const dimensions = out.data || [];
+        const requiredDimensions = [
+            {
+                name: "clientId",
+                description: "Client dimension for testing",
+                schema: { type: "string" },
+            },
+            {
+                name: "os",
+                description: "Operating system dimension for testing",
+                schema: {
+                    type: "string",
+                    enum: ["ios", "android", "web"],
+                },
+            },
+        ];
+
+        for (const dimension of requiredDimensions) {
+            const exists = dimensions.some(
+                (d) => d.dimension === dimension.name
+            );
+            if (!exists) {
+                const createCmd = new CreateDimensionCommand({
+                    dimension: dimension.name,
+                    workspace_id: ENV.workspace_id,
+                    org_id: ENV.org_id,
+                    schema: dimension.schema,
+                    position: dimensions.length,
+                    change_reason: "Automated Test - Adding required dimension",
+                    description: dimension.description,
+                });
+                await superpositionClient.send(createCmd);
+            }
+        }
+
+        const defaultConfigsNeeded = {
+            pmTestKey1: "default-value1",
+            pmTestKey2: "default-value2",
+            pmTestKey3: "default-value3",
+            pmTestKey4: "default-value4",
+        };
+
+        const defaultConfigCmg = new ListDefaultConfigsCommand({
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            count: 100,
+            page: 1,
+        });
+        const defaultConfigOut = await superpositionClient.send(
+            defaultConfigCmg
+        );
+        const defaultConfigs = defaultConfigOut.data || [];
+
+        for (const [key, value] of Object.entries(defaultConfigsNeeded)) {
+            const existingConfig = defaultConfigs.find((d) => d.key === key);
+            if (!existingConfig) {
+                const createCmd = new CreateDefaultConfigCommand({
+                    workspace_id: ENV.workspace_id,
+                    org_id: ENV.org_id,
+                    key: key,
+                    value: value,
+                    schema: { type: "string" },
+                    description: `Default config for ${key}`,
+                    change_reason: "Automated Test - Adding default config",
+                });
+                await superpositionClient.send(createCmd);
+            } else {
+                console.log(`Default config for key "${key}" already exists.`);
+            }
+        }
+    });
+
+    afterAll(async () => {
+        try {
+            const cmd = new ListDimensionsCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                count: 100,
+                page: 1,
+            });
+            const out = await superpositionClient.send(cmd);
+            const dimensions = out.data || [];
+            for (const dimension of dimensions) {
+                const deleteCmd = new DeleteDimensionCommand({
+                    workspace_id: ENV.workspace_id,
+                    org_id: ENV.org_id,
+                    dimension: dimension.dimension,
+                });
+                await superpositionClient.send(deleteCmd);
+            }
+            const contextsCmd = new ListContextsCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                count: 100,
+                page: 1,
+            });
+            const contextsOut = await superpositionClient.send(contextsCmd);
+            const contexts = contextsOut.data || [];
+            for (const context of contexts) {
+                const deleteCmd = new DeleteContextCommand({
+                    workspace_id: ENV.workspace_id,
+                    org_id: ENV.org_id,
+                    id: context.id,
+                });
+                await superpositionClient.send(deleteCmd);
+            }
+        } catch (e: any) {
+            console.error(
+                "Error in afterAll cleanup:",
+                e?.$response || e.message
+            );
+        }
+    });
+
+    test("1. Create Experiment 1", async () => {
+        try {
+            const cmd = new CreateExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                name: "experiment-1-from-test",
+                context: experiment1Context,
+                variants: experiment1InitialVariants.map((v, index) => ({
+                    id: index === 0 ? "control" : `test${index}`,
+                    variant_type: v.variant_type,
+                    overrides: v.overrides,
+                    description: defaultDescription,
+                    change_reason: defaultChangeReason,
+                })),
+                description: defaultDescription,
+                change_reason: defaultChangeReason,
+            });
+
+            const out: ExperimentResponse = await superpositionClient.send(cmd);
+            expect(out).toBeDefined();
+            expect(out.id).toBeString();
+            expect(out.name).toBe("experiment-1-from-test");
+            expect(out.status).toBe(ExperimentStatusType.CREATED);
+            expect(out.traffic_percentage).toBe(0);
+            const allInitialOverrideKeys1 = new Set<string>();
+            experiment1InitialVariants.forEach((v) =>
+                Object.keys(v.overrides).forEach((k) =>
+                    allInitialOverrideKeys1.add(k)
+                )
+            );
+            expect(out.override_keys?.sort()).toEqual(
+                Array.from(allInitialOverrideKeys1).sort()
+            );
+            expect(out.chosen_variant).toBeUndefined();
+            expect(out.context).toEqual(experiment1Context);
+            expect(out.variants).toHaveLength(
+                experiment1InitialVariants.length
+            );
+            expect(out.variants?.[0].variant_type).toBe(VariantType.CONTROL);
+            expect(out.variants?.[1].variant_type).toBe(
+                VariantType.EXPERIMENTAL
+            );
+            expect(out.variants?.[0].overrides).toEqual(
+                experiment1InitialVariants[0].overrides
+            );
+            expect(out.variants?.[1].overrides).toEqual(
+                experiment1InitialVariants[1].overrides
+            );
+            expect(out.variants?.[0].context_id).toBeString();
+            expect(out.variants?.[1].context_id).toBeString();
+
+            experimentId1 = out.id;
+            experiment1Variants = out.variants;
+
+            if (experiment1Variants) {
+                for (const variant of experiment1Variants) {
+                    if (variant.context_id) {
+                        const getContextCmd = new GetContextCommand({
+                            workspace_id: ENV.workspace_id,
+                            org_id: ENV.org_id,
+                            id: variant.context_id,
+                        });
+                        const contextOut = await superpositionClient.send(
+                            getContextCmd
+                        );
+                        expect(contextOut).toBeDefined();
+                        expect(contextOut.override).toEqual(variant.overrides);
+                    } else {
+                        throw new Error(
+                            `Variant ${variant.id} created without a context_id`
+                        );
+                    }
+                }
+            }
+        } catch (e: any) {
+            console.error(
+                "Error in test '1. Create Experiment 1':",
+                e?.$response || e.message
+            );
+            throw e;
+        }
+    });
+
+    test("2. Get Experiment 1", async () => {
+        try {
+            if (!experimentId1) {
+                throw new Error("Experiment 1 ID not set, cannot get.");
+            }
+            const cmd = new GetExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                id: experimentId1,
+            });
+            const out: ExperimentResponse = await superpositionClient.send(cmd);
+            expect(out).toBeDefined();
+            expect(out.id).toBe(experimentId1);
+            expect(out.name).toBe("experiment-1-from-test");
+            expect(out.variants).toHaveLength(
+                experiment1InitialVariants.length
+            );
+            expect(out.variants).toEqual(experiment1Variants);
+        } catch (e: any) {
+            console.error(
+                "Error in test '2. Get Experiment 1':",
+                e?.$response || e.message
+            );
+            throw e;
+        }
+    });
+
+    test("3. Ramp Experiment 1", async () => {
+        try {
+            if (!experimentId1) {
+                throw new Error("Experiment 1 ID not set, cannot ramp.");
+            }
+            const rampPercentage = 46;
+            const cmd = new RampExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                id: experimentId1,
+                traffic_percentage: rampPercentage,
+                change_reason: "Testing ramp functionality",
+            });
+            const out: ExperimentResponse = await superpositionClient.send(cmd);
+            expect(out).toBeDefined();
+            expect(out.id).toBe(experimentId1);
+            expect(out.traffic_percentage).toBe(rampPercentage);
+            expect(out.status).toBe(ExperimentStatusType.INPROGRESS);
+
+            const getCmd = new GetExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                id: experimentId1,
+            });
+            const updatedExp = await superpositionClient.send(getCmd);
+            expect(updatedExp.traffic_percentage).toBe(rampPercentage);
+            expect(updatedExp.status).toBe(ExperimentStatusType.INPROGRESS);
+        } catch (e: any) {
+            console.error(
+                "Error in test '3. Ramp Experiment 1':",
+                e?.$response || e.message
+            );
+            throw e;
+        }
+    });
+
+    test("4. Conclude Experiment 1", async () => {
+        try {
+            if (!experimentId1 || !experiment1Variants) {
+                throw new Error(
+                    "Experiment 1 ID or variants not set, cannot conclude."
+                );
+            }
+            const controlVariant = experiment1Variants.find(
+                (v) => v.variant_type === VariantType.CONTROL
+            );
+            if (!controlVariant || !controlVariant.id) {
+                throw new Error(
+                    "Could not find control variant ID for Experiment 1."
+                );
+            }
+            const winnerVariantId = controlVariant.id;
+
+            const cmd = new ConcludeExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                id: experimentId1,
+                chosen_variant: winnerVariantId,
+                description: "Concluding experiment, control wins",
+                change_reason: "Testing conclude functionality",
+            });
+            const out: ExperimentResponse = await superpositionClient.send(cmd);
+            expect(out).toBeDefined();
+            expect(out.id).toBe(experimentId1);
+            expect(out.status).toBe(ExperimentStatusType.CONCLUDED);
+            expect(out.chosen_variant).toBe(winnerVariantId);
+
+            const getCmd = new GetExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                id: experimentId1,
+            });
+            const updatedExp = await superpositionClient.send(getCmd);
+            expect(updatedExp.status).toBe(ExperimentStatusType.CONCLUDED);
+            expect(updatedExp.chosen_variant).toBe(winnerVariantId);
+        } catch (e: any) {
+            console.error(
+                "Error in test '4. Conclude Experiment 1':",
+                e?.$response || e.message
+            );
+            throw e;
+        }
+    });
+
+    let experimentId2: string | undefined;
+    let experiment2Variants: Variant[] | undefined;
+
+    test("5. Create Experiment 2", async () => {
+        try {
+            const cmd = new CreateExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                name: "experiment-2-from-test",
+                context: experiment2Context,
+                variants: experiment2InitialVariants.map((v, index) => ({
+                    id: index === 0 ? "control" : `test${index}`,
+                    variant_type: v.variant_type,
+                    overrides: v.overrides,
+                    description: defaultDescription,
+                    change_reason: defaultChangeReason,
+                })),
+                description: defaultDescription,
+                change_reason: defaultChangeReason,
+            });
+
+            const out: ExperimentResponse = await superpositionClient.send(cmd);
+            expect(out).toBeDefined();
+            expect(out.id).toBeString();
+            expect(out.name).toBe("experiment-2-from-test");
+            expect(out.status).toBe(ExperimentStatusType.CREATED);
+            const allInitialOverrideKeys2 = new Set<string>();
+            experiment2InitialVariants.forEach((v) =>
+                Object.keys(v.overrides).forEach((k) =>
+                    allInitialOverrideKeys2.add(k)
+                )
+            );
+            expect(out.override_keys?.sort()).toEqual(
+                Array.from(allInitialOverrideKeys2).sort()
+            );
+            expect(out.variants).toHaveLength(
+                experiment2InitialVariants.length
+            );
+            expect(out.variants?.[0].variant_type).toBe(VariantType.CONTROL);
+            expect(out.variants?.[1].variant_type).toBe(
+                VariantType.EXPERIMENTAL
+            );
+            expect(out.variants?.[0].overrides).toEqual(
+                experiment2InitialVariants[0].overrides
+            );
+            expect(out.variants?.[1].overrides).toEqual(
+                experiment2InitialVariants[1].overrides
+            );
+            expect(out.variants?.[0].context_id).toBeString();
+            expect(out.variants?.[1].context_id).toBeString();
+
+            experimentId2 = out.id;
+            experiment2Variants = out.variants;
+
+            if (experiment2Variants) {
+                for (const variant of experiment2Variants) {
+                    if (variant.context_id) {
+                        const getContextCmd = new GetContextCommand({
+                            workspace_id: ENV.workspace_id,
+                            org_id: ENV.org_id,
+                            id: variant.context_id,
+                        });
+                        const contextOut = await superpositionClient.send(
+                            getContextCmd
+                        );
+                        expect(contextOut).toBeDefined();
+                        expect(contextOut.override).toEqual(variant.overrides);
+                    } else {
+                        throw new Error(
+                            `Variant ${variant.id} created without a context_id`
+                        );
+                    }
+                }
+            }
+        } catch (e: any) {
+            console.error(
+                "Error in test '5. Create Experiment 2':",
+                e?.$response || e.message
+            );
+            throw e;
+        }
+    });
+
+    test("6. Update Experiment 2 Overrides", async () => {
+        try {
+            if (!experimentId2 || !experiment2Variants) {
+                throw new Error(
+                    "Experiment 2 ID or variants not set, cannot update overrides."
+                );
+            }
+
+            const controlVariant = experiment2Variants.find(
+                (v) => v.variant_type === VariantType.CONTROL
+            );
+            const testVariant = experiment2Variants.find(
+                (v) => v.variant_type === VariantType.EXPERIMENTAL
+            );
+
+            if (!controlVariant?.id || !testVariant?.id) {
+                throw new Error("Could not find variant IDs for Experiment 2.");
+            }
+
+            const updatedVariants: VariantUpdateRequest[] = [
+                {
+                    id: controlVariant.id,
+                    overrides: {
+                        pmTestKey1: "value-7910-an-control",
+                        pmTestKey2: "value-6910-an-control",
+                    },
+                },
+                {
+                    id: testVariant.id,
+                    overrides: {
+                        pmTestKey1: "value-7920-an-test",
+                        pmTestKey2: "value-6930-an-test",
+                    },
+                },
+            ];
+
+            const cmd = new UpdateOverridesExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                id: experimentId2,
+                variant_list: updatedVariants,
+                description: "Updating override keys and values",
+                change_reason: "Testing override update",
+            });
+
+            const out: ExperimentResponse = await superpositionClient.send(cmd);
+            expect(out).toBeDefined();
+            expect(out.id).toBe(experimentId2);
+
+            const allUpdatedOverrideKeys = new Set<string>();
+            updatedVariants.forEach((uv) =>
+                Object.keys(uv.overrides).forEach((k) =>
+                    allUpdatedOverrideKeys.add(k)
+                )
+            );
+            expect(out.override_keys?.sort()).toEqual(
+                Array.from(allUpdatedOverrideKeys).sort()
+            );
+
+            expect(out.variants).toHaveLength(experiment2Variants.length);
+            expect(out.status).toBe(ExperimentStatusType.CREATED);
+            expect(out.traffic_percentage).toBe(0);
+            expect(out.chosen_variant).toBeUndefined();
+            expect(out.context).toEqual(experiment2Context);
+            expect(out.name).toBe("experiment-2-from-test");
+
+            for (const updatedVariantRequest of updatedVariants) {
+                const returnedVariant = out.variants?.find(
+                    (v) => v.id === updatedVariantRequest.id
+                );
+                expect(returnedVariant).toBeDefined();
+                expect(returnedVariant?.context_id).toBeString();
+
+                if (returnedVariant?.context_id) {
+                    const getContextCmd = new GetContextCommand({
+                        workspace_id: ENV.workspace_id,
+                        org_id: ENV.org_id,
+                        id: returnedVariant.context_id,
+                    });
+                    const contextOut = await superpositionClient.send(
+                        getContextCmd
+                    );
+                    expect(contextOut).toBeDefined();
+
+                    expect(contextOut.override).toEqual(
+                        updatedVariantRequest.overrides
+                    );
+                    expect(returnedVariant.overrides).toEqual(
+                        updatedVariantRequest.overrides
+                    );
+                }
+            }
+            experiment2Variants = out.variants;
+        } catch (e: any) {
+            console.error(
+                "Error in test '6. Update Experiment 2 Overrides':",
+                e?.$response || e.message
+            );
+            throw e;
+        }
+    });
+
+    test("7. List Experiments (Basic)", async () => {
+        try {
+            const cmd = new ListExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+            });
+            const out = await superpositionClient.send(cmd);
+            expect(out).toBeDefined();
+            expect(Array.isArray(out.data)).toBe(true);
+            const foundExp1 = out.data?.some((exp) => exp.id === experimentId1);
+            const foundExp2 = out.data?.some((exp) => exp.id === experimentId2);
+            expect(foundExp1).toBe(true);
+            expect(foundExp2).toBe(true);
+        } catch (e: any) {
+            console.error(
+                "Error in test '7. List Experiments (Basic)':",
+                e?.$response || e.message
+            );
+            throw e;
+        }
+    });
+});

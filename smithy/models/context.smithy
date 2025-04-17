@@ -194,13 +194,9 @@ operation GetContextFromCondition {
 }
 
 enum ContextFilterSortOn {
-    CreatedAt
-    Weight
-}
-
-enum SortBy {
-    Desc
-    Asc
+    LastModifiedAt = "last_modified_at"
+    CreatedAt = "created_at"
+    Weight = "weight"
 }
 
 list ListContextOut {
@@ -215,9 +211,9 @@ operation ListContexts {
         @notProperty
         page: Integer
 
-        @httpQuery("size")
+        @httpQuery("count")
         @notProperty
-        size: Integer
+        count: Integer
 
         @httpQuery("prefix")
         @notProperty
@@ -234,6 +230,14 @@ operation ListContexts {
         @httpQuery("created_by")
         @notProperty
         created_by: String
+
+        @httpQuery("last_modified_by")
+        @notProperty
+        last_modified_by: String
+
+        @httpQuery("plaintext")
+        @notProperty
+        plaintext: String
     }
 
     output := {

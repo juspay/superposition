@@ -3,7 +3,7 @@ import {
     GetConfigFastCommand,
     ListVersionsCommand,
 } from "@io.juspay/superposition-sdk";
-import { ENV, superpositionClient } from "../env.ts";
+import { superpositionClient, ENV } from "../env.ts";
 import { describe, test } from "bun:test";
 
 describe("Config API - GetConfig and GetConfigFast", () => {
@@ -28,8 +28,8 @@ describe("Config API - GetConfig and GetConfigFast", () => {
     // Enable when testing w/ redis.
     // test("GetConfigFast: should fetch configuration quickly", async () => {
     //     const input = {
-    //         workspace_id: "test",
-    //         org_id: "localorg"
+    //         workspace_id: ENV.workspace_id,
+    //         org_id: ENV.org_id
     //     };
     //     const cmd = new GetConfigFastCommand(input);
     //     try {

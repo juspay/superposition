@@ -51,6 +51,11 @@ enum VariantType {
     EXPERIMENTAL
 }
 
+enum ExperimentSortOn {
+    LastModifiedAt = "last_modified_at"
+    CreatedAt = "created_at"
+}
+
 structure Variant {
     @required
     id: String
@@ -164,12 +169,6 @@ structure UpdateOverrideRequest for Experiments with [WorkspaceMixin] {
     $change_reason
 }
 
-structure CreateExperimentResponse {
-    @required
-    @notProperty
-    experiment_id: String
-}
-
 list ExperimentList {
     member: ExperimentResponse
 }
@@ -205,7 +204,7 @@ structure ExperimentNotFound {}
 @http(method: "POST", uri: "/experiments")
 operation CreateExperiment {
     input: CreateExperimentRequest
-    output: CreateExperimentResponse
+    output: ExperimentResponse
 }
 
 // Operations
@@ -295,6 +294,41 @@ operation ListExperiment {
         @httpQuery("all")
         @notProperty
         all: Boolean
+
+        @httpQuery("status")
+        status: ExperimentStatusType
+
+        @httpQuery("from_date")
+        @notProperty
+        from_date: DateTime
+
+        @httpQuery("to_date")
+        @notProperty
+        to_date: DateTime
+
+        @httpQuery("experiment_name")
+        @notProperty
+        experiment_name: String
+
+        @httpQuery("experiment_ids")
+        @notProperty
+        experiment_ids: String
+
+        @httpQuery("created_by")
+        @notProperty
+        created_by: String
+
+        @httpQuery("context")
+        @notProperty
+        context_query: String
+
+        @httpQuery("sort_on")
+        @notProperty        
+        sort_on: ExperimentSortOn,
+
+        @httpQuery("sort_by")
+        @notProperty     
+        sort_by: SortBy
     }
 
     output: ExperimentListResponse

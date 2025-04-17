@@ -49,6 +49,15 @@ export interface ListExperimentCommandOutput extends ExperimentListResponse, __M
  *   page: Number("long"),
  *   count: Number("long"),
  *   all: true || false,
+ *   status: "CREATED" || "CONCLUDED" || "INPROGRESS" || "DISCARDED",
+ *   from_date: new Date("TIMESTAMP"),
+ *   to_date: new Date("TIMESTAMP"),
+ *   experiment_name: "STRING_VALUE",
+ *   experiment_ids: "STRING_VALUE",
+ *   created_by: "STRING_VALUE",
+ *   context_query: "STRING_VALUE",
+ *   sort_on: "last_modified_at" || "created_at",
+ *   sort_by: "desc" || "asc",
  * };
  * const command = new ListExperimentCommand(input);
  * const response = await client.send(command);

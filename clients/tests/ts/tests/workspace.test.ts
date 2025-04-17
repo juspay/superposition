@@ -1,11 +1,10 @@
 import {
-    SuperpositionClient,
     ListWorkspaceCommand,
     CreateWorkspaceCommand,
     UpdateWorkspaceCommand,
 } from "@io.juspay/superposition-sdk";
-import { ENV, superpositionClient } from "../env.ts";
-import { describe, test, expect, beforeAll } from "bun:test";
+import { superpositionClient, ENV } from "../env.ts";
+import { describe, test, expect } from "bun:test";
 
 describe("Workspace API", () => {
     const testWorkspaceName = `testws${Date.now() % 10000}`;
