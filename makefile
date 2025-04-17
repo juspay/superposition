@@ -169,16 +169,18 @@ run: kill db localstack frontend superposition
 run_legacy: kill build db localstack superposition_legacy
 	@./target/debug/superposition
 
-test: WASM_PACK_MODE=--profiling
+#test: WASM_PACK_MODE=--profiling
 test: setup frontend superposition
 	cargo test
+	@cd target && ln -s ../node_modules node_modules || true
 	@echo "Running superposition"
 	@./target/debug/superposition &
 	@echo "Awaiting superposition boot..."
 ## FIXME Curl doesn't retry.
 	@timeout 20s bash -c \
 		"while ! curl --silent 'http://localhost:8080/health' 2>&1 > /dev/null; do sleep 0.5; done"
-	npm run test
+	cd clients/tests/ts && bun install && bun test
+## npm run test
 ## FIXME Broken as requires hardcoded 'org_id'. Current test setup doesn't create
 ## deterministic 'org_id'.
 # cd $(SMITHY_CLIENT_DIR)/ts && npm ci && npm test

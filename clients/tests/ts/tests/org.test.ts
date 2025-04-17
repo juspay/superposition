@@ -6,24 +6,24 @@ import {
     UpdateOrganisationCommand,
 } from "@io.juspay/superposition-sdk";
 import { expect, describe, it, afterAll } from "bun:test";
-import { ENV, superpositionClient } from "./env.ts";
+import { ENV, superpositionClient } from "../env.ts";
 
 describe("Organisation Tests", () => {
     let client: SuperpositionClient = superpositionClient;
     let createdOrgId: string;
+    const ORG_NAME = "tmporg";
 
     describe("CreateOrganisationCommand", () => {
         it("should create an organisation successfully", async () => {
             const createCommand = new CreateOrganisationCommand({
                 admin_email: "test@gmail.com",
-                name: "testorg",
+                name: ORG_NAME,
             });
             try {
                 const response = await client.send(createCommand);
                 expect(response).toBeDefined();
                 expect(response).toHaveProperty("id");
-                createdOrgId = response.id ?? ENV.org_id;
-                ENV.org_id = createdOrgId;
+                createdOrgId = response.id || "";
             } catch (e) {
                 console.error(`Error creating organisation due to ${e}`);
                 expect(true).toBe(false);
@@ -63,7 +63,7 @@ describe("Organisation Tests", () => {
         it("should handle malformed email address", async () => {
             const createCommand = new CreateOrganisationCommand({
                 admin_email: "test.com",
-                name: "testorg",
+                name: ORG_NAME,
             });
 
             try {
@@ -83,7 +83,7 @@ describe("Organisation Tests", () => {
             });
             try {
                 const response = await client.send(getCommand);
-                expect(response.name).toBe("testorg");
+                expect(response.name).toBe(ORG_NAME);
                 expect(response.admin_email).toBe("test@gmail.com");
             } catch (e) {
                 console.error(`Error getting organisation due to ${e}`);
@@ -143,10 +143,10 @@ describe("Organisation Tests", () => {
                 expect(Array.isArray(response.data)).toBe(true);
                 expect(response.data?.length).toBeGreaterThan(0);
                 const createdOrg = response.data?.find(
-                    (org: any) => org.id === createdOrgId,
+                    (org: any) => org.id === createdOrgId
                 );
                 expect(createdOrg).toBeDefined();
-                expect(createdOrg?.name).toBe("testorg");
+                expect(createdOrg?.name).toBe(ORG_NAME);
             } catch (e) {
                 console.error(`Error listing organisations due to ${e}`);
                 expect(true).toBe(false);
@@ -156,7 +156,7 @@ describe("Organisation Tests", () => {
         it("should handle pagination", async () => {
             const listCommand = new ListOrganisationCommand({
                 count: 1,
-                page: 0,
+                page: 1,
             });
             try {
                 const response = await client.send(listCommand);
@@ -208,7 +208,7 @@ describe("Organisation Tests", () => {
                 expect(updateResponse).toBeDefined();
                 expect(updateResponse).toHaveProperty("id");
                 expect(updateResponse.admin_email).toBe(
-                    "updated-test@gmail.com",
+                    "updated-test@gmail.com"
                 );
                 const getCommand = new GetOrganisationCommand({
                     id: createdOrgId,
