@@ -1296,4 +1296,7 @@ CREATE TABLE localorg_dev.webhooks (
 
 CREATE TRIGGER webhooks_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_dev.webhooks FOR EACH ROW EXECUTE FUNCTION localorg_dev.event_logger();
 
+ALTER TABLE superposition.workspaces
+ADD COLUMN IF NOT EXISTS strict_mode BOOLEAN DEFAULT FALSE;
+
 COMMIT;

@@ -49,6 +49,7 @@ describe("Workspace API", () => {
             workspace_name: testWorkspaceName,
             description: "Test workspace created by automated tests",
             mandatory_dimensions: ["os", "client"],
+            workspace_strict_mode: true,
         };
 
         const cmd = new CreateWorkspaceCommand(input);
@@ -266,6 +267,7 @@ describe("Workspace API", () => {
             workspace_admin_email: "invalid-email", // Invalid email format
             workspace_name: "", // Empty name
             description: "Test invalid workspace",
+            workspace_strict_mode: true,
         };
 
         const cmd = new CreateWorkspaceCommand(input);
@@ -287,6 +289,7 @@ describe("Workspace API", () => {
             // This should fail as the regex only allows letters and numbers
             workspace_name: "test-special-chars@!#",
             description: "Test with special characters",
+            workspace_strict_mode: true,
         };
 
         const cmd = new CreateWorkspaceCommand(input);
