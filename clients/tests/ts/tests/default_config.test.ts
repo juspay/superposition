@@ -4,18 +4,23 @@ import {
     UpdateDefaultConfigCommand,
     CreateWorkspaceCommand,
     CreateFunctionCommand,
+    DeleteFunctionCommand,
+    DeleteDefaultConfigCommand,
     FunctionTypes,
     PublishCommand,
 } from "@io.juspay/superposition-sdk";
 import { superpositionClient } from "./env.ts";
 import type { UpdateDefaultConfigCommandOutput } from "@io.juspay/superposition-sdk";
 
-import { describe, beforeAll, test, expect } from "bun:test";
+import { describe, beforeAll, afterAll, test, expect } from "bun:test";
 
 describe("Default Config API Integration Tests", () => {
     let client: SuperpositionClient;
     let testWorkspaceId: string;
     let testOrgId: string;
+    // Track created resources for cleanup
+    let createdFunctions: string[] = [];
+    let createdConfigs: string[] = [];
 
     beforeAll(async () => {
         client = superpositionClient;
@@ -23,6 +28,46 @@ describe("Default Config API Integration Tests", () => {
         testOrgId = "localorg";
         await createWorkspace(client);
         await createFunctions(client);
+    });
+
+    // Cleanup after tests complete
+    afterAll(async () => {
+        console.log("Cleaning up test resources...");
+
+        // Delete configurations
+        for (const key of createdConfigs) {
+            try {
+                await client.send(
+                    new DeleteDefaultConfigCommand({
+                        workspace_id: testWorkspaceId,
+                        org_id: testOrgId,
+                        key,
+                    })
+                );
+                console.log(`Deleted config: ${key}`);
+            } catch (error) {
+                console.error(`Failed to delete config ${key}:`, error);
+            }
+        }
+
+        // Delete functions
+        for (const functionName of createdFunctions) {
+            try {
+                await client.send(
+                    new DeleteFunctionCommand({
+                        workspace_id: testWorkspaceId,
+                        org_id: testOrgId,
+                        function_name: functionName,
+                    })
+                );
+                console.log(`Deleted function: ${functionName}`);
+            } catch (error) {
+                console.error(
+                    `Failed to delete function ${functionName}:`,
+                    error
+                );
+            }
+        }
     });
 
     async function createWorkspace(client: SuperpositionClient) {
@@ -71,6 +116,8 @@ describe("Default Config API Integration Tests", () => {
                 function_type: FunctionTypes.Validation,
             })
         );
+        // Track created function
+        createdFunctions.push("false_validation");
 
         console.log("Creating function true_function");
         await client.send(
@@ -85,6 +132,8 @@ describe("Default Config API Integration Tests", () => {
                 function_type: FunctionTypes.Validation,
             })
         );
+        // Track created function
+        createdFunctions.push("true_function");
 
         console.log("Publishing function false_validation");
         await client.send(
@@ -130,6 +179,8 @@ describe("Default Config API Integration Tests", () => {
             };
             const cmd = new CreateDefaultConfigCommand(input);
             await client.send(cmd);
+            // Track created config
+            createdConfigs.push("test-key");
         });
 
         test("should fail when schema is invalid", async () => {
@@ -247,10 +298,6 @@ describe("Default Config API Integration Tests", () => {
             expect(client.send(cmd)).rejects.toThrow(
                 "Function non_existent_function doesn't exist."
             );
-        });
-
-        test("should create config with tags", async () => {
-            // todo
         });
     });
 
