@@ -7,7 +7,7 @@ import {
     PublishCommand,
 } from "@io.juspay/superposition-sdk";
 import { expect, describe, it, afterAll } from "bun:test";
-import { ENV, superpositionClient } from "./env.ts";
+import { ENV, superpositionClient } from "../env.ts";
 import { FunctionTypes } from "@io.juspay/superposition-sdk";
 
 describe("Function Operations", () => {
@@ -37,8 +37,9 @@ describe("Function Operations", () => {
         });
 
         try {
-            const createResponse =
-                await superpositionClient.send(createCommand);
+            const createResponse = await superpositionClient.send(
+                createCommand
+            );
             validateFunctionName = createResponse.function_name ?? "";
 
             const getCommand = new GetFunctionCommand({
@@ -80,8 +81,9 @@ describe("Function Operations", () => {
         });
 
         try {
-            const createResponse =
-                await superpositionClient.send(createCommand);
+            const createResponse = await superpositionClient.send(
+                createCommand
+            );
             autocompleteFunctionName = createResponse.function_name ?? "";
 
             const getCommand = new GetFunctionCommand({
@@ -140,11 +142,12 @@ describe("Function Operations", () => {
         });
 
         try {
-            const updateResponse =
-                await superpositionClient.send(updateCommand);
+            const updateResponse = await superpositionClient.send(
+                updateCommand
+            );
             expect(updateResponse.function_name).toBe(validateFunctionName);
             expect(updateResponse.description).toBe(
-                "Updated validate function",
+                "Updated validate function"
             );
         } catch (error) {
             console.error(error);
@@ -174,11 +177,12 @@ describe("Function Operations", () => {
         });
 
         try {
-            const updateResponse =
-                await superpositionClient.send(updateCommand);
+            const updateResponse = await superpositionClient.send(
+                updateCommand
+            );
             expect(updateResponse.function_name).toBe(autocompleteFunctionName);
             expect(updateResponse.description).toBe(
-                "Updated autocomplete function",
+                "Updated autocomplete function"
             );
         } catch (error) {
             console.error(error);
@@ -232,7 +236,7 @@ describe("Function Operations", () => {
             expect(error).toBeDefined();
         }
     });
-    
+
     // Publish function tests
     it("should successfully publish validate function", async () => {
         const publishCommand = new PublishCommand({

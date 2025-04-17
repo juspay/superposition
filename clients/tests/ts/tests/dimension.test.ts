@@ -6,9 +6,9 @@ import {
     CreateFunctionCommand,
     DeleteFunctionCommand,
     FunctionTypes,
-    ResourceNotFound
+    ResourceNotFound,
 } from "@io.juspay/superposition-sdk";
-import { superpositionClient, ENV } from "./env.ts";
+import { superpositionClient, ENV } from "../env.ts";
 
 describe("Dimension API", () => {
     // Test variables
@@ -33,25 +33,32 @@ describe("Dimension API", () => {
                 const deleteCmd = new DeleteDimensionCommand({
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
-                    dimension: dimensionName
+                    dimension: dimensionName,
                 });
                 await superpositionClient.send(deleteCmd);
                 console.log(`Cleaned up test dimension: ${dimensionName}`);
             } catch (e) {
-                console.error(`Failed to clean up dimension ${dimensionName}: ${e.message}`);
+                console.error(
+                    `Failed to clean up dimension ${dimensionName}: ${e.message}`
+                );
             }
         }
 
         // Try to delete the main test dimension if it exists and wasn't already cleaned up
-        if (createdDimension && !createdDimensions.includes(createdDimension.dimension)) {
+        if (
+            createdDimension &&
+            !createdDimensions.includes(createdDimension.dimension)
+        ) {
             try {
                 const deleteCmd = new DeleteDimensionCommand({
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
-                    dimension: createdDimension.dimension
+                    dimension: createdDimension.dimension,
                 });
                 await superpositionClient.send(deleteCmd);
-                console.log(`Cleaned up test dimension: ${createdDimension.dimension}`);
+                console.log(
+                    `Cleaned up test dimension: ${createdDimension.dimension}`
+                );
             } catch (e) {
                 console.error(`Failed to clean up dimension: ${e.message}`);
             }
@@ -63,12 +70,16 @@ describe("Dimension API", () => {
                 const deleteCmd = new DeleteFunctionCommand({
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
-                    function_name: validationFunctionName
+                    function_name: validationFunctionName,
                 });
                 await superpositionClient.send(deleteCmd);
-                console.log(`Cleaned up validation function: ${validationFunctionName}`);
+                console.log(
+                    `Cleaned up validation function: ${validationFunctionName}`
+                );
             } catch (e) {
-                console.error(`Failed to clean up validation function: ${e.message}`);
+                console.error(
+                    `Failed to clean up validation function: ${e.message}`
+                );
             }
         }
     });
@@ -79,7 +90,7 @@ describe("Dimension API", () => {
         const input = {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            ...testDimension
+            ...testDimension,
         };
 
         const cmd = new CreateDimensionCommand(input);
@@ -115,7 +126,7 @@ describe("Dimension API", () => {
             position: 2,
             schema: { type: "string" },
             description: "Invalid dimension",
-            change_reason: "Testing validation"
+            change_reason: "Testing validation",
         };
 
         const cmd = new CreateDimensionCommand(invalidInput);
@@ -140,7 +151,7 @@ describe("Dimension API", () => {
             schema: { type: "string" },
             description: "Test dimension with reserved position",
             change_reason: "Testing position validation",
-            function_name: "identity"
+            function_name: "identity",
         };
 
         const cmd = new CreateDimensionCommand(invalidPositionInput);
@@ -148,18 +159,25 @@ describe("Dimension API", () => {
         try {
             await superpositionClient.send(cmd);
             // Should not reach here
-            fail("Expected validation error for reserved position but request succeeded");
+            fail(
+                "Expected validation error for reserved position but request succeeded"
+            );
         } catch (e) {
             // Expect an error response
             expect(e).toBeDefined();
-            console.log("Received expected position validation error:", e.message);
+            console.log(
+                "Received expected position validation error:",
+                e.message
+            );
         }
     });
 
     test("CreateDimension: should reject duplicate position", async () => {
         // Fail if dimension wasn't created
         if (!createdDimension) {
-            throw new Error("Cannot run duplicate position test because the dimension creation test failed");
+            throw new Error(
+                "Cannot run duplicate position test because the dimension creation test failed"
+            );
         }
 
         const duplicatePositionInput = {
@@ -170,7 +188,7 @@ describe("Dimension API", () => {
             schema: { type: "string" },
             description: "Test dimension with duplicate position",
             change_reason: "Testing position uniqueness",
-            function_name: "identity"
+            function_name: "identity",
         };
 
         const cmd = new CreateDimensionCommand(duplicatePositionInput);
@@ -178,11 +196,16 @@ describe("Dimension API", () => {
         try {
             await superpositionClient.send(cmd);
             // Should not reach here
-            fail("Expected validation error for duplicate position but request succeeded");
+            fail(
+                "Expected validation error for duplicate position but request succeeded"
+            );
         } catch (e) {
             // Expect an error response
             expect(e).toBeDefined();
-            console.log("Received expected duplicate position error:", e.message);
+            console.log(
+                "Received expected duplicate position error:",
+                e.message
+            );
         }
     });
 
@@ -193,7 +216,7 @@ describe("Dimension API", () => {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
             count: 10,
-            page: 1
+            page: 1,
         };
 
         const cmd = new ListDimensionsCommand(input);
@@ -209,7 +232,9 @@ describe("Dimension API", () => {
             expect(response.total_items).toBeGreaterThan(0);
 
             // Verify our created dimension is in the list
-            const foundDimension = response.data.find(d => d.dimension === testDimension.dimension);
+            const foundDimension = response.data.find(
+                (d) => d.dimension === testDimension.dimension
+            );
             expect(foundDimension).toBeDefined();
         } catch (e) {
             console.error(e["$response"]);
@@ -222,7 +247,9 @@ describe("Dimension API", () => {
     test("UpdateDimension: should update an existing dimension", async () => {
         // Fail if dimension wasn't created
         if (!createdDimension) {
-            throw new Error("Cannot run update test because the dimension creation test failed");
+            throw new Error(
+                "Cannot run update test because the dimension creation test failed"
+            );
         }
 
         const updatedDescription = "Updated test dimension description";
@@ -231,7 +258,7 @@ describe("Dimension API", () => {
             org_id: ENV.org_id,
             dimension: createdDimension.dimension,
             description: updatedDescription,
-            change_reason: "Updating test dimension"
+            change_reason: "Updating test dimension",
         };
 
         const cmd = new UpdateDimensionCommand(input);
@@ -260,7 +287,7 @@ describe("Dimension API", () => {
             org_id: ENV.org_id,
             dimension: "non-existent-dimension-123456789",
             description: "This should fail",
-            change_reason: "Testing error handling"
+            change_reason: "Testing error handling",
         };
 
         const cmd = new UpdateDimensionCommand(input);
@@ -299,11 +326,13 @@ describe("Dimension API", () => {
             description: "Validation function for dimension test",
             change_reason: "Creating test validation function",
             runtime_version: "1",
-            function_type: FunctionTypes.Validation
+            function_type: FunctionTypes.Validation,
         });
 
         try {
-            const functionResponse = await superpositionClient.send(createFunctionCmd);
+            const functionResponse = await superpositionClient.send(
+                createFunctionCmd
+            );
             console.log("Created validation function:", functionResponse);
             validationFunctionName = functionResponse.function_name;
 
@@ -316,21 +345,32 @@ describe("Dimension API", () => {
                 schema: { type: "string" },
                 description: "Dimension with validation function",
                 change_reason: "Testing validation function",
-                function_name: validationFunctionName
+                function_name: validationFunctionName,
             };
 
-            const createDimensionCmd = new CreateDimensionCommand(validatedDimension);
-            const dimensionResponse = await superpositionClient.send(createDimensionCmd);
+            const createDimensionCmd = new CreateDimensionCommand(
+                validatedDimension
+            );
+            const dimensionResponse = await superpositionClient.send(
+                createDimensionCmd
+            );
 
-            console.log("Created dimension with validation:", dimensionResponse);
+            console.log(
+                "Created dimension with validation:",
+                dimensionResponse
+            );
 
             // Add to cleanup list
             createdDimensions.push(dimensionResponse.dimension);
 
             // Assertions
             expect(dimensionResponse).toBeDefined();
-            expect(dimensionResponse.dimension).toBe(validatedDimension.dimension);
-            expect(dimensionResponse.function_name).toBe(validationFunctionName);
+            expect(dimensionResponse.dimension).toBe(
+                validatedDimension.dimension
+            );
+            expect(dimensionResponse.function_name).toBe(
+                validationFunctionName
+            );
         } catch (e) {
             console.error(e["$response"]);
             throw e;
@@ -342,13 +382,15 @@ describe("Dimension API", () => {
     test("DeleteDimension: should delete a dimension", async () => {
         // Fail if dimension wasn't created
         if (!createdDimension) {
-            throw new Error("Cannot run delete test because the dimension creation test failed");
+            throw new Error(
+                "Cannot run delete test because the dimension creation test failed"
+            );
         }
 
         const input = {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            dimension: createdDimension.dimension
+            dimension: createdDimension.dimension,
         };
 
         const cmd = new DeleteDimensionCommand(input);
@@ -362,11 +404,13 @@ describe("Dimension API", () => {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
                 count: 100,
-                page: 1
+                page: 1,
             });
 
             const listResponse = await superpositionClient.send(listCmd);
-            const foundDimension = listResponse.data.find(d => d.dimension === testDimension.dimension);
+            const foundDimension = listResponse.data.find(
+                (d) => d.dimension === testDimension.dimension
+            );
 
             expect(foundDimension).toBeUndefined();
 

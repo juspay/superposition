@@ -9,7 +9,7 @@ import {
     FunctionTypes,
     PublishCommand,
 } from "@io.juspay/superposition-sdk";
-import { superpositionClient } from "./env.ts";
+import { ENV, superpositionClient } from "../env.ts";
 import type { UpdateDefaultConfigCommandOutput } from "@io.juspay/superposition-sdk";
 
 import { describe, beforeAll, afterAll, test, expect } from "bun:test";
@@ -24,9 +24,10 @@ describe("Default Config API Integration Tests", () => {
 
     beforeAll(async () => {
         client = superpositionClient;
-        testWorkspaceId = "test";
-        testOrgId = "localorg";
-        await createWorkspace(client);
+        testWorkspaceId = ENV.workspace_id;
+        testOrgId = ENV.org_id;
+
+        // await createWorkspace(client);
         await createFunctions(client);
     });
 
@@ -69,26 +70,6 @@ describe("Default Config API Integration Tests", () => {
             }
         }
     });
-
-    async function createWorkspace(client: SuperpositionClient) {
-        const input = {
-            org_id: testOrgId,
-            workspace_admin_email: "admin@example.com",
-            workspace_name: testWorkspaceId,
-            description: "Test workspace created by automated tests",
-            mandatory_dimensions: [],
-        };
-
-        const cmd = new CreateWorkspaceCommand(input);
-        try {
-            await client.send(cmd);
-        } catch (e: any) {
-            console.warn(
-                "Error creating workspace. It might already exist.",
-                e.message
-            );
-        }
-    }
 
     async function createFunctions(client: SuperpositionClient) {
         const validateCode1 = `
