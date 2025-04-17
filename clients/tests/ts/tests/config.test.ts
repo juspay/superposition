@@ -1,24 +1,25 @@
 import {
     GetConfigCommand,
     GetConfigFastCommand,
-    ListVersionsCommand
+    ListVersionsCommand,
 } from "@io.juspay/superposition-sdk";
-import { superpositionClient } from "./env.ts";
+import { ENV, superpositionClient } from "../env.ts";
+import { describe, test } from "bun:test";
 
 describe("Config API - GetConfig and GetConfigFast", () => {
     test("GetConfig: should fetch configuration with context and version", async () => {
         const input = {
-            workspace_id: "test",
-            org_id: "localorg",
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
             prefix: "test-prefix",
             // version: 1,
-            context: {}
+            context: {},
         };
         const cmd = new GetConfigCommand(input);
         try {
             const out = await superpositionClient.send(cmd);
             console.log(out);
-        } catch (e) {
+        } catch (e: any) {
             console.error(e["$response"]);
             throw e;
         }
@@ -44,16 +45,16 @@ describe("Config API - GetConfig and GetConfigFast", () => {
 describe("Config API - ListVersions", () => {
     test("should list all configuration versions", async () => {
         const input = {
-            workspace_id: "test",
-            org_id: "localorg",
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
             count: 10,
-            page: 1
+            page: 1,
         };
         const cmd = new ListVersionsCommand(input);
         try {
             const out = await superpositionClient.send(cmd);
             console.log(out.data);
-        } catch (e) {
+        } catch (e: any) {
             console.error(e["$response"]);
             throw e;
         }

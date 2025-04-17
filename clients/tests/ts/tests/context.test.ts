@@ -19,7 +19,7 @@ import {
     CreateWorkspaceCommand,
     WorkspaceStatus,
 } from "@io.juspay/superposition-sdk";
-import { superpositionClient } from "./env.ts";
+import { ENV, superpositionClient } from "../env.ts";
 import { describe, beforeAll, afterAll, test, expect } from "bun:test";
 
 describe("Context API Integration Tests", () => {
@@ -35,10 +35,10 @@ describe("Context API Integration Tests", () => {
 
     beforeAll(async () => {
         client = superpositionClient;
-        testWorkspaceId = "test";
-        testOrgId = "localorg";
+        testWorkspaceId = ENV.workspace_id;
+        testOrgId = ENV.org_id;
 
-        await createWorkspace(client);
+        await addMandatoryDimension(client);
         await setupDimensionsAndConfigs(client);
     });
 
@@ -111,24 +111,6 @@ describe("Context API Integration Tests", () => {
         if (id) createdContextIds.add(id);
     }
 
-    async function createWorkspace(client: SuperpositionClient) {
-        const input = {
-            org_id: testOrgId,
-            workspace_admin_email: "admin@example.com",
-            workspace_name: testWorkspaceId,
-            description: "Test workspace created by automated tests",
-            mandatory_dimensions: ["clientId"],
-        };
-
-        const cmd = new CreateWorkspaceCommand(input);
-        try {
-            await client.send(cmd);
-        } catch (e: any) {
-            console.error("Failed to create workspace:", e.message);
-        }
-        addMandatoryDimension(client);
-    }
-
     async function addMandatoryDimension(client: SuperpositionClient) {
         const input = {
             org_id: testOrgId,
@@ -136,7 +118,6 @@ describe("Context API Integration Tests", () => {
             workspace_admin_email: "updated-admin@example.com",
             workspace_status: WorkspaceStatus.ENABLED,
             mandatory_dimensions: ["clientId"],
-            description: "Updated workspace description",
         };
 
         const cmd = new UpdateWorkspaceCommand(input);
