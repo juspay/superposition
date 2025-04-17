@@ -20,6 +20,7 @@ use crate::{
                 create_ctx_from_put_req, hash, replace_override_of_existing_ctx,
                 update_override_of_existing_ctx,
                 validate_condition_with_mandatory_dimensions,
+                validate_condition_with_strict_mode,
             },
             validations::validate_dimensions,
         },
@@ -97,6 +98,8 @@ pub fn r#move(
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
 
     let workspace_settings = get_workspace(schema_name, conn)?;
+
+    validate_condition_with_strict_mode(&ctx_condition, workspace_settings.strict_mode)?;
 
     let context_map = extract_dimensions(&req.context.into_inner())?;
     validate_condition_with_mandatory_dimensions(

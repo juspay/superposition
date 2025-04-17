@@ -5,6 +5,7 @@ use superposition_types::custom_query::PaginationParams;
 use superposition_types::database::models::WorkspaceStatus;
 
 use crate::api::fetch_workspaces;
+use crate::components::alert::AlertType;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
@@ -15,6 +16,7 @@ use crate::components::table::{
 };
 use crate::components::workspace_form::types::RowData;
 use crate::components::workspace_form::WorkspaceForm;
+use crate::providers::alert_provider::enqueue_alert;
 use crate::types::OrganisationId;
 use crate::utils::update_page_direction;
 
@@ -101,6 +103,21 @@ pub fn workspace() -> impl IntoView {
         let navigate_to_workspace = move |org_id: String, workspace_name: String| {
             let redirect_url = format!("admin/{org_id}/{workspace_name}/default-config");
             logging::log!("redirecting to {:?}", redirect_url.clone());
+            let Some(workspace_settings) = workspace_resource
+                .get()
+                .unwrap_or_default()
+                .data
+                .into_iter()
+                .find(|w| w.workspace_name == workspace_name)
+            else {
+                enqueue_alert(
+                    "Invalid workspace selected, please contact an admin".into(),
+                    AlertType::Error,
+                    2000,
+                );
+                return;
+            };
+            provide_context(create_rw_signal(workspace_settings));
             let navigate = use_navigate();
             navigate(redirect_url.as_str(), Default::default());
         };
@@ -133,6 +150,7 @@ pub fn workspace() -> impl IntoView {
             ),
             Column::default("workspace_admin_email".to_string()),
             Column::default("mandatory_dimensions".to_string()),
+            Column::default("strict_mode".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
             Column::new(

@@ -26,7 +26,8 @@
        },
        "raw_json_formatted": {
           "workspace_admin_email": "test@gmail.com",
-          "workspace_name": "test"
+          "workspace_name": "test",
+          "workspace_strict_mode": true
        }
     },
     "url": {

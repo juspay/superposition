@@ -35,6 +35,7 @@ pub fn workspace_form(
     let (mandatory_dimensions_rs, mandatory_dimensions_ws) =
         create_signal(mandatory_dimensions);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
+    let (strict_mode_rs, strict_mode_ws) = create_signal(true);
 
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);
@@ -43,6 +44,7 @@ pub fn workspace_form(
             workspace_admin_email: workspace_admin_email_rs.get(),
             workspace_name: workspace_name_rs.get(),
             workspace_status: Some(workspace_status_rs.get()),
+            workspace_strict_mode: strict_mode_rs.get(),
         };
 
         let update_payload = UpdateWorkspaceRequest {
@@ -167,6 +169,24 @@ pub fn workspace_form(
                         class=String::from("mt-2")
                     />
                 </div>
+
+                <Show when=move || !edit>
+                    <div class="form-control">
+                        <label class="label">
+                            <div class="tooltip" data-tip="Strict Mode limits the operators available to just ==. This is the recommended mode for production environments">
+                                <span class="label-text">Strict Mode</span>
+                            </div>
+                        </label>
+                        <Toggle
+                            name="workspace-strict-mode"
+                            value=strict_mode_rs.get()
+                            on_change=Callback::new(move |_| {
+                                strict_mode_ws.update(|v| *v = !*v);
+                            })
+                            class=String::from("mt-2")
+                        />
+                    </div>
+                </Show>
 
                 <div class="form-control grid w-full justify-start">
                     {move || {
