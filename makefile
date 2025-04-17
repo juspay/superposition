@@ -42,6 +42,7 @@ LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
 	validate-psql-connection
 	cac
 	schema-file
+	client-setups
 
 env-file:
 	@if ! [ -e .env ]; then \

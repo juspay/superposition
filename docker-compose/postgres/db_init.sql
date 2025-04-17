@@ -1220,6 +1220,7 @@ CREATE TYPE public.function_types AS ENUM (
 );
 
 ALTER TABLE localorg_dev.functions ADD COLUMN function_type public.FUNCTION_TYPES NOT NULL DEFAULT 'VALIDATION';
+ALTER TABLE localorg_test.functions ADD COLUMN function_type public.FUNCTION_TYPES NOT NULL DEFAULT 'VALIDATION';
 
 ALTER TABLE localorg_test.dimensions
 ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
