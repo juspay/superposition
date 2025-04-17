@@ -1,5 +1,4 @@
 import {
-    SuperpositionClient,
     CreateTypeTemplatesCommand,
     UpdateTypeTemplatesCommand,
     DeleteTypeTemplatesCommand,

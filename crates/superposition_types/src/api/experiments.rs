@@ -260,6 +260,7 @@ pub struct VariantUpdateRequest {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct OverrideKeysUpdateRequest {
+    #[serde(alias = "variant_list")]
     pub variants: Vec<VariantUpdateRequest>,
     pub description: Option<Description>,
     #[serde(default = "ChangeReason::default")]

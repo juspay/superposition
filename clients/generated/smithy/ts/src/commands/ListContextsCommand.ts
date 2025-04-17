@@ -47,11 +47,13 @@ export interface ListContextsCommandOutput extends ListContextsOutput, __Metadat
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
  *   page: Number("int"),
- *   size: Number("int"),
+ *   count: Number("int"),
  *   prefix: "STRING_VALUE",
- *   sort_on: "CreatedAt" || "Weight",
- *   sort_by: "Desc" || "Asc",
+ *   sort_on: "last_modified_at" || "created_at" || "weight",
+ *   sort_by: "desc" || "asc",
  *   created_by: "STRING_VALUE",
+ *   last_modified_by: "STRING_VALUE",
+ *   plaintext: "STRING_VALUE",
  * };
  * const command = new ListContextsCommand(input);
  * const response = await client.send(command);

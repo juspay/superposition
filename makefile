@@ -42,7 +42,7 @@ LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
 	validate-psql-connection
 	cac
 	schema-file
-	client-setups
+	setup-clients
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -111,9 +111,9 @@ SETUP_DEPS = env-file db localstack
 ifdef CI
 	SETUP_DEPS += test-tenant
 endif
-setup: $(SETUP_DEPS) node_dependencies setup_clients
+setup: $(SETUP_DEPS) node_dependencies setup-clients
 
-setup_clients:
+setup-clients:
 	cd $(SMITHY_CLIENT_DIR)/ts && npm ci &&\
 		npm run build:cjs &&\
 		npm run build:types &&\

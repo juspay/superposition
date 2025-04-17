@@ -1,5 +1,4 @@
 import {
-    SuperpositionClient,
     CreateOrganisationCommand,
     ListOrganisationCommand,
     GetOrganisationCommand,
@@ -9,7 +8,6 @@ import { expect, describe, it, afterAll } from "bun:test";
 import { ENV, superpositionClient } from "../env.ts";
 
 describe("Organisation Tests", () => {
-    let client: SuperpositionClient = superpositionClient;
     let createdOrgId: string;
     const ORG_NAME = "tmporg";
 
@@ -20,7 +18,7 @@ describe("Organisation Tests", () => {
                 name: ORG_NAME,
             });
             try {
-                const response = await client.send(createCommand);
+                const response = await superpositionClient.send(createCommand);
                 expect(response).toBeDefined();
                 expect(response).toHaveProperty("id");
                 createdOrgId = response.id || "";
@@ -37,7 +35,7 @@ describe("Organisation Tests", () => {
             });
 
             try {
-                await client.send(createCommand);
+                await superpositionClient.send(createCommand);
                 console.error("Should have thrown an error");
                 expect(true).toBe(false);
             } catch (error) {
@@ -52,7 +50,7 @@ describe("Organisation Tests", () => {
             });
 
             try {
-                await client.send(createCommand);
+                await superpositionClient.send(createCommand);
                 console.error("Should have thrown an error");
                 expect(true).toBe(false);
             } catch (error) {
@@ -67,7 +65,7 @@ describe("Organisation Tests", () => {
             });
 
             try {
-                await client.send(createCommand);
+                await superpositionClient.send(createCommand);
                 console.error("Should have thrown an error");
                 expect(true).toBe(false);
             } catch (error) {
@@ -82,7 +80,7 @@ describe("Organisation Tests", () => {
                 id: createdOrgId,
             });
             try {
-                const response = await client.send(getCommand);
+                const response = await superpositionClient.send(getCommand);
                 expect(response.name).toBe(ORG_NAME);
                 expect(response.admin_email).toBe("test@gmail.com");
             } catch (e) {
@@ -97,7 +95,7 @@ describe("Organisation Tests", () => {
             });
 
             try {
-                await client.send(getCommand);
+                await superpositionClient.send(getCommand);
                 console.error("Should have thrown an error");
                 expect(true).toBe(false);
             } catch (error) {
@@ -111,7 +109,7 @@ describe("Organisation Tests", () => {
             });
 
             try {
-                await client.send(getCommand);
+                await superpositionClient.send(getCommand);
                 console.error("Should have thrown an error");
                 expect(true).toBe(false);
             } catch (error) {
@@ -125,7 +123,7 @@ describe("Organisation Tests", () => {
             });
 
             try {
-                await client.send(getCommand);
+                await superpositionClient.send(getCommand);
                 console.error("Should have thrown an error");
                 expect(true).toBe(false);
             } catch (error) {
@@ -139,7 +137,7 @@ describe("Organisation Tests", () => {
             const listCommand = new ListOrganisationCommand({});
 
             try {
-                const response = await client.send(listCommand);
+                const response = await superpositionClient.send(listCommand);
                 expect(Array.isArray(response.data)).toBe(true);
                 expect(response.data?.length).toBeGreaterThan(0);
                 const createdOrg = response.data?.find(
@@ -159,7 +157,7 @@ describe("Organisation Tests", () => {
                 page: 1,
             });
             try {
-                const response = await client.send(listCommand);
+                const response = await superpositionClient.send(listCommand);
                 expect(Array.isArray(response.data)).toBe(true);
                 expect(response.data?.length).toBeLessThanOrEqual(1);
             } catch (e) {
@@ -174,7 +172,7 @@ describe("Organisation Tests", () => {
                 page: -1,
             });
             try {
-                await client.send(listCommand);
+                await superpositionClient.send(listCommand);
                 console.error("Should have thrown an error");
                 expect(true).toBe(false);
             } catch (error) {
@@ -188,7 +186,7 @@ describe("Organisation Tests", () => {
                 page: 0,
             });
             try {
-                await client.send(listCommand);
+                await superpositionClient.send(listCommand);
                 console.error("Should have thrown an error");
                 expect(true).toBe(false);
             } catch (error) {
@@ -204,7 +202,9 @@ describe("Organisation Tests", () => {
                 admin_email: "updated-test@gmail.com",
             });
             try {
-                const updateResponse = await client.send(updateCommand);
+                const updateResponse = await superpositionClient.send(
+                    updateCommand
+                );
                 expect(updateResponse).toBeDefined();
                 expect(updateResponse).toHaveProperty("id");
                 expect(updateResponse.admin_email).toBe(
@@ -213,7 +213,7 @@ describe("Organisation Tests", () => {
                 const getCommand = new GetOrganisationCommand({
                     id: createdOrgId,
                 });
-                const getResponse = await client.send(getCommand);
+                const getResponse = await superpositionClient.send(getCommand);
                 expect(getResponse.admin_email).toBe("updated-test@gmail.com");
             } catch (e) {
                 console.error(`Error updating organisation due to ${e}`);
@@ -228,7 +228,7 @@ describe("Organisation Tests", () => {
             });
 
             try {
-                await client.send(updateCommand);
+                await superpositionClient.send(updateCommand);
                 console.error("Should have thrown an error");
                 expect(true).toBe(false);
             } catch (error) {
@@ -243,7 +243,7 @@ describe("Organisation Tests", () => {
             });
 
             try {
-                await client.send(updateCommand);
+                await superpositionClient.send(updateCommand);
                 console.error("Should have thrown an error");
                 expect(true).toBe(false);
             } catch (error) {
@@ -257,7 +257,7 @@ describe("Organisation Tests", () => {
             });
 
             try {
-                await client.send(updateCommand);
+                await superpositionClient.send(updateCommand);
                 console.error("Should have thrown an error");
                 expect(true).toBe(false);
             } catch (error) {
@@ -272,7 +272,7 @@ describe("Organisation Tests", () => {
             });
 
             try {
-                await client.send(updateCommand);
+                await superpositionClient.send(updateCommand);
                 console.error("Should have thrown an error");
                 expect(true).toBe(false);
             } catch (error) {

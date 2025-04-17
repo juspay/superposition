@@ -953,11 +953,13 @@ export const se_ListContextsCommand = async(
   b.bp("/context/list");
   const query: any = map({
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
-    [_s]: [() => input.size !== void 0, () => (input[_s]!.toString())],
+    [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_p]: [,input[_p]!],
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
     [_cb]: [,input[_cb]!],
+    [_lmb]: [,input[_lmb]!],
+    [_pl]: [,input[_pl]!],
   });
   let body: any;
   b.m("GET")
@@ -1034,6 +1036,15 @@ export const se_ListExperimentCommand = async(
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_al]: [() => input.all !== void 0, () => (input[_al]!.toString())],
+    [_s]: [,input[_s]!],
+    [_fd]: [() => input.from_date !== void 0, () => (__serializeDateTime(input[_fd]!).toString())],
+    [_td]: [() => input.to_date !== void 0, () => (__serializeDateTime(input[_td]!).toString())],
+    [_en]: [,input[_en]!],
+    [_ei]: [,input[_ei]!],
+    [_cb]: [,input[_cb]!],
+    [_co]: [,input[_cq]!],
+    [_so]: [,input[_so]!],
+    [_sb]: [,input[_sb]!],
   });
   let body: any;
   b.m("GET")
@@ -1665,7 +1676,20 @@ export const de_CreateExperimentCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'experiment_id': __expectString,
+    'change_reason': __expectString,
+    'chosen_variant': __expectString,
+    'context': _ => de_Condition(_, context),
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'id': __expectString,
+    'last_modified': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'name': __expectString,
+    'override_keys': _json,
+    'status': __expectString,
+    'traffic_percentage': __expectInt32,
+    'variants': _ => de_ListVariant(_, context),
   });
   Object.assign(contents, doc);
   return contents;
@@ -3706,15 +3730,21 @@ const de_CommandError = async(
   const _al = "all";
   const _c = "count";
   const _cb = "created_by";
+  const _co = "context";
+  const _cq = "context_query";
   const _ct = "config_tags";
+  const _ei = "experiment_ids";
+  const _en = "experiment_name";
   const _fd = "from_date";
   const _lm = "last-modified";
   const _lm_ = "last_modified";
+  const _lmb = "last_modified_by";
   const _ms = "merge_strategy";
   const _oi = "org_id";
   const _p = "prefix";
   const _pa = "page";
-  const _s = "size";
+  const _pl = "plaintext";
+  const _s = "status";
   const _sb = "sort_by";
   const _so = "sort_on";
   const _sr = "show_reasoning";
