@@ -6,7 +6,7 @@ import {
 } from "../SuperpositionClient";
 import {
   CreateExperimentRequest,
-  CreateExperimentResponse,
+  ExperimentResponse,
 } from "../models/models_0";
 import {
   de_CreateExperimentCommand,
@@ -32,7 +32,7 @@ export interface CreateExperimentCommandInput extends CreateExperimentRequest {}
  *
  * The output of {@link CreateExperimentCommand}.
  */
-export interface CreateExperimentCommandOutput extends CreateExperimentResponse, __MetadataBearer {}
+export interface CreateExperimentCommandOutput extends ExperimentResponse, __MetadataBearer {}
 
 /**
  * @public
@@ -64,8 +64,33 @@ export interface CreateExperimentCommandOutput extends CreateExperimentResponse,
  * };
  * const command = new CreateExperimentCommand(input);
  * const response = await client.send(command);
- * // { // CreateExperimentResponse
- * //   experiment_id: "STRING_VALUE", // required
+ * // { // ExperimentResponse
+ * //   id: "STRING_VALUE", // required
+ * //   created_at: new Date("TIMESTAMP"), // required
+ * //   created_by: "STRING_VALUE", // required
+ * //   last_modified: new Date("TIMESTAMP"), // required
+ * //   name: "STRING_VALUE", // required
+ * //   override_keys: [ // ListOverrideKeys // required
+ * //     "STRING_VALUE",
+ * //   ],
+ * //   status: "CREATED" || "CONCLUDED" || "INPROGRESS" || "DISCARDED", // required
+ * //   traffic_percentage: Number("int"), // required
+ * //   context: { // Condition // required
+ * //     "<keys>": "DOCUMENT_VALUE",
+ * //   },
+ * //   variants: [ // ListVariant // required
+ * //     { // Variant
+ * //       id: "STRING_VALUE", // required
+ * //       variant_type: "CONTROL" || "EXPERIMENTAL", // required
+ * //       context_id: "STRING_VALUE",
+ * //       override_id: "STRING_VALUE",
+ * //       overrides: "DOCUMENT_VALUE", // required
+ * //     },
+ * //   ],
+ * //   last_modified_by: "STRING_VALUE", // required
+ * //   chosen_variant: "STRING_VALUE",
+ * //   description: "STRING_VALUE", // required
+ * //   change_reason: "STRING_VALUE", // required
  * // };
  *
  * ```
@@ -101,7 +126,7 @@ export class CreateExperimentCommand extends $Command.classBuilder<CreateExperim
 declare protected static __types: {
   api: {
       input: CreateExperimentRequest;
-      output: CreateExperimentResponse;
+      output: ExperimentResponse;
   };
   sdk: {
       input: CreateExperimentCommandInput;

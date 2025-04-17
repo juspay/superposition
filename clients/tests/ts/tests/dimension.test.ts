@@ -1,12 +1,13 @@
 import { ListDimensionsCommand, CreateDimensionCommand, UpdateDefaultConfigCommand, UpdateDimensionCommand, DeleteDimensionCommand } from "@io.juspay/superposition-sdk";
 import { ENV, superpositionClient } from "./env.ts";
+import { describe, test } from "bun:test";
 
 describe("Dimension API", () => {
     test("CreateDimension", async () => {
         const cmd = new CreateDimensionCommand({
             dimension: "dim1",
-            workspace_id: "test",
-            org_id: "localorg",
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
             schema: {
                 type: "string",
             },
@@ -26,8 +27,8 @@ describe("Dimension API", () => {
 
     test("ListDimension", async () => {
         const cmd = new ListDimensionsCommand({
-            workspace_id: "test",
-            org_id: "localorg",
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
             count: 1,
             page: 1,
         });
@@ -43,8 +44,8 @@ describe("Dimension API", () => {
     test("UpdateDimension", async () => {
         const cmd = new UpdateDimensionCommand({
             dimension: "dim1",
-            workspace_id: "test",
-            org_id: "localorg",
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
             schema: {
                 type: "string",
             },
@@ -63,8 +64,8 @@ describe("Dimension API", () => {
     test("DeleteDimension", async () => {
         const cmd = new DeleteDimensionCommand({
             dimension: "dim1",
-            workspace_id: "test",
-            org_id: "localorg",
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
         });
         try {
             const out = await superpositionClient.send(cmd);

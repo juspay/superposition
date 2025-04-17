@@ -49,8 +49,8 @@ export interface ListContextsCommandOutput extends ListContextsOutput, __Metadat
  *   page: Number("int"),
  *   size: Number("int"),
  *   prefix: "STRING_VALUE",
- *   sort_on: "CreatedAt" || "Weight",
- *   sort_by: "Desc" || "Asc",
+ *   sort_on: "created_at" || "weight",
+ *   sort_by: "desc" || "asc",
  *   created_by: "STRING_VALUE",
  * };
  * const command = new ListContextsCommand(input);

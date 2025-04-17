@@ -29,3 +29,8 @@ list StringList {
 }
 
 string Weight
+
+enum SortBy {
+    Desc = "desc"
+    Asc = "asc"
+}
