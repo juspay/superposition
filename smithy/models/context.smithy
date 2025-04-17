@@ -194,13 +194,8 @@ operation GetContextFromCondition {
 }
 
 enum ContextFilterSortOn {
-    CreatedAt
-    Weight
-}
-
-enum SortBy {
-    Desc
-    Asc
+    CreatedAt = "created_at"
+    Weight = "weight"
 }
 
 list ListContextOut {

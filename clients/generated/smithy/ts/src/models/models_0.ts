@@ -625,8 +625,8 @@ export interface GetContextFromConditionInput {
  * @enum
  */
 export const SortBy = {
-  Asc: "Asc",
-  Desc: "Desc",
+  Asc: "asc",
+  Desc: "desc",
 } as const
 /**
  * @public
@@ -638,8 +638,8 @@ export type SortBy = typeof SortBy[keyof typeof SortBy]
  * @enum
  */
 export const ContextFilterSortOn = {
-  CreatedAt: "CreatedAt",
-  Weight: "Weight",
+  CreatedAt: "created_at",
+  Weight: "weight",
 } as const
 /**
  * @public
@@ -806,13 +806,6 @@ export interface CreateExperimentRequest {
   variants: (Variant)[] | undefined;
   description: string | undefined;
   change_reason: string | undefined;
-}
-
-/**
- * @public
- */
-export interface CreateExperimentResponse {
-  experiment_id: string | undefined;
 }
 
 /**
@@ -1160,6 +1153,19 @@ export interface GetExperimentInput {
 
 /**
  * @public
+ * @enum
+ */
+export const ExperimentSortOn = {
+  CreatedAt: "created_at",
+  LastModifiedAt: "last_modified_at",
+} as const
+/**
+ * @public
+ */
+export type ExperimentSortOn = typeof ExperimentSortOn[keyof typeof ExperimentSortOn]
+
+/**
+ * @public
  */
 export interface ListExperimentInput {
   workspace_id: string | undefined;
@@ -1167,6 +1173,15 @@ export interface ListExperimentInput {
   page?: number | undefined;
   count?: number | undefined;
   all?: boolean | undefined;
+  status?: ExperimentStatusType | undefined;
+  from_date?: Date | undefined;
+  to_date?: Date | undefined;
+  experiment_name?: string | undefined;
+  experiment_ids?: string | undefined;
+  created_by?: string | undefined;
+  context_query?: string | undefined;
+  sort_on?: ExperimentSortOn | undefined;
+  sort_by?: SortBy | undefined;
 }
 
 /**

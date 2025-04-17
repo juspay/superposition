@@ -1,22 +1,13 @@
 
-import { 
-  SuperpositionClient, 
-  ListWorkspaceCommand, 
-  CreateWorkspaceCommand, 
-  UpdateWorkspaceCommand
+import {
+    ListWorkspaceCommand,
+    CreateWorkspaceCommand,
+    UpdateWorkspaceCommand
 } from "@io.juspay/superposition-sdk";
-import { ENV } from "./env.test.ts";
-import { describe, test, expect, beforeAll } from "bun:test";
+import { superpositionClient, ENV } from "./env.ts";
+import { describe, test, expect } from "bun:test";
 
 describe("Workspace API", () => {
-    const config = {
-        endpoint: ENV.baseUrl,
-        token: {
-            token: "some-token",
-        },
-    };
-    
-    const client = new SuperpositionClient(config);
     const testWorkspaceName = `testws${Date.now() % 10000}`;
     let createdWorkspaceId: string;
 
@@ -24,19 +15,19 @@ describe("Workspace API", () => {
         const input = {
             count: 10,
             page: 1,
-            org_id: "localorg",
+            org_id: ENV.org_id,
         };
-        
+
         const cmd = new ListWorkspaceCommand(input);
-        const response = await client.send(cmd) as any;
-        
+        const response = await superpositionClient.send(cmd) as any;
+
         // Log response to see actual structure
         console.log("ListWorkspace response:", JSON.stringify(response).slice(0, 200) + "...");
-        
+
         expect(response).toBeDefined();
         expect(response.data).toBeDefined();
         expect(Array.isArray(response.data)).toBe(true);
-        
+
         // Changed pagination check - either it might be called differently or 
         // pagination data might be at the top level
         if (response.pagination) {
@@ -51,25 +42,25 @@ describe("Workspace API", () => {
 
     test("CreateWorkspace", async () => {
         const input = {
-            org_id: "localorg", 
-            workspace_admin_email: "admin@example.com", 
+            org_id: ENV.org_id,
+            workspace_admin_email: "admin@example.com",
             workspace_name: testWorkspaceName,
             description: "Test workspace created by automated tests",
             mandatory_dimensions: ["os", "client"]
         };
-        
+
         const cmd = new CreateWorkspaceCommand(input);
-        const response = await client.send(cmd) as any;
-        
+        const response = await superpositionClient.send(cmd) as any;
+
         // Log response to see actual structure
         console.log("CreateWorkspace response:", JSON.stringify(response).slice(0, 200) + "...");
-        
+
         expect(response).toBeDefined();
         expect(response.workspace_name).toBe(testWorkspaceName);
-        expect(response.organisation_id).toBe("localorg");
+        expect(response.organisation_id).toBe(ENV.org_id);
         expect(response.workspace_admin_email).toBe("admin@example.com");
         expect(response.workspace_status).toBe("ENABLED");
-        
+
         // Fix mandatory_dimensions check - it might be a string or differently structured
         if (response.mandatory_dimensions) {
             if (Array.isArray(response.mandatory_dimensions)) {
@@ -86,7 +77,7 @@ describe("Workspace API", () => {
         } else {
             console.log("mandatory_dimensions field not found in response");
         }
-        
+
         // Store the workspace ID for subsequent tests
         createdWorkspaceId = response.workspace_id || testWorkspaceName;
     });
@@ -97,29 +88,29 @@ describe("Workspace API", () => {
             console.warn("Skipping GetWorkspace test as workspace creation failed");
             return;
         }
-    
+
         // Since GetWorkspaceCommand doesn't exist, use ListWorkspace to find the workspace
         const input = {
-            org_id: "localorg",
+            org_id: ENV.org_id,
             page: 1,
             count: 100
         };
-        
+
         const cmd = new ListWorkspaceCommand(input);
-        const response = await client.send(cmd) as any;
-        
+        const response = await superpositionClient.send(cmd) as any;
+
         // Log response to see actual structure
-        console.log("ListWorkspace (for GetWorkspace) response:", 
+        console.log("ListWorkspace (for GetWorkspace) response:",
             JSON.stringify(response).slice(0, 200) + "...");
-        
+
         expect(response).toBeDefined();
         expect(response.data).toBeDefined();
-        
+
         // Find our workspace in the list
         const workspace = response.data.find((w: any) => w.workspace_name === testWorkspaceName);
         expect(workspace).toBeDefined();
         expect(workspace.workspace_name).toBe(testWorkspaceName);
-        expect(workspace.organisation_id).toBe("localorg");
+        expect(workspace.organisation_id).toBe(ENV.org_id);
         expect(workspace.workspace_admin_email).toBe("admin@example.com");
         expect(workspace.workspace_status).toBe("ENABLED");
     });
@@ -132,24 +123,24 @@ describe("Workspace API", () => {
         }
 
         const input = {
-            org_id: "localorg",
+            org_id: ENV.org_id,
             workspace_name: testWorkspaceName,
             workspace_admin_email: "updated-admin@example.com",
             workspace_status: "ENABLED",
             mandatory_dimensions: ["os", "client", "version"],
             description: "Updated workspace description"
         } as any;
-        
+
         const cmd = new UpdateWorkspaceCommand(input);
-        const response = await client.send(cmd) as any;
-        
+        const response = await superpositionClient.send(cmd) as any;
+
         // Log response to see actual structure
         console.log("UpdateWorkspace response:", JSON.stringify(response).slice(0, 200) + "...");
-        
+
         expect(response).toBeDefined();
         expect(response.workspace_name).toBe(testWorkspaceName);
         expect(response.workspace_admin_email).toBe("updated-admin@example.com");
-        
+
         // Check mandatory_dimensions with flexible type handling
         if (response.mandatory_dimensions) {
             if (Array.isArray(response.mandatory_dimensions)) {
@@ -164,7 +155,7 @@ describe("Workspace API", () => {
                 console.log("mandatory_dimensions is in a different format:", response.mandatory_dimensions);
             }
         }
-        
+
     });
 
     test("Verify Updated Workspace", async () => {
@@ -175,22 +166,22 @@ describe("Workspace API", () => {
         }
 
         const input = {
-            org_id: "localorg",
+            org_id: ENV.org_id,
             page: 1,
             count: 100
         };
-        
+
         const cmd = new ListWorkspaceCommand(input);
-        const response = await client.send(cmd) as any;
-        
+        const response = await superpositionClient.send(cmd) as any;
+
         expect(response).toBeDefined();
         expect(response.data).toBeDefined();
-        
+
         // Find our workspace in the list
         const workspace = response.data.find((w: any) => w.workspace_name === testWorkspaceName);
         expect(workspace).toBeDefined();
         expect(workspace.workspace_admin_email).toBe("updated-admin@example.com");
-        
+
         // Check mandatory_dimensions with flexible type handling
         if (workspace.mandatory_dimensions) {
             if (Array.isArray(workspace.mandatory_dimensions)) {
@@ -201,21 +192,21 @@ describe("Workspace API", () => {
         }
     });
 
-   
+
     test("List Workspaces with Filters", async () => {
         const input = {
             count: 5,
             page: 1,
-            org_id: "localorg",
+            org_id: ENV.org_id,
             status: "ENABLED"
         };
-        
+
         const cmd = new ListWorkspaceCommand(input);
-        const response = await client.send(cmd) as any;
-        
+        const response = await superpositionClient.send(cmd) as any;
+
         expect(response).toBeDefined();
         expect(response.data).toBeDefined();
-        
+
         // All workspaces should have ENABLED status
         for (const workspace of response.data) {
             expect(workspace.workspace_status).toBe("ENABLED");
@@ -228,11 +219,11 @@ describe("Workspace API", () => {
             page: 1,
             org_id: "non-existent-org"
         };
-        
+
         const cmd = new ListWorkspaceCommand(input);
-        
+
         try {
-            await client.send(cmd);
+            await superpositionClient.send(cmd);
             // If we get here, the test should fail as we expect an error
             expect(false).toBe(true);
         } catch (error: any) {
@@ -243,16 +234,16 @@ describe("Workspace API", () => {
 
     test("Create Workspace with Invalid Data", async () => {
         const input = {
-            org_id: "localorg",
+            org_id: ENV.org_id,
             workspace_admin_email: "invalid-email",  // Invalid email format
             workspace_name: "",  // Empty name
             description: "Test invalid workspace"
         };
-        
+
         const cmd = new CreateWorkspaceCommand(input);
-        
+
         try {
-            await client.send(cmd);
+            await superpositionClient.send(cmd);
             // Should not get here
             expect(false).toBe(true);
         } catch (error: any) {
@@ -261,20 +252,20 @@ describe("Workspace API", () => {
 
         }
     });
-    
+
     test("Create Workspace with Special Characters", async () => {
         const input = {
-            org_id: "localorg",
+            org_id: ENV.org_id,
             workspace_admin_email: "admin@example.com",
             // This should fail as the regex only allows letters and numbers
-            workspace_name: "test-special-chars@!#", 
+            workspace_name: "test-special-chars@!#",
             description: "Test with special characters"
         };
-        
+
         const cmd = new CreateWorkspaceCommand(input);
-        
+
         try {
-            await client.send(cmd);
+            await superpositionClient.send(cmd);
             // Should not get here
             expect(false).toBe(true);
         } catch (error: any) {
