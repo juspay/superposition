@@ -38,7 +38,7 @@ describe("Default Config API Integration Tests", () => {
         try {
             await client.send(cmd);
         } catch (e: any) {
-            console.error(
+            console.warn(
                 "Error creating workspace. It might already exist.",
                 e.message
             );
