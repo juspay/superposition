@@ -9,7 +9,9 @@ import {
     ListContextsCommand,
     BulkOperationCommand,
     CreateDimensionCommand,
+    DeleteDimensionCommand,
     CreateDefaultConfigCommand,
+    DeleteDefaultConfigCommand,
     type CreateContextCommandOutput,
     type GetConfigCommandOutput,
     type GetContextCommandOutput,
@@ -18,13 +20,18 @@ import {
     WorkspaceStatus,
 } from "@io.juspay/superposition-sdk";
 import { superpositionClient } from "./env.ts";
-import { describe, beforeAll, test, expect } from "bun:test";
+import { describe, beforeAll, afterAll, test, expect } from "bun:test";
 
 describe("Context API Integration Tests", () => {
     let client: SuperpositionClient;
     let contextId: string;
     let testWorkspaceId: string;
     let testOrgId: string;
+
+    // Track resources for cleanup
+    const createdDimensions: string[] = [];
+    const createdDefaultConfigs: string[] = [];
+    const createdContextIds: Set<string> = new Set(); // Using Set to avoid duplicates
 
     beforeAll(async () => {
         client = superpositionClient;
@@ -34,6 +41,75 @@ describe("Context API Integration Tests", () => {
         await createWorkspace(client);
         await setupDimensionsAndConfigs(client);
     });
+
+    // Add cleanup after all tests
+    afterAll(async () => {
+        console.log("Cleaning up test resources...");
+
+        // Delete contexts first
+        console.log(`Cleaning up ${createdContextIds.size} contexts...`);
+        for (const id of createdContextIds) {
+            try {
+                await client.send(
+                    new DeleteContextCommand({
+                        workspace_id: testWorkspaceId,
+                        org_id: testOrgId,
+                        id: id,
+                    })
+                );
+                console.log(`Deleted context: ${id}`);
+            } catch (error: any) {
+                console.error(`Failed to delete context ${id}:`, error.message);
+            }
+        }
+
+        // Delete default configs
+        console.log(
+            `Cleaning up ${createdDefaultConfigs.length} default configs...`
+        );
+        for (const key of createdDefaultConfigs) {
+            try {
+                await client.send(
+                    new DeleteDefaultConfigCommand({
+                        workspace_id: testWorkspaceId,
+                        org_id: testOrgId,
+                        key: key,
+                    })
+                );
+                console.log(`Deleted default config: ${key}`);
+            } catch (error: any) {
+                console.error(
+                    `Failed to delete default config ${key}:`,
+                    error.message
+                );
+            }
+        }
+
+        // Delete dimensions
+        console.log(`Cleaning up ${createdDimensions.length} dimensions...`);
+        for (const dim of createdDimensions) {
+            try {
+                await client.send(
+                    new DeleteDimensionCommand({
+                        workspace_id: testWorkspaceId,
+                        org_id: testOrgId,
+                        dimension: dim,
+                    })
+                );
+                console.log(`Deleted dimension: ${dim}`);
+            } catch (error: any) {
+                console.error(
+                    `Failed to delete dimension ${dim}:`,
+                    error.message
+                );
+            }
+        }
+    });
+
+    // Helper function to track context IDs
+    function trackContext(id: string | undefined) {
+        if (id) createdContextIds.add(id);
+    }
 
     async function createWorkspace(client: SuperpositionClient) {
         const input = {
@@ -143,6 +219,8 @@ describe("Context API Integration Tests", () => {
                 });
 
                 await client.send(cmd);
+                // Track created dimension
+                createdDimensions.push(dim.dimension);
                 console.log(`Created dimension: ${dim.dimension}`);
             } catch (e: any) {
                 // If dimension already exists, just log and continue
@@ -282,6 +360,8 @@ describe("Context API Integration Tests", () => {
                 });
 
                 await client.send(cmd);
+                // Track created config
+                createdDefaultConfigs.push(config.key);
                 console.log(`Created default config: ${config.key}`);
             } catch (e: any) {
                 // If config already exists, just log and continue
@@ -318,6 +398,9 @@ describe("Context API Integration Tests", () => {
 
             const cmd = new CreateContextCommand(input);
             const response: CreateContextCommandOutput = await client.send(cmd);
+
+            // Track created context
+            trackContext(response.context_id);
 
             expect(response.$metadata.httpStatusCode).toBe(200);
             expect(response.context_id).toBeDefined();
@@ -366,6 +449,10 @@ describe("Context API Integration Tests", () => {
 
             const cmd = new CreateContextCommand(input);
             const response = await client.send(cmd);
+
+            // Track created context
+            trackContext(response.context_id);
+
             expect(response.$metadata.httpStatusCode).toBe(200);
             // Weight should be 2^1 + 2^2 = 2 + 4 = 6 (for clientId and moveSource)
             expect(response.weight).toBe("6");
@@ -452,6 +539,9 @@ describe("Context API Integration Tests", () => {
             const cmd = new UpdateOverrideCommand(input);
             const response = await client.send(cmd);
 
+            // Track context ID from update response
+            trackContext(response.context_id);
+
             expect(response.$metadata.httpStatusCode).toBe(200);
             expect(response.context_id).toBeDefined();
             expect(response.override_id).toBeDefined();
@@ -487,6 +577,9 @@ describe("Context API Integration Tests", () => {
 
             const cmd = new UpdateOverrideCommand(input);
             const response = await client.send(cmd);
+
+            // Track context ID from update response
+            trackContext(response.context_id);
 
             expect(response.$metadata.httpStatusCode).toBe(200);
             expect(response.context_id).toBeDefined();
@@ -530,6 +623,10 @@ describe("Context API Integration Tests", () => {
             });
 
             const createResp = await client.send(createCmd);
+
+            // Track created context
+            trackContext(createResp.context_id);
+
             const sourceId = createResp.context_id;
 
             const moveInput = {
@@ -555,6 +652,9 @@ describe("Context API Integration Tests", () => {
             });
 
             const moveResp = await client.send(moveCmd);
+
+            // Track moved context (target ID)
+            trackContext(moveResp.context_id);
 
             expect(moveResp.$metadata.httpStatusCode).toBe(200);
             expect(moveResp.context_id).not.toBe(sourceId);
@@ -599,6 +699,10 @@ describe("Context API Integration Tests", () => {
             });
 
             const firstResp = await client.send(createFirstCmd);
+
+            // Track created context
+            trackContext(firstResp.context_id);
+
             const sourceId = firstResp.context_id;
 
             // Create second context with overlapping and different overrides
@@ -624,6 +728,10 @@ describe("Context API Integration Tests", () => {
             });
 
             const secondResp = await client.send(createSecondCmd);
+
+            // Track created context
+            trackContext(secondResp.context_id);
+
             const targetId = secondResp.context_id;
 
             // Now attempt to move first context to location of second context
@@ -784,6 +892,18 @@ describe("Context API Integration Tests", () => {
             const response = await client.send(bulkCmd);
             expect(response.$metadata.httpStatusCode).toBe(200);
             expect(response.bulk_operation_output?.output?.length).toBe(2);
+
+            // Track created contexts from bulk operations
+            if (response.bulk_operation_output?.output) {
+                for (const output of response.bulk_operation_output.output) {
+                    if (output.PUT?.context_id) {
+                        trackContext(output.PUT.context_id);
+                    }
+                    if (output.MOVE?.context_id) {
+                        trackContext(output.MOVE.context_id);
+                    }
+                }
+            }
 
             // Verify first operation
             const firstOp = response.bulk_operation_output?.output?.[0];
