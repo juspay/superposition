@@ -128,6 +128,7 @@ get-password:
 superposition: CARGO_FLAGS += --features=$(FEATURES)
 superposition:
 	cargo build $(CARGO_FLAGS) --bin superposition
+	@cd target && ln -s ../node_modules node_modules || true
 
 superposition-example:
 	cargo run --bin cac-demo-app
@@ -176,9 +177,14 @@ test: setup frontend superposition
 	@./target/debug/superposition &
 	@echo "Awaiting superposition boot..."
 ## FIXME Curl doesn't retry.
-	@timeout 20s bash -c \
-		"while ! curl --silent 'http://localhost:8080/health' 2>&1 > /dev/null; do sleep 0.5; done"
-	npm run test
+	@curl	--silent --retry 10 \
+				--connect-timeout 2 \
+				--retry-all-errors \
+				'http://localhost:8080/health' 2>&1 > /dev/null
+	cd clients/tests/ts && bun install && bun test
+	-@pkill -f target/debug/superposition &
+
+## npm run test
 ## FIXME Broken as requires hardcoded 'org_id'. Current test setup doesn't create
 ## deterministic 'org_id'.
 # cd $(SMITHY_CLIENT_DIR)/ts && npm ci && npm test
