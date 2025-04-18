@@ -1232,4 +1232,7 @@ ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
 ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
 ADD COLUMN dependencies TEXT[] default '{}' NOT NULL;
 
+ALTER TABLE superposition.workspaces
+ADD COLUMN IF NOT EXISTS strict_mode BOOLEAN DEFAULT FALSE;
+
 COMMIT;

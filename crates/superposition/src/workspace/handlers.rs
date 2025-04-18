@@ -88,6 +88,7 @@ async fn create_workspace(
         last_modified_at: timestamp,
         created_at: timestamp,
         mandatory_dimensions: None,
+        strict_mode: request.workspace_strict_mode,
     };
 
     let created_workspace =

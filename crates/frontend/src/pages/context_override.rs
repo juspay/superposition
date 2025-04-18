@@ -6,7 +6,10 @@ use serde_json::{Map, Value};
 use superposition_types::{
     api::default_config::DefaultConfigFilters,
     custom_query::PaginationParams,
-    database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
+    database::{
+        models::{cac::DefaultConfig, Workspace},
+        types::DimensionWithMandatory,
+    },
     Config, Context,
 };
 
@@ -61,6 +64,7 @@ fn form(
 ) -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace_settings = use_context::<RwSignal<Workspace>>().unwrap();
     let (context, set_context) = create_signal(context);
     let (overrides, set_overrides) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
@@ -123,6 +127,7 @@ fn form(
         <ContextForm
             dimensions=dimensions.get_value()
             context=context.get_untracked()
+            resolve_mode=workspace_settings.get().strict_mode
             handle_change=move |new_context| {
                 set_context
                     .update(|value| {

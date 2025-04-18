@@ -2,6 +2,7 @@ pub mod types;
 pub mod utils;
 
 use leptos::*;
+use superposition_types::database::models::Workspace;
 use superposition_types::database::{
     models::cac::DefaultConfig, types::DimensionWithMandatory,
 };
@@ -46,6 +47,7 @@ where
     let default_config = StoredValue::new(default_config);
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace_settings = use_context::<RwSignal<Workspace>>().unwrap();
 
     let (experiment_name, set_experiment_name) = create_signal(name);
     let (f_context, set_context) = create_signal(context.clone());
@@ -192,6 +194,7 @@ where
                             dimensions=dimensions.get_value()
                             context=context
                             handle_change=handle_context_form_change
+                            resolve_mode=workspace_settings.get().strict_mode
                             disabled=edit
                             heading_sub_text=String::from(
                                 "Define rules under which this experiment would run",

@@ -6,7 +6,10 @@ use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::{Map, Value};
-use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
+use service_utils::{
+    helpers::{extract_dimensions, get_variable_name_and_value},
+    service::types::SchemaName,
+};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
@@ -14,7 +17,7 @@ use superposition_types::{
         models::cac::{Context, DependencyGraph, FunctionCode, FunctionTypes},
         schema::{contexts, default_configs::dsl, dimensions},
     },
-    result as superposition, Cac, DBConnection, Overrides, User,
+    result as superposition, Cac, Condition, DBConnection, Overrides, User,
 };
 
 use crate::validation_functions::execute_fn;
@@ -115,6 +118,51 @@ pub fn validate_condition_with_functions(
             }
         }
     }
+    Ok(())
+}
+
+pub fn validate_condition_with_strict_mode(
+    context: &Condition,
+    strict_mode: bool,
+) -> superposition::Result<()> {
+    if !strict_mode {
+        return Ok(());
+    }
+
+    let conditions: Vec<Value> = match (*context).get("and") {
+        Some(conditions_json) => conditions_json
+            .as_array()
+            .ok_or(superposition::AppError::BadArgument("Error extracting dimensions, failed parsing conditions as an array. Ensure the context provided obeys the rules of JSON logic".into()))?
+            .clone(),
+        None => vec![Value::Object(context.to_owned().into())],
+    };
+
+    for condition in &conditions {
+        let condition_obj =
+            condition
+                .as_object()
+                .ok_or(superposition::AppError::BadArgument(
+                    "Failed to parse condition as an object. Ensure the context provided obeys the rules of JSON logic".to_string()
+                ))?;
+        let operators = condition_obj.keys();
+
+        for operator in operators {
+            let operands = condition_obj[operator].as_array().ok_or(superposition::AppError::BadArgument(
+                    "Failed to parse operands as an arrays. Ensure the context provided obeys the rules of JSON logic"
+                            .into()
+            ))?;
+
+            let (dimension_name, _) = get_variable_name_and_value(operands)?;
+            // variantIds use 'HAS', and since they are managed internally allow them to bypass strict mode
+            if dimension_name != "variantIds" && operator != "==" {
+                return Err(superposition::AppError::BadArgument(format!(
+                    "Strict mode is enabled, but the context contains unsupported operators. Please use IS operator only. Found operator: {}",
+                    operator
+                )));
+            }
+        }
+    }
+
     Ok(())
 }
 
@@ -267,6 +315,8 @@ pub fn create_ctx_from_put_req(
     let ctx_override = Value::Object(r_override.clone().into());
 
     let workspace_settings = get_workspace(schema_name, conn)?;
+
+    validate_condition_with_strict_mode(&ctx_condition, workspace_settings.strict_mode)?;
 
     let change_reason = req.change_reason.clone();
     let context_map = extract_dimensions(&ctx_condition)?;
