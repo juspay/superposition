@@ -67,3 +67,14 @@ macro_rules! webhook_error {
         superposition_types::result::AppError::WebhookError(anyhow::anyhow!($err.to_string()))
     };
 }
+
+#[macro_export]
+// Macro to create a nested tuple from a list of expressions
+macro_rules! nested_pair_tuple {
+    ($first:expr $(, $rest:expr)* $(,)?) => {
+        ($first, nested_pair_tuple!($($rest),*))
+    };
+    () => {
+        ()
+    };
+}

@@ -24,26 +24,35 @@ pub trait CustomQuery: Sized {
         Regex::new(Self::regex_pattern()).unwrap()
     }
 
-    #[cfg(feature = "server")]
-    fn extract_query(
-        query_string: &str,
-    ) -> Result<Self, actix_web::error::QueryPayloadError> {
+    fn extract_query(query_string: &str) -> Result<Self, String> {
         let query_map =
-            actix_web::web::Query::<HashMap<String, String>>::from_query(query_string)?;
-        let filtered_query = Self::filter_and_transform_query(query_map.into_inner());
-        let inner = actix_web::web::Query::<Self::Inner>::from_query(&filtered_query)?
-            .into_inner();
+            serde_urlencoded::from_str::<HashMap<String, String>>(query_string).map_err(
+                |e| format!("Failed to parse query string: {query_string}. Error: {e}"),
+            )?;
+        let filtered_query = Self::filter_and_transform_query(query_map);
+        let filtered_query_str = Self::to_query_string(filtered_query);
+        let inner = serde_urlencoded::from_str::<Self::Inner>(&filtered_query_str)
+            .map_err(|e| {
+                format!("Failed to parse query string: {query_string}. Error: {e}")
+            })?;
         Ok(Self::new(inner))
     }
 
-    fn filter_and_transform_query(query_map: HashMap<String, String>) -> String {
+    fn filter_and_transform_query(
+        query_map: HashMap<String, String>,
+    ) -> HashMap<String, String> {
         let regex = Self::query_regex();
         query_map
             .into_iter()
-            .filter_map(|(k, v)| {
-                Self::extract_key(&regex, &k).map(|pk| format!("{pk}={v}"))
-            })
-            .collect::<Vec<String>>()
+            .filter_map(|(k, v)| Self::extract_key(&regex, &k).map(|pk| (pk, v)))
+            .collect()
+    }
+
+    fn to_query_string(query_map: HashMap<String, String>) -> String {
+        query_map
+            .into_iter()
+            .map(|(k, v)| format!("{k}={v}"))
+            .collect::<Vec<_>>()
             .join("&")
     }
 
@@ -98,7 +107,10 @@ where
         _: &mut actix_web::dev::Payload,
     ) -> Self::Future {
         use std::future::ready;
-        ready(Self::extract_query(req.query_string()).map_err(actix_web::Error::from))
+        ready(
+            Self::extract_query(req.query_string())
+                .map_err(actix_web::error::ErrorBadRequest),
+        )
     }
 }
 
@@ -142,12 +154,15 @@ where
         _: &mut actix_web::dev::Payload,
     ) -> Self::Future {
         use std::future::ready;
-        ready(Self::extract_query(req.query_string()).map_err(actix_web::Error::from))
+        ready(
+            Self::extract_query(req.query_string())
+                .map_err(actix_web::error::ErrorBadRequest),
+        )
     }
 }
 
 /// Provides struct to `Deserialize` `HashMap<String, String>` as `serde_json::Map<String, serde_json::Value>`
-#[derive(Deserialize, Deref, DerefMut, Clone, PartialEq)]
+#[derive(Deserialize, Deref, DerefMut, Clone, PartialEq, Default)]
 #[cfg_attr(test, derive(Debug))]
 #[serde(from = "HashMap<String,String>")]
 pub struct QueryMap(Map<String, Value>);

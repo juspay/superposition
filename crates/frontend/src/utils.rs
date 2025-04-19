@@ -306,7 +306,9 @@ pub enum PageDirection {
 pub fn update_page_direction(page: Option<i64>, direction: PageDirection) -> Option<i64> {
     match (page, direction) {
         (Some(p), PageDirection::Next(total_pages)) if p < total_pages => Some(p + 1),
+        (None, PageDirection::Next(total_pages)) if total_pages > 1 => Some(2),
         (Some(p), PageDirection::Prev) if p > 1 => Some(p - 1),
+        (None, PageDirection::Next(_)) | (None, PageDirection::Prev) => Some(1),
         (p, _) => p,
     }
 }

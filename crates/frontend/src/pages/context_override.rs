@@ -4,12 +4,13 @@ use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use strum::IntoEnumIterator;
+use superposition_macros::nested_pair_tuple;
 use superposition_types::{
     api::{
         context::{ContextListFilters, SortOn},
         default_config::DefaultConfigFilters,
     },
-    custom_query::{CustomQuery, DimensionQuery, PaginationParams, QueryMap},
+    custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
     database::{
         models::cac::{Context, DefaultConfig},
         types::DimensionWithMandatory,
@@ -41,6 +42,7 @@ use crate::providers::{
     condition_collapse_provider::ConditionCollapseProvider,
     editor_provider::EditorProvider,
 };
+use crate::query_updater::{use_param_updater, use_query_string};
 use crate::types::{OrganisationId, Tenant, VariantFormTs};
 use crate::utils::{update_page_direction, PageDirection};
 
@@ -69,8 +71,8 @@ fn context_filter_drawer(
     dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
     dimensions: Vec<DimensionWithMandatory>,
 ) -> impl IntoView {
-    let filters_buffer_rws = create_rw_signal(context_filters_rws.get_untracked());
-    let dimension_buffer_rws = create_rw_signal(dimension_params_rws.get_untracked());
+    let filters_buffer_rws = RwSignal::new(context_filters_rws.get_untracked());
+    let dimension_buffer_rws = RwSignal::new(dimension_params_rws.get_untracked());
     let context = dimension_params_rws
         .get_untracked()
         .into_inner()
@@ -93,6 +95,7 @@ fn context_filter_drawer(
                     dimensions
                     context
                     dropdown_direction=DropdownDirection::Down
+                    resolve_mode=true
                     handle_change=move |context: Conditions| {
                         let map = context
                             .iter()
@@ -118,16 +121,15 @@ fn context_filter_drawer(
                         id="context-key-prefix"
                         class="input input-bordered rounded-md resize-y w-full max-w-md"
                         placeholder="eg: key1,key2"
-                        value=move || context_filters_rws.get().prefix.map(|d| d.to_string())
+                        value=move || {
+                            context_filters_rws.with(|f| f.prefix.clone().map(|d| d.to_string()))
+                        }
                         on:change=move |event| {
                             let prefixes = event_target_value(&event);
                             let prefixes = (!prefixes.is_empty())
                                 .then(|| serde_json::from_value(Value::String(prefixes)).ok())
                                 .flatten();
-                            filters_buffer_rws
-                                .update(|filter| {
-                                    filter.prefix = prefixes;
-                                });
+                            filters_buffer_rws.update(|filter| filter.prefix = prefixes);
                         }
                     />
                 </div>
@@ -140,16 +142,16 @@ fn context_filter_drawer(
                         id="context-creator-filter"
                         class="input input-bordered rounded-md resize-y w-full max-w-md"
                         placeholder="eg: user@superposition.io"
-                        value=move || context_filters_rws.get().created_by.map(|d| d.to_string())
+                        value=move || {
+                            context_filters_rws
+                                .with(|f| f.created_by.clone().map(|d| d.to_string()))
+                        }
                         on:change=move |event| {
                             let user_names = event_target_value(&event);
                             let user_names = (!user_names.is_empty())
                                 .then(|| serde_json::from_value(Value::String(user_names)).ok())
                                 .flatten();
-                            filters_buffer_rws
-                                .update(|filter| {
-                                    filter.created_by = user_names;
-                                });
+                            filters_buffer_rws.update(|filter| filter.created_by = user_names);
                         }
                     />
                 </div>
@@ -162,18 +164,43 @@ fn context_filter_drawer(
                         id="context-modifier-filter"
                         class="input input-bordered rounded-md resize-y w-full max-w-md"
                         placeholder="eg: user@superposition.io"
-                        value=move || context_filters_rws.get().created_by.map(|d| d.to_string())
+                        value=move || {
+                            context_filters_rws
+                                .with(|f| f.last_modified_by.clone().map(|d| d.to_string()))
+                        }
                         on:change=move |event| {
                             let user_names = event_target_value(&event);
                             let user_names = (!user_names.is_empty())
                                 .then(|| serde_json::from_value(Value::String(user_names)).ok())
                                 .flatten();
                             filters_buffer_rws
-                                .update(|filter| {
-                                    filter.last_modified_by = user_names;
-                                });
+                                .update(|filter| filter.last_modified_by = user_names);
                         }
                     />
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">{"Override (Plaintext search)"}</span>
+                    </label>
+                    {move || {
+                        view! {
+                            <textarea
+                                id="context-plaintext-filter"
+                                placeholder="Search overrides with plaintext"
+                                class="textarea textarea-bordered w-full max-w-md"
+                                on:change=move |event| {
+                                    let plaintext = event_target_value(&event);
+                                    let plaintext = (!plaintext.is_empty()).then_some(plaintext);
+                                    filters_buffer_rws
+                                        .update(|filter| filter.plaintext = plaintext);
+                                }
+                            >
+                                {context_filters_rws
+                                    .with(|f| f.plaintext.clone())
+                                    .unwrap_or_default()}
+                            </textarea>
+                        }
+                    }}
                 </div>
                 <div class="flex justify-end">
                     <Button
@@ -357,9 +384,30 @@ pub fn context_override() -> impl IntoView {
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
     let (delete_modal, set_delete_modal) = create_signal(false);
     let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
-    let pagination_filters_rws = create_rw_signal(PaginationParams::default());
-    let context_filters_rws = create_rw_signal(ContextListFilters::default());
-    let dimension_params_rws = create_rw_signal(DimensionQuery::from(Map::new()));
+
+    let query_params = use_query_string();
+    let pagination_filters_rws = RwSignal::new(
+        Query::<PaginationParams>::extract_query(&query_params.get_value())
+            .map(|q| q.into_inner())
+            .unwrap_or_default(),
+    );
+    let context_filters_rws = RwSignal::new(
+        Query::<ContextListFilters>::extract_query(&query_params.get_value())
+            .map(|q| q.into_inner())
+            .unwrap_or_default(),
+    );
+    let dimension_params_rws = RwSignal::new(
+        DimensionQuery::<QueryMap>::extract_query(&query_params.get_value())
+            .unwrap_or(DimensionQuery::from(Map::new())),
+    );
+
+    use_param_updater(move || {
+        nested_pair_tuple!(
+            context_filters_rws.get(),
+            pagination_filters_rws.get(),
+            dimension_params_rws.get(),
+        )
+    });
 
     let page_resource: Resource<
         (
@@ -669,7 +717,7 @@ pub fn context_override() -> impl IntoView {
                     view! {
                         <Pagination
                             class="self-end".to_string()
-                            current_page=pagination_filters_rws.get().page.unwrap_or_default()
+                            current_page=pagination_filters_rws.get().page.unwrap_or(1)
                             total_pages=page_resource
                                 .get()
                                 .map(|d| d.contexts)
@@ -782,11 +830,15 @@ pub fn context_override() -> impl IntoView {
                     </Drawer>
                 }
             }}
-            <ContextFilterDrawer
-                dimensions=page_resource.get().map(|r| r.dimensions).unwrap_or_default()
-                context_filters_rws
-                dimension_params_rws
-            />
+            {move || {
+                view! {
+                    <ContextFilterDrawer
+                        dimensions=page_resource.get().map(|r| r.dimensions).unwrap_or_default()
+                        context_filters_rws
+                        dimension_params_rws
+                    />
+                }
+            }}
             <DeleteModal
                 modal_visible=delete_modal
                 confirm_delete=on_delete_confirm

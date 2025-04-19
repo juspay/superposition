@@ -13,7 +13,7 @@ use crate::components::stat::Stat;
 use crate::components::table::types::{ColumnSortable, Expandable, TablePaginationProps};
 use crate::components::table::{types::Column, Table};
 use crate::types::{OrganisationId, Tenant};
-use crate::utils::use_url_base;
+use crate::utils::{update_page_direction, use_url_base, PageDirection};
 
 use crate::api::fetch_snapshots;
 
@@ -42,22 +42,13 @@ pub fn config_version_list() -> impl IntoView {
 
     let handle_next_click = Callback::new(move |total_pages: i64| {
         set_filters.update(|f| {
-            f.page = match f.page {
-                Some(p) if p < total_pages => Some(p + 1),
-                Some(p) => Some(p),
-                None => Some(1),
-            }
+            f.page = update_page_direction(f.page, PageDirection::Next(total_pages))
         });
     });
 
     let handle_prev_click = Callback::new(move |_| {
-        set_filters.update(|f| {
-            f.page = match f.page {
-                Some(p) if p > 1 => Some(p - 1),
-                Some(_) => Some(1),
-                None => Some(1),
-            }
-        });
+        set_filters
+            .update(|f| f.page = update_page_direction(f.page, PageDirection::Prev))
     });
 
     view! {

@@ -2,7 +2,7 @@ use leptos::*;
 
 #[component]
 pub fn pagination(
-    #[prop(default= String::new())] class: String,
+    #[prop(default = String::new())] class: String,
     current_page: i64,
     total_pages: i64,
     next: Callback<i64>,
