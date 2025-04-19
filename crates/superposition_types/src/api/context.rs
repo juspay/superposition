@@ -38,6 +38,7 @@ pub struct ContextListFilters {
     pub sort_by: Option<SortBy>,
     pub created_by: Option<CommaSeparatedStringQParams>,
     pub last_modified_by: Option<CommaSeparatedStringQParams>,
+    pub plaintext: Option<String>,
 }
 
 impl Display for ContextListFilters {
@@ -58,6 +59,14 @@ impl Display for ContextListFilters {
 
         if let Some(created_by) = &self.created_by {
             parts.push(format!("created_by={created_by}"));
+        }
+
+        if let Some(last_modified_by) = &self.last_modified_by {
+            parts.push(format!("last_modified_by={last_modified_by}"));
+        }
+
+        if let Some(plaintext) = &self.plaintext {
+            parts.push(format!("plaintext={plaintext}"));
         }
 
         write!(f, "{}", parts.join("&"))

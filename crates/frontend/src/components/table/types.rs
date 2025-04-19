@@ -101,7 +101,7 @@ pub struct TablePaginationProps {
     pub total_pages: i64,
     pub count: i64,
     pub on_next: Callback<i64>,
-    pub on_prev: Callback<()>,
+    pub on_prev: Callback<i64>,
 }
 
 impl Default for TablePaginationProps {

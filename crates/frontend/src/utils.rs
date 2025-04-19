@@ -297,16 +297,3 @@ pub fn set_local_storage(_key: &str, _value: &str) -> Option<()> {
         }
     }
 }
-
-pub enum PageDirection {
-    Next(i64),
-    Prev,
-}
-
-pub fn update_page_direction(page: Option<i64>, direction: PageDirection) -> Option<i64> {
-    match (page, direction) {
-        (Some(p), PageDirection::Next(total_pages)) if p < total_pages => Some(p + 1),
-        (Some(p), PageDirection::Prev) if p > 1 => Some(p - 1),
-        (p, _) => p,
-    }
-}

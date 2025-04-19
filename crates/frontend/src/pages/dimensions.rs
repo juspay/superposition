@@ -16,7 +16,6 @@ use crate::components::{
     },
 };
 use crate::types::{OrganisationId, Tenant};
-use crate::utils::{update_page_direction, PageDirection};
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -64,16 +63,12 @@ pub fn dimensions() -> impl IntoView {
         delete_id_ws.set(None);
         delete_modal_visible_ws.set(false);
     });
-    let handle_next_click = Callback::new(move |total_pages: i64| {
-        set_filters.update(|f| {
-            f.page = update_page_direction(f.page, PageDirection::Next(total_pages));
-        });
+    let handle_next_click = Callback::new(move |next_page: i64| {
+        set_filters.update(|f| f.page = Some(next_page));
     });
 
-    let handle_prev_click = Callback::new(move |_| {
-        set_filters.update(|f| {
-            f.page = update_page_direction(f.page, PageDirection::Prev);
-        });
+    let handle_prev_click = Callback::new(move |prev_page: i64| {
+        set_filters.update(|f| f.page = Some(prev_page));
     });
 
     let selected_dimension = create_rw_signal::<Option<RowData>>(None);

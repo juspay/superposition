@@ -12,7 +12,6 @@ use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{stat::Stat, table::Table};
 use crate::types::{OrganisationId, Tenant};
-use crate::utils::{update_page_direction, PageDirection};
 
 use super::utils::function_table_columns;
 
@@ -41,16 +40,12 @@ pub fn function_list() -> impl IntoView {
         },
     );
 
-    let handle_next_click = Callback::new(move |total_pages: i64| {
-        set_filters.update(|f| {
-            f.page = update_page_direction(f.page, PageDirection::Next(total_pages));
-        });
+    let handle_next_click = Callback::new(move |next_page: i64| {
+        set_filters.update(|f| f.page = Some(next_page));
     });
 
-    let handle_prev_click = Callback::new(move |_| {
-        set_filters.update(|f| {
-            f.page = update_page_direction(f.page, PageDirection::Prev);
-        });
+    let handle_prev_click = Callback::new(move |prev_page: i64| {
+        set_filters.update(|f| f.page = Some(prev_page));
     });
 
     view! {

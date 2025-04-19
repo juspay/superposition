@@ -27,7 +27,6 @@ use crate::providers::alert_provider::enqueue_alert;
 use crate::types::{BreadCrums, OrganisationId, Tenant};
 use crate::utils::{
     get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
-    update_page_direction, PageDirection,
 };
 
 #[derive(Clone, Debug, Default)]
@@ -138,16 +137,12 @@ pub fn default_config() -> impl IntoView {
         navigate(redirect_url.as_str(), Default::default());
     };
 
-    let handle_next_click = Callback::new(move |total_pages: i64| {
-        pagination_ws.update(|f| {
-            f.page = update_page_direction(f.page, PageDirection::Next(total_pages));
-        });
+    let handle_next_click = Callback::new(move |next_page: i64| {
+        pagination_ws.update(|f| f.page = Some(next_page));
     });
 
-    let handle_prev_click = Callback::new(move |_| {
-        pagination_ws.update(|f| {
-            f.page = update_page_direction(f.page, PageDirection::Prev);
-        });
+    let handle_prev_click = Callback::new(move |prev_page: i64| {
+        pagination_ws.update(|f| f.page = Some(prev_page));
     });
 
     let table_columns = create_memo(move |_| {

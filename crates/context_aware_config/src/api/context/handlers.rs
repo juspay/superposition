@@ -25,8 +25,12 @@ use actix_web::{
 };
 use bigdecimal::BigDecimal;
 use chrono::Utc;
-use diesel::SelectableHelper;
-use diesel::{delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{
+    delete,
+    dsl::sql,
+    sql_types::{Bool, Text},
+    Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
+};
 use serde_json::{Map, Value};
 use service_utils::{
     helpers::parse_config_tags,
@@ -298,92 +302,101 @@ async fn list_contexts(
     let page = pagination_params.page.unwrap_or(1);
     let count = pagination_params.count.unwrap_or(10);
     let show_all = pagination_params.all.unwrap_or_default();
+    let offset = count * (page - 1);
 
     let dimension_params = dimension_params.into_inner();
-    let builder = contexts.schema_name(&schema_name).into_boxed();
 
-    #[rustfmt::skip]
-    let mut builder = match (filter_params.sort_on.unwrap_or_default(), filter_params.sort_by.unwrap_or(SortBy::Asc)) {
-        (SortOn::Weight,         SortBy::Asc)  => builder.order(weight.asc()),
-        (SortOn::Weight,         SortBy::Desc) => builder.order(weight.desc()),
-        (SortOn::CreatedAt,      SortBy::Asc)  => builder.order(created_at.asc()),
-        (SortOn::CreatedAt,      SortBy::Desc) => builder.order(created_at.desc()),
-        (SortOn::LastModifiedAt, SortBy::Asc)  => builder.order(last_modified_at.asc()),
-        (SortOn::LastModifiedAt, SortBy::Desc) => builder.order(last_modified_at.desc()),
+    let get_base_query = || {
+        let mut builder = contexts.schema_name(&schema_name).into_boxed();
+        if let Some(creators) = filter_params.created_by.clone() {
+            builder = builder.filter(created_by.eq_any(creators.0))
+        }
+
+        if let Some(last_modifiers) = filter_params.last_modified_by.clone() {
+            builder = builder.filter(last_modified_by.eq_any(last_modifiers.0))
+        }
+
+        if let Some(plaintext) = filter_params.plaintext.clone() {
+            builder = builder.filter(
+                sql::<Bool>("override::text ILIKE ")
+                    .bind::<Text, _>(format!("%{plaintext}%")),
+            )
+        }
+
+        builder
     };
 
-    if let Some(created_by_filter) = filter_params.created_by.clone() {
-        builder = builder.filter(created_by.eq_any(created_by_filter.0))
-    }
+    let base_query = get_base_query();
 
-    if let Some(last_modified_by_filter) = filter_params.last_modified_by.clone() {
-        builder = builder.filter(last_modified_by.eq_any(last_modified_by_filter.0))
-    }
+    #[rustfmt::skip]
+    let base_query = match (filter_params.sort_on.unwrap_or_default(), filter_params.sort_by.unwrap_or(SortBy::Asc)) {
+        (SortOn::Weight,         SortBy::Asc)  => base_query.order(weight.asc()),
+        (SortOn::Weight,         SortBy::Desc) => base_query.order(weight.desc()),
+        (SortOn::CreatedAt,      SortBy::Asc)  => base_query.order(created_at.asc()),
+        (SortOn::CreatedAt,      SortBy::Desc) => base_query.order(created_at.desc()),
+        (SortOn::LastModifiedAt, SortBy::Asc)  => base_query.order(last_modified_at.asc()),
+        (SortOn::LastModifiedAt, SortBy::Desc) => base_query.order(last_modified_at.desc()),
+    };
 
-    let paginated_response =
-        if dimension_params.len() > 0 || filter_params.prefix.is_some() {
-            let mut all_contexts: Vec<Context> = builder.load(&mut conn)?;
-            if let Some(prefix) = filter_params.prefix {
-                let prefix_list = HashSet::from_iter(prefix.0);
-                all_contexts = all_contexts
-                    .into_iter()
-                    .filter_map(|mut context| {
-                        Context::filter_keys_by_prefix(&context, &prefix_list)
-                            .map(|filtered_overrides_map| {
-                                context.override_ = filtered_overrides_map.into_inner();
-                                context
-                            })
-                            .ok()
-                    })
-                    .collect()
-            }
-            let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
-            let dimension_filter_contexts =
-                Context::filter_by_dimension(all_contexts, &dimension_keys);
-            let eval_filter_contexts =
-                Context::filter_by_eval(dimension_filter_contexts, &dimension_params);
+    let perform_in_memory_filter =
+        dimension_params.len() > 0 || filter_params.prefix.is_some();
 
-            if show_all {
-                PaginatedResponse::all(eval_filter_contexts)
-            } else {
-                let total_items = eval_filter_contexts.len();
-                let start = (count * (page - 1)) as usize;
-                let end = min((count * page) as usize, total_items);
-                let data = eval_filter_contexts
-                    .get(start..end)
-                    .map_or(vec![], |slice| slice.to_vec());
+    let paginated_response = if perform_in_memory_filter {
+        let mut all_contexts: Vec<Context> = base_query.load(&mut conn)?;
+        if let Some(prefix) = filter_params.prefix {
+            let prefix_list = HashSet::from_iter(prefix.0);
+            all_contexts = all_contexts
+                .into_iter()
+                .filter_map(|mut context| {
+                    Context::filter_keys_by_prefix(&context, &prefix_list)
+                        .map(|filtered_overrides_map| {
+                            context.override_ = filtered_overrides_map.into_inner();
+                            context
+                        })
+                        .ok()
+                })
+                .collect()
+        }
+        let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
+        let dimension_filter_contexts =
+            Context::filter_by_dimension(all_contexts, &dimension_keys);
+        let eval_filter_contexts =
+            Context::filter_by_eval(dimension_filter_contexts, &dimension_params);
 
-                PaginatedResponse {
-                    total_pages: (total_items as f64 / count as f64).ceil() as i64,
-                    total_items: total_items as i64,
-                    data,
-                }
-            }
-        } else if show_all {
-            let data = builder.load::<Context>(&mut conn)?;
-            PaginatedResponse::all(data)
+        if show_all {
+            PaginatedResponse::all(eval_filter_contexts)
         } else {
-            let mut total_count_builder = contexts.schema_name(&schema_name).into_boxed();
-            if let Some(created_bys) = filter_params.created_by {
-                total_count_builder =
-                    total_count_builder.filter(created_by.eq_any(created_bys.0))
-            }
-            if let Some(last_modified_bys) = filter_params.last_modified_by.clone() {
-                total_count_builder = total_count_builder
-                    .filter(last_modified_by.eq_any(last_modified_bys.0))
-            }
-            let total_items: i64 = total_count_builder.count().get_result(&mut conn)?;
-            let data = builder
-                .limit(count)
-                .offset(count * (page - 1))
-                .load::<Context>(&mut conn)?;
+            let total_items = eval_filter_contexts.len();
+            let start = offset as usize;
+            let end = min((offset + count) as usize, total_items);
+            let data = eval_filter_contexts
+                .get(start..end)
+                .map(|slice| slice.to_vec())
+                .unwrap_or_default();
 
             PaginatedResponse {
                 total_pages: (total_items as f64 / count as f64).ceil() as i64,
-                total_items,
+                total_items: total_items as i64,
                 data,
             }
-        };
+        }
+    } else if show_all {
+        let data = base_query.load::<Context>(&mut conn)?;
+        PaginatedResponse::all(data)
+    } else {
+        let total_items = get_base_query().count().get_result(&mut conn)?;
+
+        let data = base_query
+            .limit(count)
+            .offset(offset)
+            .load::<Context>(&mut conn)?;
+
+        PaginatedResponse {
+            total_pages: (total_items as f64 / count as f64).ceil() as i64,
+            total_items,
+            data,
+        }
+    };
 
     Ok(Json(paginated_response))
 }

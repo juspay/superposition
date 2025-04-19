@@ -4,12 +4,13 @@ use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use strum::IntoEnumIterator;
+use superposition_macros::box_params;
 use superposition_types::{
     api::{
         context::{ContextListFilters, SortOn},
         default_config::DefaultConfigFilters,
     },
-    custom_query::{CustomQuery, DimensionQuery, PaginationParams, QueryMap},
+    custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
     database::{
         models::cac::{Context, DefaultConfig},
         types::DimensionWithMandatory,
@@ -41,8 +42,8 @@ use crate::providers::{
     condition_collapse_provider::ConditionCollapseProvider,
     editor_provider::EditorProvider,
 };
+use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant, VariantFormTs};
-use crate::utils::{update_page_direction, PageDirection};
 
 #[derive(Clone, Debug, Default)]
 pub struct Data {
@@ -65,12 +66,13 @@ enum FormMode {
 
 #[component]
 fn context_filter_drawer(
+    pagination_params_rws: RwSignal<PaginationParams>,
     context_filters_rws: RwSignal<ContextListFilters>,
     dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
     dimensions: Vec<DimensionWithMandatory>,
 ) -> impl IntoView {
-    let filters_buffer_rws = create_rw_signal(context_filters_rws.get_untracked());
-    let dimension_buffer_rws = create_rw_signal(dimension_params_rws.get_untracked());
+    let filters_buffer_rws = RwSignal::new(context_filters_rws.get_untracked());
+    let dimension_buffer_rws = RwSignal::new(dimension_params_rws.get_untracked());
     let context = dimension_params_rws
         .get_untracked()
         .into_inner()
@@ -93,6 +95,7 @@ fn context_filter_drawer(
                     dimensions
                     context
                     dropdown_direction=DropdownDirection::Down
+                    resolve_mode=true
                     handle_change=move |context: Conditions| {
                         let map = context
                             .iter()
@@ -118,16 +121,15 @@ fn context_filter_drawer(
                         id="context-key-prefix"
                         class="input input-bordered rounded-md resize-y w-full max-w-md"
                         placeholder="eg: key1,key2"
-                        value=move || context_filters_rws.get().prefix.map(|d| d.to_string())
+                        value=move || {
+                            context_filters_rws.with(|f| f.prefix.clone().map(|d| d.to_string()))
+                        }
                         on:change=move |event| {
                             let prefixes = event_target_value(&event);
                             let prefixes = (!prefixes.is_empty())
                                 .then(|| serde_json::from_value(Value::String(prefixes)).ok())
                                 .flatten();
-                            filters_buffer_rws
-                                .update(|filter| {
-                                    filter.prefix = prefixes;
-                                });
+                            filters_buffer_rws.update(|filter| filter.prefix = prefixes);
                         }
                     />
                 </div>
@@ -140,16 +142,16 @@ fn context_filter_drawer(
                         id="context-creator-filter"
                         class="input input-bordered rounded-md resize-y w-full max-w-md"
                         placeholder="eg: user@superposition.io"
-                        value=move || context_filters_rws.get().created_by.map(|d| d.to_string())
+                        value=move || {
+                            context_filters_rws
+                                .with(|f| f.created_by.clone().map(|d| d.to_string()))
+                        }
                         on:change=move |event| {
                             let user_names = event_target_value(&event);
                             let user_names = (!user_names.is_empty())
                                 .then(|| serde_json::from_value(Value::String(user_names)).ok())
                                 .flatten();
-                            filters_buffer_rws
-                                .update(|filter| {
-                                    filter.created_by = user_names;
-                                });
+                            filters_buffer_rws.update(|filter| filter.created_by = user_names);
                         }
                     />
                 </div>
@@ -162,18 +164,43 @@ fn context_filter_drawer(
                         id="context-modifier-filter"
                         class="input input-bordered rounded-md resize-y w-full max-w-md"
                         placeholder="eg: user@superposition.io"
-                        value=move || context_filters_rws.get().created_by.map(|d| d.to_string())
+                        value=move || {
+                            context_filters_rws
+                                .with(|f| f.last_modified_by.clone().map(|d| d.to_string()))
+                        }
                         on:change=move |event| {
                             let user_names = event_target_value(&event);
                             let user_names = (!user_names.is_empty())
                                 .then(|| serde_json::from_value(Value::String(user_names)).ok())
                                 .flatten();
                             filters_buffer_rws
-                                .update(|filter| {
-                                    filter.last_modified_by = user_names;
-                                });
+                                .update(|filter| filter.last_modified_by = user_names);
                         }
                     />
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">{"Override (Plaintext search)"}</span>
+                    </label>
+                    {move || {
+                        view! {
+                            <textarea
+                                id="context-plaintext-filter"
+                                placeholder="Search overrides with plaintext"
+                                class="textarea textarea-bordered w-full max-w-md"
+                                on:change=move |event| {
+                                    let plaintext = event_target_value(&event);
+                                    let plaintext = (!plaintext.is_empty()).then_some(plaintext);
+                                    filters_buffer_rws
+                                        .update(|filter| filter.plaintext = plaintext);
+                                }
+                            >
+                                {context_filters_rws
+                                    .with(|f| f.plaintext.clone())
+                                    .unwrap_or_default()}
+                            </textarea>
+                        }
+                    }}
                 </div>
                 <div class="flex justify-end">
                     <Button
@@ -181,9 +208,9 @@ fn context_filter_drawer(
                         text="Submit".to_string()
                         on_click=move |event| {
                             event.prevent_default();
-                            let filter = filters_buffer_rws.get();
-                            context_filters_rws.set(filter);
+                            context_filters_rws.set(filters_buffer_rws.get());
                             dimension_params_rws.set(dimension_buffer_rws.get());
+                            pagination_params_rws.update(|f| f.page = None);
                             close_drawer("context_filter_drawer")
                         }
                     />
@@ -193,9 +220,14 @@ fn context_filter_drawer(
                         icon_class="ri-restart-line".into()
                         on_click=move |event| {
                             event.prevent_default();
-                            let filters = ContextListFilters::default();
-                            context_filters_rws.set(filters);
+                            context_filters_rws.set(ContextListFilters::default());
                             dimension_params_rws.set(DimensionQuery::from(Map::new()));
+                            pagination_params_rws
+                                .set(PaginationParams {
+                                    page: None,
+                                    count: None,
+                                    all: None,
+                                });
                             close_drawer("context_filter_drawer")
                         }
                     />
@@ -213,7 +245,7 @@ fn form(
     dimensions: Vec<DimensionWithMandatory>,
     edit: bool,
     default_config: Vec<DefaultConfig>,
-    handle_submit: Callback<(), ()>,
+    handle_submit: Callback<bool, ()>,
     #[prop(default = String::new())] description: String,
     #[prop(default = String::new())] change_reason: String,
 ) -> impl IntoView {
@@ -257,7 +289,7 @@ fn form(
             match result {
                 Ok(_) => {
                     logging::log!("Context and overrides submitted successfully");
-                    handle_submit.call(());
+                    handle_submit.call(edit);
                     let success_message = if edit {
                         "Context and overrides updated successfully!"
                     } else {
@@ -357,9 +389,29 @@ pub fn context_override() -> impl IntoView {
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
     let (delete_modal, set_delete_modal) = create_signal(false);
     let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
-    let pagination_filters_rws = create_rw_signal(PaginationParams::default());
-    let context_filters_rws = create_rw_signal(ContextListFilters::default());
-    let dimension_params_rws = create_rw_signal(DimensionQuery::from(Map::new()));
+
+    let pagination_params_rws = use_signal_from_query(move |query_string| {
+        Query::<PaginationParams>::extract_query(&query_string)
+            .map(|q| q.into_inner())
+            .unwrap_or_default()
+    });
+    let context_filters_rws = use_signal_from_query(move |query_string| {
+        Query::<ContextListFilters>::extract_query(&query_string)
+            .map(|q| q.into_inner())
+            .unwrap_or_default()
+    });
+    let dimension_params_rws = use_signal_from_query(move |query_string| {
+        DimensionQuery::<QueryMap>::extract_query(&query_string)
+            .unwrap_or(DimensionQuery::from(Map::new()))
+    });
+
+    use_param_updater(move || {
+        box_params![
+            context_filters_rws.get(),
+            pagination_params_rws.get(),
+            dimension_params_rws.get(),
+        ]
+    });
 
     let page_resource: Resource<
         (
@@ -375,7 +427,7 @@ pub fn context_override() -> impl IntoView {
             (
                 tenant_rws.get().0,
                 org_rws.get().0,
-                pagination_filters_rws.get(),
+                pagination_params_rws.get(),
                 context_filters_rws.get(),
                 dimension_params_rws.get(),
             )
@@ -428,8 +480,17 @@ pub fn context_override() -> impl IntoView {
         open_drawer("context_and_override_drawer");
     });
 
-    let on_submit = Callback::new(move |_| {
+    let on_submit = Callback::new(move |edit: bool| {
         close_drawer("context_and_override_drawer");
+        if !edit {
+            context_filters_rws.set(ContextListFilters::default());
+            dimension_params_rws.set(DimensionQuery::from(Map::new()));
+            pagination_params_rws.set(PaginationParams {
+                page: None,
+                count: None,
+                all: None,
+            });
+        }
         set_form_mode.set(None);
         selected_context_ws.set(None);
         page_resource.refetch();
@@ -510,16 +571,12 @@ pub fn context_override() -> impl IntoView {
         set_delete_modal.set(true);
     });
 
-    let handle_next_click = Callback::new(move |total_pages: i64| {
-        pagination_filters_rws.update(|f| {
-            f.page = update_page_direction(f.page, PageDirection::Next(total_pages));
-        });
+    let handle_next_click = Callback::new(move |next_page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(next_page));
     });
 
-    let handle_prev_click = Callback::new(move |_| {
-        pagination_filters_rws.update(|f| {
-            f.page = update_page_direction(f.page, PageDirection::Prev);
-        });
+    let handle_prev_click = Callback::new(move |prev_page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(prev_page));
     });
 
     let on_delete_confirm = Callback::new(move |_| {
@@ -669,7 +726,7 @@ pub fn context_override() -> impl IntoView {
                     view! {
                         <Pagination
                             class="self-end".to_string()
-                            current_page=pagination_filters_rws.get().page.unwrap_or_default()
+                            current_page=pagination_params_rws.get().page.unwrap_or_default()
                             total_pages=page_resource
                                 .get()
                                 .map(|d| d.contexts)
@@ -782,11 +839,16 @@ pub fn context_override() -> impl IntoView {
                     </Drawer>
                 }
             }}
-            <ContextFilterDrawer
-                dimensions=page_resource.get().map(|r| r.dimensions).unwrap_or_default()
-                context_filters_rws
-                dimension_params_rws
-            />
+            {move || {
+                view! {
+                    <ContextFilterDrawer
+                        dimensions=page_resource.get().map(|r| r.dimensions).unwrap_or_default()
+                        pagination_params_rws
+                        context_filters_rws
+                        dimension_params_rws
+                    />
+                }
+            }}
             <DeleteModal
                 modal_visible=delete_modal
                 confirm_delete=on_delete_confirm

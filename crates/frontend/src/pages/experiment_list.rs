@@ -22,26 +22,21 @@ use superposition_types::{
 };
 use utils::experiment_table_columns;
 
-use crate::{
-    components::{
-        button::Button,
-        context_form::ContextForm,
-        drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
-        dropdown::DropdownDirection,
-        experiment_form::ExperimentForm,
-        input::DateInput,
-        skeleton::Skeleton,
-        stat::Stat,
-        table::{types::TablePaginationProps, Table},
-    },
-    logic::Condition,
+use crate::components::{
+    button::Button,
+    context_form::ContextForm,
+    drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+    dropdown::DropdownDirection,
+    experiment_form::ExperimentForm,
+    input::DateInput,
+    skeleton::Skeleton,
+    stat::Stat,
+    table::{types::TablePaginationProps, Table},
 };
-use crate::{logic::Conditions, utils::PageDirection};
-
+use crate::logic::{Condition, Conditions};
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
 use crate::types::VariantFormTs;
-use crate::utils::update_page_direction;
 use crate::{
     api::{fetch_default_config, fetch_dimensions, fetch_experiments},
     types::{OrganisationId, Tenant},
@@ -389,16 +384,12 @@ pub fn experiment_list() -> impl IntoView {
         close_drawer("create_exp_drawer");
     };
 
-    let handle_next_click = Callback::new(move |total_pages: i64| {
-        pagination_filters_ws.update(|f| {
-            f.page = update_page_direction(f.page, PageDirection::Next(total_pages));
-        });
+    let handle_next_click = Callback::new(move |next_page: i64| {
+        pagination_filters_ws.update(|f| f.page = Some(next_page));
     });
 
-    let handle_prev_click = Callback::new(move |_| {
-        pagination_filters_ws.update(|f| {
-            f.page = update_page_direction(f.page, PageDirection::Prev);
-        });
+    let handle_prev_click = Callback::new(move |prev_page: i64| {
+        pagination_filters_ws.update(|f| f.page = Some(prev_page));
     });
 
     view! {
