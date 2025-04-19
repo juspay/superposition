@@ -391,11 +391,14 @@ where
                         children=move |(idx, condition)| {
                             let (schema_type, enum_variants) = dimension_map
                                 .with_value(|v| {
-                                    let d = v.get(&condition.variable).unwrap();
-                                    (
-                                        SchemaType::try_from(d.schema.clone()),
-                                        EnumVariants::try_from(d.schema.clone()),
-                                    )
+                                    v.get(&condition.variable)
+                                        .map(|d| {
+                                            (
+                                                SchemaType::try_from(d.schema.clone()),
+                                                EnumVariants::try_from(d.schema.clone()),
+                                            )
+                                        })
+                                        .unwrap_or((Err("".to_string()), Err("".to_string())))
                                 });
                             let operator = Operator::from(&condition);
                             if schema_type.is_err() || enum_variants.is_err() {

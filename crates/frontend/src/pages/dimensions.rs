@@ -16,7 +16,7 @@ use crate::components::{
     },
 };
 use crate::types::{OrganisationId, Tenant};
-use crate::utils::update_page_direction;
+use crate::utils::{update_page_direction, PageDirection};
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -66,13 +66,13 @@ pub fn dimensions() -> impl IntoView {
     });
     let handle_next_click = Callback::new(move |total_pages: i64| {
         set_filters.update(|f| {
-            f.page = update_page_direction(f.page, total_pages, true);
+            f.page = update_page_direction(f.page, PageDirection::Next(total_pages));
         });
     });
 
     let handle_prev_click = Callback::new(move |_| {
         set_filters.update(|f| {
-            f.page = update_page_direction(f.page, 1, false);
+            f.page = update_page_direction(f.page, PageDirection::Prev);
         });
     });
 
@@ -229,7 +229,7 @@ pub fn dimensions() -> impl IntoView {
                             ele_map
                                 .insert(
                                     "created_at".to_string(),
-                                    json!(ele.created_at.format("%v").to_string()),
+                                    json!(ele.created_at.format("%v %T").to_string()),
                                 );
                             ele_map
                         })
