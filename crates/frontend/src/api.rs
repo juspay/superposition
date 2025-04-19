@@ -1,7 +1,16 @@
+use crate::utils::{
+    construct_request_headers, get_host, parse_json_response, request, use_host_server,
+};
 use leptos::ServerFnError;
+use serde_json::Value;
 use superposition_types::{
-    api::default_config::DefaultConfigFilters,
-    api::experiments::{ExperimentListFilters, ExperimentResponse},
+    api::{
+        default_config::DefaultConfigFilters,
+        experiments::{ExperimentListFilters, ExperimentResponse},
+        functions::{
+            FunctionExecutionRequest, FunctionExecutionResponse, ListFunctionFilters,
+        },
+    },
     custom_query::PaginationParams,
     database::{
         models::{
@@ -11,10 +20,6 @@ use superposition_types::{
         types::DimensionWithMandatory,
     },
     Config, PaginatedResponse,
-};
-
-use crate::utils::{
-    construct_request_headers, get_host, parse_json_response, request, use_host_server,
 };
 
 // #[server(GetDimensions, "/fxn", "GetJson")]
@@ -147,14 +152,19 @@ pub async fn fetch_experiments(
 }
 
 pub async fn fetch_functions(
-    filters: &PaginationParams,
+    pagination: &PaginationParams,
+    filters: &ListFunctionFilters,
     tenant: String,
     org_id: String,
 ) -> Result<PaginatedResponse<Function>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
-
-    let url = format!("{}/function?{}", host, filters);
+    let pagination = pagination.to_string();
+    let url = if pagination.is_empty() {
+        format!("{}/function?{}", host, filters)
+    } else {
+        format!("{}/function?{}&{}", host, filters, pagination)
+    };
     let response: PaginatedResponse<Function> = client
         .get(url)
         .header("x-tenant", tenant)
@@ -345,4 +355,42 @@ pub async fn fetch_workspaces(
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     Ok(response)
+}
+
+pub async fn execute_autocomplete_function(
+    name: &str,
+    value: &str,
+    environment: &Value,
+    fn_name: &String,
+    tenant: &String,
+    org_id: &String,
+) -> Result<Vec<String>, ServerFnError> {
+    let host = use_host_server();
+    let client = reqwest::Client::new();
+    let url = format!("{}/function/{}/PUBLISHED/test", host, fn_name);
+    let err_handler = |e: reqwest::Error| ServerFnError::new(e.to_string());
+    let payload = FunctionExecutionRequest::AutocompleteFunctionRequest {
+        name: name.to_owned(),
+        prefix: value.to_owned(),
+        environment: environment.clone(),
+    };
+    let response = client
+        .put(url)
+        .header("x-org-id", org_id)
+        .header("x-tenant", tenant)
+        .json(&payload)
+        .send()
+        .await
+        .map_err(err_handler)?
+        .json::<FunctionExecutionResponse>()
+        .await
+        .map_err(err_handler)?;
+    let result = response
+        .fn_output
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v.as_str().unwrap().to_string())
+        .collect();
+    Ok(result)
 }

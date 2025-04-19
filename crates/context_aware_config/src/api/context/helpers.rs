@@ -104,8 +104,12 @@ pub fn validate_condition_with_functions(
         .filter_map(|(key_, f_name)| f_name.map(|func| (key_, func)))
         .collect();
 
-    let dimension_functions_map =
-        get_functions_map(conn, new_keys_function_array, schema_name)?;
+    let dimension_functions_map = get_functions_map(
+        conn,
+        new_keys_function_array,
+        FunctionTypes::Validation,
+        schema_name,
+    )?;
     for (key, value) in context_map.iter() {
         if let Some(functions_map) = dimension_functions_map.get(key) {
             if let (function_name, Some(function_code)) =
@@ -134,8 +138,12 @@ pub fn validate_override_with_functions(
         .filter_map(|(key_, f_name)| f_name.map(|func| (key_, func)))
         .collect();
 
-    let default_config_functions_map =
-        get_functions_map(conn, new_keys_function_array, schema_name)?;
+    let default_config_functions_map = get_functions_map(
+        conn,
+        new_keys_function_array,
+        FunctionTypes::Validation,
+        schema_name,
+    )?;
     for (key, value) in override_.iter() {
         if let Some(functions_map) = default_config_functions_map.get(key) {
             if let (function_name, Some(function_code)) =
@@ -151,6 +159,7 @@ pub fn validate_override_with_functions(
 fn get_functions_map(
     conn: &mut DBConnection,
     keys_function_array: Vec<(String, String)>,
+    fntype: FunctionTypes,
     schema_name: &SchemaName,
 ) -> superposition::Result<HashMap<String, FunctionsInfo>> {
     let functions_map: HashMap<String, Option<FunctionCode>> =
@@ -160,25 +169,26 @@ fn get_functions_map(
                 .iter()
                 .map(|(_, f_name)| f_name.clone())
                 .collect(),
+            fntype,
             schema_name,
         )?
         .into_iter()
         .collect();
 
-    let default_config_functions_map: HashMap<String, FunctionsInfo> =
-        keys_function_array
-            .into_iter()
-            .map(|(key, function_name)| {
-                (
-                    key.clone(),
-                    FunctionsInfo {
-                        name: function_name.clone(),
-                        code: functions_map.get(&function_name).cloned().flatten(),
-                    },
-                )
-            })
-            .collect();
-    Ok(default_config_functions_map)
+    // primitives here either imply dimensions or default configs based on who is calling it
+    let function_to_primitives_map: HashMap<String, FunctionsInfo> = keys_function_array
+        .into_iter()
+        .map(|(key, function_name)| {
+            (
+                key.clone(),
+                FunctionsInfo {
+                    name: function_name.clone(),
+                    code: functions_map.get(&function_name).cloned().flatten(),
+                },
+            )
+        })
+        .collect();
+    Ok(function_to_primitives_map)
 }
 
 pub fn validate_value_with_function(

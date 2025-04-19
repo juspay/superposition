@@ -4,13 +4,15 @@ use cfg_if::cfg_if;
 use leptos::*;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::de::DeserializeOwned;
+use serde_json::Value;
 use url::Url;
 use wasm_bindgen::JsCast;
 
 use crate::{
+    api::execute_autocomplete_function,
     components::alert::AlertType,
     providers::alert_provider::enqueue_alert,
-    types::{Envs, ErrorResponse},
+    types::{AutoCompleteCallback, Envs, ErrorResponse, FunctionsName},
 };
 
 #[allow(dead_code)]
@@ -309,4 +311,50 @@ pub fn update_page_direction(
         Some(p) => Some(p),
         None => None,
     }
+}
+
+pub fn set_function(selected_function: FunctionsName, value: &mut Option<String>) {
+    let function_name = selected_function.clone();
+    leptos::logging::log!("function selected: {:?}", function_name);
+    let fun_name = match function_name.as_str() {
+        "None" => None,
+        _ => Some(function_name),
+    };
+    *value = fun_name;
+}
+
+pub fn autocomplete_fn_generator(
+    key: String,
+    autocomplete_fn_name: String,
+    environment: Memo<Value>,
+    tenant: String,
+    org_id: String,
+) -> (String, AutoCompleteCallback) {
+    let return_key = key.clone();
+    let callback = Callback::new(
+        move |(value, suggestions): (String, WriteSignal<Vec<String>>)| {
+            let key_copy = key.clone();
+            let fn_copy = autocomplete_fn_name.clone();
+            let environment = environment.get();
+            let org_id = org_id.clone();
+            let tenant = tenant.clone();
+            logging::log!("Calling {fn_copy} for {key} {value} {}", environment);
+            leptos::spawn_local(async move {
+                match execute_autocomplete_function(
+                &key_copy,
+                &value,
+                &environment,
+                &fn_copy,
+                &tenant,
+                &org_id,
+            )
+            .await
+            {
+                Ok(vec) => suggestions.set(vec),
+                Err(err) => logging::error!("An error occurred while running the autocomplete function: {err}"),
+            };
+            });
+        },
+    );
+    (return_key, callback)
 }

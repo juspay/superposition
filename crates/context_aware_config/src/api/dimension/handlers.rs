@@ -88,6 +88,7 @@ async fn create(
         dependency_graph: DependencyGraph::default(),
         dependents: Vec::new(),
         dependencies: create_req.dependencies.unwrap_or_default(),
+        autocomplete_function_name: create_req.autocomplete_function_name,
     };
 
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {

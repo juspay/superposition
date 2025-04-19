@@ -15,6 +15,7 @@ pub struct CreateReq {
     pub function_name: Option<String>,
     pub description: String,
     pub change_reason: String,
+    pub autocomplete_function_name: Option<String>,
 }
 
 #[derive(Debug, Deserialize, AsChangeset)]
@@ -25,6 +26,8 @@ pub struct UpdateReq {
     pub schema: Option<Value>,
     #[serde(default, deserialize_with = "deserialize_function_name")]
     pub function_name: Option<Option<String>>,
+    #[serde(default, deserialize_with = "deserialize_function_name")]
+    pub autocomplete_function_name: Option<Option<String>>,
     pub description: Option<String>,
     pub change_reason: String,
 }

@@ -10,6 +10,7 @@ use crate::{
         input::{Input, InputType},
     },
     schema::{EnumVariants, SchemaType},
+    types::AutoCompleteCallbacks,
 };
 
 #[component]
@@ -44,7 +45,9 @@ fn override_input(
     on_change: Callback<(String, Value), ()>,
     on_remove: Callback<String, ()>,
     allow_remove: bool,
+    autocomplete_callbacks: AutoCompleteCallbacks,
 ) -> impl IntoView {
+    let autocomplete_callback = autocomplete_callbacks.get(&key).cloned();
     let key = store_value(key);
 
     let input_type = match (r#type.clone(), variants) {
@@ -79,6 +82,7 @@ fn override_input(
                             on_change=Callback::new(move |value| {
                                 on_change.call((key.get_value(), value));
                             })
+                            autocomplete_function=autocomplete_callback
                         />
                     }
                         .into_view()
@@ -114,6 +118,7 @@ pub fn override_form<NF>(
     #[prop(default = false)] disable_remove: bool,
     #[prop(default = true)] show_add_override: bool,
     #[prop(into, default = None)] handle_key_remove: Option<Callback<String, ()>>,
+    autocomplete_callbacks: AutoCompleteCallbacks,
 ) -> impl IntoView
 where
     NF: Fn(Vec<(String, Value)>) + 'static,
@@ -241,6 +246,7 @@ where
                                         on_change=on_change
                                         on_remove=on_remove
                                         allow_remove=!disable_remove
+                                        autocomplete_callbacks=autocomplete_callbacks.clone()
                                     />
                                 }
                             }

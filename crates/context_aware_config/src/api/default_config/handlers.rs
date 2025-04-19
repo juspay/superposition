@@ -82,6 +82,7 @@ async fn create_default_config(
         last_modified_by: user.get_email(),
         description: description.clone(),
         change_reason: change_reason.clone(),
+        autocomplete_function_name: req.autocomplete_function_name,
     };
 
     let schema_compile_result = JSONSchema::options()
@@ -211,14 +212,17 @@ async fn update_default_config(
         ));
     }
 
-    let function_name: Option<String> = req
-        .function_name
+    let validation_function_name: Option<String> =
+        req.function_name.clone().unwrap_or(existing.function_name);
+
+    let autocomplete_function_name: Option<String> = req
+        .autocomplete_function_name
         .clone()
-        .unwrap_or(existing.function_name.clone());
+        .unwrap_or(existing.autocomplete_function_name);
 
     if let Err(e) = validate_and_get_function_code(
         &mut conn,
-        function_name.as_ref(),
+        validation_function_name.as_ref(),
         &key_str,
         &value,
         &schema_name,
@@ -227,12 +231,18 @@ async fn update_default_config(
         return Err(e);
     }
 
+    let new_update_req = UpdateReq {
+        function_name: Some(validation_function_name),
+        autocomplete_function_name: Some(autocomplete_function_name),
+        ..req
+    };
+
     let (db_row, version_id) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let val = diesel::update(dsl::default_configs)
                 .filter(dsl::key.eq(key_str.clone()))
                 .set((
-                    req,
+                    new_update_req,
                     dsl::last_modified_at.eq(Utc::now()),
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
@@ -269,9 +279,8 @@ fn validate_and_get_function_code(
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     if let Some(f_name) = function_name {
-        let function_code =
-            get_published_function_code(conn, f_name.clone(), schema_name)
-                .map_err(|_| bad_argument!("Function {} doesn't exist.", f_name))?;
+        let function_code = get_published_function_code(conn, f_name, schema_name)
+            .map_err(|_| bad_argument!("Function {} doesn't exist.", f_name))?;
         if let Some(f_code) = function_code {
             validate_value_with_function(
                 f_name.as_str(),
