@@ -222,12 +222,7 @@ fn context_filter_drawer(
                             event.prevent_default();
                             context_filters_rws.set(ContextListFilters::default());
                             dimension_params_rws.set(DimensionQuery::from(Map::new()));
-                            pagination_params_rws
-                                .set(PaginationParams {
-                                    page: None,
-                                    count: None,
-                                    all: None,
-                                });
+                            pagination_params_rws.update(|f| f.page = None);
                             close_drawer("context_filter_drawer")
                         }
                     />
@@ -485,11 +480,7 @@ pub fn context_override() -> impl IntoView {
         if !edit {
             context_filters_rws.set(ContextListFilters::default());
             dimension_params_rws.set(DimensionQuery::from(Map::new()));
-            pagination_params_rws.set(PaginationParams {
-                page: None,
-                count: None,
-                all: None,
-            });
+            pagination_params_rws.update(|f| f.page = None);
         }
         set_form_mode.set(None);
         selected_context_ws.set(None);
