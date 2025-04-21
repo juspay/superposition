@@ -1,8 +1,7 @@
 use serde::{Deserialize, Deserializer, Serialize};
-use std::{
-    collections::HashMap,
-    fmt::{self},
-};
+use std::{collections::HashMap, fmt};
+
+use crate::database::models::others::WebhookEvent;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum HeadersEnum {
@@ -38,29 +37,6 @@ pub struct Webhook {
     pub custom_headers: Option<HashMap<String, String>>,
     pub service_headers: Option<Vec<HeadersEnum>>,
     pub authorization: Option<Authorization>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub enum WebhookEvent {
-    ExperimentCreated,
-    ExperimentStarted,
-    ExperimentInprogress,
-    ExperimentUpdated,
-    ExperimentConcluded,
-    ExperimentDiscarded,
-}
-
-impl fmt::Display for WebhookEvent {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            WebhookEvent::ExperimentCreated => write!(f, "ExperimentCreated"),
-            WebhookEvent::ExperimentStarted => write!(f, "ExperimentStarted"),
-            WebhookEvent::ExperimentInprogress => write!(f, "ExperimentInprogress"),
-            WebhookEvent::ExperimentUpdated => write!(f, "ExperimentUpdated"),
-            WebhookEvent::ExperimentConcluded => write!(f, "ExperimentConcluded"),
-            WebhookEvent::ExperimentDiscarded => write!(f, "ExperimentDiscarded"),
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]

@@ -1,6 +1,7 @@
 pub mod cac;
 #[cfg(feature = "experimentation")]
 pub mod experimentation;
+pub mod others;
 
 use chrono::{DateTime, Utc};
 #[cfg(feature = "diesel_derives")]
@@ -25,7 +26,7 @@ use super::superposition_schema::superposition::*;
 #[cfg(feature = "disable_db_data_validation")]
 use super::DisableDBValidation;
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(try_from = "String")]
 #[cfg_attr(
     feature = "diesel_derives",
@@ -83,7 +84,7 @@ impl TryFrom<String> for ChangeReason {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(try_from = "String")]
 #[cfg_attr(
     feature = "diesel_derives",

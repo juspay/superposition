@@ -932,6 +932,76 @@ export interface TypeTemplatesResponse {
  * @public
  * @enum
  */
+export const HttpMethod = {
+  CONNECT: "CONNECT",
+  DELETE: "DELETE",
+  GET: "GET",
+  HEAD: "HEAD",
+  OPTIONS: "OPTIONS",
+  PATCH: "PATCH",
+  POST: "POST",
+  PUT: "PUT",
+  TRACE: "TRACE",
+} as const
+/**
+ * @public
+ */
+export type HttpMethod = typeof HttpMethod[keyof typeof HttpMethod]
+
+/**
+ * @public
+ * @enum
+ */
+export const Version = {
+  V1: "V1",
+} as const
+/**
+ * @public
+ */
+export type Version = typeof Version[keyof typeof Version]
+
+/**
+ * @public
+ */
+export interface CreateWebhookInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  name: string | undefined;
+  description: string | undefined;
+  enabled: boolean | undefined;
+  url: string | undefined;
+  method: HttpMethod | undefined;
+  version?: Version | undefined;
+  custom_headers?: Record<string, __DocumentType> | undefined;
+  events: (string)[] | undefined;
+  change_reason: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface WebhookResponse {
+  name: string | undefined;
+  description: string | undefined;
+  enabled: boolean | undefined;
+  url: string | undefined;
+  method: HttpMethod | undefined;
+  version: Version | undefined;
+  custom_headers?: Record<string, __DocumentType> | undefined;
+  events: (string)[] | undefined;
+  max_retries: number | undefined;
+  last_triggered_at?: Date | undefined;
+  change_reason: string | undefined;
+  created_by: string | undefined;
+  created_at: Date | undefined;
+  last_modified_by: string | undefined;
+  last_modified_at: Date | undefined;
+}
+
+/**
+ * @public
+ * @enum
+ */
 export const WorkspaceStatus = {
   DISABLED: "DISABLED",
   ENABLED: "ENABLED",
@@ -1410,6 +1480,15 @@ export interface GetTypeTemplatesListOutput {
 /**
  * @public
  */
+export interface GetWebhookInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  name: string | undefined;
+}
+
+/**
+ * @public
+ */
 export interface ListOrganisationInput {
   count?: number | undefined;
   page?: number | undefined;
@@ -1422,6 +1501,25 @@ export interface ListOrganisationOutput {
   total_pages?: number | undefined;
   total_items?: number | undefined;
   data?: (OrganisationResponse)[] | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ListWebhookInput {
+  count?: number | undefined;
+  page?: number | undefined;
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface WebhookListResponse {
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (WebhookResponse)[] | undefined;
 }
 
 /**
@@ -1465,6 +1563,42 @@ export interface UpdateTypeTemplatesRequest {
   type_schema: __DocumentType | undefined;
   description?: string | undefined;
   change_reason: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface UpdateWebhookInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  name: string | undefined;
+  description: string | undefined;
+  enabled: boolean | undefined;
+  url: string | undefined;
+  method: HttpMethod | undefined;
+  version?: Version | undefined;
+  custom_headers?: Record<string, __DocumentType> | undefined;
+  events: (string)[] | undefined;
+  change_reason: string | undefined;
+}
+
+/**
+ * @public
+ */
+export class WebhookNotFound extends __BaseException {
+  readonly name: "WebhookNotFound" = "WebhookNotFound";
+  readonly $fault: "client" = "client";
+  /**
+   * @internal
+   */
+  constructor(opts: __ExceptionOptionType<WebhookNotFound, __BaseException>) {
+    super({
+      name: "WebhookNotFound",
+      $fault: "client",
+      ...opts
+    });
+    Object.setPrototypeOf(this, WebhookNotFound.prototype);
+  }
 }
 
 /**

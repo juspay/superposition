@@ -36,7 +36,6 @@ superposition_macros = { path = "../superposition_macros" }
 superposition_types = { path = "../superposition_types", features = ["api", "diesel_derives"]}
 toml = { workspace = true }
 url = { workspace = true }
-derive_more = { workspace = true }
 
 [features]
 high-performance-mode = [

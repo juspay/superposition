@@ -21,6 +21,7 @@ service Superposition {
         Experiments
         TypeTemplates
         Workspace
+        Webhook
     ]
     errors: [
         InternalServerError

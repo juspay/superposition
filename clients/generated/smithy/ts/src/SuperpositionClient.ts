@@ -46,6 +46,10 @@ import {
   CreateTypeTemplatesCommandOutput,
 } from "./commands/CreateTypeTemplatesCommand";
 import {
+  CreateWebhookCommandInput,
+  CreateWebhookCommandOutput,
+} from "./commands/CreateWebhookCommand";
+import {
   CreateWorkspaceCommandInput,
   CreateWorkspaceCommandOutput,
 } from "./commands/CreateWorkspaceCommand";
@@ -110,6 +114,10 @@ import {
   GetTypeTemplatesListCommandOutput,
 } from "./commands/GetTypeTemplatesListCommand";
 import {
+  GetWebhookCommandInput,
+  GetWebhookCommandOutput,
+} from "./commands/GetWebhookCommand";
+import {
   ListAuditLogsCommandInput,
   ListAuditLogsCommandOutput,
 } from "./commands/ListAuditLogsCommand";
@@ -141,6 +149,10 @@ import {
   ListVersionsCommandInput,
   ListVersionsCommandOutput,
 } from "./commands/ListVersionsCommand";
+import {
+  ListWebhookCommandInput,
+  ListWebhookCommandOutput,
+} from "./commands/ListWebhookCommand";
 import {
   ListWorkspaceCommandInput,
   ListWorkspaceCommandOutput,
@@ -189,6 +201,10 @@ import {
   UpdateTypeTemplatesCommandInput,
   UpdateTypeTemplatesCommandOutput,
 } from "./commands/UpdateTypeTemplatesCommand";
+import {
+  UpdateWebhookCommandInput,
+  UpdateWebhookCommandOutput,
+} from "./commands/UpdateWebhookCommand";
 import {
   UpdateWorkspaceCommandInput,
   UpdateWorkspaceCommandOutput,
@@ -273,6 +289,7 @@ export type ServiceInputTypes =
   | CreateFunctionCommandInput
   | CreateOrganisationCommandInput
   | CreateTypeTemplatesCommandInput
+  | CreateWebhookCommandInput
   | CreateWorkspaceCommandInput
   | DeleteContextCommandInput
   | DeleteDefaultConfigCommandInput
@@ -289,6 +306,7 @@ export type ServiceInputTypes =
   | GetOrganisationCommandInput
   | GetResolvedConfigCommandInput
   | GetTypeTemplatesListCommandInput
+  | GetWebhookCommandInput
   | ListAuditLogsCommandInput
   | ListContextsCommandInput
   | ListDefaultConfigsCommandInput
@@ -297,6 +315,7 @@ export type ServiceInputTypes =
   | ListFunctionCommandInput
   | ListOrganisationCommandInput
   | ListVersionsCommandInput
+  | ListWebhookCommandInput
   | ListWorkspaceCommandInput
   | MoveContextCommandInput
   | PublishCommandInput
@@ -309,6 +328,7 @@ export type ServiceInputTypes =
   | UpdateOverrideCommandInput
   | UpdateOverridesExperimentCommandInput
   | UpdateTypeTemplatesCommandInput
+  | UpdateWebhookCommandInput
   | UpdateWorkspaceCommandInput
   | WeightRecomputeCommandInput;
 
@@ -326,6 +346,7 @@ export type ServiceOutputTypes =
   | CreateFunctionCommandOutput
   | CreateOrganisationCommandOutput
   | CreateTypeTemplatesCommandOutput
+  | CreateWebhookCommandOutput
   | CreateWorkspaceCommandOutput
   | DeleteContextCommandOutput
   | DeleteDefaultConfigCommandOutput
@@ -342,6 +363,7 @@ export type ServiceOutputTypes =
   | GetOrganisationCommandOutput
   | GetResolvedConfigCommandOutput
   | GetTypeTemplatesListCommandOutput
+  | GetWebhookCommandOutput
   | ListAuditLogsCommandOutput
   | ListContextsCommandOutput
   | ListDefaultConfigsCommandOutput
@@ -350,6 +372,7 @@ export type ServiceOutputTypes =
   | ListFunctionCommandOutput
   | ListOrganisationCommandOutput
   | ListVersionsCommandOutput
+  | ListWebhookCommandOutput
   | ListWorkspaceCommandOutput
   | MoveContextCommandOutput
   | PublishCommandOutput
@@ -362,6 +385,7 @@ export type ServiceOutputTypes =
   | UpdateOverrideCommandOutput
   | UpdateOverridesExperimentCommandOutput
   | UpdateTypeTemplatesCommandOutput
+  | UpdateWebhookCommandOutput
   | UpdateWorkspaceCommandOutput
   | WeightRecomputeCommandOutput;
 

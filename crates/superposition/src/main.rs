@@ -209,7 +209,8 @@ async fn main() -> Result<()> {
                     )
                     .service(
                         scope("/webhook")
-                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION))
                             .service(webhooks::endpoints()),
                     )
                     /***************************** UI Routes ******************************/
