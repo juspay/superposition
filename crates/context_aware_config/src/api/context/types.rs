@@ -1,9 +1,8 @@
 use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
-    custom_query::CommaSeparatedStringQParams,
     database::models::cac::{Context, FunctionCode},
-    Cac, Condition, Overrides, SortBy,
+    Cac, Condition, Overrides,
 };
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
@@ -47,29 +46,6 @@ impl From<Context> for PutResp {
             change_reason: value.change_reason,
         }
     }
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ContextFilterSortOn {
-    CreatedAt,
-    Weight,
-}
-
-impl Default for ContextFilterSortOn {
-    fn default() -> Self {
-        Self::Weight
-    }
-}
-
-#[derive(Deserialize)]
-pub struct ContextFilters {
-    pub page: Option<u32>,
-    pub size: Option<u32>,
-    pub prefix: Option<CommaSeparatedStringQParams>,
-    pub sort_on: Option<ContextFilterSortOn>,
-    pub sort_by: Option<SortBy>,
-    pub created_by: Option<CommaSeparatedStringQParams>,
 }
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests

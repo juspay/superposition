@@ -8,6 +8,7 @@ use superposition_types::{
 };
 
 use crate::api::{delete_default_config, fetch_default_config};
+use crate::components::drawer::DrawerButtonStyle;
 use crate::components::table::types::Expandable;
 use crate::components::{
     alert::AlertType,
@@ -26,7 +27,6 @@ use crate::providers::alert_provider::enqueue_alert;
 use crate::types::{BreadCrums, OrganisationId, Tenant};
 use crate::utils::{
     get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
-    update_page_direction,
 };
 
 #[derive(Clone, Debug, Default)]
@@ -137,16 +137,12 @@ pub fn default_config() -> impl IntoView {
         navigate(redirect_url.as_str(), Default::default());
     };
 
-    let handle_next_click = Callback::new(move |total_pages: i64| {
-        pagination_ws.update(|f| {
-            f.page = update_page_direction(f.page, total_pages, true);
-        });
+    let handle_next_click = Callback::new(move |next_page: i64| {
+        pagination_ws.update(|f| f.page = Some(next_page));
     });
 
-    let handle_prev_click = Callback::new(move |_| {
-        pagination_ws.update(|f| {
-            f.page = update_page_direction(f.page, 1, false);
-        });
+    let handle_prev_click = Callback::new(move |prev_page: i64| {
+        pagination_ws.update(|f| f.page = Some(prev_page));
     });
 
     let table_columns = create_memo(move |_| {
@@ -318,7 +314,7 @@ pub fn default_config() -> impl IntoView {
                             ele_map
                                 .insert(
                                     "created_at".to_string(),
-                                    json!(config.created_at.format("%v").to_string()),
+                                    json!(config.created_at.format("%v %T").to_string()),
                                 );
                             ele_map
                         })
@@ -511,7 +507,7 @@ fn default_config_filter_widget(
     view! {
         <DrawerBtn
             drawer_id="default_config_filter_drawer".into()
-            style="cursor-pointer btn btn-purple-outline m-1 w-[8rem]".to_string()
+            style=DrawerButtonStyle::Outline
         >
             Filters
             <i class="ri-filter-3-line"></i>

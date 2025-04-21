@@ -40,24 +40,12 @@ pub fn config_version_list() -> impl IntoView {
         },
     );
 
-    let handle_next_click = Callback::new(move |total_pages: i64| {
-        set_filters.update(|f| {
-            f.page = match f.page {
-                Some(p) if p < total_pages => Some(p + 1),
-                Some(p) => Some(p),
-                None => Some(1),
-            }
-        });
+    let handle_next_click = Callback::new(move |next_page: i64| {
+        set_filters.update(|f| f.page = Some(next_page));
     });
 
-    let handle_prev_click = Callback::new(move |_| {
-        set_filters.update(|f| {
-            f.page = match f.page {
-                Some(p) if p > 1 => Some(p - 1),
-                Some(_) => Some(1),
-                None => Some(1),
-            }
-        });
+    let handle_prev_click = Callback::new(move |prev_page: i64| {
+        set_filters.update(|f| f.page = Some(prev_page));
     });
 
     view! {
@@ -105,7 +93,7 @@ pub fn config_version_list() -> impl IntoView {
                                                 );
                                                 map.insert(
                                                     "created_at".to_string(),
-                                                    json!(config_version.created_at),
+                                                    json!(config_version.created_at.format("%v %T").to_string()),
                                                 );
                                                 map.insert("tags".to_string(), json!(config_version.tags));
                                                 map

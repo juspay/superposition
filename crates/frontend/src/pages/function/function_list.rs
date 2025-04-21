@@ -12,7 +12,6 @@ use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{stat::Stat, table::Table};
 use crate::types::{OrganisationId, Tenant};
-use crate::utils::update_page_direction;
 
 use super::utils::function_table_columns;
 
@@ -41,16 +40,12 @@ pub fn function_list() -> impl IntoView {
         },
     );
 
-    let handle_next_click = Callback::new(move |total_pages: i64| {
-        set_filters.update(|f| {
-            f.page = update_page_direction(f.page, total_pages, true);
-        });
+    let handle_next_click = Callback::new(move |next_page: i64| {
+        set_filters.update(|f| f.page = Some(next_page));
     });
 
-    let handle_prev_click = Callback::new(move |_| {
-        set_filters.update(|f| {
-            f.page = update_page_direction(f.page, 1, false);
-        });
+    let handle_prev_click = Callback::new(move |prev_page: i64| {
+        set_filters.update(|f| f.page = Some(prev_page));
     });
 
     view! {
@@ -107,7 +102,7 @@ pub fn function_list() -> impl IntoView {
                                                     .insert(
                                                         "published_at".to_string(),
                                                         match ele.published_at {
-                                                            Some(val) => json!(val.format("%v").to_string()),
+                                                            Some(val) => json!(val.format("%v %T").to_string()),
                                                             None => json!("null".to_string()),
                                                         },
                                                     );

@@ -16,7 +16,6 @@ use crate::components::table::{
 use crate::components::workspace_form::types::RowData;
 use crate::components::workspace_form::WorkspaceForm;
 use crate::types::OrganisationId;
-use crate::utils::update_page_direction;
 
 #[component]
 pub fn workspace() -> impl IntoView {
@@ -33,16 +32,12 @@ pub fn workspace() -> impl IntoView {
     );
     let selected_workspace = create_rw_signal::<Option<RowData>>(None);
 
-    let handle_next_click = Callback::new(move |total_pages: i64| {
-        set_filters.update(|f| {
-            f.page = update_page_direction(f.page, total_pages, true);
-        });
+    let handle_next_click = Callback::new(move |next_page: i64| {
+        set_filters.update(|f| f.page = Some(next_page));
     });
 
-    let handle_prev_click = Callback::new(move |_| {
-        set_filters.update(|f| {
-            f.page = update_page_direction(f.page, 1, false);
-        });
+    let handle_prev_click = Callback::new(move |prev_page: i64| {
+        set_filters.update(|f| f.page = Some(prev_page));
     });
     let handle_close = move || {
         selected_workspace.set(None);
@@ -207,7 +202,7 @@ pub fn workspace() -> impl IntoView {
                             ele_map
                                 .insert(
                                     "created_at".to_string(),
-                                    json!(workspace.created_at.format("%v").to_string()),
+                                    json!(workspace.created_at.format("%v %T").to_string()),
                                 );
                             ele_map
                         })

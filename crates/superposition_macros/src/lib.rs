@@ -67,3 +67,12 @@ macro_rules! webhook_error {
         superposition_types::result::AppError::WebhookError(anyhow::anyhow!($err.to_string()))
     };
 }
+
+#[macro_export]
+macro_rules! box_params {
+    ($($param:expr),* $(,)?) => {
+        vec![
+            $(Box::new($param),)*
+        ]
+    };
+}

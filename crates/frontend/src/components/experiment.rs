@@ -193,14 +193,14 @@ where
                 <div class="stat w-2/12">
                     <div class="stat-title">Created at</div>
                     <div class="stat-value text-sm">
-                        {format!("{}", experiment.with_value(|v| v.created_at.format("%v")))}
+                        {format!("{}", experiment.with_value(|v| v.created_at.format("%v %T")))}
                     </div>
                 </div>
                 <div class="stat w-2/12">
                     <div class="stat-title">Last Modified</div>
                     <div class="stat-value text-sm">
 
-                        {format!("{}", experiment.with_value(|v| v.last_modified.format("%v")))}
+                        {format!("{}", experiment.with_value(|v| v.last_modified.format("%v %T")))}
 
                     </div>
                 </div>

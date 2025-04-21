@@ -149,7 +149,7 @@ pub fn function_page() -> impl IntoView {
 
                                             {format!(
                                                 "{}",
-                                                function_rs.get().draft_edited_at.format("%v"),
+                                                function_rs.get().draft_edited_at.format("%v %T"),
                                             )}
 
                                         </div>
@@ -159,7 +159,7 @@ pub fn function_page() -> impl IntoView {
                                         <div>
 
                                             {match function_rs.get().published_at {
-                                                Some(val) => val.format("%v").to_string(),
+                                                Some(val) => val.format("%v %T").to_string(),
                                                 None => "null".to_string(),
                                             }}
 

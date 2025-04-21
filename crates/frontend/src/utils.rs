@@ -297,16 +297,3 @@ pub fn set_local_storage(_key: &str, _value: &str) -> Option<()> {
         }
     }
 }
-
-pub fn update_page_direction(
-    page: Option<i64>,
-    total_pages: i64,
-    is_next: bool,
-) -> Option<i64> {
-    match page {
-        Some(p) if is_next && p < total_pages => Some(p + 1), // Increment if is_next is true
-        Some(p) if !is_next && p > 1 => Some(p - 1), // Decrement if is_next is false
-        Some(p) => Some(p),
-        None => None,
-    }
-}

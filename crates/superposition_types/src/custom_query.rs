@@ -24,15 +24,16 @@ pub trait CustomQuery: Sized {
         Regex::new(Self::regex_pattern()).unwrap()
     }
 
-    #[cfg(feature = "server")]
-    fn extract_query(
-        query_string: &str,
-    ) -> Result<Self, actix_web::error::QueryPayloadError> {
+    fn extract_query(query_string: &str) -> Result<Self, String> {
         let query_map =
-            actix_web::web::Query::<HashMap<String, String>>::from_query(query_string)?;
-        let filtered_query = Self::filter_and_transform_query(query_map.into_inner());
-        let inner = actix_web::web::Query::<Self::Inner>::from_query(&filtered_query)?
-            .into_inner();
+            serde_urlencoded::from_str::<HashMap<String, String>>(query_string).map_err(
+                |e| format!("Failed to parse query string: {query_string}. Error: {e}"),
+            )?;
+        let filtered_query = Self::filter_and_transform_query(query_map);
+        let inner =
+            serde_urlencoded::from_str::<Self::Inner>(&filtered_query).map_err(|e| {
+                format!("Failed to parse query string: {query_string}. Error: {e}")
+            })?;
         Ok(Self::new(inner))
     }
 
@@ -59,7 +60,7 @@ pub trait CustomQuery: Sized {
 }
 
 /// Provides struct to extract those query params from the request which are `wrapped` in `dimension[param_name]`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DimensionQuery<T: DeserializeOwned>(pub T);
 
 impl<T> CustomQuery for DimensionQuery<T>
@@ -98,7 +99,10 @@ where
         _: &mut actix_web::dev::Payload,
     ) -> Self::Future {
         use std::future::ready;
-        ready(Self::extract_query(req.query_string()).map_err(actix_web::Error::from))
+        ready(
+            Self::extract_query(req.query_string())
+                .map_err(actix_web::error::ErrorBadRequest),
+        )
     }
 }
 
@@ -142,13 +146,16 @@ where
         _: &mut actix_web::dev::Payload,
     ) -> Self::Future {
         use std::future::ready;
-        ready(Self::extract_query(req.query_string()).map_err(actix_web::Error::from))
+        ready(
+            Self::extract_query(req.query_string())
+                .map_err(actix_web::error::ErrorBadRequest),
+        )
     }
 }
 
 /// Provides struct to `Deserialize` `HashMap<String, String>` as `serde_json::Map<String, serde_json::Value>`
-#[derive(Deserialize, Deref, DerefMut)]
-#[cfg_attr(test, derive(Debug, PartialEq))]
+#[derive(Deserialize, Deref, DerefMut, Clone, PartialEq, Default)]
+#[cfg_attr(test, derive(Debug))]
 #[serde(from = "HashMap<String,String>")]
 pub struct QueryMap(Map<String, Value>);
 
@@ -160,6 +167,25 @@ impl From<HashMap<String, String>> for QueryMap {
             .collect::<Map<_, _>>();
 
         Self(value)
+    }
+}
+
+impl Display for DimensionQuery<QueryMap> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let parts = self
+            .clone()
+            .into_inner()
+            .iter()
+            .map(|(key, value)| format!("dimension[{key}]={value}"))
+            .collect::<Vec<_>>();
+
+        write!(f, "{}", parts.join("&"))
+    }
+}
+
+impl From<Map<String, Value>> for DimensionQuery<QueryMap> {
+    fn from(value: Map<String, Value>) -> Self {
+        Self(QueryMap(value))
     }
 }
 

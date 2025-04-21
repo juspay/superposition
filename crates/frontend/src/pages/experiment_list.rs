@@ -22,26 +22,21 @@ use superposition_types::{
 };
 use utils::experiment_table_columns;
 
-use crate::logic::Conditions;
-use crate::{
-    components::{
-        button::Button,
-        context_form::ContextForm,
-        drawer::{close_drawer, Drawer, DrawerBtn},
-        dropdown::DropdownDirection,
-        experiment_form::ExperimentForm,
-        input::DateInput,
-        skeleton::Skeleton,
-        stat::Stat,
-        table::{types::TablePaginationProps, Table},
-    },
-    logic::Condition,
+use crate::components::{
+    button::Button,
+    context_form::ContextForm,
+    drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+    dropdown::DropdownDirection,
+    experiment_form::ExperimentForm,
+    input::DateInput,
+    skeleton::Skeleton,
+    stat::Stat,
+    table::{types::TablePaginationProps, Table},
 };
-
+use crate::logic::{Condition, Conditions};
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
 use crate::types::VariantFormTs;
-use crate::utils::update_page_direction;
 use crate::{
     api::{fetch_default_config, fetch_dimensions, fetch_experiments},
     types::{OrganisationId, Tenant},
@@ -96,10 +91,7 @@ fn experiment_table_filter_widget(
             filters_buffer_rws.set(filters)
         };
     view! {
-        <DrawerBtn
-            drawer_id="experiment_filter_drawer".into()
-            style="cursor-pointer btn btn-purple-outline m-1 w-[8rem]".to_string()
-        >
+        <DrawerBtn drawer_id="experiment_filter_drawer".into() style=DrawerButtonStyle::Outline>
             Filters
             <i class="ri-filter-3-line"></i>
         </DrawerBtn>
@@ -119,7 +111,14 @@ fn experiment_table_filter_widget(
                             let current_filters = filters_buffer_rws.get();
                             filters_buffer_rws
                                 .set(ExperimentListFilters {
-                                    context: Some(CommaSeparatedQParams(context.iter().map(|v| v.to_condition_json().to_string()).collect::<Vec<_>>())),
+                                    context: Some(
+                                        CommaSeparatedQParams(
+                                            context
+                                                .iter()
+                                                .map(|v| v.to_condition_json().to_string())
+                                                .collect::<Vec<_>>(),
+                                        ),
+                                    ),
                                     ..current_filters
                                 });
                         }
@@ -254,7 +253,9 @@ fn experiment_table_filter_widget(
                             placeholder="eg: 7259558160762015744"
                             on:change=move |event| {
                                 let ids = event_target_value(&event);
-                                let ids = (!ids.is_empty()).then(|| serde_json::from_str(&ids).ok()).flatten();
+                                let ids = (!ids.is_empty())
+                                    .then(|| serde_json::from_value(Value::String(ids)).ok())
+                                    .flatten();
                                 filters_buffer_rws
                                     .update(|filter| {
                                         filter.experiment_ids = ids;
@@ -274,17 +275,13 @@ fn experiment_table_filter_widget(
                             value=move || filters_rws.get().created_by.map(|d| d.to_string())
                             on:change=move |event| {
                                 let user_names = event_target_value(&event);
-                                let user_names = if user_names.is_empty() {
-                                    None
-                                } else {
-                                    serde_json::from_str(&user_names).ok()
-                                };
-                                let filters = filters_buffer_rws.get();
-                                let filters = ExperimentListFilters {
-                                    created_by: user_names,
-                                    ..filters
-                                };
-                                filters_buffer_rws.set(filters);
+                                let user_names = (!user_names.is_empty())
+                                    .then(|| serde_json::from_value(Value::String(user_names)).ok())
+                                    .flatten();
+                                filters_buffer_rws
+                                    .update(|filter| {
+                                        filter.created_by = user_names;
+                                    });
                             }
                         />
 
@@ -387,16 +384,12 @@ pub fn experiment_list() -> impl IntoView {
         close_drawer("create_exp_drawer");
     };
 
-    let handle_next_click = Callback::new(move |total_pages: i64| {
-        pagination_filters_ws.update(|f| {
-            f.page = update_page_direction(f.page, total_pages, true);
-        });
+    let handle_next_click = Callback::new(move |next_page: i64| {
+        pagination_filters_ws.update(|f| f.page = Some(next_page));
     });
 
-    let handle_prev_click = Callback::new(move |_| {
-        pagination_filters_ws.update(|f| {
-            f.page = update_page_direction(f.page, 1, false);
-        });
+    let handle_prev_click = Callback::new(move |prev_page: i64| {
+        pagination_filters_ws.update(|f| f.page = Some(prev_page));
     });
 
     view! {
@@ -449,12 +442,12 @@ pub fn experiment_list() -> impl IntoView {
                                             ele_map
                                                 .insert(
                                                     "created_at".to_string(),
-                                                    json!(ele.created_at.format("%v").to_string()),
+                                                    json!(ele.created_at.format("%v %T").to_string()),
                                                 );
                                             ele_map
                                                 .insert(
                                                     "last_modified".to_string(),
-                                                    json!(ele.last_modified.format("%v").to_string()),
+                                                    json!(ele.last_modified.format("%v %T").to_string()),
                                                 );
                                             ele_map
                                         })

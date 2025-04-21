@@ -22,6 +22,7 @@ log = { workspace = true }
 regex = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+serde_urlencoded = { version = "0.7.1" }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 superposition_derives = { path = "../superposition_derives", optional = true }

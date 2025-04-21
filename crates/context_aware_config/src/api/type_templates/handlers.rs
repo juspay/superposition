@@ -171,11 +171,7 @@ async fn list_types(
         let result: Vec<TypeTemplate> = type_templates::dsl::type_templates
             .schema_name(&schema_name)
             .get_results(&mut conn)?;
-        return Ok(Json(PaginatedResponse {
-            total_pages: 1,
-            total_items: result.len() as i64,
-            data: result,
-        }));
+        return Ok(Json(PaginatedResponse::all(result)));
     };
 
     let n_types: i64 = type_templates::dsl::type_templates
