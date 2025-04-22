@@ -18,6 +18,7 @@ import {
     ListContextsCommand,
     DeleteContextCommand,
     GetContextCommand,
+    DeleteDefaultConfigCommand,
 } from "@io.juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { expect, describe, test, beforeAll, afterAll } from "bun:test";
@@ -25,6 +26,7 @@ import { expect, describe, test, beforeAll, afterAll } from "bun:test";
 describe("Experiments API", () => {
     let experimentId1: string | undefined;
     let experiment1Variants: Variant[] | undefined;
+    let created_dimensions: string[] = [];
 
     const defaultChangeReason = "Automated Test";
     const defaultDescription = "Created by automated test";
@@ -115,6 +117,7 @@ describe("Experiments API", () => {
                     description: dimension.description,
                 });
                 await superpositionClient.send(createCmd);
+                created_dimensions.push(dimension.name);
             }
         }
 
@@ -157,25 +160,44 @@ describe("Experiments API", () => {
 
     afterAll(async () => {
         try {
-            const cmd = new ListDimensionsCommand({
+            const experimentsCmd = new ListExperimentCommand({
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
                 count: 100,
                 page: 1,
             });
-            const out = await superpositionClient.send(cmd);
-            const dimensions = out.data || [];
-            for (const dimension of dimensions) {
-                const deleteCmd = new DeleteDimensionCommand({
-                    workspace_id: ENV.workspace_id,
-                    org_id: ENV.org_id,
-                    dimension: dimension.dimension,
-                });
-                await superpositionClient.send(deleteCmd);
+            const experimentsOut = await superpositionClient.send(
+                experimentsCmd
+            );
+            const experiments = experimentsOut.data || [];
+            for (const experiment of experiments) {
+                if (experiment.name && experiment.name.includes("-from-test")) {
+                    if (experiment.status !== ExperimentStatusType.CONCLUDED) {
+                        const controlVariant = experiment.variants?.find(
+                            (v) => v.variant_type === VariantType.CONTROL
+                        );
+                        if (controlVariant && controlVariant.id) {
+                            const concludeCmd = new ConcludeExperimentCommand({
+                                workspace_id: ENV.workspace_id,
+                                org_id: ENV.org_id,
+                                id: experiment.id,
+                                chosen_variant: controlVariant.id,
+                                description:
+                                    "Cleanup - concluding test experiment",
+                                change_reason: "Automated test cleanup",
+                            });
+                            await superpositionClient.send(concludeCmd);
+                            console.log(
+                                `Concluded experiment: ${experiment.name} (${experiment.id})`
+                            );
+                        }
+                    }
+                }
             }
             const contextsCmd = new ListContextsCommand({
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
+                prefix: "pmTestKey",
                 count: 100,
                 page: 1,
             });
@@ -186,6 +208,33 @@ describe("Experiments API", () => {
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
                     id: context.id,
+                });
+                await superpositionClient.send(deleteCmd);
+            }
+            const defaultConfigsCmd = new ListDefaultConfigsCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                count: 100,
+                page: 1,
+            });
+            const defaultConfigsOut = await superpositionClient.send(
+                defaultConfigsCmd
+            );
+            const defaultConfigs = defaultConfigsOut.data || [];
+            for (const config of defaultConfigs) {
+                const deleteCmd = new DeleteDefaultConfigCommand({
+                    workspace_id: ENV.workspace_id,
+                    org_id: ENV.org_id,
+                    key: config.key,
+                });
+                await superpositionClient.send(deleteCmd);
+            }
+            console.log("Created dimensions to delete:", created_dimensions);
+            for (const dimension of created_dimensions) {
+                const deleteCmd = new DeleteDimensionCommand({
+                    workspace_id: ENV.workspace_id,
+                    org_id: ENV.org_id,
+                    dimension: dimension,
                 });
                 await superpositionClient.send(deleteCmd);
             }
