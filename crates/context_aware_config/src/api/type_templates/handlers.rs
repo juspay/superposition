@@ -6,7 +6,7 @@ use diesel::{
 };
 use jsonschema::JSONSchema;
 use service_utils::service::types::{DbConnection, SchemaName};
-use superposition_macros::{bad_argument, db_error};
+use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     custom_query::PaginationParams,
     database::{
@@ -48,10 +48,10 @@ async fn create_type(
         )
     })?;
     let type_name: String = request.type_name.clone().into();
-    let type_template = diesel::insert_into(type_templates::table)
+    let insert_resp = diesel::insert_into(type_templates::table)
         .values((
             type_templates::type_schema.eq(request.type_schema.clone()),
-            type_templates::type_name.eq(type_name),
+            type_templates::type_name.eq(type_name.clone()),
             type_templates::created_by.eq(user.email.clone()),
             type_templates::last_modified_by.eq(user.email.clone()),
             type_templates::description.eq(request.description.clone()),
@@ -59,12 +59,27 @@ async fn create_type(
         ))
         .returning(TypeTemplate::as_returning())
         .schema_name(&schema_name)
-        .get_result::<TypeTemplate>(&mut conn)
-        .map_err(|err| {
-            log::error!("failed to insert custom type with error: {}", err);
-            db_error!(err)
-        })?;
-    Ok(HttpResponse::Ok().json(type_template))
+        .get_result::<TypeTemplate>(&mut conn);
+
+    match insert_resp {
+        Ok(type_template) => Ok(HttpResponse::Ok().json(type_template)),
+        Err(diesel::result::Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::UniqueViolation,
+            e,
+        )) => {
+            log::error!("failed to insert custom type with error: {:?}", e);
+            Err(bad_argument!(
+                "Type template with key {} already exists.",
+                type_name
+            ))
+        }
+        Err(e) => {
+            log::error!("failed to insert custom type with error: {e}");
+            Err(unexpected_error!(
+                "Something went wrong, failed to insert custom type"
+            ))
+        }
+    }
 }
 
 #[put("/{type_name}")]

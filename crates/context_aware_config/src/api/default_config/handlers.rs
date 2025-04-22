@@ -122,25 +122,40 @@ async fn create_default_config(
 
     let version_id =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            diesel::insert_into(dsl::default_configs)
+            let insert_resp = diesel::insert_into(dsl::default_configs)
                 .values(&default_config)
                 .returning(DefaultConfig::as_returning())
                 .schema_name(&schema_name)
-                .execute(transaction_conn)
-                .map_err(|e| {
-                    log::info!("DefaultConfig creation failed with error: {e}");
-                    unexpected_error!(
+                .execute(transaction_conn);
+
+            match insert_resp {
+                Ok(_) => {
+                    let version_id = add_config_version(
+                        &state,
+                        tags,
+                        change_reason,
+                        transaction_conn,
+                        &schema_name,
+                    )?;
+                    Ok(version_id)
+                }
+                Err(diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::UniqueViolation,
+                    e,
+                )) => {
+                    log::error!("DefaultConfig creation failed with error: {:?}", e);
+                    Err(bad_argument!(
+                        "DefaultConfig with key {} already exists.",
+                        default_config.key
+                    ))
+                }
+                Err(e) => {
+                    log::error!("DefaultConfig creation failed with error: {e}");
+                    Err(unexpected_error!(
                         "Something went wrong, failed to create DefaultConfig"
-                    )
-                })?;
-            let version_id = add_config_version(
-                &state,
-                tags,
-                change_reason,
-                transaction_conn,
-                &schema_name,
-            )?;
-            Ok(version_id)
+                    ))
+                }
+            }
         })?;
 
     #[cfg(feature = "high-performance-mode")]
