@@ -43,6 +43,7 @@ LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
 	cac
 	schema-file
 	setup-clients
+	node-dependencies
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -104,14 +105,14 @@ test-tenant: tenant
 dev-tenant: TENANT = 'dev'
 dev-tenant: tenant
 
-node_dependencies:
+node-dependencies:
 	npm ci
 
 SETUP_DEPS = env-file db localstack
 ifdef CI
 	SETUP_DEPS += test-tenant
 endif
-setup: $(SETUP_DEPS) node_dependencies setup-clients
+setup: $(SETUP_DEPS) node-dependencies setup-clients
 
 setup-clients:
 	cd $(SMITHY_CLIENT_DIR)/ts && npm ci &&\
