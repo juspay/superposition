@@ -126,13 +126,8 @@ async fn create_default_config(
                 .values(&default_config)
                 .returning(DefaultConfig::as_returning())
                 .schema_name(&schema_name)
-                .execute(transaction_conn)
-                .map_err(|e| {
-                    log::info!("DefaultConfig creation failed with error: {e}");
-                    unexpected_error!(
-                        "Something went wrong, failed to create DefaultConfig"
-                    )
-                })?;
+                .execute(transaction_conn)?;
+
             let version_id = add_config_version(
                 &state,
                 tags,
