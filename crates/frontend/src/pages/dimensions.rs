@@ -1,6 +1,7 @@
 use leptos::*;
 use serde_json::{json, Map, Value};
-use superposition_types::custom_query::PaginationParams;
+use superposition_macros::box_params;
+use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 
 use crate::api::{delete_dimension, fetch_dimensions};
 use crate::components::dimension_form::DimensionForm;
@@ -15,6 +16,7 @@ use crate::components::{
         Table,
     },
 };
+use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant};
 
 #[derive(Clone, Debug, Default)]
@@ -33,11 +35,24 @@ pub fn dimensions() -> impl IntoView {
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
-    let (filters, set_filters) = create_signal(PaginationParams::default());
+    let pagination_params_rws = use_signal_from_query(move |query_string| {
+        Query::<PaginationParams>::extract_query(&query_string)
+            .map(|q| q.into_inner())
+            .unwrap_or_default()
+    });
+
+    use_param_updater(move || box_params!(pagination_params_rws.get()));
+
     let dimensions_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, filters.get(), org_rws.get().0),
-        |(current_tenant, filters, org_id)| async move {
-            fetch_dimensions(&filters, current_tenant, org_id)
+        move || {
+            (
+                tenant_rws.get().0,
+                pagination_params_rws.get(),
+                org_rws.get().0,
+            )
+        },
+        |(current_tenant, pagination_params, org_id)| async move {
+            fetch_dimensions(&pagination_params, current_tenant, org_id)
                 .await
                 .unwrap_or_default()
         },
@@ -64,11 +79,11 @@ pub fn dimensions() -> impl IntoView {
         delete_modal_visible_ws.set(false);
     });
     let handle_next_click = Callback::new(move |next_page: i64| {
-        set_filters.update(|f| f.page = Some(next_page));
+        pagination_params_rws.update(|f| f.page = Some(next_page));
     });
 
     let handle_prev_click = Callback::new(move |prev_page: i64| {
-        set_filters.update(|f| f.page = Some(prev_page));
+        pagination_params_rws.update(|f| f.page = Some(prev_page));
     });
 
     let selected_dimension = create_rw_signal::<Option<RowData>>(None);
@@ -229,11 +244,11 @@ pub fn dimensions() -> impl IntoView {
                             ele_map
                         })
                         .collect::<Vec<Map<String, Value>>>();
-                    let filters = filters.get();
+                    let pagination_params = pagination_params_rws.get();
                     let pagination_props = TablePaginationProps {
                         enabled: true,
-                        count: filters.count.unwrap_or_default(),
-                        current_page: filters.page.unwrap_or_default(),
+                        count: pagination_params.count.unwrap_or_default(),
+                        current_page: pagination_params.page.unwrap_or_default(),
                         total_pages: value.total_pages,
                         on_next: handle_next_click,
                         on_prev: handle_prev_click,

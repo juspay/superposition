@@ -3,8 +3,10 @@ use std::collections::HashSet;
 use leptos::*;
 use leptos_router::{use_navigate, use_query_map};
 use serde_json::{json, Map, Value};
+use superposition_macros::box_params;
 use superposition_types::{
-    api::default_config::DefaultConfigFilters, custom_query::PaginationParams,
+    api::default_config::DefaultConfigFilters,
+    custom_query::{CustomQuery, PaginationParams, Query},
 };
 
 use crate::api::{delete_default_config, fetch_default_config};
@@ -24,6 +26,7 @@ use crate::components::{
     },
 };
 use crate::providers::alert_provider::enqueue_alert;
+use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{BreadCrums, OrganisationId, Tenant};
 use crate::utils::{
     get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
@@ -42,22 +45,28 @@ pub fn default_config() -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let enable_grouping = create_rw_signal(false);
-    let (pagination_rs, pagination_ws) = create_signal(PaginationParams::default());
     let filters_rws = create_rw_signal(DefaultConfigFilters::default());
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_key_rs, delete_key_ws) = create_signal::<Option<String>>(None);
+    let pagination_params_rws = use_signal_from_query(move |query_string| {
+        Query::<PaginationParams>::extract_query(&query_string)
+            .map(|q| q.into_inner())
+            .unwrap_or_default()
+    });
+
+    use_param_updater(move || box_params!(pagination_params_rws.get()));
 
     let default_config_resource = create_blocking_resource(
         move || {
             (
                 tenant_rws.get().0,
-                pagination_rs.get(),
+                pagination_params_rws.get(),
                 org_rws.get().0,
                 filters_rws.get(),
             )
         },
-        |(current_tenant, pagination, org_id, filters)| async move {
-            fetch_default_config(&pagination, &filters, current_tenant, org_id)
+        |(current_tenant, pagination_params, org_id, filters)| async move {
+            fetch_default_config(&pagination_params, &filters, current_tenant, org_id)
                 .await
                 .unwrap_or_default()
         },
@@ -68,9 +77,11 @@ pub fn default_config() -> impl IntoView {
     let query_params = use_query_map();
     let bread_crums = Signal::derive(move || get_bread_crums(key_prefix.get()));
 
-    let set_filters_none = move || pagination_ws.set(PaginationParams::all_entries());
+    let set_filters_all =
+        move || pagination_params_rws.set(PaginationParams::all_entries());
 
-    let set_filters_default = move || pagination_ws.set(PaginationParams::default());
+    let set_filters_default =
+        move || pagination_params_rws.set(PaginationParams::default());
 
     let confirm_delete = Callback::new(move |_| {
         let tenant = tenant_rws.get().0;
@@ -108,7 +119,7 @@ pub fn default_config() -> impl IntoView {
             get_local_storage::<bool>("enable_grouping").unwrap_or(false);
         enable_grouping.set(enable_grouping_val);
         if enable_grouping_val {
-            set_filters_none();
+            set_filters_all();
         } else {
             set_filters_default();
         }
@@ -120,7 +131,7 @@ pub fn default_config() -> impl IntoView {
             key_prefix.set(opt_prefix.cloned());
             if opt_prefix.is_some() {
                 enable_grouping.set(true);
-                set_filters_none();
+                set_filters_all();
             }
         }
     });
@@ -138,11 +149,11 @@ pub fn default_config() -> impl IntoView {
     };
 
     let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_ws.update(|f| f.page = Some(next_page));
+        pagination_params_rws.update(|f| f.page = Some(next_page));
     });
 
     let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_ws.update(|f| f.page = Some(prev_page));
+        pagination_params_rws.update(|f| f.page = Some(prev_page));
     });
 
     let table_columns = create_memo(move |_| {
@@ -331,15 +342,15 @@ pub fn default_config() -> impl IntoView {
                         filtered_rows = modify_rows(filtered_rows.clone(), key_prefix.get(), cols);
                     }
                     let total_default_config_keys = default_config.total_items.to_string();
-                    let filters = pagination_rs.get();
+                    let pagination_params = pagination_params_rws.get();
                     let (current_page, total_pages) = if enable_grouping.get() {
                         (1, 1)
                     } else {
-                        (filters.page.unwrap_or_default(), default_config.total_pages)
+                        (pagination_params.page.unwrap_or_default(), default_config.total_pages)
                     };
                     let pagination_props = TablePaginationProps {
                         enabled: true,
-                        count: filters.count.unwrap_or_default(),
+                        count: pagination_params.count.unwrap_or_default(),
                         current_page,
                         total_pages,
                         on_next: handle_next_click,
@@ -370,7 +381,7 @@ pub fn default_config() -> impl IntoView {
                                                     &enable_grouping.get().to_string(),
                                                 );
                                                 if enable_grouping.get() {
-                                                    set_filters_none();
+                                                    set_filters_all();
                                                 } else {
                                                     set_filters_default();
                                                 }

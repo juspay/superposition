@@ -8,12 +8,13 @@ use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use strum::IntoEnumIterator;
+use superposition_macros::box_params;
 use superposition_types::{
     api::{
         default_config::DefaultConfigFilters,
         experiments::{ExperimentListFilters, ExperimentResponse},
     },
-    custom_query::{CommaSeparatedQParams, PaginationParams},
+    custom_query::{CommaSeparatedQParams, CustomQuery, PaginationParams, Query},
     database::{
         models::{cac::DefaultConfig, experimentation::ExperimentStatusType},
         types::DimensionWithMandatory,
@@ -36,6 +37,7 @@ use crate::components::{
 use crate::logic::{Condition, Conditions};
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::providers::editor_provider::EditorProvider;
+use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::VariantFormTs;
 use crate::{
     api::{fetch_default_config, fetch_dimensions, fetch_experiments},
@@ -322,28 +324,31 @@ pub fn experiment_list() -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let filters_rws = create_rw_signal(ExperimentListFilters::default());
-
-    let (pagination_filters_rs, pagination_filters_ws) =
-        create_signal(PaginationParams::default());
-
     let (reset_exp_form, set_exp_form) = create_signal(0);
+    let pagination_params_rws = use_signal_from_query(move |query_string| {
+        Query::<PaginationParams>::extract_query(&query_string)
+            .map(|q| q.into_inner())
+            .unwrap_or_default()
+    });
+
+    use_param_updater(move || box_params!(pagination_params_rws.get()));
 
     let combined_resource = create_blocking_resource(
         move || {
             (
                 tenant_rws.get().0,
                 filters_rws.get(),
-                pagination_filters_rs.get(),
+                pagination_params_rws.get(),
                 org_rws.get().0,
             )
         },
-        |(current_tenant, filters, pagination_filters, org_id)| async move {
+        |(current_tenant, filters, pagination_params, org_id)| async move {
             // Perform all fetch operations concurrently
             let fetch_all_filters = PaginationParams::all_entries();
             let default_config_filters = DefaultConfigFilters::default();
             let experiments_future = fetch_experiments(
                 &filters,
-                &pagination_filters,
+                &pagination_params,
                 current_tenant.to_string(),
                 org_id.clone(),
             );
@@ -377,6 +382,7 @@ pub fn experiment_list() -> impl IntoView {
 
     let handle_submit_experiment_form = move |_| {
         filters_rws.set(ExperimentListFilters::default());
+        pagination_params_rws.update(|f| f.page = None);
         combined_resource.refetch();
         set_exp_form.update(|val| {
             *val += 1;
@@ -385,11 +391,11 @@ pub fn experiment_list() -> impl IntoView {
     };
 
     let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_filters_ws.update(|f| f.page = Some(next_page));
+        pagination_params_rws.update(|f| f.page = Some(next_page));
     });
 
     let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_filters_ws.update(|f| f.page = Some(prev_page));
+        pagination_params_rws.update(|f| f.page = Some(prev_page));
     });
 
     view! {
@@ -426,7 +432,7 @@ pub fn experiment_list() -> impl IntoView {
                         </div>
                         {move || {
                             let value = combined_resource.get();
-                            let pagination = pagination_filters_rs.get();
+                            let pagination_params = pagination_params_rws.get();
                             let table_columns = experiment_table_columns(filters_rws);
                             match value {
                                 Some(v) => {
@@ -455,8 +461,8 @@ pub fn experiment_list() -> impl IntoView {
                                         .to_owned();
                                     let pagination_props = TablePaginationProps {
                                         enabled: true,
-                                        count: pagination.count.unwrap_or_default(),
-                                        current_page: pagination.page.unwrap_or_default(),
+                                        count: pagination_params.count.unwrap_or_default(),
+                                        current_page: pagination_params.page.unwrap_or_default(),
                                         total_pages: v.experiments.total_pages,
                                         on_next: handle_next_click,
                                         on_prev: handle_prev_click,

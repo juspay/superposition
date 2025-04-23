@@ -3,14 +3,18 @@ use leptos::*;
 use leptos_router::A;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
+use superposition_macros::box_params;
 use superposition_types::{
-    custom_query::PaginationParams, database::models::cac::Function, PaginatedResponse,
+    custom_query::{CustomQuery, PaginationParams, Query},
+    database::models::cac::Function,
+    PaginatedResponse,
 };
 
 use crate::api::fetch_functions;
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{stat::Stat, table::Table};
+use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant};
 
 use super::utils::function_table_columns;
@@ -24,14 +28,27 @@ struct CombinedResource {
 pub fn function_list() -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
-    let (filters, set_filters) = create_signal(PaginationParams::default());
+    let pagination_params_rws = use_signal_from_query(move |query_string| {
+        Query::<PaginationParams>::extract_query(&query_string)
+            .map(|q| q.into_inner())
+            .unwrap_or_default()
+    });
+
+    use_param_updater(move || box_params!(pagination_params_rws.get()));
+
     let table_columns = create_memo(move |_| function_table_columns());
 
     let combined_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, filters.get(), org_rws.get().0),
-        |(current_tenant, filters, org)| async move {
+        move || {
+            (
+                tenant_rws.get().0,
+                pagination_params_rws.get(),
+                org_rws.get().0,
+            )
+        },
+        |(current_tenant, pagination_params, org)| async move {
             let functions_future =
-                fetch_functions(&filters, current_tenant.to_string(), org);
+                fetch_functions(&pagination_params, current_tenant.to_string(), org);
 
             let functions_result = functions_future.await;
             CombinedResource {
@@ -41,11 +58,11 @@ pub fn function_list() -> impl IntoView {
     );
 
     let handle_next_click = Callback::new(move |next_page: i64| {
-        set_filters.update(|f| f.page = Some(next_page));
+        pagination_params_rws.update(|f| f.page = Some(next_page));
     });
 
     let handle_prev_click = Callback::new(move |prev_page: i64| {
-        set_filters.update(|f| f.page = Some(prev_page));
+        pagination_params_rws.update(|f| f.page = Some(prev_page));
     });
 
     view! {
@@ -86,7 +103,7 @@ pub fn function_list() -> impl IntoView {
 
                             {move || {
                                 let value = combined_resource.get();
-                                let filters = filters.get();
+                                let pagination_params = pagination_params_rws.get();
                                 match value {
                                     Some(v) => {
                                         let data = v
@@ -113,8 +130,8 @@ pub fn function_list() -> impl IntoView {
                                         let total_pages = v.functions.total_pages;
                                         let pagination_props = TablePaginationProps {
                                             enabled: true,
-                                            count: filters.count.unwrap_or_default(),
-                                            current_page: filters.page.unwrap_or_default(),
+                                            count: pagination_params.count.unwrap_or_default(),
+                                            current_page: pagination_params.page.unwrap_or_default(),
                                             total_pages,
                                             on_next: handle_next_click,
                                             on_prev: handle_prev_click,

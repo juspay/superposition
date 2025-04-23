@@ -1,8 +1,11 @@
 use leptos::*;
 use leptos_router::use_navigate;
 use serde_json::{json, Map, Value};
-use superposition_types::custom_query::PaginationParams;
-use superposition_types::database::models::WorkspaceStatus;
+use superposition_macros::box_params;
+use superposition_types::{
+    custom_query::{CustomQuery, PaginationParams, Query},
+    database::models::WorkspaceStatus,
+};
 
 use crate::api::fetch_workspaces;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
@@ -15,17 +18,25 @@ use crate::components::table::{
 };
 use crate::components::workspace_form::types::RowData;
 use crate::components::workspace_form::WorkspaceForm;
+use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::OrganisationId;
 
 #[component]
 pub fn workspace() -> impl IntoView {
     let org_id: RwSignal<OrganisationId> =
         use_context::<RwSignal<OrganisationId>>().unwrap();
-    let (filters, set_filters) = create_signal(PaginationParams::default());
+    let pagination_params_rws = use_signal_from_query(move |query_string| {
+        Query::<PaginationParams>::extract_query(&query_string)
+            .map(|q| q.into_inner())
+            .unwrap_or_default()
+    });
+
+    use_param_updater(move || box_params!(pagination_params_rws.get()));
+
     let workspace_resource = create_blocking_resource(
-        move || (filters.get(), org_id.get().0),
-        |(filters, org_id)| async move {
-            fetch_workspaces(&filters, &org_id)
+        move || (pagination_params_rws.get(), org_id.get().0),
+        |(pagination_params, org_id)| async move {
+            fetch_workspaces(&pagination_params, &org_id)
                 .await
                 .unwrap_or_default()
         },
@@ -33,11 +44,11 @@ pub fn workspace() -> impl IntoView {
     let selected_workspace = create_rw_signal::<Option<RowData>>(None);
 
     let handle_next_click = Callback::new(move |next_page: i64| {
-        set_filters.update(|f| f.page = Some(next_page));
+        pagination_params_rws.update(|f| f.page = Some(next_page));
     });
 
     let handle_prev_click = Callback::new(move |prev_page: i64| {
-        set_filters.update(|f| f.page = Some(prev_page));
+        pagination_params_rws.update(|f| f.page = Some(prev_page));
     });
     let handle_close = move || {
         selected_workspace.set(None);
@@ -182,6 +193,7 @@ pub fn workspace() -> impl IntoView {
                                 <WorkspaceForm
                                     org_id=org_id
                                     handle_submit=move |_| {
+                                        pagination_params_rws.update(|f| f.page = None);
                                         workspace_resource.refetch();
                                         selected_workspace.set(None);
                                         close_drawer("workspace_drawer");
@@ -208,14 +220,14 @@ pub fn workspace() -> impl IntoView {
                         })
                         .collect::<Vec<Map<String, Value>>>();
                     let total_workspaces = workspaces.total_items.to_string();
-                    let filters = filters.get();
+                    let pagination_params = pagination_params_rws.get();
                     let (current_page, total_pages) = (
-                        filters.page.unwrap_or_default(),
+                        pagination_params.page.unwrap_or_default(),
                         workspaces.total_pages,
                     );
                     let pagination_props = TablePaginationProps {
                         enabled: true,
-                        count: filters.count.unwrap_or_default(),
+                        count: pagination_params.count.unwrap_or_default(),
                         current_page,
                         total_pages,
                         on_next: handle_next_click,
