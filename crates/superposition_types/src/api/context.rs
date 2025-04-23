@@ -1,9 +1,13 @@
 use std::fmt::{self, Display};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use superposition_derives::IsEmpty;
 
-use crate::{custom_query::CommaSeparatedStringQParams, IsEmpty, SortBy};
+use crate::{
+    custom_query::CommaSeparatedStringQParams,
+    database::models::{ChangeReason, Description},
+    Cac, Condition, IsEmpty, Overrides, SortBy,
+};
 
 #[derive(
     Deserialize, PartialEq, Clone, strum_macros::EnumIter, strum_macros::Display,
@@ -72,4 +76,19 @@ impl Display for ContextListFilters {
 
         write!(f, "{}", parts.join("&"))
     }
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+pub enum Identifier {
+    Context(Cac<Condition>),
+    Id(String),
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+pub struct UpdateRequest {
+    pub context: Identifier,
+    #[serde(rename = "override")]
+    pub override_: Cac<Overrides>,
+    pub description: Option<Description>,
+    pub change_reason: ChangeReason,
 }

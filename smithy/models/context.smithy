@@ -149,13 +149,18 @@ operation MoveContext {
     ]
 }
 
+union ContextIdentifier {
+    Id: String,
+    Context: Condition,
+}
+
 @http(method: "PUT", uri: "/context/overrides")
 operation UpdateOverride {
     input := for Context with [WorkspaceMixin] {
         // TODO Find re-name functionality.
         @required
         @notProperty
-        context: Condition
+        context: ContextIdentifier
 
         // REVIEW Should this be made a property?
         @httpHeader("x-config-tags")
@@ -171,7 +176,7 @@ operation UpdateOverride {
         $change_reason
     }
 
-    output: ContextActionResponse
+    output: ContextFull
 
     errors: [
         ResourceNotFound

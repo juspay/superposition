@@ -9,7 +9,7 @@ use actix_web::http::header::ContentType;
 use actix_web::web::Data;
 use actix_web::{
     get, put, route,
-    web::{self, Json, Query},
+    web::{Json, Query},
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
@@ -353,7 +353,7 @@ fn get_contextids_from_overrideid(
 
 fn construct_new_payload(
     req_payload: &Map<String, Value>,
-) -> superposition::Result<web::Json<context::PutReq>> {
+) -> superposition::Result<context::PutReq> {
     let mut res = req_payload.clone();
     res.remove("to_be_deleted");
     res.remove("override_id");
@@ -410,12 +410,12 @@ fn construct_new_payload(
             bad_argument!("Change reason is required and must be a string")
         })?;
 
-    Ok(web::Json(PutReq {
+    Ok(PutReq {
         context,
         r#override: override_,
         description,
         change_reason,
-    }))
+    })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -516,7 +516,7 @@ async fn reduce_config_key(
                                     schema_name,
                                 )?,
                             };
-                            let _ = context::put(
+                            let _ = context::upsert(
                                 put_req,
                                 description,
                                 conn,

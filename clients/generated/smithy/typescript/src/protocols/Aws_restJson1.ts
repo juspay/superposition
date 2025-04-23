@@ -214,6 +214,7 @@ import {
   BulkOperationReq,
   ContextAction,
   ContextFull,
+  ContextIdentifier,
   ContextMove,
   ContextPartial,
   ContextPut,
@@ -1486,7 +1487,7 @@ export const se_UpdateOverrideCommand = async(
   let body: any;
   body = JSON.stringify(take(input, {
     'change_reason': [],
-    'context': _ => se_Condition(_, context),
+    'context': _ => se_ContextIdentifier(_, context),
     'description': [],
     'override': _ => se_Overrides(_, context),
   }));
@@ -2898,9 +2899,15 @@ export const de_UpdateOverrideCommand = async(
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'change_reason': __expectString,
-    'context_id': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
     'description': __expectString,
+    'id': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'override': _ => de_Overrides(_, context),
     'override_id': __expectString,
+    'value': _ => de_Condition(_, context),
     'weight': __expectString,
   });
   Object.assign(contents, doc);
@@ -3309,6 +3316,20 @@ const de_CommandError = async(
       MOVE: value => ({ "MOVE": se_ContextMove(value, context) }),
       PUT: value => ({ "PUT": se_ContextPut(value, context) }),
       REPLACE: value => ({ "REPLACE": se_ContextPut(value, context) }),
+      _: (name, value) => ({ name: value } as any)
+    });
+  }
+
+  /**
+   * serializeAws_restJson1ContextIdentifier
+   */
+  const se_ContextIdentifier = (
+    input: ContextIdentifier,
+    context: __SerdeContext
+  ): any => {
+    return ContextIdentifier.visit(input, {
+      Context: value => ({ "Context": se_Condition(value, context) }),
+      Id: value => ({ "Id": value }),
       _: (name, value) => ({ name: value } as any)
     });
   }

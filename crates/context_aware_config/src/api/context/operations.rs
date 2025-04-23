@@ -9,7 +9,11 @@ use serde_json::Value;
 use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
-    database::{models::cac::Context, schema::contexts},
+    api::context::{Identifier, UpdateRequest},
+    database::{
+        models::cac::Context,
+        schema::contexts::{self, dsl},
+    },
     result, DBConnection, User,
 };
 
@@ -30,12 +34,14 @@ use crate::{
 };
 
 use super::{
-    types::{MoveReq, PutResp},
+    helpers::validate_override_with_functions,
+    types::{MoveReq, PutResp, UpdateContextOverridesChangeset},
+    validations::validate_override_with_default_configs,
     PutReq,
 };
 
-pub fn put(
-    req: Json<PutReq>,
+pub fn upsert(
+    req: PutReq,
     description: String,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
@@ -72,6 +78,41 @@ pub fn put(
             Err(db_error!(e))
         }
     }
+}
+
+pub fn update(
+    req: UpdateRequest,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    user: &User,
+    schema_name: &SchemaName,
+) -> result::Result<Context> {
+    let context_id = match req.context {
+        Identifier::Context(context) => hash(&Value::Object(context.into_inner().into())),
+        Identifier::Id(id) => id,
+    };
+
+    let r_override = req.override_.clone().into_inner();
+    let ctx_override = Value::Object(r_override.clone().into());
+
+    validate_override_with_default_configs(conn, &r_override, schema_name)?;
+    validate_override_with_functions(conn, &r_override, schema_name)?;
+
+    let update_request = UpdateContextOverridesChangeset {
+        override_id: hash(&ctx_override),
+        override_: r_override,
+        last_modified_at: Utc::now(),
+        last_modified_by: user.get_email(),
+        description: req.description.clone(),
+        change_reason: req.change_reason.clone(),
+    };
+
+    diesel::update(dsl::contexts)
+        .filter(dsl::id.eq(context_id))
+        .set(update_request)
+        .schema_name(schema_name)
+        .returning(Context::as_returning())
+        .get_result(conn)
+        .map_err(|e| db_error!(e))
 }
 
 pub fn r#move(

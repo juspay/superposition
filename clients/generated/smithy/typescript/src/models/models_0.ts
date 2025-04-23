@@ -687,10 +687,61 @@ export interface MoveContextInput {
 /**
  * @public
  */
+export type ContextIdentifier =
+  | ContextIdentifier.ContextMember
+  | ContextIdentifier.IdMember
+  | ContextIdentifier.$UnknownMember
+
+/**
+ * @public
+ */
+export namespace ContextIdentifier {
+
+  export interface IdMember {
+    Id: string;
+    Context?: never;
+    $unknown?: never;
+  }
+
+  export interface ContextMember {
+    Id?: never;
+    Context: Record<string, __DocumentType>;
+    $unknown?: never;
+  }
+
+  /**
+   * @public
+   */
+  export interface $UnknownMember {
+    Id?: never;
+    Context?: never;
+    $unknown: [string, any];
+  }
+
+  export interface Visitor<T> {
+    Id: (value: string) => T;
+    Context: (value: Record<string, __DocumentType>) => T;
+    _: (name: string, value: any) => T;
+  }
+
+  export const visit = <T>(
+    value: ContextIdentifier,
+    visitor: Visitor<T>
+  ): T => {
+    if (value.Id !== undefined) return visitor.Id(value.Id);
+    if (value.Context !== undefined) return visitor.Context(value.Context);
+    return visitor._(value.$unknown[0], value.$unknown[1]);
+  }
+
+}
+
+/**
+ * @public
+ */
 export interface UpdateOverrideInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
-  context: Record<string, __DocumentType> | undefined;
+  context: ContextIdentifier | undefined;
   config_tags?: string | undefined;
   override: Record<string, __DocumentType> | undefined;
   description?: string | undefined;

@@ -5,7 +5,7 @@ import {
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
 import {
-  ContextActionResponse,
+  ContextFull,
   UpdateOverrideInput,
 } from "../models/models_0";
 import {
@@ -32,7 +32,7 @@ export interface UpdateOverrideCommandInput extends UpdateOverrideInput {}
  *
  * The output of {@link UpdateOverrideCommand}.
  */
-export interface UpdateOverrideCommandOutput extends ContextActionResponse, __MetadataBearer {}
+export interface UpdateOverrideCommandOutput extends ContextFull, __MetadataBearer {}
 
 /**
  * @public
@@ -46,8 +46,11 @@ export interface UpdateOverrideCommandOutput extends ContextActionResponse, __Me
  * const input = { // UpdateOverrideInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
- *   context: { // Condition // required
- *     "<keys>": "DOCUMENT_VALUE",
+ *   context: { // ContextIdentifier Union: only one key present
+ *     Id: "STRING_VALUE",
+ *     Context: { // Condition
+ *       "<keys>": "DOCUMENT_VALUE",
+ *     },
  *   },
  *   config_tags: "STRING_VALUE",
  *   override: { // Overrides // required
@@ -58,12 +61,22 @@ export interface UpdateOverrideCommandOutput extends ContextActionResponse, __Me
  * };
  * const command = new UpdateOverrideCommand(input);
  * const response = await client.send(command);
- * // { // ContextActionResponse
- * //   context_id: "STRING_VALUE", // required
- * //   override_id: "STRING_VALUE", // required
- * //   weight: "STRING_VALUE", // required
- * //   description: "STRING_VALUE", // required
- * //   change_reason: "STRING_VALUE", // required
+ * // { // ContextFull
+ * //   id: "STRING_VALUE", // required
+ * //   value: { // Condition
+ * //     "<keys>": "DOCUMENT_VALUE",
+ * //   },
+ * //   override: { // Overrides
+ * //     "<keys>": "DOCUMENT_VALUE",
+ * //   },
+ * //   override_id: "STRING_VALUE",
+ * //   weight: "STRING_VALUE",
+ * //   description: "STRING_VALUE",
+ * //   change_reason: "STRING_VALUE",
+ * //   created_at: new Date("TIMESTAMP"),
+ * //   created_by: "STRING_VALUE",
+ * //   last_modified_at: new Date("TIMESTAMP"),
+ * //   last_modified_by: "STRING_VALUE",
  * // };
  *
  * ```
@@ -101,7 +114,7 @@ export class UpdateOverrideCommand extends $Command.classBuilder<UpdateOverrideC
 declare protected static __types: {
   api: {
       input: UpdateOverrideInput;
-      output: ContextActionResponse;
+      output: ContextFull;
   };
   sdk: {
       input: UpdateOverrideCommandInput;

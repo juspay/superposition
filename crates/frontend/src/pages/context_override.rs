@@ -51,6 +51,7 @@ use crate::types::{OrganisationId, Tenant, VariantFormTs};
 
 #[derive(Clone, Debug, Default)]
 pub struct Data {
+    pub context_id: String,
     pub context: Conditions,
     pub overrides: Vec<(String, Value)>,
     pub description: String,
@@ -243,7 +244,7 @@ fn form(
     context: Conditions,
     overrides: Vec<(String, Value)>,
     dimensions: Vec<DimensionWithMandatory>,
-    edit: bool,
+    #[prop(default = None)] edit_id: Option<String>,
     default_config: Vec<DefaultConfig>,
     handle_submit: Callback<bool, ()>,
     #[prop(default = String::new())] description: String,
@@ -255,6 +256,7 @@ fn form(
     let (overrides, set_overrides) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
+    let edit_id = StoredValue::new(edit_id);
 
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
@@ -262,29 +264,30 @@ fn form(
     let on_submit = move |_| {
         req_inprogress_ws.set(true);
         spawn_local(async move {
-            let f_context = context.get();
-            let f_overrides = overrides.get();
-            let result = if edit {
+            let f_overrides = overrides.get_untracked();
+            let result = if let Some(context_id) = edit_id.get_value() {
                 update_context(
-                    tenant_rws.get().0,
+                    tenant_rws.get_untracked().0,
+                    context_id,
                     Map::from_iter(f_overrides),
-                    f_context,
-                    description_rs.get(),
-                    change_reason_rs.get(),
-                    org_rws.get().0,
+                    description_rs.get_untracked(),
+                    change_reason_rs.get_untracked(),
+                    org_rws.get_untracked().0,
                 )
                 .await
             } else {
                 create_context(
-                    tenant_rws.get().0,
+                    tenant_rws.get_untracked().0,
                     Map::from_iter(f_overrides),
-                    f_context,
-                    description_rs.get(),
-                    change_reason_rs.get(),
-                    org_rws.get().0,
+                    context.get_untracked(),
+                    description_rs.get_untracked(),
+                    change_reason_rs.get_untracked(),
+                    org_rws.get_untracked().0,
                 )
                 .await
             };
+
+            let edit = edit_id.get_value().is_some();
 
             match result {
                 Ok(_) => {
@@ -321,7 +324,7 @@ fn form(
                     });
             }
 
-            disabled=edit
+            disabled=edit_id.get_value().is_some()
         />
 
         <ChangeForm
@@ -478,6 +481,7 @@ pub fn context_override() -> impl IntoView {
         match Conditions::from_context_json(&context.value.into()) {
             Ok(conditions) => {
                 selected_context_ws.set(Some(Data {
+                    context_id: context.id.clone(),
                     context: conditions,
                     overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
                     description: context.description.clone(),
@@ -509,6 +513,7 @@ pub fn context_override() -> impl IntoView {
             match Conditions::from_context_json(&context.value.into()) {
                 Ok(conditions) => {
                     selected_context_ws.set(Some(Data {
+                        context_id: context.id.clone(),
                         context: conditions,
                         overrides: overrides
                             .into_iter()
@@ -531,6 +536,7 @@ pub fn context_override() -> impl IntoView {
         match Conditions::from_context_json(&context.value.into()) {
             Ok(conditions) => {
                 selected_context_ws.set(Some(Data {
+                    context_id: context.id.clone(),
                     context: conditions,
                     overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
                     description: context.description.clone(),
@@ -787,7 +793,7 @@ pub fn context_override() -> impl IntoView {
                                             dimensions=dimensions
                                             default_config=default_config
                                             handle_submit=on_submit
-                                            edit=true
+                                            edit_id=Some(data.context_id.clone())
                                             description=data.description
                                         />
                                     }
@@ -802,7 +808,6 @@ pub fn context_override() -> impl IntoView {
                                             dimensions=dimensions
                                             default_config=default_config
                                             handle_submit=on_submit
-                                            edit=false
                                         />
                                     }
                                         .into_view()

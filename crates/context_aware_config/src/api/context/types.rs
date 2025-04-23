@@ -1,9 +1,29 @@
 use bigdecimal::BigDecimal;
+use chrono::{DateTime, Utc};
+use diesel::prelude::AsChangeset;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
-    database::models::cac::{Context, FunctionCode},
+    database::{
+        models::{
+            cac::{Context, FunctionCode},
+            ChangeReason, Description,
+        },
+        schema::contexts,
+    },
     Cac, Condition, Overrides,
 };
+
+#[derive(Serialize, AsChangeset)]
+#[diesel(table_name = contexts)]
+pub(crate) struct UpdateContextOverridesChangeset {
+    #[serde(rename = "override")]
+    pub override_id: String,
+    pub override_: Overrides,
+    pub last_modified_at: DateTime<Utc>,
+    pub last_modified_by: String,
+    pub description: Option<Description>,
+    pub change_reason: ChangeReason,
+}
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
 #[derive(Deserialize, Clone)]
