@@ -469,9 +469,7 @@ ALTER TABLE localorg_test.dimensions
 ALTER COLUMN priority SET DEFAULT 1;
 
 ALTER TABLE localorg_test.dimensions
-ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY IMMEDIATE;
-
-SET CONSTRAINTS localorg_test.dimension_unique_position DEFERRED;
+ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED;
 
 ALTER TABLE localorg_test.contexts ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
 ALTER TABLE localorg_test.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
@@ -1046,9 +1044,7 @@ ALTER TABLE localorg_dev.dimensions
 ALTER COLUMN priority SET DEFAULT 1;
 
 ALTER TABLE localorg_dev.dimensions
-ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY IMMEDIATE;
-
-SET CONSTRAINTS localorg_dev.dimension_unique_position DEFERRED;
+ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED;
 
 ALTER TABLE localorg_dev.contexts ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
 ALTER TABLE localorg_dev.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
