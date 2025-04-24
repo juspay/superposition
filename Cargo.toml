@@ -49,7 +49,7 @@ diesel = { git = "https://github.com/juspay/diesel.git", branch = "dynamic-schem
 fred = { version = "9.2.1" }
 futures-util = "0.3.28"
 itertools = { version = "0.10.5" }
-jsonlogic = { git = "https://github.com/juspay/jsonlogic_rs.git", version = "0.5.3" }
+jsonlogic = { git = "https://github.com/juspay/jsonlogic_rs.git", version = "0.5.4" }
 jsonschema = "~0.17"
 leptos = { version = "0.6.11" }
 log = { version = "0.4.20", features = ["kv_unstable_serde"] }
