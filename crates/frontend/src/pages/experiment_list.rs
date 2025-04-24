@@ -138,6 +138,7 @@ fn experiment_table_filter_widget(
                             id="experiment_from_date_input".into()
                             class="w-[19rem] flex-auto mt-3 mr-3".into()
                             name="experiment_from_date".into()
+                            min=String::from("2020-01-01")
                             value=filters
                                 .from_date
                                 .map(|s| s.format("%Y-%m-%d").to_string())
