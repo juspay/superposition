@@ -2,6 +2,32 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.71.0 - 2025-04-24
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.29.0
+- frontend bumped to frontend-v0.26.0
+- superposition_types bumped to superposition_types-v0.17.0
+- superposition_macros bumped to superposition_macros-v0.3.0
+- context_aware_config bumped to context_aware_config-v0.50.0
+### Global changes
+#### Bug Fixes
+- db_init.sql - (89de57c) - ayush.jain@juspay.in
+- corrected sql constraint (#482) - (8052357) - PRATIK MISHRA
+- Update experiment restrictions and default value of sort_by (#485) - (f7542f4) - Ayush Jain
+#### Features
+- Paginate Context overrides page (#457) - (72a74b1) - Ayush Jain
+#### Miscellaneous Chores
+- **(deps)** bump crossbeam-channel from 0.5.13 to 0.5.15 - (63e7f74) - dependabot[bot]
+#### Tests
+- added cleanup step for tests - (612c0ac) - Shubhranshu Sanjeev
+- Updated dimension test suite. - (44a7023) - Shrey Bana
+- added pre-test setup - (25bc2ab) - Shubhranshu Sanjeev
+- added client test's to CI-test flow - (d0fa421) - Shubhranshu Sanjeev
+- Experiment - (b5a8120) - ayush.jain@juspay.in
+- Update experiments test cleanup (#478) - (91f8523) - Ayush Jain
+
+- - -
+
 ## v0.70.0 - 2025-04-17
 ### Package updates
 - superposition_types bumped to superposition_types-v0.16.0

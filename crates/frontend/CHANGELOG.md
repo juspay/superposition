@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.26.0 - 2025-04-24
+#### Bug Fixes
+- Update experiment restrictions and default value of sort_by (#485) - (f7542f4) - Ayush Jain
+- set a sensible min for experiments date filter - (581bff4) - Kartik
+#### Features
+- Add Pagination Params to frontend url (#476) - (9ba464b) - Ayush Jain
+- Paginate Context overrides page (#457) - (72a74b1) - Ayush Jain
+
+- - -
+
 ## frontend-v0.25.0 - 2025-04-17
 #### Bug Fixes
 - executing set_timeout only on wasm32 targets - (005b7c2) - Shubhranshu Sanjeev

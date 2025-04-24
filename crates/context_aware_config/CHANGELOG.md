@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.50.0 - 2025-04-24
+#### Bug Fixes
+- Update experiment restrictions and default value of sort_by (#485) - (f7542f4) - Ayush Jain
+- corrected sql constraint (#482) - (8052357) - PRATIK MISHRA
+- Return 409 status code for duplicate key violation in default config creation - (4ec50f2) - Saurav Suman
+#### Features
+- Paginate Context overrides page (#457) - (72a74b1) - Ayush Jain
+
+- - -
+
 ## context_aware_config-v0.49.0 - 2025-04-17
 #### Bug Fixes
 - added tests for contexts (along with bug-fixes) - (1f53762) - Shubhranshu Sanjeev

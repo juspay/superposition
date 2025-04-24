@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.29.0 - 2025-04-24
+#### Bug Fixes
+- Update experiment restrictions and default value of sort_by (#485) - (f7542f4) - Ayush Jain
+#### Features
+- Paginate Context overrides page (#457) - (72a74b1) - Ayush Jain
+
+- - -
+
 ## experimentation_platform-v0.28.0 - 2025-04-17
 #### Features
 - smithy models - (2958cce) - PRATIK MISHRA

@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_macros-v0.3.0 - 2025-04-24
+#### Features
+- Paginate Context overrides page (#457) - (72a74b1) - Ayush Jain
+
+- - -
+
 ## superposition_macros-v0.2.0 - 2024-11-20
 #### Features
 - Webhook trigger for experiments (#265) - (585ee1e) - Ankit Kumar Mahato

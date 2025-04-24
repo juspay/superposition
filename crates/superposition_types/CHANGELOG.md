@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.17.0 - 2025-04-24
+#### Bug Fixes
+- Update experiment restrictions and default value of sort_by (#485) - (f7542f4) - Ayush Jain
+- corrected sql constraint (#482) - (8052357) - PRATIK MISHRA
+#### Features
+- Paginate Context overrides page (#457) - (72a74b1) - Ayush Jain
+#### Tests
+- Experiment - (b5a8120) - ayush.jain@juspay.in
+
+- - -
+
 ## superposition_types-v0.16.0 - 2025-04-17
 #### Features
 - Add dimension form support for dependent dimensions - (3929049) - Ankit.Mahato
