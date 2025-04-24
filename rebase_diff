@@ -1,0 +1,1687 @@
+diff --git a/crates/context_aware_config/src/api/config/handlers.rs b/crates/context_aware_config/src/api/config/handlers.rs
+index 5cabfdb..19e1bc8 100644
+--- a/crates/context_aware_config/src/api/config/handlers.rs
++++ b/crates/context_aware_config/src/api/config/handlers.rs
+@@ -400,12 +400,12 @@ fn construct_new_payload(
+             bad_argument!("Change reason is required and must be a string")
+         })?;
+ 
+-    return Ok(web::Json(PutReq {
+-        context: context,
++    Ok(web::Json(PutReq {
++        context,
+         r#override: override_,
+         description,
+         change_reason,
+-    }));
++    }))
+ }
+ 
+ #[allow(clippy::too_many_arguments)]
+@@ -494,7 +494,7 @@ async fn reduce_config_key(
+                             cid.clone(),
+                             user.clone(),
+                             conn,
+-                            tenant.clone(),
++                            &tenant,
+                         );
+                     }
+                     og_contexts.retain(|x| x.id != *cid);
+@@ -504,7 +504,7 @@ async fn reduce_config_key(
+                             cid.clone(),
+                             user.clone(),
+                             conn,
+-                            tenant.clone(),
++                            &tenant,
+                         );
+                         if let Ok(put_req) = construct_new_payload(request_payload) {
+                             let _ = context::put(
+@@ -512,7 +512,7 @@ async fn reduce_config_key(
+                                 conn,
+                                 false,
+                                 &user,
+-                                tenant.clone(),
++                                &tenant,
+                                 &tenant_config,
+                                 false,
+                             );
+diff --git a/crates/context_aware_config/src/api/context/handlers.rs b/crates/context_aware_config/src/api/context/handlers.rs
+index 6d3e3a9..b039962 100644
+--- a/crates/context_aware_config/src/api/context/handlers.rs
++++ b/crates/context_aware_config/src/api/context/handlers.rs
+@@ -6,53 +6,44 @@ use std::{cmp::min, collections::HashSet};
+ use crate::helpers::put_config_in_redis;
+ use crate::{
+     api::{
+-        context::types::{
+-            ContextAction, ContextBulkResponse, ContextFilterSortOn, ContextFilters,
+-            MoveReq, PutReq, WeightRecomputeResponse,
++        context::{
++            hash,
++            helpers::ensure_description,
++            operations,
++            types::{
++                ContextAction, ContextBulkResponse, ContextFilterSortOn, ContextFilters,
++                MoveReq, PutReq, WeightRecomputeResponse,
++            },
+         },
+         dimension::{get_dimension_data, get_dimension_data_map},
+     },
+     helpers::{add_config_version, calculate_context_weight},
+ };
++
+ use actix_web::{
+     delete, get, post, put,
+     web::{Data, Json, Path},
+     HttpResponse, Scope,
+ };
+ use bigdecimal::BigDecimal;
+-use cac_client::utils::json_to_sorted_string;
+ use chrono::Utc;
+-use diesel::result::Error::DatabaseError;
+-use diesel::{
+-    delete,
+-    r2d2::{ConnectionManager, PooledConnection},
+-    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
+-};
+-use serde_json::{json, Map, Value};
++use diesel::SelectableHelper;
++use diesel::{delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl};
++use serde_json::{Map, Value};
+ use service_utils::service::types::Tenant;
+ use service_utils::{
+     helpers::parse_config_tags,
+     service::types::{AppHeader, AppState, CustomHeaders, DbConnection},
+ };
+-use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
++use superposition_macros::{bad_argument, db_error, unexpected_error};
+ use superposition_types::{
+     custom_query::{self as superposition_query, CustomQuery, DimensionQuery, QueryMap},
+     database::{
+         models::cac::Context,
+         schema::contexts::{self, id},
+     },
+-    result as superposition, Cac, Contextual, Overridden, Overrides, PaginatedResponse,
+-    SortBy, TenantConfig, User,
+-};
+-
+-use super::{
+-    helpers::{
+-        validate_condition_with_functions, validate_condition_with_mandatory_dimensions,
+-        validate_override_with_functions,
+-    },
+-    types::PutResp,
+-    validate_dimensions,
+-    validations::validate_override_with_default_configs,
++    result as superposition, Contextual, Overridden, PaginatedResponse, SortBy,
++    TenantConfig, User,
+ };
+ 
+ pub fn endpoints() -> Scope {
+@@ -68,213 +59,6 @@ pub fn endpoints() -> Scope {
+         .service(weight_recompute)
+ }
+ 
+-type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
+-
+-fn create_ctx_from_put_req(
+-    req: Json<PutReq>,
+-    conn: &mut DBConnection,
+-    user: &User,
+-    tenant_config: &TenantConfig,
+-    tenant: &Tenant,
+-) -> superposition::Result<Context> {
+-    let ctx_condition = req.context.to_owned().into_inner();
+-    let description = if req.description.is_none() {
+-        let ctx_condition_value = json!(ctx_condition);
+-        ensure_description(ctx_condition_value, conn, tenant)?
+-    } else {
+-        req.description
+-            .clone()
+-            .ok_or_else(|| bad_argument!("Description should not be empty"))?
+-    };
+-    let change_reason = req.change_reason.clone();
+-    let condition_val = Value::Object(ctx_condition.clone().into());
+-    let r_override = req.r#override.clone().into_inner();
+-    let ctx_override = Value::Object(r_override.clone().into());
+-    validate_condition_with_mandatory_dimensions(
+-        &ctx_condition,
+-        &tenant_config.mandatory_dimensions,
+-    )?;
+-    validate_override_with_default_configs(conn, &r_override, tenant)?;
+-    validate_condition_with_functions(conn, &ctx_condition, tenant)?;
+-    validate_override_with_functions(conn, &r_override, tenant)?;
+-
+-    let dimension_data = get_dimension_data(conn, tenant)?;
+-    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
+-    validate_dimensions("context", &condition_val, &dimension_data_map)?;
+-
+-    let weight = calculate_context_weight(&condition_val, &dimension_data_map)
+-        .map_err(|_| unexpected_error!("Something Went Wrong"))?;
+-
+-    let context_id = hash(&condition_val);
+-    let override_id = hash(&ctx_override);
+-    Ok(Context {
+-        id: context_id,
+-        value: ctx_condition,
+-        override_id: override_id,
+-        override_: r_override,
+-        created_at: Utc::now(),
+-        created_by: user.get_email(),
+-        last_modified_at: Utc::now().naive_utc(),
+-        last_modified_by: user.get_email(),
+-        weight,
+-        description,
+-        change_reason,
+-    })
+-}
+-
+-pub fn hash(val: &Value) -> String {
+-    let sorted_str: String = json_to_sorted_string(val);
+-    blake3::hash(sorted_str.as_bytes()).to_string()
+-}
+-
+-fn update_override_of_existing_ctx(
+-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+-    ctx: Context,
+-    user: &User,
+-    tenant: &Tenant,
+-) -> superposition::Result<PutResp> {
+-    use contexts::dsl;
+-    let mut new_override: Value = dsl::contexts
+-        .select(dsl::override_)
+-        .filter(dsl::id.eq(ctx.id.clone()))
+-        .schema_name(tenant)
+-        .first(conn)?;
+-    cac_client::merge(
+-        &mut new_override,
+-        &Value::Object(ctx.override_.clone().into()),
+-    );
+-    let new_override_id = hash(&new_override);
+-    let new_ctx = Context {
+-        override_: Cac::<Overrides>::validate_db_data(
+-            new_override.as_object().cloned().unwrap_or(Map::new()),
+-        )
+-        .map_err(|err| {
+-            log::error!(
+-                "update_override_of_existing_ctx : failed to decode context from db {}",
+-                err
+-            );
+-            unexpected_error!(err)
+-        })?
+-        .into_inner(),
+-        override_id: new_override_id,
+-        ..ctx
+-    };
+-    db_update_override(conn, new_ctx, user, tenant)
+-}
+-
+-fn replace_override_of_existing_ctx(
+-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+-    ctx: Context,
+-    user: &User,
+-    tenant: &Tenant,
+-) -> superposition::Result<PutResp> {
+-    let new_override = ctx.override_;
+-    let new_override_id = hash(&Value::Object(new_override.clone().into()));
+-    let new_ctx = Context {
+-        override_: new_override,
+-        override_id: new_override_id,
+-        ..ctx
+-    };
+-    db_update_override(conn, new_ctx, user, tenant)
+-}
+-
+-fn db_update_override(
+-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+-    ctx: Context,
+-    user: &User,
+-    tenant: &Tenant,
+-) -> superposition::Result<PutResp> {
+-    use contexts::dsl;
+-    let update_resp = diesel::update(dsl::contexts)
+-        .filter(dsl::id.eq(ctx.id.clone()))
+-        .set((
+-            dsl::override_.eq(ctx.override_),
+-            dsl::override_id.eq(ctx.override_id),
+-            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+-            dsl::last_modified_by.eq(user.get_email()),
+-        ))
+-        .schema_name(tenant)
+-        .get_result::<Context>(conn)?;
+-    Ok(get_put_resp(update_resp))
+-}
+-
+-fn get_put_resp(ctx: Context) -> PutResp {
+-    PutResp {
+-        context_id: ctx.id,
+-        override_id: ctx.override_id,
+-        weight: ctx.weight,
+-        description: ctx.description,
+-        change_reason: ctx.change_reason,
+-    }
+-}
+-
+-pub fn put(
+-    req: Json<PutReq>,
+-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+-    already_under_txn: bool,
+-    user: &User,
+-    tenant_config: &TenantConfig,
+-    replace: bool,
+-    tenant: &Tenant,
+-) -> superposition::Result<PutResp> {
+-    use contexts::dsl::contexts;
+-    let new_ctx = create_ctx_from_put_req(req, conn, user, tenant_config, tenant)?;
+-    if already_under_txn {
+-        diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
+-    }
+-    let insert = diesel::insert_into(contexts)
+-        .values(&new_ctx)
+-        .schema_name(tenant)
+-        .execute(conn);
+-
+-    match insert {
+-        Ok(_) => Ok(get_put_resp(new_ctx)),
+-        Err(DatabaseError(diesel::result::DatabaseErrorKind::UniqueViolation, _)) => {
+-            if already_under_txn {
+-                diesel::sql_query("ROLLBACK TO put_ctx_savepoint").execute(conn)?;
+-            }
+-            if replace {
+-                replace_override_of_existing_ctx(conn, new_ctx, user, tenant) // no need for .map(Json)
+-            } else {
+-                update_override_of_existing_ctx(conn, new_ctx, user, tenant)
+-            }
+-        }
+-        Err(e) => {
+-            log::error!("failed to update context with db error: {:?}", e);
+-            Err(db_error!(e))
+-        }
+-    }
+-}
+-
+-fn ensure_description(
+-    context: Value,
+-    transaction_conn: &mut diesel::PgConnection,
+-    tenant: &Tenant,
+-) -> Result<String, superposition::AppError> {
+-    use superposition_types::database::schema::contexts::dsl::{
+-        contexts as contexts_table, id as context_id,
+-    };
+-
+-    let context_id_value = hash(&context);
+-
+-    // Perform the database query
+-    let existing_context = contexts_table
+-        .filter(context_id.eq(context_id_value))
+-        .schema_name(tenant)
+-        .first::<Context>(transaction_conn);
+-
+-    match existing_context {
+-        Ok(ctx) => Ok(ctx.description), // If the context is found, return the description
+-        Err(diesel::result::Error::NotFound) => Err(superposition::AppError::NotFound(
+-            "Description not found in the existing context".to_string(),
+-        )),
+-        Err(e) => {
+-            log::error!("Database error while fetching context: {:?}", e);
+-            Err(superposition::AppError::DbError(e)) // Use the `DbError` variant for other Diesel-related errors
+-        }
+-    }
+-}
+-
+ #[put("")]
+ async fn put_handler(
+     state: Data<AppState>,
+@@ -286,6 +70,7 @@ async fn put_handler(
+     tenant_config: TenantConfig,
+ ) -> superposition::Result<HttpResponse> {
+     let tags = parse_config_tags(custom_headers.config_tags)?;
++
+     let (put_response, version_id) = db_conn
+         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
+             let mut req_mut = req.into_inner();
+@@ -298,14 +83,14 @@ async fn put_handler(
+                     &tenant,
+                 )?);
+             }
+-            let put_response = put(
++            let put_response = operations::put(
+                 Json(req_mut.clone()),
+                 transaction_conn,
+                 true,
+                 &user,
++                &tenant,
+                 &tenant_config,
+                 false,
+-                &tenant,
+             )
+             .map_err(|err: superposition::AppError| {
+                 log::info!("context put failed with error: {:?}", err);
+@@ -324,6 +109,7 @@ async fn put_handler(
+             )?;
+             Ok((put_response, version_id))
+         })?;
++
+     let mut http_resp = HttpResponse::Ok();
+ 
+     http_resp.insert_header((
+@@ -360,14 +146,14 @@ async fn update_override_handler(
+                     &tenant,
+                 )?);
+             }
+-            let override_resp = put(
++            let override_resp = operations::put(
+                 Json(req_mut.clone()),
+                 transaction_conn,
+                 true,
+                 &user,
++                &tenant,
+                 &tenant_config,
+                 true,
+-                &tenant,
+             )
+             .map_err(|err: superposition::AppError| {
+                 log::info!("context put failed with error: {:?}", err);
+@@ -398,110 +184,6 @@ async fn update_override_handler(
+     Ok(http_resp.json(override_resp))
+ }
+ 
+-fn r#move(
+-    old_ctx_id: String,
+-    req: Json<MoveReq>,
+-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+-    already_under_txn: bool,
+-    user: &User,
+-    tenant_config: &TenantConfig,
+-    tenant: &Tenant,
+-) -> superposition::Result<PutResp> {
+-    use contexts::dsl;
+-    let req = req.into_inner();
+-
+-    let ctx_condition = req.context.to_owned().into_inner();
+-    let ctx_condition_value = Value::Object(ctx_condition.clone().into());
+-    let description = if req.description.is_none() {
+-        ensure_description(ctx_condition_value.clone(), conn, tenant)?
+-    } else {
+-        req.description
+-            .ok_or_else(|| bad_argument!("Description should not be empty"))?
+-    };
+-
+-    let change_reason = req.change_reason.clone();
+-    let ctx_condition = req.context.to_owned().into_inner();
+-    let ctx_condition_value = Value::Object(ctx_condition.clone().into());
+-    let new_ctx_id = hash(&ctx_condition_value);
+-
+-    let dimension_data = get_dimension_data(conn, &tenant)?;
+-    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
+-    validate_dimensions("context", &ctx_condition_value, &dimension_data_map)?;
+-    let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
+-        .map_err(|_| unexpected_error!("Something Went Wrong"))?;
+-
+-    validate_condition_with_mandatory_dimensions(
+-        &req.context.into_inner(),
+-        &tenant_config.mandatory_dimensions,
+-    )?;
+-
+-    if already_under_txn {
+-        diesel::sql_query("SAVEPOINT update_ctx_savepoint").execute(conn)?;
+-    }
+-
+-    let context = diesel::update(dsl::contexts)
+-        .filter(dsl::id.eq(&old_ctx_id))
+-        .set((
+-            dsl::id.eq(&new_ctx_id),
+-            dsl::value.eq(&ctx_condition_value),
+-            dsl::weight.eq(&weight),
+-            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+-            dsl::last_modified_by.eq(user.get_email()),
+-        ))
+-        .schema_name(tenant)
+-        .get_result(conn);
+-
+-    let contruct_new_ctx_with_old_overrides = |ctx: Context| Context {
+-        id: new_ctx_id,
+-        value: ctx_condition,
+-        created_at: Utc::now(),
+-        created_by: user.get_email(),
+-        override_id: ctx.override_id,
+-        override_: ctx.override_,
+-        last_modified_at: Utc::now().naive_utc(),
+-        last_modified_by: user.get_email(),
+-        weight,
+-        description,
+-        change_reason,
+-    };
+-
+-    let handle_unique_violation =
+-        |db_conn: &mut DBConnection, already_under_txn: bool| {
+-            if already_under_txn {
+-                let deleted_ctxt = diesel::delete(dsl::contexts)
+-                    .filter(dsl::id.eq(&old_ctx_id))
+-                    .schema_name(tenant)
+-                    .get_result(db_conn)?;
+-
+-                let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
+-                update_override_of_existing_ctx(db_conn, ctx, user, tenant)
+-            } else {
+-                db_conn.transaction(|conn| {
+-                    let deleted_ctxt = diesel::delete(dsl::contexts)
+-                        .filter(dsl::id.eq(&old_ctx_id))
+-                        .schema_name(tenant)
+-                        .get_result(conn)?;
+-                    let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
+-                    update_override_of_existing_ctx(conn, ctx, user, tenant)
+-                })
+-            }
+-        };
+-
+-    match context {
+-        Ok(ctx) => Ok(get_put_resp(ctx)),
+-        Err(DatabaseError(diesel::result::DatabaseErrorKind::UniqueViolation, _)) => {
+-            if already_under_txn {
+-                diesel::sql_query("ROLLBACK TO update_ctx_savepoint").execute(conn)?;
+-            }
+-            handle_unique_violation(conn, already_under_txn)
+-        }
+-        Err(e) => {
+-            log::error!("failed to move context with db error: {:?}", e);
+-            Err(db_error!(e))
+-        }
+-    }
+-}
+-
+ #[put("/move/{ctx_id}")]
+ async fn move_handler(
+     state: Data<AppState>,
+@@ -516,14 +198,14 @@ async fn move_handler(
+     let tags = parse_config_tags(custom_headers.config_tags)?;
+     let (move_response, version_id) = db_conn
+         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
+-            let move_response = r#move(
++            let move_response = operations::r#move(
+                 path.into_inner(),
+                 req,
+                 transaction_conn,
+                 true,
+                 &user,
+-                &tenant_config,
+                 &tenant,
++                &tenant_config,
+             )
+             .map_err(|err| {
+                 log::info!("move api failed with error: {:?}", err);
+@@ -681,38 +363,6 @@ async fn list_contexts(
+     }))
+ }
+ 
+-pub fn delete_context_api(
+-    ctx_id: String,
+-    user: User,
+-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+-    tenant: &Tenant,
+-) -> superposition::Result<()> {
+-    use contexts::dsl;
+-    diesel::update(dsl::contexts)
+-        .filter(dsl::id.eq(&ctx_id))
+-        .set((
+-            dsl::last_modified_at.eq(Utc::now().naive_utc()),
+-            dsl::last_modified_by.eq(user.get_email()),
+-        ))
+-        .schema_name(tenant)
+-        .execute(conn)?;
+-    let deleted_row = delete(dsl::contexts)
+-        .filter(dsl::id.eq(&ctx_id))
+-        .schema_name(tenant)
+-        .execute(conn);
+-    match deleted_row {
+-        Ok(0) => Err(not_found!("Context Id `{}` doesn't exists", ctx_id)),
+-        Ok(_) => {
+-            log::info!("{ctx_id} context deleted by {}", user.get_email());
+-            Ok(())
+-        }
+-        Err(e) => {
+-            log::error!("context delete query failed with error: {e}");
+-            Err(unexpected_error!("Something went wrong."))
+-        }
+-    }
+-}
+-
+ #[delete("/{ctx_id}")]
+ async fn delete_context_handler(
+     state: Data<AppState>,
+@@ -733,7 +383,7 @@ async fn delete_context_handler(
+                 .filter(context_id.eq(ctx_id.clone()))
+                 .schema_name(&tenant)
+                 .first::<Context>(transaction_conn)?;
+-            delete_context_api(ctx_id.clone(), user.clone(), transaction_conn, &tenant)?;
++            operations::delete(ctx_id.clone(), user.clone(), transaction_conn, &tenant)?;
+             let description = context.description;
+             let change_reason = format!("Deleted context by {}", user.username);
+             let version_id = add_config_version(
+@@ -782,14 +432,14 @@ async fn bulk_operations(
+             for action in reqs.into_inner().into_iter() {
+                 match action {
+                     ContextAction::Put(put_req) => {
+-                        let put_resp = put(
++                        let put_resp = operations::put(
+                             Json(put_req.clone()),
+                             transaction_conn,
+                             true,
+                             &user,
++                            &tenant,
+                             &tenant_config,
+                             false,
+-                            &tenant,
+                         )
+                         .map_err(|err| {
+                             log::error!(
+@@ -858,14 +508,14 @@ async fn bulk_operations(
+                         };
+                     }
+                     ContextAction::Move((old_ctx_id, move_req)) => {
+-                        let move_context_resp = r#move(
++                        let move_context_resp = operations::r#move(
+                             old_ctx_id,
+                             Json(move_req),
+                             transaction_conn,
+                             true,
+                             &user,
+-                            &tenant_config,
+                             &tenant,
++                            &tenant_config,
+                         )
+                         .map_err(|err| {
+                             log::error!(
+@@ -968,6 +618,7 @@ async fn weight_recompute(
+         })
+         .collect::<superposition::Result<Vec<(BigDecimal, String, String, String)>>>()?;
+ 
++    // Update database and add config version
+     let last_modified_time = Utc::now().naive_utc();
+     let config_version_id =
+         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+@@ -979,6 +630,7 @@ async fn weight_recompute(
+                         last_modified_by.eq(user.get_email())
+                     ))
+                     .schema_name(&tenant)
++                    .returning(Context::as_returning())
+                     .execute(transaction_conn).map_err(|err| {
+                         log::error!(
+                             "Failed to execute query while recomputing weight, error: {err}"
+@@ -993,6 +645,7 @@ async fn weight_recompute(
+         })?;
+     #[cfg(feature = "high-performance-mode")]
+     put_config_in_redis(config_version_id, state, tenant, &mut conn).await?;
++
+     let mut http_resp = HttpResponse::Ok();
+     http_resp.insert_header((
+         AppHeader::XConfigVersion.to_string(),
+diff --git a/crates/context_aware_config/src/api/context/helpers.rs b/crates/context_aware_config/src/api/context/helpers.rs
+index 758c322..3e4a94a 100644
+--- a/crates/context_aware_config/src/api/context/helpers.rs
++++ b/crates/context_aware_config/src/api/context/helpers.rs
+@@ -8,9 +8,9 @@ use base64::prelude::*;
+ use cac_client::utils::json_to_sorted_string;
+ use chrono::Utc;
+ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
+-use serde_json::{Map, Value};
++use serde_json::{json, Map, Value};
+ use service_utils::{helpers::extract_dimensions, service::types::Tenant};
+-use superposition_macros::{unexpected_error, validation_error};
++use superposition_macros::{bad_argument, unexpected_error, validation_error};
+ use superposition_types::{
+     database::{
+         models::cac::Context,
+@@ -180,6 +180,35 @@ pub fn validate_value_with_function(
+     Ok(())
+ }
+ 
++pub fn ensure_description(
++    context: Value,
++    transaction_conn: &mut diesel::PgConnection,
++    tenant: &Tenant,
++) -> Result<String, superposition::AppError> {
++    use superposition_types::database::schema::contexts::dsl::{
++        contexts as contexts_table, id as context_id,
++    };
++
++    let context_id_value = hash(&context);
++
++    // Perform the database query
++    let existing_context = contexts_table
++        .filter(context_id.eq(context_id_value))
++        .schema_name(tenant)
++        .first::<Context>(transaction_conn);
++
++    match existing_context {
++        Ok(ctx) => Ok(ctx.description), // If the context is found, return the description
++        Err(diesel::result::Error::NotFound) => Err(superposition::AppError::NotFound(
++            "Description not found in the existing context".to_string(),
++        )),
++        Err(e) => {
++            log::error!("Database error while fetching context: {:?}", e);
++            Err(superposition::AppError::DbError(e)) // Use the `DbError` variant for other Diesel-related errors
++        }
++    }
++}
++
+ pub fn create_ctx_from_put_req(
+     req: Json<PutReq>,
+     conn: &mut DBConnection,
+@@ -191,6 +220,15 @@ pub fn create_ctx_from_put_req(
+     let condition_val = Value::Object(ctx_condition.clone().into());
+     let r_override = req.r#override.clone().into_inner();
+     let ctx_override = Value::Object(r_override.clone().into());
++    let description = if req.description.is_none() {
++        let ctx_condition_value = json!(ctx_condition);
++        ensure_description(ctx_condition_value, conn, &tenant)?
++    } else {
++        req.description
++            .clone()
++            .ok_or_else(|| bad_argument!("Description should not be empty"))?
++    };
++    let change_reason = req.change_reason.clone();
+     validate_condition_with_mandatory_dimensions(
+         &ctx_condition,
+         &tenant_config.mandatory_dimensions,
+@@ -218,8 +256,8 @@ pub fn create_ctx_from_put_req(
+         last_modified_at: Utc::now().naive_utc(),
+         last_modified_by: user.get_email(),
+         weight,
+-        description: req.description.clone().unwrap_or_default(),
+-        change_reason: req.change_reason.clone(),
++        description,
++        change_reason,
+     })
+ }
+ 
+@@ -227,7 +265,7 @@ fn db_update_override(
+     conn: &mut DBConnection,
+     ctx: Context,
+     user: &User,
+-    tenant: Tenant,
++    tenant: &Tenant,
+ ) -> superposition::Result<PutResp> {
+     use contexts::dsl;
+     let update_resp = diesel::update(dsl::contexts)
+@@ -237,9 +275,11 @@ fn db_update_override(
+             dsl::override_id.eq(ctx.override_id),
+             dsl::last_modified_at.eq(Utc::now().naive_utc()),
+             dsl::last_modified_by.eq(user.get_email()),
++            dsl::description.eq(ctx.description),
++            dsl::change_reason.eq(ctx.change_reason),
+         ))
+         .returning(Context::as_returning())
+-        .schema_name(&tenant)
++        .schema_name(tenant)
+         .get_result::<Context>(conn)?;
+     Ok(update_resp.into())
+ }
+@@ -248,7 +288,7 @@ pub fn replace_override_of_existing_ctx(
+     conn: &mut DBConnection,
+     ctx: Context,
+     user: &User,
+-    tenant: Tenant,
++    tenant: &Tenant,
+ ) -> superposition::Result<PutResp> {
+     let new_override = ctx.override_;
+     let new_override_id = hash(&Value::Object(new_override.clone().into()));
+@@ -264,7 +304,7 @@ pub fn update_override_of_existing_ctx(
+     conn: &mut DBConnection,
+     ctx: Context,
+     user: &User,
+-    tenant: Tenant,
++    tenant: &Tenant,
+ ) -> superposition::Result<PutResp> {
+     use contexts::dsl;
+     let mut new_override: Value = dsl::contexts
+diff --git a/crates/context_aware_config/src/api/context/operations.rs b/crates/context_aware_config/src/api/context/operations.rs
+index a6b6f0a..f8f2023 100644
+--- a/crates/context_aware_config/src/api/context/operations.rs
++++ b/crates/context_aware_config/src/api/context/operations.rs
+@@ -7,7 +7,7 @@ use diesel::{
+ };
+ use serde_json::Value;
+ use service_utils::service::types::Tenant;
+-use superposition_macros::{db_error, not_found, unexpected_error};
++use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
+ use superposition_types::{
+     database::{models::cac::Context, schema::contexts},
+     result, DBConnection, TenantConfig, User,
+@@ -17,8 +17,8 @@ use crate::{
+     api::{
+         context::{
+             helpers::{
+-                create_ctx_from_put_req, hash, replace_override_of_existing_ctx,
+-                update_override_of_existing_ctx,
++                create_ctx_from_put_req, ensure_description, hash,
++                replace_override_of_existing_ctx, update_override_of_existing_ctx,
+                 validate_condition_with_mandatory_dimensions,
+             },
+             validations::validate_dimensions,
+@@ -38,7 +38,7 @@ pub fn put(
+     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+     already_under_txn: bool,
+     user: &User,
+-    tenant: Tenant,
++    tenant: &Tenant,
+     tenant_config: &TenantConfig,
+     replace: bool,
+ ) -> result::Result<PutResp> {
+@@ -79,13 +79,21 @@ pub fn r#move(
+     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+     already_under_txn: bool,
+     user: &User,
+-    tenant: Tenant,
++    tenant: &Tenant,
+     tenant_config: &TenantConfig,
+ ) -> result::Result<PutResp> {
+     use contexts::dsl;
+     let req = req.into_inner();
+     let ctx_condition = req.context.to_owned().into_inner();
+     let ctx_condition_value = Value::Object(ctx_condition.clone().into());
++    let description = if req.description.is_none() {
++        ensure_description(ctx_condition_value.clone(), conn, tenant)?
++    } else {
++        req.description
++            .ok_or_else(|| bad_argument!("Description should not be empty"))?
++    };
++    let change_reason = req.change_reason.clone();
++
+     let new_ctx_id = hash(&ctx_condition_value);
+ 
+     let dimension_data = get_dimension_data(conn, &tenant)?;
+@@ -126,8 +134,8 @@ pub fn r#move(
+         last_modified_at: Utc::now().naive_utc(),
+         last_modified_by: user.get_email(),
+         weight,
+-        description: ctx.description,
+-        change_reason: ctx.change_reason,
++        description,
++        change_reason,
+     };
+ 
+     let handle_unique_violation =
+@@ -171,7 +179,7 @@ pub fn delete(
+     ctx_id: String,
+     user: User,
+     conn: &mut DBConnection,
+-    tenant: Tenant,
++    tenant: &Tenant,
+ ) -> result::Result<()> {
+     use contexts::dsl;
+     diesel::update(dsl::contexts)
+diff --git a/crates/context_aware_config/src/api/default_config/handlers.rs b/crates/context_aware_config/src/api/default_config/handlers.rs
+index 7657d45..ca25468 100644
+--- a/crates/context_aware_config/src/api/default_config/handlers.rs
++++ b/crates/context_aware_config/src/api/default_config/handlers.rs
+@@ -61,6 +61,7 @@ async fn create_default_config(
+     let tags = parse_config_tags(custom_headers.config_tags)?;
+     let description = req.description;
+     let change_reason = req.change_reason;
++
+     if req.schema.is_empty() {
+         return Err(bad_argument!("Schema cannot be empty."));
+     }
+@@ -140,6 +141,7 @@ async fn create_default_config(
+             )?;
+             Ok(version_id)
+         })?;
++
+     #[cfg(feature = "high-performance-mode")]
+     put_config_in_redis(version_id, state, tenant, &mut conn).await?;
+     let mut http_resp = HttpResponse::Ok();
+@@ -148,6 +150,7 @@ async fn create_default_config(
+         AppHeader::XConfigVersion.to_string(),
+         version_id.to_string(),
+     ));
++
+     Ok(http_resp.json(default_config))
+ }
+ 
+diff --git a/crates/experimentation_platform/src/api/experiments/handlers.rs b/crates/experimentation_platform/src/api/experiments/handlers.rs
+index dae06da..0f2fe91 100644
+--- a/crates/experimentation_platform/src/api/experiments/handlers.rs
++++ b/crates/experimentation_platform/src/api/experiments/handlers.rs
+@@ -415,7 +415,6 @@ pub async fn conclude(
+         Some(desc) => desc,
+         None => experiment.description.clone(),
+     };
+-
+     if matches!(experiment.status, ExperimentStatusType::CONCLUDED) {
+         return Err(bad_argument!(
+             "experiment with id {} is already concluded",
+diff --git a/crates/frontend/src/components/context_form.rs b/crates/frontend/src/components/context_form.rs
+index f237128..ec37233 100644
+--- a/crates/frontend/src/components/context_form.rs
++++ b/crates/frontend/src/components/context_form.rs
+@@ -361,7 +361,7 @@ where
+                                 {move || {
+                                     if last_idx.get() != idx {
+                                         view! {
+-                                            <div class="my-3 ml-7">
++                                            <div class="my-3 ml-5 ml-6 ml-7">
+                                                 <span class="font-mono text-xs font-bold">"&&"</span>
+                                             </div>
+                                         }
+diff --git a/crates/frontend/src/components/context_form/utils.rs b/crates/frontend/src/components/context_form/utils.rs
+index 9465215..33f249f 100644
+--- a/crates/frontend/src/components/context_form/utils.rs
++++ b/crates/frontend/src/components/context_form/utils.rs
+@@ -15,7 +15,7 @@ pub fn context_payload(
+         "override": overrides,
+         "context": context,
+         "description": description,
+-        "change_reason": change_reason
++        "change_reason": change_reason,
+     });
+ 
+     payload
+@@ -28,7 +28,7 @@ pub async fn create_context(
+     description: String,
+     change_reason: String,
+     org_id: String,
+-) -> Result<serde_json::Value, String> {
++) -> Result<Value, String> {
+     let host = get_host();
+     let url = format!("{host}/context");
+     let request_payload =
+diff --git a/crates/frontend/src/components/experiment_conclude_form/utils.rs b/crates/frontend/src/components/experiment_conclude_form/utils.rs
+index 0f620cd..ba80ae8 100644
+--- a/crates/frontend/src/components/experiment_conclude_form/utils.rs
++++ b/crates/frontend/src/components/experiment_conclude_form/utils.rs
+@@ -1,14 +1,14 @@
+ use leptos::logging::log;
+ use serde_json::json;
+ 
+-use crate::{types::Experiment, utils::get_host};
++use crate::{types::ExperimentResponse, utils::get_host};
+ 
+ pub async fn conclude_experiment(
+     exp_id: String,
+     variant_id: String,
+     tenant: &String,
+     org_id: &String,
+-) -> Result<Experiment, String> {
++) -> Result<ExperimentResponse, String> {
+     let client = reqwest::Client::new();
+     let host = get_host();
+     match client
+@@ -22,7 +22,7 @@ pub async fn conclude_experiment(
+         Ok(experiment) => {
+             log!("experiment response {:?}", experiment);
+             Ok(experiment
+-                .json::<Experiment>()
++                .json::<ExperimentResponse>()
+                 .await
+                 .map_err(|err| err.to_string())?)
+         }
+diff --git a/crates/frontend/src/components/experiment_form/types.rs b/crates/frontend/src/components/experiment_form/types.rs
+index 3c6233a..934af9c 100644
+--- a/crates/frontend/src/components/experiment_form/types.rs
++++ b/crates/frontend/src/components/experiment_form/types.rs
+@@ -7,7 +7,6 @@ use crate::types::VariantFormT;
+ #[derive(Serialize)]
+ pub struct ExperimentCreateRequest {
+     pub name: String,
+-
+     pub context: Value,
+     pub variants: Vec<Variant>,
+     pub description: String,
+diff --git a/crates/frontend/src/components/experiment_form/utils.rs b/crates/frontend/src/components/experiment_form/utils.rs
+index e928873..0f9779f 100644
+--- a/crates/frontend/src/components/experiment_form/utils.rs
++++ b/crates/frontend/src/components/experiment_form/utils.rs
+@@ -2,7 +2,6 @@ use super::types::{ExperimentCreateRequest, ExperimentUpdateRequest};
+ use crate::logic::Conditions;
+ use crate::types::VariantFormT;
+ use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
+-use serde_json::Value;
+ 
+ pub fn validate_experiment(experiment: &ExperimentCreateRequest) -> Result<bool, String> {
+     if experiment.name.is_empty() {
+@@ -19,7 +18,7 @@ pub async fn create_experiment(
+     description: String,
+     change_reason: String,
+     org_id: String,
+-) -> Result<Value, String> {
++) -> Result<serde_json::Value, String> {
+     let payload = ExperimentCreateRequest {
+         name,
+         variants: FromIterator::from_iter(variants),
+@@ -48,7 +47,7 @@ pub async fn update_experiment(
+     variants: Vec<VariantFormT>,
+     tenant: String,
+     org_id: String,
+-) -> Result<Value, String> {
++) -> Result<serde_json::Value, String> {
+     let payload = ExperimentUpdateRequest {
+         variants: FromIterator::from_iter(variants),
+     };
+diff --git a/crates/frontend/src/components/experiment_ramp_form/utils.rs b/crates/frontend/src/components/experiment_ramp_form/utils.rs
+index ed3fcd5..ea71166 100644
+--- a/crates/frontend/src/components/experiment_ramp_form/utils.rs
++++ b/crates/frontend/src/components/experiment_ramp_form/utils.rs
+@@ -1,14 +1,14 @@
+ use leptos::logging::log;
+ use serde_json::json;
+ 
+-use crate::{types::Experiment, utils::get_host};
++use crate::{types::ExperimentResponse, utils::get_host};
+ 
+ pub async fn ramp_experiment(
+     exp_id: &String,
+     percent: u8,
+     tenant: &String,
+     org_id: &String,
+-) -> Result<Experiment, String> {
++) -> Result<ExperimentResponse, String> {
+     let client = reqwest::Client::new();
+     let host = get_host();
+     match client
+@@ -22,7 +22,7 @@ pub async fn ramp_experiment(
+         Ok(experiment) => {
+             log!("experiment response {:?}", experiment);
+             Ok(experiment
+-                .json::<Experiment>()
++                .json::<ExperimentResponse>()
+                 .await
+                 .map_err(|err| err.to_string())?)
+         }
+diff --git a/crates/frontend/src/components/type_template_form.rs b/crates/frontend/src/components/type_template_form.rs
+index 2018910..f02bee0 100644
+--- a/crates/frontend/src/components/type_template_form.rs
++++ b/crates/frontend/src/components/type_template_form.rs
+@@ -99,6 +99,39 @@ where
+                 />
+ 
+             </div>
++            <div class="divider"></div>
++
++            <div class="form-control">
++                <label class="label">
++                    <span class="label-text">Description</span>
++                </label>
++                <textarea
++                    placeholder="Enter description"
++                    class="textarea textarea-bordered w-full max-w-md"
++                    value=description_rs.get_untracked()
++                    on:change=move |ev| {
++                        let value = event_target_value(&ev);
++                        description_ws.set(value);
++                    }
++                />
++            </div>
++
++            <div class="divider"></div>
++
++            <div class="form-control">
++                <label class="label">
++                    <span class="label-text">change_reason</span>
++                </label>
++                <textarea
++                    placeholder="Enter change_reason"
++                    class="textarea textarea-bordered w-full max-w-md"
++                    value=change_reason_rs.get_untracked()
++                    on:change=move |ev| {
++                        let value = event_target_value(&ev);
++                        change_reason_ws.set(value);
++                    }
++                />
++            </div>
+ 
+             <div class="form-control">
+                 <label class="label">
+diff --git a/crates/frontend/src/pages/context_override.rs b/crates/frontend/src/pages/context_override.rs
+index 76f549a..53d7702 100644
+--- a/crates/frontend/src/pages/context_override.rs
++++ b/crates/frontend/src/pages/context_override.rs
+@@ -165,6 +165,7 @@ fn form(
+             }
+         />
+ 
++
+         <div class="flex justify-start w-full mt-10">
+             {move || {
+                 let loading = req_inprogess_rs.get();
+@@ -186,7 +187,7 @@ fn form(
+ pub fn context_override() -> impl IntoView {
+     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+-    let (selected_data_rs, selected_data_ws) = create_signal::<Option<Data>>(None);
++    let (selected_context_rs, selected_context_ws) = create_signal::<Option<Data>>(None);
+     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
+     let (modal_visible, set_modal_visible) = create_signal(false);
+     let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
+@@ -239,7 +240,7 @@ pub fn context_override() -> impl IntoView {
+             ));
+         }
+ 
+-        selected_data_ws.set(Some(Data {
++        selected_context_ws.set(Some(Data {
+             context: default_ctx,
+             overrides: vec![],
+         }));
+@@ -249,7 +250,7 @@ pub fn context_override() -> impl IntoView {
+     let on_submit = Callback::new(move |_| {
+         close_drawer("context_and_override_drawer");
+         set_form_mode.set(None);
+-        selected_data_ws.set(None);
++        selected_context_ws.set(None);
+         page_resource.refetch();
+     });
+ 
+@@ -257,7 +258,7 @@ pub fn context_override() -> impl IntoView {
+         let (context, overrides) = data;
+         match Conditions::from_context_json(&context.condition.into()) {
+             Ok(conditions) => {
+-                selected_data_ws.set(Some(Data {
++                selected_context_ws.set(Some(Data {
+                     context: conditions,
+                     overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
+                 }));
+@@ -276,7 +277,7 @@ pub fn context_override() -> impl IntoView {
+ 
+         match Conditions::from_context_json(&context.condition.into()) {
+             Ok(conditions) => {
+-                selected_data_ws.set(Some(Data {
++                selected_context_ws.set(Some(Data {
+                     context: conditions,
+                     overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
+                 }));
+@@ -339,7 +340,7 @@ pub fn context_override() -> impl IntoView {
+                         let PageResource { config: _, dimensions, default_config } = page_resource
+                             .get()
+                             .unwrap_or_default();
+-                        let data = selected_data_rs.get();
++                        let data = selected_context_rs.get();
+                         let drawer_header = match form_mode.get() {
+                             Some(FormMode::Edit) => "Update Overrides",
+                             Some(FormMode::Create) => "Create Overrides",
+@@ -352,7 +353,7 @@ pub fn context_override() -> impl IntoView {
+                                 handle_close=move || {
+                                     close_drawer("context_and_override_drawer");
+                                     set_form_mode.set(None);
+-                                    selected_data_ws.set(None);
++                                    selected_context_ws.set(None);
+                                 }
+                             >
+ 
+diff --git a/crates/frontend/src/pages/function.rs b/crates/frontend/src/pages/function.rs
+index 1755798..34cecff 100644
+--- a/crates/frontend/src/pages/function.rs
++++ b/crates/frontend/src/pages/function.rs
+@@ -135,6 +135,12 @@ pub fn function_page() -> impl IntoView {
+                                             {function_rs.get().description.to_string()}
+                                         </div>
+                                     </div>
++                                    <div class="stat w-2/12">
++                                        <div class="stat-title">Function Change Reason</div>
++                                        <div>
++                                            {function_rs.get().change_reason.to_string()}
++                                        </div>
++                                    </div>
+                                     <div class="stat w-2/12">
+                                         <div class="stat-title">Draft Edited At</div>
+                                         <div>
+diff --git a/crates/superposition_types/migrations/2025-01-02-123851_add_description_and_column/down.sql b/crates/superposition_types/migrations/2025-01-02-123851_add_description_and_column/down.sql
+new file mode 100644
+index 0000000..9813368
+--- /dev/null
++++ b/crates/superposition_types/migrations/2025-01-02-123851_add_description_and_column/down.sql
+@@ -0,0 +1,24 @@
++-- This file should undo anything in `up.sql`
++ALTER TABLE public.config_versions DROP COLUMN IF EXISTS description;
++ALTER TABLE public.config_versions DROP COLUMN IF EXISTS change_reason;
++
++ALTER TABLE public.functions ALTER COLUMN description DROP NOT NULL;
++ALTER TABLE public.functions ALTER COLUMN description DROP DEFAULT;
++ALTER TABLE public.functions DROP COLUMN IF EXISTS change_reason;
++
++ALTER TABLE public.functions RENAME COLUMN description TO function_description;
++
++ALTER TABLE public.type_templates DROP COLUMN IF EXISTS description;
++ALTER TABLE public.type_templates DROP COLUMN IF EXISTS change_reason;
++
++ALTER TABLE public.default_configs DROP COLUMN IF EXISTS description;
++ALTER TABLE public.default_configs DROP COLUMN IF EXISTS change_reason;
++
++ALTER TABLE public.dimensions DROP COLUMN IF EXISTS description;
++ALTER TABLE public.dimensions DROP COLUMN IF EXISTS change_reason;
++
++ALTER TABLE public.contexts DROP COLUMN IF EXISTS description;
++ALTER TABLE public.contexts DROP COLUMN IF EXISTS change_reason;
++
++ALTER TABLE public.experiments DROP COLUMN IF EXISTS description;
++ALTER TABLE public.experiments DROP COLUMN IF EXISTS change_reason;
+\ No newline at end of file
+diff --git a/crates/superposition_types/migrations/2025-01-02-123851_add_description_and_column/up.sql b/crates/superposition_types/migrations/2025-01-02-123851_add_description_and_column/up.sql
+new file mode 100644
+index 0000000..e4b0acf
+--- /dev/null
++++ b/crates/superposition_types/migrations/2025-01-02-123851_add_description_and_column/up.sql
+@@ -0,0 +1,24 @@
++-- Your SQL goes here
++ALTER TABLE public.contexts ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
++ALTER TABLE public.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
++
++ALTER TABLE public.dimensions ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
++ALTER TABLE public.dimensions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
++
++ALTER TABLE public.default_configs ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
++ALTER TABLE public.default_configs ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
++
++ALTER TABLE public.type_templates ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
++ALTER TABLE public.type_templates ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
++
++ALTER TABLE public.functions RENAME COLUMN function_description TO description;
++ALTER TABLE public.functions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
++
++ALTER TABLE public.functions ALTER COLUMN description SET DEFAULT '';
++ALTER TABLE public.functions ALTER COLUMN description SET NOT NULL; 
++
++ALTER TABLE public.config_versions ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
++ALTER TABLE public.config_versions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
++
++ALTER TABLE public.experiments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
++ALTER TABLE public.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+\ No newline at end of file
+diff --git a/postman/cac.postman_collection.json b/postman/cac.postman_collection.json
+index 023b253..5e24c75 100644
+--- a/postman/cac.postman_collection.json
++++ b/postman/cac.postman_collection.json
+@@ -40,7 +40,7 @@
+             }
+           ],
+           "request": {
+-            "method": "PUT",
++            "method": "POST",
+             "header": [
+               {
+                 "key": "Authorization",
+@@ -70,16 +70,15 @@
+                   "language": "json"
+                 }
+               },
+-              "raw": "{\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
++              "raw": "{\"key\":\"key.\",\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
+             },
+             "url": {
+-              "raw": "{{host}}/default-config/key.",
++              "raw": "{{host}}/default-config",
+               "host": [
+                 "{{host}}"
+               ],
+               "path": [
+-                "default-config",
+-                "key."
++                "default-config"
+               ]
+             }
+           },
+@@ -102,7 +101,7 @@
+             }
+           ],
+           "request": {
+-            "method": "PUT",
++            "method": "POST",
+             "header": [
+               {
+                 "key": "Authorization",
+@@ -132,16 +131,15 @@
+                   "language": "json"
+                 }
+               },
+-              "raw": "{\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
++              "raw": "{\"key\":\"key!\",\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
+             },
+             "url": {
+-              "raw": "{{host}}/default-config/key!",
++              "raw": "{{host}}/default-config",
+               "host": [
+                 "{{host}}"
+               ],
+               "path": [
+-                "default-config",
+-                "key!"
++                "default-config"
+               ]
+             }
+           },
+@@ -173,22 +171,62 @@
+                   "            console.log(\"Failed to fetch config\");",
+                   "            throw error;",
+                   "        }",
+-                  "",
+                   "        const resp_obj = response.json();",
+                   "        const default_configs = resp_obj.default_configs;",
+-                  "",
++                  "        ",
++                  "        // Original checks for key-value",
+                   "        console.log(`Checking if key=${key} with value=${value} in default_configs`);",
++                  "        pm.expect(default_configs).to.have.property(key);",
+                   "        pm.expect(default_configs[key]).to.be.eq(value);",
+                   "    });",
+                   "}",
+                   "",
++                  "// Original test cases",
+                   "pm.test(\"201 check\", function () {",
+                   "    pm.response.to.have.status(200);",
+-                  "})",
++                  "});",
+                   "",
+                   "pm.test(\"Check if key added to default config\", function () {",
+                   "    const key = \"key1\", value = \"value1\";",
+                   "    getConfigAndTest(key, value);",
++                  "});",
++                  "",
++                  "// New test case for description and comment fields",
++                  "pm.test(\"Check if description and comment fields exist\", function () {",
++                  "    const getRequest = {",
++                  "        url: `${host}/config`,",
++                  "        method: 'GET',",
++                  "        header: {",
++                  "            'Content-Type': 'application/json',",
++                  "            'x-tenant': 'test',",
++                  "        }",
++                  "    };",
++                  "",
++                  "    pm.sendRequest(getRequest, (error, response) => {",
++                  "        if(error) {",
++                  "            console.log(\"Failed to fetch config\");",
++                  "            throw error;",
++                  "        }",
++                  "        const resp_obj = response.json();",
++                  "        console.log(\"Response:\", JSON.stringify(resp_obj, null, 2));",
++                  "        ",
++                  "        // Verify the structure of the response",
++                  "        pm.expect(resp_obj).to.have.property('default_configs');",
++                  "        const configItem = resp_obj.default_configs.key1;",
++                  "        ",
++                  "        // If the config is returned as an object",
++                  "        if (typeof configItem === 'object') {",
++                  "            pm.expect(configItem).to.have.property('value');",
++                  "            pm.expect(configItem).to.have.property('description');",
++                  "            pm.expect(configItem).to.have.property('change_reason');",
++                  "        }",
++                  "        // If it's just the value directly",
++                  "        else {",
++                  "            // The original format is maintained",
++                  "            pm.expect(resp_obj.default_configs).to.have.property('description');",
++                  "            pm.expect(resp_obj.default_configs).to.have.property('change_reason');",
++                  "        }",
++                  "    });",
+                   "});"
+                 ],
+                 "type": "text/javascript"
+@@ -196,7 +234,7 @@
+             }
+           ],
+           "request": {
+-            "method": "PUT",
++            "method": "POST",
+             "header": [
+               {
+                 "key": "Authorization",
+@@ -226,16 +264,15 @@
+                   "language": "json"
+                 }
+               },
+-              "raw": "{\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"}}"
++              "raw": "{\"key\":\"key1\",\"value\":\"value1\",\"schema\":{\"type\":\"string\",\"pattern\":\".*\"},\"description\":\"description\",\"change_reason\":\"change_reason\"}"
+             },
+             "url": {
+-              "raw": "{{host}}/default-config/key1",
++              "raw": "{{host}}/default-config",
+               "host": [
+                 "{{host}}"
+               ],
+               "path": [
+-                "default-config",
+-                "key1"
++                "default-config"
+               ]
+             }
+           },
+@@ -253,8 +290,8 @@
+                   "",
+                   "function add_default_config() {",
+                   "    const options = {",
+-                  "        'method': 'PUT',",
+-                  "        'url': `${host}/default-config/key2`,",
++                  "        'method': 'POST',",
++                  "        'url': `${host}/default-config`,",
+                   "        'header': {",
+                   "            'x-tenant': 'test',",
+                   "            'Content-Type': 'application/json',",
+@@ -262,12 +299,15 @@
+                   "        },",
+                   "        \"body\": {",
+                   "            \"mode\": \"raw\",",
+-                  "            \"raw\": JSON.stringify({",
++                  "            \"raw\": JSON.stringify({ ",
++                  "                \"key\": \"key2\",",
+                   "                \"value\": \"value1\",",
+                   "                \"schema\": {",
+                   "                    \"type\": \"string\",",
+                   "                    \"pattern\": \".*\"",
+-                  "                }",
++                  "                }, ",
++                  "                \"description\": \"description\",",
++                  "                \"change_reason\": \"change_reason\"",
+                   "            })",
+                   "        }",
+                   "    };",
+@@ -462,8 +502,10 @@
+                   "                \"position\": 0,",
+                   "                \"schema\": {",
+                   "                    \"type\": \"string\",",
+-                  "                    \"pattern\": \".*\"",
+-                  "                }",
++                  "                    \"pattern\": \"^[a-z0-9].*$\"",
++                  "                }, ",
++                  "                \"description\": \"change_reason\",",
++                  "                \"change_reason\": \"change_reason\"",
+                   "            })",
+                   "        }",
+                   "    };",
+@@ -527,7 +569,7 @@
+                   "language": "json"
+                 }
+               },
+-              "raw": "{\"dimension\":\"clientId\",\"position\":1,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"}}"
++              "raw": "{\"dimension\":\"clientId\",\"position\":1,\"schema\":{\"type\":\"string\",\"pattern\":\"^[a-z0-9].*$\"},\"description\":\"description\",\"change_reason\":\"change_reason\"}"
+             },
+             "url": {
+               "raw": "{{host}}/dimension",
+@@ -629,7 +671,9 @@
+                   "                \"schema\": {",
+                   "                    \"type\": \"string\",",
+                   "                    \"pattern\": \".*\"",
+-                  "                }",
++                  "                }, ",
++                  "                \"description\": \"description\",",
++                  "                \"change_reason\": \"change_reason\"",
+                   "            })",
+                   "        }",
+                   "    };",
+@@ -847,7 +891,7 @@
+                   "language": "json"
+                 }
+               },
+-              "raw": "{\"override\":{\"key1\":\"value2\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]}}"
++              "raw": "{\"override\":{\"key1\":\"value2\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]},\"description\":\"description\",\"change_reason\":\"change_reason\"}"
+             },
+             "url": {
+               "raw": "{{host}}/context",
+@@ -984,7 +1028,7 @@
+                   "language": "json"
+                 }
+               },
+-              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]}}"
++              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"piyaz\"]},\"description\":\"description\",\"change_reason\":\"change_reason\"}"
+             },
+             "url": {
+               "raw": "{{host}}/context",
+@@ -1126,7 +1170,7 @@
+                   "language": "json"
+                 }
+               },
+-              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"tamatar\"]}}"
++              "raw": "{\"override\":{\"key1\":\"value3\"},\"context\":{\"==\":[{\"var\":\"clientId\"},\"tamatar\"]},\"description\":\"description\",\"change_reason\":\"change_reason\"}"
+             },
+             "url": {
+               "raw": "{{host}}/context/move/{{context_id}}",
+@@ -1177,6 +1221,8 @@
+                   "    delete response.created_by;",
+                   "    delete response.last_modified_at;",
+                   "    delete response.last_modified_by;",
++                  "    delete response.description;",
++                  "    delete response.change_reason;",
+                   "",
+                   "    pm.expect(JSON.stringify(response)).to.be.eq(JSON.stringify(expected_context));",
+                   "});",
+@@ -1301,7 +1347,9 @@
+                   "                \"schema\": {",
+                   "                    \"type\": \"string\",",
+                   "                    \"pattern\": \"^[a-z0-9].*$\"",
+-                  "                }",
++                  "                }, ",
++                  "                \"description\": \"description\",           ",
++                  "                \"change_reason\": \"change_reason\"",
+                   "            })",
+                   "        }",
+                   "    };",
+@@ -1414,6 +1462,8 @@
+                   "const context_id = pm.environment.get(\"context_id\");",
+                   "const org_id = pm.variables.get(\"org_id\");",
+                   "",
++                  "console.log(`context id is thiss : ${context_id}`);",
++                  "",
+                   "pm.test(\"204 check\", function() {",
+                   "    pm.response.to.have.status(204);",
+                   "})",
+@@ -1550,6 +1600,8 @@
+                   "                \"type\": \"string\"",
+                   "            },",
+                   "            \"created_by\": \"user@superposition.io\",",
++                  "            \"description\": \"\",",
++                  "            \"change_reason\": \"\"",
+                   "        },",
+                   "        {",
+                   "            \"type_name\": \"Enum\",",
+@@ -1558,6 +1610,8 @@
+                   "                \"type\": \"string\"",
+                   "            },",
+                   "            \"created_by\": \"user@superposition.io\",",
++                  "            \"description\": \"\",",
++                  "            \"change_reason\": \"\"",
+                   "        },",
+                   "        {",
+                   "            \"type_name\": \"Boolean\",",
+@@ -1565,6 +1619,8 @@
+                   "                \"type\": \"boolean\"",
+                   "            },",
+                   "            \"created_by\": \"user@superposition.io\",",
++                  "            \"description\": \"\",",
++                  "            \"change_reason\": \"\"",
+                   "        },",
+                   "        {",
+                   "            \"type_name\": \"Decimal\",",
+@@ -1572,6 +1628,8 @@
+                   "                \"type\": \"number\"",
+                   "            },",
+                   "            \"created_by\": \"user@superposition.io\",",
++                  "            \"description\": \"\",",
++                  "            \"change_reason\": \"\"",
+                   "        },",
+                   "        {",
+                   "            \"type_name\": \"Number\",",
+@@ -1579,6 +1637,8 @@
+                   "                \"type\": \"integer\"",
+                   "            },",
+                   "            \"created_by\": \"user@superposition.io\",",
++                  "            \"description\": \"\",",
++                  "            \"change_reason\": \"\"",
+                   "        }",
+                   "    ]))",
+                   "});",
+@@ -1739,7 +1799,7 @@
+                   "language": "json"
+                 }
+               },
+-              "raw": "{\"type_schema\":{\"type\":\"number\"},\"type_name\":\"Integer\"}"
++              "raw": "{\"type_schema\":{\"type\":\"number\"},\"type_name\":\"Integer\",\"description\":\"\",\"change_reason\":\"\"}"
+             },
+             "url": {
+               "raw": "{{host}}/types",
+@@ -1906,7 +1966,7 @@
+                   "language": "json"
+                 }
+               },
+-              "raw": "{\"type_schema\":{\"type\":\"integer\"},\"type_name\":\"Integer\"}"
++              "raw": "{\"type_schema\":{\"type\":\"integer\"},\"type_name\":\"Integer\",\"description\":\"\",\"change_reason\":\"\"}"
+             },
+             "url": {
+               "raw": "{{host}}/types/{{type_name}}",
+diff --git a/postman/cac/Context/Delete Context/event.test.js b/postman/cac/Context/Delete Context/event.test.js
+index 34c891a..440e1bb 100644
+--- a/postman/cac/Context/Delete Context/event.test.js	
++++ b/postman/cac/Context/Delete Context/event.test.js	
+@@ -2,6 +2,8 @@ const host = pm.variables.get("host");
+ const context_id = pm.environment.get("context_id");
+ const org_id = pm.variables.get("org_id");
+ 
++console.log(`context id is thiss : ${context_id}`);
++
+ pm.test("204 check", function() {
+     pm.response.to.have.status(204);
+ })
+diff --git a/postman/cac/Default Config/Add default-config key/event.test.js b/postman/cac/Default Config/Add default-config key/event.test.js
+index 550859c..88e1952 100644
+--- a/postman/cac/Default Config/Add default-config key/event.test.js	
++++ b/postman/cac/Default Config/Add default-config key/event.test.js	
+@@ -17,20 +17,60 @@ function getConfigAndTest(key, value) {
+             console.log("Failed to fetch config");
+             throw error;
+         }
+-
+         const resp_obj = response.json();
+         const default_configs = resp_obj.default_configs;
+-
++        
++        // Original checks for key-value
+         console.log(`Checking if key=${key} with value=${value} in default_configs`);
++        pm.expect(default_configs).to.have.property(key);
+         pm.expect(default_configs[key]).to.be.eq(value);
+     });
+ }
+ 
++// Original test cases
+ pm.test("201 check", function () {
+     pm.response.to.have.status(200);
+-})
++});
+ 
+ pm.test("Check if key added to default config", function () {
+     const key = "key1", value = "value1";
+     getConfigAndTest(key, value);
++});
++
++// New test case for description and comment fields
++pm.test("Check if description and comment fields exist", function () {
++    const getRequest = {
++        url: `${host}/config`,
++        method: 'GET',
++        header: {
++            'Content-Type': 'application/json',
++            'x-tenant': 'test',
++        }
++    };
++
++    pm.sendRequest(getRequest, (error, response) => {
++        if(error) {
++            console.log("Failed to fetch config");
++            throw error;
++        }
++        const resp_obj = response.json();
++        console.log("Response:", JSON.stringify(resp_obj, null, 2));
++        
++        // Verify the structure of the response
++        pm.expect(resp_obj).to.have.property('default_configs');
++        const configItem = resp_obj.default_configs.key1;
++        
++        // If the config is returned as an object
++        if (typeof configItem === 'object') {
++            pm.expect(configItem).to.have.property('value');
++            pm.expect(configItem).to.have.property('description');
++            pm.expect(configItem).to.have.property('change_reason');
++        }
++        // If it's just the value directly
++        else {
++            // The original format is maintained
++            pm.expect(resp_obj.default_configs).to.have.property('description');
++            pm.expect(resp_obj.default_configs).to.have.property('change_reason');
++        }
++    });
+ });
+\ No newline at end of file
+diff --git a/postman/cac/custom types/Get Types/event.test.js b/postman/cac/custom types/Get Types/event.test.js
+index d712f23..d9b1e2f 100644
+--- a/postman/cac/custom types/Get Types/event.test.js	
++++ b/postman/cac/custom types/Get Types/event.test.js	
+@@ -13,6 +13,8 @@ pm.test('expect response be 200', function () {
+                 "type": "string"
+             },
+             "created_by": "user@superposition.io",
++            "description": "",
++            "change_reason": ""
+         },
+         {
+             "type_name": "Enum",
+@@ -21,6 +23,8 @@ pm.test('expect response be 200', function () {
+                 "type": "string"
+             },
+             "created_by": "user@superposition.io",
++            "description": "",
++            "change_reason": ""
+         },
+         {
+             "type_name": "Boolean",
+@@ -28,6 +32,8 @@ pm.test('expect response be 200', function () {
+                 "type": "boolean"
+             },
+             "created_by": "user@superposition.io",
++            "description": "",
++            "change_reason": ""
+         },
+         {
+             "type_name": "Decimal",
+@@ -35,6 +41,8 @@ pm.test('expect response be 200', function () {
+                 "type": "number"
+             },
+             "created_by": "user@superposition.io",
++            "description": "",
++            "change_reason": ""
+         },
+         {
+             "type_name": "Number",
+@@ -42,6 +50,8 @@ pm.test('expect response be 200', function () {
+                 "type": "integer"
+             },
+             "created_by": "user@superposition.io",
++            "description": "",
++            "change_reason": ""
+         }
+     ]))
+ });
+diff --git a/postman/experimentation-platform/Create Experiment/event.prerequest.js b/postman/experimentation-platform/Create Experiment/event.prerequest.js
+index 4119919..1d378af 100644
+--- a/postman/experimentation-platform/Create Experiment/event.prerequest.js	
++++ b/postman/experimentation-platform/Create Experiment/event.prerequest.js	
+@@ -80,8 +80,8 @@ function create_dimensions(dimension) {
+ create_default_config_keys();
+ 
+ const dimensions = [
+-    {name: "os", position: 1, schema: { type: "string", enum: ["android", "ios", "web"] }},
+-    {name: "client", position: 2, schema: { type: "string", pattern: ".*" }}
++    {name: "os", position: 1, schema: { type: "string", enum: ["android", "ios", "web"] } , description: "description", change_reason: "change_reason"},
++    {name: "client", position: 2, schema: { type: "string", pattern: ".*" }, description: "description", change_reason: "change_reason"}
+ ];
+ create_dimensions(dimensions[0]);
+ setTimeout(() => {
+diff --git a/postman/experimentation-platform/Create Experiment/event.test.js b/postman/experimentation-platform/Create Experiment/event.test.js
+index cf47855..815d7f5 100644
+--- a/postman/experimentation-platform/Create Experiment/event.test.js	
++++ b/postman/experimentation-platform/Create Experiment/event.test.js	
+@@ -154,7 +154,9 @@ pm.test("Test created contexts", function() {
+                 "pmTestKey1": "value2-test",
+                 "pmTestKey2": "value2-test"
+             },
+-            "variant_type": "EXPERIMENTAL"
++            "variant_type": "EXPERIMENTAL",
++            "description": "description",
++            "change_reason": "change_reason"
+         }
+     ];
+     const expected_variant_contexts = [

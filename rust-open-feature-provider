@@ -1,0 +1,39 @@
+- Superposition Provider
+    : implement FeatureProvider trait
+- Config Evaluation
+    - Filtering the resolved context or the base config based on the flag key provided
+    - What if the user wants whole resolved config?
+
+Implementation Details
+
+** Types and Traits
+
+- ProviderStatus
+- ProviderMetadata
+- EvaluationContext
+    -> targetting_key: Option<String>
+    -> custom_fields: HashMap <> Possibly for providing the context
+- EvaluationResult: Just a newtype over Result<ResolutionDetails, EvaluationError>
+- EvaluationError
+    -> code: EvaluationErrorCode
+        -> ProviderNotReady, FlagNotFound, ParseError, TypeMismatch, TargettingKeyMissing, InvalidContext, General(String)
+    -> message: Option<String>
+- ResolutionDetails:
+    -> value: T
+    -> variant: Option<String>
+    -> reason: Option<EvaluationReason>
+    -> flag_metadata: Option<FlagMetadata>
+        -> FlagMetadata: HashMap
+
+- FeatureProvider (trait)
+    -> bool
+    -> int
+    -> float: f64
+    -> string
+    -> struct
+
+    -> initialize fn
+
+
+Work to do:
+    - Just implement the `FeatureProvider` trait

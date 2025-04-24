@@ -1,0 +1,45 @@
+Endpoints to consider
+
+- GET /config
+
+cac_version
+cac_config_tags
+cac_key_prefix
+[...] # rest of query params treated as dimensions key-value pairs
+
+
+
+- GET /resolve
+
+cac_version
+cac_config_tags
+cac_key_prefix
+cac_resolve_trail [show_reasoning]
+cac_merge_strategy
+
+- GET /experiments
+
+page
+count
+
+
+- GET /applicable-experiments
+
+exp_toss
+[...] # rest of query params treated as dimension key-value pairs
+
+Opinion: /applicable-experiments and /experiments can be merged into one single API
+
+
+
+
+#######################################################################################
+Audit Query Params
+    from_date
+    to_date
+    table
+    action
+    username
+    count
+    page
+

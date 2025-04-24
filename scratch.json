@@ -1,0 +1,52 @@
+[RouteListing { path: "/admin/{tenant}/config/versions/{version}", leptos_path: "/admin/:tenant/config/versions/:version", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/function/create", leptos_path: "/admin/:tenant/function/create", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/experiments/new", leptos_path: "/admin/:tenant/experiments/new", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/config/versions", leptos_path: "/admin/:tenant/config/versions", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/function/{function_name}", leptos_path: "/admin/:tenant/function/:function_name", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/experiments/{id}", leptos_path: "/admin/:tenant/experiments/:id", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/dimensions", leptos_path: "/admin/:tenant/dimensions", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/function", leptos_path: "/admin/:tenant/function", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/default-config", leptos_path: "/admin/:tenant/default-config", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/overrides", leptos_path: "/admin/:tenant/overrides", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/resolve", leptos_path: "/admin/:tenant/resolve", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/types", leptos_path: "/admin/:tenant/types", mode: Async, methods: {Get
+    }, static_mode: None
+  }
+]
+
+[RouteListing { path: "/admin/{tenant}/config/versions/{version}", leptos_path: "/admin/:tenant/config/versions/:version", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/function/create", leptos_path: "/admin/:tenant/function/create", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/experiments/new", leptos_path: "/admin/:tenant/experiments/new", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/config/versions", leptos_path: "/admin/:tenant/config/versions", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/function/{function_name}", leptos_path: "/admin/:tenant/function/:function_name", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/experiments/{id}", leptos_path: "/admin/:tenant/experiments/:id", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/dimensions", leptos_path: "/admin/:tenant/dimensions", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/function", leptos_path: "/admin/:tenant/function", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/default-config", leptos_path: "/admin/:tenant/default-config", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/overrides", leptos_path: "/admin/:tenant/overrides", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/resolve", leptos_path: "/admin/:tenant/resolve", mode: Async, methods: {Get
+    }, static_mode: None
+  }, RouteListing { path: "/admin/{tenant}/types", leptos_path: "/admin/:tenant/types", mode: Async, methods: {Get
+    }, static_mode: None
+  }

@@ -1,0 +1,398 @@
+[
+  {
+    "created_at": "2024-07-04T13:13:32.732635Z",
+    "created_by": "mounika.reddy@juspay.in",
+    "id": "d289c7cf36ed8f9819b6e8edcb82860d46a40c013692a3a25a18d96bce914b9a",
+    "override": "{\"hyperos_placeholder_loader\":\"https://assets.juspay.in/hyper/bundles/app/loader/hsbc/1.0.6/web/loader.js\"}",
+    "override_id": "7c0a28beed2c4797fd1442fc680c57f544d05e1e3b158aaa144c5685ef8b4735",
+    "priority": 516,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"hsbc\"]},{\"==\":[{\"var\":\"os\"},\"web\"]}]}"
+  },
+  {
+    "created_at": "2024-01-16T10:08:00.138861Z",
+    "created_by": "pratik.mishra@juspay.in",
+    "id": "c670b6a9220381512233d792e99f9a488b745ed615f790526e411b835aacffba",
+    "override": "{\"gemi_config\":\"default_str_ignore_this\"}",
+    "override_id": "d4c9a5af521615bff566dbea10532cd3a0d274249ca79eabbaf8ec9a9073b8ab",
+    "priority": 512,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"purplle.com\"]}]}"
+  },
+  {
+    "created_at": "2024-01-16T10:09:25.871832Z",
+    "created_by": "pratik.mishra@juspay.in",
+    "id": "883d7ca350652fa5f3c8171d516f50709064bbe61259809983c80454f7c79b9d",
+    "override": "{\"gemi_config\":\"default_str_ignore_this\"}",
+    "override_id": "d4c9a5af521615bff566dbea10532cd3a0d274249ca79eabbaf8ec9a9073b8ab",
+    "priority": 512,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"purplle-com\"]}]}"
+  },
+  {
+    "created_at": "2023-11-22T10:17:19.913163Z",
+    "created_by": "ritick.madaan@juspay.in",
+    "id": "1590c7547e75c2d72ba905bc056fdbe32b0199f575071460352a4a175a5a5a3e",
+    "override": "{\"godel_bundle\":\"default_str_ignore_this\",\"godel_bundle_etag\":\"default_str_ignore_this\"}",
+    "override_id": "f6361bcca803d2d3042c178ed958904ee63fdbeffee8aac3f7839d29d0d383f5",
+    "priority": 516,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"zepto\"]},{\"==\":[{\"var\":\"os\"},\"android\"]}]}"
+  },
+  {
+    "created_at": "2023-12-01T13:53:35.810546Z",
+    "created_by": "pratik.mishra@juspay.in",
+    "id": "37eda9870210b372a17856757798f6af953e989cf1f069b9969b4c0145e4eacb",
+    "override": "{\"hyperos_sdk_config\":\"https://integ.hypersdk.juspay.in/hyper/configs/sdk/{clientId}/{platform}/{scope}/sdk_config.json\"}",
+    "override_id": "51510506e35f00337b8df3893549f622c716a0468ae0a4d69333dca1c0086c88",
+    "priority": 516,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"os\"},\"android\"]},{\"==\":[{\"var\":\"clientId\"},\"airtel\"]}]}"
+  },
+  {
+    "created_at": "2023-12-01T13:53:48.862744Z",
+    "created_by": "pratik.mishra@juspay.in",
+    "id": "d6e107b73a6219ff92fb3ff0048f41f4f2990e2b1cc38c4e32302fd0d416d4c0",
+    "override": "{\"hyperos_sdk_config\":\"https://integ.hypersdk.juspay.in/hyper/configs/sdk/{clientId}/{platform}/{scope}/sdk_config.json\"}",
+    "override_id": "51510506e35f00337b8df3893549f622c716a0468ae0a4d69333dca1c0086c88",
+    "priority": 516,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"os\"},\"android\"]},{\"==\":[{\"var\":\"clientId\"},\"acko\"]}]}"
+  },
+  {
+    "created_at": "2023-12-04T09:39:39.799932Z",
+    "created_by": "mobius@juspay.in",
+    "id": "d8081f0fcd8264e5a86cc0ea10787a4e441dffc572b1d7cafabb9746f86579ae",
+    "override": "{\"pmTestKey1\":\"value1-control\",\"pmTestKey2\":\"value2-control\"}",
+    "override_id": "20351707fa63907b8b5da4c4629e65cd3b248627394c0f3663fd6111e91b7600",
+    "priority": 32772,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"os\"},\"android\"]},{\"==\":[{\"var\":\"client\"},\"1mg\"]}]}"
+  },
+  {
+    "created_at": "2023-12-12T19:04:58.299345Z",
+    "created_by": "aman.jain@juspay.in",
+    "id": "561494642b94f49ffbf4e84f67037134ff8c7454057daf9e806ffc78b0f62f67",
+    "override": "{}",
+    "override_id": "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+    "priority": 516,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"studio\"]},{\"==\":[{\"var\":\"os\"},\"android\"]}]}"
+  },
+  {
+    "created_at": "2024-01-24T10:28:36.57648Z",
+    "created_by": "aman.jain@juspay.in",
+    "id": "890eab4596bf892aeddbe2f72b25e307b24f1d6afec0086613964495fd98b907",
+    "override": "{\"arya_bundle\":\"https://assets.juspay.in/hyper/bundles/in.juspay.merchants/tatasky/android/release/config.json\",\"arya_bundle_etag\":\"94c8b7e65db60ec831fe580b3f52390b\"}",
+    "override_id": "1d2a19ffd7496afabb57adf22114bf46568b5a1736328ea2b4e6c29fa3035ffa",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"zee5\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7155868988351938560-test\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-01-24T10:28:36.585248Z",
+    "created_by": "aman.jain@juspay.in",
+    "id": "b9f8e3841f87d308a062f713b39564fafcffc5dd359204ea24ea8432e18cce75",
+    "override": "{\"arya_bundle\":\"default_str_ignore_this\",\"arya_bundle_etag\":\"default_str_ignore_this\"}",
+    "override_id": "298c25615106b78712c4753c98daf991a0551dae7c5bf42e177729cd348aafbf",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"zee5\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7155868988351938560-control\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-01-24T10:30:11.605563Z",
+    "created_by": "aman.jain@juspay.in",
+    "id": "70f7e361bd73d1a9cf66cdbd669ee367df6874ba250bfb444aead8977b8ac8cf",
+    "override": "{\"arya_bundle\":\"https://assets.juspay.in/hyper/bundles/in.juspay.merchants/tatasky/android/release/config.json\",\"arya_bundle_etag\":\"94c8b7e65db60ec831fe580b3f52390b\"}",
+    "override_id": "1d2a19ffd7496afabb57adf22114bf46568b5a1736328ea2b4e6c29fa3035ffa",
+    "priority": 1732,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"zee5\"]},{\"==\":[{\"var\":\"tier\"},\"t1\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"==\":[{\"var\":\"track\"},\"f1\"]},{\"in\":[\"7155869386936647680-test\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-01-24T10:30:11.60822Z",
+    "created_by": "aman.jain@juspay.in",
+    "id": "772c7ad1913cd5f18b68267c8823b2ee28314048cd476202a348d2bbd0b71a4f",
+    "override": "{\"arya_bundle\":\"default_str_ignore_this\",\"arya_bundle_etag\":\"default_str_ignore_this\"}",
+    "override_id": "298c25615106b78712c4753c98daf991a0551dae7c5bf42e177729cd348aafbf",
+    "priority": 1732,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"zee5\"]},{\"==\":[{\"var\":\"tier\"},\"t1\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"==\":[{\"var\":\"track\"},\"f1\"]},{\"in\":[\"7155869386936647680-control\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-03-01T08:31:15.166626Z",
+    "created_by": "shubhranshu.sanjeev@juspay.in",
+    "id": "2c48644d9e00422d6fe4859cbd64dba57e40c090f15e7971e7e722829e1a25bb",
+    "override": "{\"godel_config\":\"https://assets.juspay.in/hyper/bundles/in.juspay.merchants/bbdaily/ios/release/config.json\",\"godel_config_etag\":\"81243ede6c3fbbb38f3eca88084568c7\"}",
+    "override_id": "badeef68ab9f6a694fb73a623ed3186c8c37df7e31aee1b0791f186c369a265f",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"galactustest\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7169247805271527424-test\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-03-01T08:31:15.204223Z",
+    "created_by": "shubhranshu.sanjeev@juspay.in",
+    "id": "3409119bfa87ce154c38d33eaf3a56a443d85e61fdab116e4c9a6f3393145581",
+    "override": "{\"godel_config\":\"https://assets.juspay.in/hyper/bundles/in.juspay.merchants/bbdaily/ios/release/config.json\",\"godel_config_etag\":\"d574dfb82a2e851145a0c4070ef0d6e4\"}",
+    "override_id": "81159838966447ace3e7be99a17e7b1a2e6a7ba2ecc98da4899f0e56f4539d59",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"galactustest\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7169247805271527424-control\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-03-14T10:25:52.546545Z",
+    "created_by": "pratik.mishra@juspay.in",
+    "id": "2fbf0a55ca255cb2fa2e2c1fad6c3fd7529fdb4bd235654cee9c573dca7d0d64",
+    "override": "{\"provider_src_etag\":\"abcde\"}",
+    "override_id": "861d5693bfd9edb27b0d74b32e470bfd55e8e0986ba2105c6bfba3f8b4d7264d",
+    "priority": 512,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"aegis\"]}]}"
+  },
+  {
+    "created_at": "2024-04-23T11:05:04.38763Z",
+    "created_by": "shubhranshu.sanjeev@juspay.in",
+    "id": "b47135d799b260f4bb47a530d3349b4384703da38c0091ed44f126bd703a77ba",
+    "override": "{\"hyperos_placeholder_loader\":\"https://assets.juspay.in/hyper/bundles/app/loader/hsbc/1.0.4/web/loader.js\"}",
+    "override_id": "8768472bfbb5a3783bd6e2d7c0c3e332fc1e4f3039ced882ca57d473204c9916",
+    "priority": 516,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"testhsbc\"]},{\"==\":[{\"var\":\"os\"},\"web\"]}]}"
+  },
+  {
+    "created_at": "2024-04-23T16:16:53.609082Z",
+    "created_by": "shubhranshu.sanjeev@juspay.in",
+    "id": "ab56204accbea23430e6e1ff1d80065772e52805db222f3d10d45e893c7958c4",
+    "override": "{\"pmTestKey1\":\"abc\"}",
+    "override_id": "7ead5b38c5401a989e990ccccdb01f7cd27017aee111160aee5c452bea6a6592",
+    "priority": 1536,
+    "value": "{\"and\":[{\"IN\":[{\"var\":\"clientId\"},\"galactustest,zee5\"]},{\"in\":[\"7188571544521814016-control\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-04-23T16:16:53.639334Z",
+    "created_by": "shubhranshu.sanjeev@juspay.in",
+    "id": "73f05457e20fab7000c44a3c58a4fca66819b9c93b7ae447fba936813d1c05ae",
+    "override": "{\"pmTestKey1\":\"zxc\"}",
+    "override_id": "db62c9ec706fd492b89eee9400d0237c2144a908503f07fdf07bf94b9aad1ea2",
+    "priority": 1536,
+    "value": "{\"and\":[{\"IN\":[{\"var\":\"clientId\"},\"galactustest,zee5\"]},{\"in\":[\"7188571544521814016-experimental\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-07-12T09:50:37.049343Z",
+    "created_by": "shubhranshu.sanjeev@juspay.in",
+    "id": "514540b487679173a51fe4e01c483fe1d6d3a9b931bdee2c0237dc6d9efbcf3b",
+    "override": "{\"godel_config\":\"https://assets.juspay.in/hyper/bundles/config/in.juspay.godel/1.2.57/v1-config.zip\",\"godel_config_etag\":\"77fd03350702e025c432e66842cd7521\"}",
+    "override_id": "1e79ffeded160b3c5e6250e1247116071c7b8aa73bab1119b532dd23ed168383",
+    "priority": 1542,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"galactustest\"]},{\"==\":[{\"var\":\"scope\"},\"release\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7217465364171448320-test\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2023-12-13T11:23:03.152453Z",
+    "created_by": "aman.jain@juspay.in",
+    "id": "592bcf66c9ff8873dcdba6e95579a74c11c98e4185f8f909c0aa1b012310092e",
+    "override": "{\"arya_root\":\"adadadad\",\"consumer_root\":\"test\"}",
+    "override_id": "1145cd058747c45bfc52369bcc3ebd5eec08b008eb7c0b6d6a999bd009acd863",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"studio\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7140662152812986368-test\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2023-11-22T10:17:20.46076Z",
+    "created_by": "ritick.madaan@juspay.in",
+    "id": "3984b1b3cd98012fe6857bd8b7aaa9f4e071f1cc9318d6ebea18292bc4f6b137",
+    "override": "{\"pmTestKey1972\":\"value-7910-an-control\",\"pmTestKey1999\":\"value-6910-an-control\"}",
+    "override_id": "36a5deb1781f007a4e608c430b23a315abd44aa9f75db9df3a3718106d66ddc8",
+    "priority": 32772,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"os\"},\"ios\"]},{\"==\":[{\"var\":\"client\"},\"testClientCac02\"]}]}"
+  },
+  {
+    "created_at": "2023-12-13T11:23:03.155656Z",
+    "created_by": "aman.jain@juspay.in",
+    "id": "38116b8b23d457f0859241cd730047a05e164c81994d2a3654d0b0eb4255582b",
+    "override": "{\"arya_root\":\"default_str_ignore_this\",\"consumer_root\":\"default_str_ignore_this\"}",
+    "override_id": "8866d1d9d2df76dc2ee01a4caba29bbc83ced89d2c8f7c4710d118fab5b3ded9",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"studio\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7140662152812986368-control\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-05-31T10:57:34.3207Z",
+    "created_by": "deepesh.maheshwari@juspay.in",
+    "id": "c228f7ef6b1b72897ea3886603eff8649f34094f847c71b8fceb8569c87832b6",
+    "override": "{\"ec_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.ec/3.29.4/web/index.js\",\"ec_bundle_etag\":\"e4b290873d9b7691a2471cdfa58023a4\",\"upiintent_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.upiintent/4.9.9/web/index.js\",\"upiintent_bundle_etag\":\"9774e9eaec3ec8221bfcb104a4534534\"}",
+    "override_id": "bc9fdc3c13a3569d0b30f3877934e3de94b145a1389be32e2f4617528283a20b",
+    "priority": 516,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"hdfcmaster\"]},{\"==\":[{\"var\":\"os\"},\"web\"]}]}"
+  },
+  {
+    "created_at": "2024-03-12T22:46:17.341122Z",
+    "created_by": "mobius@juspay.in",
+    "id": "52908132db81df1324abfc6ce44b8cb9eaf16a07a7d1e79ac54c1b057a1f08da",
+    "override": "{\"godel_config\":\"https://assets.juspay.in/hyper/bundles/in.juspay.merchants/bbdaily/ios/release/config.json\",\"godel_config_etag\":\"d574dfb82a2e851145a0c4070ef0d6e4\",\"hyperpay_configuration\":\"https://assets.juspay.in/hyper/bundles/in.juspay.merchants/magicbrickspp/configuration/1.1/v1-configuration.zip\",\"hyperpay_configuration_etag\":\"5f00e94dc26e6d96a95e4a2888b42f4d\"}",
+    "override_id": "aadb44006dc479c145bb41f20406805d24d7ec5b02d993ce9dcc9ea7dcba7632",
+    "priority": 516,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"galactustest\"]},{\"==\":[{\"var\":\"os\"},\"android\"]}]}"
+  },
+  {
+    "created_at": "2023-12-12T06:47:22.195757Z",
+    "created_by": "aman.jain@juspay.in",
+    "id": "114715cfe346e3c159239654b29acef3c4afa4cadd653785535c6bb1aeacc0ac",
+    "override": "{\"arya_bundle\":\"default_str_ignore_this\",\"arya_bundle_etag\":\"default_str_ignore_this\",\"arya_root\":\"default_str_ignore_this\",\"godel_acs\":\"default_str_ignore_this\",\"godel_acs_etag\":\"default_str_ignore_this\",\"godel_bundle\":\"default_str_ignore_this\",\"godel_bundle_etag\":\"default_str_ignore_this\",\"godel_config\":\"default_str_ignore_this\",\"godel_config_etag\":\"default_str_ignore_this\",\"vies_entry\":\"default_str_ignore_this\"}",
+    "override_id": "0b1cde7fb0896c0a3a4b3e995199a4393722f880bfd145252ebe7e4d9604e6bb",
+    "priority": 4,
+    "value": "{\"==\":[{\"var\":\"os\"},\"android\"]}"
+  },
+  {
+    "created_at": "2023-11-29T12:08:18.028336Z",
+    "created_by": "mobius@juspay.in",
+    "id": "56a5e2bb015db3824170f0b10f79354c7c3a48538cf5afa3def330ce19fe7b8d",
+    "override": "{\"pmTestKey1\":\"value1-control\",\"pmTestKey2\":\"value1-control\"}",
+    "override_id": "2123fadefc2e34d386e7ebb8851ab290ac4b2fad87e353745e3387025ffa81ff",
+    "priority": 32772,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"os\"},\"ios\"]},{\"==\":[{\"var\":\"client\"},\"testClientCac1\"]}]}"
+  },
+  {
+    "created_at": "2023-12-12T08:17:44.123474Z",
+    "created_by": "aman.jain@juspay.in",
+    "id": "c49528d88d4550af74eaea4ad42de49603941aa8b6fd235e0de1f165ebebac19",
+    "override": "{\"arya_root\":\"\"}",
+    "override_id": "ffd0f8d439d613b932e136ee7627835a542fe506af89c87d186641779c5d31f5",
+    "priority": 1028,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7140253374879244288-test\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2023-12-12T08:17:44.127513Z",
+    "created_by": "aman.jain@juspay.in",
+    "id": "e8e8ee0a259fe80694014983234091645bbe4536fbee698524d9d0fb6db6ad1d",
+    "override": "{\"arya_root\":\"default_str_ignore_this\"}",
+    "override_id": "27bd63b346290504b882d0f5c336916fb99cb66f2a26d7f9f24482e1d6ea9c9c",
+    "priority": 1028,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7140253374879244288-control\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2023-12-13T09:14:21.519565Z",
+    "created_by": "aman.jain@juspay.in",
+    "id": "ef48186d8d6b64f0e5d7d8cfcfd6f1be2a5ec574e6bede4b956046bdab30294a",
+    "override": "{\"consumer_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.hyperpay/3.72.4-release-20231206.1/android/v1-index_bundle.zip\",\"consumer_bundle_etag\":\"263a54c0c9c7693218f8ed63d5c942e2\"}",
+    "override_id": "e56b74844f6aab978dc958d0b4e071c2e409d917e6c93194719211bddf8109b5",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"zee5\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7140290618252574720-test\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2023-12-13T09:14:21.522736Z",
+    "created_by": "aman.jain@juspay.in",
+    "id": "b8abee3e1f7938ea51fd5c88e7a70e0b558cda8bafdb4733d2ebdd766b08d6fa",
+    "override": "{\"consumer_bundle\":\"default_str_ignore_this\",\"consumer_bundle_etag\":\"default_str_ignore_this\"}",
+    "override_id": "34e82ba678d01bbded07536817e2c7c20d13cba03a8a8b8bdd9dad0fa3e92fb5",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"zee5\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7140290618252574720-control\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-05-31T11:07:02.501266Z",
+    "created_by": "deepesh.maheshwari@juspay.in",
+    "id": "e07943118a8e41237511ae0756f769d3bcb47f3efbf362e14f7c2e8c3e7d57cc",
+    "override": "{\"ec_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.ec/3.29.4/android/v1-index_bundle.zip\",\"ec_bundle_etag\":\"6e673566ec9d34425bb9fadcac6e1927\",\"upiintent_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.upiintent/4.9.9/android/v1-index_bundle.zip\",\"upiintent_bundle_etag\":\"655d1b861dde675e69e6fe19dcde9804\"}",
+    "override_id": "388e2f29ff74d296d3fd033970bd79b8fcd587f57750cd2113b39f51d2f579d2",
+    "priority": 516,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"hdfcmaster\"]},{\"==\":[{\"var\":\"os\"},\"android\"]}]}"
+  },
+  {
+    "created_at": "2023-12-27T08:57:50.786897Z",
+    "created_by": "rohan.pawar@juspay.in",
+    "id": "faec42a890e61480cecd6a7d80d02eba8b191274ae622f10576d9ee0e9f20273",
+    "override": "{\"hyperpay_configuration\":\"https://assets.juspay.in/hyper/bundles/in.juspay.merchants/magicbrickspp/configuration/1.1/v1-configuration.zip\",\"hyperpay_configuration_etag\":\"5f00e94dc26e6d96a95e4a2888b42f4d\"}",
+    "override_id": "7ca1e210b75248afda6ae04f074f0dcc8a8f729f897e9f9113a3009e087c01b7",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"galactustest\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7145699287093825536-test\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2023-12-27T08:57:50.80287Z",
+    "created_by": "rohan.pawar@juspay.in",
+    "id": "c80d2c9783437b7d4dab17432608eaa67077d955f91de150a72b42c6d2d60248",
+    "override": "{\"hyperpay_configuration\":\"default_str_ignore_this\",\"hyperpay_configuration_etag\":\"default_str_ignore_this\"}",
+    "override_id": "afb1f8291942d3276f2259b285f7a021e7ffb2a6bb4038b21976e3d59d6abde8",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"galactustest\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7145699287093825536-control\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2023-12-28T06:43:58.555415Z",
+    "created_by": "akash.singhania@juspay.in",
+    "id": "ef6ad4da7a263b60d8bad761f68723a159d155eb8542db8de0254cf56988c980",
+    "override": "{\"ec_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.ec/3.16.18/android/v1-index_bundle.zip\",\"ec_bundle_etag\":\"b864e0799319bb7a33c76fa3210bb352\"}",
+    "override_id": "890f43a7096f1eecebf2c474b30ebd14c15a9b670408494214052a179ec601d4",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[{\"var\":\"clientId\"},[\"goindigo\",\"mplgaming\",\"gameskraft\",\"jungleerummy\",\"howzat\",\"slice\",\"rummytime\",\"winzo\",\"jar\",\"lazypay\",\"playship\",\"confirmtkt\",\"purplle.com\",\"myteam11\",\"railyatri\",\"rapido\",\"branch\"]]},{\"in\":[\"7146027985267212288-test\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2023-12-28T06:43:58.569149Z",
+    "created_by": "akash.singhania@juspay.in",
+    "id": "d5e4a08dbfed5db9c1676ebab29f1e1f51956de084a2c03c0f6d6704c793df2e",
+    "override": "{\"ec_bundle\":\"default_str_ignore_this\",\"ec_bundle_etag\":\"default_str_ignore_this\"}",
+    "override_id": "7e34b6da45dfb9ed09cb00290f9d28f3586aa9c93a4f4d1d1dcec2c67d37a529",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[{\"var\":\"clientId\"},[\"goindigo\",\"mplgaming\",\"gameskraft\",\"jungleerummy\",\"howzat\",\"slice\",\"rummytime\",\"winzo\",\"jar\",\"lazypay\",\"playship\",\"confirmtkt\",\"purplle.com\",\"myteam11\",\"railyatri\",\"rapido\",\"branch\"]]},{\"in\":[\"7146027985267212288-control\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-04-25T12:53:31.764063Z",
+    "created_by": "shubhranshu.sanjeev@juspay.in",
+    "id": "93930c03ba039a477447e609820c97e8b6f51ddfb320d84c2b667fc22c549d67",
+    "override": "{\"arya_bundle\":\"default_str_ignore_this\",\"arya_bundle_etag\":\"default_str_ignore\",\"arya_src\":\"default_str_ignore_this\",\"arya_src_etag\":\"default_str_ignore\"}",
+    "override_id": "28bac9d32e47ec65af26f53af1649ee731ebd9c22018bc493d5f708162c228e9",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"os\"},\"ios\"]},{\"==\":[{\"var\":\"clientId\"},\"galactustest\"]},{\"in\":[\"7189244532330844160-test\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-04-25T12:53:31.770205Z",
+    "created_by": "shubhranshu.sanjeev@juspay.in",
+    "id": "497eef54d2cea2869dc3244d4b83c6031453ec453152392e62613a93a03775ce",
+    "override": "{\"arya_bundle\":\"default_str_ignore_this\",\"arya_bundle_etag\":\"default_str_ignore_this\",\"arya_src\":\"default_str_ignore_this\",\"arya_src_etag\":\"default_str_ignore_this\"}",
+    "override_id": "28d94700c3c4e2e2c7f4d41154e992419bbc696c020cac765bdd02703ae36800",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"os\"},\"ios\"]},{\"==\":[{\"var\":\"clientId\"},\"galactustest\"]},{\"in\":[\"7189244532330844160-control\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-05-31T11:09:17.671868Z",
+    "created_by": "deepesh.maheshwari@juspay.in",
+    "id": "2132f93ae5261d7cdf0ef9fa1e01f99ffea9d5f99fd43fd8fcc17035ba66f07e",
+    "override": "{\"ec_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.ec/3.29.4/ios/v1-index_bundle.jsa\",\"ec_bundle_etag\":\"230535f9eed9e9e977427d45e217de33\",\"upiintent_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.upiintent/4.9.9/ios/v1-index_bundle.jsa\",\"upiintent_bundle_etag\":\"d0838b52ce1073a6479f6af97c90167c\"}",
+    "override_id": "655b17f9f2c7df1481bf63505909c4874284a594daaa594f63477e310bb8fcc1",
+    "priority": 516,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"hdfcmaster\"]},{\"==\":[{\"var\":\"os\"},\"ios\"]}]}"
+  },
+  {
+    "created_at": "2024-07-12T09:50:37.099022Z",
+    "created_by": "shubhranshu.sanjeev@juspay.in",
+    "id": "3d660c8f7ad00d1578269158aebc9686bd0754e79696e08945cce10664bbbcb7",
+    "override": "{\"godel_config\":\"https://assets.juspay.in/hyper/bundles/in.juspay.merchants/bbdaily/ios/release/config.json\",\"godel_config_etag\":\"d574dfb82a2e851145a0c4070ef0d6e4\"}",
+    "override_id": "81159838966447ace3e7be99a17e7b1a2e6a7ba2ecc98da4899f0e56f4539d59",
+    "priority": 1542,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"galactustest\"]},{\"==\":[{\"var\":\"scope\"},\"release\"]},{\"==\":[{\"var\":\"os\"},\"android\"]},{\"in\":[\"7217465364171448320-control\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-07-12T10:15:54.189137Z",
+    "created_by": "shubhranshu.sanjeev@juspay.in",
+    "id": "c6042f4af6bccf484576d12b0070b89645bb1e9b9680ce532068c010fb49e534",
+    "override": "{\"arya_bundle\":\"default_str_ignore_this\",\"arya_bundle_etag\":\"default_str_ignore\",\"godel_bundle\":\"https://assets.juspay.in/hyper/bundles/config/in.juspay.godel/1.2.57/v1-config.zip\",\"godel_bundle_etag\":\"77fd03350702e025c432e66842cd7521\"}",
+    "override_id": "e359c27272515976eba9f7ba0b72c7a52a6eef6d4280ca3bbf3d49679773589c",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"os\"},\"android\"]},{\"==\":[{\"var\":\"clientId\"},\"galactustest\"]},{\"in\":[\"7189249119334772736-test\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-07-12T10:15:54.198899Z",
+    "created_by": "shubhranshu.sanjeev@juspay.in",
+    "id": "0ee3ec6af9d894d17b4a03c6fe574bf02a36bed43fea5b64a109ca79065050c5",
+    "override": "{\"arya_bundle\":\"default_str_ignore_this\",\"arya_bundle_etag\":\"default_str_ignore_this\",\"godel_bundle\":\"default_str_ignore_this\",\"godel_bundle_etag\":\"default_str_ignore_this\"}",
+    "override_id": "1ee28fb8dfb4c808ab76ccee332c43d2378c6b4b1358af0f6bf2a42e38fada85",
+    "priority": 1540,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"os\"},\"android\"]},{\"==\":[{\"var\":\"clientId\"},\"galactustest\"]},{\"in\":[\"7189249119334772736-control\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-07-15T12:43:23.633864Z",
+    "created_by": "prathamesh.rane@juspay.in",
+    "id": "1b10384cd78cd1e732b339d56a40e27fc6b5b05991ca509903b288c4cb060403",
+    "override": "{\"hyperpay_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.hyperpay/4.24.3-release-20240422.3/web/prod-split_index.js\",\"hyperpay_bundle_etag\":\"8ec671797de055489d4acbba008befc5\"}",
+    "override_id": "4203039ae6fe427da6adbb94bd5c6ee206d139776e1c71f2e1405ad251396637",
+    "priority": 580,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"hdfcmaster\"]},{\"==\":[{\"var\":\"os\"},\"web\"]},{\"==\":[{\"var\":\"resellerId\"},\"hdfc_reseller\"]}]}"
+  },
+  {
+    "created_at": "2024-07-24T12:19:12.803193Z",
+    "created_by": "srikanth.mitra@juspay.in",
+    "id": "142023a66eadb6e0effb613b9b9c0292fb08230d609bd406a5a01c7f789ee891",
+    "override": "{\"ec_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.ec/3.33.1/web/index.js\",\"ec_bundle_etag\":\"19a6301cb2893ce82ad42009859435ef\",\"hyperpay_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.hyperpay/4.37.13-release-20240624.1/web/prod-split_index.js\",\"hyperpay_bundle_etag\":\"ab9168678dacf676c1f9e15a7db5f0e8\",\"upiintent_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.upiintent/4.10.2/web/index.js\",\"upiintent_bundle_etag\":\"5617360b609834cf686ae75796aeafee\"}",
+    "override_id": "61d24b7d8b2dd5833f3c5322221f9a538985c55cf3391bdca9fc99a9cd7ef61e",
+    "priority": 1586,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"hdfcmaster\"]},{\"==\":[{\"var\":\"os\"},\"web\"]},{\"==\":[{\"var\":\"resellerId\"},\"hdfc_reseller\"]},{\"in\":[\"7206198466018328576-test\",{\"var\":\"variantIds\"}]}]}"
+  },
+  {
+    "created_at": "2024-07-24T12:19:12.810441Z",
+    "created_by": "srikanth.mitra@juspay.in",
+    "id": "e7c672fb9d580bcbfe90ce0ec029af2109b41a98972d13997cd90cea71bcd01e",
+    "override": "{\"ec_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.ec/3.29.4/web/index.js\",\"ec_bundle_etag\":\"e4b290873d9b7691a2471cdfa58023a4\",\"hyperpay_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.hyperpay/4.24.3-release-20240422.3/web/prod-split_index.js\",\"hyperpay_bundle_etag\":\"8ec671797de055489d4acbba008befc5\",\"upiintent_bundle\":\"https://assets.juspay.in/hyper/bundles/app/in.juspay.upiintent/4.9.9/web/index.js\",\"upiintent_bundle_etag\":\"9774e9eaec3ec8221bfcb104a4534534\"}",
+    "override_id": "c0e65b39f93dd99a5d854d393bcf6dfa03e0b6832bca223df1fc0c696416930d",
+    "priority": 1586,
+    "value": "{\"and\":[{\"==\":[{\"var\":\"clientId\"},\"hdfcmaster\"]},{\"==\":[{\"var\":\"os\"},\"web\"]},{\"==\":[{\"var\":\"resellerId\"},\"hdfc_reseller\"]},{\"in\":[\"7206198466018328576-control\",{\"var\":\"variantIds\"}]}]}"
+  }
+]
