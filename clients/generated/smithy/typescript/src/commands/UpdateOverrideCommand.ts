@@ -46,18 +46,20 @@ export interface UpdateOverrideCommandOutput extends ContextFull, __MetadataBear
  * const input = { // UpdateOverrideInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
- *   context: { // ContextIdentifier Union: only one key present
- *     Id: "STRING_VALUE",
- *     Context: { // Condition
+ *   config_tags: "STRING_VALUE",
+ *   request: { // UpdateContextOverrideRequest
+ *     context: { // ContextIdentifier Union: only one key present
+ *       id: "STRING_VALUE",
+ *       context: { // Condition
+ *         "<keys>": "DOCUMENT_VALUE",
+ *       },
+ *     },
+ *     override: { // Overrides // required
  *       "<keys>": "DOCUMENT_VALUE",
  *     },
+ *     description: "STRING_VALUE",
+ *     change_reason: "STRING_VALUE", // required
  *   },
- *   config_tags: "STRING_VALUE",
- *   override: { // Overrides // required
- *     "<keys>": "DOCUMENT_VALUE",
- *   },
- *   description: "STRING_VALUE",
- *   change_reason: "STRING_VALUE", // required
  * };
  * const command = new UpdateOverrideCommand(input);
  * const response = await client.send(command);

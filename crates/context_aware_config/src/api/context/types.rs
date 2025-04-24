@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use diesel::prelude::AsChangeset;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
+    api::context::UpdateRequest,
     database::{
         models::{
             cac::{Context, FunctionCode},
@@ -16,8 +17,8 @@ use superposition_types::{
 #[derive(Serialize, AsChangeset)]
 #[diesel(table_name = contexts)]
 pub(crate) struct UpdateContextOverridesChangeset {
-    #[serde(rename = "override")]
     pub override_id: String,
+    #[serde(rename = "override")]
     pub override_: Overrides,
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
@@ -73,7 +74,7 @@ impl From<Context> for PutResp {
 #[serde(rename_all = "UPPERCASE")]
 pub enum ContextAction {
     Put(PutReq),
-    Replace(PutReq),
+    Replace(UpdateRequest),
     Delete(String),
     Move((String, MoveReq)),
 }
@@ -82,7 +83,7 @@ pub enum ContextAction {
 #[serde(rename_all = "UPPERCASE")]
 pub enum ContextBulkResponse {
     Put(PutResp),
-    Replace(PutResp),
+    Replace(Context),
     Delete(String),
     Move(PutResp),
 }

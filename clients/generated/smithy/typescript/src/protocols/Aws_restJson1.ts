@@ -231,6 +231,7 @@ import {
   ResourceNotFound,
   TypeTemplatesNotFound,
   TypeTemplatesResponse,
+  UpdateContextOverrideRequest,
   ValidateFunctionRequest,
   Variant,
   VariantUpdateRequest,
@@ -1485,12 +1486,13 @@ export const se_UpdateOverrideCommand = async(
   });
   b.bp("/context/overrides");
   let body: any;
-  body = JSON.stringify(take(input, {
-    'change_reason': [],
-    'context': _ => se_ContextIdentifier(_, context),
-    'description': [],
-    'override': _ => se_Overrides(_, context),
-  }));
+  if (input.request !== undefined) {
+    body = se_UpdateContextOverrideRequest(input.request, context);
+  }
+  if (body === undefined) {
+    body = {};
+  }
+  body = JSON.stringify(body);
   b.m("PUT")
   .h(headers)
   .b(body);
@@ -3315,7 +3317,7 @@ const de_CommandError = async(
       DELETE: value => ({ "DELETE": value }),
       MOVE: value => ({ "MOVE": se_ContextMove(value, context) }),
       PUT: value => ({ "PUT": se_ContextPut(value, context) }),
-      REPLACE: value => ({ "REPLACE": se_ContextPut(value, context) }),
+      REPLACE: value => ({ "REPLACE": se_UpdateContextOverrideRequest(value, context) }),
       _: (name, value) => ({ name: value } as any)
     });
   }
@@ -3328,8 +3330,8 @@ const de_CommandError = async(
     context: __SerdeContext
   ): any => {
     return ContextIdentifier.visit(input, {
-      Context: value => ({ "Context": se_Condition(value, context) }),
-      Id: value => ({ "Id": value }),
+      context: value => ({ "context": se_Condition(value, context) }),
+      id: value => ({ "id": value }),
       _: (name, value) => ({ name: value } as any)
     });
   }
@@ -3454,6 +3456,21 @@ const de_CommandError = async(
       acc[key] = se_Document(value, context);
       return acc;
     }, {});
+  }
+
+  /**
+   * serializeAws_restJson1UpdateContextOverrideRequest
+   */
+  const se_UpdateContextOverrideRequest = (
+    input: UpdateContextOverrideRequest,
+    context: __SerdeContext
+  ): any => {
+    return take(input, {
+      'change_reason': [],
+      'context': _ => se_ContextIdentifier(_, context),
+      'description': [],
+      'override': _ => se_Overrides(_, context),
+    });
   }
 
   /**

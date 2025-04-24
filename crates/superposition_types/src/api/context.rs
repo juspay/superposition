@@ -78,13 +78,14 @@ impl Display for ContextListFilters {
     }
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum Identifier {
     Context(Cac<Condition>),
     Id(String),
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct UpdateRequest {
     pub context: Identifier,
     #[serde(rename = "override")]

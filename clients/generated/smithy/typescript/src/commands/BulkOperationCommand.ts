@@ -60,9 +60,12 @@ export interface BulkOperationCommandOutput extends BulkOperationOutput, __Metad
  *           description: "STRING_VALUE",
  *           change_reason: "STRING_VALUE", // required
  *         },
- *         REPLACE: {
- *           context: { // required
- *             "<keys>": "DOCUMENT_VALUE",
+ *         REPLACE: { // UpdateContextOverrideRequest
+ *           context: { // ContextIdentifier Union: only one key present
+ *             id: "STRING_VALUE",
+ *             context: {
+ *               "<keys>": "DOCUMENT_VALUE",
+ *             },
  *           },
  *           override: { // required
  *             "<keys>": "DOCUMENT_VALUE",

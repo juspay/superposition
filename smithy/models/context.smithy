@@ -150,30 +150,36 @@ operation MoveContext {
 }
 
 union ContextIdentifier {
-    Id: String,
-    Context: Condition,
+    id: String,
+    context: Condition,
+}
+
+
+structure UpdateContextOverrideRequest for Context {
+    @required
+    context: ContextIdentifier
+
+    @required
+    $override
+
+    $description
+
+    @required
+    $change_reason
 }
 
 @http(method: "PUT", uri: "/context/overrides")
 operation UpdateOverride {
     input := for Context with [WorkspaceMixin] {
-        // TODO Find re-name functionality.
-        @required
-        @notProperty
-        context: ContextIdentifier
-
         // REVIEW Should this be made a property?
         @httpHeader("x-config-tags")
         @notProperty
         config_tags: String
 
+        @httpPayload
         @required
-        $override
-
-        $description
-
-        @required
-        $change_reason
+        @notProperty
+        request: UpdateContextOverrideRequest
     }
 
     output: ContextFull
@@ -329,7 +335,7 @@ structure ContextMove for Context {
 
 union ContextAction {
     PUT: ContextPut
-    REPLACE: ContextPut
+    REPLACE: UpdateContextOverrideRequest
     DELETE: String
     MOVE: ContextMove
 }

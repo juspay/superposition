@@ -517,17 +517,19 @@ describe("Context API Integration Tests", () => {
             const input = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                override: {
-                    key1: "updated-value",
-                    key3: "new-value",
-                },
-                context: {
-                    Context: {
-                        "==": [{ var: "clientId" }, "test-client"],
+                request: {
+                    override: {
+                        key1: "updated-value",
+                        key3: "new-value",
                     },
+                    context: {
+                        context: {
+                            "==": [{ var: "clientId" }, "test-client"],
+                        },
+                    },
+                    description: "Updated context",
+                    change_reason: "Updating override",
                 },
-                description: "Updated context",
-                change_reason: "Updating override",
             };
 
             const cmd = new UpdateOverrideCommand(input);
@@ -560,15 +562,17 @@ describe("Context API Integration Tests", () => {
             const input = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                override: {
-                    key4: "replaced-value",
-                },
-                context: {
-                    Context: {
-                        "==": [{ var: "clientId" }, "test-client"],
+                request: {
+                    override: {
+                        key4: "replaced-value",
                     },
+                    context: {
+                        context: {
+                            "==": [{ var: "clientId" }, "test-client"],
+                        },
+                    },
+                    change_reason: "Replacing override",
                 },
-                change_reason: "Replacing override",
             };
 
             const cmd = new UpdateOverrideCommand(input);
@@ -603,19 +607,20 @@ describe("Context API Integration Tests", () => {
             const input = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-
-                override: {
-                    key4: "replaced-value",
-                },
-                context: {
-                    Context: {
-                        "==": [
-                            { var: "clientId" },
-                            "non-existent-context-test",
-                        ],
+                request: {
+                    override: {
+                        key4: "replaced-value",
                     },
+                    context: {
+                        context: {
+                            "==": [
+                                { var: "clientId" },
+                                "non-existent-context-test",
+                            ],
+                        },
+                    },
+                    change_reason: "Replacing override",
                 },
-                change_reason: "Replacing override",
             };
             const updateCmd = new UpdateOverrideCommand(input);
 
@@ -652,13 +657,15 @@ describe("Context API Integration Tests", () => {
             const updateByIdCmd = new UpdateOverrideCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                context: { Id: contextId },
-                override: {
-                    key1: "updated-by-id",
-                    key3: "new-by-id",
+                request: {
+                    context: { id: contextId },
+                    override: {
+                        key1: "updated-by-id",
+                        key3: "new-by-id",
+                    },
+                    description: "Updated context by ID",
+                    change_reason: "Updating override by ID",
                 },
-                description: "Updated context by ID",
-                change_reason: "Updating override by ID",
             });
 
             const updateResp = await client.send(updateByIdCmd);
@@ -712,11 +719,13 @@ describe("Context API Integration Tests", () => {
             const updateByIdCmd = new UpdateOverrideCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                context: { Id: contextId },
-                override: {
-                    key4: "completely-new-value",
+                request: {
+                    context: { id: contextId },
+                    override: {
+                        key4: "completely-new-value",
+                    },
+                    change_reason: "Replacing all overrides by ID",
                 },
-                change_reason: "Replacing all overrides by ID",
             });
 
             const updateResp = await client.send(updateByIdCmd);
@@ -749,11 +758,13 @@ describe("Context API Integration Tests", () => {
             const updateByIdCmd = new UpdateOverrideCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                context: { Id: "non-existent-context-id" },
-                override: {
-                    key1: "value-for-non-existent",
+                request: {
+                    context: { id: "non-existent-context-id" },
+                    override: {
+                        key1: "value-for-non-existent",
+                    },
+                    change_reason: "Updating non-existent context",
                 },
-                change_reason: "Updating non-existent context",
             });
 
             await expect(client.send(updateByIdCmd)).rejects.toThrow(

@@ -504,43 +504,24 @@ async fn bulk_operations(
                         all_change_reasons.push(put_req.change_reason.clone());
                         response.push(ContextBulkResponse::Put(put_resp));
                     }
-                    ContextAction::Replace(put_req) => {
-                        let ctx_condition = put_req.context.to_owned().into_inner();
-                        let ctx_condition_value =
-                            Value::Object(ctx_condition.clone().into());
-                        let description = if put_req.description.is_none() {
-                            query_description(
-                                ctx_condition_value,
-                                transaction_conn,
-                                &schema_name,
-                            )?
-                        } else {
-                            put_req
-                                .description
-                                .clone()
-                                .expect("Description should not be empty")
-                        };
-
-                        let put_resp = operations::upsert(
-                            put_req.clone(),
-                            description.clone(),
+                    ContextAction::Replace(update_request) => {
+                        all_change_reasons
+                            .push((*update_request.change_reason).to_string());
+                        let update_resp = operations::update(
+                            update_request,
                             transaction_conn,
-                            true,
                             &user,
                             &schema_name,
-                            true,
                         )
                         .map_err(|err| {
                             log::error!(
-                                "Failed at insert into contexts due to {:?}",
+                                "Failed at update into contexts due to {:?}",
                                 err
                             );
                             err
                         })?;
 
-                        all_descriptions.push(description);
-                        all_change_reasons.push(put_req.change_reason.clone());
-                        response.push(ContextBulkResponse::Replace(put_resp));
+                        response.push(ContextBulkResponse::Replace(update_resp));
                     }
                     ContextAction::Delete(ctx_id) => {
                         let context: Context = contexts
