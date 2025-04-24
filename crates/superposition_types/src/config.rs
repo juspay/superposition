@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::{deserialize::FromSqlRow, expression::AsExpression, sql_types::Json};
+use jsonlogic::validation as logic_validation;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{json, Map, Value};
 #[cfg(feature = "diesel_derives")]
@@ -79,29 +80,52 @@ impl_try_from_map!(Exp, Overrides, Overrides::validate_data);
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
 pub struct Condition(Map<String, Value>);
 
+static CAC_CONDITION_VALIDATION_CONFIG: logic_validation::ValidationConfig =
+    logic_validation::ValidationConfig {
+        require_and_wrapper: Some(logic_validation::RequireAndWrapper {
+            allow_empty: false,
+        }),
+    };
+
+static EXP_CONDITION_VALIDATION_CONFIG: logic_validation::ValidationConfig =
+    logic_validation::ValidationConfig {
+        require_and_wrapper: Some(logic_validation::RequireAndWrapper {
+            allow_empty: true,
+        }),
+    };
+
 impl Condition {
     fn validate_data_for_cac(condition_map: Map<String, Value>) -> Result<Self, String> {
-        if condition_map.is_empty() {
-            log::error!("Condition validation error: Context is empty");
-            return Err("Context should not be empty".to_owned());
-        }
-        jsonlogic::expression::Expression::from_json(&json!(condition_map)).map_err(
-            |msg| {
-                log::error!("Condition validation error: {}", msg);
+        let condition_val = json!(condition_map);
+        logic_validation::validate(&condition_val, &CAC_CONDITION_VALIDATION_CONFIG)
+            .map_err(|err| {
+                let msg = format!("Condition validation error: {}", err.message);
+                log::error!("{}", msg);
                 msg
-            },
-        )?;
+            })?;
+        jsonlogic::expression::Expression::from_json(&condition_val).map_err(|msg| {
+            log::error!("Condition validation error: {}", msg);
+            msg
+        })?;
         Ok(Self(condition_map))
     }
 
     fn validate_data_for_exp(condition_map: Map<String, Value>) -> Result<Self, String> {
         let condition_val = json!(condition_map);
+        logic_validation::validate(&condition_val, &EXP_CONDITION_VALIDATION_CONFIG)
+            .map_err(|err| {
+                let msg = format!("Condition validation error: {}", err.message);
+                log::error!("{}", msg);
+                msg
+            })?;
+
         let ast = jsonlogic::expression::Expression::from_json(&condition_val).map_err(
             |msg| {
                 log::error!("Condition validation error: {}", msg);
                 msg
             },
         )?;
+
         let dimensions = ast.get_variable_names().map_err(|msg| {
             log::error!("Error while parsing variable names : {}", msg);
             msg
