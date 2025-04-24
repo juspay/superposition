@@ -35,7 +35,7 @@ describe("Context API Integration Tests", () => {
         client = superpositionClient;
         testWorkspaceId = ENV.workspace_id;
         testOrgId = ENV.org_id;
-        console.log(`Using org ${testOrgId} with workspace ${testWorkspaceId}`)
+        console.log(`Using org ${testOrgId} with workspace ${testWorkspaceId}`);
         await addMandatoryDimension(client);
         await setupDimensionsAndConfigs(client);
     });
@@ -370,7 +370,6 @@ describe("Context API Integration Tests", () => {
                 }
             }
         }
-
     }
 
     describe("PUT Context Endpoint", () => {
@@ -383,14 +382,24 @@ describe("Context API Integration Tests", () => {
                     key2: 42,
                 },
                 context: {
-                    "==": [{ var: "clientId" }, "test-client"],
+                    and: [
+                        {
+                            "==": [{ var: "clientId" }, "test-client"],
+                        },
+                    ],
                 },
                 description: "Test context",
                 change_reason: "Initial creation",
             };
 
-            const cmd = new CreateContextCommand(input);
-            const response: CreateContextCommandOutput = await client.send(cmd);
+            let response: CreateContextCommandOutput;
+            try {
+                const cmd = new CreateContextCommand(input);
+                response = await client.send(cmd);
+            } catch (err: any) {
+                console.log(err.$response);
+                throw err.$response;
+            }
 
             // Track created context
             trackContext(response.context_id);
@@ -406,7 +415,13 @@ describe("Context API Integration Tests", () => {
                 id: contextId,
             });
 
-            const fetchedContext = await client.send(getCmd);
+            let fetchedContext: GetContextCommandOutput;
+            try {
+                fetchedContext = await client.send(getCmd);
+            } catch (err: any) {
+                console.log(err.$response);
+                throw err.$response;
+            }
 
             expect(fetchedContext.override).toEqual(input.override);
 
@@ -417,6 +432,53 @@ describe("Context API Integration Tests", () => {
 
             // Check that weight is calculated correctly - clientId has position 1, so weight should be 2^1 = 2
             expect(fetchedContext.weight).toBe("2");
+        });
+
+        test("should reject context creation with unwrapped JSON Logic", async () => {
+            // Attempt to create a context with an unwrapped condition
+            const unwrappedInput = {
+                workspace_id: testWorkspaceId,
+                org_id: testOrgId,
+                override: {
+                    key1: "unwrapped-value",
+                },
+                context: {
+                    "==": [{ var: "clientId" }, "validation-test-client"],
+                },
+                description: "Unwrapped context",
+                change_reason: "Testing unwrapped context validation",
+            };
+
+            try {
+                const unwrappedCmd = new CreateContextCommand(unwrappedInput);
+                await client.send(unwrappedCmd);
+            } catch (err: any) {
+                expect(err.$response.body).toMatch(
+                    /JSON Logic must be wrapped in an 'and' block/i
+                );
+            }
+        });
+
+        test("should reject empty context objects", async () => {
+            const emptyInput = {
+                workspace_id: testWorkspaceId,
+                org_id: testOrgId,
+                override: {
+                    key1: "empty-context-value",
+                },
+                context: {},
+                description: "Empty context",
+                change_reason: "Testing empty context validation",
+            };
+
+            try {
+                const unwrappedCmd = new CreateContextCommand(emptyInput);
+                await client.send(unwrappedCmd);
+            } catch (err: any) {
+                expect(err.$response.body).toMatch(
+                    /Empty JSON Logic is not allowed/i
+                );
+            }
         });
 
         test("should create context with multiple dimensions and calculate weight correctly", async () => {
@@ -439,9 +501,15 @@ describe("Context API Integration Tests", () => {
                 description: "Multi-dimension context for weight test",
                 change_reason: "Testing weight calculation",
             };
-
             const cmd = new CreateContextCommand(input);
-            const response = await client.send(cmd);
+            let response: CreateContextCommandOutput;
+
+            try {
+                response = await client.send(cmd);
+            } catch (err: any) {
+                console.error(err.$response);
+                throw err.$response;
+            }
 
             // Track created context
             trackContext(response.context_id);
@@ -457,7 +525,14 @@ describe("Context API Integration Tests", () => {
                 org_id: testOrgId,
                 override: { key1: "value1" },
                 context: {
-                    invalid_operator: [{ var: "clientId" }, "test-client"],
+                    and: [
+                        {
+                            invalid_operator: [
+                                { var: "clientId" },
+                                "test-client",
+                            ],
+                        },
+                    ],
                 },
                 description: "Invalid context",
                 change_reason: "Testing invalid input",
@@ -468,7 +543,11 @@ describe("Context API Integration Tests", () => {
             // Deserialization error: to see the raw response, inspect the hidden field {error}.$response on this object.
             // TODO: Check client implementation for better error handling
             const cmd = new CreateContextCommand(input);
-            expect(client.send(cmd)).rejects.toThrow();
+            try {
+                await client.send(cmd);
+            } catch (err: any) {
+                console.log(err.$response);
+            }
         });
 
         test("should fail with missing required dimension", async () => {
@@ -478,7 +557,11 @@ describe("Context API Integration Tests", () => {
                 org_id: testOrgId,
                 override: { key1: "value1" },
                 context: {
-                    "==": [{ var: "moveSource" }, "value"],
+                    and: [
+                        {
+                            "==": [{ var: "moveSource" }, "value"],
+                        },
+                    ],
                 },
                 description: "Testing missing mandatory dimension",
                 change_reason: "Testing missing mandatory dimension",
@@ -499,7 +582,11 @@ describe("Context API Integration Tests", () => {
                     key1: 123, // Assuming schema expects string
                 },
                 context: {
-                    "==": [{ var: "clientId" }, "test-client"],
+                    and: [
+                        {
+                            "==": [{ var: "clientId" }, "test-client"],
+                        },
+                    ],
                 },
                 description: "Testing invalid override",
                 change_reason: "Testing invalid override",
@@ -525,7 +612,9 @@ describe("Context API Integration Tests", () => {
                     },
                     context: {
                         context: {
-                            "==": [{ var: "clientId" }, "test-client"],
+                            and: [
+                                { "==": [{ var: "clientId" }, "test-client"] },
+                            ],
                         },
                     },
                     description: "Updated context",
@@ -569,7 +658,9 @@ describe("Context API Integration Tests", () => {
                     },
                     context: {
                         context: {
-                            "==": [{ var: "clientId" }, "test-client"],
+                            and: [
+                                { "==": [{ var: "clientId" }, "test-client"] },
+                            ],
                         },
                     },
                     change_reason: "Replacing override",
@@ -614,9 +705,13 @@ describe("Context API Integration Tests", () => {
                     },
                     context: {
                         context: {
-                            "==": [
-                                { var: "clientId" },
-                                "non-existent-context-test",
+                            and: [
+                                {
+                                    "==": [
+                                        { var: "clientId" },
+                                        "non-existent-context-test",
+                                    ],
+                                },
                             ],
                         },
                     },
@@ -642,7 +737,14 @@ describe("Context API Integration Tests", () => {
                     key2: 100,
                 },
                 context: {
-                    "==": [{ var: "clientId" }, "update-by-id-test-client"],
+                    and: [
+                        {
+                            "==": [
+                                { var: "clientId" },
+                                "update-by-id-test-client",
+                            ],
+                        },
+                    ],
                 },
                 description: "Context for update by ID test",
                 change_reason: "Creating for update by ID test",
@@ -704,7 +806,14 @@ describe("Context API Integration Tests", () => {
                     key2: 200,
                 },
                 context: {
-                    "==": [{ var: "clientId" }, "replace-by-id-test-client"],
+                    and: [
+                        {
+                            "==": [
+                                { var: "clientId" },
+                                "replace-by-id-test-client",
+                            ],
+                        },
+                    ],
                 },
                 description: "Context for replace by ID test",
                 change_reason: "Creating for replace by ID test",

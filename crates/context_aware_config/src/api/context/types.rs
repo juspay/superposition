@@ -120,13 +120,24 @@ mod tests {
 
     #[test]
     fn test_deserialize_context_action() {
-        let put_request = json!({
-            "context": {
-                "foo": "bar",
-                "bar": {
-                    "baz": "baz"
+        let context = json!({
+            "and": [
+                {
+                    "==": [
+                        {"var": "foo"},
+                        "bar"
+                    ]
+                },
+                {
+                    "==": [
+                        {"var": "bar"},
+                        "baz"
+                    ]
                 }
-            },
+            ]
+        });
+        let put_request = json!({
+            "context": context,
             "override": {
                 "foo": "baz"
             },
@@ -139,10 +150,7 @@ mod tests {
         })
         .to_string();
 
-        let mut expected_condition = Map::new();
-        expected_condition.insert("foo".to_string(), json!("bar"));
-        expected_condition.insert("bar".to_string(), json!({ "baz": "baz"}));
-        let context = Cac::<Condition>::try_from(expected_condition)
+        let context = Cac::<Condition>::try_from(context.as_object().unwrap().clone())
             .expect("Invalid context condition");
 
         let mut expected_override = Map::new();
