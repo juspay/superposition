@@ -245,7 +245,7 @@ impl Default for ExperimentListFilters {
             created_by: None,
             context: None,
             sort_on: None,
-            sort_by: None,
+            sort_by: Some(SortBy::Desc),
         }
     }
 }

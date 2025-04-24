@@ -48,6 +48,7 @@ export interface UpdateDimensionCommandOutput extends DimensionExt, __MetadataBe
  *   org_id: "STRING_VALUE", // required
  *   dimension: "STRING_VALUE", // required
  *   schema: "DOCUMENT_VALUE",
+ *   position: Number("int"),
  *   function_name: "STRING_VALUE",
  *   description: "STRING_VALUE",
  *   dependencies: [ // Dependencies

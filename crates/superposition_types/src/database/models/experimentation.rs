@@ -59,6 +59,13 @@ impl ExperimentStatusType {
         }
     }
 
+    pub fn concludable(&self) -> bool {
+        match self {
+            Self::INPROGRESS => true,
+            Self::CREATED | Self::CONCLUDED | Self::DISCARDED => false,
+        }
+    }
+
     pub fn discardable(&self) -> bool {
         match self {
             Self::CREATED => true,

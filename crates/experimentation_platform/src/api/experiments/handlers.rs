@@ -21,7 +21,8 @@ use service_utils::{
         construct_request_headers, execute_webhook_call, generate_snowflake_id, request,
     },
     service::types::{
-        AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
+        AppEnv, AppHeader, AppState, CustomHeaders, DbConnection, SchemaName,
+        WorkspaceContext,
     },
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
@@ -404,9 +405,9 @@ pub async fn conclude(
         Some(desc) => desc,
         None => experiment.description.clone(),
     };
-    if !experiment.status.active() {
+    if !experiment.status.concludable() {
         return Err(bad_argument!(
-            "experiment with id {} is already {}",
+            "experiment with id {} is {}, and cannot be concluded",
             experiment_id,
             experiment.status
         ));
@@ -812,7 +813,7 @@ async fn list_experiments(
     let limit = pagination_params.count.unwrap_or(10);
     let offset = (pagination_params.page.unwrap_or(1) - 1) * limit;
 
-    let sort_by = filters.sort_by.unwrap_or_default();
+    let sort_by = filters.sort_by.unwrap_or(SortBy::Desc);
     let sort_on = filters.sort_on.unwrap_or_default();
     #[rustfmt::skip]
     let base_query = match (sort_on, sort_by) {
@@ -861,6 +862,15 @@ pub fn get_experiment(
     Ok(result)
 }
 
+pub fn user_allowed_to_ramp(
+    state: &Data<AppState>,
+    experiment: &Experiment,
+    user: &User,
+) -> bool {
+    !matches!(state.app_env, AppEnv::PROD if experiment.status == ExperimentStatusType::CREATED
+        && experiment.created_by == user.get_email())
+}
+
 #[allow(clippy::too_many_arguments)]
 #[patch("/{id}/ramp")]
 async fn ramp(
@@ -881,15 +891,21 @@ async fn ramp(
         .schema_name(&workspace_request.schema_name)
         .get_result::<Experiment>(&mut conn)?;
 
-    let old_traffic_percentage = experiment.traffic_percentage;
-    let new_traffic_percentage = &req.traffic_percentage;
-    let variants_count = experiment.variants.into_inner().len() as u8;
-
     if !experiment.status.active() {
         return Err(bad_argument!(
             "experiment already concluded, cannot ramp a concluded experiment"
         ));
     }
+
+    if !user_allowed_to_ramp(&data, &experiment, &user) {
+        return Err(bad_argument!(
+            "experiment creator is not allowed to start experiment"
+        ));
+    }
+
+    let old_traffic_percentage = experiment.traffic_percentage;
+    let new_traffic_percentage = &req.traffic_percentage;
+    let variants_count = experiment.variants.into_inner().len() as u8;
 
     new_traffic_percentage
         .check_max_allowed(variants_count)

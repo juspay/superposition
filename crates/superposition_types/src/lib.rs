@@ -252,7 +252,7 @@ impl SortBy {
 
 impl Default for SortBy {
     fn default() -> Self {
-        Self::Desc
+        Self::Asc
     }
 }
 

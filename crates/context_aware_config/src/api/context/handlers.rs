@@ -329,7 +329,7 @@ async fn list_contexts(
     let base_query = get_base_query();
 
     #[rustfmt::skip]
-    let base_query = match (filter_params.sort_on.unwrap_or_default(), filter_params.sort_by.unwrap_or(SortBy::Asc)) {
+    let base_query = match (filter_params.sort_on.unwrap_or_default(), filter_params.sort_by.unwrap_or_default()) {
         (SortOn::Weight,         SortBy::Asc)  => base_query.order(weight.asc()),
         (SortOn::Weight,         SortBy::Desc) => base_query.order(weight.desc()),
         (SortOn::CreatedAt,      SortBy::Asc)  => base_query.order(created_at.asc()),

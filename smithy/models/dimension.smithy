@@ -134,6 +134,8 @@ operation UpdateDimension {
 
         $schema
 
+        $position
+
         $function_name
 
         $description
