@@ -1305,6 +1305,7 @@ export const se_UpdateDimensionCommand = async(
     'dependencies': _ => _json(_),
     'description': [],
     'function_name': [],
+    'position': [],
     'schema': _ => se_Document(_, context),
   }));
   b.m("PUT")

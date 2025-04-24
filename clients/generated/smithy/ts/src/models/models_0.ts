@@ -1120,6 +1120,7 @@ export interface UpdateDimensionInput {
   org_id: string | undefined;
   dimension: string | undefined;
   schema?: __DocumentType | undefined;
+  position?: number | undefined;
   function_name?: string | undefined;
   description?: string | undefined;
   dependencies?: (string)[] | undefined;

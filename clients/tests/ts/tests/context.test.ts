@@ -15,6 +15,7 @@ import {
     type GetContextCommandOutput,
     WeightRecomputeCommand,
     WorkspaceStatus,
+    UpdateDimensionCommand,
 } from "@io.juspay/superposition-sdk";
 import { ENV, superpositionClient } from "../env.ts";
 import { describe, beforeAll, afterAll, test, expect } from "bun:test";
@@ -202,10 +203,23 @@ describe("Context API Integration Tests", () => {
                 console.log(`Created dimension: ${dim.dimension}`);
             } catch (e: any) {
                 // If dimension already exists, just log and continue
-                if (e.message && e.message.includes("already exists")) {
+                if (e.message && e.message.includes("duplicate key")) {
                     console.log(
-                        `Dimension ${dim.dimension} already exists, skipping creation`
+                        `Dimension ${dim.dimension} already exists, updating dimension`
                     );
+                    const cmd = new UpdateDimensionCommand({
+                        workspace_id: testWorkspaceId,
+                        org_id: testOrgId,
+                        dimension: dim.dimension,
+                        schema: dim.schema,
+                        position: dim.position,
+                        description: dim.description,
+                        change_reason: `Update ${dim.dimension} dimension for tests`,
+                    });
+
+                    await client.send(cmd);
+                    // Track created dimension
+                    createdDimensions.push(dim.dimension);
                 } else {
                     console.error(
                         `Failed to create dimension ${dim.dimension}:`,

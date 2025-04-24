@@ -324,15 +324,21 @@ pub fn experiment_list() -> impl IntoView {
     // acquire tenant
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
-    let filters_rws = create_rw_signal(ExperimentListFilters::default());
     let (reset_exp_form, set_exp_form) = create_signal(0);
+    let filters_rws = use_signal_from_query(move |query_string| {
+        Query::<ExperimentListFilters>::extract_query(&query_string)
+            .map(|q| q.into_inner())
+            .unwrap_or_default()
+    });
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_query(&query_string)
             .map(|q| q.into_inner())
             .unwrap_or_default()
     });
 
-    use_param_updater(move || box_params!(pagination_params_rws.get()));
+    use_param_updater(move || {
+        box_params!(pagination_params_rws.get(), filters_rws.get())
+    });
 
     let combined_resource = create_blocking_resource(
         move || {
