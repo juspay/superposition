@@ -3,6 +3,4 @@ ALTER TABLE public.dimensions
 ALTER COLUMN priority SET DEFAULT 1;
 
 ALTER TABLE public.dimensions
-ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY IMMEDIATE;
-
-SET CONSTRAINTS dimension_unique_position DEFERRED;
+ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED;

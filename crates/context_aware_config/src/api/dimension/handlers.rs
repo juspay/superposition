@@ -357,15 +357,18 @@ async fn delete_dimension(
                 .returning(Dimension::as_returning())
                 .schema_name(&schema_name)
                 .execute(transaction_conn)?;
+
+            let deleted_row = delete(dsl::dimensions.filter(dsl::dimension.eq(&name)))
+                .schema_name(&schema_name)
+                .execute(transaction_conn);
+
             diesel::update(dimensions::dsl::dimensions)
                 .filter(dimensions::position.gt(dimension_data.position))
                 .set(dimensions::position.eq(dimensions::position - 1))
                 .returning(Dimension::as_returning())
                 .schema_name(&schema_name)
                 .execute(transaction_conn)?;
-            let deleted_row = delete(dsl::dimensions.filter(dsl::dimension.eq(&name)))
-                .schema_name(&schema_name)
-                .execute(transaction_conn);
+
             match deleted_row {
                 Ok(0) => Err(not_found!("Dimension `{}` doesn't exists", name)),
                 Ok(_) => Ok(HttpResponse::NoContent().finish()),
