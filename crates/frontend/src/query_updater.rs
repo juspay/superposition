@@ -3,9 +3,12 @@ use std::fmt::Display;
 use leptos::*;
 use leptos_router::{use_location, use_navigate, use_query_map};
 
+use crate::utils::use_service_prefix;
+
 pub fn use_param_updater(source: impl Fn() -> Vec<Box<dyn Display>> + 'static) {
     let navigate = use_navigate();
     let location = use_location();
+    let service_prefix = use_service_prefix();
 
     Effect::new(move |_| {
         let desired_query_parts = source()
@@ -23,7 +26,10 @@ pub fn use_param_updater(source: impl Fn() -> Vec<Box<dyn Display>> + 'static) {
         let current_query_string = location.query.with_untracked(|q| q.to_query_string());
         if current_query_string != query_string {
             let path = location.pathname.get_untracked();
-            let new_url = format!("{path}{query_string}");
+            let prefix_stripped_path = path
+                .strip_prefix(&format!("/{service_prefix}"))
+                .map_or(path.clone(), String::from);
+            let new_url = format!("{prefix_stripped_path}{query_string}");
 
             navigate(&new_url, Default::default());
         }
