@@ -1,10 +1,10 @@
-use std::{collections::HashMap, fmt::Display};
+use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
-use core::fmt;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use strum_macros::Display;
+use superposition_derives::DisplayQuery;
 
 use crate::{
     custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams},
@@ -184,7 +184,7 @@ impl Default for ExperimentSortOn {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, DisplayQuery)]
 pub struct ExperimentListFilters {
     pub status: Option<CommaSeparatedQParams<ExperimentStatusType>>,
     pub from_date: Option<DateTime<Utc>>,
@@ -195,42 +195,6 @@ pub struct ExperimentListFilters {
     pub context: Option<CommaSeparatedStringQParams>,
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
-}
-
-impl Display for ExperimentListFilters {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut query_params = vec![];
-        if let Some(status) = &self.status {
-            let status: Vec<String> =
-                status.0.iter().map(|val| val.to_string()).collect();
-            query_params.push(format!("status={}", status.join(",")));
-        }
-        if let Some(from_date) = self.from_date {
-            query_params.push(format!("from_date={}", from_date));
-        }
-        if let Some(to_date) = self.to_date {
-            query_params.push(format!("to_date={}", to_date));
-        }
-        if let Some(experiment_name) = &self.experiment_name {
-            query_params.push(format!("experiment_name={}", experiment_name));
-        }
-        if let Some(experiment_ids) = &self.experiment_ids {
-            query_params.push(format!("experiment_ids={}", experiment_ids));
-        }
-        if let Some(created_by) = &self.created_by {
-            query_params.push(format!("created_by={}", created_by));
-        }
-        if let Some(context) = &self.context {
-            query_params.push(format!("context={}", context));
-        }
-        if let Some(sort_on) = self.sort_on {
-            query_params.push(format!("sort_on={}", sort_on));
-        }
-        if let Some(sort_by) = &self.sort_by {
-            query_params.push(format!("sort_by={}", sort_by));
-        }
-        write!(f, "{}", query_params.join("&"))
-    }
 }
 
 impl Default for ExperimentListFilters {

@@ -25,7 +25,7 @@ serde_json = { workspace = true }
 serde_urlencoded = { version = "0.7.1" }
 strum = { workspace = true }
 strum_macros = { workspace = true }
-superposition_derives = { path = "../superposition_derives", optional = true }
+superposition_derives = { path = "../superposition_derives" }
 thiserror = { version = "1.0.57", optional = true }
 uuid = { workspace = true }
 
@@ -33,7 +33,7 @@ uuid = { workspace = true }
 default = ["server"]
 diesel_derives = [
     "dep:diesel",
-    "dep:superposition_derives",
+    "superposition_derives/diesel_derives",
     "dep:diesel-derive-enum",
     "dep:base64",
 ]

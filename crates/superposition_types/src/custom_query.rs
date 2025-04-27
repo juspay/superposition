@@ -1,6 +1,5 @@
 use std::{collections::HashMap, fmt::Display, str::FromStr};
 
-use core::fmt;
 use derive_more::{Deref, DerefMut};
 use regex::Regex;
 use serde::{
@@ -10,6 +9,7 @@ use serde::{
 use serde_json::{Map, Value};
 #[cfg(feature = "experimentation")]
 use strum::IntoEnumIterator;
+use superposition_derives::DisplayQuery;
 
 #[cfg(feature = "experimentation")]
 use crate::database::models::experimentation::ExperimentStatusType;
@@ -189,7 +189,7 @@ impl From<Map<String, Value>> for DimensionQuery<QueryMap> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, DisplayQuery)]
 pub struct PaginationParams {
     pub count: Option<i64>,
     pub page: Option<i64>,
@@ -213,26 +213,6 @@ impl Default for PaginationParams {
             page: Some(1),
             all: None,
         }
-    }
-}
-
-impl Display for PaginationParams {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut parts = vec![];
-
-        if let Some(page) = self.page {
-            parts.push(format!("page={}", page));
-        }
-
-        if let Some(count) = self.count {
-            parts.push(format!("count={}", count));
-        }
-
-        if let Some(all) = self.all {
-            parts.push(format!("all={}", all));
-        }
-
-        write!(f, "{}", parts.join("&"))
     }
 }
 
