@@ -1,10 +1,12 @@
 extern crate proc_macro;
+
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{parse_macro_input, Data, DeriveInput, Fields, Type};
 
 /// Implements `FromSql` trait for converting `Json` type to the type for `Pg` backend
 ///
+#[cfg(feature = "diesel_derives")]
 #[proc_macro_derive(JsonFromSql)]
 pub fn json_from_sql_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -24,6 +26,7 @@ pub fn json_from_sql_derive(input: TokenStream) -> TokenStream {
 
 /// Implements `ToSql` trait for converting the typed data to `Json` type for `Pg` backend
 ///
+#[cfg(feature = "diesel_derives")]
 #[proc_macro_derive(JsonToSql)]
 pub fn json_to_sql_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -49,6 +52,7 @@ pub fn json_to_sql_derive(input: TokenStream) -> TokenStream {
 
 /// Implements `FromSql` trait for converting `Text` type to the type for `Pg` backend
 ///
+#[cfg(feature = "diesel_derives")]
 #[proc_macro_derive(TextFromSql)]
 pub fn text_from_sql_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -66,6 +70,7 @@ pub fn text_from_sql_derive(input: TokenStream) -> TokenStream {
 
 /// Implements `ToSql` trait for converting the typed data to `Json` type for `Pg` backend
 ///
+#[cfg(feature = "diesel_derives")]
 #[proc_macro_derive(TextToSql)]
 pub fn text_to_sql_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -90,6 +95,7 @@ pub fn text_to_sql_derive(input: TokenStream) -> TokenStream {
 
 /// Implements `FromSql` trait for converting `Text` type to the type for `Pg` backend without running validations on it
 ///
+#[cfg(feature = "diesel_derives")]
 #[proc_macro_derive(TextFromSqlNoValidation)]
 pub fn text_from_sql_derive_no_validation(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -103,4 +109,76 @@ pub fn text_from_sql_derive_no_validation(input: TokenStream) -> TokenStream {
             }
         }
     }.into()
+}
+
+/// Implements `Display` trait for the struct, allowing it to be used as a query string
+///
+#[proc_macro_derive(DisplayQuery)]
+pub fn derive_display_query(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let struct_name = input.ident;
+
+    let fields = match input.data {
+        Data::Struct(data) => match data.fields {
+            Fields::Named(fields) => fields.named,
+            _ => {
+                return syn::Error::new_spanned(
+                    struct_name,
+                    "DisplayQuery can only be derived for structs with named fields",
+                )
+                .to_compile_error()
+                .into();
+            }
+        },
+        _ => {
+            return syn::Error::new_spanned(
+                struct_name,
+                "DisplayQuery can only be derived for structs",
+            )
+            .to_compile_error()
+            .into();
+        }
+    };
+
+    let mut pushes = Vec::new();
+
+    for field in fields {
+        let field_name = field.ident.unwrap();
+        let field_str = field_name.to_string();
+
+        // check if the type is Option<_>
+        let is_option = match &field.ty {
+            Type::Path(type_path) => type_path
+                .path
+                .segments
+                .first()
+                .map_or(false, |seg| seg.ident == "Option"),
+            _ => false,
+        };
+
+        if is_option {
+            pushes.push(quote! {
+                if let Some(value) = &self.#field_name {
+                    query_params.push(format!("{}={}", #field_str, value));
+                }
+            });
+        } else {
+            pushes.push(quote! {
+                query_params.push(format!("{}={}", #field_str, self.#field_name));
+            });
+        }
+    }
+
+    let expanded = quote! {
+        impl std::fmt::Display for #struct_name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                let mut query_params = Vec::new();
+                #(#pushes)*
+
+                write!(f, "{}", query_params.join("&"))
+            }
+        }
+    };
+
+    TokenStream::from(expanded)
 }
