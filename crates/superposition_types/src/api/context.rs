@@ -1,8 +1,9 @@
 use std::fmt::{self, Display};
 
 use serde::Deserialize;
+use superposition_derives::IsEmpty;
 
-use crate::{custom_query::CommaSeparatedStringQParams, SortBy};
+use crate::{custom_query::CommaSeparatedStringQParams, IsEmpty, SortBy};
 
 #[derive(
     Deserialize, PartialEq, Clone, strum_macros::EnumIter, strum_macros::Display,
@@ -31,7 +32,7 @@ impl Default for SortOn {
     }
 }
 
-#[derive(Deserialize, PartialEq, Default, Clone)]
+#[derive(Deserialize, PartialEq, Default, Clone, IsEmpty)]
 pub struct ContextListFilters {
     pub prefix: Option<CommaSeparatedStringQParams>,
     pub sort_on: Option<SortOn>,
