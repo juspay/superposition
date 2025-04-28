@@ -236,11 +236,10 @@ impl Display for ExperimentListFilters {
 
 impl Default for ExperimentListFilters {
     fn default() -> Self {
-        let now = Utc::now();
         Self {
             status: None,
-            from_date: Some(now - chrono::Duration::days(30)),
-            to_date: Some(now),
+            from_date: None,
+            to_date: None,
             experiment_name: None,
             experiment_ids: None,
             created_by: None,

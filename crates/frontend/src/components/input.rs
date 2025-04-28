@@ -487,6 +487,7 @@ pub fn date_input(
     class: String,
     name: String,
     on_change: Callback<DateTime<Utc>, ()>,
+    #[prop(default = Callback::new(|_| {}))] on_clear: Callback<(), ()>,
     #[prop(into, default = Utc::now().format("%Y-%m-%d").to_string())] value: String,
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] required: bool,
@@ -508,6 +509,11 @@ pub fn date_input(
                 max=max
                 value=value
                 on:change=move |e| {
+                    let new_value = event_target_value(&e);
+                    if new_value.is_empty() {
+                        on_clear.call(());
+                        return;
+                    }
                     let date = format!("{}T00:00:00Z", event_target_value(&e));
                     logging::log!("The date selected is: {}", date);
                     match DateTime::parse_from_rfc3339(&date) {
@@ -518,11 +524,11 @@ pub fn date_input(
                         Err(e) => {
                             logging::log!("error occurred: {:?}", e);
                             error_ws.set(e.to_string());
-                        },
+                        }
                     }
                 }
             />
-            <Show when=move || !error_rs.get().is_empty() >
+            <Show when=move || !error_rs.get().is_empty()>
                 <span class="flex gap-2 px-4 text-xs font-semibold text-red-600">
                     <i class="ri-close-circle-line"></i>
                     {move || error_rs.get()}

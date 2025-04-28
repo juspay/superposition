@@ -2,7 +2,7 @@ pub mod utils;
 
 use std::collections::HashSet;
 
-use chrono::{prelude::Utc, DateTime};
+use chrono::{prelude::Utc, DateTime, Days, Duration};
 use futures::join;
 use leptos::*;
 use serde::{Deserialize, Serialize};
@@ -77,21 +77,19 @@ fn experiment_table_filter_widget(
 
     let status_filter_management =
         move |checked: bool, filter_status: ExperimentStatusType| {
-            let status_types = filters_buffer_rws.get().status.unwrap_or_default();
-            let mut old_status_vector: HashSet<ExperimentStatusType> =
-                HashSet::from_iter(status_types.0);
+            filters_buffer_rws.update(|f| {
+                let status_types = f.status.clone().unwrap_or_default();
+                let mut old_status_vector: HashSet<ExperimentStatusType> =
+                    HashSet::from_iter(status_types.0);
 
-            if checked {
-                old_status_vector.insert(filter_status);
-            } else {
-                old_status_vector.remove(&filter_status);
-            }
-            let new_status_vector = old_status_vector.into_iter().collect();
-            let filters = ExperimentListFilters {
-                status: Some(CommaSeparatedQParams(new_status_vector)),
-                ..filters_buffer_rws.get()
-            };
-            filters_buffer_rws.set(filters)
+                if checked {
+                    old_status_vector.insert(filter_status);
+                } else {
+                    old_status_vector.remove(&filter_status);
+                }
+                let new_status_vector = old_status_vector.into_iter().collect();
+                f.status = Some(CommaSeparatedQParams(new_status_vector))
+            })
         };
     view! {
         <DrawerBtn drawer_id="experiment_filter_drawer".into() style=DrawerButtonStyle::Outline>
@@ -111,18 +109,16 @@ fn experiment_table_filter_widget(
                         context
                         dropdown_direction=DropdownDirection::Down
                         handle_change=move |context: Conditions| {
-                            let current_filters = filters_buffer_rws.get();
                             filters_buffer_rws
-                                .set(ExperimentListFilters {
-                                    context: Some(
+                                .update(|f| {
+                                    f.context = Some(
                                         CommaSeparatedQParams(
                                             context
                                                 .iter()
                                                 .map(|v| v.to_condition_json().to_string())
                                                 .collect::<Vec<_>>(),
                                         ),
-                                    ),
-                                    ..current_filters
+                                    );
                                 });
                         }
                         heading_sub_text=String::from("Search By Context")
@@ -145,12 +141,10 @@ fn experiment_table_filter_widget(
                                 .map(|s| s.format("%Y-%m-%d").to_string())
                                 .unwrap_or_default()
                             on_change=Callback::new(move |new_date: DateTime<Utc>| {
-                                let old_filters = filters_buffer_rws.get();
-                                let new_filters = ExperimentListFilters {
-                                    from_date: Some(new_date),
-                                    ..old_filters
-                                };
-                                filters_buffer_rws.set(new_filters);
+                                filters_buffer_rws.update(|f| f.from_date = Some(new_date));
+                            })
+                            on_clear=Callback::new(move |_| {
+                                filters_buffer_rws.update(|f| f.from_date = None);
                             })
                         />
                     </div>
@@ -163,13 +157,21 @@ fn experiment_table_filter_widget(
                             id="experiment_to_date_input".into()
                             class="w-[19rem] flex-auto mt-3 mr-3".into()
                             name="experiment_to_date".into()
+                            value=filters
+                                .to_date
+                                .unwrap_or(Utc::now())
+                                .format("%Y-%m-%d")
+                                .to_string()
                             on_change=Callback::new(move |new_date: DateTime<Utc>| {
-                                let old_filters = filters_buffer_rws.get();
-                                let new_filters = ExperimentListFilters {
-                                    to_date: Some(new_date),
-                                    ..old_filters
-                                };
-                                filters_buffer_rws.set(new_filters);
+                                filters_buffer_rws
+                                    .update(|f| {
+                                        f.to_date = Some(
+                                            new_date + Days::new(1) - Duration::seconds(1),
+                                        );
+                                    });
+                            })
+                            on_clear=Callback::new(move |_| {
+                                filters_buffer_rws.update(|f| f.to_date = None);
                             })
                         />
                     </div>
@@ -228,7 +230,7 @@ fn experiment_table_filter_widget(
                             id="experiment-name-filter"
                             placeholder="eg: city experiment"
                             class="input input-bordered rounded-md resize-y w-full max-w-md"
-                            value=move || filters_rws.get().experiment_name
+                            value=move || filters_buffer_rws.get().experiment_name
                             on:change=move |event| {
                                 let experiment_name = event_target_value(&event);
                                 let experiment_name = if experiment_name.is_empty() {
@@ -236,12 +238,7 @@ fn experiment_table_filter_widget(
                                 } else {
                                     Some(experiment_name)
                                 };
-                                let filters = filters_buffer_rws.get();
-                                let filters = ExperimentListFilters {
-                                    experiment_name,
-                                    ..filters
-                                };
-                                filters_buffer_rws.set(filters);
+                                filters_buffer_rws.update(|f| f.experiment_name = experiment_name);
                             }
                         />
                     </div>
@@ -253,17 +250,16 @@ fn experiment_table_filter_widget(
                             type="text"
                             id="experiment-id-filter"
                             class="input input-bordered rounded-md resize-y w-full max-w-md"
-                            value=move || filters_rws.get().experiment_ids.map(|d| d.to_string())
+                            value=move || {
+                                filters_buffer_rws.get().experiment_ids.map(|d| d.to_string())
+                            }
                             placeholder="eg: 7259558160762015744"
                             on:change=move |event| {
                                 let ids = event_target_value(&event);
                                 let ids = (!ids.is_empty())
                                     .then(|| serde_json::from_value(Value::String(ids)).ok())
                                     .flatten();
-                                filters_buffer_rws
-                                    .update(|filter| {
-                                        filter.experiment_ids = ids;
-                                    });
+                                filters_buffer_rws.update(|filter| filter.experiment_ids = ids);
                             }
                         />
                     </div>
@@ -276,16 +272,13 @@ fn experiment_table_filter_widget(
                             id="experiment-user-filter"
                             class="input input-bordered rounded-md resize-y w-full max-w-md"
                             placeholder="eg: user@superposition.io"
-                            value=move || filters_rws.get().created_by.map(|d| d.to_string())
+                            value=move || filters_buffer_rws.get().created_by.map(|d| d.to_string())
                             on:change=move |event| {
                                 let user_names = event_target_value(&event);
                                 let user_names = (!user_names.is_empty())
                                     .then(|| serde_json::from_value(Value::String(user_names)).ok())
                                     .flatten();
-                                filters_buffer_rws
-                                    .update(|filter| {
-                                        filter.created_by = user_names;
-                                    });
+                                filters_buffer_rws.update(|filter| filter.created_by = user_names);
                             }
                         />
 
