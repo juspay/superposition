@@ -800,13 +800,14 @@ async fn list_experiments(
                 .collect();
             builder = builder.filter(experiments::id.eq_any(experiment_ids));
         }
-        let now = Utc::now();
+        if let Some(from_data) = filters.from_date {
+            builder = builder.filter(experiments::last_modified.ge(from_data));
+        }
+        if let Some(to_date) = filters.to_date {
+            builder = builder.filter(experiments::last_modified.le(to_date));
+        }
+
         builder
-            .filter(
-                experiments::last_modified
-                    .ge(filters.from_date.unwrap_or(now - Duration::hours(24))),
-            )
-            .filter(experiments::last_modified.le(filters.to_date.unwrap_or(now)))
     };
     let filters = filters.into_inner();
     let base_query = query_builder(&filters);
@@ -828,16 +829,14 @@ async fn list_experiments(
     let query = base_query.limit(limit).offset(offset);
     let experiment_list = query.load::<Experiment>(&mut conn)?;
     let total_pages = (number_of_experiments as f64 / limit as f64).ceil() as i64;
-    Ok(
-        HttpResponse::Ok().json(PaginatedResponse::<ExperimentResponse> {
-            total_pages,
-            total_items: number_of_experiments,
-            data: experiment_list
-                .into_iter()
-                .map(ExperimentResponse::from)
-                .collect(),
-        }),
-    )
+    Ok(HttpResponse::Ok().json(PaginatedResponse {
+        total_pages,
+        total_items: number_of_experiments,
+        data: experiment_list
+            .into_iter()
+            .map(ExperimentResponse::from)
+            .collect(),
+    }))
 }
 
 #[get("/{id}")]
