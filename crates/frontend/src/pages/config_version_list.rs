@@ -25,7 +25,9 @@ pub fn config_version_list() -> impl IntoView {
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
 
     let pagination_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
+        Query::<PaginationParams>::extract_query(&query_string)
+            .map(|q| q.into_inner())
+            .unwrap_or_default()
     });
 
     use_param_updater(move || box_params!(pagination_params_rws.get()));

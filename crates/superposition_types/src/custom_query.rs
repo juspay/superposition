@@ -10,11 +10,9 @@ use serde::{
 use serde_json::{Map, Value};
 #[cfg(feature = "experimentation")]
 use strum::IntoEnumIterator;
-use superposition_derives::IsEmpty;
 
 #[cfg(feature = "experimentation")]
 use crate::database::models::experimentation::ExperimentStatusType;
-use crate::IsEmpty;
 
 pub trait CustomQuery: Sized {
     type Inner: DeserializeOwned;
@@ -55,19 +53,6 @@ pub trait CustomQuery: Sized {
             .captures(key)
             .and_then(|captures| captures.name(Self::capture_group()))
             .map(|m| m.as_str().to_owned())
-    }
-
-    fn extract_non_empty(query_string: &str) -> Self
-    where
-        Self::Inner: Default + IsEmpty,
-    {
-        let res = Self::extract_query(query_string)
-            .ok()
-            .map(|value| value.into_inner())
-            .filter(|value| !value.is_empty())
-            .unwrap_or_default();
-
-        Self::new(res)
     }
 
     fn new(inner: Self::Inner) -> Self;
@@ -174,12 +159,6 @@ where
 #[serde(from = "HashMap<String,String>")]
 pub struct QueryMap(Map<String, Value>);
 
-impl IsEmpty for QueryMap {
-    fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-}
-
 impl From<HashMap<String, String>> for QueryMap {
     fn from(value: HashMap<String, String>) -> Self {
         let value = value
@@ -210,13 +189,7 @@ impl From<Map<String, Value>> for DimensionQuery<QueryMap> {
     }
 }
 
-impl Default for DimensionQuery<QueryMap> {
-    fn default() -> Self {
-        Self::from(Map::new())
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, IsEmpty)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PaginationParams {
     pub count: Option<i64>,
     pub page: Option<i64>,

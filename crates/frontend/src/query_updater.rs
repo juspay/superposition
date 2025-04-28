@@ -1,37 +1,26 @@
 use std::fmt::Display;
 
 use leptos::*;
-use leptos_router::{use_location, use_navigate, use_query_map, NavigateOptions};
+use leptos_router::{use_location, use_navigate, use_query_map};
 
 use crate::utils::use_service_prefix;
 
-pub trait DisplayDefault: Display {
-    fn default(&self) -> String;
-}
-
-impl<T: Display + Default> DisplayDefault for T {
-    fn default(&self) -> String {
-        T::default().to_string()
-    }
-}
-
-pub fn use_param_updater(source: impl Fn() -> Vec<Box<dyn DisplayDefault>> + 'static) {
+pub fn use_param_updater(source: impl Fn() -> Vec<Box<dyn Display>> + 'static) {
     let navigate = use_navigate();
     let location = use_location();
     let service_prefix = use_service_prefix();
 
     Effect::new(move |_| {
-        let desired_query = source()
+        let desired_query_parts = source()
             .into_iter()
             .map(|s| s.to_string())
             .filter(|s| !s.is_empty())
-            .collect::<Vec<_>>()
-            .join("&");
+            .collect::<Vec<_>>();
 
-        let query_string = if desired_query.is_empty() {
+        let query_string = if desired_query_parts.is_empty() {
             String::new()
         } else {
-            format!("?{}", desired_query)
+            format!("?{}", desired_query_parts.join("&"))
         };
 
         let current_query_string = location.query.with_untracked(|q| q.to_query_string());
@@ -42,23 +31,7 @@ pub fn use_param_updater(source: impl Fn() -> Vec<Box<dyn DisplayDefault>> + 'st
                 .map_or(path.clone(), String::from);
             let new_url = format!("{prefix_stripped_path}{query_string}");
 
-            let default_query = source()
-                .into_iter()
-                .map(|s| s.default())
-                .filter(|s| !s.is_empty())
-                .collect::<Vec<_>>()
-                .join("&");
-
-            let replace =
-                default_query == desired_query && current_query_string.is_empty();
-
-            navigate(
-                &new_url,
-                NavigateOptions {
-                    replace,
-                    ..NavigateOptions::default()
-                },
-            );
+            navigate(&new_url, Default::default());
         }
     });
 }

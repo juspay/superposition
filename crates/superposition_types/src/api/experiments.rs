@@ -5,7 +5,6 @@ use core::fmt;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use strum_macros::Display;
-use superposition_derives::IsEmpty;
 
 use crate::{
     custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams},
@@ -15,7 +14,7 @@ use crate::{
         },
         ChangeReason, Description,
     },
-    Condition, Exp, IsEmpty, Overrides, SortBy,
+    Condition, Exp, Overrides, SortBy,
 };
 
 /********** Experiment Response Type **************/
@@ -185,7 +184,7 @@ impl Default for ExperimentSortOn {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, IsEmpty)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 pub struct ExperimentListFilters {
     pub status: Option<CommaSeparatedQParams<ExperimentStatusType>>,
     pub from_date: Option<DateTime<Utc>>,

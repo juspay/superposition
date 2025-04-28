@@ -1,12 +1,10 @@
 extern crate proc_macro;
-
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Data, DeriveInput, Fields, Type};
+use syn::{parse_macro_input, DeriveInput};
 
 /// Implements `FromSql` trait for converting `Json` type to the type for `Pg` backend
 ///
-#[cfg(feature = "diesel_derives")]
 #[proc_macro_derive(JsonFromSql)]
 pub fn json_from_sql_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -26,7 +24,6 @@ pub fn json_from_sql_derive(input: TokenStream) -> TokenStream {
 
 /// Implements `ToSql` trait for converting the typed data to `Json` type for `Pg` backend
 ///
-#[cfg(feature = "diesel_derives")]
 #[proc_macro_derive(JsonToSql)]
 pub fn json_to_sql_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -52,7 +49,6 @@ pub fn json_to_sql_derive(input: TokenStream) -> TokenStream {
 
 /// Implements `FromSql` trait for converting `Text` type to the type for `Pg` backend
 ///
-#[cfg(feature = "diesel_derives")]
 #[proc_macro_derive(TextFromSql)]
 pub fn text_from_sql_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -70,7 +66,6 @@ pub fn text_from_sql_derive(input: TokenStream) -> TokenStream {
 
 /// Implements `ToSql` trait for converting the typed data to `Json` type for `Pg` backend
 ///
-#[cfg(feature = "diesel_derives")]
 #[proc_macro_derive(TextToSql)]
 pub fn text_to_sql_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -95,7 +90,6 @@ pub fn text_to_sql_derive(input: TokenStream) -> TokenStream {
 
 /// Implements `FromSql` trait for converting `Text` type to the type for `Pg` backend without running validations on it
 ///
-#[cfg(feature = "diesel_derives")]
 #[proc_macro_derive(TextFromSqlNoValidation)]
 pub fn text_from_sql_derive_no_validation(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -109,90 +103,4 @@ pub fn text_from_sql_derive_no_validation(input: TokenStream) -> TokenStream {
             }
         }
     }.into()
-}
-
-/// Implements `IsEmpty` trait for structs
-///
-/// This trait is used to check if a struct is empty based on its fields.
-/// If a struct has any non-Option fields, it is considered non-empty.
-/// If all fields are Option types, it is considered empty if all Options are None.
-/// The macro generates an implementation of the `IsEmpty` trait for the struct.
-/// The macro checks the fields of the struct and generates the appropriate implementation.
-/// The macro can only be used on structs with named fields.
-/// If the struct has no fields or has unnamed fields, an error is returned.
-///
-#[proc_macro_derive(IsEmpty)]
-pub fn derive_is_empty(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    let struct_name = input.ident;
-
-    let fields = if let Data::Struct(data) = input.data {
-        match data.fields {
-            Fields::Named(fields) => fields.named,
-            Fields::Unnamed(_) | Fields::Unit => {
-                return syn::Error::new_spanned(
-                    struct_name,
-                    "IsEmpty can only be derived for structs with named fields",
-                )
-                .to_compile_error()
-                .into()
-            }
-        }
-    } else {
-        return syn::Error::new_spanned(
-            struct_name,
-            "IsEmpty can only be derived for structs",
-        )
-        .to_compile_error()
-        .into();
-    };
-
-    let mut checks = Vec::new();
-    let mut has_mandatory = false;
-
-    for field in fields {
-        let field_name = field.ident.unwrap();
-        let ty = field.ty;
-
-        if let Type::Path(type_path) = &ty {
-            if type_path
-                .path
-                .segments
-                .first()
-                .map_or(false, |seg| seg.ident == "Option")
-            {
-                checks.push(quote! {
-                    if self.#field_name.is_some() {
-                        return false;
-                    }
-                });
-                continue;
-            }
-        }
-
-        has_mandatory = true;
-        break;
-    }
-
-    let expanded = if has_mandatory {
-        quote! {
-            impl IsEmpty for #struct_name {
-                fn is_empty(&self) -> bool {
-                    false
-                }
-            }
-        }
-    } else {
-        quote! {
-            impl IsEmpty for #struct_name {
-                fn is_empty(&self) -> bool {
-                    #(#checks)*
-
-                    true
-                }
-            }
-        }
-    };
-
-    TokenStream::from(expanded)
 }
