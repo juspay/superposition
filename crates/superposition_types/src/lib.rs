@@ -30,6 +30,10 @@ pub use crate::config::{Condition, Config, Context, Overrides};
 pub use crate::contextual::Contextual;
 pub use crate::overridden::Overridden;
 
+pub trait IsEmpty {
+    fn is_empty(&self) -> bool;
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub email: String,

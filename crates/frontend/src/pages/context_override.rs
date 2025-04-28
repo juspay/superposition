@@ -221,7 +221,7 @@ fn context_filter_drawer(
                         on_click=move |event| {
                             event.prevent_default();
                             context_filters_rws.set(ContextListFilters::default());
-                            dimension_params_rws.set(DimensionQuery::from(Map::new()));
+                            dimension_params_rws.set(DimensionQuery::default());
                             pagination_params_rws.update(|f| f.page = None);
                             close_drawer("context_filter_drawer")
                         }
@@ -386,18 +386,13 @@ pub fn context_override() -> impl IntoView {
     let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
 
     let pagination_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PaginationParams>::extract_query(&query_string)
-            .map(|q| q.into_inner())
-            .unwrap_or_default()
+        Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
     let context_filters_rws = use_signal_from_query(move |query_string| {
-        Query::<ContextListFilters>::extract_query(&query_string)
-            .map(|q| q.into_inner())
-            .unwrap_or_default()
+        Query::<ContextListFilters>::extract_non_empty(&query_string).into_inner()
     });
     let dimension_params_rws = use_signal_from_query(move |query_string| {
-        DimensionQuery::<QueryMap>::extract_query(&query_string)
-            .unwrap_or(DimensionQuery::from(Map::new()))
+        DimensionQuery::<QueryMap>::extract_non_empty(&query_string)
     });
 
     use_param_updater(move || {
@@ -479,7 +474,7 @@ pub fn context_override() -> impl IntoView {
         close_drawer("context_and_override_drawer");
         if !edit {
             context_filters_rws.set(ContextListFilters::default());
-            dimension_params_rws.set(DimensionQuery::from(Map::new()));
+            dimension_params_rws.set(DimensionQuery::default());
             pagination_params_rws.update(|f| f.page = None);
         }
         set_form_mode.set(None);
