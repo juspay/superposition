@@ -231,6 +231,14 @@ impl PaginationParams {
             all: Some(true),
         }
     }
+
+    pub fn reset_page(&mut self) {
+        self.page = if let Some(true) = self.all {
+            None
+        } else {
+            Some(1)
+        };
+    }
 }
 
 impl Default for PaginationParams {
