@@ -210,7 +210,7 @@ fn context_filter_drawer(
                             event.prevent_default();
                             context_filters_rws.set(filters_buffer_rws.get());
                             dimension_params_rws.set(dimension_buffer_rws.get());
-                            pagination_params_rws.update(|f| f.page = None);
+                            pagination_params_rws.update(|f| f.reset_page());
                             close_drawer("context_filter_drawer")
                         }
                     />
@@ -222,7 +222,7 @@ fn context_filter_drawer(
                             event.prevent_default();
                             context_filters_rws.set(ContextListFilters::default());
                             dimension_params_rws.set(DimensionQuery::default());
-                            pagination_params_rws.update(|f| f.page = None);
+                            pagination_params_rws.update(|f| f.reset_page());
                             close_drawer("context_filter_drawer")
                         }
                     />
@@ -475,7 +475,7 @@ pub fn context_override() -> impl IntoView {
         if !edit {
             context_filters_rws.set(ContextListFilters::default());
             dimension_params_rws.set(DimensionQuery::default());
-            pagination_params_rws.update(|f| f.page = None);
+            pagination_params_rws.update(|f| f.reset_page());
         }
         set_form_mode.set(None);
         selected_context_ws.set(None);

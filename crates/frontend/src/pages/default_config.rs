@@ -3,7 +3,6 @@ use std::collections::HashSet;
 use leptos::*;
 use leptos_router::{use_navigate, use_query_map};
 use serde_json::{json, Map, Value};
-use superposition_macros::box_params;
 use superposition_types::{
     api::default_config::DefaultConfigFilters,
     custom_query::{CustomQuery, PaginationParams, Query},
@@ -26,7 +25,7 @@ use crate::components::{
     },
 };
 use crate::providers::alert_provider::enqueue_alert;
-use crate::query_updater::{use_param_updater, use_signal_from_query};
+use crate::query_updater::use_signal_from_query;
 use crate::types::{BreadCrums, OrganisationId, Tenant};
 use crate::utils::{
     get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
@@ -52,7 +51,7 @@ pub fn default_config() -> impl IntoView {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
 
-    use_param_updater(move || box_params!(pagination_params_rws.get()));
+    // use_param_updater(move || box_params!(pagination_params_rws.get()));
 
     let default_config_resource = create_blocking_resource(
         move || {

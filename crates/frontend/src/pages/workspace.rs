@@ -191,7 +191,7 @@ pub fn workspace() -> impl IntoView {
                                 <WorkspaceForm
                                     org_id=org_id
                                     handle_submit=move |_| {
-                                        pagination_params_rws.update(|f| f.page = None);
+                                        pagination_params_rws.update(|f| f.reset_page());
                                         workspace_resource.refetch();
                                         selected_workspace.set(None);
                                         close_drawer("workspace_drawer");
