@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.17.1 - 2025-04-29
+#### Bug Fixes
+- Page reset issue in frontend (#491) - (b9a0659) - Ayush Jain
+- Empty check for keys of struct - (8d3b709) - ayush.jain@juspay.in
+
+- - -
+
 ## superposition_types-v0.17.0 - 2025-04-24
 #### Bug Fixes
 - Update experiment restrictions and default value of sort_by (#485) - (f7542f4) - Ayush Jain

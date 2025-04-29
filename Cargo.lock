@@ -2068,7 +2068,7 @@ dependencies = [
 
 [[package]]
 name = "frontend"
-version = "0.26.0"
+version = "0.26.1"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -4653,7 +4653,7 @@ dependencies = [
 
 [[package]]
 name = "superposition_derives"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4666,7 +4666,7 @@ version = "0.3.0"
 
 [[package]]
 name = "superposition_types"
-version = "0.17.0"
+version = "0.17.1"
 dependencies = [
  "actix-web",
  "anyhow",

@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.71.1 - 1970-01-01
+### Package updates
+- superposition_derives bumped to superposition_derives-v0.2.1
+- frontend bumped to frontend-v0.26.1
+- superposition_types bumped to superposition_types-v0.17.1
+### Global changes
+
+- - -
+
 ## v0.71.0 - 2025-04-24
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.29.0
