@@ -385,7 +385,10 @@ pub fn experiment_list() -> impl IntoView {
 
     let handle_submit_experiment_form = move |_| {
         filters_rws.set(ExperimentListFilters::default());
-        pagination_params_rws.update(|f| f.page = None);
+        pagination_params_rws.set(PaginationParams {
+            page: Some(1),
+            ..Default::default()
+        });
         combined_resource.refetch();
         set_exp_form.update(|val| {
             *val += 1;
