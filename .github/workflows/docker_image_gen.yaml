@@ -8,7 +8,13 @@ concurrency:
 
 jobs:
     docker:
-        runs-on: ubuntu-latest
+        strategy:
+            max-parallel: 5
+            matrix:
+                platform: 
+                    - ubuntu-latest
+                    - ubuntu-24.04-arm
+        runs-on: {{ matrix.platforms }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -40,5 +46,4 @@ jobs:
               with:
                   push: true
                   context: .
-                  platforms: linux/amd64,linux/arm64
                   tags: ghcr.io/juspay/superposition:latest, ghcr.io/juspay/superposition:${{ steps.git_tag.outputs.docker_tag }}, datron1/superposition:${{ steps.git_tag.outputs.docker_tag }}, datron1/superposition:latest
