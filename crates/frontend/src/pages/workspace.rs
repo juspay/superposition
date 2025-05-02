@@ -8,16 +8,16 @@ use superposition_types::{
 };
 
 use crate::api::fetch_workspaces;
-use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
-use crate::components::skeleton::Skeleton;
-use crate::components::stat::Stat;
-use crate::components::table::types::{ColumnSortable, Expandable};
-use crate::components::table::{
-    types::{Column, TablePaginationProps},
-    Table,
+use crate::components::{
+    drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
+    skeleton::Skeleton,
+    stat::Stat,
+    table::{
+        types::{Column, ColumnSortable, Expandable, TablePaginationProps},
+        Table,
+    },
+    workspace_form::{types::RowData, WorkspaceForm},
 };
-use crate::components::workspace_form::types::RowData;
-use crate::components::workspace_form::WorkspaceForm;
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::OrganisationId;
 
@@ -137,6 +137,7 @@ pub fn workspace() -> impl IntoView {
             ),
             Column::default("workspace_admin_email".to_string()),
             Column::default("mandatory_dimensions".to_string()),
+            Column::default("strict_mode".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
             Column::new(

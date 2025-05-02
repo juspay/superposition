@@ -68,6 +68,7 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * //   mandatory_dimensions: [ // ListMandatoryDimensions
  * //     "STRING_VALUE",
  * //   ],
+ * //   workspace_strict_mode: true || false, // required
  * // };
  *
  * ```

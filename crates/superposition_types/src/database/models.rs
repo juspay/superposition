@@ -237,4 +237,5 @@ pub struct Workspace {
     pub last_modified_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
     pub mandatory_dimensions: Option<Vec<String>>,
+    pub strict_mode: bool,
 }

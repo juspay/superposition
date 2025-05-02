@@ -604,6 +604,7 @@ export const se_CreateWorkspaceCommand = async(
     'workspace_admin_email': [],
     'workspace_name': [],
     'workspace_status': [],
+    'workspace_strict_mode': [],
   }));
   b.m("POST")
   .h(headers)
@@ -1979,6 +1980,7 @@ export const de_CreateWorkspaceCommand = async(
     'workspace_name': __expectString,
     'workspace_schema_name': __expectString,
     'workspace_status': __expectString,
+    'workspace_strict_mode': __expectBoolean,
   });
   Object.assign(contents, doc);
   return contents;
@@ -3028,6 +3030,7 @@ export const de_UpdateWorkspaceCommand = async(
     'workspace_name': __expectString,
     'workspace_schema_name': __expectString,
     'workspace_status': __expectString,
+    'workspace_strict_mode': __expectBoolean,
   });
   Object.assign(contents, doc);
   return contents;
@@ -4041,6 +4044,7 @@ const de_CommandError = async(
       'workspace_name': __expectString,
       'workspace_schema_name': __expectString,
       'workspace_status': __expectString,
+      'workspace_strict_mode': __expectBoolean,
     }) as any;
   }
 

@@ -18,6 +18,7 @@ resource Workspace {
         last_modified_at: DateTime
         created_at: DateTime
         mandatory_dimensions: ListMandatoryDimensions
+        workspace_strict_mode: Boolean
     }
     list: ListWorkspace
     put: UpdateWorkspace
@@ -43,6 +44,9 @@ structure CreateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     $workspace_name
 
     $workspace_status
+    
+    @required
+    $workspace_strict_mode
 }
 
 structure UpdateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
@@ -90,6 +94,9 @@ structure WorkspaceResponse for Workspace {
     $created_at
 
     $mandatory_dimensions
+    
+    @required
+    $workspace_strict_mode
 }
 
 list WorkspaceList {
