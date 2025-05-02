@@ -23,25 +23,26 @@ use superposition_types::{
 };
 use utils::experiment_table_columns;
 
-use crate::components::{
-    button::Button,
-    context_form::ContextForm,
-    drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
-    dropdown::DropdownDirection,
-    experiment_form::ExperimentForm,
-    input::DateInput,
-    skeleton::Skeleton,
-    stat::Stat,
-    table::{types::TablePaginationProps, Table},
-};
-use crate::logic::{Condition, Conditions};
-use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
-use crate::providers::editor_provider::EditorProvider;
-use crate::query_updater::{use_param_updater, use_signal_from_query};
-use crate::types::VariantFormTs;
 use crate::{
     api::{fetch_default_config, fetch_dimensions, fetch_experiments},
-    types::{OrganisationId, Tenant},
+    components::{
+        button::Button,
+        context_form::ContextForm,
+        drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+        dropdown::DropdownDirection,
+        experiment_form::ExperimentForm,
+        input::DateInput,
+        skeleton::Skeleton,
+        stat::Stat,
+        table::{types::TablePaginationProps, Table},
+    },
+    logic::{Condition, Conditions},
+    providers::{
+        condition_collapse_provider::ConditionCollapseProvider,
+        editor_provider::EditorProvider,
+    },
+    query_updater::{use_param_updater, use_signal_from_query},
+    types::{OrganisationId, Tenant, VariantFormTs},
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]

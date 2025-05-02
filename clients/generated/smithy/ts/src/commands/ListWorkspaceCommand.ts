@@ -68,6 +68,7 @@ export interface ListWorkspaceCommandOutput extends WorkspaceListResponse, __Met
  * //       mandatory_dimensions: [ // ListMandatoryDimensions
  * //         "STRING_VALUE",
  * //       ],
+ * //       workspace_strict_mode: true || false, // required
  * //     },
  * //   ],
  * // };

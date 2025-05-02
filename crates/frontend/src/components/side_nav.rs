@@ -1,4 +1,3 @@
-use crate::api::fetch_workspaces;
 use crate::components::nav_item::NavItem;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::types::{AppRoute, OrganisationId, Tenant};
@@ -6,7 +5,7 @@ use crate::utils::use_url_base;
 
 use leptos::*;
 use leptos_router::{use_location, use_navigate, A};
-use superposition_types::custom_query::PaginationParams;
+use superposition_types::{database::models::Workspace, PaginatedResponse};
 use web_sys::Event;
 
 fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
@@ -67,7 +66,7 @@ fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
 pub fn side_nav(
     resolved_path: String,
     original_path: String,
-    //params_map: Memo<ParamsMap>,
+    workspace_resource: Resource<String, PaginatedResponse<Workspace>>,
 ) -> impl IntoView {
     let location = use_location();
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
@@ -76,16 +75,6 @@ pub fn side_nav(
         org_rws.get_untracked().as_str(),
         tenant_rws.get_untracked().as_str(),
     ));
-    let workspace_resource = create_blocking_resource(
-        move || org_rws.get().0,
-        |org_id| async move {
-            let filters = PaginationParams::all_entries();
-            fetch_workspaces(&filters, &org_id)
-                .await
-                .unwrap_or_default()
-        },
-    );
-
     let resolved_path = create_rw_signal(resolved_path);
     let original_path = create_rw_signal(original_path);
 

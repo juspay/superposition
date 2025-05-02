@@ -12,7 +12,10 @@ use superposition_types::{
     },
     custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
     database::{
-        models::cac::{Context, DefaultConfig},
+        models::{
+            cac::{Context, DefaultConfig},
+            Workspace,
+        },
         types::DimensionWithMandatory,
     },
     PaginatedResponse, SortBy,
@@ -246,6 +249,7 @@ fn form(
 ) -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
     let (context, set_context) = create_signal(context);
     let (overrides, set_overrides) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
@@ -308,6 +312,7 @@ fn form(
         <ContextForm
             dimensions=dimensions.get_value()
             context=context.get_untracked()
+            resolve_mode=workspace_settings.get_value().strict_mode
             handle_change=move |new_context| {
                 set_context
                     .update(|value| {

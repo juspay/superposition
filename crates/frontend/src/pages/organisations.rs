@@ -16,7 +16,7 @@ use crate::utils::use_host_server;
 #[component]
 pub fn organisations() -> impl IntoView {
     let host = use_host_server();
-    let organisation_resource = create_local_resource(
+    let organisation_resource = create_blocking_resource(
         || (),
         |_| async { fetch_organisations().await.unwrap_or_default() },
     );
