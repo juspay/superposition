@@ -54,6 +54,11 @@ import {
   CreateTypeTemplatesCommandOutput,
 } from "./commands/CreateTypeTemplatesCommand";
 import {
+  CreateWebhookCommand,
+  CreateWebhookCommandInput,
+  CreateWebhookCommandOutput,
+} from "./commands/CreateWebhookCommand";
+import {
   CreateWorkspaceCommand,
   CreateWorkspaceCommandInput,
   CreateWorkspaceCommandOutput,
@@ -134,6 +139,11 @@ import {
   GetTypeTemplatesListCommandOutput,
 } from "./commands/GetTypeTemplatesListCommand";
 import {
+  GetWebhookCommand,
+  GetWebhookCommandInput,
+  GetWebhookCommandOutput,
+} from "./commands/GetWebhookCommand";
+import {
   ListAuditLogsCommand,
   ListAuditLogsCommandInput,
   ListAuditLogsCommandOutput,
@@ -173,6 +183,11 @@ import {
   ListVersionsCommandInput,
   ListVersionsCommandOutput,
 } from "./commands/ListVersionsCommand";
+import {
+  ListWebhookCommand,
+  ListWebhookCommandInput,
+  ListWebhookCommandOutput,
+} from "./commands/ListWebhookCommand";
 import {
   ListWorkspaceCommand,
   ListWorkspaceCommandInput,
@@ -234,6 +249,11 @@ import {
   UpdateTypeTemplatesCommandOutput,
 } from "./commands/UpdateTypeTemplatesCommand";
 import {
+  UpdateWebhookCommand,
+  UpdateWebhookCommandInput,
+  UpdateWebhookCommandOutput,
+} from "./commands/UpdateWebhookCommand";
+import {
   UpdateWorkspaceCommand,
   UpdateWorkspaceCommandInput,
   UpdateWorkspaceCommandOutput,
@@ -257,6 +277,7 @@ const commands = {
   CreateFunctionCommand,
   CreateOrganisationCommand,
   CreateTypeTemplatesCommand,
+  CreateWebhookCommand,
   CreateWorkspaceCommand,
   DeleteContextCommand,
   DeleteDefaultConfigCommand,
@@ -273,6 +294,7 @@ const commands = {
   GetOrganisationCommand,
   GetResolvedConfigCommand,
   GetTypeTemplatesListCommand,
+  GetWebhookCommand,
   ListAuditLogsCommand,
   ListContextsCommand,
   ListDefaultConfigsCommand,
@@ -281,6 +303,7 @@ const commands = {
   ListFunctionCommand,
   ListOrganisationCommand,
   ListVersionsCommand,
+  ListWebhookCommand,
   ListWorkspaceCommand,
   MoveContextCommand,
   PublishCommand,
@@ -293,6 +316,7 @@ const commands = {
   UpdateOverrideCommand,
   UpdateOverridesExperimentCommand,
   UpdateTypeTemplatesCommand,
+  UpdateWebhookCommand,
   UpdateWorkspaceCommand,
   WeightRecomputeCommand,
 }
@@ -466,6 +490,23 @@ export interface Superposition {
     args: CreateTypeTemplatesCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: CreateTypeTemplatesCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link CreateWebhookCommand}
+   */
+  createWebhook(
+    args: CreateWebhookCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<CreateWebhookCommandOutput>;
+  createWebhook(
+    args: CreateWebhookCommandInput,
+    cb: (err: any, data?: CreateWebhookCommandOutput) => void
+  ): void;
+  createWebhook(
+    args: CreateWebhookCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: CreateWebhookCommandOutput) => void
   ): void;
 
   /**
@@ -741,6 +782,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link GetWebhookCommand}
+   */
+  getWebhook(
+    args: GetWebhookCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetWebhookCommandOutput>;
+  getWebhook(
+    args: GetWebhookCommandInput,
+    cb: (err: any, data?: GetWebhookCommandOutput) => void
+  ): void;
+  getWebhook(
+    args: GetWebhookCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetWebhookCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link ListAuditLogsCommand}
    */
   listAuditLogs(
@@ -875,6 +933,23 @@ export interface Superposition {
     args: ListVersionsCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: ListVersionsCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link ListWebhookCommand}
+   */
+  listWebhook(
+    args: ListWebhookCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<ListWebhookCommandOutput>;
+  listWebhook(
+    args: ListWebhookCommandInput,
+    cb: (err: any, data?: ListWebhookCommandOutput) => void
+  ): void;
+  listWebhook(
+    args: ListWebhookCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: ListWebhookCommandOutput) => void
   ): void;
 
   /**
@@ -1079,6 +1154,23 @@ export interface Superposition {
     args: UpdateTypeTemplatesCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: UpdateTypeTemplatesCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link UpdateWebhookCommand}
+   */
+  updateWebhook(
+    args: UpdateWebhookCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<UpdateWebhookCommandOutput>;
+  updateWebhook(
+    args: UpdateWebhookCommandInput,
+    cb: (err: any, data?: UpdateWebhookCommandOutput) => void
+  ): void;
+  updateWebhook(
+    args: UpdateWebhookCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: UpdateWebhookCommandOutput) => void
   ): void;
 
   /**

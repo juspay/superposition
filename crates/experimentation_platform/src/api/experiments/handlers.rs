@@ -35,14 +35,17 @@ use superposition_types::{
     },
     custom_query::PaginationParams,
     database::{
-        models::experimentation::{
-            EventLog, Experiment, ExperimentStatusType, TrafficPercentage, Variant,
-            Variants,
+        models::{
+            experimentation::{
+                EventLog, Experiment, ExperimentStatusType, TrafficPercentage, Variant,
+                Variants,
+            },
+            others::WebhookEvent,
         },
         schema::{event_log::dsl as event_log, experiments::dsl as experiments},
     },
     result as superposition,
-    webhook::{WebhookConfig, WebhookEvent},
+    webhook::WebhookConfig,
     Condition, DBConnection, Exp, ListResponse, Overrides, PaginatedResponse, SortBy,
     TenantConfig, User,
 };

@@ -40,6 +40,10 @@ import {
   CreateTypeTemplatesCommandOutput,
 } from "../commands/CreateTypeTemplatesCommand";
 import {
+  CreateWebhookCommandInput,
+  CreateWebhookCommandOutput,
+} from "../commands/CreateWebhookCommand";
+import {
   CreateWorkspaceCommandInput,
   CreateWorkspaceCommandOutput,
 } from "../commands/CreateWorkspaceCommand";
@@ -104,6 +108,10 @@ import {
   GetTypeTemplatesListCommandOutput,
 } from "../commands/GetTypeTemplatesListCommand";
 import {
+  GetWebhookCommandInput,
+  GetWebhookCommandOutput,
+} from "../commands/GetWebhookCommand";
+import {
   ListAuditLogsCommandInput,
   ListAuditLogsCommandOutput,
 } from "../commands/ListAuditLogsCommand";
@@ -135,6 +143,10 @@ import {
   ListVersionsCommandInput,
   ListVersionsCommandOutput,
 } from "../commands/ListVersionsCommand";
+import {
+  ListWebhookCommandInput,
+  ListWebhookCommandOutput,
+} from "../commands/ListWebhookCommand";
 import {
   ListWorkspaceCommandInput,
   ListWorkspaceCommandOutput,
@@ -184,6 +196,10 @@ import {
   UpdateTypeTemplatesCommandOutput,
 } from "../commands/UpdateTypeTemplatesCommand";
 import {
+  UpdateWebhookCommandInput,
+  UpdateWebhookCommandOutput,
+} from "../commands/UpdateWebhookCommand";
+import {
   UpdateWorkspaceCommandInput,
   UpdateWorkspaceCommandOutput,
 } from "../commands/UpdateWorkspaceCommand";
@@ -217,6 +233,8 @@ import {
   ValidateFunctionRequest,
   Variant,
   VariantUpdateRequest,
+  WebhookNotFound,
+  WebhookResponse,
   WeightRecomputeResponse,
   WorkspaceNotFound,
   WorkspaceResponse,
@@ -529,6 +547,38 @@ export const se_CreateTypeTemplatesCommand = async(
     'description': [],
     'type_name': [],
     'type_schema': _ => se_Document(_, context),
+  }));
+  b.m("POST")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1CreateWebhookCommand
+ */
+export const se_CreateWebhookCommand = async(
+  input: CreateWebhookCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xt]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/webhook");
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'change_reason': [],
+    'custom_headers': _ => se_Object(_, context),
+    'description': [],
+    'enabled': [],
+    'events': _ => _json(_),
+    'method': [],
+    'name': [],
+    'url': [],
+    'version': [],
   }));
   b.m("POST")
   .h(headers)
@@ -909,6 +959,27 @@ export const se_GetTypeTemplatesListCommand = async(
 }
 
 /**
+ * serializeAws_restJson1GetWebhookCommand
+ */
+export const se_GetWebhookCommand = async(
+  input: GetWebhookCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xt]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/webhook/{name}");
+  b.p('name', () => input.name!, '{name}', false)
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1ListAuditLogsCommand
  */
 export const se_ListAuditLogsCommand = async(
@@ -1115,6 +1186,31 @@ export const se_ListVersionsCommand = async(
     [_xoi]: input[_oi]!,
   });
   b.bp("/config/versions");
+  const query: any = map({
+    [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
+    [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+  });
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .q(query)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1ListWebhookCommand
+ */
+export const se_ListWebhookCommand = async(
+  input: ListWebhookCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xt]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/webhook");
   const query: any = map({
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
@@ -1454,6 +1550,38 @@ export const se_UpdateTypeTemplatesCommand = async(
 }
 
 /**
+ * serializeAws_restJson1UpdateWebhookCommand
+ */
+export const se_UpdateWebhookCommand = async(
+  input: UpdateWebhookCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xt]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/webhook/{name}");
+  b.p('name', () => input.name!, '{name}', false)
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'change_reason': [],
+    'custom_headers': _ => se_Object(_, context),
+    'description': [],
+    'enabled': [],
+    'events': _ => _json(_),
+    'method': [],
+    'url': [],
+    'version': [],
+  }));
+  b.m("PUT")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1UpdateWorkspaceCommand
  */
 export const se_UpdateWorkspaceCommand = async(
@@ -1785,6 +1913,41 @@ export const de_CreateTypeTemplatesCommand = async(
     'last_modified_by': __expectString,
     'type_name': __expectString,
     'type_schema': _ => de_Document(_, context),
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1CreateWebhookCommand
+ */
+export const de_CreateWebhookCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<CreateWebhookCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'custom_headers': _ => de_Object(_, context),
+    'description': __expectString,
+    'enabled': __expectBoolean,
+    'events': _json,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'last_triggered_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'max_retries': __expectInt32,
+    'method': __expectString,
+    'name': __expectString,
+    'url': __expectString,
+    'version': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -2207,6 +2370,41 @@ export const de_GetTypeTemplatesListCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1GetWebhookCommand
+ */
+export const de_GetWebhookCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetWebhookCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'custom_headers': _ => de_Object(_, context),
+    'description': __expectString,
+    'enabled': __expectBoolean,
+    'events': _json,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'last_triggered_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'max_retries': __expectInt32,
+    'method': __expectString,
+    'name': __expectString,
+    'url': __expectString,
+    'version': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1ListAuditLogsCommand
  */
 export const de_ListAuditLogsCommand = async(
@@ -2385,6 +2583,29 @@ export const de_ListVersionsCommand = async(
     'data': _ => de_ListVersionsOut(_, context),
     'total_items': __expectInt32,
     'total_pages': __expectInt32,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1ListWebhookCommand
+ */
+export const de_ListWebhookCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<ListWebhookCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'data': _ => de_WebhookList(_, context),
+    'total_items': __expectLong,
+    'total_pages': __expectLong,
   });
   Object.assign(contents, doc);
   return contents;
@@ -2747,6 +2968,41 @@ export const de_UpdateTypeTemplatesCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1UpdateWebhookCommand
+ */
+export const de_UpdateWebhookCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<UpdateWebhookCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'custom_headers': _ => de_Object(_, context),
+    'description': __expectString,
+    'enabled': __expectBoolean,
+    'events': _json,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'last_triggered_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'max_retries': __expectInt32,
+    'method': __expectString,
+    'name': __expectString,
+    'url': __expectString,
+    'version': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1UpdateWorkspaceCommand
  */
 export const de_UpdateWorkspaceCommand = async(
@@ -2826,6 +3082,9 @@ const de_CommandError = async(
     case "OrganisationNotFound":
     case "io.superposition#OrganisationNotFound":
       throw await de_OrganisationNotFoundRes(parsedOutput, context);
+    case "WebhookNotFound":
+    case "io.superposition#WebhookNotFound":
+      throw await de_WebhookNotFoundRes(parsedOutput, context);
     case "WorkspaceNotFound":
     case "io.superposition#WorkspaceNotFound":
       throw await de_WorkspaceNotFoundRes(parsedOutput, context);
@@ -2935,6 +3194,26 @@ const de_CommandError = async(
     });
     Object.assign(contents, doc);
     const exception = new TypeTemplatesNotFound({
+      $metadata: deserializeMetadata(parsedOutput),
+      ...contents
+    });
+    return __decorateServiceException(exception, parsedOutput.body);
+  };
+
+  /**
+   * deserializeAws_restJson1WebhookNotFoundRes
+   */
+  const de_WebhookNotFoundRes = async (
+    parsedOutput: any,
+    context: __SerdeContext
+  ): Promise<WebhookNotFound> => {
+    const contents: any = map({
+    });
+    const data: any = parsedOutput.body;
+    const doc = take(data, {
+    });
+    Object.assign(contents, doc);
+    const exception = new WebhookNotFound({
       $metadata: deserializeMetadata(parsedOutput),
       ...contents
     });
@@ -3079,6 +3358,8 @@ const de_CommandError = async(
 
   // se_Dependencies omitted.
 
+  // se_Events omitted.
+
   /**
    * serializeAws_restJson1FunctionExecutionRequest
    */
@@ -3117,6 +3398,22 @@ const de_CommandError = async(
     return input.filter((e: any) => e != null).map(entry => {
       return se_VariantUpdateRequest(entry, context);
     });
+  }
+
+  /**
+   * serializeAws_restJson1Object
+   */
+  const se_Object = (
+    input: Record<string, __DocumentType>,
+    context: __SerdeContext
+  ): any => {
+    return Object.entries(input).reduce((acc: Record<string, any>, [key, value]: [string, any]) => {
+      if (value === null) {
+        return acc;
+      }
+      acc[key] = se_Document(value, context);
+      return acc;
+    }, {});
   }
 
   /**
@@ -3357,6 +3654,8 @@ const de_CommandError = async(
     });
     return retVal;
   }
+
+  // de_Events omitted.
 
   /**
    * deserializeAws_restJson1ExperimentList
@@ -3640,6 +3939,45 @@ const de_CommandError = async(
       'override_id': __expectString,
       'overrides': (_: any) => de_Document(_, context),
       'variant_type': __expectString,
+    }) as any;
+  }
+
+  /**
+   * deserializeAws_restJson1WebhookList
+   */
+  const de_WebhookList = (
+    output: any,
+    context: __SerdeContext
+  ): (WebhookResponse)[] => {
+    const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
+      return de_WebhookResponse(entry, context);
+    });
+    return retVal;
+  }
+
+  /**
+   * deserializeAws_restJson1WebhookResponse
+   */
+  const de_WebhookResponse = (
+    output: any,
+    context: __SerdeContext
+  ): WebhookResponse => {
+    return take(output, {
+      'change_reason': __expectString,
+      'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'created_by': __expectString,
+      'custom_headers': (_: any) => de_Object(_, context),
+      'description': __expectString,
+      'enabled': __expectBoolean,
+      'events': _json,
+      'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'last_modified_by': __expectString,
+      'last_triggered_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'max_retries': __expectInt32,
+      'method': __expectString,
+      'name': __expectString,
+      'url': __expectString,
+      'version': __expectString,
     }) as any;
   }
 

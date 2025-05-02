@@ -20,10 +20,9 @@ use std::{
     str::FromStr,
 };
 use superposition_types::{
+    database::models::others::WebhookEvent,
     result::{self, AppError},
-    webhook::{
-        HeadersEnum, HttpMethod, Webhook, WebhookEvent, WebhookEventInfo, WebhookResponse,
-    },
+    webhook::{HeadersEnum, HttpMethod, Webhook, WebhookEventInfo, WebhookResponse},
     Condition,
 };
 
