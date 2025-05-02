@@ -1244,4 +1244,56 @@ ALTER TABLE localorg_test.default_configs ADD COLUMN autocomplete_function_name 
 
 ALTER TABLE localorg_test.default_configs ADD FOREIGN KEY(autocomplete_function_name) REFERENCES localorg_test.functions(function_name);
 
+CREATE TYPE public.http_method AS ENUM (
+    'GET',
+    'PUT',
+    'POST',
+    'DELETE',
+    'PATCH',
+    'HEAD',
+    'OPTIONS',
+    'TRACE',
+    'CONNECT'
+);
+
+CREATE TABLE localorg_test.webhooks (
+    name text PRIMARY KEY,
+    description text NOT NULL,
+    enabled boolean NOT NULL,
+    url text NOT NULL,
+    method public.http_method NOT NULL DEFAULT 'POST',
+    payload_version text NOT NULL,
+    custom_headers json NOT NULL DEFAULT '{}'::json,
+    events varchar(100)[] NOT NULL CHECK (array_position(events, NULL) IS NULL),
+    max_retries integer NOT NULL DEFAULT 0,
+    last_triggered_at timestamp,
+    change_reason TEXT NOT NULL,
+    created_by text NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_modified_by text NOT NULL,
+    last_modified_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TRIGGER webhooks_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_test.webhooks FOR EACH ROW EXECUTE FUNCTION localorg_test.event_logger();
+
+CREATE TABLE localorg_dev.webhooks (
+    name text PRIMARY KEY,
+    description text NOT NULL,
+    enabled boolean NOT NULL,
+    url text NOT NULL,
+    method public.http_method NOT NULL DEFAULT 'POST',
+    payload_version text NOT NULL,
+    custom_headers json NOT NULL DEFAULT '{}'::json,
+    events varchar(100)[] NOT NULL CHECK (array_position(events, NULL) IS NULL),
+    max_retries integer NOT NULL DEFAULT 0,
+    last_triggered_at timestamp,
+    change_reason TEXT NOT NULL,
+    created_by text NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_modified_by text NOT NULL,
+    last_modified_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TRIGGER webhooks_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_dev.webhooks FOR EACH ROW EXECUTE FUNCTION localorg_dev.event_logger();
+
 COMMIT;

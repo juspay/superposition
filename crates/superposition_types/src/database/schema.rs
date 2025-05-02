@@ -8,6 +8,10 @@ pub mod sql_types {
     #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "function_types"))]
     pub struct FunctionTypes;
+
+    #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "http_method"))]
+    pub struct HttpMethod;
 }
 
 diesel::table! {
@@ -683,6 +687,29 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::HttpMethod;
+
+    webhooks (name) {
+        name -> Text,
+        description -> Text,
+        enabled -> Bool,
+        url -> Text,
+        method -> HttpMethod,
+        payload_version -> Text,
+        custom_headers -> Json,
+        events -> Array<Varchar>,
+        max_retries -> Int4,
+        last_triggered_at -> Nullable<Timestamptz>,
+        change_reason -> Text,
+        created_by -> Text,
+        created_at -> Timestamptz,
+        last_modified_by -> Text,
+        last_modified_at -> Timestamptz,
+    }
+}
+
 diesel::joinable!(default_configs -> functions (function_name));
 diesel::joinable!(dimensions -> functions (function_name));
 
@@ -736,4 +763,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     experiments,
     functions,
     type_templates,
+    webhooks,
 );
