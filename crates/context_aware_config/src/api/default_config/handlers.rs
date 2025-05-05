@@ -1,6 +1,6 @@
 use actix_web::{
     delete, get, post, put,
-    web::{self, Data, Json, Path, Query},
+    web::{Data, Json, Path, Query},
     HttpResponse, Scope,
 };
 use chrono::Utc;
@@ -18,7 +18,10 @@ use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
 use superposition_types::{
-    api::default_config::DefaultConfigFilters,
+    api::default_config::{
+        DefaultConfigCreateRequest, DefaultConfigFilters, DefaultConfigKey,
+        DefaultConfigUpdateRequest,
+    },
     custom_query::PaginationParams,
     database::{
         models::cac::{self as models, Context, DefaultConfig},
@@ -32,13 +35,10 @@ use crate::helpers::put_config_in_redis;
 use crate::{
     api::{
         context::helpers::validate_value_with_function,
-        default_config::types::DefaultConfigKey,
         functions::helpers::get_published_function_code,
     },
     helpers::add_config_version,
 };
-
-use super::types::{CreateReq, UpdateReq};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -52,7 +52,7 @@ pub fn endpoints() -> Scope {
 async fn create_default_config(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
-    request: web::Json<CreateReq>,
+    request: Json<DefaultConfigCreateRequest>,
     db_conn: DbConnection,
     schema_name: SchemaName,
     user: User,
@@ -132,7 +132,7 @@ async fn create_default_config(
             let version_id = add_config_version(
                 &state,
                 tags,
-                change_reason,
+                (*change_reason).clone(),
                 transaction_conn,
                 &schema_name,
             )?;
@@ -153,10 +153,10 @@ async fn create_default_config(
 
 #[put("/{key}")]
 async fn update_default_config(
-    state: web::Data<AppState>,
-    key: web::Path<DefaultConfigKey>,
+    state: Data<AppState>,
+    key: Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
-    request: web::Json<UpdateReq>,
+    request: Json<DefaultConfigUpdateRequest>,
     db_conn: DbConnection,
     schema_name: SchemaName,
     user: User,
@@ -236,7 +236,7 @@ async fn update_default_config(
             let version_id = add_config_version(
                 &state,
                 tags.clone(),
-                change_reason,
+                (*change_reason).clone(),
                 transaction_conn,
                 &schema_name,
             )?;

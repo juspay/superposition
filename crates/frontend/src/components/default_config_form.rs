@@ -1,8 +1,7 @@
-pub mod types;
 pub mod utils;
 
 use leptos::*;
-use serde_json::{json, Value};
+use serde_json::Value;
 use superposition_types::{
     api::functions::ListFunctionFilters,
     custom_query::{CommaSeparatedQParams, PaginationParams},
@@ -27,10 +26,7 @@ use crate::{
     types::{OrganisationId, Tenant},
 };
 
-use self::{
-    types::{DefaultConfigCreateReq, DefaultConfigUpdateReq},
-    utils::{create_default_config, update_default_config},
-};
+use self::utils::{create_default_config, update_default_config};
 
 #[component]
 pub fn default_config_form<NF>(
@@ -39,7 +35,7 @@ pub fn default_config_form<NF>(
     #[prop(default = String::new())] config_type: String,
     #[prop(default = Value::Null)] type_schema: Value,
     #[prop(default = Value::Null)] config_value: Value,
-    #[prop(default = None)] function_name: Option<Value>,
+    #[prop(default = None)] function_name: Option<String>,
     #[prop(default = None)] prefix: Option<String>,
     #[prop(default = String::new())] description: String,
     handle_submit: NF,
@@ -104,7 +100,7 @@ where
                 leptos::logging::log!("function selected: {:?}", function_name);
                 let fun_name = match function_name.as_str() {
                     "None" => None,
-                    _ => Some(json!(function_name)),
+                    _ => Some(function_name),
                 };
                 *value = fun_name;
             });
@@ -124,23 +120,6 @@ where
         let description = description_rs.get();
         let change_reason = change_reason_rs.get();
 
-        let create_payload = DefaultConfigCreateReq {
-            key: config_key_rs.get(),
-            schema: f_schema.clone(),
-            value: f_value.clone(),
-            function_name: fun_name.clone(),
-            description: description.clone(),
-            change_reason: change_reason.clone(),
-        };
-
-        let update_payload = DefaultConfigUpdateReq {
-            schema: f_schema,
-            value: f_value,
-            function_name: fun_name,
-            description,
-            change_reason,
-        };
-
         let handle_submit_clone = handle_submit.clone();
         let is_edit = edit;
         spawn_local({
@@ -151,16 +130,27 @@ where
                     update_default_config(
                         f_name,
                         tenant_rws.get().0,
-                        update_payload,
                         org_rws.get().0,
+                        f_value,
+                        f_schema,
+                        fun_name,
+                        None,
+                        description,
+                        change_reason,
                     )
                     .await
                 } else {
                     // Call create_default_config when edit is false
                     create_default_config(
                         tenant_rws.get().0,
-                        create_payload,
                         org_rws.get().0,
+                        config_key_rs.get_untracked(),
+                        f_value,
+                        f_schema,
+                        fun_name,
+                        None,
+                        description,
+                        change_reason,
                     )
                     .await
                 };
@@ -393,10 +383,6 @@ where
                                         dropdown_icon="".to_string()
                                         dropdown_text=function_name_rs
                                             .get()
-                                            .and_then(|v| match v {
-                                                Value::String(s) => Some(s),
-                                                _ => None,
-                                            })
                                             .map_or("Add Function".to_string(), |v| v.to_string())
                                         dropdown_direction=DropdownDirection::Down
                                         dropdown_btn_type=DropdownBtnType::Select

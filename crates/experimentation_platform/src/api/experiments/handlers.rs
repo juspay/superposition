@@ -29,6 +29,7 @@ use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
     api::{
         context::{Identifier, UpdateRequest},
+        default_config::DefaultConfigUpdateRequest,
         experiments::{
             ApplicableVariantsQuery, ApplicableVariantsRequest, AuditQueryFilters,
             ConcludeExperimentRequest, DiscardExperimentRequest, ExperimentCreateRequest,
@@ -459,7 +460,14 @@ pub async fn conclude(
                 })?;
 
                 for (key, val) in variant.overrides.into_inner() {
-                    let create_req = HashMap::from([("value", val)]);
+                    let update_request = DefaultConfigUpdateRequest {
+                        value: Some(val),
+                        change_reason: change_reason.clone(),
+                        schema: None,
+                        function_name: None,
+                        autocomplete_function_name: None,
+                        description: None,
+                    };
 
                     let url = format!("{}/default-config/{}", state.cac_host, key);
 
@@ -474,10 +482,14 @@ pub async fn conclude(
                     ])
                     .map_err(|err| unexpected_error!(err))?;
 
-                    let _ =
-                        request::<_, Value>(url, Method::PUT, Some(create_req), headers)
-                            .await
-                            .map_err(|err| unexpected_error!(err))?;
+                    let _ = request::<_, Value>(
+                        url,
+                        Method::PUT,
+                        Some(update_request),
+                        headers,
+                    )
+                    .await
+                    .map_err(|err| unexpected_error!(err))?;
                 }
                 operations.push(ContextAction::DELETE(context_id));
             }
