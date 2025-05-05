@@ -191,6 +191,18 @@ where
                     </div>
                 </div>
                 <div class="stat w-2/12">
+                    <div class="stat-title">Description</div>
+                    <div class="stat-value text-sm">
+                        {experiment.with_value(|v| String::from(&v.description))}
+                    </div>
+                </div>
+                <div class="stat w-2/12">
+                    <div class="stat-title">Change Reason</div>
+                    <div class="stat-value text-sm">
+                        {experiment.with_value(|v| String::from(&v.change_reason))}
+                    </div>
+                </div>
+                <div class="stat w-2/12">
                     <div class="stat-title">Created at</div>
                     <div class="stat-value text-sm">
                         {format!("{}", experiment.with_value(|v| v.created_at.format("%v %T")))}

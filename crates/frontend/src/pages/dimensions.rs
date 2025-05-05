@@ -4,6 +4,7 @@ use superposition_macros::box_params;
 use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 
 use crate::api::{delete_dimension, fetch_dimensions};
+use crate::components::description_icon::InfoDescription;
 use crate::components::dimension_form::DimensionForm;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
@@ -18,7 +19,6 @@ use crate::components::{
 };
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant};
-
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
     pub dimension: String,
@@ -28,6 +28,8 @@ pub struct RowData {
     pub autocomplete_function_name: Option<String>,
     pub mandatory: bool,
     pub dependencies: Vec<String>,
+    pub description: String,
+    pub change_reason: String,
 }
 
 #[component]
@@ -93,6 +95,8 @@ pub fn dimensions() -> impl IntoView {
             let row_dimension = row["dimension"].to_string().replace('"', "");
             let row_position_str = row["position"].to_string().replace('"', "");
             let row_position = row_position_str.parse::<u32>().unwrap_or(0_u32);
+            let row_description = row["description"].to_string().replace('"', "");
+            let row_change_reason = row["change_reason"].to_string().replace('"', "");
 
             let schema = row["schema"].clone().to_string();
             let schema = serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
@@ -121,6 +125,8 @@ pub fn dimensions() -> impl IntoView {
                     schema: schema.clone(),
                     function_name: validation_function_name.clone(),
                     autocomplete_function_name: autocomplete_function_name.clone(),
+                    description: row_description.clone(),
+                    change_reason: row_change_reason.clone(),
                     mandatory,
                     dependencies: dependencies.clone(),
                 };
@@ -156,8 +162,38 @@ pub fn dimensions() -> impl IntoView {
                 .into_view()
             }
         };
+
+        let expand = move |dimension_name: &str, row: &Map<String, Value>| {
+            let dimension_name = dimension_name.to_string();
+
+            let description = row
+                .get("description")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+
+            let change_reason = row
+                .get("change_reason")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+
+            view! {
+                <div class="flex items-center gap-2">
+                    <span>{dimension_name}</span>
+                    <InfoDescription description=description change_reason=change_reason />
+                </div>
+            }
+            .into_view()
+        };
         vec![
-            Column::default_no_collapse("dimension".to_string()),
+            Column::new(
+                "dimension".to_string(),
+                false,
+                expand,
+                ColumnSortable::No,
+                Expandable::Disabled,
+            ),
             Column::default("position".to_string()),
             Column::default("schema".to_string()),
             Column::default("mandatory".to_string()),
@@ -201,7 +237,9 @@ pub fn dimensions() -> impl IntoView {
                                     dimension_schema=selected_dimension_data.schema
                                     dependencies=selected_dimension_data.dependencies
                                     validation_function_name=selected_dimension_data.function_name
-                                    autocomplete_function_name=selected_dimension_data.autocomplete_function_name
+                                    autocomplete_function_name=selected_dimension_data
+                                        .autocomplete_function_name
+                                    description=selected_dimension_data.description
                                     dimensions
                                     handle_submit=move || {
                                         dimensions_resource.refetch();

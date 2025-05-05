@@ -8,6 +8,7 @@ use crate::components::type_template_form::utils::delete_type;
 use crate::components::{
     alert::AlertType,
     delete_modal::DeleteModal,
+    description_icon::InfoDescription,
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
     skeleton::Skeleton,
     stat::Stat,
@@ -23,6 +24,7 @@ use crate::{api::fetch_types, components::table::types::Column};
 struct TypeTemplateRow {
     pub type_name: String,
     pub type_schema: Value,
+    pub description: String,
 }
 
 const TYPE_DRAWER_ID: &str = "type_template_drawer";
@@ -73,10 +75,41 @@ pub fn types_page() -> impl IntoView {
         delete_row_ws.set(None);
         delete_modal_visible_ws.set(false);
     });
+
+    let expand = move |type_name: &str, row: &Map<String, Value>| {
+        let description = row
+            .get("description")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        let change_reason = row
+            .get("change_reason")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        let type_name = type_name.to_string();
+
+        view! {
+            <div class="flex items-center gap-2">
+                <span>{type_name}</span>
+                <InfoDescription description=description change_reason=change_reason />
+            </div>
+        }
+        .into_view()
+    };
+
     let selected_type = create_rw_signal::<Option<TypeTemplateRow>>(None);
     let table_columns = create_memo(move |_| {
         vec![
-            Column::default_no_collapse("type_name".to_string()),
+            Column::new(
+                "type_name".to_string(),
+                false,
+                expand,
+                ColumnSortable::No,
+                Expandable::Disabled,
+            ),
             Column::default("type_schema".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
@@ -143,6 +176,7 @@ pub fn types_page() -> impl IntoView {
                                 selected_type.set(None);
                                 close_drawer(TYPE_DRAWER_ID);
                             }
+                            description=selected_type_data.description
                         />
 
                     </Drawer>
@@ -218,15 +252,15 @@ pub fn types_page() -> impl IntoView {
                                     />
                                 </div>
                             </div>
-                            <DeleteModal
-                                modal_visible=delete_modal_visible_rs
-                                confirm_delete=confirm_delete
-                                set_modal_visible=delete_modal_visible_ws
-                                header_text="Are you sure you want to delete this type template? Action is irreversible."
-                                    .to_string()
-                            />
                         }
                     }}
+                    <DeleteModal
+                        modal_visible=delete_modal_visible_rs
+                        confirm_delete=confirm_delete
+                        set_modal_visible=delete_modal_visible_ws
+                        header_text="Are you sure you want to delete this type template? Action is irreversible."
+                            .to_string()
+                    />
 
                 </div>
             </Suspense>

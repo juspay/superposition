@@ -4,6 +4,7 @@ use crate::components::type_template_form::utils::create_type;
 use crate::components::{
     alert::AlertType,
     button::Button,
+    change_form::ChangeForm,
     input::{Input, InputType},
     type_template_form::utils::update_type,
 };
@@ -21,7 +22,6 @@ pub fn type_template_form<NF>(
     #[prop(default = json!({"type": "number"}))] type_schema: Value,
     handle_submit: NF,
     #[prop(default = String::new())] description: String,
-    #[prop(default = String::new())] change_reason: String,
 ) -> impl IntoView
 where
     NF: Fn() + 'static + Clone,
@@ -35,7 +35,7 @@ where
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
     let (description_rs, description_ws) = create_signal(description);
-    let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
+    let (change_reason_rs, change_reason_ws) = create_signal(String::new());
 
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);
@@ -112,35 +112,22 @@ where
 
             </div>
 
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Description</span>
-                </label>
-                <textarea
-                    placeholder="Enter description"
-                    class="textarea textarea-bordered w-full max-w-md"
-                    value=description_rs.get()
-                    on:change=move |ev| {
-                        let value = event_target_value(&ev);
-                        description_ws.set(value);
-                    }
-                />
-            </div>
-
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Reason for Change</span>
-                </label>
-                <textarea
-                    placeholder="Enter a reason for this change"
-                    class="textarea textarea-bordered w-full max-w-md"
-                    value=change_reason_rs.get()
-                    on:change=move |ev| {
-                        let value = event_target_value(&ev);
-                        change_reason_ws.set(value);
-                    }
-                />
-            </div>
+            <ChangeForm
+                title="Description".to_string()
+                placeholder="Enter a description".to_string()
+                value=description_rs.get_untracked()
+                on_change=Callback::new(move |new_description| {
+                    description_ws.set(new_description)
+                })
+            />
+            <ChangeForm
+                title="Reason for Change".to_string()
+                placeholder="Enter a reason for this change".to_string()
+                value=change_reason_rs.get_untracked()
+                on_change=Callback::new(move |new_change_reason| {
+                    change_reason_ws.set(new_change_reason)
+                })
+            />
 
             <div class="form-control">
                 <label class="label">

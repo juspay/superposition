@@ -16,6 +16,7 @@ use crate::components::{
     button::Button,
     default_config_form::DefaultConfigForm,
     delete_modal::DeleteModal,
+    description_icon::InfoDescription,
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
     skeleton::Skeleton,
     stat::Stat,
@@ -37,6 +38,7 @@ pub struct RowData {
     pub value: Value,
     pub schema: Value,
     pub function_name: Option<Value>,
+    pub description: String,
 }
 
 #[component]
@@ -170,6 +172,12 @@ pub fn default_config() -> impl IntoView {
                 _ => Some(json!(function_name.replace('"', ""))),
             };
 
+            let description = row
+                .get("description")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+
             let key_name = StoredValue::new(row_key.clone());
 
             let edit_click_handler = move |_| {
@@ -178,6 +186,7 @@ pub fn default_config() -> impl IntoView {
                     value: row_value.clone(),
                     schema: schema_object.clone(),
                     function_name: fun_name.clone(),
+                    description: description.clone(),
                 };
                 logging::log!("{:?}", row_data);
                 selected_config.set(Some(row_data));
@@ -206,10 +215,21 @@ pub fn default_config() -> impl IntoView {
             }
         };
 
-        let expand = move |key_name: &str, _row: &Map<String, Value>| {
+        let expand = move |key_name: &str, row: &Map<String, Value>| {
             let key_name = key_name.to_string();
             let label = key_name.clone();
             let is_folder = key_name.contains('.');
+            let description = row
+                .get("description")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+
+            let change_reason = row
+                .get("change_reason")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
 
             if is_folder && grouping_enabled {
                 view! {
@@ -229,7 +249,13 @@ pub fn default_config() -> impl IntoView {
                 }
                 .into_view()
             } else {
-                view! { <span>{key_name}</span> }.into_view()
+                view! {
+                    <div class="flex items-center gap-2 group">
+                        <span>{key_name}</span>
+                        <InfoDescription description=description change_reason=change_reason />
+                    </div>
+                }
+                .into_view()
             }
         };
 
@@ -282,6 +308,7 @@ pub fn default_config() -> impl IntoView {
                                     config_value=selected_config_data.value
                                     type_schema=selected_config_data.schema
                                     function_name=selected_config_data.function_name
+                                    description=selected_config_data.description
                                     prefix
                                     handle_submit=move || {
                                         default_config_resource.refetch();
@@ -399,10 +426,7 @@ pub fn default_config() -> impl IntoView {
                                         </DrawerBtn>
                                     </div>
                                 </div>
-                                <DefaultConfigFilterWidget
-                                    filters_rws
-                                    key_prefix
-                                />
+                                <DefaultConfigFilterWidget filters_rws key_prefix />
                                 <Table
                                     rows=filtered_rows
                                     key_column="id".to_string()
@@ -411,15 +435,15 @@ pub fn default_config() -> impl IntoView {
                                 />
                             </div>
                         </div>
-                        <DeleteModal
-                            modal_visible=delete_modal_visible_rs
-                            confirm_delete=confirm_delete
-                            set_modal_visible=delete_modal_visible_ws
-                            header_text="Are you sure you want to delete this config? Action is irreversible."
-                                .to_string()
-                        />
                     }
                 }}
+                <DeleteModal
+                    modal_visible=delete_modal_visible_rs
+                    confirm_delete=confirm_delete
+                    set_modal_visible=delete_modal_visible_ws
+                    header_text="Are you sure you want to delete this config? Action is irreversible."
+                        .to_string()
+                />
             </Suspense>
         </div>
     }
@@ -513,10 +537,7 @@ fn default_config_filter_widget(
     let filters = filters_rws.get_untracked();
     let filters_buffer_rws = create_rw_signal(filters.clone());
     view! {
-        <DrawerBtn
-            drawer_id="default_config_filter_drawer".into()
-            style=DrawerButtonStyle::Outline
-        >
+        <DrawerBtn drawer_id="default_config_filter_drawer".into() style=DrawerButtonStyle::Outline>
             Filters
             <i class="ri-filter-3-line"></i>
         </DrawerBtn>
@@ -548,12 +569,10 @@ fn default_config_filter_widget(
                         }
                         on:change=move |event| {
                             let key_name = event_target_value(&event);
-                            let key_name = if key_name.is_empty() {
-                                None
-                            } else {
-                                Some(key_name)
+                            let key_name = if key_name.is_empty() { None } else { Some(key_name) };
+                            let filters = DefaultConfigFilters {
+                                name: key_name,
                             };
-                            let filters = DefaultConfigFilters { name: key_name };
                             filters_buffer_rws.set(filters);
                         }
                     />

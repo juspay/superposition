@@ -7,6 +7,7 @@ use crate::{
     components::{
         alert::AlertType,
         button::Button,
+        change_form::ChangeForm,
         dropdown::{Dropdown, DropdownDirection},
         monaco_editor::MonacoEditor,
     },
@@ -64,7 +65,6 @@ pub fn function_editor<NF>(
     #[prop(default = String::from(VALIDATE_TEMPLATE_FN))] function: String,
     #[prop(default = String::new())] runtime_version: String,
     #[prop(default = String::new())] description: String,
-    #[prop(default = String::new())] change_reason: String,
     #[prop(default = FunctionType::Validation)] function_type: FunctionType,
     handle_submit: NF,
 ) -> impl IntoView
@@ -78,7 +78,7 @@ where
     let (runtime_version, set_runtime_version) = create_signal(runtime_version);
     let (error_message, set_error_message) = create_signal("".to_string());
     let (description_rs, description_ws) = create_signal(description);
-    let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
+    let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let (function_type_rs, function_type_ws) = create_signal(function_type);
     if !edit {
@@ -231,47 +231,22 @@ where
                             />
                         </div>
 
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Description</span>
-                            </label>
-                            <textarea
-                                type="text"
-                                class="input input-bordered shadow-md"
-                                name="description"
-                                id="description"
-                                placeholder="explain function"
-                                on:change=move |ev| {
-                                    let value = event_target_value(&ev);
-                                    logging::log!("{:?}", value);
-                                    description_ws.set(value);
-                                }
-                            >
-
-                                {description_rs.get()}
-                            </textarea>
-                        </div>
-
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Reason for Change</span>
-                            </label>
-                            <textarea
-                                type="text"
-                                class="input input-bordered shadow-md"
-                                name="change_reason"
-                                id="change_reason"
-                                placeholder="Reason for change"
-                                on:change=move |ev| {
-                                    let value = event_target_value(&ev);
-                                    logging::log!("{:?}", value);
-                                    change_reason_ws.set(value);
-                                }
-                            >
-
-                                {change_reason_rs.get()}
-                            </textarea>
-                        </div>
+                        <ChangeForm
+                            title="Description".to_string()
+                            placeholder="Enter a description".to_string()
+                            value=description_rs.get_untracked()
+                            on_change=Callback::new(move |new_description| {
+                                description_ws.set(new_description)
+                            })
+                        />
+                        <ChangeForm
+                            title="Reason for Change".to_string()
+                            placeholder="Enter a reason for this change".to_string()
+                            value=change_reason_rs.get_untracked()
+                            on_change=Callback::new(move |new_change_reason| {
+                                change_reason_ws.set(new_change_reason)
+                            })
+                        />
 
                         <div class="flex justify-end mt-8">
                             {move || {
@@ -529,11 +504,9 @@ pub fn test_form(
                         }
                     }}
 
-                </div>
-                <div class="mt-7">
+                </div> <div class="mt-7">
                     <p class="text-red-500">{move || error_message.get()}</p>
-                </div>
-                <div>
+                </div> <div>
                     <p class="text-green-700">
                         {move || {
                             output_message_rs
@@ -545,16 +518,12 @@ pub fn test_form(
                         }}
 
                     </p>
-                </div>
-                <div>
+                </div> <div>
                     <p class="text-green-700">
                         {move || {
                             output_message_rs
                                 .get()
-                                .map_or(
-                                    String::new(),
-                                    |o| { format!("logs: \n {}", o.stdout) },
-                                )
+                                .map_or(String::new(), |o| { format!("logs: \n {}", o.stdout) })
                         }}
 
                     </p>

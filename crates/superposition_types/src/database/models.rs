@@ -4,6 +4,7 @@ pub mod experimentation;
 pub mod others;
 
 use chrono::{DateTime, Utc};
+use derive_more::{Deref, DerefMut};
 #[cfg(feature = "diesel_derives")]
 use diesel::{
     sql_types::Text, AsChangeset, AsExpression, FromSqlRow, Insertable, QueryId,
@@ -84,7 +85,7 @@ impl TryFrom<String> for ChangeReason {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Deref, DerefMut)]
 #[serde(try_from = "String")]
 #[cfg_attr(
     feature = "diesel_derives",

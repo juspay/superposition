@@ -25,6 +25,7 @@ use crate::api::{delete_context, fetch_context, fetch_default_config, fetch_dime
 use crate::components::{
     alert::AlertType,
     button::Button,
+    change_form::ChangeForm,
     context_card::ContextCard,
     context_form::{
         utils::{create_context, update_context},
@@ -52,6 +53,7 @@ use crate::types::{OrganisationId, Tenant, VariantFormTs};
 pub struct Data {
     pub context: Conditions,
     pub overrides: Vec<(String, Value)>,
+    pub description: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -245,7 +247,6 @@ fn form(
     default_config: Vec<DefaultConfig>,
     handle_submit: Callback<bool, ()>,
     #[prop(default = String::new())] description: String,
-    #[prop(default = String::new())] change_reason: String,
 ) -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
@@ -256,7 +257,7 @@ fn form(
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
     let (description_rs, description_ws) = create_signal(description);
-    let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
+    let (change_reason_rs, change_reason_ws) = create_signal(String::new());
 
     let on_submit = move |_| {
         req_inprogress_ws.set(true);
@@ -323,35 +324,20 @@ fn form(
             disabled=edit
         />
 
-        <div class="form-control">
-            <label class="label">
-                <span class="label-text">Description</span>
-            </label>
-            <textarea
-                placeholder="Enter description"
-                class="textarea textarea-bordered w-full max-w-md"
-                value=description_rs.get_untracked()
-                on:change=move |ev| {
-                    let value = event_target_value(&ev);
-                    description_ws.set(value);
-                }
-            />
-        </div>
-
-        <div class="form-control">
-            <label class="label">
-                <span class="label-text">Reason for Change</span>
-            </label>
-            <textarea
-                placeholder="Enter a reason for this change"
-                class="textarea textarea-bordered w-full max-w-md"
-                value=change_reason_rs.get_untracked()
-                on:change=move |ev| {
-                    let value = event_target_value(&ev);
-                    change_reason_ws.set(value);
-                }
-            />
-        </div>
+        <ChangeForm
+            title="Description".to_string()
+            placeholder="Enter a description".to_string()
+            value=description_rs.get_untracked()
+            on_change=Callback::new(move |new_description| { description_ws.set(new_description) })
+        />
+        <ChangeForm
+            title="Reason for Change".to_string()
+            placeholder="Enter a reason for this change".to_string()
+            value=change_reason_rs.get_untracked()
+            on_change=Callback::new(move |new_change_reason| {
+                change_reason_ws.set(new_change_reason)
+            })
+        />
 
         <OverrideForm
             overrides=overrides.get_untracked()
@@ -494,6 +480,7 @@ pub fn context_override() -> impl IntoView {
                 selected_context_ws.set(Some(Data {
                     context: conditions,
                     overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
+                    description: context.description.clone(),
                 }));
                 set_form_mode.set(Some(FormMode::Edit));
                 open_drawer("context_and_override_drawer");
@@ -526,6 +513,7 @@ pub fn context_override() -> impl IntoView {
                         overrides: overrides
                             .into_iter()
                             .collect::<Vec<(String, Value)>>(),
+                        ..Default::default()
                     }));
 
                     open_drawer("create_exp_drawer");
@@ -545,6 +533,7 @@ pub fn context_override() -> impl IntoView {
                 selected_context_ws.set(Some(Data {
                     context: conditions,
                     overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
+                    description: context.description.clone(),
                 }));
                 set_form_mode.set(Some(FormMode::Create));
 
@@ -756,6 +745,7 @@ pub fn context_override() -> impl IntoView {
                                             dimensions=dimensions
                                             default_config=default_config
                                             handle_submit=handle_submit_experiment_form
+                                            description=data.description
                                         />
                                     }
                                         .into_view()
@@ -798,12 +788,13 @@ pub fn context_override() -> impl IntoView {
                                             default_config=default_config
                                             handle_submit=on_submit
                                             edit=true
+                                            description=data.description
                                         />
                                     }
                                         .into_view()
                                 }
                                 (Some(FormMode::Create), data) => {
-                                    let Data { context, overrides } = data.unwrap_or_default();
+                                    let Data { context, overrides, .. } = data.unwrap_or_default();
                                     view! {
                                         <Form
                                             context=context
