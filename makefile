@@ -31,7 +31,7 @@ DB_CONTAINER_NAME = $(shell $(call read-container-name,postgres))
 DB_UP = $(shell $(call check-container,$(DB_CONTAINER_NAME)))
 LSTACK_CONTAINER_NAME = $(shell $(call read-container-name,localstack))
 LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
-
+export SMITHY_MAVEN_REPOS = https://repo.maven.apache.org/maven|https://sandbox.assets.juspay.in/smithy/m2
 .PHONY:
 	db-init
 	setup
@@ -115,7 +115,7 @@ endif
 setup: $(SETUP_DEPS) node-dependencies setup-clients
 
 setup-clients:
-	cd $(SMITHY_CLIENT_DIR)/ts && npm ci &&\
+	cd $(SMITHY_CLIENT_DIR)/typescript && npm ci &&\
 		npm run build:cjs &&\
 		npm run build:types &&\
 		npm run build:es
@@ -182,7 +182,7 @@ test: setup frontend superposition
 				--connect-timeout 2 \
 				--retry-all-errors \
 				'http://localhost:8080/health' 2>&1 > /dev/null
-	cd clients/tests/ts && bun install && bun test
+	cd clients/tests/typescript && bun install && bun test
 	-@pkill -f target/debug/superposition &
 
 ## npm run test
@@ -196,12 +196,19 @@ tailwind:
 smithy-build:
 	cd smithy && smithy build
 
-ts-client: smithy-build
-	mkdir -p $(SMITHY_CLIENT_DIR)
-# cp -r $(SMITHY_BUILD_SRC)/typescript-client-codegen $(SMITHY_CLIENT_DIR)/ts
-## Skipping package.json as we have installed jest, probably will have to change
-## this once we move to `smoke-tests`.
-	rsync -av $(SMITHY_BUILD_SRC)/typescript-client-codegen/ $(SMITHY_CLIENT_DIR)/ts/
+smithy-clients: smithy-build
+	mkdir -p $(SMITHY_CLIENT_DIR) $(SMITHY_CLIENT_DIR)/java
+## Moving the Java client like this as smithy publishes it as a plugin.
+## Probably want to use that to publish it ourselves in the future.
+	cp -r $(SMITHY_BUILD_SRC)/java-client-codegen/io/juspay/superposition/* $(SMITHY_CLIENT_DIR)/java
+	@for d in $(SMITHY_BUILD_SRC)/*-client-codegen; do \
+		[ -d "$$d" ] || continue; \
+		[[ "$$d" =~ "java" ]] && continue; \
+		name=$$(basename "$$d" -client-codegen); \
+		mkdir -p "$(SMITHY_CLIENT_DIR)/$$name"; \
+		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \
+	done
+
 
 clients: smithy-build ts-client
 
