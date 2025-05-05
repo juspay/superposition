@@ -1,4 +1,5 @@
 pub mod alert;
+pub mod badge;
 pub mod button;
 pub mod change_form;
 pub mod condition_pills;
@@ -30,4 +31,5 @@ pub mod table;
 pub mod toast;
 pub mod type_template_form;
 pub mod variant_form;
+pub mod webhook_form;
 pub mod workspace_form;

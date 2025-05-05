@@ -1,6 +1,6 @@
 #[cfg(feature = "diesel_derives")]
 use super::super::schema::webhooks;
-use super::{ChangeReason, Description};
+use super::{ChangeReason, Description, NonEmptyString};
 use chrono::{DateTime, Utc};
 #[cfg(feature = "diesel_derives")]
 use diesel::{
@@ -9,7 +9,7 @@ use diesel::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use strum_macros::{Display, EnumString};
+use strum_macros::{Display, EnumIter, EnumString};
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{TextFromSql, TextToSql};
 
@@ -25,7 +25,7 @@ pub struct Webhook {
     pub name: String,
     pub description: Description,
     pub enabled: bool,
-    pub url: String,
+    pub url: NonEmptyString,
     pub method: HttpMethod,
     pub payload_version: PayloadVersion,
     pub custom_headers: Value,
@@ -49,6 +49,7 @@ pub struct Webhook {
     Default,
     strum_macros::Display,
     strum_macros::EnumString,
+    strum_macros::EnumIter,
 )]
 #[cfg_attr(
     feature = "diesel_derives",
@@ -86,6 +87,7 @@ impl From<&PayloadVersion> for String {
     Serialize,
     strum_macros::Display,
     strum_macros::EnumIter,
+    Default,
 )]
 #[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "UPPERCASE")]
@@ -101,6 +103,7 @@ impl From<&PayloadVersion> for String {
 pub enum HttpMethod {
     Get,
     Put,
+    #[default]
     Post,
     Delete,
     Patch,
@@ -110,7 +113,9 @@ pub enum HttpMethod {
     Connect,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, PartialEq, EnumString)]
+#[derive(
+    Serialize, Deserialize, Debug, Clone, Copy, Display, PartialEq, EnumString, EnumIter,
+)]
 #[cfg_attr(feature = "diesel_derives", derive(TextFromSql, TextToSql))]
 pub enum WebhookEvent {
     ExperimentCreated,

@@ -233,6 +233,7 @@ pub fn select(
 fn basic_input(
     id: String,
     name: String,
+    placeholder: String,
     class: String,
     r#type: InputType,
     disabled: bool,
@@ -258,6 +259,7 @@ fn basic_input(
             <input
                 id=id
                 name=name
+                placeholder=placeholder
                 class=format!("input input-bordered  {}", class)
                 required=required
                 disabled=disabled
@@ -543,6 +545,7 @@ pub fn date_input(
 pub fn input(
     value: Value,
     schema_type: SchemaType,
+    #[prop(into, default = String::new())] placeholder: String,
     #[prop(into)] on_change: Callback<Value, ()>,
     #[prop(into)] r#type: InputType,
     #[prop(default = false)] disabled: bool,
@@ -576,6 +579,7 @@ pub fn input(
                     schema_type=schema_type
                     on_change=on_change
                     operator=operator
+                    placeholder=placeholder
                 />
             }
         }
