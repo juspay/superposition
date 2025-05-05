@@ -2,6 +2,8 @@ pub mod utils;
 
 use leptos::*;
 
+use crate::components::badge::Badge;
+
 use self::utils::DropdownOption;
 
 #[derive(PartialEq)]
@@ -42,6 +44,7 @@ where
     T: DropdownOption + Clone + PartialEq + 'static,
 {
     let all_options = StoredValue::new(dropdown_options.clone());
+    let selected_text_rws = RwSignal::new(dropdown_text);
     let (selected_rs, selected_ws) = create_signal(selected);
     let (search_term, set_search_term) = create_signal(String::new());
     let dropdown_options = Signal::derive(move || {
@@ -64,9 +67,10 @@ where
     };
 
     let node_ref = create_node_ref::<html::Input>();
+    let dropdown_node_ref = create_node_ref::<html::Ul>();
 
     view! {
-        <div class="">
+        <div class="w-[28rem] flex flex-col gap-4">
             <div
                 id=id
                 class="dropdown"
@@ -87,9 +91,10 @@ where
                 >
 
                     <i class=format!("{dropdown_icon}")></i>
-                    {dropdown_text}
+                    {move || { selected_text_rws.get() }}
                 </label>
                 <ul
+                    ref_=dropdown_node_ref
                     tabindex="0"
                     class=format!(
                         "{dropdown_width} dropdown-content z-[1] menu flex-nowrap p-2 shadow bg-base-100 rounded-box max-h-96 overflow-y-scroll overflow-x-hidden",
@@ -133,11 +138,16 @@ where
                                         let selected_option = option.clone();
                                         if multi_select {
                                             selected_ws
-                                            .update(|selected| {
-                                                selected.push(selected_option.clone());
-                                            });
+                                                .update(|selected| {
+                                                    selected.push(selected_option.clone());
+                                                });
+                                        } else {
+                                            selected_text_rws.set(selected_option.label());
                                         }
                                         on_select.call(selected_option);
+                                        if let Some(element) = dropdown_node_ref.get() {
+                                            let _ = element.blur();
+                                        }
                                     }
                                 >
 
@@ -149,35 +159,18 @@ where
 
                 </ul>
             </div>
-            <Show when=move || { !selected_rs.get().is_empty() }>
-                <div class="flex flex-wrap gap-2 break-words w-[28rem] mt-4">
-                    <For
-                        each=move || { selected_rs.get() }
-                        key=move |option| { option.key() }
-                        children=move |option| {
-                            let label = option.label();
-                            view! {
-                                <div class="flex justify-between badge badge-primary badge-outline">
-                                    {label.to_string()}
-                                    <button
-                                        class="btn btn-xs btn-circle btn-ghost"
-                                        on:click=move |_| {
-                                            let selected_option = option.clone();
-                                            selected_ws
-                                                .update(|selected| {
-                                                    selected.retain(|x| x.key() != selected_option.key());
-                                                });
-                                            on_remove.call(selected_option);
-                                        }
-                                    >
-                                        <i class="ri-close-line"></i>
-                                    </button>
-                                </div>
-                            }
-                        }
-                    />
-                </div>
-            </Show>
+            <Badge
+                deletable=true
+                options=selected_rs
+                handle_remove=Callback::new(move |option: T| {
+                    let selected_option = option.clone();
+                    selected_ws
+                        .update(|selected| {
+                            selected.retain(|x| x.key() != selected_option.key());
+                        });
+                    on_remove.call(selected_option);
+                })
+            />
         </div>
     }
 }

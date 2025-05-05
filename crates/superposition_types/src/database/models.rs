@@ -240,3 +240,39 @@ pub struct Workspace {
     pub mandatory_dimensions: Option<Vec<String>>,
     pub strict_mode: bool,
 }
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Deref, DerefMut)]
+#[serde(try_from = "String")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, TextToSql)
+)]
+#[cfg_attr(
+    all(
+        feature = "diesel_derives",
+        not(feature = "disable_db_data_validation")
+    ),
+    derive(TextFromSql)
+)]
+#[cfg_attr(
+    all(feature = "diesel_derives", feature = "disable_db_data_validation"),
+    derive(TextFromSqlNoValidation)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
+pub struct NonEmptyString(String);
+
+impl From<&NonEmptyString> for String {
+    fn from(value: &NonEmptyString) -> String {
+        value.0.clone()
+    }
+}
+
+impl TryFrom<String> for NonEmptyString {
+    type Error = String;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.is_empty() {
+            return Err(String::from("Empty reason not allowed"));
+        }
+        Ok(Self(value))
+    }
+}

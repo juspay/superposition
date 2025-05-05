@@ -59,6 +59,12 @@ fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
             icon: "ri-camera-lens-fill".to_string(),
             label: "Config Versions".to_string(),
         },
+        AppRoute {
+            key: format!("{base}/admin/{org}/{tenant}/webhooks"),
+            path: format!("{base}/admin/{org}/{tenant}/webhooks"),
+            icon: "ri-webhook-line".to_string(),
+            label: "Webhooks".to_string(),
+        },
     ]
 }
 

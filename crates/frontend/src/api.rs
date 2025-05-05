@@ -1,16 +1,19 @@
 use leptos::ServerFnError;
+use serde_json::Value;
 use superposition_types::{
     api::{
         context::ContextListFilters,
         default_config::DefaultConfigFilters,
         experiments::{ExperimentListFilters, ExperimentResponse},
         functions::ListFunctionFilters,
+        webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap},
     database::{
         models::{
             cac::{ConfigVersion, Context, DefaultConfig, Function, TypeTemplate},
-            Workspace,
+            others::{HttpMethod, PayloadVersion, Webhook, WebhookEvent},
+            ChangeReason, Description, NonEmptyString, Workspace,
         },
         types::DimensionWithMandatory,
     },
@@ -379,4 +382,123 @@ pub async fn fetch_workspaces(
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     Ok(response)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub async fn create_webhook(
+    name: String,
+    description: String,
+    enabled: bool,
+    url: String,
+    method: HttpMethod,
+    payload_version: PayloadVersion,
+    custom_headers: Value,
+    events: Vec<WebhookEvent>,
+    change_reason: String,
+    tenant: String,
+    org_id: String,
+) -> Result<Webhook, String> {
+    let payload = CreateWebhookRequest {
+        name: WebhookName::try_from(name)?,
+        description: Description::try_from(description)?,
+        enabled,
+        url: NonEmptyString::try_from(url)?,
+        method,
+        payload_version: Some(payload_version),
+        custom_headers: Some(custom_headers),
+        events,
+        change_reason: ChangeReason::try_from(change_reason)?,
+    };
+    let host = get_host();
+    let url = format!("{host}/webhook");
+
+    let response = request(
+        url,
+        reqwest::Method::POST,
+        Some(payload),
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
+
+#[allow(clippy::too_many_arguments)]
+pub async fn update_webhook(
+    webhook_name: String,
+    enabled: bool,
+    url: String,
+    method: HttpMethod,
+    payload_version: PayloadVersion,
+    custom_headers: Value,
+    events: Vec<WebhookEvent>,
+    description: String,
+    change_reason: String,
+    tenant: String,
+    org_id: String,
+) -> Result<Webhook, String> {
+    let payload = UpdateWebhookRequest {
+        enabled: Some(enabled),
+        url: Some(NonEmptyString::try_from(url)?),
+        method: Some(method),
+        payload_version: Some(payload_version),
+        custom_headers: Some(custom_headers),
+        events: Some(events),
+        description: Some(Description::try_from(description)?),
+        change_reason: ChangeReason::try_from(change_reason)?,
+    };
+    let host = get_host();
+    let url = format!("{host}/webhook/{webhook_name}");
+
+    let response = request(
+        url,
+        reqwest::Method::PUT,
+        Some(payload),
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
+
+pub async fn fetch_webhooks(
+    filters: &PaginationParams,
+    tenant: String,
+    org_id: String,
+) -> Result<PaginatedResponse<Webhook>, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = use_host_server();
+
+    let url = format!("{}/webhook?{}", host, filters);
+    let response: PaginatedResponse<Webhook> = client
+        .get(url)
+        .header("x-tenant", &tenant)
+        .header("x-org-id", org_id)
+        .send()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?
+        .json()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(response)
+}
+
+pub async fn delete_webhooks(
+    name: String,
+    tenant: String,
+    org_id: String,
+) -> Result<(), String> {
+    let host = get_host();
+    let url = format!("{host}/webhook/{name}");
+
+    request(
+        url,
+        reqwest::Method::DELETE,
+        None::<serde_json::Value>,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+    )
+    .await?;
+
+    Ok(())
 }

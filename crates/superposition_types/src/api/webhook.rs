@@ -1,7 +1,7 @@
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::AsChangeset;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 #[cfg(feature = "diesel_derives")]
@@ -9,17 +9,17 @@ use crate::database::schema::webhooks;
 use crate::{
     database::models::{
         others::{HttpMethod, PayloadVersion, WebhookEvent},
-        ChangeReason, Description,
+        ChangeReason, Description, NonEmptyString,
     },
     RegexEnum,
 };
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateWebhookRequest {
     pub name: WebhookName,
     pub description: Description,
     pub enabled: bool,
-    pub url: String,
+    pub url: NonEmptyString,
     pub method: HttpMethod,
     pub payload_version: Option<PayloadVersion>,
     pub custom_headers: Option<Value>,
@@ -27,13 +27,13 @@ pub struct CreateWebhookRequest {
     pub change_reason: ChangeReason,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
 #[cfg_attr(feature = "diesel_derives", diesel(table_name = webhooks))]
 pub struct UpdateWebhookRequest {
     pub description: Option<Description>,
     pub enabled: Option<bool>,
-    pub url: Option<String>,
+    pub url: Option<NonEmptyString>,
     pub method: Option<HttpMethod>,
     pub payload_version: Option<PayloadVersion>,
     pub custom_headers: Option<Value>,
@@ -41,7 +41,9 @@ pub struct UpdateWebhookRequest {
     pub change_reason: ChangeReason,
 }
 
-#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into, Clone, PartialEq)]
+#[derive(
+    Debug, Serialize, Deserialize, AsRef, Deref, DerefMut, Into, Clone, PartialEq,
+)]
 #[serde(try_from = "String")]
 pub struct WebhookName(String);
 impl WebhookName {

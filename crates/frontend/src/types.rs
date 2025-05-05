@@ -4,8 +4,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
     database::{
-        models::cac::{DefaultConfig, TypeTemplate},
-        models::experimentation::{Variant, VariantType},
+        models::{
+            cac::{DefaultConfig, TypeTemplate},
+            experimentation::{Variant, VariantType},
+            others::{HttpMethod, PayloadVersion, WebhookEvent},
+        },
         types::DimensionWithMandatory,
     },
     Exp, Overrides,
@@ -172,3 +175,30 @@ pub struct Tenant(pub String);
 
 #[derive(Deref, DerefMut, Clone, Debug)]
 pub struct OrganisationId(pub String);
+
+impl DropdownOption for WebhookEvent {
+    fn key(&self) -> String {
+        self.to_string()
+    }
+    fn label(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl DropdownOption for HttpMethod {
+    fn key(&self) -> String {
+        self.to_string()
+    }
+    fn label(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl DropdownOption for PayloadVersion {
+    fn key(&self) -> String {
+        self.to_string()
+    }
+    fn label(&self) -> String {
+        self.to_string()
+    }
+}

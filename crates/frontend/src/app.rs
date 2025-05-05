@@ -14,7 +14,7 @@ use crate::pages::function::{
 use crate::pages::{
     context_override::ContextOverride, custom_types::TypesPage,
     default_config::DefaultConfig, experiment::ExperimentPage, home::Home,
-    organisations::Organisations, workspace::Workspace,
+    organisations::Organisations, webhooks::Webhooks, workspace::Workspace,
 };
 use crate::providers::alert_provider::AlertProvider;
 use crate::types::Envs;
@@ -256,6 +256,18 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                     view! {
                                         <Layout show_side_nav=false>
                                             <Workspace />
+                                        </Layout>
+                                    }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:org_id/:tenant/webhooks"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <Webhooks />
                                         </Layout>
                                     }
                                 }
