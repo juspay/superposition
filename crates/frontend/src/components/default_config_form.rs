@@ -15,6 +15,7 @@ use crate::{
     components::{
         alert::AlertType,
         button::Button,
+        change_form::ChangeForm,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         input::{Input, InputType},
     },
@@ -41,7 +42,6 @@ pub fn default_config_form<NF>(
     #[prop(default = None)] function_name: Option<Value>,
     #[prop(default = None)] prefix: Option<String>,
     #[prop(default = String::new())] description: String,
-    #[prop(default = String::new())] change_reason: String,
     handle_submit: NF,
 ) -> impl IntoView
 where
@@ -57,7 +57,7 @@ where
     let (function_name_rs, function_name_ws) = create_signal(function_name);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let (description_rs, description_ws) = create_signal(description);
-    let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
+    let (change_reason_rs, change_reason_ws) = create_signal(String::new());
 
     let schema_type_s = Signal::derive(move || {
         SchemaType::try_from(config_schema_rs.get())
@@ -212,36 +212,6 @@ where
                     />
 
                 </div>
-
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Description</span>
-                    </label>
-                    <textarea
-                        placeholder="Enter a description"
-                        class="textarea textarea-bordered w-full max-w-md"
-                        value=description_rs.get_untracked()
-                        on:change=move |ev| {
-                            let value = event_target_value(&ev);
-                            description_ws.set(value);
-                        }
-                    />
-                </div>
-
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Reason for Change</span>
-                    </label>
-                    <textarea
-                        placeholder="Enter a reason for this change"
-                        class="textarea textarea-bordered w-full max-w-md"
-                        value=change_reason_rs.get_untracked()
-                        on:change=move |ev| {
-                            let value = event_target_value(&ev);
-                            change_reason_ws.set(value);
-                        }
-                    />
-                </div>
                 <Suspense>
                     {move || {
                         let options = type_template_resource.get().unwrap_or(vec![]);
@@ -256,6 +226,22 @@ where
                             JsonSchemaType::from(&config_schema_rs.get()),
                         );
                         view! {
+                            <ChangeForm
+                                title="Description".to_string()
+                                placeholder="Enter a description".to_string()
+                                value=description_rs.get_untracked()
+                                on_change=Callback::new(move |new_description| {
+                                    description_ws.set(new_description)
+                                })
+                            />
+                            <ChangeForm
+                                title="Reason for Change".to_string()
+                                placeholder="Enter a reason for this change".to_string()
+                                value=change_reason_rs.get_untracked()
+                                on_change=Callback::new(move |new_change_reason| {
+                                    change_reason_ws.set(new_change_reason)
+                                })
+                            />
                             <div class="form-control">
                                 <label class="label">
                                     <span class="label-text">Set Schema</span>

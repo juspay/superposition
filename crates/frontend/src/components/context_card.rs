@@ -5,6 +5,7 @@ use superposition_types::database::models::cac::Context;
 use crate::{
     components::{
         condition_pills::Condition as ConditionComponent,
+        description_icon::InfoDescription,
         table::{types::Column, Table},
     },
     logic::{Conditions, Expression},
@@ -30,6 +31,8 @@ pub fn context_card(
     #[prop(default=Callback::new(|_| {}))] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
     let conditions: Conditions = (&context).try_into().unwrap_or_default();
+    let description = context.description.clone();
+    let change_reason = context.change_reason.clone();
 
     let override_table_rows = overrides
         .clone()
@@ -67,6 +70,7 @@ pub fn context_card(
                     <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
                         "Condition"
                     </h3>
+                    <InfoDescription description=description change_reason=change_reason />
                     <div class="group relative inline-block text-xs text-gray-700 cursor-pointer">
                         <div class="z-[1000] hidden absolute top-full left-1/2 p-2.5 group-hover:flex flex-col gap-4 bg-white rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal translate-x-[20px] -translate-y-1/2">
                             <div class="flex flex-col gap-1">
@@ -78,11 +82,7 @@ pub fn context_card(
                                 <div class="flex gap-1 items-center">
                                     <i class="ri-time-line text-gray-950" />
                                     <span>
-                                        {context
-                                            .get_value()
-                                            .created_at
-                                            .format("%v %T")
-                                            .to_string()}
+                                        {context.get_value().created_at.format("%v %T").to_string()}
                                     </span>
                                 </div>
                             </div>
@@ -95,7 +95,11 @@ pub fn context_card(
                                 <div class="flex gap-1 items-center">
                                     <i class="ri-time-line text-gray-950" />
                                     <span>
-                                        {context.get_value().last_modified_at.format("%v %T").to_string()}
+                                        {context
+                                            .get_value()
+                                            .last_modified_at
+                                            .format("%v %T")
+                                            .to_string()}
                                     </span>
                                 </div>
                             </div>

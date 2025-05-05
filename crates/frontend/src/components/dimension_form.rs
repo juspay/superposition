@@ -17,6 +17,7 @@ use web_sys::MouseEvent;
 
 use crate::components::{
     alert::AlertType,
+    change_form::ChangeForm,
     dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
     input::{Input, InputType},
 };
@@ -41,7 +42,6 @@ pub fn dimension_form<NF>(
     #[prop(default = None)] validation_function_name: Option<String>,
     #[prop(default = None)] autocomplete_function_name: Option<String>,
     #[prop(default = String::new())] description: String,
-    #[prop(default = String::new())] change_reason: String,
     dimensions: Vec<DimensionWithMandatory>,
     handle_submit: NF,
 ) -> impl IntoView
@@ -61,7 +61,7 @@ where
     let (autocomplete_fn_name_rs, autocomplete_fn_name_ws) =
         create_signal(autocomplete_function_name);
     let (description_rs, description_ws) = create_signal(description);
-    let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
+    let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let validation_functions_resource: Resource<(String, String), Vec<Function>> =
         create_blocking_resource(
@@ -217,35 +217,22 @@ where
 
             </div>
 
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Description</span>
-                </label>
-                <textarea
-                    placeholder="Enter a description"
-                    class="textarea textarea-bordered w-full max-w-md"
-                    value=description_rs.get_untracked()
-                    on:change=move |ev| {
-                        let value = event_target_value(&ev);
-                        description_ws.set(value);
-                    }
-                />
-            </div>
-
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Reason for Change</span>
-                </label>
-                <textarea
-                    placeholder="Enter a reason for this change"
-                    class="textarea textarea-bordered w-full max-w-md"
-                    value=change_reason_rs.get_untracked()
-                    on:change=move |ev| {
-                        let value = event_target_value(&ev);
-                        change_reason_ws.set(value);
-                    }
-                />
-            </div>
+            <ChangeForm
+                title="Description".to_string()
+                placeholder="Enter a description".to_string()
+                value=description_rs.get_untracked()
+                on_change=Callback::new(move |new_description| {
+                    description_ws.set(new_description)
+                })
+            />
+            <ChangeForm
+                title="Reason for Change".to_string()
+                placeholder="Enter a reason for this change".to_string()
+                value=change_reason_rs.get_untracked()
+                on_change=Callback::new(move |new_change_reason| {
+                    change_reason_ws.set(new_change_reason)
+                })
+            />
 
             <Suspense>
                 {move || {
@@ -361,10 +348,15 @@ where
             <Suspense>
                 {move || {
                     let mut functions = validation_functions_resource.get().unwrap_or_default();
-                    let mut validation_function_names: Vec<FunctionsName> = vec!["None".to_string()];
-                    let mut autocomplete_function_names: Vec<FunctionsName> = vec!["None".to_string()];
+                    let mut validation_function_names: Vec<FunctionsName> = vec![
+                        "None".to_string(),
+                    ];
+                    let mut autocomplete_function_names: Vec<FunctionsName> = vec![
+                        "None".to_string(),
+                    ];
                     functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
-                    functions.iter()
+                    functions
+                        .iter()
                         .for_each(|ele| {
                             if ele.function_type == FunctionType::Validation {
                                 validation_function_names.push(ele.function_name.clone());

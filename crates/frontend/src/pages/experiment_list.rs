@@ -476,11 +476,11 @@ pub fn experiment_list() -> impl IntoView {
                                                 columns=table_columns
                                                 pagination=pagination_props
                                             />
-
                                         </ConditionCollapseProvider>
                                     }
+                                        .into_view()
                                 }
-                                None => view! { <div>Loading....</div> }.into_view(),
+                                None => view! { Loading.... }.into_view(),
                             }
                         }}
 

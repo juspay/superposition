@@ -149,8 +149,9 @@ pub fn function_list() -> impl IntoView {
                                                 pagination=pagination_props
                                             />
                                         }
+                                            .into_view()
                                     }
-                                    None => view! { <div>Loading....</div> }.into_view(),
+                                    None => view! { Loading.... }.into_view(),
                                 }
                             }}
 

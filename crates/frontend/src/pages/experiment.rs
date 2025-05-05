@@ -173,6 +173,7 @@ pub fn experiment_page() -> impl IntoView {
                                         default_config=default_config
                                         dimensions=dimensions
                                         handle_submit=move |_| { combined_resource.refetch() }
+                                        description=(*experiment_ef.description).clone()
                                     />
                                 </EditorProvider>
 

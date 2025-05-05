@@ -23,7 +23,7 @@ pub fn experiment_table_columns(
         Column::new(
             "name".to_string(),
             false,
-            |value: &str, row: &Map<String, Value>| {
+            move |value: &str, row: &Map<String, Value>| {
                 let (copied, set_copied) = create_signal(false);
 
                 let experiment_name = value.to_string();
