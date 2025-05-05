@@ -2,7 +2,9 @@ use leptos::*;
 use leptos_router::A;
 use reqwest::StatusCode;
 
-use crate::components::table::types::{Column, ColumnSortable, Expandable};
+use crate::components::table::types::{
+    default_column_formatter, Column, ColumnSortable, Expandable,
+};
 use crate::utils::get_host;
 
 pub fn function_table_columns() -> Vec<Column> {
@@ -21,6 +23,7 @@ pub fn function_table_columns() -> Vec<Column> {
             },
             ColumnSortable::No,
             Expandable::Disabled,
+            default_column_formatter,
         ),
         Column::default("description".to_string()),
         Column::default("function_type".to_string()),

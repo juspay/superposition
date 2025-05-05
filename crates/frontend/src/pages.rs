@@ -1,3 +1,4 @@
+pub mod compare_overrides;
 pub mod config_version;
 pub mod config_version_list;
 pub mod context_override;
@@ -12,4 +13,3 @@ pub mod not_found;
 pub mod organisations;
 pub mod webhooks;
 pub mod workspace;
-pub mod compare_overrides;

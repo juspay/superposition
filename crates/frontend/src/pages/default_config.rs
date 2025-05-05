@@ -8,7 +8,6 @@ use superposition_types::{
     custom_query::{CustomQuery, PaginationParams, Query},
 };
 
-use crate::api::{delete_default_config, fetch_default_config};
 use crate::components::drawer::DrawerButtonStyle;
 use crate::components::table::types::Expandable;
 use crate::components::{
@@ -30,6 +29,10 @@ use crate::query_updater::use_signal_from_query;
 use crate::types::{BreadCrums, OrganisationId, Tenant};
 use crate::utils::{
     get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
+};
+use crate::{
+    api::{delete_default_config, fetch_default_config},
+    components::table::types::default_column_formatter,
 };
 
 #[derive(Clone, Debug, Default)]
@@ -264,6 +267,7 @@ pub fn default_config() -> impl IntoView {
                 expand,
                 ColumnSortable::No,
                 Expandable::Disabled,
+                default_column_formatter,
             ),
             Column::default("schema".to_string()),
             Column::default("value".to_string()),
@@ -276,6 +280,7 @@ pub fn default_config() -> impl IntoView {
                 actions_col_formatter,
                 ColumnSortable::No,
                 Expandable::Disabled,
+                default_column_formatter,
             ),
         ]
     });

@@ -10,7 +10,6 @@ use superposition_types::{
     PaginatedResponse,
 };
 
-use crate::api::fetch_snapshots;
 use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
 use crate::components::table::types::{ColumnSortable, Expandable, TablePaginationProps};
@@ -18,6 +17,7 @@ use crate::components::table::{types::Column, Table};
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant};
 use crate::utils::use_url_base;
+use crate::{api::fetch_snapshots, components::table::types::default_column_formatter};
 
 #[component]
 pub fn config_version_list() -> impl IntoView {
@@ -165,6 +165,7 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
             },
             ColumnSortable::No,
             Expandable::Disabled,
+            default_column_formatter,
         ),
         Column::new(
             "created_at".to_string(),
@@ -182,6 +183,7 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
             },
             ColumnSortable::No,
             Expandable::Enabled(100),
+            default_column_formatter,
         ),
         Column::new(
             "tags".to_string(),
@@ -203,6 +205,7 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
             },
             ColumnSortable::No,
             Expandable::Enabled(100),
+            default_column_formatter,
         ),
     ]
 }

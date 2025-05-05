@@ -22,7 +22,9 @@ fn badge_class(status_type: ExperimentStatusType) -> &'static str {
     }
 }
 
-use super::table::types::{ColumnSortable, Expandable};
+use super::table::types::{
+    default_column_formatter, default_formatter, ColumnSortable, Expandable,
+};
 
 #[allow(clippy::type_complexity)]
 pub fn gen_variant_table(
@@ -38,9 +40,10 @@ pub fn gen_variant_table(
         columns.push(Column::new(
             name.clone(),
             false,
-            |value: &str, _| view! { <span>{value.to_string()}</span> }.into_view(),
+            default_formatter,
             ColumnSortable::No,
             Expandable::Enabled(100),
+            default_column_formatter,
         ));
         for (config, value) in variant.overrides.clone().into_inner().into_iter() {
             match row_map.get_mut(&config) {

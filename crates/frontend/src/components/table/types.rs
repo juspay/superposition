@@ -5,6 +5,7 @@ use serde_json::{Map, Value};
 use superposition_types::SortBy;
 
 pub type CellFormatter = Box<Rc<dyn Fn(&str, &Map<String, Value>) -> View>>;
+pub type ColumnFormatter = Box<Rc<dyn Fn(&str) -> View>>;
 
 #[derive(Clone, Debug)]
 pub struct TableSettings {
@@ -34,6 +35,7 @@ pub struct Column {
     pub formatter: CellFormatter,
     pub sortable: ColumnSortable,
     pub expandable: Expandable,
+    pub column_formatter: ColumnFormatter,
 }
 
 impl PartialEq for Column {
@@ -42,8 +44,13 @@ impl PartialEq for Column {
     }
 }
 
-fn default_formatter(value: &str, _row: &Map<String, Value>) -> View {
+pub fn default_formatter(value: &str, _row: &Map<String, Value>) -> View {
     view! { <span>{value.to_string()}</span> }.into_view()
+}
+
+pub fn default_column_formatter(value: &str) -> View {
+    let column_name = value.replace('_', " ");
+    view! { <span>{column_name}</span> }.into_view()
 }
 
 impl Column {
@@ -54,6 +61,7 @@ impl Column {
             formatter: Box::new(Rc::new(default_formatter)),
             sortable: ColumnSortable::No,
             expandable: Expandable::Enabled(100),
+            column_formatter: Box::new(Rc::new(default_column_formatter)),
         }
     }
     pub fn default_no_collapse(name: String) -> Column {
@@ -63,6 +71,7 @@ impl Column {
             formatter: Box::new(Rc::new(default_formatter)),
             sortable: ColumnSortable::No,
             expandable: Expandable::Disabled,
+            column_formatter: Box::new(Rc::new(default_column_formatter)),
         }
     }
     pub fn default_with_sort(name: String, sortable: ColumnSortable) -> Column {
@@ -72,17 +81,20 @@ impl Column {
             formatter: Box::new(Rc::new(default_formatter)),
             sortable,
             expandable: Expandable::Enabled(100),
+            column_formatter: Box::new(Rc::new(default_column_formatter)),
         }
     }
-    pub fn new<NF>(
+    pub fn new<NF, CF>(
         name: String,
         hidden: bool,
         formatter: NF,
         sortable: ColumnSortable,
         expandable: Expandable,
+        column_formatter: CF,
     ) -> Column
     where
         NF: Fn(&str, &Map<String, Value>) -> View + 'static,
+        CF: Fn(&str) -> View + 'static,
     {
         Column {
             name,
@@ -90,6 +102,7 @@ impl Column {
             formatter: Box::new(Rc::new(formatter)),
             sortable,
             expandable,
+            column_formatter: Box::new(Rc::new(column_formatter)),
         }
     }
 }

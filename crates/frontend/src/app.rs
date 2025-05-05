@@ -261,7 +261,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                     }
                                 }
                             />
-                            
+
                             <Route
                                 ssr=SsrMode::Async
                                 path="/admin/:org_id/:tenant/compare"

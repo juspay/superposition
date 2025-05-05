@@ -16,7 +16,10 @@ use crate::{
         skeleton::Skeleton,
         stat::Stat,
         table::{
-            types::{Column, ColumnSortable, Expandable, TablePaginationProps},
+            types::{
+                default_column_formatter, Column, ColumnSortable, Expandable,
+                TablePaginationProps,
+            },
             Table,
         },
         webhook_form::WebhookForm,
@@ -185,6 +188,7 @@ pub fn webhooks() -> impl IntoView {
                 expand,
                 ColumnSortable::No,
                 Expandable::Disabled,
+                default_column_formatter,
             ),
             Column::default("enabled".to_string()),
             Column::default("url".to_string()),
@@ -209,6 +213,7 @@ pub fn webhooks() -> impl IntoView {
                 },
                 ColumnSortable::No,
                 Expandable::Disabled,
+                default_column_formatter,
             ),
             Column::default("max_retries".to_string()),
             Column::default("last_triggered_at".to_string()),
@@ -222,6 +227,7 @@ pub fn webhooks() -> impl IntoView {
                 action_col_formatter,
                 ColumnSortable::No,
                 Expandable::Enabled(100),
+                default_column_formatter,
             ),
         ]
     });

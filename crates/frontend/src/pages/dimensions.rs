@@ -8,7 +8,9 @@ use crate::components::description_icon::InfoDescription;
 use crate::components::dimension_form::DimensionForm;
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
-use crate::components::table::types::{ColumnSortable, Expandable};
+use crate::components::table::types::{
+    default_column_formatter, ColumnSortable, Expandable,
+};
 use crate::components::{
     delete_modal::DeleteModal,
     stat::Stat,
@@ -191,6 +193,7 @@ pub fn dimensions() -> impl IntoView {
                 expand,
                 ColumnSortable::No,
                 Expandable::Disabled,
+                default_column_formatter,
             ),
             Column::default("position".to_string()),
             Column::default("schema".to_string()),
@@ -206,6 +209,7 @@ pub fn dimensions() -> impl IntoView {
                 action_col_formatter,
                 ColumnSortable::No,
                 Expandable::Enabled(100),
+                default_column_formatter,
             ),
         ]
     });

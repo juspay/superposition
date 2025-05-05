@@ -50,7 +50,7 @@ fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
         AppRoute {
             key: format!("{base}/admin/{org}/{tenant}/compare"),
             path: format!("{base}/admin/{org}/{tenant}/compare"),
-            icon: "ri-survey-line".to_string(),
+            icon: "ri-arrow-left-right-line".to_string(),
             label: "Compare".to_string(),
         },
         AppRoute {
