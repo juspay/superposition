@@ -12,3 +12,4 @@ pub mod not_found;
 pub mod organisations;
 pub mod webhooks;
 pub mod workspace;
+pub mod compare_overrides;

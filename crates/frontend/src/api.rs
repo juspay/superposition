@@ -502,3 +502,30 @@ pub async fn delete_webhooks(
 
     Ok(())
 }
+
+pub async fn resolve_config(
+    tenant: &String,
+    context: &String,
+    org_id: &String,
+    show_reasoning: bool,
+) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::new();
+    let host = use_host_server();
+    let url = format!("{host}/config/resolve?{context}");
+    match client
+        .get(url)
+        .query(&[("show_reasoning", show_reasoning)])
+        .header("x-tenant", tenant)
+        .header("x-org-id", org_id)
+        .send()
+        .await
+    {
+        Ok(response) => {
+            let config = parse_json_response::<serde_json::Value>(response)
+                .await
+                .map_err(|e| e.to_string())?;
+            Ok(config)
+        }
+        Err(e) => Err(e.to_string()),
+    }
+}
