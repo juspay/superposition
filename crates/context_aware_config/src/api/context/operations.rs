@@ -161,6 +161,7 @@ pub fn r#move(
             dsl::last_modified_at.eq(Utc::now()),
             dsl::last_modified_by.eq(user.get_email()),
             dsl::description.eq(req_description.clone()),
+            dsl::change_reason.eq(change_reason.clone()),
         ))
         .returning(Context::as_returning())
         .schema_name(schema_name)

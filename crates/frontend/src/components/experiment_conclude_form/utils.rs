@@ -10,9 +10,10 @@ pub async fn conclude_experiment(
     variant_id: String,
     tenant: &String,
     org_id: &String,
+    change_reason: String,
 ) -> Result<ExperimentResponse, String> {
     let payload = ConcludeExperimentRequest {
-        change_reason: ChangeReason::try_from(String::from("concluding experiment"))?,
+        change_reason: ChangeReason::try_from(change_reason)?,
         chosen_variant: variant_id,
         description: None,
     };
