@@ -57,7 +57,7 @@ pub fn enqueue_alert(text: String, alert_type: AlertType, timeout: u64) {
 
     match (rs, ws) {
         (Some(queue), Some(set_queue)) => {
-            let id = queue.get().counter;
+            let id = queue.get_untracked().counter;
             let alert = Alert::new(id, text, alert_type, timeout);
 
             enqueue(alert, set_queue)

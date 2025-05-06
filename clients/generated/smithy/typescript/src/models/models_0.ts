@@ -142,6 +142,67 @@ export interface ContextPut {
 /**
  * @public
  */
+export type ContextIdentifier =
+  | ContextIdentifier.ContextMember
+  | ContextIdentifier.IdMember
+  | ContextIdentifier.$UnknownMember
+
+/**
+ * @public
+ */
+export namespace ContextIdentifier {
+
+  export interface IdMember {
+    id: string;
+    context?: never;
+    $unknown?: never;
+  }
+
+  export interface ContextMember {
+    id?: never;
+    context: Record<string, __DocumentType>;
+    $unknown?: never;
+  }
+
+  /**
+   * @public
+   */
+  export interface $UnknownMember {
+    id?: never;
+    context?: never;
+    $unknown: [string, any];
+  }
+
+  export interface Visitor<T> {
+    id: (value: string) => T;
+    context: (value: Record<string, __DocumentType>) => T;
+    _: (name: string, value: any) => T;
+  }
+
+  export const visit = <T>(
+    value: ContextIdentifier,
+    visitor: Visitor<T>
+  ): T => {
+    if (value.id !== undefined) return visitor.id(value.id);
+    if (value.context !== undefined) return visitor.context(value.context);
+    return visitor._(value.$unknown[0], value.$unknown[1]);
+  }
+
+}
+
+/**
+ * @public
+ */
+export interface UpdateContextOverrideRequest {
+  context: ContextIdentifier | undefined;
+  override: Record<string, __DocumentType> | undefined;
+  description?: string | undefined;
+  change_reason: string | undefined;
+}
+
+/**
+ * @public
+ */
 export type ContextAction =
   | ContextAction.DELETEMember
   | ContextAction.MOVEMember
@@ -164,7 +225,7 @@ export namespace ContextAction {
 
   export interface REPLACEMember {
     PUT?: never;
-    REPLACE: ContextPut;
+    REPLACE: UpdateContextOverrideRequest;
     DELETE?: never;
     MOVE?: never;
     $unknown?: never;
@@ -199,7 +260,7 @@ export namespace ContextAction {
 
   export interface Visitor<T> {
     PUT: (value: ContextPut) => T;
-    REPLACE: (value: ContextPut) => T;
+    REPLACE: (value: UpdateContextOverrideRequest) => T;
     DELETE: (value: string) => T;
     MOVE: (value: ContextMove) => T;
     _: (name: string, value: any) => T;
@@ -690,11 +751,8 @@ export interface MoveContextInput {
 export interface UpdateOverrideInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
-  context: Record<string, __DocumentType> | undefined;
   config_tags?: string | undefined;
-  override: Record<string, __DocumentType> | undefined;
-  description?: string | undefined;
-  change_reason: string | undefined;
+  request: UpdateContextOverrideRequest | undefined;
 }
 
 /**

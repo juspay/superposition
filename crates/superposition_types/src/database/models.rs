@@ -27,7 +27,7 @@ use super::superposition_schema::superposition::*;
 #[cfg(feature = "disable_db_data_validation")]
 use super::DisableDBValidation;
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Deref, DerefMut)]
 #[serde(try_from = "String")]
 #[cfg_attr(
     feature = "diesel_derives",

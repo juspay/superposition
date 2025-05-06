@@ -1,9 +1,30 @@
 use bigdecimal::BigDecimal;
+use chrono::{DateTime, Utc};
+use diesel::prelude::AsChangeset;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
-    database::models::cac::{Context, FunctionCode},
+    api::context::UpdateRequest,
+    database::{
+        models::{
+            cac::{Context, FunctionCode},
+            ChangeReason, Description,
+        },
+        schema::contexts,
+    },
     Cac, Condition, Overrides,
 };
+
+#[derive(Serialize, AsChangeset)]
+#[diesel(table_name = contexts)]
+pub(crate) struct UpdateContextOverridesChangeset {
+    pub override_id: String,
+    #[serde(rename = "override")]
+    pub override_: Overrides,
+    pub last_modified_at: DateTime<Utc>,
+    pub last_modified_by: String,
+    pub description: Option<Description>,
+    pub change_reason: ChangeReason,
+}
 
 #[cfg_attr(test, derive(Debug, PartialEq))] // Derive traits only when running tests
 #[derive(Deserialize, Clone)]
@@ -53,7 +74,7 @@ impl From<Context> for PutResp {
 #[serde(rename_all = "UPPERCASE")]
 pub enum ContextAction {
     Put(PutReq),
-    Replace(PutReq),
+    Replace(UpdateRequest),
     Delete(String),
     Move((String, MoveReq)),
 }
@@ -62,7 +83,7 @@ pub enum ContextAction {
 #[serde(rename_all = "UPPERCASE")]
 pub enum ContextBulkResponse {
     Put(PutResp),
-    Replace(PutResp),
+    Replace(Context),
     Delete(String),
     Move(PutResp),
 }

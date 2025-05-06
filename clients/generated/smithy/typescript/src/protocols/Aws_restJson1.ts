@@ -214,6 +214,7 @@ import {
   BulkOperationReq,
   ContextAction,
   ContextFull,
+  ContextIdentifier,
   ContextMove,
   ContextPartial,
   ContextPut,
@@ -230,6 +231,7 @@ import {
   ResourceNotFound,
   TypeTemplatesNotFound,
   TypeTemplatesResponse,
+  UpdateContextOverrideRequest,
   ValidateFunctionRequest,
   Variant,
   VariantUpdateRequest,
@@ -1484,12 +1486,13 @@ export const se_UpdateOverrideCommand = async(
   });
   b.bp("/context/overrides");
   let body: any;
-  body = JSON.stringify(take(input, {
-    'change_reason': [],
-    'context': _ => se_Condition(_, context),
-    'description': [],
-    'override': _ => se_Overrides(_, context),
-  }));
+  if (input.request !== undefined) {
+    body = se_UpdateContextOverrideRequest(input.request, context);
+  }
+  if (body === undefined) {
+    body = {};
+  }
+  body = JSON.stringify(body);
   b.m("PUT")
   .h(headers)
   .b(body);
@@ -2898,9 +2901,15 @@ export const de_UpdateOverrideCommand = async(
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'change_reason': __expectString,
-    'context_id': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
     'description': __expectString,
+    'id': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'override': _ => de_Overrides(_, context),
     'override_id': __expectString,
+    'value': _ => de_Condition(_, context),
     'weight': __expectString,
   });
   Object.assign(contents, doc);
@@ -3308,7 +3317,21 @@ const de_CommandError = async(
       DELETE: value => ({ "DELETE": value }),
       MOVE: value => ({ "MOVE": se_ContextMove(value, context) }),
       PUT: value => ({ "PUT": se_ContextPut(value, context) }),
-      REPLACE: value => ({ "REPLACE": se_ContextPut(value, context) }),
+      REPLACE: value => ({ "REPLACE": se_UpdateContextOverrideRequest(value, context) }),
+      _: (name, value) => ({ name: value } as any)
+    });
+  }
+
+  /**
+   * serializeAws_restJson1ContextIdentifier
+   */
+  const se_ContextIdentifier = (
+    input: ContextIdentifier,
+    context: __SerdeContext
+  ): any => {
+    return ContextIdentifier.visit(input, {
+      context: value => ({ "context": se_Condition(value, context) }),
+      id: value => ({ "id": value }),
       _: (name, value) => ({ name: value } as any)
     });
   }
@@ -3433,6 +3456,21 @@ const de_CommandError = async(
       acc[key] = se_Document(value, context);
       return acc;
     }, {});
+  }
+
+  /**
+   * serializeAws_restJson1UpdateContextOverrideRequest
+   */
+  const se_UpdateContextOverrideRequest = (
+    input: UpdateContextOverrideRequest,
+    context: __SerdeContext
+  ): any => {
+    return take(input, {
+      'change_reason': [],
+      'context': _ => se_ContextIdentifier(_, context),
+      'description': [],
+      'override': _ => se_Overrides(_, context),
+    });
   }
 
   /**
