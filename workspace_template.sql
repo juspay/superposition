@@ -560,3 +560,8 @@ DO $$ BEGIN
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
+
+ALTER TABLE {replaceme}.experiments
+ADD COLUMN IF NOT EXISTS metrics JSON DEFAULT '{"enabled": false}'::json NOT NULL,
+ADD COLUMN IF NOT EXISTS started_at TIMESTAMP,
+ADD COLUMN IF NOT EXISTS started_by TEXT;

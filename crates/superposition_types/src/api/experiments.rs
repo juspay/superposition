@@ -13,7 +13,7 @@ use crate::{
         experimentation::{
             Experiment, ExperimentStatusType, TrafficPercentage, Variant, Variants,
         },
-        ChangeReason, Description,
+        ChangeReason, Description, MetricSource, Metrics,
     },
     Condition, Exp, IsEmpty, Overrides, SortBy,
 };
@@ -34,6 +34,8 @@ pub struct ExperimentResponse {
     pub override_keys: Vec<String>,
     pub status: ExperimentStatusType,
     pub traffic_percentage: TrafficPercentage,
+    pub started_at: Option<DateTime<Utc>>,
+    pub started_by: Option<String>,
 
     pub context: Condition,
     pub variants: Variants,
@@ -41,10 +43,35 @@ pub struct ExperimentResponse {
     pub chosen_variant: Option<String>,
     pub description: Description,
     pub change_reason: ChangeReason,
+    pub metrics: Metrics,
+    pub metrics_url: Option<String>,
 }
 
 impl From<Experiment> for ExperimentResponse {
     fn from(experiment: Experiment) -> Self {
+        let metrics_url =
+            experiment.started_at.and_then(|started_at| {
+                experiment.metrics.source().map(|source| {
+                    match source {
+                        MetricSource::Grafana { base_url, dashboard_uid, dashboard_slug, variant_id_alias } => {
+                            let to = if experiment.status == ExperimentStatusType::CONCLUDED {
+                                experiment.last_modified.to_string()
+                            } else {
+                                "now".to_string()
+                            };
+                            let from = started_at.timestamp_millis();
+
+                            let variant_var = format!("var-{}", variant_id_alias.unwrap_or_else(|| "variantIds".to_string()));
+                            let query = experiment.variants.iter().map(|v| {
+                                format!("{}={}", variant_var, v.id)
+                            }).collect::<Vec<String>>().join("&");
+
+                            format!("{base_url}/d/{dashboard_uid}/{dashboard_slug}?{query}&from={from}&to={to}&kiosk&theme=light")
+                        }
+                    }
+                })
+            });
+
         Self {
             id: experiment.id.to_string(),
             created_at: experiment.created_at,
@@ -55,6 +82,8 @@ impl From<Experiment> for ExperimentResponse {
             override_keys: experiment.override_keys,
             status: experiment.status,
             traffic_percentage: experiment.traffic_percentage,
+            started_at: experiment.started_at,
+            started_by: experiment.started_by,
 
             context: experiment.context,
             variants: experiment.variants,
@@ -62,6 +91,8 @@ impl From<Experiment> for ExperimentResponse {
             chosen_variant: experiment.chosen_variant,
             description: experiment.description,
             change_reason: experiment.change_reason,
+            metrics: experiment.metrics,
+            metrics_url,
         }
     }
 }
@@ -71,6 +102,7 @@ pub struct ExperimentCreateRequest {
     pub name: String,
     pub context: Exp<Condition>,
     pub variants: Vec<Variant>,
+    pub metrics: Option<Metrics>,
     #[serde(default = "Description::default")]
     pub description: Description,
     #[serde(default = "ChangeReason::default")]
@@ -262,6 +294,7 @@ pub struct VariantUpdateRequest {
 pub struct OverrideKeysUpdateRequest {
     #[serde(alias = "variant_list")]
     pub variants: Vec<VariantUpdateRequest>,
+    pub metrics: Option<Metrics>,
     pub description: Option<Description>,
     #[serde(default = "ChangeReason::default")]
     pub change_reason: ChangeReason,

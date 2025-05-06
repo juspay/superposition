@@ -1325,4 +1325,16 @@ CREATE TRIGGER webhooks_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_dev.w
 ALTER TABLE superposition.workspaces
 ADD COLUMN IF NOT EXISTS strict_mode BOOLEAN DEFAULT FALSE;
 
+ALTER TABLE superposition.workspaces ADD COLUMN IF NOT EXISTS metrics JSON DEFAULT '{"enabled": false}'::json NOT NULL;
+
+ALTER TABLE localorg_test.experiments
+ADD COLUMN IF NOT EXISTS metrics JSON DEFAULT '{"enabled": false}'::json NOT NULL,
+ADD COLUMN IF NOT EXISTS started_at TIMESTAMP,
+ADD COLUMN IF NOT EXISTS started_by TEXT;
+
+ALTER TABLE localorg_dev.experiments
+ADD COLUMN IF NOT EXISTS metrics JSON DEFAULT '{"enabled": false}'::json NOT NULL,
+ADD COLUMN IF NOT EXISTS started_at TIMESTAMP,
+ADD COLUMN IF NOT EXISTS started_by TEXT;
+
 COMMIT;

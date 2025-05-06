@@ -3,7 +3,7 @@ pub mod utils;
 
 use leptos::*;
 use superposition_types::database::{
-    models::{cac::DefaultConfig, Workspace},
+    models::{cac::DefaultConfig, Metrics, Workspace},
     types::DimensionWithMandatory,
 };
 use utils::{create_experiment, update_experiment};
@@ -11,6 +11,7 @@ use web_sys::MouseEvent;
 
 use crate::components::change_form::ChangeForm;
 use crate::components::context_form::ContextForm;
+use crate::components::metrics_form::MetricsForm;
 use crate::components::variant_form::VariantForm;
 use crate::providers::alert_provider::enqueue_alert;
 use crate::types::{VariantFormT, VariantFormTs};
@@ -39,6 +40,7 @@ pub fn experiment_form<NF>(
     default_config: Vec<DefaultConfig>,
     dimensions: Vec<DimensionWithMandatory>,
     #[prop(default = String::new())] description: String,
+    metrics: Metrics,
 ) -> impl IntoView
 where
     NF: Fn(String) + 'static + Clone,
@@ -56,6 +58,7 @@ where
 
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
+    let metrics_rws = RwSignal::new(metrics);
 
     let handle_context_form_change = move |updated_ctx: Conditions| {
         set_context.set_untracked(updated_ctx);
@@ -94,20 +97,22 @@ where
                     update_experiment(
                         experiment_id,
                         f_variants,
+                        Some(metrics_rws.get_untracked()),
                         tenant,
                         org,
-                        description_rs.get(),
-                        change_reason_rs.get(),
+                        description_rs.get_untracked(),
+                        change_reason_rs.get_untracked(),
                     )
                     .await
                 } else {
                     create_experiment(
                         f_context,
                         f_variants,
+                        Some(metrics_rws.get_untracked()),
                         f_experiment_name,
                         tenant,
-                        description_rs.get(),
-                        change_reason_rs.get(),
+                        description_rs.get_untracked(),
+                        change_reason_rs.get_untracked(),
                         org,
                     )
                     .await
@@ -163,6 +168,10 @@ where
                 on_change=Callback::new(move |new_description| {
                     description_ws.set(new_description)
                 })
+            />
+            <MetricsForm
+                metrics=metrics_rws.get_untracked()
+                on_change=Callback::new(move |metrics| metrics_rws.set(metrics))
             />
             <ChangeForm
                 title="Reason for Change".to_string()

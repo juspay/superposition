@@ -55,6 +55,7 @@ pub mod superposition {
             created_at -> Timestamptz,
             mandatory_dimensions -> Nullable<Array<Text>>,
             strict_mode -> Bool,
+            metrics -> Json,
         }
     }
 

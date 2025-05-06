@@ -4,7 +4,7 @@ use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
     custom_query::{CustomQuery, PaginationParams, Query},
-    database::models::WorkspaceStatus,
+    database::models::{Metrics, WorkspaceStatus},
 };
 
 use crate::components::{
@@ -77,6 +77,8 @@ pub fn workspace() -> impl IntoView {
             };
             let created_by = row["created_by"].to_string().to_string().replace('"', "");
             let created_at = row["created_at"].to_string().replace('"', "");
+            let metrics: Metrics =
+                serde_json::from_value(row["metrics"].clone()).unwrap_or_default();
 
             let edit_click_handler = move |_| {
                 let row_data = RowData {
@@ -87,6 +89,7 @@ pub fn workspace() -> impl IntoView {
                     mandatory_dimensions: Some(mandatory_dimensions.clone()),
                     created_by: created_by.clone(),
                     created_at: created_at.clone(),
+                    metrics: metrics.clone(),
                 };
                 logging::log!("{:?}", row_data);
                 selected_workspace.set(Some(row_data));
@@ -175,13 +178,13 @@ pub fn workspace() -> impl IntoView {
                                     mandatory_dimensions=selected_workspace_data
                                         .mandatory_dimensions
                                         .unwrap_or_default()
+                                    metrics=selected_workspace_data.metrics
                                     handle_submit=move |_| {
                                         workspace_resource.refetch();
                                         selected_workspace.set(None);
                                         close_drawer("workspace_drawer");
                                     }
                                 />
-
                             </Drawer>
                         }
                     } else {
@@ -200,7 +203,6 @@ pub fn workspace() -> impl IntoView {
                                         close_drawer("workspace_drawer");
                                     }
                                 />
-
                             </Drawer>
                         }
                     }

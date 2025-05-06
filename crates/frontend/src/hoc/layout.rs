@@ -58,30 +58,27 @@ fn workspace_provider(
     let workspace_context_not_needed =
         route.eq("/admin/organisations") || route.eq("/admin/:org_id/workspaces");
     view! {
-        <Suspense fallback=move || view! { <Skeleton variant=SkeletonVariant::DetailPage />}>
-            { move || {
+        <Suspense fallback=move || {
+            view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
+        }>
+            {move || {
                 let Some(workspace_items) = workspaces.get() else {
                     logging::log!("No workspaces found");
                     return view! { <Skeleton variant=SkeletonVariant::DetailPage /> }.into_view();
                 };
                 if workspace_context_not_needed {
                     logging::log!("No workspace {} found", workspace.get_value());
-                    return view! {
-                        <div>
-                            {children.get_value()()}
-                        </div>
-                    }.into_view();
+                    return view! { <div>{children.get_value()()}</div> }.into_view();
                 }
-                let Some(workspace_settings) = workspace_items.data.into_iter().find(|w| w.workspace_name == workspace.get_value()) else {
+                let Some(workspace_settings) = workspace_items
+                    .data
+                    .into_iter()
+                    .find(|w| w.workspace_name == workspace.get_value()) else {
                     return view! { <Skeleton variant=SkeletonVariant::DetailPage /> }.into_view();
                 };
                 logging::log!("Setting workspace context: {:#?}", workspace_settings);
                 provide_context(StoredValue::new(workspace_settings));
-                view! {
-                    <div>
-                        {children.get_value()()}
-                    </div>
-                }.into_view()
+                view! { <div>{children.get_value()()}</div> }.into_view()
             }}
         </Suspense>
     }
@@ -110,9 +107,17 @@ pub fn layout(
     let path = StoredValue::new(route_context.path());
     let children = StoredValue::new(children);
     view! {
-        <WorkspaceProvider workspace=tenant_rws.get().0 route=original_path.get_value() workspaces>
+        <WorkspaceProvider
+            workspace=tenant_rws.get_untracked().0
+            route=original_path.get_value()
+            workspaces
+        >
             <Show when=move || show_side_nav>
-                <SideNav resolved_path=path.get_value() original_path=original_path.get_value() workspace_resource=workspaces />
+                <SideNav
+                    resolved_path=path.get_value()
+                    original_path=original_path.get_value()
+                    workspace_resource=workspaces
+                />
             </Show>
             // params_map=params_map
             <main class=format!(
