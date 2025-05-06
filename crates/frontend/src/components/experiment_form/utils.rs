@@ -3,7 +3,10 @@ use superposition_types::{
         ExperimentCreateRequest, ExperimentResponse, OverrideKeysUpdateRequest,
         VariantUpdateRequest,
     },
-    database::models::{experimentation::Variant, ChangeReason, Description},
+    database::models::{
+        experimentation::{ExperimentType, Variant},
+        ChangeReason, Description,
+    },
     Condition, Exp,
 };
 
@@ -29,6 +32,7 @@ pub async fn create_experiment(
 ) -> Result<ExperimentResponse, String> {
     let payload = ExperimentCreateRequest {
         name,
+        experiment_type: ExperimentType::DEFAULT,
         variants: Result::<Vec<Variant>, String>::from_iter(variants)?,
         context: Exp::<Condition>::try_from(conditions.as_context_json())?,
         description: Description::try_from(description)?,

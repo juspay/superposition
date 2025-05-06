@@ -68,8 +68,8 @@ impl ExperimentStatusType {
 
     pub fn discardable(&self) -> bool {
         match self {
-            Self::CREATED => true,
-            Self::INPROGRESS | Self::CONCLUDED | Self::DISCARDED => false,
+            Self::CREATED | Self::INPROGRESS => true,
+            Self::CONCLUDED | Self::DISCARDED => false,
         }
     }
 
@@ -80,6 +80,42 @@ impl ExperimentStatusType {
             Self::CONCLUDED => "badge-success",
             Self::DISCARDED => "badge-neutral",
         }
+    }
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Eq,
+    Hash,
+    PartialEq,
+    Deserialize,
+    Serialize,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+    strum_macros::EnumString,
+)]
+#[serde(rename_all = "UPPERCASE")]
+#[strum(serialize_all = "UPPERCASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(diesel_derive_enum::DbEnum, QueryId)
+)]
+#[cfg_attr(feature = "diesel_derives", DbValueStyle = "UPPERCASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    ExistingTypePath = "crate::database::schema::sql_types::ExperimentType"
+)]
+#[allow(non_camel_case_types)]
+pub enum ExperimentType {
+    DEFAULT,
+    DELETE_OVERRIDES,
+}
+
+impl Default for ExperimentType {
+    fn default() -> Self {
+        Self::DEFAULT
     }
 }
 
@@ -159,6 +195,7 @@ pub struct Variant {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub override_id: Option<String>,
     pub overrides: Exp<Overrides>,
+    pub overrides_delete_keys: Option<Vec<String>>,
 }
 
 impl Overridden<Exp<Overrides>> for Variant {
@@ -197,8 +234,8 @@ pub struct Experiment {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub last_modified: DateTime<Utc>,
-
     pub name: String,
+    pub experiment_type: ExperimentType,
     pub override_keys: Vec<String>,
     pub status: ExperimentStatusType,
     pub traffic_percentage: TrafficPercentage,

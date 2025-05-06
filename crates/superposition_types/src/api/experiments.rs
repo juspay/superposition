@@ -11,7 +11,8 @@ use crate::{
     custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams},
     database::models::{
         experimentation::{
-            Experiment, ExperimentStatusType, TrafficPercentage, Variant, Variants,
+            Experiment, ExperimentStatusType, ExperimentType, TrafficPercentage, Variant,
+            Variants,
         },
         ChangeReason, Description,
     },
@@ -31,6 +32,7 @@ pub struct ExperimentResponse {
     pub last_modified: DateTime<Utc>,
 
     pub name: String,
+    pub experiment_type: ExperimentType,
     pub override_keys: Vec<String>,
     pub status: ExperimentStatusType,
     pub traffic_percentage: TrafficPercentage,
@@ -52,6 +54,7 @@ impl From<Experiment> for ExperimentResponse {
             last_modified: experiment.last_modified,
 
             name: experiment.name,
+            experiment_type: experiment.experiment_type,
             override_keys: experiment.override_keys,
             status: experiment.status,
             traffic_percentage: experiment.traffic_percentage,
@@ -71,6 +74,8 @@ pub struct ExperimentCreateRequest {
     pub name: String,
     pub context: Exp<Condition>,
     pub variants: Vec<Variant>,
+    #[serde(default)]
+    pub experiment_type: ExperimentType,
     #[serde(default = "Description::default")]
     pub description: Description,
     #[serde(default = "ChangeReason::default")]

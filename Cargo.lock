@@ -1916,6 +1916,8 @@ dependencies = [
  "actix-http",
  "actix-web",
  "anyhow",
+ "blake3",
+ "cac_client",
  "chrono",
  "diesel",
  "jsonlogic",

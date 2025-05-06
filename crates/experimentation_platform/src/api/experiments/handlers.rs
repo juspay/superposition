@@ -1,11 +1,10 @@
-use std::collections::{HashMap, HashSet};
-
 use actix_http::header::{self};
 use actix_web::{
     get, patch, post, put, route,
     web::{self, Data, Json, Query},
     Either, HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
+use cac_client::{eval_cac, MergeStrategy};
 use chrono::{DateTime, Duration, Utc};
 use diesel::{
     dsl::sql,
@@ -14,18 +13,20 @@ use diesel::{
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
     TextExpressionMethods,
 };
-use reqwest::{Method, Response, StatusCode};
+use reqwest::Method;
 use serde_json::{json, Map, Value};
 use service_utils::{
     helpers::{
-        construct_request_headers, execute_webhook_call, generate_snowflake_id, request,
+        construct_request_headers, execute_webhook_call, extract_dimensions,
+        generate_snowflake_id, request,
     },
     service::types::{
         AppEnv, AppHeader, AppState, CustomHeaders, DbConnection, SchemaName,
         WorkspaceContext,
     },
 };
-use superposition_macros::{bad_argument, response_error, unexpected_error};
+use std::collections::{HashMap, HashSet};
+use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     api::{
         context::{Identifier, UpdateRequest},
@@ -40,8 +41,8 @@ use superposition_types::{
     database::{
         models::{
             experimentation::{
-                EventLog, Experiment, ExperimentStatusType, TrafficPercentage, Variant,
-                Variants,
+                EventLog, Experiment, ExperimentStatusType, ExperimentType,
+                TrafficPercentage, Variant, VariantType, Variants,
             },
             others::WebhookEvent,
             ChangeReason,
@@ -55,15 +56,19 @@ use superposition_types::{
 };
 
 use super::{
+    cac_api::process_cac_bulk_operation_http_response,
     helpers::{
         add_variant_dimension_to_ctx, check_variant_types,
-        check_variants_override_coverage, extract_override_keys, fetch_cac_config,
+        check_variants_delete_override_coverage, check_variants_override_coverage,
+        extract_override_keys, fetch_cac_config, get_current_context_override, hash,
         validate_experiment, validate_override_keys,
     },
     types::{ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq},
 };
 
-use crate::api::experiments::helpers::{construct_header_map, decide_variant};
+use crate::api::experiments::helpers::{
+    construct_header_map, decide_variant, get_cac_config,
+};
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
@@ -84,58 +89,6 @@ fn add_config_version_to_header(
 ) {
     if let Some(val) = config_version {
         resp_builder.insert_header((AppHeader::XConfigVersion.to_string(), val.clone()));
-    }
-}
-
-async fn parse_error_response(
-    response: reqwest::Response,
-) -> superposition::Result<(StatusCode, superposition::ErrorResponse)> {
-    let status_code = response.status();
-    let error_response = response
-        .json::<superposition::ErrorResponse>()
-        .await
-        .map_err(|err: reqwest::Error| {
-            log::error!("failed to parse error response: {}", err);
-            unexpected_error!("Something went wrong")
-        })?;
-    log::error!("http call to CAC failed with err {:?}", error_response);
-
-    Ok((status_code, error_response))
-}
-
-async fn process_cac_http_response(
-    response: Result<Response, reqwest::Error>,
-) -> superposition::Result<(Vec<ContextBulkResponse>, Option<String>)> {
-    let internal_server_error = unexpected_error!("Something went wrong.");
-    match response {
-        Ok(res) if res.status().is_success() => {
-            let config_version = res
-                .headers()
-                .get("x-config-version")
-                .and_then(|val| val.to_str().map_or(None, |v| Some(v.to_string())));
-            let bulk_resp =
-                res.json::<Vec<ContextBulkResponse>>()
-                    .await
-                    .map_err(|err| {
-                        log::error!("failed to parse JSON response with error: {}", err);
-                        internal_server_error
-                    })?;
-            Ok((bulk_resp, config_version))
-        }
-        Ok(res) => {
-            log::error!("http call to CAC failed with status_code {}", res.status());
-
-            if res.status().is_client_error() {
-                let (status_code, error_response) = parse_error_response(res).await?;
-                Err(response_error!(status_code, error_response.message))
-            } else {
-                Err(internal_server_error)
-            }
-        }
-        Err(err) => {
-            log::error!("reqwest failed to send request to CAC with error: {}", err);
-            Err(internal_server_error)
-        }
     }
 }
 
@@ -187,9 +140,86 @@ async fn create(
             )
         );
     }
-
     // validating context
     let exp_context = req.context.clone().into_inner();
+    let exp_context_id = hash(&Value::Object(exp_context.clone().into()));
+
+    if req.experiment_type == ExperimentType::DELETE_OVERRIDES {
+        let mut config = get_cac_config(&user, &state, &workspace_request).await?;
+        let above_context = if let Some(index) = config
+            .contexts
+            .iter()
+            .position(|ctx| ctx.id == exp_context_id)
+        {
+            config.contexts[..index].to_vec()
+        } else {
+            return Err(bad_argument!(
+                "context with id {} not found in CAC",
+                exp_context_id
+            ));
+        };
+        config.contexts = above_context;
+        let exp_context_dimension_value = extract_dimensions(&exp_context)?;
+        let evaled_cac = eval_cac(
+            config.default_configs.to_owned(),
+            &config.contexts,
+            &config.overrides,
+            &exp_context_dimension_value,
+            MergeStrategy::MERGE,
+        )
+        .map_err(|err| {
+            log::error!("failed to eval cac with err: {}", err);
+            unexpected_error!("cac eval failed")
+        })?;
+
+        let variant_delete_overrides: Vec<Option<Vec<String>>> = variants
+            .iter()
+            .map(|variant| variant.overrides_delete_keys.clone())
+            .collect();
+
+        let are_valid_variants = check_variants_delete_override_coverage(
+            &variant_delete_overrides,
+            &unique_override_keys,
+        );
+        if !are_valid_variants {
+            return Err(bad_argument!(
+                "all variants should contain the keys mentioned in override_keys. Check if any of the following keys [{}] are missing from keys in your variants",
+                    unique_override_keys.join(",")
+                )
+            );
+        }
+
+        for variant in &mut variants {
+            if variant.overrides_delete_keys.is_some()
+                && variant.variant_type == VariantType::CONTROL
+            {
+                return Err(bad_argument!(
+                    "Control variant should not contain delete keys",
+                ));
+            }
+            if let Some(delete_keys) = &variant.overrides_delete_keys {
+                for key in delete_keys {
+                    let mut variant_override: Map<String, Value> =
+                        variant.overrides.clone().into_inner().into();
+
+                    if let Some(variant_config) = evaled_cac.get(key) {
+                        if variant_override.get(key).is_some() {
+                            variant_override
+                                .insert(key.clone(), variant_config.to_owned());
+                        }
+                    }
+                    variant.overrides = Exp::<Overrides>::try_from(variant_override)
+                        .map_err(|err| {
+                            log::error!(
+                                "failed to parse variant overrides with err: {}",
+                                err
+                            );
+                            unexpected_error!("Something went wrong")
+                        })?;
+                }
+            }
+        }
+    }
 
     // validating experiment against other active experiments based on permission flags
     let flags = &state.experimentation_flags;
@@ -274,7 +304,8 @@ async fn create(
         .await;
 
     // directly return an error response if not a 200 response
-    let (resp_contexts, config_version_id) = process_cac_http_response(response).await?;
+    let (resp_contexts, config_version_id) =
+        process_cac_bulk_operation_http_response(response).await?;
     let created_contexts = resp_contexts
         .into_iter()
         .map(|item| match item {
@@ -302,6 +333,7 @@ async fn create(
         created_at: Utc::now(),
         last_modified: Utc::now(),
         name: req.name.to_string(),
+        experiment_type: req.experiment_type,
         override_keys: unique_override_keys.to_vec(),
         traffic_percentage: TrafficPercentage::default(),
         status: ExperimentStatusType::CREATED,
@@ -416,6 +448,7 @@ pub async fn conclude(
         .schema_name(&workspace_request.schema_name)
         .get_result::<Experiment>(&mut conn)?;
 
+    let exp_context_id = hash(&Value::Object(experiment.context.clone().into()));
     let description = match req.description.clone() {
         Some(desc) => desc,
         None => experiment.description.clone(),
@@ -441,12 +474,44 @@ pub async fn conclude(
 
         if variant.id == winner_variant_id {
             if !experiment_context.is_empty() {
-                let context_move_req = ContextMoveReq {
-                    context: experiment_context.clone(),
-                    description: description.clone(),
-                    change_reason: change_reason.clone(),
-                };
-                operations.push(ContextAction::MOVE((context_id, context_move_req)));
+                if experiment.experiment_type == ExperimentType::DELETE_OVERRIDES {
+                    let current_context = get_current_context_override(
+                        user,
+                        state,
+                        workspace_request,
+                        exp_context_id.clone(),
+                    )
+                    .await?;
+                    let mut context_override: Map<String, Value> =
+                        current_context.override_.into();
+
+                    for key in variant.overrides_delete_keys.unwrap_or(vec![]) {
+                        context_override.remove(&key);
+                    }
+                    if context_override.is_empty() {
+                        operations.push(ContextAction::DELETE(context_id.clone()));
+                        operations.push(ContextAction::DELETE(exp_context_id.clone()));
+                    } else {
+                        let payload = UpdateRequest {
+                            context: Identifier::Id(exp_context_id.clone()),
+                            override_: Cac::<Overrides>::try_from(context_override).map_err(|err| {
+                                log::error!("failed to convert variant overrides to cac override {err}",);
+                                bad_argument!("failed to convert variant overrides to cac override {err}")
+                            })?,
+                            description: Some(description.clone()),
+                            change_reason: change_reason.clone(),
+                        };
+                        operations.push(ContextAction::REPLACE(payload));
+                        operations.push(ContextAction::DELETE(context_id.clone()));
+                    }
+                } else {
+                    let context_move_req = ContextMoveReq {
+                        context: experiment_context.clone(),
+                        description: description.clone(),
+                        change_reason: change_reason.clone(),
+                    };
+                    operations.push(ContextAction::MOVE((context_id, context_move_req)));
+                }
             } else {
                 let user_str = serde_json::to_string(&user).map_err(|err| {
                     log::error!(
@@ -527,7 +592,8 @@ pub async fn conclude(
         .send()
         .await;
 
-    let (_, config_version_id) = process_cac_http_response(response).await?;
+    let (_, config_version_id) =
+        process_cac_bulk_operation_http_response(response).await?;
 
     // updating experiment status in db
     let updated_experiment = diesel::update(dsl::experiments)
@@ -666,7 +732,8 @@ pub async fn discard(
         .send()
         .await;
 
-    let (_, config_version_id) = process_cac_http_response(response).await?;
+    let (_, config_version_id) =
+        process_cac_bulk_operation_http_response(response).await?;
 
     // updating experiment status in db
     let updated_experiment = diesel::update(dsl::experiments)
@@ -1047,6 +1114,7 @@ async fn update_overrides(
             Variant {
                 overrides: variant.overrides,
                 override_id: None,
+                overrides_delete_keys: None,
                 ..existing_variant.clone()
             }
         })
@@ -1147,7 +1215,8 @@ async fn update_overrides(
         .await;
 
     // directly return an error response if not a 200 response
-    let (resp_contexts, config_version_id) = process_cac_http_response(response).await?;
+    let (resp_contexts, config_version_id) =
+        process_cac_bulk_operation_http_response(response).await?;
     let created_contexts = resp_contexts
         .into_iter()
         .map(|item| match item {
