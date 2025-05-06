@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use superposition_types::database::models::WorkspaceStatus;
+use superposition_types::database::models::{Metrics, WorkspaceStatus};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RowData {
@@ -10,4 +10,5 @@ pub struct RowData {
     pub mandatory_dimensions: Option<Vec<String>>,
     pub created_by: String,
     pub created_at: String,
+    pub metrics: Metrics,
 }

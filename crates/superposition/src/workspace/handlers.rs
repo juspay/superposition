@@ -2,7 +2,7 @@ use std::fs;
 
 use actix_web::{
     get, post, put,
-    web::{self, Json, Query},
+    web::{self, Json, Path, Query},
     Scope,
 };
 use chrono::Utc;
@@ -16,7 +16,9 @@ use regex::Regex;
 use service_utils::service::types::{DbConnection, OrganisationId};
 use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::{
-    api::workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest},
+    api::workspace::{
+        CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceListFilters,
+    },
     custom_query::PaginationParams,
     database::{
         models::{Organisation, Workspace, WorkspaceStatus},
@@ -24,8 +26,6 @@ use superposition_types::{
     },
     result as superposition, PaginatedResponse, User,
 };
-
-use crate::workspace::types::WorkspaceListFilters;
 
 const WORKSPACE_TEMPLATE_PATH: &str = "workspace_template.sql";
 
@@ -58,11 +58,27 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(create_workspace)
         .service(update_workspace)
         .service(list_workspaces)
+        .service(get_workspace)
+}
+
+#[get("/{workspace_name}")]
+async fn get_workspace(
+    workspace_name: Path<String>,
+    db_conn: DbConnection,
+    org_id: OrganisationId,
+) -> superposition::Result<Json<Workspace>> {
+    let DbConnection(mut conn) = db_conn;
+    let workspace_name = workspace_name.into_inner();
+    let workspace: Workspace = workspaces::dsl::workspaces
+        .filter(workspaces::organisation_id.eq(&org_id.0))
+        .filter(workspaces::workspace_name.eq(workspace_name))
+        .get_result(&mut conn)?;
+    Ok(Json(workspace))
 }
 
 #[post("")]
 async fn create_workspace(
-    request: web::Json<CreateWorkspaceRequest>,
+    request: Json<CreateWorkspaceRequest>,
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
@@ -89,6 +105,7 @@ async fn create_workspace(
         created_at: timestamp,
         mandatory_dimensions: None,
         strict_mode: request.workspace_strict_mode,
+        metrics: request.metrics.unwrap_or_default(),
     };
 
     let created_workspace =
@@ -107,7 +124,7 @@ async fn create_workspace(
 #[put("/{workspace_name}")]
 async fn update_workspace(
     workspace_name: web::Path<String>,
-    request: web::Json<UpdateWorkspaceRequest>,
+    request: Json<UpdateWorkspaceRequest>,
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
@@ -115,28 +132,23 @@ async fn update_workspace(
     let request = request.into_inner();
     let workspace_name = workspace_name.into_inner();
     let timestamp = Utc::now();
+    // TODO: mandatory dimensions updation needs to be validated
+    // for the existance of the dimensions in the workspace
     let DbConnection(mut conn) = db_conn;
     let updated_workspace =
         conn.transaction::<Workspace, superposition::AppError, _>(|transaction_conn| {
-            let result: Workspace = workspaces::dsl::workspaces
-                .filter(workspaces::organisation_id.eq(&org_id.0))
-                .filter(workspaces::workspace_name.eq(workspace_name.clone()))
-                .get_result(transaction_conn)?;
             let updated_workspace = diesel::update(workspaces::table)
                 .filter(workspaces::organisation_id.eq(&org_id.0))
                 .filter(workspaces::workspace_name.eq(workspace_name))
                 .set((
-                    workspaces::workspace_admin_email.eq(request.workspace_admin_email),
-                    workspaces::mandatory_dimensions.eq(request.mandatory_dimensions),
+                    request,
                     workspaces::last_modified_by.eq(user.email),
                     workspaces::last_modified_at.eq(timestamp),
-                    workspaces::workspace_status
-                        .eq(request.workspace_status.unwrap_or(result.workspace_status)),
                 ))
                 .get_result::<Workspace>(transaction_conn)
                 .map_err(|err| {
                     log::error!("failed to update workspace with error: {}", err);
-                    db_error!(err)
+                    err
                 })?;
 
             Ok(updated_workspace)

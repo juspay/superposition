@@ -1,0 +1,35 @@
+version: "3"
+services:
+    grafana:
+        image: grafana/grafana
+        ports:
+            - "3000:3000"
+        environment:
+            GF_SECURITY_ALLOW_EMBEDDING: "true"
+        volumes:
+            - grafana-storage:/var/lib/grafana
+        depends_on:
+            - prometheus
+
+    prometheus:
+        image: prom/prometheus
+        ports:
+            - "9090:9090"
+        volumes:
+            - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+    node-exporter:
+        image: prom/node-exporter
+        ports:
+            - "9100:9100"
+
+    custom-exporter:
+        build:
+            context: ./custom-exporter
+        ports:
+            - "8090:8090"
+        environment:
+            - EXPORTER_IDS=7325224692988645376-experimental,7325224692988645376-control,id_1,id_2,id_3
+
+volumes:
+    grafana-storage:

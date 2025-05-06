@@ -6,10 +6,11 @@ use serde_json::to_string;
 use superposition_types::api::workspace::{
     CreateWorkspaceRequest, UpdateWorkspaceRequest,
 };
-use superposition_types::database::models::WorkspaceStatus;
+use superposition_types::database::models::{Metrics, WorkspaceStatus};
 use web_sys::MouseEvent;
 
 use crate::components::input::Toggle;
+use crate::components::metrics_form::MetricsForm;
 use crate::components::workspace_form::utils::string_to_vec;
 use crate::components::{alert::AlertType, button::Button};
 use crate::types::OrganisationId;
@@ -26,6 +27,7 @@ pub fn workspace_form(
     #[prop(default = String::new())] workspace_name: String,
     #[prop(default = WorkspaceStatus::ENABLED)] workspace_status: WorkspaceStatus,
     #[prop(default = vec![])] mandatory_dimensions: Vec<String>,
+    #[prop(default = Metrics::default())] metrics: Metrics,
     #[prop(into)] handle_submit: Callback<(), ()>,
 ) -> impl IntoView {
     let (workspace_name_rs, workspace_name_ws) = create_signal(workspace_name);
@@ -36,35 +38,39 @@ pub fn workspace_form(
         create_signal(mandatory_dimensions);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let (strict_mode_rs, strict_mode_ws) = create_signal(true);
+    let metrics_rws = RwSignal::new(metrics);
 
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);
         ev.prevent_default();
-        let create_payload = CreateWorkspaceRequest {
-            workspace_admin_email: workspace_admin_email_rs.get(),
-            workspace_name: workspace_name_rs.get(),
-            workspace_status: Some(workspace_status_rs.get()),
-            workspace_strict_mode: strict_mode_rs.get(),
-        };
-
-        let update_payload = UpdateWorkspaceRequest {
-            workspace_admin_email: workspace_admin_email_rs.get(),
-            workspace_status: Some(workspace_status_rs.get()),
-            mandatory_dimensions: Some(mandatory_dimensions_rs.get()),
-        };
 
         let is_edit = edit;
         spawn_local({
             async move {
                 let result = if is_edit {
+                    let update_payload = UpdateWorkspaceRequest {
+                        workspace_admin_email: workspace_admin_email_rs.get_untracked(),
+                        workspace_status: Some(workspace_status_rs.get_untracked()),
+                        mandatory_dimensions: Some(
+                            mandatory_dimensions_rs.get_untracked(),
+                        ),
+                        metrics: Some(metrics_rws.get_untracked()),
+                    };
                     update_workspace(
-                        workspace_name_rs.get(),
-                        org_id.get().to_string(),
+                        workspace_name_rs.get_untracked(),
+                        org_id.get_untracked().0,
                         update_payload,
                     )
                     .await
                 } else {
-                    create_workspace(org_id.get().to_string(), create_payload).await
+                    let create_payload = CreateWorkspaceRequest {
+                        workspace_admin_email: workspace_admin_email_rs.get_untracked(),
+                        workspace_name: workspace_name_rs.get_untracked(),
+                        workspace_status: Some(workspace_status_rs.get_untracked()),
+                        workspace_strict_mode: strict_mode_rs.get_untracked(),
+                        metrics: Some(metrics_rws.get_untracked()),
+                    };
+                    create_workspace(org_id.get_untracked().0, create_payload).await
                 };
 
                 match result {
@@ -172,7 +178,10 @@ pub fn workspace_form(
                 <Show when=move || !edit>
                     <div class="form-control">
                         <label class="label">
-                            <div class="tooltip" data-tip="Strict Mode limits the operators available to just ==. This is the recommended mode for production environments">
+                            <div
+                                class="tooltip"
+                                data-tip="Strict Mode limits the operators available to just ==. This is the recommended mode for production environments"
+                            >
                                 <span class="label-text">Strict Mode</span>
                             </div>
                         </label>
@@ -185,6 +194,11 @@ pub fn workspace_form(
                         />
                     </div>
                 </Show>
+
+                <MetricsForm
+                    metrics=metrics_rws.get_untracked()
+                    on_change=Callback::new(move |metrics| metrics_rws.set(metrics))
+                />
 
                 <div class="form-control grid w-full justify-start">
                     {move || {

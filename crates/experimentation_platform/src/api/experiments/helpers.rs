@@ -13,12 +13,26 @@ use std::str::FromStr;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::User;
 use superposition_types::{
-    database::models::{
-        experimentation::{Experiment, ExperimentStatusType, Variant, VariantType},
-        others::{Webhook, WebhookEvent},
+    database::{
+        models::{
+            experimentation::{Experiment, ExperimentStatusType, Variant, VariantType},
+            others::{Webhook, WebhookEvent},
+            Workspace,
+        },
+        superposition_schema::superposition::workspaces,
     },
-    result as superposition, Condition, Config, Exp, Overrides,
+    result as superposition, Condition, Config, DBConnection, Exp, Overrides,
 };
+
+pub fn get_workspace(
+    workspace_schema_name: &SchemaName,
+    db_conn: &mut DBConnection,
+) -> superposition::Result<Workspace> {
+    let workspace = workspaces::dsl::workspaces
+        .filter(workspaces::workspace_schema_name.eq(workspace_schema_name.to_string()))
+        .get_result::<Workspace>(db_conn)?;
+    Ok(workspace)
+}
 
 pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()> {
     let mut experimental_variant_cnt = 0;

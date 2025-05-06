@@ -27,9 +27,7 @@ use super::table::types::{
 };
 
 #[allow(clippy::type_complexity)]
-pub fn gen_variant_table(
-    variants: &[Variant],
-) -> Result<(Vec<Map<String, Value>>, Vec<Column>), String> {
+pub fn gen_variant_table(variants: &[Variant]) -> (Vec<Map<String, Value>>, Vec<Column>) {
     let mut columns = vec![Column::default_no_collapse("Config Key".into())];
     let mut row_map: HashMap<String, Map<String, Value>> = HashMap::new();
     for (i, variant) in variants.iter().enumerate() {
@@ -60,7 +58,7 @@ pub fn gen_variant_table(
         }
     }
     let rows = row_map.into_values().collect();
-    Ok((rows, columns))
+    (rows, columns)
 }
 
 #[component]
@@ -80,6 +78,7 @@ where
     HD: Fn() + 'static + Clone,
 {
     let experiment = store_value(experiment);
+    let metrics_load_err = RwSignal::new(false);
     let contexts = experiment
         .with_value(|v| Conditions::from_context_json(&v.context).unwrap_or_default());
     let badge_class = format!(
@@ -87,7 +86,7 @@ where
         experiment.with_value(|v| badge_class(v.status))
     );
     let (variant_rows, variant_col) =
-        gen_variant_table(&experiment.with_value(|v| v.variants.clone())).unwrap();
+        gen_variant_table(&experiment.with_value(|v| v.variants.clone()));
 
     view! {
         <div class="flex flex-col overflow-x-auto p-2 bg-transparent">
@@ -251,17 +250,76 @@ where
                     </div>
                 </div>
             </div>
+            <Show when=move || {
+                experiment
+                    .with_value(|v| {
+                        v.metrics.enabled || v.status == ExperimentStatusType::CREATED
+                    })
+            }>
+                <div class="card bg-base-100 max-w-screen shadow m-5">
+                    <div class="card-body collapse collapse-arrow">
+                        <input type="checkbox" checked=true />
+                        <h2 class="card-title collapse-title h-fit !p-0">Metrics</h2>
+                        <div class="collapse-content !p-0">
+                            {move || {
+                                view! {
+                                    {match experiment.with_value(|v| v.metrics_url.clone()) {
+                                        Some(url) if !metrics_load_err.get() => {
+                                            view! {
+                                                <iframe
+                                                    class="rounded-xl"
+                                                    src=url.to_string()
+                                                    width="100%"
+                                                    height="750"
+                                                    frameborder="0"
+                                                    on:error=move |_| {
+                                                        logging::log!("Error loading Grafana iframe");
+                                                        metrics_load_err.set(true);
+                                                    }
+                                                />
+                                            }
+                                                .into_view()
+                                        }
+                                        _ => {
+                                            let message = if experiment
+                                                .with_value(|e| {
+                                                    !e.metrics.enabled
+                                                        && e.status == ExperimentStatusType::CREATED
+                                                })
+                                            {
+                                                "Metrics not configured"
+                                            } else if experiment
+                                                .with_value(|e| {
+                                                    e.status == ExperimentStatusType::CREATED
+                                                })
+                                            {
+                                                "Experiment not started yet"
+                                            } else {
+                                                "Metrics not configured / Metrics data not available"
+                                            };
+                                            view! {
+                                                <div class="stat-title h-[100px] !p-0 flex justify-center items-center">
+                                                    {message}
+                                                </div>
+                                            }
+                                                .into_view()
+                                        }
+                                    }}
+                                }
+                            }}
+                        </div>
+                    </div>
+                </div>
+            </Show>
             <div class="card bg-base-100 max-w-screen shadow m-5">
                 <div class="card-body">
                     <h2 class="card-title">Variants</h2>
-
                     <Table
                         rows=variant_rows
                         key_column="overrides".to_string()
                         columns=variant_col
                         class="overflow-y-auto"
                     />
-
                 </div>
             </div>
         </div>

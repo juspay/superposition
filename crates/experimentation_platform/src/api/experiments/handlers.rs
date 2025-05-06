@@ -53,6 +53,13 @@ use superposition_types::{
     PaginatedResponse, SortBy, User,
 };
 
+use crate::api::experiments::{
+    helpers::{
+        construct_header_map, decide_variant, fetch_webhook_by_event, get_workspace,
+    },
+    types::StartedByChangeSet,
+};
+
 use super::{
     helpers::{
         add_variant_dimension_to_ctx, check_variant_types,
@@ -60,10 +67,6 @@ use super::{
         validate_experiment, validate_override_keys,
     },
     types::{ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq},
-};
-
-use crate::api::experiments::helpers::{
-    construct_header_map, decide_variant, fetch_webhook_by_event,
 };
 
 pub fn endpoints(scope: Scope) -> Scope {
@@ -145,7 +148,7 @@ async fn process_cac_http_response(
 async fn create(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
-    req: web::Json<ExperimentCreateRequest>,
+    req: Json<ExperimentCreateRequest>,
     db_conn: DbConnection,
     workspace_request: WorkspaceContext,
     user: User,
@@ -155,6 +158,8 @@ async fn create(
     let DbConnection(mut conn) = db_conn;
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
+
+    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     // Checking if experiment has exactly 1 control variant, and
     // atleast 1 experimental variant
@@ -295,22 +300,26 @@ async fn create(
         variants[i].override_id = Some(created_context.override_id.clone());
     }
 
+    let now = Utc::now();
     // inserting experiment in db
     let new_experiment = Experiment {
         id: experiment_id,
         created_by: user.get_email(),
-        created_at: Utc::now(),
-        last_modified: Utc::now(),
+        created_at: now,
+        last_modified: now,
         name: req.name.to_string(),
         override_keys: unique_override_keys.to_vec(),
         traffic_percentage: TrafficPercentage::default(),
         status: ExperimentStatusType::CREATED,
+        started_by: None,
+        started_at: None,
         context: req.context.clone().into_inner(),
         variants: Variants::new(variants),
         last_modified_by: user.get_email(),
         chosen_variant: None,
         description,
         change_reason,
+        metrics: req.metrics.clone().unwrap_or(workspace_settings.metrics),
     };
 
     let mut inserted_experiments = diesel::insert_into(experiments)
@@ -364,13 +373,13 @@ async fn conclude_handler(
     workspace_request: WorkspaceContext,
     user: User,
 ) -> superposition::Result<HttpResponse> {
-    let DbConnection(conn) = db_conn;
+    let DbConnection(mut conn) = db_conn;
     let (response, config_version_id) = conclude(
         &state,
         path.into_inner(),
         custom_headers.config_tags,
         req.into_inner(),
-        conn,
+        &mut conn,
         &workspace_request,
         &user,
     )
@@ -417,7 +426,7 @@ pub async fn conclude(
     experiment_id: i64,
     config_tags: Option<String>,
     req: ConcludeExperimentRequest,
-    mut conn: PooledConnection<ConnectionManager<PgConnection>>,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     workspace_request: &WorkspaceContext,
     user: &User,
 ) -> superposition::Result<(Experiment, Option<String>)> {
@@ -437,7 +446,7 @@ pub async fn conclude(
     let experiment: Experiment = dsl::experiments
         .find(experiment_id)
         .schema_name(&workspace_request.schema_name)
-        .get_result::<Experiment>(&mut conn)?;
+        .get_result::<Experiment>(conn)?;
 
     let description = match req.description.clone() {
         Some(desc) => desc,
@@ -575,7 +584,7 @@ pub async fn conclude(
         ))
         .returning(Experiment::as_returning())
         .schema_name(&workspace_request.schema_name)
-        .get_result::<Experiment>(&mut conn)?;
+        .get_result::<Experiment>(conn)?;
 
     Ok((updated_experiment, config_version_id))
 }
@@ -591,13 +600,13 @@ async fn discard_handler(
     workspace_request: WorkspaceContext,
     user: User,
 ) -> superposition::Result<HttpResponse> {
-    let DbConnection(conn) = db_conn;
+    let DbConnection(mut conn) = db_conn;
     let (response, config_version_id) = discard(
         &state,
         path.into_inner(),
         custom_headers.config_tags,
         req.into_inner(),
-        conn,
+        &mut conn,
         &workspace_request,
         &user,
     )
@@ -642,7 +651,7 @@ pub async fn discard(
     experiment_id: i64,
     config_tags: Option<String>,
     req: DiscardExperimentRequest,
-    mut conn: PooledConnection<ConnectionManager<PgConnection>>,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     workspace_request: &WorkspaceContext,
     user: &User,
 ) -> superposition::Result<(Experiment, Option<String>)> {
@@ -651,7 +660,7 @@ pub async fn discard(
     let experiment: Experiment = dsl::experiments
         .find(experiment_id)
         .schema_name(&workspace_request.schema_name)
-        .get_result::<Experiment>(&mut conn)?;
+        .get_result::<Experiment>(conn)?;
 
     if !experiment.status.discardable() {
         return Err(bad_argument!(
@@ -724,7 +733,7 @@ pub async fn discard(
         ))
         .returning(Experiment::as_returning())
         .schema_name(&workspace_request.schema_name)
-        .get_result::<Experiment>(&mut conn)?;
+        .get_result::<Experiment>(conn)?;
 
     Ok((updated_experiment, config_version_id))
 }
@@ -972,11 +981,24 @@ async fn ramp(
         .compare_old(&old_traffic_percentage)
         .map_err(|e| bad_argument!(e))?;
 
+    let now = Utc::now();
+    let started_by_request = match experiment.status {
+        ExperimentStatusType::CREATED => StartedByChangeSet {
+            started_by: Some(user.get_email()),
+            started_at: Some(now),
+        },
+        _ => StartedByChangeSet {
+            started_by: None,
+            started_at: None,
+        },
+    };
+
     let updated_experiment: Experiment = diesel::update(experiments::experiments)
         .filter(experiments::id.eq(exp_id))
         .set((
+            started_by_request,
             experiments::traffic_percentage.eq(req.traffic_percentage),
-            experiments::last_modified.eq(Utc::now()),
+            experiments::last_modified.eq(now),
             experiments::last_modified_by.eq(user.get_email()),
             experiments::status.eq(ExperimentStatusType::INPROGRESS),
             experiments::change_reason.eq(change_reason),
@@ -1028,7 +1050,7 @@ async fn update_overrides(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
-    req: web::Json<OverrideKeysUpdateRequest>,
+    req: Json<OverrideKeysUpdateRequest>,
     workspace_request: WorkspaceContext,
     user: User,
 ) -> superposition::Result<HttpResponse> {
@@ -1231,11 +1253,14 @@ async fn update_overrides(
     }
 
     /*************************** Updating experiment in DB **************************/
+    let updated_metrics = payload.metrics.as_ref().unwrap_or(&experiment.metrics);
+
     let updated_experiment = diesel::update(experiments::experiments.find(experiment_id))
         .set((
             experiments::variants.eq(Variants::new(new_variants)),
             experiments::override_keys.eq(override_keys),
             experiments::change_reason.eq(change_reason),
+            experiments::metrics.eq(updated_metrics),
             experiments::last_modified.eq(Utc::now()),
             experiments::last_modified_by.eq(user.get_email()),
         ))
