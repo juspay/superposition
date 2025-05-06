@@ -1,4 +1,4 @@
-use std::{cmp::min, collections::HashSet};
+use std::{cmp::min, collections::HashSet, ops::Deref};
 
 #[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
@@ -38,7 +38,7 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    api::context::{ContextListFilters, SortOn},
+    api::context::{ContextListFilters, SortOn, UpdateRequest},
     custom_query::{
         self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
         QueryMap,
@@ -88,8 +88,8 @@ async fn put_handler(
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             // Use the helper function to ensure the description
 
-            let put_response = operations::put(
-                Json(req.into_inner()),
+            let put_response = operations::upsert(
+                req.into_inner(),
                 description,
                 transaction_conn,
                 true,
@@ -131,40 +131,29 @@ async fn put_handler(
 async fn update_override_handler(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
-    req: Json<PutReq>,
+    req: Json<UpdateRequest>,
     mut db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
-    let description = match req.description.clone() {
-        Some(val) => val,
-        None => query_description(
-            Value::Object(req.context.clone().into_inner().into()),
-            &mut db_conn,
-            &schema_name,
-        )?,
-    };
     let req_change_reason = req.change_reason.clone();
     let (override_resp, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let override_resp = operations::put(
-                Json(req.into_inner()),
-                description.clone(),
+            let override_resp = operations::update(
+                req.into_inner(),
                 transaction_conn,
-                true,
                 &user,
                 &schema_name,
-                true,
             )
             .map_err(|err: superposition::AppError| {
-                log::info!("context put failed with error: {:?}", err);
+                log::info!("context update failed with error: {:?}", err);
                 err
             })?;
             let version_id = add_config_version(
                 &state,
                 tags,
-                req_change_reason.clone(),
+                req_change_reason.deref().to_string(),
                 transaction_conn,
                 &schema_name,
             )?;
@@ -494,8 +483,8 @@ async fn bulk_operations(
                                 .expect("Description should not be empty")
                         };
 
-                        let put_resp = operations::put(
-                            Json(put_req.clone()),
+                        let put_resp = operations::upsert(
+                            put_req.clone(),
                             description.clone(),
                             transaction_conn,
                             true,
@@ -515,43 +504,24 @@ async fn bulk_operations(
                         all_change_reasons.push(put_req.change_reason.clone());
                         response.push(ContextBulkResponse::Put(put_resp));
                     }
-                    ContextAction::Replace(put_req) => {
-                        let ctx_condition = put_req.context.to_owned().into_inner();
-                        let ctx_condition_value =
-                            Value::Object(ctx_condition.clone().into());
-                        let description = if put_req.description.is_none() {
-                            query_description(
-                                ctx_condition_value,
-                                transaction_conn,
-                                &schema_name,
-                            )?
-                        } else {
-                            put_req
-                                .description
-                                .clone()
-                                .expect("Description should not be empty")
-                        };
-
-                        let put_resp = operations::put(
-                            Json(put_req.clone()),
-                            description.clone(),
+                    ContextAction::Replace(update_request) => {
+                        all_change_reasons
+                            .push((*update_request.change_reason).to_string());
+                        let update_resp = operations::update(
+                            update_request,
                             transaction_conn,
-                            true,
                             &user,
                             &schema_name,
-                            true,
                         )
                         .map_err(|err| {
                             log::error!(
-                                "Failed at insert into contexts due to {:?}",
+                                "Failed at update into contexts due to {:?}",
                                 err
                             );
                             err
                         })?;
 
-                        all_descriptions.push(description);
-                        all_change_reasons.push(put_req.change_reason.clone());
-                        response.push(ContextBulkResponse::Replace(put_resp));
+                        response.push(ContextBulkResponse::Replace(update_resp));
                     }
                     ContextAction::Delete(ctx_id) => {
                         let context: Context = contexts

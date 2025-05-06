@@ -6,6 +6,7 @@ pub mod validations;
 pub use handlers::endpoints;
 pub use helpers::hash;
 pub use operations::delete;
-pub use operations::put;
+pub use operations::update;
+pub use operations::upsert;
 pub use types::PutReq;
 pub use validations::validate_dimensions;

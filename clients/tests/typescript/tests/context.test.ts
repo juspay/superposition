@@ -517,31 +517,35 @@ describe("Context API Integration Tests", () => {
             const input = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                override: {
-                    key1: "updated-value",
-                    key3: "new-value",
+                request: {
+                    override: {
+                        key1: "updated-value",
+                        key3: "new-value",
+                    },
+                    context: {
+                        context: {
+                            "==": [{ var: "clientId" }, "test-client"],
+                        },
+                    },
+                    description: "Updated context",
+                    change_reason: "Updating override",
                 },
-                context: {
-                    "==": [{ var: "clientId" }, "test-client"],
-                },
-                description: "Updated context",
-                change_reason: "Updating override",
             };
 
             const cmd = new UpdateOverrideCommand(input);
             const response = await client.send(cmd);
 
             // Track context ID from update response
-            trackContext(response.context_id);
+            trackContext(response.id);
 
             expect(response.$metadata.httpStatusCode).toBe(200);
-            expect(response.context_id).toBeDefined();
+            expect(response.id).toBeDefined();
             expect(response.override_id).toBeDefined();
 
             const getCmd = new GetContextCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                id: response.context_id,
+                id: response.id,
             });
 
             const fetchedContext: GetContextCommandOutput = await client.send(
@@ -558,39 +562,214 @@ describe("Context API Integration Tests", () => {
             const input = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                override: {
-                    key4: "replaced-value",
+                request: {
+                    override: {
+                        key4: "replaced-value",
+                    },
+                    context: {
+                        context: {
+                            "==": [{ var: "clientId" }, "test-client"],
+                        },
+                    },
+                    change_reason: "Replacing override",
                 },
-                context: {
-                    "==": [{ var: "clientId" }, "test-client"],
-                },
-                change_reason: "Replacing override",
             };
 
             const cmd = new UpdateOverrideCommand(input);
             const response = await client.send(cmd);
 
             // Track context ID from update response
-            trackContext(response.context_id);
+            trackContext(response.id);
 
             expect(response.$metadata.httpStatusCode).toBe(200);
-            expect(response.context_id).toBeDefined();
+            expect(response.id).toBeDefined();
             expect(response.override_id).toBeDefined();
 
             // Now fetch the context to verify replaced override
             const getCmd = new GetContextCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                id: response.context_id,
+                id: response.id,
             });
 
             const fetchedContext = await client.send(getCmd);
 
             // Verify that previous keys are gone and only new ones exist
-            expect(fetchedContext.override).toEqual({ key4: "replaced-value" });
+            expect(fetchedContext.override).toEqual({
+                key4: "replaced-value",
+            });
             expect(fetchedContext.override?.key1).toBeUndefined();
             expect(fetchedContext.override?.key3).toBeUndefined();
             expect(fetchedContext.change_reason).toBe("Replacing override");
+        });
+
+        test("should fail when context does not exist", async () => {
+            const input = {
+                workspace_id: testWorkspaceId,
+                org_id: testOrgId,
+                request: {
+                    override: {
+                        key4: "replaced-value",
+                    },
+                    context: {
+                        context: {
+                            "==": [
+                                { var: "clientId" },
+                                "non-existent-context-test",
+                            ],
+                        },
+                    },
+                    change_reason: "Replacing override",
+                },
+            };
+            const updateCmd = new UpdateOverrideCommand(input);
+
+            await expect(client.send(updateCmd)).rejects.toThrow(
+                "No records found. Please refine or correct your search parameters"
+            );
+        });
+    });
+
+    describe("Update Context Override By ID Endpoint", () => {
+        test("should update override for context using ID", async () => {
+            // First create a context to get an ID
+            const createCmd = new CreateContextCommand({
+                workspace_id: testWorkspaceId,
+                org_id: testOrgId,
+                override: {
+                    key1: "original-value",
+                    key2: 100,
+                },
+                context: {
+                    "==": [{ var: "clientId" }, "update-by-id-test-client"],
+                },
+                description: "Context for update by ID test",
+                change_reason: "Creating for update by ID test",
+            });
+
+            const createResp = await client.send(createCmd);
+            const contextId = createResp.context_id;
+
+            // Track created context
+            trackContext(contextId);
+
+            // Now update the context by ID
+            const updateByIdCmd = new UpdateOverrideCommand({
+                workspace_id: testWorkspaceId,
+                org_id: testOrgId,
+                request: {
+                    context: { id: contextId },
+                    override: {
+                        key1: "updated-by-id",
+                        key3: "new-by-id",
+                    },
+                    description: "Updated context by ID",
+                    change_reason: "Updating override by ID",
+                },
+            });
+
+            const updateResp = await client.send(updateByIdCmd);
+
+            expect(updateResp.$metadata.httpStatusCode).toBe(200);
+            expect(updateResp.id).toBe(contextId);
+            expect(updateResp.override_id).toBeDefined();
+
+            // Fetch the context to verify updates
+            const getCmd = new GetContextCommand({
+                workspace_id: testWorkspaceId,
+                org_id: testOrgId,
+                id: contextId,
+            });
+
+            const fetchedContext = await client.send(getCmd);
+
+            // Verify the overrides were updated correctly
+            expect(fetchedContext.override?.key1).toBe("updated-by-id");
+            expect(fetchedContext.override?.key2).toBeUndefined();
+            expect(fetchedContext.override?.key3).toBe("new-by-id");
+            expect(fetchedContext.description).toBe("Updated context by ID");
+            expect(fetchedContext.change_reason).toBe(
+                "Updating override by ID"
+            );
+        });
+
+        test("should replace all override values when updating by ID", async () => {
+            // First create a context to get an ID
+            const createCmd = new CreateContextCommand({
+                workspace_id: testWorkspaceId,
+                org_id: testOrgId,
+                override: {
+                    key1: "replace-original",
+                    key2: 200,
+                },
+                context: {
+                    "==": [{ var: "clientId" }, "replace-by-id-test-client"],
+                },
+                description: "Context for replace by ID test",
+                change_reason: "Creating for replace by ID test",
+            });
+
+            const createResp = await client.send(createCmd);
+            const contextId = createResp.context_id;
+
+            // Track created context
+            trackContext(contextId);
+
+            // Now replace all override values
+            const updateByIdCmd = new UpdateOverrideCommand({
+                workspace_id: testWorkspaceId,
+                org_id: testOrgId,
+                request: {
+                    context: { id: contextId },
+                    override: {
+                        key4: "completely-new-value",
+                    },
+                    change_reason: "Replacing all overrides by ID",
+                },
+            });
+
+            const updateResp = await client.send(updateByIdCmd);
+
+            expect(updateResp.$metadata.httpStatusCode).toBe(200);
+            expect(updateResp.id).toBe(contextId);
+            expect(updateResp.override_id).toBeDefined();
+
+            // Fetch the context to verify replacement
+            const getCmd = new GetContextCommand({
+                workspace_id: testWorkspaceId,
+                org_id: testOrgId,
+                id: contextId,
+            });
+
+            const fetchedContext = await client.send(getCmd);
+
+            // Verify that previous keys are gone and only new ones exist
+            expect(fetchedContext.override).toEqual({
+                key4: "completely-new-value",
+            });
+            expect(fetchedContext.override?.key1).toBeUndefined();
+            expect(fetchedContext.override?.key2).toBeUndefined();
+            expect(fetchedContext.change_reason).toBe(
+                "Replacing all overrides by ID"
+            );
+        });
+
+        test("should fail when context ID does not exist", async () => {
+            const updateByIdCmd = new UpdateOverrideCommand({
+                workspace_id: testWorkspaceId,
+                org_id: testOrgId,
+                request: {
+                    context: { id: "non-existent-context-id" },
+                    override: {
+                        key1: "value-for-non-existent",
+                    },
+                    change_reason: "Updating non-existent context",
+                },
+            });
+
+            await expect(client.send(updateByIdCmd)).rejects.toThrow(
+                "No records found. Please refine or correct your search parameters"
+            );
         });
     });
 

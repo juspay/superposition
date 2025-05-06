@@ -27,11 +27,14 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
-    api::experiments::{
-        ApplicableVariantsQuery, ApplicableVariantsRequest, AuditQueryFilters,
-        ConcludeExperimentRequest, DiscardExperimentRequest, ExperimentCreateRequest,
-        ExperimentListFilters, ExperimentResponse, ExperimentSortOn,
-        OverrideKeysUpdateRequest, RampRequest,
+    api::{
+        context::{Identifier, UpdateRequest},
+        experiments::{
+            ApplicableVariantsQuery, ApplicableVariantsRequest, AuditQueryFilters,
+            ConcludeExperimentRequest, DiscardExperimentRequest, ExperimentCreateRequest,
+            ExperimentListFilters, ExperimentResponse, ExperimentSortOn,
+            OverrideKeysUpdateRequest, RampRequest,
+        },
     },
     custom_query::PaginationParams,
     database::{
@@ -46,8 +49,8 @@ use superposition_types::{
     },
     result as superposition,
     webhook::WebhookConfig,
-    Condition, DBConnection, Exp, ListResponse, Overrides, PaginatedResponse, SortBy,
-    TenantConfig, User,
+    Cac, Condition, DBConnection, Exp, ListResponse, Overrides, PaginatedResponse,
+    SortBy, TenantConfig, User,
 };
 
 use super::{
@@ -1033,11 +1036,9 @@ async fn update_overrides(
             let existing_variant: &Variant =
                 id_to_existing_variant.get(&variant.id).unwrap();
             Variant {
-                id: variant.id,
-                variant_type: existing_variant.variant_type.clone(),
                 overrides: variant.overrides,
                 override_id: None,
-                context_id: None,
+                ..existing_variant.clone()
             }
         })
         .collect();
@@ -1085,26 +1086,20 @@ async fn update_overrides(
     let mut cac_operations: Vec<ContextAction> = vec![];
 
     // adding operations to create new updated variant contexts
-    for variant in &mut new_variants {
-        let updated_cac_context =
-            add_variant_dimension_to_ctx(&experiment_condition, variant.id.to_string())
-                .map_err(|e| {
-                log::error!("failed to add `variantIds` dimension to context: {e}");
-                unexpected_error!("Something went wrong, failed to update experiment")
-            })?;
-
-        let payload = ContextPutReq {
-            context: updated_cac_context
-                .as_object()
-                .ok_or_else(|| {
-                    log::error!("failed to parse updated context with variant dimension");
-                    unexpected_error!("Something went wrong, failed to update experiment")
-                })?
-                .clone(),
-            r#override: json!(variant.overrides),
+    for variant in &new_variants {
+        let overrides: Map<String, Value> = variant.overrides.clone().into_inner().into();
+        let payload = UpdateRequest {
+            context: Identifier::Id(variant.context_id.clone().ok_or_else(|| {
+                unexpected_error!("context id not available for variant {}", variant.id)
+            })?),
+            override_: Cac::<Overrides>::try_from(overrides).map_err(|err| {
+                log::error!("failed to convert variant overrides to cac override {err}",);
+                bad_argument!("failed to convert variant overrides to cac override {err}")
+            })?,
             description: description.clone(),
             change_reason: change_reason.clone(),
         };
+
         cac_operations.push(ContextAction::REPLACE(payload));
     }
 
@@ -1157,10 +1152,23 @@ async fn update_overrides(
             );
             unexpected_error!("Something went wrong")
         })?;
+
     for i in 0..created_contexts.len() {
         let created_context = &created_contexts[i];
+        if new_variants[i]
+            .context_id
+            .clone()
+            .map(|id| id != created_context.id)
+            .unwrap_or_default()
+        {
+            log::error!(
+                "Context id changed from {} to {}",
+                new_variants[i].context_id.clone().unwrap_or_default(),
+                created_context.id
+            );
+            Err(unexpected_error!("Something went wrong"))?;
+        }
 
-        new_variants[i].context_id = Some(created_context.context_id.clone());
         new_variants[i].override_id = Some(created_context.override_id.clone());
     }
 

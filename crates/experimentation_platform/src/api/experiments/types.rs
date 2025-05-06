@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use superposition_types::database::models::{ChangeReason, Description};
+use superposition_types::{
+    api::context::UpdateRequest,
+    database::models::{cac::Context, ChangeReason, Description},
+};
 
 /********** Context Bulk API Type *************/
 
@@ -15,7 +18,7 @@ pub struct ContextPutReq {
 #[derive(Deserialize, Serialize)]
 pub enum ContextAction {
     PUT(ContextPutReq),
-    REPLACE(ContextPutReq),
+    REPLACE(UpdateRequest),
     DELETE(String),
     MOVE((String, ContextMoveReq)),
 }
@@ -30,7 +33,7 @@ pub struct ContextPutResp {
 #[derive(Serialize, Deserialize, Debug)]
 pub enum ContextBulkResponse {
     PUT(ContextPutResp),
-    REPLACE(ContextPutResp),
+    REPLACE(Context),
     DELETE(String),
     MOVE(ContextPutResp),
 }

@@ -1,7 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::str;
 
-use actix_web::web::Json;
 use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
@@ -308,7 +307,7 @@ pub fn query_description(
 }
 
 pub fn create_ctx_from_put_req(
-    req: Json<PutReq>,
+    req: PutReq,
     req_description: String,
     conn: &mut DBConnection,
     user: &User,
