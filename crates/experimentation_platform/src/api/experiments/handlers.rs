@@ -44,6 +44,7 @@ use superposition_types::{
                 Variants,
             },
             others::WebhookEvent,
+            ChangeReason,
         },
         schema::{event_log::dsl as event_log, experiments::dsl as experiments},
     },
@@ -399,7 +400,15 @@ pub async fn conclude(
 ) -> superposition::Result<(Experiment, Option<String>)> {
     use superposition_types::database::schema::experiments::dsl;
 
-    let change_reason = req.change_reason.clone();
+    let change_reason = ChangeReason::try_from(format!(
+        "Experiment concluded with variant id {:?}",
+        req.chosen_variant
+    ))
+    .map_err(|err| {
+        log::error!("Failed to convert change reason: {}", err);
+        unexpected_error!("Failed to convert change reason")
+    })?;
+
     let winner_variant_id: String = req.chosen_variant.to_owned();
 
     let experiment: Experiment = dsl::experiments
@@ -528,7 +537,7 @@ pub async fn conclude(
             dsl::last_modified.eq(Utc::now()),
             dsl::last_modified_by.eq(user.get_email()),
             dsl::chosen_variant.eq(Some(winner_variant_id)),
-            dsl::change_reason.eq(change_reason),
+            dsl::change_reason.eq(req.change_reason),
         ))
         .returning(Experiment::as_returning())
         .schema_name(&workspace_request.schema_name)
