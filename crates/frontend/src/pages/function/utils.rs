@@ -1,43 +1,24 @@
-use crate::components::description_icon::InfoDescription;
-use crate::components::table::types::{Column, ColumnSortable, Expandable};
-use crate::utils::get_host;
 use leptos::*;
 use leptos_router::A;
 use reqwest::StatusCode;
-use serde_json::{Map, Value};
-use std::vec::Vec;
+
+use crate::components::table::types::{Column, ColumnSortable, Expandable};
+use crate::utils::get_host;
 
 pub fn function_table_columns() -> Vec<Column> {
-    let expand = move |name: &str, row: &Map<String, Value>| {
-        let function_name = name.to_string();
-        let description = row
-            .get("description")
-            .and_then(|v| v.as_str())
-            .unwrap_or("")
-            .to_string();
-
-        let change_reason = row
-            .get("change_reason")
-            .and_then(|v| v.as_str())
-            .unwrap_or("")
-            .to_string();
-
-        view! {
-            <div class="flex items-center gap-2">
-                <A href=function_name.clone() class="btn-link">
-                    {function_name}
-                </A>
-                <InfoDescription description=description change_reason=change_reason />
-            </div>
-        }
-        .into_view()
-    };
-
     vec![
         Column::new(
             "function_name".to_string(),
             false,
-            expand,
+            |value: &str, _| {
+                let function_name = value.to_string();
+                view! {
+                    <A href=function_name.clone() class="btn-link">
+                        {function_name}
+                    </A>
+                }
+                .into_view()
+            },
             ColumnSortable::No,
             Expandable::Disabled,
         ),

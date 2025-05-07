@@ -250,10 +250,8 @@ pub fn default_config() -> impl IntoView {
                 .into_view()
             } else {
                 view! {
-                    <div class="flex items-center gap-2 group">
-                        <span>{key_name}</span>
-                        <InfoDescription description=description change_reason=change_reason />
-                    </div>
+                    <span class="mr-2">{key_name}</span>
+                    <InfoDescription description=description change_reason=change_reason />
                 }
                 .into_view()
             }

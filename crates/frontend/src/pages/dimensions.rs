@@ -179,10 +179,8 @@ pub fn dimensions() -> impl IntoView {
                 .to_string();
 
             view! {
-                <div class="flex items-center gap-2">
-                    <span>{dimension_name}</span>
-                    <InfoDescription description=description change_reason=change_reason />
-                </div>
+                <span class="mr-2">{dimension_name}</span>
+                <InfoDescription description=description change_reason=change_reason />
             }
             .into_view()
         };

@@ -92,10 +92,8 @@ pub fn types_page() -> impl IntoView {
         let type_name = type_name.to_string();
 
         view! {
-            <div class="flex items-center gap-2">
-                <span>{type_name}</span>
-                <InfoDescription description=description change_reason=change_reason />
-            </div>
+            <span class="mr-2">{type_name}</span>
+            <InfoDescription description=description change_reason=change_reason />
         }
         .into_view()
     };
