@@ -37,7 +37,7 @@ pub struct RowData {
     pub key: String,
     pub value: Value,
     pub schema: Value,
-    pub function_name: Option<Value>,
+    pub function_name: Option<String>,
     pub description: String,
 }
 
@@ -169,7 +169,7 @@ pub fn default_config() -> impl IntoView {
             let function_name = row["function_name"].to_string();
             let fun_name = match function_name.as_str() {
                 "null" => None,
-                _ => Some(json!(function_name.replace('"', ""))),
+                _ => Some(function_name.replace('"', "")),
             };
 
             let description = row

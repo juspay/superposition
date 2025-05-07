@@ -28,6 +28,7 @@ use super::super::schema::{
     config_versions, contexts, default_configs, dimensions, event_log, functions,
     type_templates,
 };
+use super::{ChangeReason, Description};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[cfg_attr(
@@ -105,8 +106,8 @@ pub struct DefaultConfig {
     pub function_name: Option<String>,
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
-    pub description: String,
-    pub change_reason: String,
+    pub description: Description,
+    pub change_reason: ChangeReason,
     pub autocomplete_function_name: Option<String>,
 }
 
