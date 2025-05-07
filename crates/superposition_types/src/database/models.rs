@@ -261,6 +261,21 @@ pub struct Workspace {
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
 pub struct NonEmptyString(String);
 
+impl Default for NonEmptyString {
+    fn default() -> Self {
+        Self(String::from("String not provided"))
+    }
+}
+
+#[cfg(feature = "disable_db_data_validation")]
+impl DisableDBValidation for NonEmptyString {
+    type Source = String;
+    fn from_db_unvalidated(data: Self::Source) -> Self {
+        // Defaulting, to convert "" entries to Self::default
+        Self::try_from(data).unwrap_or_default()
+    }
+}
+
 impl From<&NonEmptyString> for String {
     fn from(value: &NonEmptyString) -> String {
         value.0.clone()

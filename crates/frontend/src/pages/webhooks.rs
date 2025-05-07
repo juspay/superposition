@@ -173,10 +173,8 @@ pub fn webhooks() -> impl IntoView {
                 .to_string();
 
             view! {
-                <div class="flex items-center gap-2">
-                    <span>{webhook_name}</span>
-                    <InfoDescription description=description change_reason=change_reason />
-                </div>
+                <span class="mr-2">{webhook_name}</span>
+                <InfoDescription description=description change_reason=change_reason />
             }
             .into_view()
         };

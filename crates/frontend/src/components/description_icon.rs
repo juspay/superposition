@@ -1,25 +1,5 @@
 use crate::components::info_modal::InfoModal;
 use leptos::*;
-use web_sys::MouseEvent;
-
-#[component]
-pub fn description_icon<F>(on_click: F) -> impl IntoView
-where
-    F: Fn(MouseEvent) + 'static,
-{
-    view! {
-        <div
-            class="w-4 h-2 flex items-center justify-center bg-gray-500 hover:bg-gray-700 rounded-[4px] cursor-pointer group"
-            on:click=on_click
-        >
-            <div class="flex items-center gap-0.5">
-                <div class="w-0.5 h-0.5 bg-white rounded-full"></div>
-                <div class="w-0.5 h-0.5 bg-white rounded-full"></div>
-                <div class="w-0.5 h-0.5 bg-white rounded-full"></div>
-            </div>
-        </div>
-    }
-}
 
 #[component]
 pub fn InfoDescription(
@@ -31,19 +11,33 @@ pub fn InfoDescription(
     let stored_change_reason = store_value(change_reason);
 
     view! {
-        <div class="inline-flex items-cente">
-            <DescriptionIcon on_click=move |_| set_show_modal.set(true) />
-
-            <Show when=move || show_modal.get() fallback=|| ()>
-                <Portal mount=document().body().unwrap()>
-                    <InfoModal
-                        visible=true
-                        description=stored_description.get_value()
-                        change_reason=stored_change_reason.get_value()
-                        on_close=Callback::new(move |_| set_show_modal.set(false))
-                    />
-                </Portal>
-            </Show>
-        </div>
+        <svg
+            viewBox="0 0 32 16"
+            class="inline w-4 h-2 text-gray-500 hover:text-gray-700 cursor-pointer"
+            on:click=move |_| set_show_modal.set(true)
+        >
+            <rect
+                width="32"
+                height="16"
+                rx="8"
+                ry="8"
+                fill="currentColor"
+                stroke-width="0"
+                stroke-linecap="round"
+            />
+            <ellipse rx="2" ry="2" transform="translate(7 8)" fill="white" stroke-width="0" />
+            <ellipse rx="2" ry="2" transform="translate(25 8)" fill="white" stroke-width="0" />
+            <ellipse rx="2" ry="2" transform="translate(16 8)" fill="white" stroke-width="0" />
+        </svg>
+        <Show when=move || show_modal.get() fallback=|| ()>
+            <Portal mount=document().body().unwrap()>
+                <InfoModal
+                    visible=true
+                    description=stored_description.get_value()
+                    change_reason=stored_change_reason.get_value()
+                    on_close=Callback::new(move |_| set_show_modal.set(false))
+                />
+            </Portal>
+        </Show>
     }
 }
