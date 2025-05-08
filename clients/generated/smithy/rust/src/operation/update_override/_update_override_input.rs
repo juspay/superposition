@@ -8,15 +8,9 @@ pub struct UpdateOverrideInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    #[allow(missing_docs)] // documentation missing in model
     pub config_tags: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub r#override: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    #[allow(missing_docs)] // documentation missing in model
-    pub description: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
-    pub change_reason: ::std::option::Option<::std::string::String>,
+    pub request: ::std::option::Option<crate::types::UpdateContextOverrideRequest>,
 }
 impl  UpdateOverrideInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -28,24 +22,12 @@ impl  UpdateOverrideInput  {
         self.org_id.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-        self.context.as_ref()
-    }
-    #[allow(missing_docs)] // documentation missing in model
     pub fn config_tags(&self) -> ::std::option::Option<&str> {
         self.config_tags.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn r#override(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-        self.r#override.as_ref()
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn description(&self) -> ::std::option::Option<&str> {
-        self.description.as_deref()
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn change_reason(&self) -> ::std::option::Option<&str> {
-        self.change_reason.as_deref()
+    pub fn request(&self) -> ::std::option::Option<&crate::types::UpdateContextOverrideRequest> {
+        self.request.as_ref()
     }
 }
 impl UpdateOverrideInput {
@@ -61,11 +43,8 @@ impl UpdateOverrideInput {
 pub struct UpdateOverrideInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
-    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     pub(crate) config_tags: ::std::option::Option<::std::string::String>,
-    pub(crate) r#override: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    pub(crate) description: ::std::option::Option<::std::string::String>,
-    pub(crate) change_reason: ::std::option::Option<::std::string::String>,
+    pub(crate) request: ::std::option::Option<crate::types::UpdateContextOverrideRequest>,
 }
 impl UpdateOverrideInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -96,24 +75,6 @@ impl UpdateOverrideInputBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
-    /// Adds a key-value pair to `context`.
-    ///
-    /// To override the contents of this collection use [`set_context`](Self::set_context).
-    ///
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
-        let mut hash_map = self.context.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.context = ::std::option::Option::Some(hash_map);
-                        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.context = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-        &self.context
-    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.config_tags = ::std::option::Option::Some(input.into());
@@ -127,50 +88,19 @@ impl UpdateOverrideInputBuilder {
     pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
         &self.config_tags
     }
-    /// Adds a key-value pair to `r#override`.
-    ///
-    /// To override the contents of this collection use [`set_override`](Self::set_override).
-    ///
-    pub fn r#override(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
-        let mut hash_map = self.r#override.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.r#override = ::std::option::Option::Some(hash_map);
-                        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_override(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.r#override = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_override(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-        &self.r#override
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.description = ::std::option::Option::Some(input.into());
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
-        &self.description
-    }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.change_reason = ::std::option::Option::Some(input.into());
+    pub fn request(mut self, input: crate::types::UpdateContextOverrideRequest) -> Self {
+        self.request = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_request(mut self, input: ::std::option::Option<crate::types::UpdateContextOverrideRequest>) -> Self {
+        self.request = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
-        &self.change_reason
+    pub fn get_request(&self) -> &::std::option::Option<crate::types::UpdateContextOverrideRequest> {
+        &self.request
     }
     /// Consumes the builder and constructs a [`UpdateOverrideInput`](crate::operation::update_override::UpdateOverrideInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::update_override::UpdateOverrideInput, ::aws_smithy_types::error::operation::BuildError> {
@@ -180,15 +110,9 @@ impl UpdateOverrideInputBuilder {
                 ,
                 org_id: self.org_id
                 ,
-                context: self.context
-                ,
                 config_tags: self.config_tags
                 ,
-                r#override: self.r#override
-                ,
-                description: self.description
-                ,
-                change_reason: self.change_reason
+                request: self.request
                 ,
             }
         )

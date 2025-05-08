@@ -14,6 +14,8 @@ pub struct CreateExperimentOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub name: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
+    pub experiment_type: crate::types::ExperimentType,
+    #[allow(missing_docs)] // documentation missing in model
     pub override_keys: ::std::vec::Vec::<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub status: crate::types::ExperimentStatusType,
@@ -52,6 +54,10 @@ impl  CreateExperimentOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn name(&self) -> &str {
         use std::ops::Deref; self.name.deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn experiment_type(&self) -> &crate::types::ExperimentType {
+        &self.experiment_type
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn override_keys(&self) -> &[::std::string::String] {
@@ -106,6 +112,7 @@ pub struct CreateExperimentOutputBuilder {
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) name: ::std::option::Option<::std::string::String>,
+    pub(crate) experiment_type: ::std::option::Option<crate::types::ExperimentType>,
     pub(crate) override_keys: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) status: ::std::option::Option<crate::types::ExperimentStatusType>,
     pub(crate) traffic_percentage: ::std::option::Option<i32>,
@@ -186,6 +193,20 @@ impl CreateExperimentOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.name
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn experiment_type(mut self, input: crate::types::ExperimentType) -> Self {
+        self.experiment_type = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_experiment_type(mut self, input: ::std::option::Option<crate::types::ExperimentType>) -> Self {
+        self.experiment_type = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_experiment_type(&self) -> &::std::option::Option<crate::types::ExperimentType> {
+        &self.experiment_type
     }
     /// Appends an item to `override_keys`.
     ///
@@ -331,6 +352,7 @@ impl CreateExperimentOutputBuilder {
     /// - [`created_by`](crate::operation::create_experiment::builders::CreateExperimentOutputBuilder::created_by)
     /// - [`last_modified`](crate::operation::create_experiment::builders::CreateExperimentOutputBuilder::last_modified)
     /// - [`name`](crate::operation::create_experiment::builders::CreateExperimentOutputBuilder::name)
+    /// - [`experiment_type`](crate::operation::create_experiment::builders::CreateExperimentOutputBuilder::experiment_type)
     /// - [`override_keys`](crate::operation::create_experiment::builders::CreateExperimentOutputBuilder::override_keys)
     /// - [`status`](crate::operation::create_experiment::builders::CreateExperimentOutputBuilder::status)
     /// - [`traffic_percentage`](crate::operation::create_experiment::builders::CreateExperimentOutputBuilder::traffic_percentage)
@@ -365,6 +387,11 @@ impl CreateExperimentOutputBuilder {
                 name: self.name
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("name", "name was not specified but it is required when building CreateExperimentOutput")
+                    )?
+                ,
+                experiment_type: self.experiment_type
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("experiment_type", "experiment_type was not specified but it is required when building CreateExperimentOutput")
                     )?
                 ,
                 override_keys: self.override_keys

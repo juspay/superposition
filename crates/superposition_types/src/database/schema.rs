@@ -6,6 +6,10 @@ pub mod sql_types {
     pub struct ExperimentStatusType;
 
     #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "experiment_type"))]
+    pub struct ExperimentType;
+
+    #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "function_types"))]
     pub struct FunctionTypes;
 
@@ -628,7 +632,7 @@ diesel::table! {
 
 diesel::table! {
     use diesel::sql_types::*;
-    use super::sql_types::ExperimentStatusType;
+    use super::sql_types::{ExperimentStatusType, ExperimentType};
 
     experiments (id) {
         id -> Int8,
@@ -636,6 +640,7 @@ diesel::table! {
         created_by -> Text,
         last_modified -> Timestamptz,
         name -> Text,
+        experiment_type -> ExperimentType,
         override_keys -> Array<Text>,
         status -> ExperimentStatusType,
         traffic_percentage -> Int4,

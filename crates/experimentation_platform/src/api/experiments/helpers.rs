@@ -1,5 +1,6 @@
 use actix_http::header::{self, HeaderMap, HeaderName, HeaderValue};
 use actix_web::web::Data;
+use cac_client::utils::json_to_sorted_string;
 use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
@@ -11,11 +12,17 @@ use service_utils::service::types::{
 use std::collections::HashSet;
 use std::str::FromStr;
 use superposition_macros::{bad_argument, unexpected_error};
+use superposition_types::User;
 use superposition_types::{
-    database::models::experimentation::{
-        Experiment, ExperimentStatusType, Variant, VariantType,
+    database::models::{
+        cac::Context as ContextResp,
+        experimentation::{Experiment, ExperimentStatusType, Variant, VariantType},
     },
     result as superposition, Condition, Config, Exp, Overrides,
+};
+
+use super::cac_api::{
+    process_cac_get_config_http_response, process_cac_get_context_http_response,
 };
 
 pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()> {
@@ -57,6 +64,49 @@ pub fn validate_override_keys(override_keys: &Vec<String>) -> superposition::Res
     }
 
     Ok(())
+}
+
+pub fn hash(val: &Value) -> String {
+    let sorted_str: String = json_to_sorted_string(val);
+    blake3::hash(sorted_str.as_bytes()).to_string()
+}
+
+pub async fn get_cac_config(
+    user: &User,
+    state: &Data<AppState>,
+    workspace_request: &WorkspaceContext,
+) -> superposition::Result<Config> {
+    let http_client = reqwest::Client::new();
+    let url = state.cac_host.clone() + "/config/";
+    let user_str = serde_json::to_string(user).map_err(|err| {
+        log::error!("Something went wrong, failed to stringify user data {err}");
+        unexpected_error!(
+            "Something went wrong, failed to stringify user data {}",
+            err
+        )
+    })?;
+
+    let extra_headers = vec![("x-user", Some(user_str))]
+        .into_iter()
+        .filter_map(|(key, val)| val.map(|v| (key, v)))
+        .collect::<Vec<_>>();
+
+    let headers_map = construct_header_map(
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
+        extra_headers,
+    )?;
+    let response = http_client
+        .get(&url)
+        .headers(headers_map.into())
+        .header(
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
+        )
+        .send()
+        .await;
+
+    process_cac_get_config_http_response(response).await
 }
 
 pub fn are_overlapping_contexts(
@@ -105,6 +155,18 @@ pub fn check_variant_override_coverage(
     true
 }
 
+pub fn check_variant_delete_override_coverage(
+    variant_delete_override: &[String],
+    override_keys: &[String],
+) -> bool {
+    for delete_key in variant_delete_override {
+        if !override_keys.contains(delete_key) {
+            return false;
+        }
+    }
+    true
+}
+
 pub fn check_variants_override_coverage(
     variant_overrides: &Vec<Overrides>,
     override_keys: &Vec<String>,
@@ -115,6 +177,18 @@ pub fn check_variants_override_coverage(
         }
     }
 
+    true
+}
+
+pub fn check_variants_delete_override_coverage(
+    variant_delete_overrides: &[Option<Vec<String>>],
+    override_keys: &[String],
+) -> bool {
+    for variant_override in variant_delete_overrides.iter().flatten() {
+        if !check_variant_delete_override_coverage(variant_override, override_keys) {
+            return false;
+        }
+    }
     true
 }
 
@@ -179,6 +253,45 @@ pub fn is_valid_experiment(
     }
 
     Ok((valid_experiment, invalid_reason))
+}
+
+pub async fn get_current_context_override(
+    user: &User,
+    state: &Data<AppState>,
+    workspace_request: &WorkspaceContext,
+    context_id: String,
+) -> superposition::Result<ContextResp> {
+    let http_client = reqwest::Client::new();
+    let url = state.cac_host.clone() + "/context/" + &context_id;
+    let user_str = serde_json::to_string(user).map_err(|err| {
+        log::error!("Something went wrong, failed to stringify user data {err}");
+        unexpected_error!(
+            "Something went wrong, failed to stringify user data {}",
+            err
+        )
+    })?;
+
+    let extra_headers = vec![("x-user", Some(user_str))]
+        .into_iter()
+        .filter_map(|(key, val)| val.map(|v| (key, v)))
+        .collect::<Vec<_>>();
+
+    let headers_map = construct_header_map(
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
+        extra_headers,
+    )?;
+    let response = http_client
+        .get(&url)
+        .headers(headers_map.into())
+        .header(
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
+        )
+        .send()
+        .await;
+    let resp_contexts = process_cac_get_context_http_response(response).await?;
+    Ok(resp_contexts)
 }
 
 pub fn validate_experiment(

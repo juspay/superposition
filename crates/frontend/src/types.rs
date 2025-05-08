@@ -66,6 +66,7 @@ impl TryFrom<VariantFormT> for Variant {
             overrides: Exp::<Overrides>::try_from(Map::from_iter(value.overrides))?,
             context_id: None,
             override_id: None,
+            overrides_delete_keys: None,
         })
     }
 }
