@@ -137,6 +137,20 @@ impl CreateExperimentFluentBuilder {
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_name()
                 }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn experiment_type(mut self, input: crate::types::ExperimentType) -> Self {
+                    self.inner = self.inner.experiment_type(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_experiment_type(mut self, input: ::std::option::Option<crate::types::ExperimentType>) -> Self {
+                    self.inner = self.inner.set_experiment_type(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_experiment_type(&self) -> &::std::option::Option<crate::types::ExperimentType> {
+                    self.inner.get_experiment_type()
+                }
     /// 
     /// Adds a key-value pair to `context`.
     /// 

@@ -1299,4 +1299,12 @@ CREATE TRIGGER webhooks_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_dev.w
 ALTER TABLE superposition.workspaces
 ADD COLUMN IF NOT EXISTS strict_mode BOOLEAN DEFAULT FALSE;
 
+
+CREATE TYPE public.experiment_type AS ENUM (
+    'DEFAULT',
+    'DELETE_OVERRIDES'
+);
+ALTER TABLE localorg_test.experiments ADD COLUMN experiment_type public.experiment_type NOT NULL DEFAULT 'DEFAULT';
+ALTER TABLE localorg_dev.experiments ADD COLUMN experiment_type public.experiment_type NOT NULL DEFAULT 'DEFAULT';
+
 COMMIT;

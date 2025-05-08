@@ -22,6 +22,7 @@ public final class Experiments implements ApiResource {
         "last_modified_by", PreludeSchemas.STRING,
         "override_keys", SharedSchemas.LIST_OVERRIDE_KEYS,
         "created_by", PreludeSchemas.STRING,
+        "experiment_type", ExperimentType.$SCHEMA,
         "change_reason", PreludeSchemas.STRING,
         "traffic_percentage", PreludeSchemas.INTEGER,
         "name", PreludeSchemas.STRING,

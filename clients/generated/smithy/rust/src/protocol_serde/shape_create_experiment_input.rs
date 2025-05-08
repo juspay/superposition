@@ -19,20 +19,23 @@ pub fn ser_create_experiment_input_input(
     if let Some(var_6) = &input.description {
         object.key("description").string(var_6.as_str());
     }
-    if let Some(var_7) = &input.name {
-        object.key("name").string(var_7.as_str());
+    if let Some(var_7) = &input.experiment_type {
+        object.key("experiment_type").string(var_7.as_str());
     }
-    if let Some(var_8) = &input.variants {
-        let mut array_9 = object.key("variants").start_array();
-        for item_10 in var_8 {
+    if let Some(var_8) = &input.name {
+        object.key("name").string(var_8.as_str());
+    }
+    if let Some(var_9) = &input.variants {
+        let mut array_10 = object.key("variants").start_array();
+        for item_11 in var_9 {
              {
                 #[allow(unused_mut)]
-                let mut object_11 = array_9.value().start_object();
-                crate::protocol_serde::shape_variant::ser_variant(&mut object_11, item_10)?;
-                object_11.finish();
+                let mut object_12 = array_10.value().start_object();
+                crate::protocol_serde::shape_variant::ser_variant(&mut object_12, item_11)?;
+                object_12.finish();
             }
         }
-        array_9.finish();
+        array_10.finish();
     }
     Ok(())
 }

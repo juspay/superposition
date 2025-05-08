@@ -6,6 +6,7 @@ impl super::Client {
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`name(impl Into<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::name) / [`set_name(Option<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::set_name):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`experiment_type(ExperimentType)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::experiment_type) / [`set_experiment_type(Option<ExperimentType>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::set_experiment_type):<br>required: **false**<br>(undocumented)<br>
     ///   - [`context(impl Into<String>, Document)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::context) / [`set_context(Option<HashMap::<String, Document>>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::set_context):<br>required: **true**<br>(undocumented)<br>
     ///   - [`variants(Variant)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::variants) / [`set_variants(Option<Vec::<Variant>>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::set_variants):<br>required: **true**<br>(undocumented)<br>
     ///   - [`description(impl Into<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::description) / [`set_description(Option<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::set_description):<br>required: **true**<br>(undocumented)<br>
@@ -16,6 +17,7 @@ impl super::Client {
     ///   - [`created_by(String)`](crate::operation::create_experiment::CreateExperimentOutput::created_by): (undocumented)
     ///   - [`last_modified(DateTime)`](crate::operation::create_experiment::CreateExperimentOutput::last_modified): (undocumented)
     ///   - [`name(String)`](crate::operation::create_experiment::CreateExperimentOutput::name): (undocumented)
+    ///   - [`experiment_type(ExperimentType)`](crate::operation::create_experiment::CreateExperimentOutput::experiment_type): (undocumented)
     ///   - [`override_keys(Vec::<String>)`](crate::operation::create_experiment::CreateExperimentOutput::override_keys): (undocumented)
     ///   - [`status(ExperimentStatusType)`](crate::operation::create_experiment::CreateExperimentOutput::status): (undocumented)
     ///   - [`traffic_percentage(i32)`](crate::operation::create_experiment::CreateExperimentOutput::traffic_percentage): (undocumented)

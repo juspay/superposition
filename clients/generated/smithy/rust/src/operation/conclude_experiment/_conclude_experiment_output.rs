@@ -14,6 +14,8 @@ pub struct ConcludeExperimentOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub name: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
+    pub experiment_type: crate::types::ExperimentType,
+    #[allow(missing_docs)] // documentation missing in model
     pub override_keys: ::std::vec::Vec::<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub status: crate::types::ExperimentStatusType,
@@ -52,6 +54,10 @@ impl  ConcludeExperimentOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn name(&self) -> &str {
         use std::ops::Deref; self.name.deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn experiment_type(&self) -> &crate::types::ExperimentType {
+        &self.experiment_type
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn override_keys(&self) -> &[::std::string::String] {
@@ -106,6 +112,7 @@ pub struct ConcludeExperimentOutputBuilder {
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) name: ::std::option::Option<::std::string::String>,
+    pub(crate) experiment_type: ::std::option::Option<crate::types::ExperimentType>,
     pub(crate) override_keys: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) status: ::std::option::Option<crate::types::ExperimentStatusType>,
     pub(crate) traffic_percentage: ::std::option::Option<i32>,
@@ -186,6 +193,20 @@ impl ConcludeExperimentOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.name
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn experiment_type(mut self, input: crate::types::ExperimentType) -> Self {
+        self.experiment_type = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_experiment_type(mut self, input: ::std::option::Option<crate::types::ExperimentType>) -> Self {
+        self.experiment_type = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_experiment_type(&self) -> &::std::option::Option<crate::types::ExperimentType> {
+        &self.experiment_type
     }
     /// Appends an item to `override_keys`.
     ///
@@ -331,6 +352,7 @@ impl ConcludeExperimentOutputBuilder {
     /// - [`created_by`](crate::operation::conclude_experiment::builders::ConcludeExperimentOutputBuilder::created_by)
     /// - [`last_modified`](crate::operation::conclude_experiment::builders::ConcludeExperimentOutputBuilder::last_modified)
     /// - [`name`](crate::operation::conclude_experiment::builders::ConcludeExperimentOutputBuilder::name)
+    /// - [`experiment_type`](crate::operation::conclude_experiment::builders::ConcludeExperimentOutputBuilder::experiment_type)
     /// - [`override_keys`](crate::operation::conclude_experiment::builders::ConcludeExperimentOutputBuilder::override_keys)
     /// - [`status`](crate::operation::conclude_experiment::builders::ConcludeExperimentOutputBuilder::status)
     /// - [`traffic_percentage`](crate::operation::conclude_experiment::builders::ConcludeExperimentOutputBuilder::traffic_percentage)
@@ -365,6 +387,11 @@ impl ConcludeExperimentOutputBuilder {
                 name: self.name
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("name", "name was not specified but it is required when building ConcludeExperimentOutput")
+                    )?
+                ,
+                experiment_type: self.experiment_type
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("experiment_type", "experiment_type was not specified but it is required when building ConcludeExperimentOutput")
                     )?
                 ,
                 override_keys: self.override_keys

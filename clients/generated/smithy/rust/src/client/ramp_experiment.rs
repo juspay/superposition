@@ -14,6 +14,7 @@ impl super::Client {
     ///   - [`created_by(String)`](crate::operation::ramp_experiment::RampExperimentOutput::created_by): (undocumented)
     ///   - [`last_modified(DateTime)`](crate::operation::ramp_experiment::RampExperimentOutput::last_modified): (undocumented)
     ///   - [`name(String)`](crate::operation::ramp_experiment::RampExperimentOutput::name): (undocumented)
+    ///   - [`experiment_type(ExperimentType)`](crate::operation::ramp_experiment::RampExperimentOutput::experiment_type): (undocumented)
     ///   - [`override_keys(Vec::<String>)`](crate::operation::ramp_experiment::RampExperimentOutput::override_keys): (undocumented)
     ///   - [`status(ExperimentStatusType)`](crate::operation::ramp_experiment::RampExperimentOutput::status): (undocumented)
     ///   - [`traffic_percentage(i32)`](crate::operation::ramp_experiment::RampExperimentOutput::traffic_percentage): (undocumented)

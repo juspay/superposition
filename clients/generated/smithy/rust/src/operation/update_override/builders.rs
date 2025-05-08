@@ -123,25 +123,6 @@ impl UpdateOverrideFluentBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_org_id()
                 }
-    /// 
-    /// Adds a key-value pair to `context`.
-    /// 
-    /// To override the contents of this collection use [`set_context`](Self::set_context).
-    /// 
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
-                    self.inner = self.inner.context(k.into(), v);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-                    self.inner = self.inner.set_context(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-                    self.inner.get_context()
-                }
     #[allow(missing_docs)] // documentation missing in model
     pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
                     self.inner = self.inner.config_tags(input.into());
@@ -156,52 +137,19 @@ impl UpdateOverrideFluentBuilder {
     pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_config_tags()
                 }
-    /// 
-    /// Adds a key-value pair to `override`.
-    /// 
-    /// To override the contents of this collection use [`set_override`](Self::set_override).
-    /// 
     #[allow(missing_docs)] // documentation missing in model
-    pub fn r#override(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
-                    self.inner = self.inner.r#override(k.into(), v);
+    pub fn request(mut self, input: crate::types::UpdateContextOverrideRequest) -> Self {
+                    self.inner = self.inner.request(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_override(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-                    self.inner = self.inner.set_override(input);
+    pub fn set_request(mut self, input: ::std::option::Option<crate::types::UpdateContextOverrideRequest>) -> Self {
+                    self.inner = self.inner.set_request(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_override(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-                    self.inner.get_override()
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.description(input.into());
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_description(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_description()
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.change_reason(input.into());
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_change_reason(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_change_reason()
+    pub fn get_request(&self) -> &::std::option::Option<crate::types::UpdateContextOverrideRequest> {
+                    self.inner.get_request()
                 }
 }
 
