@@ -75,15 +75,15 @@ pub fn table(
             <table class="table table-zebra">
                 <thead class=head_class>
                     <tr class="bg-white">
-                        <th class="sticky left-0 bg-inherit min-w-[5rem] px-3"></th>
+                        <th class="sticky left-0 z-20 bg-inherit min-w-[5rem] px-3"></th>
 
                         {columns
                             .iter()
                             .filter(|column| !column.hidden)
                             .enumerate()
                             .map(|(index, column)| {
-                                let column_name = column.name.replace('_', " ");
                                 let sticky_class = get_sticky_position_classes(index);
+                                let col_formatter = column.column_formatter.clone();
                                 match column.sortable.clone() {
                                     types::ColumnSortable::Yes {
                                         sort_fn,
@@ -98,7 +98,7 @@ pub fn table(
                                                 )
                                                 on:click=move |_| sort_fn.call(())
                                             >
-                                                {column_name}
+                                                {col_formatter(&column.name)}
                                                 {match (currently_sorted, sort_by) {
                                                     (false, _) => {
                                                         view! { <i class="ri-expand-up-down-line"></i> }
@@ -119,7 +119,7 @@ pub fn table(
                                             <th class=format!(
                                                 "uppercase px-3 {}",
                                                 sticky_class,
-                                            )>{column_name}</th>
+                                            )>{col_formatter(&column.name)}</th>
                                         }
                                     }
                                 }

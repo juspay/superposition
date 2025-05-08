@@ -46,3 +46,4 @@ postman/superposition_env.json
 #smithy
 smithy/output
 .aider*
+clients/generated/smithy/ts

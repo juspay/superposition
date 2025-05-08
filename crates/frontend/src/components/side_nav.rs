@@ -48,6 +48,12 @@ fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
             label: "Resolve".to_string(),
         },
         AppRoute {
+            key: format!("{base}/admin/{org}/{tenant}/compare"),
+            path: format!("{base}/admin/{org}/{tenant}/compare"),
+            icon: "ri-arrow-left-right-line".to_string(),
+            label: "Compare".to_string(),
+        },
+        AppRoute {
             key: format!("{base}/admin/{org}/{tenant}/types"),
             path: format!("{base}/admin/{org}/{tenant}/types"),
             icon: "ri-t-box-fill".to_string(),

@@ -2,7 +2,11 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
-use superposition_types::{database::models::cac::Context, Context as ConfigContext};
+use superposition_types::{
+    custom_query::{CustomQuery, Query, QueryMap},
+    database::models::cac::Context,
+    Context as ConfigContext,
+};
 
 use crate::schema::{HtmlDisplay, SchemaType};
 
@@ -335,6 +339,17 @@ impl Conditions {
             .filter_map(|v| v.to_condition_query_str())
             .collect::<Vec<String>>()
             .join("&")
+    }
+
+    pub fn from_query_string(query: &str) -> Self {
+        Query::<QueryMap>::extract_non_empty(query)
+            .into_inner()
+            .iter()
+            .map(|(k, v)| Condition {
+                variable: k.clone(),
+                expression: Expression::Is(v.clone()),
+            })
+            .collect::<Conditions>()
     }
 }
 

@@ -2,7 +2,7 @@ use leptos::*;
 use serde_json::{Map, Value};
 
 use crate::api::fetch_organisations;
-use crate::components::table::types::Expandable;
+use crate::components::table::types::{default_column_formatter, Expandable};
 use crate::components::{
     skeleton::Skeleton,
     stat::Stat,
@@ -45,6 +45,7 @@ pub fn organisations() -> impl IntoView {
             navigate,
             ColumnSortable::No,
             Expandable::Disabled,
+            default_column_formatter,
         )]
     });
 

@@ -3,7 +3,9 @@ use serde::Deserialize;
 use serde_json::{json, Map, Value};
 use superposition_types::custom_query::PaginationParams;
 
-use crate::components::table::types::{ColumnSortable, Expandable};
+use crate::components::table::types::{
+    default_column_formatter, ColumnSortable, Expandable,
+};
 use crate::components::type_template_form::utils::delete_type;
 use crate::components::{
     alert::AlertType,
@@ -107,6 +109,7 @@ pub fn types_page() -> impl IntoView {
                 expand,
                 ColumnSortable::No,
                 Expandable::Disabled,
+                default_column_formatter,
             ),
             Column::default("type_schema".to_string()),
             Column::default("created_by".to_string()),
@@ -148,6 +151,7 @@ pub fn types_page() -> impl IntoView {
                 },
                 ColumnSortable::No,
                 Expandable::Enabled(100),
+                default_column_formatter,
             ),
         ]
     });

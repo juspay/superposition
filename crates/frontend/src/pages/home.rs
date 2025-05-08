@@ -14,11 +14,11 @@ use crate::logic::Conditions;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::{OrganisationId, Tenant};
 use crate::{
-    api::{fetch_config, fetch_dimensions},
+    api::{fetch_config, fetch_dimensions, resolve_config},
     components::{
         button::Button, context_form::ContextForm, dropdown::DropdownDirection,
     },
-    utils::{check_url_and_return_val, get_element_by_id, get_host},
+    utils::{check_url_and_return_val, get_element_by_id},
 };
 
 #[derive(Clone, Debug, Copy, Display, strum_macros::EnumProperty, PartialEq)]
@@ -29,30 +29,6 @@ enum ResolveTab {
     // SelectedConfig,
     #[strum(props(id = "all_configs_tab"))]
     AllConfig,
-}
-
-async fn resolve_config(
-    tenant: String,
-    context: String,
-    org_id: String,
-) -> Result<Value, String> {
-    let client = reqwest::Client::new();
-    let host = get_host();
-    let url = format!("{host}/config/resolve?{context}");
-    match client
-        .get(url)
-        .query(&[("show_reasoning", "true")])
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-    {
-        Ok(response) => {
-            let config = response.json().await.map_err(|e| e.to_string())?;
-            Ok(config)
-        }
-        Err(e) => Err(e.to_string()),
-    }
 }
 
 fn gen_name_id(s0: &String, s1: &String, s2: &String) -> String {
@@ -272,9 +248,10 @@ pub fn home() -> impl IntoView {
         spawn_local(async move {
             let context = context_updated.as_query_string();
             let mut config = match resolve_config(
-                tenant_rws.get_untracked().0,
-                context,
-                org_rws.get_untracked().0,
+                &tenant_rws.get_untracked().0,
+                &context,
+                &org_rws.get_untracked().0,
+                true,
             )
             .await
             .unwrap()

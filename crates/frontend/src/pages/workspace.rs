@@ -7,7 +7,6 @@ use superposition_types::{
     database::models::WorkspaceStatus,
 };
 
-use crate::api::fetch_workspaces;
 use crate::components::{
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
     skeleton::Skeleton,
@@ -20,6 +19,7 @@ use crate::components::{
 };
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::OrganisationId;
+use crate::{api::fetch_workspaces, components::table::types::default_column_formatter};
 
 #[component]
 pub fn workspace() -> impl IntoView {
@@ -134,6 +134,7 @@ pub fn workspace() -> impl IntoView {
                 navigate,
                 ColumnSortable::No,
                 Expandable::Disabled,
+                default_column_formatter,
             ),
             Column::default("workspace_admin_email".to_string()),
             Column::default("mandatory_dimensions".to_string()),
@@ -146,6 +147,7 @@ pub fn workspace() -> impl IntoView {
                 actions_col_formatter,
                 ColumnSortable::No,
                 Expandable::Disabled,
+                default_column_formatter,
             ),
         ]
     });

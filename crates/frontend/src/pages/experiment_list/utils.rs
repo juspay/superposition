@@ -1,7 +1,7 @@
 use crate::{
     components::{
         condition_pills::Condition as ConditionComponent,
-        table::types::{Column, ColumnSortable, Expandable},
+        table::types::{default_column_formatter, Column, ColumnSortable, Expandable},
     },
     logic::Conditions,
 };
@@ -75,6 +75,7 @@ pub fn experiment_table_columns(
             },
             ColumnSortable::No,
             Expandable::Disabled,
+            default_column_formatter,
         ),
         Column::new(
             "status".to_string(),
@@ -109,6 +110,7 @@ pub fn experiment_table_columns(
             },
             ColumnSortable::No,
             Expandable::Enabled(100),
+            default_column_formatter,
         ),
         Column::new(
             "context".to_string(),
@@ -133,6 +135,7 @@ pub fn experiment_table_columns(
             },
             ColumnSortable::No,
             Expandable::Disabled,
+            default_column_formatter,
         ),
         Column::new(
             "chosen_variant".to_string(),
@@ -150,6 +153,7 @@ pub fn experiment_table_columns(
             },
             ColumnSortable::No,
             Expandable::Enabled(100),
+            default_column_formatter,
         ),
         Column::default_with_sort(
             "created_at".to_string(),
