@@ -399,42 +399,6 @@ CREATE TABLE IF NOT EXISTS localorg_test.type_templates (
 CREATE INDEX IF NOT EXISTS type_templates_index ON localorg_test.type_templates(type_name);
 CREATE INDEX IF NOT EXISTS type_templates_created_at_index ON localorg_test.type_templates(created_at);
 CREATE INDEX IF NOT EXISTS type_templates_last_modifed_index ON localorg_test.type_templates(last_modified);
-INSERT INTO localorg_test.type_templates(type_name, type_schema, created_by, created_at, last_modified)
-VALUES (
-        'Number',
-        '{"type": "integer"}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    ),
-    (
-        'Decimal',
-        '{"type": "number"}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    ),
-    (
-        'Boolean',
-        '{"type": "boolean"}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    ),
-    (
-        'Enum',
-        '{"type": "string", "enum": ["android", "ios"]}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    ),
-    (
-        'Pattern',
-        '{"type": "string", "pattern": ".*"}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    );
 -- Your SQL goes here
 
 ALTER TABLE localorg_test.functions
@@ -471,29 +435,25 @@ ALTER COLUMN priority SET DEFAULT 1;
 ALTER TABLE localorg_test.dimensions
 ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED;
 
-ALTER TABLE localorg_test.contexts ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE localorg_test.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE localorg_test.contexts ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE localorg_test.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-ALTER TABLE localorg_test.dimensions ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE localorg_test.dimensions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE localorg_test.dimensions ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE localorg_test.dimensions ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-ALTER TABLE localorg_test.default_configs ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE localorg_test.default_configs ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE localorg_test.default_configs ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE localorg_test.default_configs ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-ALTER TABLE localorg_test.type_templates ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE localorg_test.type_templates ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE localorg_test.type_templates ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE localorg_test.type_templates ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
 ALTER TABLE localorg_test.functions RENAME COLUMN function_description TO description;
-ALTER TABLE localorg_test.functions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE localorg_test.functions ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-ALTER TABLE localorg_test.functions ALTER COLUMN description SET DEFAULT '';
-ALTER TABLE localorg_test.functions ALTER COLUMN description SET NOT NULL;
+ALTER TABLE localorg_test.config_versions ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
 
-ALTER TABLE localorg_test.config_versions ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-
-ALTER TABLE localorg_test.experiments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE localorg_test.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
-
+ALTER TABLE localorg_test.experiments ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE localorg_test.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 INSERT INTO localorg_test.dimensions (
         dimension,
         priority,
@@ -501,7 +461,8 @@ INSERT INTO localorg_test.dimensions (
         created_by,
         schema,
         function_name,
-        description
+        description,
+        change_reason
     )
 VALUES (
         'variantIds',
@@ -510,8 +471,61 @@ VALUES (
         'default@superposition.io',
         '{"type": "string","pattern": ".*"}'::json,
         null,
-        'variantIds are used by experimentation module to manage and select variations'
+        'variantIds are used by experimentation module to manage and select variations',
+        'initial setup'
 );
+
+INSERT INTO localorg_test.type_templates(type_name, type_schema, created_by, created_at, last_modified_by, last_modified_at, description, change_reason)
+VALUES (
+        'Number',
+        '{"type": "integer"}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Number type is used to represent numeric values',
+        'initial setup'
+    ),
+    (
+        'Decimal',
+        '{"type": "number"}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Decimal type is used to represent decimal values',
+        'initial setup'
+    ),
+    (
+        'Boolean',
+        '{"type": "boolean"}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Boolean type is used to represent true/false values',
+        'initial setup'
+    ),
+    (
+        'Enum',
+        '{"type": "string", "enum": ["android", "ios"]}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Enum type is used to represent a fixed set of values',
+        'initial setup'
+    ),
+    (
+        'Pattern',
+        '{"type": "string", "pattern": ".*"}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Pattern type is used to represent a string that matches a specific pattern',
+        'initial setup'
+    );
 
 -- Create older partitions
 -- 2023-2024
@@ -974,42 +988,6 @@ CREATE TABLE IF NOT EXISTS localorg_dev.type_templates (
 CREATE INDEX IF NOT EXISTS type_templates_index ON localorg_dev.type_templates(type_name);
 CREATE INDEX IF NOT EXISTS type_templates_created_at_index ON localorg_dev.type_templates(created_at);
 CREATE INDEX IF NOT EXISTS type_templates_last_modifed_index ON localorg_dev.type_templates(last_modified);
-INSERT INTO localorg_dev.type_templates(type_name, type_schema, created_by, created_at, last_modified)
-VALUES (
-        'Number',
-        '{"type": "integer"}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    ),
-    (
-        'Decimal',
-        '{"type": "number"}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    ),
-    (
-        'Boolean',
-        '{"type": "boolean"}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    ),
-    (
-        'Enum',
-        '{"type": "string", "enum": ["android", "ios"]}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    ),
-    (
-        'Pattern',
-        '{"type": "string", "pattern": ".*"}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    );
 -- Your SQL goes here
 
 ALTER TABLE localorg_dev.functions
@@ -1046,28 +1024,25 @@ ALTER COLUMN priority SET DEFAULT 1;
 ALTER TABLE localorg_dev.dimensions
 ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED;
 
-ALTER TABLE localorg_dev.contexts ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE localorg_dev.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE localorg_dev.contexts ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE localorg_dev.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-ALTER TABLE localorg_dev.dimensions ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE localorg_dev.dimensions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE localorg_dev.dimensions ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE localorg_dev.dimensions ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-ALTER TABLE localorg_dev.default_configs ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE localorg_dev.default_configs ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE localorg_dev.default_configs ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE localorg_dev.default_configs ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-ALTER TABLE localorg_dev.type_templates ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE localorg_dev.type_templates ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE localorg_dev.type_templates ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE localorg_dev.type_templates ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
 ALTER TABLE localorg_dev.functions RENAME COLUMN function_description TO description;
-ALTER TABLE localorg_dev.functions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE localorg_dev.functions ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-ALTER TABLE localorg_dev.functions ALTER COLUMN description SET DEFAULT '';
-ALTER TABLE localorg_dev.functions ALTER COLUMN description SET NOT NULL;
+ALTER TABLE localorg_dev.config_versions ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
 
-ALTER TABLE localorg_dev.config_versions ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-
-ALTER TABLE localorg_dev.experiments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE localorg_dev.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE localorg_dev.experiments ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE localorg_dev.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
 INSERT INTO localorg_dev.dimensions (
         dimension,
@@ -1076,7 +1051,8 @@ INSERT INTO localorg_dev.dimensions (
         created_by,
         schema,
         function_name,
-        description
+        description,
+        change_reason
     )
 VALUES (
         'variantIds',
@@ -1085,8 +1061,61 @@ VALUES (
         'default@superposition.io',
         '{"type": "string","pattern": ".*"}'::json,
         null,
-        'variantIds are used by experimentation module to manage and select variations'
+        'variantIds are used by experimentation module to manage and select variations',
+        'initial setup'
 );
+
+INSERT INTO localorg_dev.type_templates(type_name, type_schema, created_by, created_at, last_modified_by, last_modified_at, description, change_reason)
+VALUES (
+        'Number',
+        '{"type": "integer"}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Number type is used to represent numeric values',
+        'initial setup'
+    ),
+    (
+        'Decimal',
+        '{"type": "number"}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Decimal type is used to represent decimal values',
+        'initial setup'
+    ),
+    (
+        'Boolean',
+        '{"type": "boolean"}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Boolean type is used to represent true/false values',
+        'initial setup'
+    ),
+    (
+        'Enum',
+        '{"type": "string", "enum": ["android", "ios"]}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Enum type is used to represent a fixed set of values',
+        'initial setup'
+    ),
+    (
+        'Pattern',
+        '{"type": "string", "pattern": ".*"}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Pattern type is used to represent a string that matches a specific pattern',
+        'initial setup'
+    );
 
 -- Create older partitions
 -- 2023-2024

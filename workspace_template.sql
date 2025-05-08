@@ -336,42 +336,6 @@ CREATE TABLE IF NOT EXISTS {replaceme}.type_templates (
 CREATE INDEX IF NOT EXISTS type_templates_index ON {replaceme}.type_templates(type_name);
 CREATE INDEX IF NOT EXISTS type_templates_created_at_index ON {replaceme}.type_templates(created_at);
 CREATE INDEX IF NOT EXISTS type_templates_last_modifed_index ON {replaceme}.type_templates(last_modified);
-INSERT INTO {replaceme}.type_templates(type_name, type_schema, created_by, created_at, last_modified)
-VALUES (
-        'Number',
-        '{"type": "integer"}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    ),
-    (
-        'Decimal',
-        '{"type": "number"}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    ),
-    (
-        'Boolean',
-        '{"type": "boolean"}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    ),
-    (
-        'Enum',
-        '{"type": "string", "enum": ["android", "ios"]}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    ),
-    (
-        'Pattern',
-        '{"type": "string", "pattern": ".*"}',
-        'user@superposition.io',
-        NOW(),
-        NOW()
-    );
 -- Your SQL goes here
 
 ALTER TABLE {replaceme}.functions
@@ -408,28 +372,25 @@ ALTER COLUMN priority SET DEFAULT 1;
 ALTER TABLE {replaceme}.dimensions
 ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED;
 
-ALTER TABLE {replaceme}.contexts ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE {replaceme}.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE {replaceme}.contexts ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE {replaceme}.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-ALTER TABLE {replaceme}.dimensions ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE {replaceme}.dimensions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE {replaceme}.dimensions ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE {replaceme}.dimensions ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-ALTER TABLE {replaceme}.default_configs ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE {replaceme}.default_configs ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE {replaceme}.default_configs ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE {replaceme}.default_configs ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-ALTER TABLE {replaceme}.type_templates ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE {replaceme}.type_templates ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE {replaceme}.type_templates ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE {replaceme}.type_templates ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
 ALTER TABLE {replaceme}.functions RENAME COLUMN function_description TO description;
-ALTER TABLE {replaceme}.functions ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE {replaceme}.functions ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-ALTER TABLE {replaceme}.functions ALTER COLUMN description SET DEFAULT '';
-ALTER TABLE {replaceme}.functions ALTER COLUMN description SET NOT NULL;
+ALTER TABLE {replaceme}.config_versions ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
 
-ALTER TABLE {replaceme}.config_versions ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-
-ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '' NOT NULL;
-ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT DEFAULT '' NOT NULL;
+ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
+ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
 INSERT INTO {replaceme}.dimensions (
         dimension,
@@ -438,7 +399,8 @@ INSERT INTO {replaceme}.dimensions (
         created_by,
         schema,
         function_name,
-        description
+        description,
+        change_reason
     )
 VALUES (
         'variantIds',
@@ -447,9 +409,61 @@ VALUES (
         'default@superposition.io',
         '{"type": "string","pattern": ".*"}'::json,
         null,
-        'variantIds are used by experimentation module to manage and select variations'
+        'variantIds are used by experimentation module to manage and select variations',
+        'initial setup'
 );
 
+INSERT INTO {replaceme}.type_templates(type_name, type_schema, created_by, created_at, last_modified_by, last_modified_at, description, change_reason)
+VALUES (
+        'Number',
+        '{"type": "integer"}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Number type is used to represent numeric values',
+        'initial setup'
+    ),
+    (
+        'Decimal',
+        '{"type": "number"}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Decimal type is used to represent decimal values',
+        'initial setup'
+    ),
+    (
+        'Boolean',
+        '{"type": "boolean"}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Boolean type is used to represent true/false values',
+        'initial setup'
+    ),
+    (
+        'Enum',
+        '{"type": "string", "enum": ["android", "ios"]}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Enum type is used to represent a fixed set of values',
+        'initial setup'
+    ),
+    (
+        'Pattern',
+        '{"type": "string", "pattern": ".*"}',
+        'user@superposition.io',
+        NOW(),
+        'user@superposition.io',
+        NOW(),
+        'Pattern type is used to represent a string that matches a specific pattern',
+        'initial setup'
+    );
 
 DO $$ BEGIN
     ALTER TYPE public.experiment_status_type ADD VALUE 'DISCARDED';
