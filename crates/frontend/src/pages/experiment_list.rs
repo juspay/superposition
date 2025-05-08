@@ -42,7 +42,8 @@ use crate::{
         editor_provider::EditorProvider,
     },
     query_updater::{use_param_updater, use_signal_from_query},
-    types::{OrganisationId, Tenant, VariantFormTs},
+    types::{AutoCompleteCallbacks, OrganisationId, Tenant, VariantFormTs},
+    utils::autocomplete_fn_generator,
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -56,6 +57,8 @@ struct CombinedResource {
 fn experiment_table_filter_widget(
     filters_rws: RwSignal<ExperimentListFilters>,
     combined_resource: CombinedResource,
+    tenant: RwSignal<Tenant>,
+    org: RwSignal<OrganisationId>,
 ) -> impl IntoView {
     let filters = filters_rws.get_untracked();
     let filters_buffer_rws = create_rw_signal(filters.clone());
@@ -72,6 +75,8 @@ fn experiment_table_filter_widget(
         })
         .map(Conditions)
         .unwrap_or_default();
+
+    let (context_rs, context_ws) = create_signal(context);
 
     let dim = combined_resource.dimensions;
 
@@ -91,6 +96,33 @@ fn experiment_table_filter_widget(
                 f.status = Some(CommaSeparatedQParams(new_status_vector))
             })
         };
+
+    let fn_environment = create_memo(move |_| {
+        let context = context_rs.get();
+        json!({
+            "context": context,
+            "overrides": [],
+        })
+    });
+
+    let context_autocomplete_callbacks = dim
+        .iter()
+        .filter(|d| d.autocomplete_function_name.is_some())
+        .map(|d| {
+            let tenant = tenant.get().0;
+            let org_id = org.get().0;
+            autocomplete_fn_generator(
+                d.dimension.clone(),
+                d.autocomplete_function_name.clone().unwrap(),
+                fn_environment,
+                tenant,
+                org_id,
+            )
+        })
+        .collect::<AutoCompleteCallbacks>();
+
+    let context_autocomplete_callbacks = StoredValue::new(context_autocomplete_callbacks);
+
     view! {
         <DrawerBtn drawer_id="experiment_filter_drawer".into() style=DrawerButtonStyle::Outline>
             Filters
@@ -106,7 +138,8 @@ fn experiment_table_filter_widget(
                 <div class="my-4">
                     <ContextForm
                         dimensions=dim
-                        context
+                        context_rs
+                        context_ws
                         dropdown_direction=DropdownDirection::Down
                         handle_change=move |context: Conditions| {
                             filters_buffer_rws
@@ -123,6 +156,7 @@ fn experiment_table_filter_widget(
                         }
                         heading_sub_text=String::from("Search By Context")
                         resolve_mode=true
+                        autocomplete_callbacks=context_autocomplete_callbacks.get_value()
                     />
 
                 </div>
@@ -469,6 +503,8 @@ pub fn experiment_list() -> impl IntoView {
                                             <ExperimentTableFilterWidget
                                                 filters_rws
                                                 combined_resource=v
+                                                tenant=tenant_rws
+                                                org=org_rws
                                             />
                                             <Table
                                                 rows=data

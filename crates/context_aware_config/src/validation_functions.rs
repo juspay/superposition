@@ -105,7 +105,7 @@ const CODE_GENERATION_SNIPPET: &str = r#"
     }
 
     runService()
-        .then((v) => console.log(v.value))
+        .then((v) => console.log("|", v.value))
         .catch((err) => console.error(err));
     }
     "#;
@@ -187,7 +187,7 @@ pub fn execute_fn(
                         FunctionType::Autocomplete
                     }
                 };
-                let stdout_vec = stdout.trim().split('\n').collect::<Vec<_>>();
+                let stdout_vec = stdout.trim().split('|').collect::<Vec<_>>();
                 let fn_output = stdout_vec
                     .last()
                     .map(|i| i.to_string())

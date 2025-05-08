@@ -4,7 +4,7 @@ use leptos::*;
 use serde_json::Value;
 use superposition_types::{
     api::functions::ListFunctionFilters,
-    custom_query::{CommaSeparatedQParams, PaginationParams},
+    custom_query::PaginationParams,
     database::models::cac::{Function, FunctionType, TypeTemplate},
 };
 use web_sys::MouseEvent;
@@ -20,6 +20,7 @@ use crate::{
     },
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
     types::FunctionsName,
+    utils::set_function,
 };
 use crate::{
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
@@ -35,7 +36,8 @@ pub fn default_config_form<NF>(
     #[prop(default = String::new())] config_type: String,
     #[prop(default = Value::Null)] type_schema: Value,
     #[prop(default = Value::Null)] config_value: Value,
-    #[prop(default = None)] function_name: Option<String>,
+    #[prop(default = None)] validation_function_name: Option<String>,
+    #[prop(default = None)] autocomplete_function_name: Option<String>,
     #[prop(default = None)] prefix: Option<String>,
     #[prop(default = String::new())] description: String,
     handle_submit: NF,
@@ -50,7 +52,10 @@ where
     let (config_type_rs, config_type_ws) = create_signal(config_type);
     let (config_schema_rs, config_schema_ws) = create_signal(type_schema);
     let (config_value_rs, config_value_ws) = create_signal(config_value);
-    let (function_name_rs, function_name_ws) = create_signal(function_name);
+    let (validation_fn_name_rs, validation_fn_name_ws) =
+        create_signal(validation_function_name);
+    let (autocomplete_fn_name_rs, autocomplete_fn_name_ws) =
+        create_signal(autocomplete_function_name);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
@@ -69,9 +74,7 @@ where
             move || (tenant_rws.get().0, org_rws.get().0),
             |(current_tenant, org)| async move {
                 let fn_filters = ListFunctionFilters {
-                    function_type: Some(CommaSeparatedQParams(vec![
-                        FunctionType::Validation,
-                    ])),
+                    function_type: None,
                 };
                 fetch_functions(
                     &PaginationParams::all_entries(),
@@ -93,17 +96,14 @@ where
         },
     );
 
-    let handle_select_dropdown_option =
+    let handle_select_dropdown_option_validation =
         Callback::new(move |selected_function: FunctionsName| {
-            function_name_ws.update(|value| {
-                let function_name = selected_function.clone();
-                leptos::logging::log!("function selected: {:?}", function_name);
-                let fun_name = match function_name.as_str() {
-                    "None" => None,
-                    _ => Some(function_name),
-                };
-                *value = fun_name;
-            });
+            validation_fn_name_ws.update(|v| set_function(selected_function, v));
+        });
+
+    let handle_select_dropdown_option_autocomplete =
+        Callback::new(move |selected_function: FunctionsName| {
+            autocomplete_fn_name_ws.update(|v| set_function(selected_function, v));
         });
 
     let on_submit = move |ev: MouseEvent| {
@@ -116,7 +116,7 @@ where
         let f_schema = config_schema_rs.get();
         let f_value = config_value_rs.get();
 
-        let fun_name = function_name_rs.get();
+        let fun_name = validation_fn_name_rs.get();
         let description = description_rs.get();
         let change_reason = change_reason_rs.get();
 
@@ -357,20 +357,23 @@ where
 
                 <Suspense>
                     {move || {
-                        let functions = validation_functions_resource.get().unwrap_or_default();
-                        let mut function_names: Vec<FunctionsName> = vec![];
-                        functions
-                            .into_iter()
+                        let mut functions = validation_functions_resource.get().unwrap_or_default();
+                        let mut validation_function_names: Vec<FunctionsName> = vec!["None".to_string()];
+                        let mut autocomplete_function_names: Vec<FunctionsName> = vec!["None".to_string()];
+                        functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
+                        functions.iter()
                             .for_each(|ele| {
-                                function_names.push(ele.function_name);
+                                if ele.function_type == FunctionType::Validation {
+                                    validation_function_names.push(ele.function_name.clone());
+                                } else {
+                                    autocomplete_function_names.push(ele.function_name.clone());
+                                }
                             });
-                        function_names.sort();
-                        function_names.insert(0, "None".to_string());
                         view! {
                             <div class="form-control">
                                 <div class="gap-1">
                                     <label class="label flex-col justify-center items-start">
-                                        <span class="label-text">Function Name</span>
+                                        <span class="label-text">Validation Function Name</span>
                                         <span class="label-text text-slate-400">
                                             Assign Function validation to your key
                                         </span>
@@ -381,13 +384,38 @@ where
                                     <Dropdown
                                         dropdown_width="w-100"
                                         dropdown_icon="".to_string()
-                                        dropdown_text=function_name_rs
+                                        dropdown_text=validation_fn_name_rs
                                             .get()
                                             .map_or("Add Function".to_string(), |v| v.to_string())
                                         dropdown_direction=DropdownDirection::Down
                                         dropdown_btn_type=DropdownBtnType::Select
-                                        dropdown_options=function_names
-                                        on_select=handle_select_dropdown_option
+                                        dropdown_options=validation_function_names
+                                        on_select=handle_select_dropdown_option_validation
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="form-control">
+                                <div class="gap-1">
+                                    <label class="label flex-col justify-center items-start">
+                                        <span class="label-text">AutoComplete Function Name</span>
+                                        <span class="label-text text-slate-400">
+                                            Assign Autocomplete Function to your key
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <div class="mt-2">
+                                    <Dropdown
+                                        dropdown_width="w-100"
+                                        dropdown_icon="".to_string()
+                                        dropdown_text=autocomplete_fn_name_rs
+                                            .get()
+                                            .map_or("Add Function".to_string(), |v| v.to_string())
+                                        dropdown_direction=DropdownDirection::Down
+                                        dropdown_btn_type=DropdownBtnType::Select
+                                        dropdown_options=autocomplete_function_names
+                                        on_select=handle_select_dropdown_option_autocomplete
                                     />
                                 </div>
                             </div>

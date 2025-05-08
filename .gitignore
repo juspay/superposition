@@ -46,4 +46,8 @@ postman/superposition_env.json
 #smithy
 smithy/output
 .aider*
+<<<<<<< HEAD
+=======
+# temporary, remove when adding ts clients
+>>>>>>> 755d7f9b (feat: add support for predicting inputs in forms)
 clients/generated/smithy/ts
