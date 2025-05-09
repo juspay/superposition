@@ -6,7 +6,7 @@ mod webhooks;
 mod workspace;
 
 use idgenerator::{IdGeneratorOptions, IdInstance};
-use std::{collections::HashSet, io::Result, time::Duration};
+use std::{io::Result, time::Duration};
 
 use actix_files::Files;
 use actix_web::{
@@ -98,20 +98,9 @@ async fn main() -> Result<()> {
         AppEnv::DEV | AppEnv::TEST => None,
         _ => Some(kms::new_client().await),
     };
-    let tenants = get_from_env_unsafe::<String>("TENANTS")
-        .expect("TENANTS is not set")
-        .split(',')
-        .map(String::from)
-        .collect::<HashSet<_>>();
+
     let app_state = Data::new(
-        app_state::get(
-            app_env,
-            &kms_client,
-            service_prefix_str.to_owned(),
-            &base,
-            &tenants,
-        )
-        .await,
+        app_state::get(app_env, &kms_client, service_prefix_str.to_owned(), &base).await,
     );
 
     let auth = AuthHandler::init(&kms_client, &app_env, base.clone()).await;

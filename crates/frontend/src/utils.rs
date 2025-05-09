@@ -241,14 +241,22 @@ where
         enqueue_alert(error_msg.clone(), AlertType::Error, 5000);
         return Err(error_msg);
     }
-    if status.is_server_error() && status != 512 {
-        let error_msg = response
-            .json::<ErrorResponse>()
-            .await
-            .map_or(String::from("Something went wrong"), |error| error.message);
-        logging::error!("{}", error_msg);
-        enqueue_alert(error_msg.clone(), AlertType::Error, 5000);
-        return Err(error_msg);
+    if status.is_server_error() {
+        if status == 512 {
+            enqueue_alert(
+                "Webhook Call Failed, Please Check the Logs.".to_owned(),
+                AlertType::Error,
+                5000,
+            );
+        } else {
+            let error_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or(String::from("Something went wrong"), |error| error.message);
+            logging::error!("{}", error_msg);
+            enqueue_alert(error_msg.clone(), AlertType::Error, 5000);
+            return Err(error_msg);
+        }
     }
 
     Ok(response)

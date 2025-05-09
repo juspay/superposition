@@ -8,7 +8,6 @@ pub mod database;
 mod overridden;
 #[cfg(feature = "result")]
 pub mod result;
-pub mod webhook;
 
 use std::fmt::Display;
 #[cfg(feature = "server")]
@@ -24,7 +23,6 @@ use diesel::PgConnection;
 use diesel_derive_enum as _;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use webhook::WebhookConfig;
 
 pub use crate::config::{Condition, Config, Context, Overrides};
 pub use crate::contextual::Contextual;
@@ -149,37 +147,6 @@ impl Display for RegexEnum {
         }
         .to_string();
         write!(f, "{regex}")
-    }
-}
-
-#[derive(Clone, Deserialize)]
-pub struct TenantConfig {
-    pub experiments_webhook_config: WebhookConfig,
-}
-
-#[cfg(feature = "server")]
-impl FromRequest for TenantConfig {
-    type Error = actix_web::error::Error;
-    type Future = Ready<Result<Self, Self::Error>>;
-
-    fn from_request(
-        req: &actix_web::HttpRequest,
-        _: &mut actix_web::dev::Payload,
-    ) -> Self::Future {
-        let result = req.extensions().get::<Self>().cloned().ok_or_else(|| {
-            log::error!("Tenant config not found");
-            actix_web::error::ErrorInternalServerError("Tenant config not found")
-        });
-
-        ready(result)
-    }
-}
-
-impl Default for TenantConfig {
-    fn default() -> Self {
-        Self {
-            experiments_webhook_config: WebhookConfig::Disabled,
-        }
     }
 }
 

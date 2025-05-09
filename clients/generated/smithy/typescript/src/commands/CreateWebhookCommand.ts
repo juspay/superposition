@@ -50,7 +50,7 @@ export interface CreateWebhookCommandOutput extends WebhookResponse, __MetadataB
  *   description: "STRING_VALUE", // required
  *   enabled: true || false, // required
  *   url: "STRING_VALUE", // required
- *   method: "GET" || "POST" || "PUT" || "PATCH" || "DELETE" || "HEAD" || "OPTIONS" || "TRACE" || "CONNECT", // required
+ *   method: "GET" || "POST" || "PUT" || "PATCH" || "DELETE" || "HEAD", // required
  *   version: "V1",
  *   custom_headers: { // Object
  *     "<keys>": "DOCUMENT_VALUE",
@@ -67,7 +67,7 @@ export interface CreateWebhookCommandOutput extends WebhookResponse, __MetadataB
  * //   description: "STRING_VALUE", // required
  * //   enabled: true || false, // required
  * //   url: "STRING_VALUE", // required
- * //   method: "GET" || "POST" || "PUT" || "PATCH" || "DELETE" || "HEAD" || "OPTIONS" || "TRACE" || "CONNECT", // required
+ * //   method: "GET" || "POST" || "PUT" || "PATCH" || "DELETE" || "HEAD", // required
  * //   version: "V1", // required
  * //   custom_headers: { // Object
  * //     "<keys>": "DOCUMENT_VALUE",

@@ -22,13 +22,10 @@ public final class HttpMethod implements SerializableShape {
     public static final HttpMethod PATCH = new HttpMethod(Type.PATCH, "PATCH");
     public static final HttpMethod DELETE = new HttpMethod(Type.DELETE, "DELETE");
     public static final HttpMethod HEAD = new HttpMethod(Type.HEAD, "HEAD");
-    public static final HttpMethod OPTIONS = new HttpMethod(Type.OPTIONS, "OPTIONS");
-    public static final HttpMethod TRACE = new HttpMethod(Type.TRACE, "TRACE");
-    public static final HttpMethod CONNECT = new HttpMethod(Type.CONNECT, "CONNECT");
-    private static final List<HttpMethod> $TYPES = List.of(GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS, TRACE, CONNECT);
+    private static final List<HttpMethod> $TYPES = List.of(GET, POST, PUT, PATCH, DELETE, HEAD);
 
     public static final Schema $SCHEMA = Schema.createEnum($ID,
-        Set.of(GET.value, POST.value, PUT.value, PATCH.value, DELETE.value, HEAD.value, OPTIONS.value, TRACE.value, CONNECT.value)
+        Set.of(GET.value, POST.value, PUT.value, PATCH.value, DELETE.value, HEAD.value)
     );
 
     private final String value;
@@ -49,10 +46,7 @@ public final class HttpMethod implements SerializableShape {
         PUT,
         PATCH,
         DELETE,
-        HEAD,
-        OPTIONS,
-        TRACE,
-        CONNECT
+        HEAD
     }
 
     /**
@@ -109,9 +103,6 @@ public final class HttpMethod implements SerializableShape {
             case "PATCH" -> PATCH;
             case "DELETE" -> DELETE;
             case "HEAD" -> HEAD;
-            case "OPTIONS" -> OPTIONS;
-            case "TRACE" -> TRACE;
-            case "CONNECT" -> CONNECT;
             default -> throw new IllegalArgumentException("Unknown value: " + value);
         };
     }
@@ -167,9 +158,6 @@ public final class HttpMethod implements SerializableShape {
                 case "PATCH" -> PATCH;
                 case "DELETE" -> DELETE;
                 case "HEAD" -> HEAD;
-                case "OPTIONS" -> OPTIONS;
-                case "TRACE" -> TRACE;
-                case "CONNECT" -> CONNECT;
                 default -> new HttpMethod(Type.$UNKNOWN, value);
             };
         }

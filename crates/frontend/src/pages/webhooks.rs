@@ -3,7 +3,7 @@ use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
     custom_query::{CustomQuery, PaginationParams, Query},
-    database::models::others::{HttpMethod, PayloadVersion, WebhookEvent},
+    database::models::others::{CustomHeaders, HttpMethod, PayloadVersion, WebhookEvent},
 };
 
 use crate::{
@@ -36,7 +36,7 @@ pub struct RowData {
     pub url: String,
     pub method: HttpMethod,
     pub payload_version: PayloadVersion,
-    pub custom_headers: Value,
+    pub custom_headers: CustomHeaders,
     pub events: Vec<WebhookEvent>,
 }
 
@@ -115,7 +115,12 @@ pub fn webhooks() -> impl IntoView {
                 serde_json::from_str::<PayloadVersion>(&payload_version)
                     .unwrap_or_default();
 
-            let custom_headers = row["custom_headers"].clone();
+            let custom_headers = row
+                .get("custom_headers")
+                .and_then(|value| {
+                    serde_json::from_value::<CustomHeaders>(value.clone()).ok()
+                })
+                .unwrap_or_default();
 
             let events = row["events"]
                 .as_array()

@@ -60,9 +60,9 @@ where
     });
 
     let btn_class = match dropdown_btn_type {
-        DropdownBtnType::Outline => "btn btn-sm text-xs m-1 w-full btn-purple-outline",
+        DropdownBtnType::Outline => "btn btn-sm text-xs m-1 w-fit btn-purple-outline",
         DropdownBtnType::Link => "btn btn-sm text-xs m-1 w-full btn-purple-link",
-        DropdownBtnType::Fill => "btn btn-sm text-xs m-1 w-full btn-purple-fill",
+        DropdownBtnType::Fill => "btn btn-sm text-xs m-1 w-[28rem] btn-purple-fill",
         DropdownBtnType::Select => "select select-bordered w-[28rem] items-center",
     };
 
@@ -70,10 +70,10 @@ where
     let dropdown_node_ref = create_node_ref::<html::Ul>();
 
     view! {
-        <div class="w-[28rem] flex flex-col gap-4">
+        <div class="flex flex-col gap-4">
             <div
                 id=id
-                class="dropdown"
+                class="w-fit dropdown"
                 class=("disable-click", disabled)
                 class=("dropdown-right", dropdown_direction == DropdownDirection::Right)
                 class=("dropdown-left", dropdown_direction == DropdownDirection::Left)

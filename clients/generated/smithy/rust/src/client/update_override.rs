@@ -5,17 +5,20 @@ impl super::Client {
                             /// - The fluent builder is configurable:
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
-    ///   - [`context(impl Into<String>, Document)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::context) / [`set_context(Option<HashMap::<String, Document>>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::set_context):<br>required: **true**<br>(undocumented)<br>
     ///   - [`config_tags(impl Into<String>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::config_tags) / [`set_config_tags(Option<String>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::set_config_tags):<br>required: **false**<br>(undocumented)<br>
-    ///   - [`r#override(impl Into<String>, Document)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::override) / [`set_override(Option<HashMap::<String, Document>>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::set_override):<br>required: **true**<br>(undocumented)<br>
-    ///   - [`description(impl Into<String>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::description) / [`set_description(Option<String>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::set_description):<br>required: **false**<br>(undocumented)<br>
-    ///   - [`change_reason(impl Into<String>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`request(UpdateContextOverrideRequest)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::request) / [`set_request(Option<UpdateContextOverrideRequest>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::set_request):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`UpdateOverrideOutput`](crate::operation::update_override::UpdateOverrideOutput) with field(s):
-    ///   - [`context_id(String)`](crate::operation::update_override::UpdateOverrideOutput::context_id): (undocumented)
-    ///   - [`override_id(String)`](crate::operation::update_override::UpdateOverrideOutput::override_id): (undocumented)
-    ///   - [`weight(String)`](crate::operation::update_override::UpdateOverrideOutput::weight): (undocumented)
-    ///   - [`description(String)`](crate::operation::update_override::UpdateOverrideOutput::description): (undocumented)
-    ///   - [`change_reason(String)`](crate::operation::update_override::UpdateOverrideOutput::change_reason): (undocumented)
+    ///   - [`id(String)`](crate::operation::update_override::UpdateOverrideOutput::id): (undocumented)
+    ///   - [`value(Option<HashMap::<String, Document>>)`](crate::operation::update_override::UpdateOverrideOutput::value): (undocumented)
+    ///   - [`r#override(Option<HashMap::<String, Document>>)`](crate::operation::update_override::UpdateOverrideOutput::override): (undocumented)
+    ///   - [`override_id(Option<String>)`](crate::operation::update_override::UpdateOverrideOutput::override_id): (undocumented)
+    ///   - [`weight(Option<String>)`](crate::operation::update_override::UpdateOverrideOutput::weight): (undocumented)
+    ///   - [`description(Option<String>)`](crate::operation::update_override::UpdateOverrideOutput::description): (undocumented)
+    ///   - [`change_reason(Option<String>)`](crate::operation::update_override::UpdateOverrideOutput::change_reason): (undocumented)
+    ///   - [`created_at(Option<DateTime>)`](crate::operation::update_override::UpdateOverrideOutput::created_at): (undocumented)
+    ///   - [`created_by(Option<String>)`](crate::operation::update_override::UpdateOverrideOutput::created_by): (undocumented)
+    ///   - [`last_modified_at(Option<DateTime>)`](crate::operation::update_override::UpdateOverrideOutput::last_modified_at): (undocumented)
+    ///   - [`last_modified_by(Option<String>)`](crate::operation::update_override::UpdateOverrideOutput::last_modified_by): (undocumented)
                             /// - On failure, responds with [`SdkError<UpdateOverrideError>`](crate::operation::update_override::UpdateOverrideError)
     pub fn update_override(&self) -> crate::operation::update_override::builders::UpdateOverrideFluentBuilder {
                                 crate::operation::update_override::builders::UpdateOverrideFluentBuilder::new(self.handle.clone())

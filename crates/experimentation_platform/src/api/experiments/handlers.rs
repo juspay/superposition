@@ -49,10 +49,8 @@ use superposition_types::{
         },
         schema::{event_log::dsl as event_log, experiments::dsl as experiments},
     },
-    result as superposition,
-    webhook::WebhookConfig,
-    Cac, Condition, DBConnection, Exp, ListResponse, Overrides, PaginatedResponse,
-    SortBy, TenantConfig, User,
+    result as superposition, Cac, Condition, DBConnection, Exp, ListResponse, Overrides,
+    PaginatedResponse, SortBy, User,
 };
 
 use super::{
@@ -64,7 +62,9 @@ use super::{
     types::{ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq},
 };
 
-use crate::api::experiments::helpers::{construct_header_map, decide_variant};
+use crate::api::experiments::helpers::{
+    construct_header_map, decide_variant, fetch_webhook_by_event,
+};
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
@@ -149,7 +149,6 @@ async fn create(
     db_conn: DbConnection,
     workspace_request: WorkspaceContext,
     user: User,
-    tenant_config: TenantConfig,
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::experiments::dsl::experiments;
     let mut variants = req.variants.to_vec();
@@ -321,23 +320,35 @@ async fn create(
         .get_results(&mut conn)?;
 
     let inserted_experiment: Experiment = inserted_experiments.remove(0);
-    let response = ExperimentResponse::from(inserted_experiment.clone());
-    if let WebhookConfig::Enabled(experiments_webhook_config) =
-        &tenant_config.experiments_webhook_config
+    let response = ExperimentResponse::from(inserted_experiment);
+    let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
+        &state,
+        &user,
+        &WebhookEvent::ExperimentCreated,
+        &workspace_request,
+    )
+    .await
     {
         execute_webhook_call(
-            experiments_webhook_config,
-            &ExperimentResponse::from(inserted_experiment),
+            &webhook,
+            &response,
             &config_version_id,
             &workspace_request,
             WebhookEvent::ExperimentCreated,
-            &state.app_env,
-            &state.http_client,
-            &state.kms_client,
+            &state,
         )
-        .await?;
-    }
-    let mut http_resp = HttpResponse::Ok();
+        .await
+    } else {
+        true
+    };
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            StatusCode::from_u16(512).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
     add_config_version_to_header(&config_version_id, &mut http_resp);
     Ok(http_resp.json(response))
 }
@@ -351,7 +362,6 @@ async fn conclude_handler(
     req: web::Json<ConcludeExperimentRequest>,
     db_conn: DbConnection,
     workspace_request: WorkspaceContext,
-    tenant_config: TenantConfig,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(conn) = db_conn;
@@ -368,23 +378,35 @@ async fn conclude_handler(
 
     let experiment_response = ExperimentResponse::from(response);
 
-    if let WebhookConfig::Enabled(experiments_webhook_config) =
-        &tenant_config.experiments_webhook_config
+    let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
+        &state,
+        &user,
+        &WebhookEvent::ExperimentConcluded,
+        &workspace_request,
+    )
+    .await
     {
         execute_webhook_call(
-            experiments_webhook_config,
+            &webhook,
             &experiment_response,
             &config_version_id,
             &workspace_request,
             WebhookEvent::ExperimentConcluded,
-            &state.app_env,
-            &state.http_client,
-            &state.kms_client,
+            &state,
         )
-        .await?;
-    }
+        .await
+    } else {
+        true
+    };
 
-    let mut http_resp = HttpResponse::Ok();
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            StatusCode::from_u16(512).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
+
     add_config_version_to_header(&config_version_id, &mut http_resp);
     Ok(http_resp.json(experiment_response))
 }
@@ -567,7 +589,6 @@ async fn discard_handler(
     req: web::Json<DiscardExperimentRequest>,
     db_conn: DbConnection,
     workspace_request: WorkspaceContext,
-    tenant_config: TenantConfig,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(conn) = db_conn;
@@ -584,23 +605,34 @@ async fn discard_handler(
 
     let experiment_response = ExperimentResponse::from(response);
 
-    if let WebhookConfig::Enabled(experiments_webhook_config) =
-        &tenant_config.experiments_webhook_config
+    let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
+        &state,
+        &user,
+        &WebhookEvent::ExperimentDiscarded,
+        &workspace_request,
+    )
+    .await
     {
         execute_webhook_call(
-            experiments_webhook_config,
+            &webhook,
             &experiment_response,
             &config_version_id,
             &workspace_request,
             WebhookEvent::ExperimentDiscarded,
-            &state.app_env,
-            &state.http_client,
-            &state.kms_client,
+            &state,
         )
-        .await?;
-    }
+        .await
+    } else {
+        true
+    };
 
-    let mut http_resp = HttpResponse::Ok();
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            StatusCode::from_u16(512).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
     add_config_version_to_header(&config_version_id, &mut http_resp);
     Ok(http_resp.json(experiment_response))
 }
@@ -900,14 +932,13 @@ pub fn user_allowed_to_ramp(
 #[allow(clippy::too_many_arguments)]
 #[patch("/{id}/ramp")]
 async fn ramp(
-    data: Data<AppState>,
+    state: Data<AppState>,
     params: web::Path<i64>,
     req: web::Json<RampRequest>,
     db_conn: DbConnection,
     user: User,
     workspace_request: WorkspaceContext,
-    tenant_config: TenantConfig,
-) -> superposition::Result<Json<ExperimentResponse>> {
+) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
     let change_reason = req.change_reason.clone();
@@ -923,7 +954,7 @@ async fn ramp(
         ));
     }
 
-    if !user_allowed_to_ramp(&data, &experiment, &user) {
+    if !user_allowed_to_ramp(&state, &experiment, &user) {
         return Err(bad_argument!(
             "experiment creator is not allowed to start experiment"
         ));
@@ -954,7 +985,7 @@ async fn ramp(
         .schema_name(&workspace_request.schema_name)
         .get_result(&mut conn)?;
 
-    let (_, config_version_id) = fetch_cac_config(&data, &workspace_request).await?;
+    let (_, config_version_id) = fetch_cac_config(&state, &workspace_request).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
     let webhook_event = if **new_traffic_percentage == 0
@@ -964,23 +995,30 @@ async fn ramp(
     } else {
         WebhookEvent::ExperimentInprogress
     };
-    if let WebhookConfig::Enabled(experiments_webhook_config) =
-        &tenant_config.experiments_webhook_config
+    let webhook_status = if let Ok(webhook) =
+        fetch_webhook_by_event(&state, &user, &webhook_event, &workspace_request).await
     {
         execute_webhook_call(
-            experiments_webhook_config,
+            &webhook,
             &experiment_response,
             &config_version_id,
             &workspace_request,
             webhook_event,
-            &data.app_env,
-            &data.http_client,
-            &data.kms_client,
+            &state,
         )
-        .await?;
-    }
+        .await
+    } else {
+        true
+    };
 
-    Ok(Json(experiment_response))
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            StatusCode::from_u16(512).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
+    Ok(http_resp.json(experiment_response))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -992,7 +1030,6 @@ async fn update_overrides(
     db_conn: DbConnection,
     req: web::Json<OverrideKeysUpdateRequest>,
     workspace_request: WorkspaceContext,
-    tenant_config: TenantConfig,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -1208,23 +1245,34 @@ async fn update_overrides(
 
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
-    if let WebhookConfig::Enabled(experiments_webhook_config) =
-        &tenant_config.experiments_webhook_config
+    let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
+        &state,
+        &user,
+        &WebhookEvent::ExperimentUpdated,
+        &workspace_request,
+    )
+    .await
     {
         execute_webhook_call(
-            experiments_webhook_config,
+            &webhook,
             &experiment_response,
             &config_version_id,
             &workspace_request,
             WebhookEvent::ExperimentUpdated,
-            &state.app_env,
-            &state.http_client,
-            &state.kms_client,
+            &state,
         )
-        .await?;
-    }
+        .await
+    } else {
+        true
+    };
 
-    let mut http_resp = HttpResponse::Ok();
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            StatusCode::from_u16(512).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
     add_config_version_to_header(&config_version_id, &mut http_resp);
     Ok(http_resp.json(experiment_response))
 }

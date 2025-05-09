@@ -1,5 +1,4 @@
 use leptos::ServerFnError;
-use serde_json::Value;
 use superposition_types::{
     api::{
         context::ContextListFilters,
@@ -12,7 +11,7 @@ use superposition_types::{
     database::{
         models::{
             cac::{ConfigVersion, Context, DefaultConfig, Function, TypeTemplate},
-            others::{HttpMethod, PayloadVersion, Webhook, WebhookEvent},
+            others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
             ChangeReason, Description, NonEmptyString, Workspace,
         },
         types::DimensionWithMandatory,
@@ -392,7 +391,7 @@ pub async fn create_webhook(
     url: String,
     method: HttpMethod,
     payload_version: PayloadVersion,
-    custom_headers: Value,
+    custom_headers: CustomHeaders,
     events: Vec<WebhookEvent>,
     change_reason: String,
     tenant: String,
@@ -430,7 +429,7 @@ pub async fn update_webhook(
     url: String,
     method: HttpMethod,
     payload_version: PayloadVersion,
-    custom_headers: Value,
+    custom_headers: CustomHeaders,
     events: Vec<WebhookEvent>,
     description: String,
     change_reason: String,
@@ -452,7 +451,7 @@ pub async fn update_webhook(
 
     let response = request(
         url,
-        reqwest::Method::PUT,
+        reqwest::Method::PATCH,
         Some(payload),
         construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )

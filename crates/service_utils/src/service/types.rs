@@ -7,13 +7,11 @@ use std::{
 };
 
 use actix_web::{error, web::Data, Error, FromRequest, HttpMessage};
-use aws_sdk_kms::Client;
 use derive_more::{Deref, DerefMut};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use diesel::{Connection, PgConnection};
 use jsonschema::JSONSchema;
 use snowflake::SnowflakeIdGenerator;
-use superposition_types::TenantConfig;
 
 use crate::db::PgSchemaConnectionPool;
 
@@ -53,8 +51,7 @@ pub struct AppState {
     #[cfg(feature = "high-performance-mode")]
     pub redis: fred::clients::RedisPool,
     pub http_client: reqwest::Client,
-    pub kms_client: Option<Client>,
-    pub tenant_configs: HashMap<String, TenantConfig>,
+    pub encrypted_keys: HashMap<String, String>,
 }
 
 impl FromStr for AppEnv {

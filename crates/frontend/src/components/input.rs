@@ -3,6 +3,7 @@ use std::time::Duration;
 use chrono::{DateTime, Utc};
 use leptos::*;
 use serde_json::{json, Map, Value};
+use web_sys::MouseEvent;
 
 use crate::{
     components::{
@@ -332,7 +333,8 @@ pub fn monaco_input(
         });
     });
 
-    let on_save = Callback::new(move |_| {
+    let on_save = Callback::new(move |e: MouseEvent| {
+        e.prevent_default();
         let editor_value = editor_rs.with(|v| v.data.clone());
         logging::log!("Saving editor value: {}", editor_value);
 

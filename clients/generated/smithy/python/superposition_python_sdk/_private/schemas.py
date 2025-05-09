@@ -525,6 +525,62 @@ CONTEXT_PUT = Schema.collection(
     }
 )
 
+CONTEXT_IDENTIFIER = Schema.collection(
+    id=ShapeID("io.superposition#ContextIdentifier"),
+    shape_type=ShapeType.UNION,
+    members={
+        "id": {
+            "target": STRING,
+            "index": 0,
+        },
+
+        "context": {
+            "target": CONDITION,
+            "index": 1,
+        },
+
+    }
+)
+
+UPDATE_CONTEXT_OVERRIDE_REQUEST = Schema.collection(
+    id=ShapeID("io.superposition#UpdateContextOverrideRequest"),
+
+    members={
+        "context": {
+            "target": CONTEXT_IDENTIFIER,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "override": {
+            "target": OVERRIDES,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "description": {
+            "target": STRING,
+            "index": 2,
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
 CONTEXT_ACTION = Schema.collection(
     id=ShapeID("io.superposition#ContextAction"),
     shape_type=ShapeType.UNION,
@@ -535,7 +591,7 @@ CONTEXT_ACTION = Schema.collection(
         },
 
         "REPLACE": {
-            "target": CONTEXT_PUT,
+            "target": UPDATE_CONTEXT_OVERRIDE_REQUEST,
             "index": 1,
         },
 
@@ -2709,19 +2765,9 @@ UPDATE_OVERRIDE_INPUT = Schema.collection(
             ],
         },
 
-        "context": {
-            "target": CONDITION,
-            "index": 2,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
         "config_tags": {
             "target": STRING,
-            "index": 3,
+            "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -2729,25 +2775,13 @@ UPDATE_OVERRIDE_INPUT = Schema.collection(
             ],
         },
 
-        "override": {
-            "target": OVERRIDES,
-            "index": 4,
+        "request": {
+            "target": UPDATE_CONTEXT_OVERRIDE_REQUEST,
+            "index": 3,
             "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "description": {
-            "target": STRING,
-            "index": 5,
-        },
-
-        "change_reason": {
-            "target": STRING,
-            "index": 6,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpPayload")),
 
             ],
         },
@@ -2759,56 +2793,68 @@ UPDATE_OVERRIDE_OUTPUT = Schema.collection(
     id=ShapeID("io.superposition#UpdateOverrideOutput"),
 
     traits=[
-        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ContextActionResponse"),
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ContextFull"),
         Trait.new(id=ShapeID("smithy.api#output")),
 
     ],
     members={
-        "context_id": {
+        "id": {
             "target": STRING,
             "index": 0,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "value": {
+            "target": CONDITION,
+            "index": 1,
+        },
+
+        "override": {
+            "target": OVERRIDES,
+            "index": 2,
         },
 
         "override_id": {
             "target": STRING,
-            "index": 1,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
+            "index": 3,
         },
 
         "weight": {
             "target": WEIGHT,
-            "index": 2,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
+            "index": 4,
         },
 
         "description": {
             "target": STRING,
-            "index": 3,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
+            "index": 5,
         },
 
         "change_reason": {
             "target": STRING,
-            "index": 4,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
+            "index": 6,
+        },
 
-            ],
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 7,
+        },
+
+        "created_by": {
+            "target": STRING,
+            "index": 8,
+        },
+
+        "last_modified_at": {
+            "target": DATE_TIME,
+            "index": 9,
+        },
+
+        "last_modified_by": {
+            "target": STRING,
+            "index": 10,
         },
 
     }
@@ -4299,33 +4345,6 @@ HTTP_METHOD = Schema.collection(
             "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="HEAD"),
-
-            ],
-        },
-
-        "OPTIONS": {
-            "target": UNIT,
-            "index": 6,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="OPTIONS"),
-
-            ],
-        },
-
-        "TRACE": {
-            "target": UNIT,
-            "index": 7,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="TRACE"),
-
-            ],
-        },
-
-        "CONNECT": {
-            "target": UNIT,
-            "index": 8,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="CONNECT"),
 
             ],
         },
@@ -9982,7 +10001,7 @@ UPDATE_WEBHOOK = Schema(
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
-                "method": "PUT",
+                "method": "PATCH",
                 "uri": "/webhook/{name}",
             })),
 

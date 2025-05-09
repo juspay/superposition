@@ -19,7 +19,7 @@ public final class UpdateWebhook implements ApiOperation<UpdateWebhookInput, Upd
     private static final UpdateWebhook $INSTANCE = new UpdateWebhook();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("PUT").code(200).uri(UriPattern.parse("/webhook/{name}")).build());
+            HttpTrait.builder().method("PATCH").code(200).uri(UriPattern.parse("/webhook/{name}")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

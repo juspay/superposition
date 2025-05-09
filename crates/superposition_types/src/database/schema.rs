@@ -699,7 +699,7 @@ diesel::table! {
         method -> HttpMethod,
         payload_version -> Text,
         custom_headers -> Json,
-        events -> Array<Varchar>,
+        events -> Array<Text>,
         max_retries -> Int4,
         last_triggered_at -> Nullable<Timestamptz>,
         change_reason -> Text,

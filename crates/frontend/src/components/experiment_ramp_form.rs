@@ -41,7 +41,7 @@ where
             match result {
                 Ok(_) => {
                     enqueue_alert(
-                        String::from("Experiment rampped successfully!"),
+                        String::from("Experiment ramped successfully!"),
                         AlertType::Success,
                         5000,
                     );
