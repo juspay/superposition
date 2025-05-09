@@ -15,7 +15,6 @@ use actix_web::{
 use futures_util::future::LocalBoxFuture;
 use regex::Regex;
 use std::rc::Rc;
-use superposition_types::TenantConfig;
 
 pub struct OrgWorkspaceMiddlewareFactory {
     enable_org_id: bool,
@@ -112,24 +111,14 @@ where
                 };
 
                 let org = req.get_organisation_id();
-                // TODO: validate the workspace, get correct TenantConfig
-                let (schema_name, tenant_config) =  match (enable_org_id, &org) {
+                // TODO: validate the workspace
+                let schema_name =  match (enable_org_id, &org) {
                     (true, None) => return Err(error::ErrorBadRequest("The parameter org id is required, and must be passed through headers/url params/query params.")),
                     (true, Some(OrganisationId(org_id))) => {
-                        let tenant_config = app_state
-                            .tenant_configs
-                            .get(&workspace_id)
-                            .cloned()
-                            .ok_or_else(|| {
-                                error::ErrorInternalServerError(format!(
-                                    "tenant config not found for {}",
-                                    workspace_id
-                                ))
-                            })?;
                         let schema = format!("{org_id}_{workspace_id}");
-                        (SchemaName(schema), tenant_config)
+                        SchemaName(schema)
                     },
-                    (false, _) => (SchemaName("public".into()), TenantConfig::default()),
+                    (false, _) => SchemaName("public".into()),
                 };
 
                 let organisation = org.unwrap_or_default();
@@ -143,7 +132,6 @@ where
                     workspace_id: workspace,
                     schema_name,
                 });
-                req.extensions_mut().insert(tenant_config);
             }
 
             let res = srv.call(req).await?;

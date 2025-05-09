@@ -11,9 +11,11 @@ use service_utils::service::types::{
 use std::collections::HashSet;
 use std::str::FromStr;
 use superposition_macros::{bad_argument, unexpected_error};
+use superposition_types::User;
 use superposition_types::{
-    database::models::experimentation::{
-        Experiment, ExperimentStatusType, Variant, VariantType,
+    database::models::{
+        experimentation::{Experiment, ExperimentStatusType, Variant, VariantType},
+        others::{Webhook, WebhookEvent},
     },
     result as superposition, Condition, Config, Exp, Overrides,
 };
@@ -348,6 +350,57 @@ pub async fn fetch_cac_config(
         }
         Err(error) => {
             log::error!("Failed to fetch cac config with error: {:?}", error);
+            Err(unexpected_error!(error))
+        }
+    }
+}
+
+pub async fn fetch_webhook_by_event(
+    state: &Data<AppState>,
+    user: &User,
+    event: &WebhookEvent,
+    workspace_request: &WorkspaceContext,
+) -> superposition::Result<Webhook> {
+    let http_client = reqwest::Client::new();
+    let url = format!("{}/webhook/event/{event}", state.cac_host);
+    let user_str = serde_json::to_string(user).map_err(|err| {
+        log::error!("Something went wrong, failed to stringify user data {err}");
+        unexpected_error!(
+            "Something went wrong, failed to stringify user data {}",
+            err
+        )
+    })?;
+
+    let headers_map = construct_header_map(
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
+        vec![("x-user", user_str)],
+    )?;
+
+    let response = http_client
+        .get(&url)
+        .headers(headers_map.into())
+        .header(
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
+        )
+        .send()
+        .await;
+
+    match response {
+        Ok(res) => {
+            if res.status() == 404 {
+                log::info!("No Webhook found for event: {}", event);
+                return Ok(Webhook::default());
+            }
+            let webhook = res.json::<Webhook>().await.map_err(|err| {
+                log::error!("failed to parse Webhook response with error: {}", err);
+                unexpected_error!("Failed to parse Webhook.")
+            })?;
+            Ok(webhook)
+        }
+        Err(error) => {
+            log::error!("Failed to fetch Webhook with error: {:?}", error);
             Err(unexpected_error!(error))
         }
     }

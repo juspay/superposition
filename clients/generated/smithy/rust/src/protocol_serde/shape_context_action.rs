@@ -13,7 +13,7 @@ pub fn ser_context_action(object_4: &mut ::aws_smithy_json::serialize::JsonObjec
              {
                 #[allow(unused_mut)]
                 let mut object_2 = object_4.key("REPLACE").start_object();
-                crate::protocol_serde::shape_context_put::ser_context_put(&mut object_2, inner)?;
+                crate::protocol_serde::shape_update_context_override_request::ser_update_context_override_request(&mut object_2, inner)?;
                 object_2.finish();
             }
         },

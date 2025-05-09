@@ -1,14 +1,15 @@
+use std::fmt;
+
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::webhooks;
 use crate::{
     database::models::{
-        others::{HttpMethod, PayloadVersion, WebhookEvent},
+        others::{CustomHeaders, HttpMethod, PayloadVersion, WebhookEvent},
         ChangeReason, Description, NonEmptyString,
     },
     RegexEnum,
@@ -22,7 +23,7 @@ pub struct CreateWebhookRequest {
     pub url: NonEmptyString,
     pub method: HttpMethod,
     pub payload_version: Option<PayloadVersion>,
-    pub custom_headers: Option<Value>,
+    pub custom_headers: Option<CustomHeaders>,
     pub events: Vec<WebhookEvent>,
     pub change_reason: ChangeReason,
 }
@@ -36,7 +37,7 @@ pub struct UpdateWebhookRequest {
     pub url: Option<NonEmptyString>,
     pub method: Option<HttpMethod>,
     pub payload_version: Option<PayloadVersion>,
-    pub custom_headers: Option<Value>,
+    pub custom_headers: Option<CustomHeaders>,
     pub events: Option<Vec<WebhookEvent>>,
     pub change_reason: ChangeReason,
 }
@@ -60,4 +61,34 @@ impl TryFrom<String> for WebhookName {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Self::validate_data(value)
     }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum HeadersEnum {
+    ConfigVersion,
+    WorkspaceId,
+}
+
+impl fmt::Display for HeadersEnum {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::ConfigVersion => write!(f, "x-config-version"),
+            Self::WorkspaceId => write!(f, "x-tenant"),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct WebhookEventInfo {
+    pub webhook_event: WebhookEvent,
+    pub time: String,
+    pub workspace_id: String,
+    pub organisation_id: String,
+    pub config_version: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct WebhookResponse<T> {
+    pub event_info: WebhookEventInfo,
+    pub payload: T,
 }

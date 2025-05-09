@@ -63,6 +63,10 @@ pub use crate::types::_context_action::ContextAction;
 
 pub use crate::types::_context_move::ContextMove;
 
+pub use crate::types::_update_context_override_request::UpdateContextOverrideRequest;
+
+pub use crate::types::_context_identifier::ContextIdentifier;
+
 pub use crate::types::_context_put::ContextPut;
 
 pub use crate::types::_weight_recompute_response::WeightRecomputeResponse;
@@ -90,6 +94,8 @@ mod _context_action_out;
 mod _context_filter_sort_on;
 
 mod _context_full;
+
+mod _context_identifier;
 
 mod _context_move;
 
@@ -132,6 +138,8 @@ mod _sort_by;
 mod _stage;
 
 mod _type_templates_response;
+
+mod _update_context_override_request;
 
 mod _validate_function_request;
 

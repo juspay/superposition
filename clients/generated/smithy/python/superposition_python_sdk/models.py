@@ -30,6 +30,7 @@ from ._private.schemas import (
     CONTEXT_ACTION as _SCHEMA_CONTEXT_ACTION,
     CONTEXT_ACTION_OUT as _SCHEMA_CONTEXT_ACTION_OUT,
     CONTEXT_FULL as _SCHEMA_CONTEXT_FULL,
+    CONTEXT_IDENTIFIER as _SCHEMA_CONTEXT_IDENTIFIER,
     CONTEXT_MOVE as _SCHEMA_CONTEXT_MOVE,
     CONTEXT_MOVE_OUT as _SCHEMA_CONTEXT_MOVE_OUT,
     CONTEXT_PARTIAL as _SCHEMA_CONTEXT_PARTIAL,
@@ -165,6 +166,7 @@ from ._private.schemas import (
     TEST_OUTPUT as _SCHEMA_TEST_OUTPUT,
     TYPE_TEMPLATES_NOT_FOUND as _SCHEMA_TYPE_TEMPLATES_NOT_FOUND,
     TYPE_TEMPLATES_RESPONSE as _SCHEMA_TYPE_TEMPLATES_RESPONSE,
+    UPDATE_CONTEXT_OVERRIDE_REQUEST as _SCHEMA_UPDATE_CONTEXT_OVERRIDE_REQUEST,
     UPDATE_DEFAULT_CONFIG as _SCHEMA_UPDATE_DEFAULT_CONFIG,
     UPDATE_DEFAULT_CONFIG_INPUT as _SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT,
     UPDATE_DEFAULT_CONFIG_OUTPUT as _SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT,
@@ -835,6 +837,138 @@ class ContextPut:
         return kwargs
 
 @dataclass
+class ContextIdentifierId:
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTEXT_IDENTIFIER, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_CONTEXT_IDENTIFIER.members["id"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=deserializer.read_string(_SCHEMA_CONTEXT_IDENTIFIER.members["id"]))
+
+@dataclass
+class ContextIdentifierContext:
+
+    value: dict[str, Document]
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTEXT_IDENTIFIER, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        _serialize_condition(serializer, _SCHEMA_CONTEXT_IDENTIFIER.members["context"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=_deserialize_condition(deserializer, _SCHEMA_CONTEXT_IDENTIFIER.members["context"]))
+
+@dataclass
+class ContextIdentifierUnknown:
+    """Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SmithyException("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SmithyException("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+ContextIdentifier = Union[ContextIdentifierId | ContextIdentifierContext | ContextIdentifierUnknown]
+
+class _ContextIdentifierDeserializer:
+    _result: ContextIdentifier | None = None
+
+    def deserialize(self, deserializer: ShapeDeserializer) -> ContextIdentifier:
+        self._result = None
+        deserializer.read_struct(_SCHEMA_CONTEXT_IDENTIFIER, self._consumer)
+
+        if self._result is None:
+            raise SmithyException("Unions must have exactly one value, but found none.")
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(ContextIdentifierId.deserialize(de))
+
+            case 1:
+                self._set_result(ContextIdentifierContext.deserialize(de))
+
+            case _:
+                logger.debug("Unexpected member schema: %s", schema)
+
+    def _set_result(self, value: ContextIdentifier) -> None:
+        if self._result is not None:
+            raise SmithyException("Unions must have exactly one value, but found more than one.")
+        self._result = value
+
+@dataclass(kw_only=True)
+class UpdateContextOverrideRequest:
+
+    context: ContextIdentifier
+
+    override: dict[str, Document]
+
+    change_reason: str
+
+    description: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_UPDATE_CONTEXT_OVERRIDE_REQUEST, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_UPDATE_CONTEXT_OVERRIDE_REQUEST.members["context"], self.context)
+        _serialize_overrides(serializer, _SCHEMA_UPDATE_CONTEXT_OVERRIDE_REQUEST.members["override"], self.override)
+        if self.description is not None:
+            serializer.write_string(_SCHEMA_UPDATE_CONTEXT_OVERRIDE_REQUEST.members["description"], self.description)
+
+        serializer.write_string(_SCHEMA_UPDATE_CONTEXT_OVERRIDE_REQUEST.members["change_reason"], self.change_reason)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["context"] = _ContextIdentifierDeserializer().deserialize(de)
+
+                case 1:
+                    kwargs["override"] = _deserialize_overrides(de, _SCHEMA_UPDATE_CONTEXT_OVERRIDE_REQUEST.members["override"])
+
+                case 2:
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_CONTEXT_OVERRIDE_REQUEST.members["description"])
+
+                case 3:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_CONTEXT_OVERRIDE_REQUEST.members["change_reason"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_UPDATE_CONTEXT_OVERRIDE_REQUEST, consumer=_consumer)
+        return kwargs
+
+@dataclass
 class ContextActionPUT:
 
     value: ContextPut
@@ -852,7 +986,7 @@ class ContextActionPUT:
 @dataclass
 class ContextActionREPLACE:
 
-    value: ContextPut
+    value: UpdateContextOverrideRequest
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTEXT_ACTION, self)
@@ -862,7 +996,7 @@ class ContextActionREPLACE:
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=ContextPut.deserialize(deserializer))
+        return cls(value=UpdateContextOverrideRequest.deserialize(deserializer))
 
 @dataclass
 class ContextActionDELETE:
@@ -3186,27 +3320,14 @@ class UpdateOverrideInput:
 
     workspace_id: str | None = None
     org_id: str = "juspay"
-    context: dict[str, Document] | None = None
     config_tags: str | None = None
-    override: dict[str, Document] | None = None
-    description: str | None = None
-    change_reason: str | None = None
+    request: UpdateContextOverrideRequest | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_OVERRIDE_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.context is not None:
-            _serialize_condition(serializer, _SCHEMA_UPDATE_OVERRIDE_INPUT.members["context"], self.context)
-
-        if self.override is not None:
-            _serialize_overrides(serializer, _SCHEMA_UPDATE_OVERRIDE_INPUT.members["override"], self.override)
-
-        if self.description is not None:
-            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_INPUT.members["description"], self.description)
-
-        if self.change_reason is not None:
-            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_INPUT.members["change_reason"], self.change_reason)
+        pass
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3225,19 +3346,10 @@ class UpdateOverrideInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_UPDATE_OVERRIDE_INPUT.members["context"])
-
-                case 3:
                     kwargs["config_tags"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_INPUT.members["config_tags"])
 
-                case 4:
-                    kwargs["override"] = _deserialize_overrides(de, _SCHEMA_UPDATE_OVERRIDE_INPUT.members["override"])
-
-                case 5:
-                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_INPUT.members["description"])
-
-                case 6:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_INPUT.members["change_reason"])
+                case 3:
+                    kwargs["request"] = UpdateContextOverrideRequest.deserialize(de)
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -3248,25 +3360,53 @@ class UpdateOverrideInput:
 @dataclass(kw_only=True)
 class UpdateOverrideOutput:
 
-    context_id: str
+    id: str
 
-    override_id: str
-
-    weight: str
-
-    description: str
-
-    change_reason: str
+    value: dict[str, Document] | None = None
+    override: dict[str, Document] | None = None
+    override_id: str | None = None
+    weight: str | None = None
+    description: str | None = None
+    change_reason: str | None = None
+    created_at: datetime | None = None
+    created_by: str | None = None
+    last_modified_at: datetime | None = None
+    last_modified_by: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_OVERRIDE_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["context_id"], self.context_id)
-        serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["override_id"], self.override_id)
-        serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["weight"], self.weight)
-        serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["description"], self.description)
-        serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["id"], self.id)
+        if self.value is not None:
+            _serialize_condition(serializer, _SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["value"], self.value)
+
+        if self.override is not None:
+            _serialize_overrides(serializer, _SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["override"], self.override)
+
+        if self.override_id is not None:
+            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["override_id"], self.override_id)
+
+        if self.weight is not None:
+            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["weight"], self.weight)
+
+        if self.description is not None:
+            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["description"], self.description)
+
+        if self.change_reason is not None:
+            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["change_reason"], self.change_reason)
+
+        if self.created_at is not None:
+            serializer.write_timestamp(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["created_at"], self.created_at)
+
+        if self.created_by is not None:
+            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["created_by"], self.created_by)
+
+        if self.last_modified_at is not None:
+            serializer.write_timestamp(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["last_modified_at"], self.last_modified_at)
+
+        if self.last_modified_by is not None:
+            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["last_modified_by"], self.last_modified_by)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3279,19 +3419,37 @@ class UpdateOverrideOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["context_id"])
+                    kwargs["id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["id"])
 
                 case 1:
-                    kwargs["override_id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["override_id"])
+                    kwargs["value"] = _deserialize_condition(de, _SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["value"])
 
                 case 2:
-                    kwargs["weight"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["weight"])
+                    kwargs["override"] = _deserialize_overrides(de, _SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["override"])
 
                 case 3:
-                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["description"])
+                    kwargs["override_id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["override_id"])
 
                 case 4:
+                    kwargs["weight"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["weight"])
+
+                case 5:
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["description"])
+
+                case 6:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["change_reason"])
+
+                case 7:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["created_at"])
+
+                case 8:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["created_by"])
+
+                case 9:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["last_modified_at"])
+
+                case 10:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["last_modified_by"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -4646,9 +4804,6 @@ class HttpMethod(StrEnum):
     PATCH = "PATCH"
     DELETE = "DELETE"
     HEAD = "HEAD"
-    OPTIONS = "OPTIONS"
-    TRACE = "TRACE"
-    CONNECT = "CONNECT"
 
 class Version(StrEnum):
     V1 = "V1"

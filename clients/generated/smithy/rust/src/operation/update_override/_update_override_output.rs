@@ -4,36 +4,72 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct UpdateOverrideOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub context_id: ::std::string::String,
+    pub id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub override_id: ::std::string::String,
+    pub value: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub weight: ::std::string::String,
+    pub r#override: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub description: ::std::string::String,
+    pub override_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub change_reason: ::std::string::String,
+    pub weight: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub description: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub change_reason: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub created_by: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub last_modified_by: ::std::option::Option<::std::string::String>,
 }
 impl  UpdateOverrideOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub fn context_id(&self) -> &str {
-        use std::ops::Deref; self.context_id.deref()
+    pub fn id(&self) -> &str {
+        use std::ops::Deref; self.id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn override_id(&self) -> &str {
-        use std::ops::Deref; self.override_id.deref()
+    pub fn value(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+        self.value.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn weight(&self) -> &str {
-        use std::ops::Deref; self.weight.deref()
+    pub fn r#override(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+        self.r#override.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn description(&self) -> &str {
-        use std::ops::Deref; self.description.deref()
+    pub fn override_id(&self) -> ::std::option::Option<&str> {
+        self.override_id.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn change_reason(&self) -> &str {
-        use std::ops::Deref; self.change_reason.deref()
+    pub fn weight(&self) -> ::std::option::Option<&str> {
+        self.weight.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn description(&self) -> ::std::option::Option<&str> {
+        self.description.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn change_reason(&self) -> ::std::option::Option<&str> {
+        self.change_reason.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn created_at(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
+        self.created_at.as_ref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn created_by(&self) -> ::std::option::Option<&str> {
+        self.created_by.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn last_modified_at(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
+        self.last_modified_at.as_ref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn last_modified_by(&self) -> ::std::option::Option<&str> {
+        self.last_modified_by.as_deref()
     }
 }
 impl UpdateOverrideOutput {
@@ -47,29 +83,70 @@ impl UpdateOverrideOutput {
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
 #[non_exhaustive]
 pub struct UpdateOverrideOutputBuilder {
-    pub(crate) context_id: ::std::option::Option<::std::string::String>,
+    pub(crate) id: ::std::option::Option<::std::string::String>,
+    pub(crate) value: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) r#override: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     pub(crate) override_id: ::std::option::Option<::std::string::String>,
     pub(crate) weight: ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
+    pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
+    pub(crate) created_by: ::std::option::Option<::std::string::String>,
+    pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
+    pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
 }
 impl UpdateOverrideOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn context_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.context_id = ::std::option::Option::Some(input.into());
+    pub fn id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_context_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.context_id = input; self
+    pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.id = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_context_id(&self) -> &::std::option::Option<::std::string::String> {
-        &self.context_id
+    pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
+        &self.id
+    }
+    /// Adds a key-value pair to `value`.
+    ///
+    /// To override the contents of this collection use [`set_value`](Self::set_value).
+    ///
+    pub fn value(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+        let mut hash_map = self.value.unwrap_or_default();
+                        hash_map.insert(k.into(), v);
+                        self.value = ::std::option::Option::Some(hash_map);
+                        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
+    pub fn set_value(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
+        self.value = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_value(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+        &self.value
+    }
+    /// Adds a key-value pair to `r#override`.
+    ///
+    /// To override the contents of this collection use [`set_override`](Self::set_override).
+    ///
+    pub fn r#override(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+        let mut hash_map = self.r#override.unwrap_or_default();
+                        hash_map.insert(k.into(), v);
+                        self.r#override = ::std::option::Option::Some(hash_map);
+                        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_override(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
+        self.r#override = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_override(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+        &self.r#override
+    }
+    #[allow(missing_docs)] // documentation missing in model
     pub fn override_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.override_id = ::std::option::Option::Some(input.into());
         self
@@ -83,7 +160,6 @@ impl UpdateOverrideOutputBuilder {
         &self.override_id
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
     pub fn weight(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.weight = ::std::option::Option::Some(input.into());
         self
@@ -97,7 +173,6 @@ impl UpdateOverrideOutputBuilder {
         &self.weight
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
     pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
@@ -111,7 +186,6 @@ impl UpdateOverrideOutputBuilder {
         &self.description
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
     pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
@@ -124,40 +198,88 @@ impl UpdateOverrideOutputBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn created_at(mut self, input: ::aws_smithy_types::DateTime) -> Self {
+        self.created_at = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_created_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
+        self.created_at = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_created_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+        &self.created_at
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.created_by = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.created_by = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
+        &self.created_by
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn last_modified_at(mut self, input: ::aws_smithy_types::DateTime) -> Self {
+        self.last_modified_at = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_last_modified_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
+        self.last_modified_at = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_last_modified_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+        &self.last_modified_at
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.last_modified_by = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.last_modified_by = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
+        &self.last_modified_by
+    }
     /// Consumes the builder and constructs a [`UpdateOverrideOutput`](crate::operation::update_override::UpdateOverrideOutput).
     /// This method will fail if any of the following fields are not set:
-    /// - [`context_id`](crate::operation::update_override::builders::UpdateOverrideOutputBuilder::context_id)
-    /// - [`override_id`](crate::operation::update_override::builders::UpdateOverrideOutputBuilder::override_id)
-    /// - [`weight`](crate::operation::update_override::builders::UpdateOverrideOutputBuilder::weight)
-    /// - [`description`](crate::operation::update_override::builders::UpdateOverrideOutputBuilder::description)
-    /// - [`change_reason`](crate::operation::update_override::builders::UpdateOverrideOutputBuilder::change_reason)
+    /// - [`id`](crate::operation::update_override::builders::UpdateOverrideOutputBuilder::id)
     pub fn build(self) -> ::std::result::Result<crate::operation::update_override::UpdateOverrideOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::update_override::UpdateOverrideOutput {
-                context_id: self.context_id
+                id: self.id
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("context_id", "context_id was not specified but it is required when building UpdateOverrideOutput")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("id", "id was not specified but it is required when building UpdateOverrideOutput")
                     )?
+                ,
+                value: self.value
+                ,
+                r#override: self.r#override
                 ,
                 override_id: self.override_id
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("override_id", "override_id was not specified but it is required when building UpdateOverrideOutput")
-                    )?
                 ,
                 weight: self.weight
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("weight", "weight was not specified but it is required when building UpdateOverrideOutput")
-                    )?
                 ,
                 description: self.description
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("description", "description was not specified but it is required when building UpdateOverrideOutput")
-                    )?
                 ,
                 change_reason: self.change_reason
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("change_reason", "change_reason was not specified but it is required when building UpdateOverrideOutput")
-                    )?
+                ,
+                created_at: self.created_at
+                ,
+                created_by: self.created_by
+                ,
+                last_modified_at: self.last_modified_at
+                ,
+                last_modified_by: self.last_modified_by
                 ,
             }
         )

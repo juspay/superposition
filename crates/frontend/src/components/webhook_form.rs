@@ -2,7 +2,7 @@ use leptos::*;
 use serde_json::Value;
 use strum::IntoEnumIterator;
 use superposition_types::database::models::others::{
-    HttpMethod, PayloadVersion, WebhookEvent,
+    CustomHeaders, HttpMethod, PayloadVersion, WebhookEvent,
 };
 use web_sys::MouseEvent;
 
@@ -29,7 +29,7 @@ pub fn webhook_form<NF>(
     #[prop(default = String::new())] url: String,
     #[prop(default = HttpMethod::default())] method: HttpMethod,
     #[prop(default = PayloadVersion::default())] payload_version: PayloadVersion,
-    #[prop(default = serde_json::json!({}))] custom_headers: Value,
+    #[prop(default = CustomHeaders::default())] custom_headers: CustomHeaders,
     #[prop(default = Vec::new())] events: Vec<WebhookEvent>,
     handle_submit: NF,
 ) -> impl IntoView
@@ -262,11 +262,13 @@ where
                     <Input
                         id="custom_headers"
                         class="rounded-md resize-y w-full max-w-md"
-                        value=custom_headers_rs.get_untracked()
+                        value=Value::Object((*custom_headers_rs.get_untracked()).clone())
                         schema_type=Single(JsonSchemaType::Object)
                         r#type=InputType::Monaco(vec![])
                         on_change=Callback::new(move |value: Value| {
-                            custom_headers_ws.set(value)
+                            if let Some(val)= value.as_object() {
+                                custom_headers_ws.set(CustomHeaders::from(val.clone()));
+                            }
                         })
                     />
                 </EditorProvider>

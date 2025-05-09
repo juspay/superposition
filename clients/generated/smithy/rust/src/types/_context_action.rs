@@ -10,7 +10,7 @@ pub enum ContextAction {
     #[allow(missing_docs)] // documentation missing in model
     Put(crate::types::ContextPut),
     #[allow(missing_docs)] // documentation missing in model
-    Replace(crate::types::ContextPut),
+    Replace(crate::types::UpdateContextOverrideRequest),
     /// The `Unknown` variant represents cases where new union variant was received. Consider upgrading the SDK to the latest available version.
     /// An unknown enum variant
     ///
@@ -49,9 +49,9 @@ impl ContextAction {
     pub fn is_put(&self) -> bool {
         self.as_put().is_ok()
     }
-    /// Tries to convert the enum instance into [`Replace`](crate::types::ContextAction::Replace), extracting the inner [`ContextPut`](crate::types::ContextPut).
+    /// Tries to convert the enum instance into [`Replace`](crate::types::ContextAction::Replace), extracting the inner [`UpdateContextOverrideRequest`](crate::types::UpdateContextOverrideRequest).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_replace(&self) -> ::std::result::Result<&crate::types::ContextPut, &Self> {
+    pub fn as_replace(&self) -> ::std::result::Result<&crate::types::UpdateContextOverrideRequest, &Self> {
         if let ContextAction::Replace(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
     }
     /// Returns true if this is a [`Replace`](crate::types::ContextAction::Replace).

@@ -2,18 +2,24 @@
 use super::super::schema::webhooks;
 use super::{ChangeReason, Description, NonEmptyString};
 use chrono::{DateTime, Utc};
+use derive_more::{AsRef, Deref, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::{
-    deserialize::FromSqlRow, expression::AsExpression, query_builder::QueryId,
-    sql_types::Text, AsChangeset, Insertable, Queryable, Selectable,
+    deserialize::FromSqlRow,
+    expression::AsExpression,
+    query_builder::QueryId,
+    sql_types::{Json, Text},
+    AsChangeset, Insertable, Queryable, Selectable,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Map, Value};
 use strum_macros::{Display, EnumIter, EnumString};
+#[cfg(feature = "diesel_derives")]
+use superposition_derives::{JsonFromSql, JsonToSql};
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{TextFromSql, TextToSql};
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(Queryable, Selectable, Insertable, AsChangeset)
@@ -28,7 +34,7 @@ pub struct Webhook {
     pub url: NonEmptyString,
     pub method: HttpMethod,
     pub payload_version: PayloadVersion,
-    pub custom_headers: Value,
+    pub custom_headers: CustomHeaders,
     pub events: Vec<WebhookEvent>,
     pub max_retries: i32,
     pub last_triggered_at: Option<DateTime<Utc>>,
@@ -108,9 +114,6 @@ pub enum HttpMethod {
     Delete,
     Patch,
     Head,
-    Options,
-    Trace,
-    Connect,
 }
 
 #[derive(
@@ -140,5 +143,21 @@ impl TryFrom<String> for WebhookEvent {
 impl From<&WebhookEvent> for String {
     fn from(value: &WebhookEvent) -> Self {
         value.to_string()
+    }
+}
+
+#[derive(
+    Deserialize, Serialize, Clone, Deref, Debug, PartialEq, Into, AsRef, Default,
+)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
+pub struct CustomHeaders(Map<String, Value>);
+
+impl From<Map<String, Value>> for CustomHeaders {
+    fn from(value: Map<String, Value>) -> Self {
+        Self(value)
     }
 }

@@ -100,14 +100,6 @@ pub fn ser_update_override_headers(
     Ok(builder)
 }
 
-pub fn ser_update_override_input(input: &crate::operation::update_override::UpdateOverrideInput) -> ::std::result::Result<::aws_smithy_types::body::SdkBody, ::aws_smithy_types::error::operation::SerializationError> {
-    let mut out = String::new();
-    let mut object = ::aws_smithy_json::serialize::JsonObjectWriter::new(&mut out);
-    crate::protocol_serde::shape_update_override_input::ser_update_override_input_input(&mut object, input)?;
-    object.finish();
-    Ok(::aws_smithy_types::body::SdkBody::from(out))
-}
-
 pub(crate) fn de_update_override(value: &[u8], mut builder: crate::operation::update_override::builders::UpdateOverrideOutputBuilder) -> ::std::result::Result<crate::operation::update_override::builders::UpdateOverrideOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
     let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(value)).peekable();
                         let tokens = &mut tokens_owned;
@@ -126,8 +118,13 @@ pub(crate) fn de_update_override(value: &[u8], mut builder: crate::operation::up
                             ).transpose()?
                         );
                     }
-                    "context_id" => {
-                        builder = builder.set_context_id(
+                    "created_at" => {
+                        builder = builder.set_created_at(
+                            ::aws_smithy_json::deserialize::token::expect_timestamp_or_null(tokens.next(), ::aws_smithy_types::date_time::Format::DateTimeWithOffset)?
+                        );
+                    }
+                    "created_by" => {
+                        builder = builder.set_created_by(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                 s.to_unescaped().map(|u|
                                     u.into_owned()
@@ -144,6 +141,34 @@ pub(crate) fn de_update_override(value: &[u8], mut builder: crate::operation::up
                             ).transpose()?
                         );
                     }
+                    "id" => {
+                        builder = builder.set_id(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
+                    "last_modified_at" => {
+                        builder = builder.set_last_modified_at(
+                            ::aws_smithy_json::deserialize::token::expect_timestamp_or_null(tokens.next(), ::aws_smithy_types::date_time::Format::DateTimeWithOffset)?
+                        );
+                    }
+                    "last_modified_by" => {
+                        builder = builder.set_last_modified_by(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
+                    "override" => {
+                        builder = builder.set_override(
+                            crate::protocol_serde::shape_overrides::de_overrides(tokens)?
+                        );
+                    }
                     "override_id" => {
                         builder = builder.set_override_id(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
@@ -151,6 +176,11 @@ pub(crate) fn de_update_override(value: &[u8], mut builder: crate::operation::up
                                     u.into_owned()
                                 )
                             ).transpose()?
+                        );
+                    }
+                    "value" => {
+                        builder = builder.set_value(
+                            crate::protocol_serde::shape_condition::de_condition(tokens)?
                         );
                     }
                     "weight" => {

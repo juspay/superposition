@@ -1,20 +1,23 @@
+use super::helper::{fetch_webhook, validate_events};
 use actix_web::{
-    delete, get, post, put,
+    delete, get, patch, post,
     web::{self, Json, Query},
     HttpResponse, Scope,
 };
 use chrono::Utc;
+use diesel::{
+    delete, ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl,
+};
 use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_types::{
     api::webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
     custom_query::PaginationParams,
+    database::{
+        models::others::{Webhook, WebhookEvent},
+        schema::webhooks::{self, dsl::*},
+    },
     result as superposition, PaginatedResponse, User,
 };
-
-use super::helper::{fetch_webhook, validate_events};
-use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl};
-use superposition_types::database::models::others::Webhook;
-use superposition_types::database::schema::webhooks::{self, dsl::*};
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(create)
@@ -22,6 +25,7 @@ pub fn endpoints() -> Scope {
         .service(get)
         .service(update)
         .service(delete_webhook)
+        .service(get_webhook_by_event)
 }
 
 #[post("")]
@@ -62,7 +66,7 @@ async fn create(
     Ok(Json(webhook_data))
 }
 
-#[put("/{webhook_name}")]
+#[patch("/{webhook_name}")]
 async fn update(
     params: web::Path<WebhookName>,
     db_conn: DbConnection,
@@ -162,4 +166,19 @@ async fn delete_webhook(
         .schema_name(&schema_name)
         .execute(&mut conn)?;
     Ok(HttpResponse::NoContent().finish())
+}
+
+#[get("/event/{event}")]
+async fn get_webhook_by_event(
+    params: web::Path<WebhookEvent>,
+    schema_name: SchemaName,
+    db_conn: DbConnection,
+) -> superposition::Result<Json<Webhook>> {
+    let DbConnection(mut conn) = db_conn;
+    let event = params.into_inner();
+    let webhook_row = webhooks
+        .filter(webhooks::events.contains(vec![event]))
+        .schema_name(&schema_name)
+        .first::<Webhook>(&mut conn)?;
+    Ok(Json(webhook_row))
 }

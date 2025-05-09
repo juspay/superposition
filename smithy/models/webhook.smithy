@@ -38,10 +38,7 @@ enum HttpMethod {
     PUT
     PATCH
     DELETE
-    HEAD,
-    OPTIONS,
-    TRACE,
-    CONNECT
+    HEAD
 }
 
 enum Version {
@@ -149,7 +146,7 @@ operation CreateWebhook {
 }
 
 @idempotent
-@http(method: "PUT", uri: "/webhook/{name}")
+@http(method: "PATCH", uri: "/webhook/{name}")
 operation UpdateWebhook {
     input := for Webhook with [WorkspaceMixin] {
         @httpLabel

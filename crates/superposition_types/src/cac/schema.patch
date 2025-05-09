@@ -14,26 +14,5 @@ index 15c2eee..25c8088 100644
          created_at -> Timestamp,
      }
  }
- 
-diesel::table! {
-    webhooks (name) {
-        name -> Text,
-        description -> Text,
-        enabled -> Bool,
-        url -> Text,
-        method -> Text,
-        version -> Text,
-        custom_headers -> Nullable<Json>,
--       events -> Array<Nullable<Varchar>>,
-+       events -> Array<Varchar>,
-        max_retries -> Int4,
-        last_triggered_at -> Nullable<Timestamp>,
-        created_by -> Text,
-        created_at -> Timestamp,
-        last_modified_by -> Text,
-        last_modified_at -> Timestamp,
-    }
-}
-
 diesel::table! {
      contexts (id) {

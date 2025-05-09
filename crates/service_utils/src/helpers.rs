@@ -1,7 +1,9 @@
-use crate::{
-    aws::kms,
-    service::types::{AppEnv, AppState, WorkspaceContext},
+use std::{
+    env::VarError,
+    fmt::{self, Display},
+    str::FromStr,
 };
+
 use actix_web::{error::ErrorInternalServerError, web::Data, Error};
 use anyhow::anyhow;
 use chrono::Utc;
@@ -14,17 +16,14 @@ use reqwest::{
 };
 use serde::Serialize;
 use serde_json::{Map, Value};
-use std::{
-    env::VarError,
-    fmt::{self, Display},
-    str::FromStr,
-};
 use superposition_types::{
-    database::models::others::WebhookEvent,
-    result::{self, AppError},
-    webhook::{HeadersEnum, HttpMethod, Webhook, WebhookEventInfo, WebhookResponse},
+    api::webhook::{HeadersEnum, WebhookEventInfo, WebhookResponse},
+    database::models::others::{HttpMethod, Webhook, WebhookEvent},
+    result::{self},
     Condition,
 };
+
+use crate::service::types::{AppState, WorkspaceContext};
 
 const CONFIG_TAG_REGEX: &str = "^[a-zA-Z0-9_-]{1,64}$";
 
@@ -377,59 +376,42 @@ pub fn parse_config_tags(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 pub async fn execute_webhook_call<T>(
-    webhook_config: &Webhook,
+    webhook: &Webhook,
     payload: &T,
     config_version_opt: &Option<String>,
     workspace_request: &WorkspaceContext,
     event: WebhookEvent,
-    app_env: &AppEnv,
-    http_client: &reqwest::Client,
-    kms_client: &Option<aws_sdk_kms::Client>,
-) -> Result<(), AppError>
+    state: &Data<AppState>,
+) -> bool
 where
     T: Serialize,
 {
-    let mut header_array = webhook_config
-        .service_headers
-        .clone()
-        .unwrap_or_default()
-        .into_iter()
-        .filter_map(|key| match key {
-            HeadersEnum::ConfigVersion => config_version_opt
-                .as_ref()
-                .map(|config_version| (key.to_string(), config_version.to_string())),
-            HeadersEnum::WorkspaceId => {
-                Some((key.to_string(), workspace_request.workspace_id.to_string()))
-            }
-        })
-        .collect::<Vec<(String, String)>>();
-
-    webhook_config
-        .custom_headers
-        .clone()
-        .unwrap_or_default()
-        .into_iter()
-        .for_each(|(key, value)| header_array.push((key, value)));
-
-    if let Some(auth) = &webhook_config.authorization {
-        let auth_token_value: String = match app_env {
-            AppEnv::DEV | AppEnv::TEST => {
-                get_from_env_or_default(&auth.value, "1234".into())
-            }
-            _ => {
-                let kms_client = kms_client.clone().ok_or_else(|| {
-                    log::error!("Failed to retrieve kms client: KMS client is None");
-                    AppError::WebhookError(String::from(
-                        "Something went wrong. Please check the logs.",
-                    ))
-                })?;
-                kms::decrypt(kms_client, &auth.value).await
-            }
-        };
-        header_array.push((auth.key.clone(), auth_token_value));
+    if !webhook.enabled {
+        log::info!("Webhook is disabled, skipping call");
+        return true;
     }
+
+    let mut header_array = vec![
+        (
+            HeadersEnum::ConfigVersion.to_string(),
+            config_version_opt.clone().unwrap_or_default(),
+        ),
+        (
+            HeadersEnum::WorkspaceId.to_string(),
+            workspace_request.workspace_id.to_string(),
+        ),
+    ];
+
+    webhook.custom_headers.iter().for_each(|(key, value)| {
+        let value = value.to_string();
+        let header_value = if let Some(decrypted) = state.encrypted_keys.get(&value) {
+            decrypted.to_string()
+        } else {
+            value.clone()
+        };
+        header_array.push((key.clone(), header_value));
+    });
 
     let mut headers = HeaderMap::new();
     header_array.iter().for_each(|(name, value)| {
@@ -441,9 +423,13 @@ where
         }
     });
 
-    let request_builder = match webhook_config.method {
-        HttpMethod::Post => http_client.post(&webhook_config.url),
-        HttpMethod::Get => http_client.get(&webhook_config.url),
+    let request_builder = match webhook.method {
+        HttpMethod::Post => state.http_client.post(&*webhook.url),
+        HttpMethod::Get => state.http_client.get(&*webhook.url),
+        HttpMethod::Put => state.http_client.put(&*webhook.url),
+        HttpMethod::Delete => state.http_client.delete(&*webhook.url),
+        HttpMethod::Patch => state.http_client.patch(&*webhook.url),
+        HttpMethod::Head => state.http_client.head(&*webhook.url),
     };
 
     let response = request_builder
@@ -466,17 +452,17 @@ where
             match res.status() {
                 StatusCode::OK => {
                     log::info!("webhook call succeeded: {:?}", res.status());
-                    Ok(())
+                    true
                 }
                 _ => {
                     log::error!("Webhook call failed with status code: {:?}, response headers: {:?}", res.status(), res.headers());
-                    Err(AppError::WebhookError(format!("Webhook call failed with status code: {:?}, Please check the logs and retry.", res.status())))
+                    false
                 }
             }
         }
         Err(err) => {
             log::error!("Webhook call failed with error: {:?}", err);
-            Err(AppError::WebhookError(err.to_string()))
+            false
         }
     }
 }

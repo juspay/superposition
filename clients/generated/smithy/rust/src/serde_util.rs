@@ -376,11 +376,7 @@ if builder.updated_by.is_none() { builder.updated_by = Some(Default::default()) 
             }
 
 pub(crate) fn update_override_output_output_correct_errors(mut builder: crate::operation::update_override::builders::UpdateOverrideOutputBuilder) -> crate::operation::update_override::builders::UpdateOverrideOutputBuilder {
-                if builder.context_id.is_none() { builder.context_id = Some(Default::default()) }
-if builder.override_id.is_none() { builder.override_id = Some(Default::default()) }
-if builder.weight.is_none() { builder.weight = Some(Default::default()) }
-if builder.description.is_none() { builder.description = Some(Default::default()) }
-if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
                 builder
             }
 

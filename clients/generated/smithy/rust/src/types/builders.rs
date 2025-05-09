@@ -35,6 +35,8 @@ pub use crate::types::_bulk_operation_req::BulkOperationReqBuilder;
 
 pub use crate::types::_context_move::ContextMoveBuilder;
 
+pub use crate::types::_update_context_override_request::UpdateContextOverrideRequestBuilder;
+
 pub use crate::types::_context_put::ContextPutBuilder;
 
 pub use crate::types::_weight_recompute_response::WeightRecomputeResponseBuilder;

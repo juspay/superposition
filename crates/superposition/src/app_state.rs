@@ -1,14 +1,12 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     sync::{Arc, Mutex},
 };
 
 #[cfg(feature = "high-performance-mode")]
 use std::time::Duration;
 
-use cac_toml::ContextAwareConfig;
 use context_aware_config::helpers::get_meta_schema;
-use superposition_types::TenantConfig;
 
 #[cfg(feature = "high-performance-mode")]
 use fred::{
@@ -16,21 +14,20 @@ use fred::{
     interfaces::ClientLike,
     types::{ConnectionConfig, PerformanceConfig, ReconnectPolicy, RedisConfig},
 };
+use futures_util::future::join_all;
 use service_utils::{
+    aws::kms,
     db::utils::{get_superposition_token, init_pool_manager},
     helpers::{get_from_env_or_default, get_from_env_unsafe},
     service::types::{AppEnv, AppState, ExperimentationFlags},
 };
 use snowflake::SnowflakeIdGenerator;
 
-const TENANT_CONFIG_FILE: &str = "crates/superposition/Superposition.cac.toml";
-
 pub async fn get(
     app_env: AppEnv,
     kms_client: &Option<aws_sdk_kms::Client>,
     service_prefix: String,
     base: &String,
-    tenants: &HashSet<String>,
 ) -> AppState {
     let cac_host =
         get_from_env_unsafe::<String>("CAC_HOST").expect("CAC host is not set") + base;
@@ -38,22 +35,6 @@ pub async fn get(
 
     let snowflake_generator = Arc::new(Mutex::new(SnowflakeIdGenerator::new(1, 1)));
 
-    let cac = ContextAwareConfig::parse(TENANT_CONFIG_FILE)
-        .unwrap_or_else(|_| panic!("File {TENANT_CONFIG_FILE} not found"));
-
-    let tenant_configs = tenants
-        .clone()
-        .into_iter()
-        .filter_map(|tenant| {
-            serde_json::to_value(cac.get_resolved_config(&HashMap::from_iter(vec![(
-                String::from("tenant"),
-                toml::Value::String(tenant.clone()),
-            )])))
-            .and_then(serde_json::from_value::<TenantConfig>)
-            .map(|config| (tenant, config))
-            .ok()
-        })
-        .collect::<HashMap<_, _>>();
     cfg_if::cfg_if! {
         if #[cfg(feature = "high-performance-mode")] {
             let redis_url =
@@ -123,7 +104,26 @@ pub async fn get(
         #[cfg(feature = "high-performance-mode")]
         redis: redis_pool,
         http_client: reqwest::Client::new(),
-        kms_client: kms_client.clone(),
-        tenant_configs,
+        encrypted_keys: join_all(get_from_env_or_default::<String>("ENCRYPTED_KEYS", String::new())
+            .split(',')
+            .map(|key| {
+                async move {
+                    let decrypted_value: String = match app_env {
+                        AppEnv::DEV | AppEnv::TEST => {
+                            get_from_env_or_default(key, "1234".into())
+                        }
+                        _ => {
+                            let kms_client = kms_client.clone().expect(
+                                "The KMS client could not be initialized. Please check the AWS configuration for this service.",
+                            );
+                            kms::decrypt(kms_client, key).await
+                        }
+                    };
+                    (key.to_string(), decrypted_value)
+                }
+            })
+        ).await
+        .into_iter()
+        .collect(),
     }
 }

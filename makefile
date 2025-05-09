@@ -209,9 +209,6 @@ smithy-clients: smithy-build
 		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \
 	done
 
-
-clients: smithy-build ts-client
-
 leptosfmt:
 	leptosfmt $(LEPTOS_FMT_FLAGS) crates/frontend
 

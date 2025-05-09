@@ -1579,7 +1579,7 @@ export const se_UpdateWebhookCommand = async(
     'url': [],
     'version': [],
   }));
-  b.m("PUT")
+  b.m("PATCH")
   .h(headers)
   .b(body);
   return b.build();

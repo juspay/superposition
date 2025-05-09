@@ -527,10 +527,7 @@ DO $$ BEGIN
         'POST',
         'DELETE',
         'PATCH',
-        'HEAD',
-        'OPTIONS',
-        'TRACE',
-        'CONNECT'
+        'HEAD'
     );
 EXCEPTION
     WHEN duplicate_object THEN null;
@@ -545,7 +542,7 @@ DO $$ BEGIN
         method public.http_method NOT NULL DEFAULT 'POST',
         payload_version text NOT NULL,
         custom_headers json NOT NULL DEFAULT '{}'::json,
-        events varchar(100)[] NOT NULL CHECK (array_position(events, NULL) IS NULL),
+        events text[] NOT NULL,
         max_retries integer NOT NULL DEFAULT 0,
         last_triggered_at timestamp,
         change_reason TEXT NOT NULL,

@@ -260,7 +260,7 @@ where
                                     <div class="my-4 flex flex-col justify-between items-center">
                                         <Dropdown
                                             dropdown_btn_type=DropdownBtnType::Link
-                                            dropdown_direction=DropdownDirection::Left
+                                            dropdown_direction=DropdownDirection::Down
                                             dropdown_text=String::from("Add Override")
                                             dropdown_icon=String::from("ri-add-line")
                                             dropdown_options=unused_config_keys.get()

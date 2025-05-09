@@ -12,15 +12,12 @@
 /// ```text
 /// # let httpmethod = unimplemented!();
 /// match httpmethod {
-///     HttpMethod::Connect => { /* ... */ },
 ///     HttpMethod::Delete => { /* ... */ },
 ///     HttpMethod::Get => { /* ... */ },
 ///     HttpMethod::Head => { /* ... */ },
-///     HttpMethod::Options => { /* ... */ },
 ///     HttpMethod::Patch => { /* ... */ },
 ///     HttpMethod::Post => { /* ... */ },
 ///     HttpMethod::Put => { /* ... */ },
-///     HttpMethod::Trace => { /* ... */ },
 ///     other @ _ if other.as_str() == "NewFeature" => { /* handles a case for `NewFeature` */ },
 ///     _ => { /* ... */ },
 /// }
@@ -48,23 +45,17 @@
 #[derive(::std::clone::Clone, ::std::cmp::Eq, ::std::cmp::Ord, ::std::cmp::PartialEq, ::std::cmp::PartialOrd, ::std::fmt::Debug, ::std::hash::Hash)]
 pub enum HttpMethod {
     #[allow(missing_docs)] // documentation missing in model
-    Connect,
-    #[allow(missing_docs)] // documentation missing in model
     Delete,
     #[allow(missing_docs)] // documentation missing in model
     Get,
     #[allow(missing_docs)] // documentation missing in model
     Head,
     #[allow(missing_docs)] // documentation missing in model
-    Options,
-    #[allow(missing_docs)] // documentation missing in model
     Patch,
     #[allow(missing_docs)] // documentation missing in model
     Post,
     #[allow(missing_docs)] // documentation missing in model
     Put,
-    #[allow(missing_docs)] // documentation missing in model
-    Trace,
     /// `Unknown` contains new variants that have been added since this code was generated.
     #[deprecated(note = "Don't directly match on `Unknown`. See the docs on this enum for the correct way to handle unknown variants.")]
     Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue)
@@ -72,15 +63,12 @@ pub enum HttpMethod {
 impl ::std::convert::From<&str> for HttpMethod {
                     fn from(s: &str) -> Self {
                         match s {
-                            "CONNECT" => HttpMethod::Connect,
-"DELETE" => HttpMethod::Delete,
+                            "DELETE" => HttpMethod::Delete,
 "GET" => HttpMethod::Get,
 "HEAD" => HttpMethod::Head,
-"OPTIONS" => HttpMethod::Options,
 "PATCH" => HttpMethod::Patch,
 "POST" => HttpMethod::Post,
 "PUT" => HttpMethod::Put,
-"TRACE" => HttpMethod::Trace,
 other => HttpMethod::Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue(other.to_owned()))
                         }
                     }
@@ -96,21 +84,18 @@ impl HttpMethod {
                 /// Returns the `&str` value of the enum member.
                 pub fn as_str(&self) -> &str {
                     match self {
-    HttpMethod::Connect => "CONNECT",
     HttpMethod::Delete => "DELETE",
     HttpMethod::Get => "GET",
     HttpMethod::Head => "HEAD",
-    HttpMethod::Options => "OPTIONS",
     HttpMethod::Patch => "PATCH",
     HttpMethod::Post => "POST",
     HttpMethod::Put => "PUT",
-    HttpMethod::Trace => "TRACE",
     HttpMethod::Unknown(value) => value.as_str()
 }
                 }
                 /// Returns all the `&str` representations of the enum members.
                 pub const fn values() -> &'static [&'static str] {
-                    &["CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE"]
+                    &["DELETE", "GET", "HEAD", "PATCH", "POST", "PUT"]
                 }
             }
 impl ::std::convert::AsRef<str> for HttpMethod {
@@ -133,15 +118,12 @@ impl HttpMethod {
 impl ::std::fmt::Display for HttpMethod {
                         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                             match self {
-                                HttpMethod::Connect => write!(f, "CONNECT"),
-HttpMethod::Delete => write!(f, "DELETE"),
+                                HttpMethod::Delete => write!(f, "DELETE"),
 HttpMethod::Get => write!(f, "GET"),
 HttpMethod::Head => write!(f, "HEAD"),
-HttpMethod::Options => write!(f, "OPTIONS"),
 HttpMethod::Patch => write!(f, "PATCH"),
 HttpMethod::Post => write!(f, "POST"),
 HttpMethod::Put => write!(f, "PUT"),
-HttpMethod::Trace => write!(f, "TRACE"),
 HttpMethod::Unknown(value) => write!(f, "{}", value)
                             }
                         }
