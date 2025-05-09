@@ -2,6 +2,23 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.27.0 - 2025-05-09
+#### Bug Fixes
+- webhook implementation (#503) - (1ffd6eb) - Ankit Kumar Mahato
+- table key overflow issue (#502) - (049fd00) - Ayush Jain
+- Make last_modified non-mandatory in experiments/list and fix UI behaviour - (507d716) - ayush.jain@juspay.in
+#### Features
+- introduce compare UI (#495) - (dff7e2c) - Datron
+- DefaultConfig type unification and conclude/exp contract fix (#497) - (395e6eb) - Ayush Jain
+- webhooks ui - (e0257dc) - Ankit.Mahato
+- added conclude changeform , change_reason propogation to overrides , fixed context move (#499) - (dea0626) - sauraww
+- Update override using context id - (6c2543d) - Ayush Jain
+- added info modal and change form for description and change reason (#437) - (4352eb3) - sauraww
+- add strict mode support for workspaces (#470) - (63e17f8) - Datron
+- add support to link autocomplete functions to dimensions - (2d5540c) - Kartik
+
+- - -
+
 ## frontend-v0.26.1 - 2025-04-29
 #### Bug Fixes
 - Page reset issue in frontend (#491) - (b9a0659) - Ayush Jain

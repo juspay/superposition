@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.28.0 - 2025-05-09
+#### Bug Fixes
+- webhook implementation (#503) - (1ffd6eb) - Ankit Kumar Mahato
+#### Features
+- webhook cruds (#313) - (292689e) - Ankit Kumar Mahato
+
+- - -
+
 ## service_utils-v0.27.0 - 2025-04-17
 #### Features
 - smithy models - (2958cce) - PRATIK MISHRA

@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.51.0 - 2025-05-09
+#### Features
+- DefaultConfig type unification and conclude/exp contract fix (#497) - (395e6eb) - Ayush Jain
+- added conclude changeform , change_reason propogation to overrides , fixed context move (#499) - (dea0626) - sauraww
+- Update override using context id - (6c2543d) - Ayush Jain
+- add strict mode support for workspaces (#470) - (63e17f8) - Datron
+- add support to link autocomplete functions to dimensions - (2d5540c) - Kartik
+
+- - -
+
 ## context_aware_config-v0.50.0 - 2025-04-24
 #### Bug Fixes
 - Update experiment restrictions and default value of sort_by (#485) - (f7542f4) - Ayush Jain

@@ -2,6 +2,31 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.72.0 - 2025-05-09
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.30.0
+- frontend bumped to frontend-v0.27.0
+- superposition_macros bumped to superposition_macros-v0.3.1
+- superposition_types bumped to superposition_types-v0.18.0
+- service_utils bumped to service_utils-v0.28.0
+- context_aware_config bumped to context_aware_config-v0.51.0
+### Global changes
+#### Bug Fixes
+- Initial values during workspace creation (#501) - (92d37ef) - Ayush Jain
+- webhook implementation (#503) - (1ffd6eb) - Ankit Kumar Mahato
+#### Features
+- add support to link autocomplete functions to dimensions - (2d5540c) - Kartik
+- webhook cruds (#313) - (292689e) - Ankit Kumar Mahato
+- add strict mode support for workspaces (#470) - (63e17f8) - Datron
+- added smithy clients (#459) - (0488d8b) - PRATIK MISHRA
+- Update override using context id - (6c2543d) - Ayush Jain
+- introduce compare UI (#495) - (dff7e2c) - Datron
+#### Miscellaneous Chores
+- improve builds - (660adee) - Kartik
+- set a common cache key - (d14953e) - Kartik
+
+- - -
+
 ## v0.71.1 - 1970-01-01
 ### Package updates
 - superposition_derives bumped to superposition_derives-v0.2.1

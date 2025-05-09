@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.30.0 - 2025-05-09
+#### Bug Fixes
+- webhook implementation (#503) - (1ffd6eb) - Ankit Kumar Mahato
+- Make last_modified non-mandatory in experiments/list and fix UI behaviour - (507d716) - ayush.jain@juspay.in
+#### Features
+- DefaultConfig type unification and conclude/exp contract fix (#497) - (395e6eb) - Ayush Jain
+- added conclude changeform , change_reason propogation to overrides , fixed context move (#499) - (dea0626) - sauraww
+- Update override using context id - (6c2543d) - Ayush Jain
+- webhook cruds (#313) - (292689e) - Ankit Kumar Mahato
+
+- - -
+
 ## experimentation_platform-v0.29.0 - 2025-04-24
 #### Bug Fixes
 - Update experiment restrictions and default value of sort_by (#485) - (f7542f4) - Ayush Jain
