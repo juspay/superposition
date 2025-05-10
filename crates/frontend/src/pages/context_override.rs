@@ -389,6 +389,8 @@ pub fn context_override() -> impl IntoView {
         DimensionQuery::<QueryMap>::extract_non_empty(&query_string)
     });
 
+    let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
+
     use_param_updater(move || {
         box_params![
             context_filters_rws.get(),
@@ -752,6 +754,7 @@ pub fn context_override() -> impl IntoView {
                                             default_config=default_config
                                             handle_submit=handle_submit_experiment_form
                                             description=data.description
+                                            metrics=workspace_settings.get_value().metrics
                                         />
                                     }
                                         .into_view()

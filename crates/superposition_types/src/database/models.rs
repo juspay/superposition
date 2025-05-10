@@ -3,15 +3,16 @@ pub mod cac;
 pub mod experimentation;
 pub mod others;
 
+use std::str::FromStr;
+
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
 #[cfg(feature = "diesel_derives")]
 use diesel::{
-    sql_types::Text, AsChangeset, AsExpression, FromSqlRow, Insertable, QueryId,
-    Queryable, Selectable,
+    sql_types::{Json, Text},
+    AsChangeset, AsExpression, FromSqlRow, Insertable, QueryId, Queryable, Selectable,
 };
-use serde::{Deserialize, Serialize};
-use std::str::FromStr;
+use serde::{Deserialize, Deserializer, Serialize};
 #[cfg(all(
     feature = "diesel_derives",
     not(feature = "disable_db_data_validation")
@@ -20,7 +21,7 @@ use superposition_derives::TextFromSql;
 #[cfg(all(feature = "diesel_derives", feature = "disable_db_data_validation"))]
 use superposition_derives::TextFromSqlNoValidation;
 #[cfg(feature = "diesel_derives")]
-use superposition_derives::TextToSql;
+use superposition_derives::{JsonFromSql, JsonToSql, TextToSql};
 
 #[cfg(feature = "diesel_derives")]
 use super::superposition_schema::superposition::*;
@@ -239,6 +240,72 @@ pub struct Workspace {
     pub created_at: DateTime<Utc>,
     pub mandatory_dimensions: Option<Vec<String>>,
     pub strict_mode: bool,
+    pub metrics: Metrics,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum MetricSource {
+    Grafana {
+        base_url: String,
+        dashboard_uid: String,
+        dashboard_slug: String,
+        variant_id_alias: Option<String>,
+    },
+}
+
+impl Default for MetricSource {
+    fn default() -> Self {
+        Self::Grafana {
+            base_url: String::new(),
+            dashboard_uid: String::new(),
+            dashboard_slug: String::new(),
+            variant_id_alias: None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Default)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
+pub struct Metrics {
+    pub enabled: bool,
+    pub source: Option<MetricSource>,
+}
+
+// TODO: Add validation for the source - that the given URL is valid and the
+// dashboard UID and slug are present in the URL - possible once API_KEY is added
+
+impl Metrics {
+    pub fn source(&self) -> Option<MetricSource> {
+        self.enabled.then(|| self.source.clone()).flatten()
+    }
+}
+
+impl<'de> Deserialize<'de> for Metrics {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct MetricsHelper {
+            enabled: bool,
+            source: Option<MetricSource>,
+        }
+        let helper = MetricsHelper::deserialize(deserializer)?;
+        if helper.enabled && helper.source.is_none() {
+            return Err(serde::de::Error::custom(
+                "`source` must be provided when enabled is true",
+            ));
+        }
+        Ok(Metrics {
+            enabled: helper.enabled,
+            source: helper.source.clone(),
+        })
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Deref, DerefMut)]

@@ -44,6 +44,7 @@ export SMITHY_MAVEN_REPOS = https://repo.maven.apache.org/maven|https://sandbox.
 	schema-file
 	setup-clients
 	node-dependencies
+	grafana-local
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -234,6 +235,9 @@ amend: commit
 
 amend-no-edit: COMMIT_FLAGS += --no-edit
 amend-no-edit: amend
+
+grafana-local:
+	cd grafana && $(COMPOSE) up
 
 default: dev-build frontend
 

@@ -8,7 +8,7 @@ use superposition_types::{
         experimentation::{
             Experiment, ExperimentStatusType, TrafficPercentage, Variant, Variants,
         },
-        ChangeReason, Description,
+        ChangeReason, Description, Metrics,
     },
     result as superposition, Cac, Condition, Exp, Overrides,
 };
@@ -70,6 +70,8 @@ fn experiment_gen(
         last_modified_by: "test".to_string(),
         name: "experiment-test".to_string(),
         traffic_percentage: TrafficPercentage::default(),
+        started_at: None,
+        started_by: None,
 
         override_keys: override_keys.to_vec(),
         status,
@@ -78,6 +80,7 @@ fn experiment_gen(
         chosen_variant: None,
         description: Description::try_from(String::from("test")).unwrap(),
         change_reason: ChangeReason::try_from(String::from("test")).unwrap(),
+        metrics: Metrics::default(),
     }
 }
 

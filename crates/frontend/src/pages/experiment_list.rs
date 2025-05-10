@@ -16,7 +16,7 @@ use superposition_types::{
     },
     custom_query::{CommaSeparatedQParams, CustomQuery, PaginationParams, Query},
     database::{
-        models::{cac::DefaultConfig, experimentation::ExperimentStatusType},
+        models::{cac::DefaultConfig, experimentation::ExperimentStatusType, Workspace},
         types::DimensionWithMandatory,
     },
     PaginatedResponse,
@@ -326,6 +326,8 @@ pub fn experiment_list() -> impl IntoView {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
 
+    let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
+
     use_param_updater(move || {
         box_params!(pagination_params_rws.get(), filters_rws.get())
     });
@@ -512,6 +514,7 @@ pub fn experiment_list() -> impl IntoView {
                                     dimensions=dim.clone()
                                     default_config=def_conf.clone()
                                     handle_submit=handle_submit_experiment_form
+                                    metrics=workspace_settings.get_value().metrics
                                 />
                             </EditorProvider>
                         </Drawer>

@@ -18,7 +18,7 @@ use crate::{Condition, Exp, Overridden, Overrides};
 
 #[cfg(feature = "diesel_derives")]
 use super::super::schema::*;
-use super::{ChangeReason, Description};
+use super::{ChangeReason, Description, Metrics};
 
 #[derive(
     Debug,
@@ -202,6 +202,8 @@ pub struct Experiment {
     pub override_keys: Vec<String>,
     pub status: ExperimentStatusType,
     pub traffic_percentage: TrafficPercentage,
+    pub started_at: Option<DateTime<Utc>>,
+    pub started_by: Option<String>,
 
     pub context: Condition,
     pub variants: Variants,
@@ -209,6 +211,7 @@ pub struct Experiment {
     pub chosen_variant: Option<String>,
     pub description: Description,
     pub change_reason: ChangeReason,
+    pub metrics: Metrics,
 }
 
 pub type Experiments = Vec<Experiment>;

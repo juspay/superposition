@@ -168,12 +168,18 @@ pub fn experiment_page() -> impl IntoView {
                                         edit=true
                                         id=experiment.id
                                         name=experiment_ef.name
-                                        context=Conditions::from_context_json(&experiment_ef.context).unwrap_or_default()
-                                        variants=FromIterator::from_iter(experiment_ef.variants.into_inner())
+                                        context=Conditions::from_context_json(
+                                                &experiment_ef.context,
+                                            )
+                                            .unwrap_or_default()
+                                        variants=FromIterator::from_iter(
+                                            experiment_ef.variants.into_inner(),
+                                        )
                                         default_config=default_config
                                         dimensions=dimensions
                                         handle_submit=move |_| { combined_resource.refetch() }
                                         description=(*experiment_ef.description).clone()
+                                        metrics=experiment_ef.metrics
                                     />
                                 </EditorProvider>
 

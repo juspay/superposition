@@ -639,12 +639,15 @@ diesel::table! {
         override_keys -> Array<Text>,
         status -> ExperimentStatusType,
         traffic_percentage -> Int4,
+        started_at -> Nullable<Timestamptz>,
+        started_by -> Nullable<Text>,
         context -> Json,
         variants -> Json,
         last_modified_by -> Text,
         chosen_variant -> Nullable<Text>,
         description -> Text,
         change_reason -> Text,
+        metrics -> Json,
     }
 }
 

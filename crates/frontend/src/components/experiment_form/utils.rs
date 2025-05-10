@@ -3,7 +3,7 @@ use superposition_types::{
         ExperimentCreateRequest, ExperimentResponse, OverrideKeysUpdateRequest,
         VariantUpdateRequest,
     },
-    database::models::{experimentation::Variant, ChangeReason, Description},
+    database::models::{experimentation::Variant, ChangeReason, Description, Metrics},
     Condition, Exp,
 };
 
@@ -11,16 +11,18 @@ use crate::logic::Conditions;
 use crate::types::VariantFormT;
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
 
-pub fn validate_experiment(experiment: &ExperimentCreateRequest) -> Result<bool, String> {
+pub fn validate_experiment(experiment: &ExperimentCreateRequest) -> Result<(), String> {
     if experiment.name.is_empty() {
         return Err(String::from("experiment name should not be empty"));
     }
-    Ok(true)
+    Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn create_experiment(
     conditions: Conditions,
     variants: Vec<VariantFormT>,
+    metrics: Option<Metrics>,
     name: String,
     tenant: String,
     description: String,
@@ -31,11 +33,12 @@ pub async fn create_experiment(
         name,
         variants: Result::<Vec<Variant>, String>::from_iter(variants)?,
         context: Exp::<Condition>::try_from(conditions.as_context_json())?,
+        metrics,
         description: Description::try_from(description)?,
         change_reason: ChangeReason::try_from(change_reason)?,
     };
 
-    let _ = validate_experiment(&payload)?;
+    validate_experiment(&payload)?;
 
     let host = get_host();
     let url = format!("{host}/experiments");
@@ -53,6 +56,7 @@ pub async fn create_experiment(
 pub async fn update_experiment(
     experiment_id: String,
     variants: Vec<VariantFormT>,
+    metrics: Option<Metrics>,
     tenant: String,
     org_id: String,
     description: String,
@@ -60,6 +64,7 @@ pub async fn update_experiment(
 ) -> Result<ExperimentResponse, String> {
     let payload = OverrideKeysUpdateRequest {
         variants: Result::<Vec<VariantUpdateRequest>, String>::from_iter(variants)?,
+        metrics,
         description: Some(Description::try_from(description)?),
         change_reason: ChangeReason::try_from(change_reason)?,
     };

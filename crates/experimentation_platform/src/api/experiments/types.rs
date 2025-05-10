@@ -1,9 +1,21 @@
+use chrono::{DateTime, Utc};
+use diesel::prelude::AsChangeset;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
     api::context::UpdateRequest,
-    database::models::{cac::Context, ChangeReason, Description},
+    database::{
+        models::{cac::Context, ChangeReason, Description},
+        schema::experiments,
+    },
 };
+
+#[derive(Serialize, AsChangeset)]
+#[diesel(table_name = experiments)]
+pub struct StartedByChangeSet {
+    pub started_by: Option<String>,
+    pub started_at: Option<DateTime<Utc>>,
+}
 
 /********** Context Bulk API Type *************/
 

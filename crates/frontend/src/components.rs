@@ -19,6 +19,7 @@ pub mod experiment_ramp_form;
 pub mod function_form;
 pub mod info_modal;
 pub mod input;
+pub mod metrics_form;
 pub mod modal;
 pub mod monaco_editor;
 pub mod nav_item;
