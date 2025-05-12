@@ -404,7 +404,11 @@ where
     ];
 
     webhook.custom_headers.iter().for_each(|(key, value)| {
-        let value = value.to_string();
+        let value = value
+            .as_str()
+            .map(String::from)
+            .unwrap_or_else(|| value.to_string());
+
         let header_value = if let Some(decrypted) = state.encrypted_keys.get(&value) {
             decrypted.to_string()
         } else {

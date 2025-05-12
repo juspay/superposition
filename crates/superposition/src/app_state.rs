@@ -106,6 +106,7 @@ pub async fn get(
         http_client: reqwest::Client::new(),
         encrypted_keys: join_all(get_from_env_or_default::<String>("ENCRYPTED_KEYS", String::new())
             .split(',')
+            .filter(|s| !s.is_empty())
             .map(|key| {
                 async move {
                     let decrypted_value: String = match app_env {
