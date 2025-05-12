@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.31.0 - 2025-05-12
+#### Features
+- Metrics initial setup - (530586d) - ayush.jain@juspay.in
+
+- - -
+
 ## experimentation_platform-v0.30.0 - 2025-05-09
 #### Bug Fixes
 - webhook implementation (#503) - (1ffd6eb) - Ankit Kumar Mahato

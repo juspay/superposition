@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.73.0 - 2025-05-12
+### Package updates
+- frontend bumped to frontend-v0.28.0
+- experimentation_platform bumped to experimentation_platform-v0.31.0
+- superposition_types bumped to superposition_types-v0.19.0
+- service_utils bumped to service_utils-v0.28.1
+### Global changes
+#### Bug Fixes
+- Postman test (#505) - (e48ff97) - Ayush Jain
+- custom headers parsing for webhook (#506) - (04133a2) - Ankit Kumar Mahato
+#### Features
+- Metrics initial setup - (530586d) - ayush.jain@juspay.in
+
+- - -
+
 ## v0.72.0 - 2025-05-09
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.30.0

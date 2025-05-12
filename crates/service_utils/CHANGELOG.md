@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.28.1 - 2025-05-12
+#### Bug Fixes
+- custom headers parsing for webhook (#506) - (04133a2) - Ankit Kumar Mahato
+
+- - -
+
 ## service_utils-v0.28.0 - 2025-05-09
 #### Bug Fixes
 - webhook implementation (#503) - (1ffd6eb) - Ankit Kumar Mahato
