@@ -19,18 +19,23 @@ pub fn expandable_text(
     let get_child = move |val: &str| formatter(val, &row);
     let (is_expanded_rs, is_expanded_ws) = create_signal(false);
     view! {
-        <td class=format!("{} align-top", class_name)>
+        <td class=format!("{class_name} align-top")>
             {move || {
                 let value = stored_value.get_value();
                 let is_expanded = is_expanded_rs.get();
                 let (should_expand, displayed_text) = match is_expandable {
                     Expandable::Enabled(len) if value.len() > len => {
-                        (true, if is_expanded { &value } else { &value[..len] })
+                        let displayed_text = if is_expanded {
+                            value
+                        } else {
+                            value.chars().take(len).collect::<String>()
+                        };
+                        (true, displayed_text)
                     }
-                    _ => (false, value.as_str()),
+                    _ => (false, value),
                 };
                 view! {
-                    {get_child(displayed_text).into_view()}
+                    {get_child(&displayed_text).into_view()}
                     {should_expand
                         .then(|| {
                             view! {
