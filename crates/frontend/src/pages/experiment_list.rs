@@ -73,6 +73,8 @@ fn experiment_table_filter_widget(
         .map(Conditions)
         .unwrap_or_default();
 
+    let (context_rs, context_ws) = create_signal(context);
+
     let dim = combined_resource.dimensions;
 
     let status_filter_management =
@@ -91,6 +93,15 @@ fn experiment_table_filter_widget(
                 f.status = Some(CommaSeparatedQParams(new_status_vector))
             })
         };
+
+    let fn_environment = create_memo(move |_| {
+        let context = context_rs.get();
+        json!({
+            "context": context,
+            "overrides": [],
+        })
+    });
+
     view! {
         <DrawerBtn drawer_id="experiment_filter_drawer".into() style=DrawerButtonStyle::Outline>
             Filters
@@ -106,7 +117,8 @@ fn experiment_table_filter_widget(
                 <div class="my-4">
                     <ContextForm
                         dimensions=dim
-                        context
+                        context_rs
+                        context_ws
                         dropdown_direction=DropdownDirection::Down
                         handle_change=move |context: Conditions| {
                             filters_buffer_rws
@@ -123,6 +135,7 @@ fn experiment_table_filter_widget(
                         }
                         heading_sub_text=String::from("Search By Context")
                         resolve_mode=true
+                        fn_environment
                     />
 
                 </div>

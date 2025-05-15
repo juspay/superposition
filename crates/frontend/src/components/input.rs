@@ -1,17 +1,20 @@
 use std::time::Duration;
 
 use chrono::{DateTime, Utc};
-use leptos::*;
+use leptos::{leptos_dom::helpers::debounce, *};
 use serde_json::{json, Map, Value};
 use web_sys::MouseEvent;
 
 use crate::{
     components::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        menu::SelectionMenu,
         monaco_editor::{Languages, MonacoEditor},
     },
     providers::editor_provider::use_editor,
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
+    types::AutoCompleteCallback,
+    utils::get_element_by_id,
 };
 
 use crate::logic::Operator;
@@ -242,7 +245,9 @@ fn basic_input(
     value: Value,
     schema_type: SchemaType,
     on_change: Callback<Value, ()>,
+    #[prop(default = None)] autocomplete_function: Option<AutoCompleteCallback>,
     #[prop(default = None)] operator: Option<Operator>,
+    #[prop(default = Duration::from_millis(600))] debounce_delay: Duration,
 ) -> impl IntoView {
     let schema_type = store_value(schema_type);
     let (error_rs, error_ws) = create_signal::<Option<String>>(None);
@@ -254,30 +259,52 @@ fn basic_input(
     if r#type == InputType::Integer && value.as_i64().is_none() {
         error_ws.set(Some(format!("{} is not a valid integer", value)));
     }
-
+    let (suggestions_rs, suggestions_ws) = create_signal(Vec::new());
+    let suggestions_loading_rws = create_rw_signal(false);
+    let show_suggestions_rws = create_rw_signal(false);
     view! {
         <div class="flex flex-col gap-1">
-            <input
-                id=id
-                name=name
-                placeholder=placeholder
-                class=format!("input input-bordered  {}", class)
-                required=required
-                disabled=disabled
-                type=r#type.to_html_input_type()
-
-                value=value.html_display()
-                on:change=move |e| {
-                    let v = event_target_value(&e);
-                    match parse_input(v, schema_type.get_value(), &operator) {
-                        Ok(v) => {
-                            on_change.call(v);
-                            error_ws.set(None);
+            <label class=format!("input input-bordered flex justify-between {}", class)>
+                <input
+                    id=id.clone()
+                    name=name
+                    placeholder=placeholder
+                    required=required
+                    disabled=disabled
+                    class="flex-grow"
+                    type=r#type.to_html_input_type()
+                    value=value.html_display()
+                    on:keyup=debounce(
+                        debounce_delay,
+                        move |e| {
+                            let v = event_target_value(&e);
+                            if let Some(autocomplete_function) = autocomplete_function {
+                                suggestions_loading_rws.set(true);
+                                show_suggestions_rws.set(true);
+                                autocomplete_function.call((v, suggestions_ws));
+                            }
+                        },
+                    )
+                    on:change=move |e| {
+                        let v = event_target_value(&e);
+                        match parse_input(v, schema_type.get_value(), &operator) {
+                            Ok(v) => {
+                                on_change.call(v);
+                                error_ws.set(None);
+                            }
+                            Err(e) => error_ws.set(Some(e)),
                         }
-                        Err(e) => error_ws.set(Some(e)),
                     }
-                }
-            />
+                />
+                <Show when=move || suggestions_loading_rws.get()>
+                    <span class="loading loading-spinner loading-md text-purple-500"></span>
+                </Show>
+                <Show when=move || show_suggestions_rws.get() && !suggestions_loading_rws.get()>
+                    <button on:click=move |_| show_suggestions_rws.set(false)>
+                        <i class="text-red-600 ri-close-circle-fill"></i>
+                    </button>
+                </Show>
+            </label>
 
             {move || {
                 match error_rs.get() {
@@ -292,6 +319,39 @@ fn basic_input(
                     }
                     None => ().into_view(),
                 }
+            }}
+
+            {move || {
+                suggestions_rs
+                    .with(|suggestions| {
+                        if autocomplete_function.is_some() && !suggestions.is_empty()
+                            && show_suggestions_rws.get()
+                        {
+                            let target_id = id.clone();
+                            let dropdown_id = format!("{}-autocomplete", id);
+                            suggestions_loading_rws.set(false);
+                            view! {
+                                <SelectionMenu
+                                    id=dropdown_id
+                                    options=suggestions.to_owned()
+                                    on_select=Callback::new(move |selected: String| {
+                                        let input = get_element_by_id::<
+                                            web_sys::HtmlInputElement,
+                                        >(&target_id);
+                                        if let Some(input) = input {
+                                            input.set_value(&selected);
+                                        }
+                                        on_change.call(Value::String(selected));
+                                        suggestions_ws.set(Vec::new());
+                                        show_suggestions_rws.set(false);
+                                    })
+                                />
+                            }
+                                .into_view()
+                        } else {
+                            ().into_view()
+                        }
+                    })
             }}
 
         </div>
@@ -555,6 +615,7 @@ pub fn input(
     #[prop(into, default = String::new())] class: String,
     #[prop(into, default = String::new())] name: String,
     #[prop(default = None)] operator: Option<Operator>,
+    #[prop(default = None)] autocomplete_function: Option<AutoCompleteCallback>,
 ) -> impl IntoView {
     match r#type {
         InputType::Toggle => match value.as_bool() {
@@ -571,17 +632,18 @@ pub fn input(
         _ => {
             view! {
                 <BasicInput
-                    id=id
-                    name=name
-                    class=class
-                    disabled=disabled
+                    id
+                    name
+                    class
+                    disabled
                     required=true
-                    r#type=r#type
-                    value=value
-                    schema_type=schema_type
-                    on_change=on_change
-                    operator=operator
-                    placeholder=placeholder
+                    r#type
+                    value
+                    schema_type
+                    on_change
+                    operator
+                    placeholder
+                    autocomplete_function
                 />
             }
         }
