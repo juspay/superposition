@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.52.0 - 2025-05-16
+#### Features
+- delete overrides by experiment (#500) - (51a20e3) - PRATIK MISHRA
+
+- - -
+
 ## context_aware_config-v0.51.0 - 2025-05-09
 #### Features
 - DefaultConfig type unification and conclude/exp contract fix (#497) - (395e6eb) - Ayush Jain

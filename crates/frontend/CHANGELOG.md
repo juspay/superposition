@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.29.0 - 2025-05-16
+#### Bug Fixes
+- String splice in table component (#507) - (2950f3d) - Ayush Jain
+#### Features
+- delete overrides by experiment (#500) - (51a20e3) - PRATIK MISHRA
+- add pause experiment (#509) - (36defc9) - Ankit Kumar Mahato
+
+- - -
+
 ## frontend-v0.28.0 - 2025-05-12
 #### Features
 - Metrics initial setup - (530586d) - ayush.jain@juspay.in

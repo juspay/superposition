@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.74.0 - 2025-05-16
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.32.0
+- context_aware_config bumped to context_aware_config-v0.52.0
+- frontend bumped to frontend-v0.29.0
+- superposition_types bumped to superposition_types-v0.20.0
+### Global changes
+#### Features
+- add pause experiment (#509) - (36defc9) - Ankit Kumar Mahato
+- delete overrides by experiment (#500) - (51a20e3) - PRATIK MISHRA
+
+- - -
+
 ## v0.73.0 - 2025-05-12
 ### Package updates
 - frontend bumped to frontend-v0.28.0

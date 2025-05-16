@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.32.0 - 2025-05-16
+#### Features
+- delete overrides by experiment (#500) - (51a20e3) - PRATIK MISHRA
+- add pause experiment (#509) - (36defc9) - Ankit Kumar Mahato
+
+- - -
+
 ## experimentation_platform-v0.31.0 - 2025-05-12
 #### Features
 - Metrics initial setup - (530586d) - ayush.jain@juspay.in
