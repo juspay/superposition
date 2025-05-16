@@ -1,5 +1,5 @@
 use superposition_types::{
-    api::experiments::{DiscardExperimentRequest, ExperimentResponse},
+    api::experiments::{ExperimentResponse, ExperimentStateChangeRequest},
     database::models::ChangeReason,
 };
 
@@ -11,7 +11,7 @@ pub async fn discard_experiment(
     org_id: &String,
     change_reason: String,
 ) -> Result<ExperimentResponse, String> {
-    let payload = DiscardExperimentRequest {
+    let payload = ExperimentStateChangeRequest {
         change_reason: ChangeReason::try_from(change_reason)?,
     };
 

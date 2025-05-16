@@ -49,7 +49,7 @@ export interface ListExperimentCommandOutput extends ExperimentListResponse, __M
  *   page: Number("long"),
  *   count: Number("long"),
  *   all: true || false,
- *   status: "CREATED" || "CONCLUDED" || "INPROGRESS" || "DISCARDED",
+ *   status: "CREATED" || "CONCLUDED" || "INPROGRESS" || "DISCARDED" || "PAUSED",
  *   from_date: new Date("TIMESTAMP"),
  *   to_date: new Date("TIMESTAMP"),
  *   experiment_name: "STRING_VALUE",
@@ -74,7 +74,7 @@ export interface ListExperimentCommandOutput extends ExperimentListResponse, __M
  * //       override_keys: [ // ListOverrideKeys // required
  * //         "STRING_VALUE",
  * //       ],
- * //       status: "CREATED" || "CONCLUDED" || "INPROGRESS" || "DISCARDED", // required
+ * //       status: "CREATED" || "CONCLUDED" || "INPROGRESS" || "DISCARDED" || "PAUSED", // required
  * //       traffic_percentage: Number("int"), // required
  * //       context: { // Condition // required
  * //         "<keys>": "DOCUMENT_VALUE",

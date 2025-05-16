@@ -156,6 +156,10 @@ import {
   MoveContextCommandOutput,
 } from "../commands/MoveContextCommand";
 import {
+  PauseExperimentCommandInput,
+  PauseExperimentCommandOutput,
+} from "../commands/PauseExperimentCommand";
+import {
   PublishCommandInput,
   PublishCommandOutput,
 } from "../commands/PublishCommand";
@@ -163,6 +167,10 @@ import {
   RampExperimentCommandInput,
   RampExperimentCommandOutput,
 } from "../commands/RampExperimentCommand";
+import {
+  ResumeExperimentCommandInput,
+  ResumeExperimentCommandOutput,
+} from "../commands/ResumeExperimentCommand";
 import {
   TestCommandInput,
   TestCommandOutput,
@@ -1278,6 +1286,31 @@ export const se_MoveContextCommand = async(
 }
 
 /**
+ * serializeAws_restJson1PauseExperimentCommand
+ */
+export const se_PauseExperimentCommand = async(
+  input: PauseExperimentCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xt]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/experiments/{id}/pause");
+  b.p('id', () => input.id!, '{id}', false)
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'change_reason': [],
+  }));
+  b.m("PATCH")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1PublishCommand
  */
 export const se_PublishCommand = async(
@@ -1317,6 +1350,31 @@ export const se_RampExperimentCommand = async(
   body = JSON.stringify(take(input, {
     'change_reason': [],
     'traffic_percentage': [],
+  }));
+  b.m("PATCH")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1ResumeExperimentCommand
+ */
+export const se_ResumeExperimentCommand = async(
+  input: ResumeExperimentCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xt]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/experiments/{id}/resume");
+  b.p('id', () => input.id!, '{id}', false)
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'change_reason': [],
   }));
   b.m("PATCH")
   .h(headers)
@@ -2665,6 +2723,40 @@ export const de_MoveContextCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1PauseExperimentCommand
+ */
+export const de_PauseExperimentCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<PauseExperimentCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'chosen_variant': __expectString,
+    'context': _ => de_Condition(_, context),
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'id': __expectString,
+    'last_modified': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'name': __expectString,
+    'override_keys': _json,
+    'status': __expectString,
+    'traffic_percentage': __expectInt32,
+    'variants': _ => de_ListVariant(_, context),
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1PublishCommand
  */
 export const de_PublishCommand = async(
@@ -2705,6 +2797,40 @@ export const de_RampExperimentCommand = async(
   output: __HttpResponse,
   context: __SerdeContext
 ): Promise<RampExperimentCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'chosen_variant': __expectString,
+    'context': _ => de_Condition(_, context),
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'id': __expectString,
+    'last_modified': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'name': __expectString,
+    'override_keys': _json,
+    'status': __expectString,
+    'traffic_percentage': __expectInt32,
+    'variants': _ => de_ListVariant(_, context),
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1ResumeExperimentCommand
+ */
+export const de_ResumeExperimentCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<ResumeExperimentCommandOutput> => {
   if (output.statusCode !== 200 && output.statusCode >= 300) {
     return de_CommandError(output, context);
   }

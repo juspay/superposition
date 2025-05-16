@@ -36,7 +36,9 @@ public final class Experiments implements ApiResource {
         DiscardExperiment.$SCHEMA,
         RampExperiment.$SCHEMA,
         UpdateOverridesExperiment.$SCHEMA,
-        ApplicableVariants.$SCHEMA);
+        ApplicableVariants.$SCHEMA,
+        PauseExperiment.$SCHEMA,
+        ResumeExperiment.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);
 
     /**

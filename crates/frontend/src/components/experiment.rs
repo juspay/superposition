@@ -19,6 +19,7 @@ fn badge_class(status_type: ExperimentStatusType) -> &'static str {
         ExperimentStatusType::INPROGRESS => "badge-warning",
         ExperimentStatusType::CONCLUDED => "badge-success",
         ExperimentStatusType::DISCARDED => "badge-neutral",
+        ExperimentStatusType::PAUSED => "badge-error",
     }
 }
 
@@ -62,20 +63,24 @@ pub fn gen_variant_table(variants: &[Variant]) -> (Vec<Map<String, Value>>, Vec<
 }
 
 #[component]
-pub fn experiment<HS, HR, HC, HE, HD>(
+pub fn experiment<HS, HR, HC, HE, HD, HP, HRS>(
     experiment: ExperimentResponse,
     handle_start: HS,
     handle_ramp: HR,
     handle_conclude: HC,
     handle_edit: HE,
     handle_discard: HD,
+    handle_pause: HP,
+    handle_resume: HRS,
 ) -> impl IntoView
 where
-    HS: Fn(String) + 'static + Clone,
+    HS: Fn() + 'static + Clone,
     HR: Fn() + 'static + Clone,
     HC: Fn() + 'static + Clone,
     HE: Fn() + 'static + Clone,
     HD: Fn() + 'static + Clone,
+    HP: Fn() + 'static + Clone,
+    HRS: Fn() + 'static + Clone,
 {
     let experiment = store_value(experiment);
     let metrics_load_err = RwSignal::new(false);
@@ -102,6 +107,8 @@ where
                     let handle_ramp = handle_ramp.clone();
                     let handle_edit = handle_edit.clone();
                     let handle_discard = handle_discard.clone();
+                    let handle_pause = handle_pause.clone();
+                    let handle_resume = handle_resume.clone();
                     match experiment.with_value(|v| v.status) {
                         ExperimentStatusType::CREATED => {
                             view! {
@@ -124,7 +131,7 @@ where
                                 <button
                                     class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
                                     on:click=move |_| {
-                                        handle_start(experiment.with_value(|v| v.id.clone()))
+                                        handle_start()
                                     }
                                 >
 
@@ -152,6 +159,16 @@ where
                                     <i class="ri-flight-takeoff-line"></i>
                                     Ramp
                                 </button>
+                                <button
+                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                    on:click=move |_| {
+                                        handle_pause()
+                                    }
+                                >
+
+                                    <i class="ri-pause-line"></i>
+                                    Pause
+                                </button>
                             }
                                 .into_view()
                         }
@@ -171,6 +188,29 @@ where
                                 .into_view()
                         }
                         ExperimentStatusType::DISCARDED => view! { <></> }.into_view(),
+                        ExperimentStatusType::PAUSED => {
+                            view! {
+                                <button
+                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                    on:click=move |_| {
+                                        handle_resume()
+                                    }
+                                >
+
+                                    <i class="ri-play-line"></i>
+                                    Resume
+                                </button>
+                                <button
+                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                    on:click=move |_| { handle_discard() }
+                                >
+
+                                    <i class="ri-delete-bin-line"></i>
+                                    Discard
+                                </button>
+                            }
+                                .into_view()
+                        }
                     }
                 }}
 

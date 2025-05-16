@@ -8,7 +8,7 @@ use utils::discard_experiment;
 use web_sys::MouseEvent;
 
 use crate::{
-    components::{alert::AlertType, button::Button},
+    components::{alert::AlertType, button::Button, change_form::ChangeForm},
     providers::alert_provider::enqueue_alert,
     types::{OrganisationId, Tenant},
 };
@@ -65,33 +65,25 @@ where
         <p class="py-4">
             Safely discard the experiment without affecting any pre-existing overrides
         </p>
-        <form>
-            <div class="form-control pb-4">
-                <label class="label">
-                    <span class="label-text">Reason for Change</span>
-                </label>
-                <textarea
-                    placeholder="Enter a reason for this change"
-                    class="textarea textarea-bordered w-full max-w-md"
-                    value=change_reason.get_untracked()
-                    on:change=move |ev| {
-                        let value = event_target_value(&ev);
-                        set_change_reason.set(value);
-                    }
-                />
-            </div>
-
+        <form class="flex flex-col gap-4">
+            <ChangeForm
+                title="Reason for Change".to_string()
+                placeholder="Enter a reason for this change".to_string()
+                value=change_reason.get_untracked()
+                on_change=move |new_change_reason| {
+                    set_change_reason.set(new_change_reason)
+                }
+            />
             {move || {
-                let loading = req_inprogess_rs.get();
                 view! {
                     <Button
                         text="Discard".to_string()
                         on_click=handle_discard_experiment.clone()
-                        loading
+                        loading=req_inprogess_rs.get()
+                        class="w-fit self-end".to_string()
                     />
                 }
             }}
-
         </form>
     }
 }

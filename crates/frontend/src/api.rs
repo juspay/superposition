@@ -3,7 +3,9 @@ use superposition_types::{
     api::{
         context::ContextListFilters,
         default_config::DefaultConfigFilters,
-        experiments::{ExperimentListFilters, ExperimentResponse},
+        experiments::{
+            ExperimentListFilters, ExperimentResponse, ExperimentStateChangeRequest,
+        },
         functions::ListFunctionFilters,
         webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
     },
@@ -527,4 +529,52 @@ pub async fn resolve_config(
         }
         Err(e) => Err(e.to_string()),
     }
+}
+
+pub async fn pause_experiment(
+    exp_id: &String,
+    change_reason: String,
+    tenant: &String,
+    org_id: &String,
+) -> Result<ExperimentResponse, String> {
+    let payload = ExperimentStateChangeRequest {
+        change_reason: ChangeReason::try_from(change_reason)?,
+    };
+
+    let host = get_host();
+    let url = format!("{host}/experiments/{exp_id}/pause");
+
+    let response = request(
+        url,
+        reqwest::Method::PATCH,
+        Some(payload),
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
+
+pub async fn resume_experiment(
+    exp_id: &String,
+    change_reason: String,
+    tenant: &String,
+    org_id: &String,
+) -> Result<ExperimentResponse, String> {
+    let payload = ExperimentStateChangeRequest {
+        change_reason: ChangeReason::try_from(change_reason)?,
+    };
+
+    let host = get_host();
+    let url = format!("{host}/experiments/{exp_id}/resume");
+
+    let response = request(
+        url,
+        reqwest::Method::PATCH,
+        Some(payload),
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
 }

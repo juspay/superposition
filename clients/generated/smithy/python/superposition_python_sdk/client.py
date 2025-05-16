@@ -73,8 +73,10 @@ from .deserialize import (
     _deserialize_list_webhook,
     _deserialize_list_workspace,
     _deserialize_move_context,
+    _deserialize_pause_experiment,
     _deserialize_publish,
     _deserialize_ramp_experiment,
+    _deserialize_resume_experiment,
     _deserialize_test,
     _deserialize_update_default_config,
     _deserialize_update_dimension,
@@ -205,12 +207,18 @@ from .models import (
     MOVE_CONTEXT,
     MoveContextInput,
     MoveContextOutput,
+    PAUSE_EXPERIMENT,
     PUBLISH,
+    PauseExperimentInput,
+    PauseExperimentOutput,
     PublishInput,
     PublishOutput,
     RAMP_EXPERIMENT,
+    RESUME_EXPERIMENT,
     RampExperimentInput,
     RampExperimentOutput,
+    ResumeExperimentInput,
+    ResumeExperimentOutput,
     ServiceError,
     TEST,
     TestInput,
@@ -286,8 +294,10 @@ from .serialize import (
     _serialize_list_webhook,
     _serialize_list_workspace,
     _serialize_move_context,
+    _serialize_pause_experiment,
     _serialize_publish,
     _serialize_ramp_experiment,
+    _serialize_resume_experiment,
     _serialize_test,
     _serialize_update_default_config,
     _serialize_update_dimension,
@@ -1341,6 +1351,32 @@ class Superposition:
             operation=MOVE_CONTEXT,
         )
 
+    async def pause_experiment(self, input: PauseExperimentInput, plugins: list[Plugin] | None = None) -> PauseExperimentOutput:
+        """
+        Invokes the PauseExperiment operation.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_pause_experiment,
+            deserialize=_deserialize_pause_experiment,
+            config=self._config,
+            operation=PAUSE_EXPERIMENT,
+        )
+
     async def publish(self, input: PublishInput, plugins: list[Plugin] | None = None) -> PublishOutput:
         """
         Invokes the Publish operation.
@@ -1391,6 +1427,32 @@ class Superposition:
             deserialize=_deserialize_ramp_experiment,
             config=self._config,
             operation=RAMP_EXPERIMENT,
+        )
+
+    async def resume_experiment(self, input: ResumeExperimentInput, plugins: list[Plugin] | None = None) -> ResumeExperimentOutput:
+        """
+        Invokes the ResumeExperiment operation.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_resume_experiment,
+            deserialize=_deserialize_resume_experiment,
+            config=self._config,
+            operation=RESUME_EXPERIMENT,
         )
 
     async def test(self, input: TestInput, plugins: list[Plugin] | None = None) -> TestOutput:

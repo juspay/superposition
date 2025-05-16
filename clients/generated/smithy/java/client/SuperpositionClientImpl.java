@@ -118,12 +118,18 @@ import io.juspay.superposition.model.ListWorkspaceOutput;
 import io.juspay.superposition.model.MoveContext;
 import io.juspay.superposition.model.MoveContextInput;
 import io.juspay.superposition.model.MoveContextOutput;
+import io.juspay.superposition.model.PauseExperiment;
+import io.juspay.superposition.model.PauseExperimentInput;
+import io.juspay.superposition.model.PauseExperimentOutput;
 import io.juspay.superposition.model.Publish;
 import io.juspay.superposition.model.PublishInput;
 import io.juspay.superposition.model.PublishOutput;
 import io.juspay.superposition.model.RampExperiment;
 import io.juspay.superposition.model.RampExperimentInput;
 import io.juspay.superposition.model.RampExperimentOutput;
+import io.juspay.superposition.model.ResumeExperiment;
+import io.juspay.superposition.model.ResumeExperimentInput;
+import io.juspay.superposition.model.ResumeExperimentOutput;
 import io.juspay.superposition.model.Test;
 import io.juspay.superposition.model.TestInput;
 import io.juspay.superposition.model.TestOutput;
@@ -538,6 +544,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     }
 
     @Override
+    public PauseExperimentOutput pauseExperiment(PauseExperimentInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, PauseExperiment.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
     public PublishOutput publish(PublishInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, Publish.instance(), overrideConfig).join();
@@ -550,6 +565,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public RampExperimentOutput rampExperiment(RampExperimentInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, RampExperiment.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public ResumeExperimentOutput resumeExperiment(ResumeExperimentInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, ResumeExperiment.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }

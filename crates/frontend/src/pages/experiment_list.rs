@@ -191,7 +191,7 @@ fn experiment_table_filter_widget(
                                     "hidden peer/{current_status}-checkbox",
                                 );
                                 let label_class = format!(
-                                    "px-6 h-[30px] py-2 badge peer-checked/{current_status}-checkbox:{} cursor-pointer transition duration-300 ease-in-out",
+                                    "px-6 h-[30px] py-2 badge peer-checked/{current_status}-checkbox:{} peer-checked/{current_status}-checkbox:text-white cursor-pointer transition duration-300 ease-in-out",
                                     status.badge_color(),
                                 );
                                 view! {

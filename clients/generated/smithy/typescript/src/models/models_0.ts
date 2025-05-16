@@ -432,6 +432,7 @@ export const ExperimentStatusType = {
   CREATED: "CREATED",
   DISCARDED: "DISCARDED",
   INPROGRESS: "INPROGRESS",
+  PAUSED: "PAUSED",
 } as const
 /**
  * @public
@@ -1318,12 +1319,32 @@ export interface ListExperimentInput {
 /**
  * @public
  */
+export interface PauseExperimentInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  id: string | undefined;
+  change_reason: string | undefined;
+}
+
+/**
+ * @public
+ */
 export interface RampExperimentInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   id: string | undefined;
   change_reason: string | undefined;
   traffic_percentage: number | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ResumeExperimentInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  id: string | undefined;
+  change_reason: string | undefined;
 }
 
 /**

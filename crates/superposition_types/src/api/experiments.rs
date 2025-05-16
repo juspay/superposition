@@ -131,7 +131,7 @@ pub struct ConcludeExperimentRequest {
 /********** Experiment Discard Req Types **********/
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct DiscardExperimentRequest {
+pub struct ExperimentStateChangeRequest {
     #[serde(default = "ChangeReason::default")]
     pub change_reason: ChangeReason,
 }

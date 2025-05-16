@@ -16,6 +16,12 @@ module.exports = {
         "peer-checked/concluded-checkbox:badge-success",
         "peer-checked/created-checkbox:badge-info",
         "peer-checked/inprogress-checkbox:badge-warning",
+        "peer-checked/paused-checkbox:badge-error",
+        "peer-checked/discarded-checkbox:text-white",
+        "peer-checked/concluded-checkbox:text-white",
+        "peer-checked/created-checkbox:text-white",
+        "peer-checked/inprogress-checkbox:text-white",
+        "peer-checked/paused-checkbox:text-white",
     ],
     theme: {
         extend: {

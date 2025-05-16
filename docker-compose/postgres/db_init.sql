@@ -1337,4 +1337,6 @@ ADD COLUMN IF NOT EXISTS metrics JSON DEFAULT '{"enabled": false}'::json NOT NUL
 ADD COLUMN IF NOT EXISTS started_at TIMESTAMP,
 ADD COLUMN IF NOT EXISTS started_by TEXT;
 
+ALTER TYPE public.experiment_status_type ADD VALUE 'PAUSED';
+
 COMMIT;

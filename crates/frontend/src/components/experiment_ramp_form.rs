@@ -37,7 +37,8 @@ where
             let org = org_rws.get().0;
             let traffic_value = traffic.get();
             let result =
-                ramp_experiment(&experiment_clone.id, traffic_value, &tenant, &org).await;
+                ramp_experiment(&experiment_clone.id, traffic_value, None, &tenant, &org)
+                    .await;
             match result {
                 Ok(_) => {
                     enqueue_alert(

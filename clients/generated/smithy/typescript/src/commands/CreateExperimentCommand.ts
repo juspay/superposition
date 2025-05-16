@@ -73,7 +73,7 @@ export interface CreateExperimentCommandOutput extends ExperimentResponse, __Met
  * //   override_keys: [ // ListOverrideKeys // required
  * //     "STRING_VALUE",
  * //   ],
- * //   status: "CREATED" || "CONCLUDED" || "INPROGRESS" || "DISCARDED", // required
+ * //   status: "CREATED" || "CONCLUDED" || "INPROGRESS" || "DISCARDED" || "PAUSED", // required
  * //   traffic_percentage: Number("int"), // required
  * //   context: { // Condition // required
  * //     "<keys>": "DOCUMENT_VALUE",

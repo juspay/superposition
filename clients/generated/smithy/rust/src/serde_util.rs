@@ -282,6 +282,23 @@ if builder.change_reason.is_none() { builder.change_reason = Some(Default::defau
                 builder
             }
 
+pub(crate) fn pause_experiment_output_output_correct_errors(mut builder: crate::operation::pause_experiment::builders::PauseExperimentOutputBuilder) -> crate::operation::pause_experiment::builders::PauseExperimentOutputBuilder {
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.name.is_none() { builder.name = Some(Default::default()) }
+if builder.override_keys.is_none() { builder.override_keys = Some(Default::default()) }
+if builder.status.is_none() { builder.status = "no value was set".parse::<crate::types::ExperimentStatusType>().ok() }
+if builder.traffic_percentage.is_none() { builder.traffic_percentage = Some(Default::default()) }
+if builder.context.is_none() { builder.context = Some(Default::default()) }
+if builder.variants.is_none() { builder.variants = Some(Default::default()) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn publish_output_output_correct_errors(mut builder: crate::operation::publish::builders::PublishOutputBuilder) -> crate::operation::publish::builders::PublishOutputBuilder {
                 if builder.function_name.is_none() { builder.function_name = Some(Default::default()) }
 if builder.draft_code.is_none() { builder.draft_code = Some(Default::default()) }
@@ -297,6 +314,23 @@ if builder.function_type.is_none() { builder.function_type = "no value was set".
             }
 
 pub(crate) fn ramp_experiment_output_output_correct_errors(mut builder: crate::operation::ramp_experiment::builders::RampExperimentOutputBuilder) -> crate::operation::ramp_experiment::builders::RampExperimentOutputBuilder {
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.name.is_none() { builder.name = Some(Default::default()) }
+if builder.override_keys.is_none() { builder.override_keys = Some(Default::default()) }
+if builder.status.is_none() { builder.status = "no value was set".parse::<crate::types::ExperimentStatusType>().ok() }
+if builder.traffic_percentage.is_none() { builder.traffic_percentage = Some(Default::default()) }
+if builder.context.is_none() { builder.context = Some(Default::default()) }
+if builder.variants.is_none() { builder.variants = Some(Default::default()) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn resume_experiment_output_output_correct_errors(mut builder: crate::operation::resume_experiment::builders::ResumeExperimentOutputBuilder) -> crate::operation::resume_experiment::builders::ResumeExperimentOutputBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }

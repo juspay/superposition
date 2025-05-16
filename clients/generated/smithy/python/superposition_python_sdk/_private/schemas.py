@@ -957,6 +957,15 @@ EXPERIMENT_STATUS_TYPE = Schema.collection(
             ],
         },
 
+        "PAUSED": {
+            "target": UNIT,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="PAUSED"),
+
+            ],
+        },
+
     }
 )
 
@@ -6803,6 +6812,205 @@ LIST_EXPERIMENT = Schema(
 
 )
 
+PAUSE_EXPERIMENT_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#PauseExperimentInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-tenant"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#default"), value="juspay"),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+PAUSE_EXPERIMENT_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#PauseExperimentOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ExperimentResponse"),
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_by": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified": {
+            "target": DATE_TIME,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "override_keys": {
+            "target": LIST_OVERRIDE_KEYS,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "status": {
+            "target": EXPERIMENT_STATUS_TYPE,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "traffic_percentage": {
+            "target": INTEGER,
+            "index": 7,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "context": {
+            "target": CONDITION,
+            "index": 8,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "variants": {
+            "target": LIST_VARIANT,
+            "index": 9,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_by": {
+            "target": STRING,
+            "index": 10,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "chosen_variant": {
+            "target": STRING,
+            "index": 11,
+        },
+
+        "description": {
+            "target": STRING,
+            "index": 12,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 13,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+PAUSE_EXPERIMENT = Schema(
+    id=ShapeID("io.superposition#PauseExperiment"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "PATCH",
+                "uri": "/experiments/{id}/pause",
+            })),
+
+    ],
+
+)
+
 RAMP_EXPERIMENT_INPUT = Schema.collection(
     id=ShapeID("io.superposition#RampExperimentInput"),
 
@@ -7005,6 +7213,205 @@ RAMP_EXPERIMENT = Schema(
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/experiments/{id}/ramp",
+            })),
+
+    ],
+
+)
+
+RESUME_EXPERIMENT_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#ResumeExperimentInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-tenant"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#default"), value="juspay"),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+RESUME_EXPERIMENT_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#ResumeExperimentOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ExperimentResponse"),
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_by": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified": {
+            "target": DATE_TIME,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "override_keys": {
+            "target": LIST_OVERRIDE_KEYS,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "status": {
+            "target": EXPERIMENT_STATUS_TYPE,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "traffic_percentage": {
+            "target": INTEGER,
+            "index": 7,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "context": {
+            "target": CONDITION,
+            "index": 8,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "variants": {
+            "target": LIST_VARIANT,
+            "index": 9,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_by": {
+            "target": STRING,
+            "index": 10,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "chosen_variant": {
+            "target": STRING,
+            "index": 11,
+        },
+
+        "description": {
+            "target": STRING,
+            "index": 12,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 13,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+RESUME_EXPERIMENT = Schema(
+    id=ShapeID("io.superposition#ResumeExperiment"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "PATCH",
+                "uri": "/experiments/{id}/resume",
             })),
 
     ],

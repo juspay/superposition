@@ -105,9 +105,13 @@ pub(crate) mod shape_list_workspace;
 
 pub(crate) mod shape_move_context;
 
+pub(crate) mod shape_pause_experiment;
+
 pub(crate) mod shape_publish;
 
 pub(crate) mod shape_ramp_experiment;
+
+pub(crate) mod shape_resume_experiment;
 
 pub(crate) mod shape_test;
 
@@ -189,9 +193,13 @@ pub(crate) mod shape_move_context_input;
 
 pub(crate) mod shape_organisation_not_found;
 
+pub(crate) mod shape_pause_experiment_input;
+
 pub(crate) mod shape_ramp_experiment_input;
 
 pub(crate) mod shape_resource_not_found;
+
+pub(crate) mod shape_resume_experiment_input;
 
 pub(crate) mod shape_type_templates_not_found;
 
