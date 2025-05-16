@@ -58,9 +58,11 @@ from .models import (
     ListWorkspaceOutput,
     MoveContextOutput,
     OrganisationNotFound,
+    PauseExperimentOutput,
     PublishOutput,
     RampExperimentOutput,
     ResourceNotFound,
+    ResumeExperimentOutput,
     TestOutput,
     TypeTemplatesNotFound,
     UnknownApiError,
@@ -1103,6 +1105,31 @@ async def _deserialize_error_move_context(http_response: HTTPResponse, config: C
         case _:
             return UnknownApiError(f"{code}: {message}")
 
+async def _deserialize_pause_experiment(http_response: HTTPResponse, config: Config) -> PauseExperimentOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_pause_experiment(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = PauseExperimentOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return PauseExperimentOutput(**kwargs)
+
+async def _deserialize_error_pause_experiment(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
 async def _deserialize_publish(http_response: HTTPResponse, config: Config) -> PublishOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_publish(http_response, config)
@@ -1147,6 +1174,31 @@ async def _deserialize_ramp_experiment(http_response: HTTPResponse, config: Conf
     return RampExperimentOutput(**kwargs)
 
 async def _deserialize_error_ramp_experiment(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_resume_experiment(http_response: HTTPResponse, config: Config) -> ResumeExperimentOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_resume_experiment(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = ResumeExperimentOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return ResumeExperimentOutput(**kwargs)
+
+async def _deserialize_error_resume_experiment(http_response: HTTPResponse, config: Config) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():

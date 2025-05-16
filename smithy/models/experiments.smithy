@@ -32,6 +32,8 @@ resource Experiments {
         RampExperiment
         UpdateOverridesExperiment
         ApplicableVariants
+        PauseExperiment
+        ResumeExperiment
     ]
 }
 
@@ -44,6 +46,7 @@ enum ExperimentStatusType {
     CONCLUDED
     INPROGRESS
     DISCARDED
+    PAUSED
 }
 
 enum VariantType {
@@ -338,4 +341,34 @@ operation ListExperiment {
 operation ApplicableVariants {
     input: ApplicableVariantsInput
     output: ApplicableVariantsOutput
+}
+
+@idempotent
+@http(method: "PATCH", uri: "/experiments/{id}/pause")
+operation PauseExperiment {
+    input := for Experiments with [WorkspaceMixin] {
+        @httpLabel
+        @required
+        $id
+
+        @required
+        $change_reason
+    }
+
+    output: ExperimentResponse
+}
+
+@idempotent
+@http(method: "PATCH", uri: "/experiments/{id}/resume")
+operation ResumeExperiment {
+    input := for Experiments with [WorkspaceMixin] {
+        @httpLabel
+        @required
+        $id
+
+        @required
+        $change_reason
+    }
+
+    output: ExperimentResponse
 }

@@ -54,8 +54,10 @@ from .models import (
     ListWebhookInput,
     ListWorkspaceInput,
     MoveContextInput,
+    PauseExperimentInput,
     PublishInput,
     RampExperimentInput,
+    ResumeExperimentInput,
     ServiceError,
     TestInput,
     UpdateDefaultConfigInput,
@@ -1486,6 +1488,47 @@ async def _serialize_move_context(input: MoveContextInput, config: Config) -> HT
         body=body,
     )
 
+async def _serialize_pause_experiment(input: PauseExperimentInput, config: Config) -> HTTPRequest:
+    if not input.id:
+        raise ServiceError("id must not be empty.")
+
+    path = "/experiments/{id}/pause".format(
+        id=urlquote(input.id, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="PATCH",
+        fields=headers,
+        body=body,
+    )
+
 async def _serialize_publish(input: PublishInput, config: Config) -> HTTPRequest:
     if not input.function_name:
         raise ServiceError("function_name must not be empty.")
@@ -1523,6 +1566,47 @@ async def _serialize_ramp_experiment(input: RampExperimentInput, config: Config)
         raise ServiceError("id must not be empty.")
 
     path = "/experiments/{id}/ramp".format(
+        id=urlquote(input.id, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="PATCH",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_resume_experiment(input: ResumeExperimentInput, config: Config) -> HTTPRequest:
+    if not input.id:
+        raise ServiceError("id must not be empty.")
+
+    path = "/experiments/{id}/resume".format(
         id=urlquote(input.id, safe=''),
     )
     query: str = f''

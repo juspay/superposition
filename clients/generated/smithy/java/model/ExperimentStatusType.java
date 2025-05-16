@@ -20,10 +20,11 @@ public final class ExperimentStatusType implements SerializableShape {
     public static final ExperimentStatusType CONCLUDED = new ExperimentStatusType(Type.CONCLUDED, "CONCLUDED");
     public static final ExperimentStatusType INPROGRESS = new ExperimentStatusType(Type.INPROGRESS, "INPROGRESS");
     public static final ExperimentStatusType DISCARDED = new ExperimentStatusType(Type.DISCARDED, "DISCARDED");
-    private static final List<ExperimentStatusType> $TYPES = List.of(CREATED, CONCLUDED, INPROGRESS, DISCARDED);
+    public static final ExperimentStatusType PAUSED = new ExperimentStatusType(Type.PAUSED, "PAUSED");
+    private static final List<ExperimentStatusType> $TYPES = List.of(CREATED, CONCLUDED, INPROGRESS, DISCARDED, PAUSED);
 
     public static final Schema $SCHEMA = Schema.createEnum($ID,
-        Set.of(CREATED.value, CONCLUDED.value, INPROGRESS.value, DISCARDED.value)
+        Set.of(CREATED.value, CONCLUDED.value, INPROGRESS.value, DISCARDED.value, PAUSED.value)
     );
 
     private final String value;
@@ -42,7 +43,8 @@ public final class ExperimentStatusType implements SerializableShape {
         CREATED,
         CONCLUDED,
         INPROGRESS,
-        DISCARDED
+        DISCARDED,
+        PAUSED
     }
 
     /**
@@ -97,6 +99,7 @@ public final class ExperimentStatusType implements SerializableShape {
             case "CONCLUDED" -> CONCLUDED;
             case "INPROGRESS" -> INPROGRESS;
             case "DISCARDED" -> DISCARDED;
+            case "PAUSED" -> PAUSED;
             default -> throw new IllegalArgumentException("Unknown value: " + value);
         };
     }
@@ -150,6 +153,7 @@ public final class ExperimentStatusType implements SerializableShape {
                 case "CONCLUDED" -> CONCLUDED;
                 case "INPROGRESS" -> INPROGRESS;
                 case "DISCARDED" -> DISCARDED;
+                case "PAUSED" -> PAUSED;
                 default -> new ExperimentStatusType(Type.$UNKNOWN, value);
             };
         }

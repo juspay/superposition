@@ -86,6 +86,7 @@ pub fn experiment_table_columns(
                     "INPROGRESS" => "badge-warning",
                     "CONCLUDED" => "badge-success",
                     "DISCARDED" => "badge-neutral",
+                    "PAUSED" => "badge-error",
                     &_ => "info",
                 };
                 let class = format!("badge {}", badge_color);

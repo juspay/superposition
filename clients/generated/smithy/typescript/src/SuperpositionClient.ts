@@ -162,6 +162,10 @@ import {
   MoveContextCommandOutput,
 } from "./commands/MoveContextCommand";
 import {
+  PauseExperimentCommandInput,
+  PauseExperimentCommandOutput,
+} from "./commands/PauseExperimentCommand";
+import {
   PublishCommandInput,
   PublishCommandOutput,
 } from "./commands/PublishCommand";
@@ -169,6 +173,10 @@ import {
   RampExperimentCommandInput,
   RampExperimentCommandOutput,
 } from "./commands/RampExperimentCommand";
+import {
+  ResumeExperimentCommandInput,
+  ResumeExperimentCommandOutput,
+} from "./commands/ResumeExperimentCommand";
 import {
   TestCommandInput,
   TestCommandOutput,
@@ -318,8 +326,10 @@ export type ServiceInputTypes =
   | ListWebhookCommandInput
   | ListWorkspaceCommandInput
   | MoveContextCommandInput
+  | PauseExperimentCommandInput
   | PublishCommandInput
   | RampExperimentCommandInput
+  | ResumeExperimentCommandInput
   | TestCommandInput
   | UpdateDefaultConfigCommandInput
   | UpdateDimensionCommandInput
@@ -375,8 +385,10 @@ export type ServiceOutputTypes =
   | ListWebhookCommandOutput
   | ListWorkspaceCommandOutput
   | MoveContextCommandOutput
+  | PauseExperimentCommandOutput
   | PublishCommandOutput
   | RampExperimentCommandOutput
+  | ResumeExperimentCommandOutput
   | TestCommandOutput
   | UpdateDefaultConfigCommandOutput
   | UpdateDimensionCommandOutput

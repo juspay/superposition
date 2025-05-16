@@ -209,9 +209,13 @@ mod list_workspace;
 
 mod move_context;
 
+mod pause_experiment;
+
 mod publish;
 
 mod ramp_experiment;
+
+mod resume_experiment;
 
 mod test;
 

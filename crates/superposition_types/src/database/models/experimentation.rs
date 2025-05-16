@@ -47,6 +47,7 @@ use super::{ChangeReason, Description, Metrics};
 pub enum ExperimentStatusType {
     CREATED,
     INPROGRESS,
+    PAUSED,
     CONCLUDED,
     DISCARDED,
 }
@@ -55,21 +56,35 @@ impl ExperimentStatusType {
     pub fn active(&self) -> bool {
         match self {
             Self::CREATED | Self::INPROGRESS => true,
-            Self::CONCLUDED | Self::DISCARDED => false,
+            Self::CONCLUDED | Self::DISCARDED | Self::PAUSED => false,
         }
     }
 
     pub fn concludable(&self) -> bool {
         match self {
             Self::INPROGRESS => true,
-            Self::CREATED | Self::CONCLUDED | Self::DISCARDED => false,
+            Self::CREATED | Self::CONCLUDED | Self::DISCARDED | Self::PAUSED => false,
         }
     }
 
     pub fn discardable(&self) -> bool {
         match self {
-            Self::CREATED => true,
+            Self::CREATED | Self::PAUSED => true,
             Self::INPROGRESS | Self::CONCLUDED | Self::DISCARDED => false,
+        }
+    }
+
+    pub fn pausable(&self) -> bool {
+        match self {
+            Self::INPROGRESS => true,
+            Self::CREATED | Self::CONCLUDED | Self::DISCARDED | Self::PAUSED => false,
+        }
+    }
+
+    pub fn resumable(&self) -> bool {
+        match self {
+            Self::PAUSED => true,
+            Self::CREATED | Self::INPROGRESS | Self::CONCLUDED | Self::DISCARDED => false,
         }
     }
 
@@ -79,11 +94,14 @@ impl ExperimentStatusType {
             Self::INPROGRESS => "badge-warning",
             Self::CONCLUDED => "badge-success",
             Self::DISCARDED => "badge-neutral",
+            Self::PAUSED => "badge-error",
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Copy, Clone, Default, Deref, DerefMut)]
+#[derive(
+    Serialize, Deserialize, Debug, Copy, Clone, Default, Deref, DerefMut, PartialEq,
+)]
 #[serde(try_from = "i32")]
 #[cfg_attr(feature = "diesel_derives", derive(AsExpression, FromSqlRow))]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Integer))]

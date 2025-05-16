@@ -16,6 +16,7 @@
 ///     ExperimentStatusType::Created => { /* ... */ },
 ///     ExperimentStatusType::Discarded => { /* ... */ },
 ///     ExperimentStatusType::Inprogress => { /* ... */ },
+///     ExperimentStatusType::Paused => { /* ... */ },
 ///     other @ _ if other.as_str() == "NewFeature" => { /* handles a case for `NewFeature` */ },
 ///     _ => { /* ... */ },
 /// }
@@ -50,6 +51,8 @@ pub enum ExperimentStatusType {
     Discarded,
     #[allow(missing_docs)] // documentation missing in model
     Inprogress,
+    #[allow(missing_docs)] // documentation missing in model
+    Paused,
     /// `Unknown` contains new variants that have been added since this code was generated.
     #[deprecated(note = "Don't directly match on `Unknown`. See the docs on this enum for the correct way to handle unknown variants.")]
     Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue)
@@ -61,6 +64,7 @@ impl ::std::convert::From<&str> for ExperimentStatusType {
 "CREATED" => ExperimentStatusType::Created,
 "DISCARDED" => ExperimentStatusType::Discarded,
 "INPROGRESS" => ExperimentStatusType::Inprogress,
+"PAUSED" => ExperimentStatusType::Paused,
 other => ExperimentStatusType::Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue(other.to_owned()))
                         }
                     }
@@ -80,12 +84,13 @@ impl ExperimentStatusType {
     ExperimentStatusType::Created => "CREATED",
     ExperimentStatusType::Discarded => "DISCARDED",
     ExperimentStatusType::Inprogress => "INPROGRESS",
+    ExperimentStatusType::Paused => "PAUSED",
     ExperimentStatusType::Unknown(value) => value.as_str()
 }
                 }
                 /// Returns all the `&str` representations of the enum members.
                 pub const fn values() -> &'static [&'static str] {
-                    &["CONCLUDED", "CREATED", "DISCARDED", "INPROGRESS"]
+                    &["CONCLUDED", "CREATED", "DISCARDED", "INPROGRESS", "PAUSED"]
                 }
             }
 impl ::std::convert::AsRef<str> for ExperimentStatusType {
@@ -112,6 +117,7 @@ impl ::std::fmt::Display for ExperimentStatusType {
 ExperimentStatusType::Created => write!(f, "CREATED"),
 ExperimentStatusType::Discarded => write!(f, "DISCARDED"),
 ExperimentStatusType::Inprogress => write!(f, "INPROGRESS"),
+ExperimentStatusType::Paused => write!(f, "PAUSED"),
 ExperimentStatusType::Unknown(value) => write!(f, "{}", value)
                             }
                         }

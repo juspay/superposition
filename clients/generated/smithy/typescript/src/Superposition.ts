@@ -199,6 +199,11 @@ import {
   MoveContextCommandOutput,
 } from "./commands/MoveContextCommand";
 import {
+  PauseExperimentCommand,
+  PauseExperimentCommandInput,
+  PauseExperimentCommandOutput,
+} from "./commands/PauseExperimentCommand";
+import {
   PublishCommand,
   PublishCommandInput,
   PublishCommandOutput,
@@ -208,6 +213,11 @@ import {
   RampExperimentCommandInput,
   RampExperimentCommandOutput,
 } from "./commands/RampExperimentCommand";
+import {
+  ResumeExperimentCommand,
+  ResumeExperimentCommandInput,
+  ResumeExperimentCommandOutput,
+} from "./commands/ResumeExperimentCommand";
 import {
   TestCommand,
   TestCommandInput,
@@ -306,8 +316,10 @@ const commands = {
   ListWebhookCommand,
   ListWorkspaceCommand,
   MoveContextCommand,
+  PauseExperimentCommand,
   PublishCommand,
   RampExperimentCommand,
+  ResumeExperimentCommand,
   TestCommand,
   UpdateDefaultConfigCommand,
   UpdateDimensionCommand,
@@ -987,6 +999,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link PauseExperimentCommand}
+   */
+  pauseExperiment(
+    args: PauseExperimentCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<PauseExperimentCommandOutput>;
+  pauseExperiment(
+    args: PauseExperimentCommandInput,
+    cb: (err: any, data?: PauseExperimentCommandOutput) => void
+  ): void;
+  pauseExperiment(
+    args: PauseExperimentCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: PauseExperimentCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link PublishCommand}
    */
   publish(
@@ -1018,6 +1047,23 @@ export interface Superposition {
     args: RampExperimentCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: RampExperimentCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link ResumeExperimentCommand}
+   */
+  resumeExperiment(
+    args: ResumeExperimentCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<ResumeExperimentCommandOutput>;
+  resumeExperiment(
+    args: ResumeExperimentCommandInput,
+    cb: (err: any, data?: ResumeExperimentCommandOutput) => void
+  ): void;
+  resumeExperiment(
+    args: ResumeExperimentCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: ResumeExperimentCommandOutput) => void
   ): void;
 
   /**

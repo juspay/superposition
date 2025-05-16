@@ -117,11 +117,17 @@ pub mod list_workspace;
 /// Types for the `MoveContext` operation.
 pub mod move_context;
 
+/// Types for the `PauseExperiment` operation.
+pub mod pause_experiment;
+
 /// Types for the `Publish` operation.
 pub mod publish;
 
 /// Types for the `RampExperiment` operation.
 pub mod ramp_experiment;
+
+/// Types for the `ResumeExperiment` operation.
+pub mod resume_experiment;
 
 /// Types for the `Test` operation.
 pub mod test;

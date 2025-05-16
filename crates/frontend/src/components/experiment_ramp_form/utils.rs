@@ -8,11 +8,14 @@ use crate::utils::{construct_request_headers, get_host, parse_json_response, req
 pub async fn ramp_experiment(
     exp_id: &String,
     percent: u8,
+    change_reason: Option<String>,
     tenant: &String,
     org_id: &String,
 ) -> Result<ExperimentResponse, String> {
     let payload = RampRequest {
-        change_reason: ChangeReason::try_from(format!("ramping to {percent}"))?,
+        change_reason: ChangeReason::try_from(
+            change_reason.unwrap_or(format!("ramping to {percent}")),
+        )?,
         traffic_percentage: TrafficPercentage::try_from(percent as i32)?,
     };
 

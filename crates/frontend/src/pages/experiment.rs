@@ -13,10 +13,10 @@ use crate::{
     api::{fetch_default_config, fetch_dimensions, fetch_experiment},
     components::{
         experiment::Experiment,
+        experiment_action_form::ExperimentActionForm,
         experiment_conclude_form::ExperimentConcludeForm,
         experiment_discard_form::ExperimentDiscardForm,
         experiment_form::ExperimentForm,
-        experiment_ramp_form::utils::ramp_experiment,
         modal::Modal,
         skeleton::{Skeleton, SkeletonVariant},
     },
@@ -35,6 +35,14 @@ struct CombinedResource {
     default_config: Vec<DefaultConfig>,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub enum PopupType {
+    ExperimentStart,
+    ExperimentPause,
+    ExperimentResume,
+    None,
+}
+
 #[component]
 pub fn experiment_page() -> impl IntoView {
     let exp_params = use_params_map();
@@ -47,6 +55,7 @@ pub fn experiment_page() -> impl IntoView {
             exp_params.with(|params| params.get("id").cloned().unwrap_or("1".into()));
         (exp_id, t, org)
     };
+    let (show_popup, set_show_popup) = create_signal(PopupType::None);
 
     let combined_resource: Resource<(String, String, String), CombinedResource> =
         create_blocking_resource(source, |(exp_id, tenant, org_id)| async move {
@@ -80,19 +89,13 @@ pub fn experiment_page() -> impl IntoView {
             }
         });
 
-    let handle_start = move |experiment_id: String| {
-        spawn_local(async move {
-            let tenant = tenant_rws.get().0;
-            let org = org_rws.get().0;
-            let _ = ramp_experiment(&experiment_id, 0, &tenant, &org).await;
-            combined_resource.refetch();
-        })
-    };
-
+    let handle_start = move || set_show_popup.set(PopupType::ExperimentStart);
     let handle_ramp = move || show_modal("ramp_form_modal");
     let handle_conclude = move || show_modal("conclude_form_modal");
     let handle_edit = move || show_modal("experiment_edit_form_modal");
     let handle_discard = move || show_modal("experiment_discard_form_modal");
+    let handle_pause = move || set_show_popup.set(PopupType::ExperimentPause);
+    let handle_resume = move || set_show_popup.set(PopupType::ExperimentResume);
 
     view! {
         <Suspense fallback=move || {
@@ -116,14 +119,17 @@ pub fn experiment_page() -> impl IntoView {
                         let experiment_cf = experiment.clone();
                         let experiment_ef = experiment.clone();
                         let experiment_df = experiment.clone();
+                        let experiment_id = experiment.id.clone();
                         view! {
                             <Experiment
                                 experiment=experiment.clone()
-                                handle_start=handle_start
-                                handle_ramp=handle_ramp
-                                handle_conclude=handle_conclude
-                                handle_edit=handle_edit
-                                handle_discard=handle_discard
+                                handle_start
+                                handle_ramp
+                                handle_conclude
+                                handle_edit
+                                handle_discard
+                                handle_pause
+                                handle_resume
                             />
                             <Modal
                                 id="experiment_discard_form_modal".to_string()
@@ -147,6 +153,17 @@ pub fn experiment_page() -> impl IntoView {
                                 />
 
                             </Modal>
+                            <Show when=move || {show_popup.get() != PopupType::None}>
+                                <ExperimentActionForm
+                                    experiment_id=experiment_id.clone()
+                                    popup_type=show_popup.get()
+                                    handle_submit=move |_| {
+                                        set_show_popup.set(PopupType::None);
+                                        combined_resource.refetch()
+                                    }
+                                    handle_close=move |_| { set_show_popup.set(PopupType::None) }
+                                />
+                            </Show>
                             <Modal
                                 id="conclude_form_modal".to_string()
                                 handle_close=move || { close_modal("conclude_form_modal") }

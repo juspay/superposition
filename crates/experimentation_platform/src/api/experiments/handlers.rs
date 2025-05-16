@@ -32,8 +32,8 @@ use superposition_types::{
         default_config::DefaultConfigUpdateRequest,
         experiments::{
             ApplicableVariantsQuery, ApplicableVariantsRequest, AuditQueryFilters,
-            ConcludeExperimentRequest, DiscardExperimentRequest, ExperimentCreateRequest,
-            ExperimentListFilters, ExperimentResponse, ExperimentSortOn,
+            ConcludeExperimentRequest, ExperimentCreateRequest, ExperimentListFilters,
+            ExperimentResponse, ExperimentSortOn, ExperimentStateChangeRequest,
             OverrideKeysUpdateRequest, RampRequest,
         },
     },
@@ -80,6 +80,8 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(get_experiment_handler)
         .service(ramp)
         .service(update_overrides)
+        .service(pause_handler)
+        .service(resume_handler)
 }
 
 fn add_config_version_to_header(
@@ -595,7 +597,7 @@ async fn discard_handler(
     state: Data<AppState>,
     path: web::Path<i64>,
     custom_headers: CustomHeaders,
-    req: web::Json<DiscardExperimentRequest>,
+    req: web::Json<ExperimentStateChangeRequest>,
     db_conn: DbConnection,
     workspace_request: WorkspaceContext,
     user: User,
@@ -650,7 +652,7 @@ pub async fn discard(
     state: &Data<AppState>,
     experiment_id: i64,
     config_tags: Option<String>,
-    req: DiscardExperimentRequest,
+    req: ExperimentStateChangeRequest,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     workspace_request: &WorkspaceContext,
     user: &User,
@@ -760,6 +762,7 @@ async fn get_applicable_variants(
         .filter(experiments::status.ne_all(vec![
             ExperimentStatusType::CONCLUDED,
             ExperimentStatusType::DISCARDED,
+            ExperimentStatusType::PAUSED,
         ]))
         .schema_name(&schema_name)
         .load::<Experiment>(&mut conn)?;
@@ -1010,9 +1013,7 @@ async fn ramp(
     let (_, config_version_id) = fetch_cac_config(&state, &workspace_request).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
-    let webhook_event = if **new_traffic_percentage == 0
-        && matches!(experiment.status, ExperimentStatusType::CREATED)
-    {
+    let webhook_event = if matches!(experiment.status, ExperimentStatusType::CREATED) {
         WebhookEvent::ExperimentStarted
     } else {
         WebhookEvent::ExperimentInprogress
@@ -1351,4 +1352,180 @@ async fn get_audit_logs(
         total_pages,
         data: logs,
     }))
+}
+
+#[patch("/{experiment_id}/pause")]
+async fn pause_handler(
+    state: Data<AppState>,
+    path: web::Path<i64>,
+    req: web::Json<ExperimentStateChangeRequest>,
+    db_conn: DbConnection,
+    workspace_request: WorkspaceContext,
+    user: User,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let response = pause(
+        path.into_inner(),
+        req.into_inner(),
+        &mut conn,
+        &workspace_request,
+        &user,
+    )
+    .await?;
+
+    let experiment_response = ExperimentResponse::from(response);
+
+    let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
+        &state,
+        &user,
+        &WebhookEvent::ExperimentPaused,
+        &workspace_request,
+    )
+    .await
+    {
+        execute_webhook_call(
+            &webhook,
+            &experiment_response,
+            &None,
+            &workspace_request,
+            WebhookEvent::ExperimentPaused,
+            &state,
+        )
+        .await
+    } else {
+        true
+    };
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            StatusCode::from_u16(512).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
+    Ok(http_resp.json(experiment_response))
+}
+
+pub async fn pause(
+    experiment_id: i64,
+    req: ExperimentStateChangeRequest,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    workspace_request: &WorkspaceContext,
+    user: &User,
+) -> superposition::Result<Experiment> {
+    use superposition_types::database::schema::experiments::dsl;
+
+    let experiment: Experiment = dsl::experiments
+        .find(experiment_id)
+        .schema_name(&workspace_request.schema_name)
+        .get_result::<Experiment>(conn)?;
+
+    if !experiment.status.pausable() {
+        return Err(bad_argument!(
+            "experiment with id {} cannot be paused",
+            experiment_id
+        ));
+    }
+
+    let updated_experiment = diesel::update(dsl::experiments)
+        .filter(dsl::id.eq(experiment_id))
+        .set((
+            dsl::status.eq(ExperimentStatusType::PAUSED),
+            dsl::last_modified.eq(Utc::now()),
+            dsl::last_modified_by.eq(user.get_email()),
+            dsl::change_reason.eq(req.change_reason),
+        ))
+        .returning(Experiment::as_returning())
+        .schema_name(&workspace_request.schema_name)
+        .get_result::<Experiment>(conn)?;
+
+    Ok(updated_experiment)
+}
+
+#[patch("/{experiment_id}/resume")]
+async fn resume_handler(
+    state: Data<AppState>,
+    path: web::Path<i64>,
+    req: web::Json<ExperimentStateChangeRequest>,
+    db_conn: DbConnection,
+    workspace_request: WorkspaceContext,
+    user: User,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let response = resume(
+        path.into_inner(),
+        req.into_inner(),
+        &mut conn,
+        &workspace_request,
+        &user,
+    )
+    .await?;
+
+    let experiment_response = ExperimentResponse::from(response);
+
+    let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
+        &state,
+        &user,
+        &WebhookEvent::ExperimentInprogress,
+        &workspace_request,
+    )
+    .await
+    {
+        execute_webhook_call(
+            &webhook,
+            &experiment_response,
+            &None,
+            &workspace_request,
+            WebhookEvent::ExperimentInprogress,
+            &state,
+        )
+        .await
+    } else {
+        true
+    };
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            StatusCode::from_u16(512).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
+    Ok(http_resp.json(experiment_response))
+}
+
+pub async fn resume(
+    experiment_id: i64,
+    req: ExperimentStateChangeRequest,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    workspace_request: &WorkspaceContext,
+    user: &User,
+) -> superposition::Result<Experiment> {
+    use superposition_types::database::schema::experiments::dsl;
+
+    let experiment: Experiment = dsl::experiments
+        .find(experiment_id)
+        .schema_name(&workspace_request.schema_name)
+        .get_result::<Experiment>(conn)?;
+
+    if !experiment.status.resumable() {
+        return Err(bad_argument!(
+            "experiment with id {} cannot be resumed",
+            experiment_id
+        ));
+    }
+
+    let updated_experiment = diesel::update(dsl::experiments)
+        .filter(dsl::id.eq(experiment_id))
+        .set((
+            dsl::status.eq(ExperimentStatusType::INPROGRESS),
+            dsl::last_modified.eq(Utc::now()),
+            dsl::last_modified_by.eq(user.get_email()),
+            dsl::change_reason.eq(req.change_reason),
+        ))
+        .returning(Experiment::as_returning())
+        .schema_name(&workspace_request.schema_name)
+        .get_result::<Experiment>(conn)?;
+
+    Ok(updated_experiment)
 }

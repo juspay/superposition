@@ -82,11 +82,15 @@ import io.juspay.superposition.model.ListWorkspaceOutput;
 import io.juspay.superposition.model.MoveContextInput;
 import io.juspay.superposition.model.MoveContextOutput;
 import io.juspay.superposition.model.OrganisationNotFound;
+import io.juspay.superposition.model.PauseExperimentInput;
+import io.juspay.superposition.model.PauseExperimentOutput;
 import io.juspay.superposition.model.PublishInput;
 import io.juspay.superposition.model.PublishOutput;
 import io.juspay.superposition.model.RampExperimentInput;
 import io.juspay.superposition.model.RampExperimentOutput;
 import io.juspay.superposition.model.ResourceNotFound;
+import io.juspay.superposition.model.ResumeExperimentInput;
+import io.juspay.superposition.model.ResumeExperimentOutput;
 import io.juspay.superposition.model.TestInput;
 import io.juspay.superposition.model.TestOutput;
 import io.juspay.superposition.model.TypeTemplatesNotFound;
@@ -612,6 +616,18 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<MoveContextOutput> moveContext(MoveContextInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * @throws InternalServerError
+     */
+    default CompletableFuture<PauseExperimentOutput> pauseExperiment(PauseExperimentInput input) {
+        return pauseExperiment(input, null);
+    }
+
+    /**
+     * @throws InternalServerError
+     */
+    CompletableFuture<PauseExperimentOutput> pauseExperiment(PauseExperimentInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * @throws FunctionNotFound
      * @throws InternalServerError
      */
@@ -636,6 +652,18 @@ public interface SuperpositionAsyncClient {
      * @throws InternalServerError
      */
     CompletableFuture<RampExperimentOutput> rampExperiment(RampExperimentInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * @throws InternalServerError
+     */
+    default CompletableFuture<ResumeExperimentOutput> resumeExperiment(ResumeExperimentInput input) {
+        return resumeExperiment(input, null);
+    }
+
+    /**
+     * @throws InternalServerError
+     */
+    CompletableFuture<ResumeExperimentOutput> resumeExperiment(ResumeExperimentInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * @throws FunctionNotFound
