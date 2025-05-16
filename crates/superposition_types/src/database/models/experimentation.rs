@@ -279,3 +279,25 @@ pub struct EventLog {
     pub new_data: Option<Value>,
     pub query: String,
 }
+
+#[derive(Serialize, Deserialize, Clone)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(QueryableByName, Queryable, Selectable, Insertable)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(hash)))]
+pub struct ExperimentGroup {
+    pub hash: String,
+    pub name: String,
+    pub description: Description,
+    pub context: Condition,
+    pub traffic_percentage: TrafficPercentage,
+    pub experiments_inside_ids: Vec<String>,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub last_modified_at: DateTime<Utc>,
+    pub last_modified_by: String,
+}
+
+pub type ExperimentGroups = Vec<ExperimentGroup>;
