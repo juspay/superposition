@@ -1,7 +1,7 @@
 use std::fs;
 
 use actix_web::{
-    get, post, put,
+    get, patch, post, put,
     web::{self, Json, Path, Query},
     Scope,
 };
@@ -13,15 +13,17 @@ use diesel::{
     TextExpressionMethods,
 };
 use regex::Regex;
-use service_utils::service::types::{DbConnection, OrganisationId};
-use superposition_macros::{db_error, unexpected_error, validation_error};
+use service_utils::service::types::{DbConnection, OrganisationId, SchemaName};
+use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 use superposition_types::{
     api::workspace::{
-        CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceListFilters,
+        CreateWorkspaceRequest, SetConfigVersionWorkspaceRequest, UpdateWorkspaceRequest,
+        WorkspaceListFilters,
     },
     custom_query::PaginationParams,
     database::{
         models::{Organisation, Workspace, WorkspaceStatus},
+        schema::config_versions::dsl as config_versions,
         superposition_schema::superposition::{organisations, workspaces},
     },
     result as superposition, PaginatedResponse, User,
@@ -59,6 +61,7 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(update_workspace)
         .service(list_workspaces)
         .service(get_workspace)
+        .service(set_config_version)
 }
 
 #[get("/{workspace_name}")]
@@ -99,6 +102,7 @@ async fn create_workspace(
         workspace_schema_name: workspace_schema_name.clone(),
         workspace_status: WorkspaceStatus::ENABLED,
         workspace_admin_email: request.workspace_admin_email,
+        config_version: None,
         created_by: email.clone(),
         last_modified_by: email,
         last_modified_at: timestamp,
@@ -156,6 +160,59 @@ async fn update_workspace(
     Ok(Json(updated_workspace))
 }
 
+#[patch("/{workspace_name}/config-version")]
+async fn set_config_version(
+    workspace_name: web::Path<String>,
+    request: Json<SetConfigVersionWorkspaceRequest>,
+    db_conn: DbConnection,
+    org_id: OrganisationId,
+    user: User,
+    schema_name: SchemaName,
+) -> superposition::Result<Json<Workspace>> {
+    let request = request.into_inner();
+    let workspace_name = workspace_name.into_inner();
+    let timestamp = Utc::now();
+    let DbConnection(mut conn) = db_conn;
+    if let Some(val) = request.config_version.clone() {
+        let version = val.parse::<i64>().map_err(|err| {
+            log::error!("failed to decode version as integer: {}", err);
+            bad_argument!("version is not of type integer")
+        })?;
+        let config: i64 = config_versions::config_versions
+            .select(config_versions::config)
+            .filter(config_versions::id.eq(version))
+            .count()
+            .schema_name(&schema_name)
+            .get_result::<i64>(&mut conn)
+            .map_err(|err| {
+                log::error!("failed to fetch config with error: {}", err);
+                db_error!(err)
+            })?;
+        if config == 0 {
+            log::error!("the config version {} does not exist", val);
+            return Err(bad_argument!("the config version does not exist"));
+        }
+    }
+    let updated_workspace =
+        conn.transaction::<Workspace, superposition::AppError, _>(|transaction_conn| {
+            let updated_workspace = diesel::update(workspaces::table)
+                .filter(workspaces::organisation_id.eq(&org_id.0))
+                .filter(workspaces::workspace_name.eq(workspace_name))
+                .set((
+                    request,
+                    workspaces::last_modified_by.eq(user.email),
+                    workspaces::last_modified_at.eq(timestamp),
+                ))
+                .get_result::<Workspace>(transaction_conn)
+                .map_err(|err| {
+                    log::error!("failed to update workspace with error: {}", err);
+                    err
+                })?;
+
+            Ok(updated_workspace)
+        })?;
+    Ok(Json(updated_workspace))
+}
 #[get("")]
 async fn list_workspaces(
     db_conn: DbConnection,
