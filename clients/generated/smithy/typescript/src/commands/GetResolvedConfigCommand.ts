@@ -50,6 +50,7 @@ export interface GetResolvedConfigCommandOutput extends GetResolvedConfigOutput,
  *   version: "STRING_VALUE",
  *   show_reasoning: true || false,
  *   merge_strategy: "MERGE" || "REPLACE",
+ *   context_id: "STRING_VALUE",
  *   context: { // ContextMap
  *     "<keys>": "DOCUMENT_VALUE",
  *   },

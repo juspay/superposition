@@ -17,6 +17,8 @@ pub use crate::types::_variant_type::VariantType;
 
 pub use crate::types::_experiment_status_type::ExperimentStatusType;
 
+pub use crate::types::_experiment_type::ExperimentType;
+
 pub use crate::types::_variant_update_request::VariantUpdateRequest;
 
 pub use crate::types::_experiment_response::ExperimentResponse;
@@ -116,6 +118,8 @@ mod _experiment_response;
 mod _experiment_sort_on;
 
 mod _experiment_status_type;
+
+mod _experiment_type;
 
 mod _function_execution_request;
 

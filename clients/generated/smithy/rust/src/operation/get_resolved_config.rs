@@ -150,9 +150,9 @@ fn uri_query(_input: &crate::operation::get_resolved_config::GetResolvedConfigIn
             query.push_kv("show_reasoning", ::aws_smithy_types::primitive::Encoder::from(*inner_3).encode());
         }
     }
-    if let ::std::option::Option::Some(inner_4) = &_input.merge_strategy {
+    if let ::std::option::Option::Some(inner_4) = &_input.context_id {
          {
-            query.push_kv("x-merge-strategy", &::aws_smithy_http::query::fmt_string(inner_4));
+            query.push_kv("context_id", &::aws_smithy_http::query::fmt_string(inner_4));
         }
     }
     ::std::result::Result::Ok(())

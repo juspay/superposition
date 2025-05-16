@@ -36,6 +36,7 @@ public final class CreateExperimentInput implements SerializableStruct {
                 new HttpHeaderTrait("x-org-id"))
         .putMember("name", PreludeSchemas.STRING,
                 new RequiredTrait())
+        .putMember("experiment_type", ExperimentType.$SCHEMA)
         .putMember("context", SharedSchemas.CONDITION,
                 new RequiredTrait())
         .putMember("variants", SharedSchemas.LIST_VARIANT,
@@ -49,6 +50,7 @@ public final class CreateExperimentInput implements SerializableStruct {
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_NAME = $SCHEMA.member("name");
+    private static final Schema $SCHEMA_EXPERIMENT_TYPE = $SCHEMA.member("experiment_type");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
     private static final Schema $SCHEMA_VARIANTS = $SCHEMA.member("variants");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
@@ -57,6 +59,7 @@ public final class CreateExperimentInput implements SerializableStruct {
     private final transient String workspaceId;
     private final transient String orgId;
     private final transient String name;
+    private final transient ExperimentType experimentType;
     private final transient Map<String, Document> context;
     private final transient List<Variant> variants;
     private final transient String description;
@@ -66,6 +69,7 @@ public final class CreateExperimentInput implements SerializableStruct {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
         this.name = builder.name;
+        this.experimentType = builder.experimentType;
         this.context = Collections.unmodifiableMap(builder.context);
         this.variants = Collections.unmodifiableList(builder.variants);
         this.description = builder.description;
@@ -82,6 +86,10 @@ public final class CreateExperimentInput implements SerializableStruct {
 
     public String name() {
         return name;
+    }
+
+    public ExperimentType experimentType() {
+        return experimentType;
     }
 
     public Map<String, Document> context() {
@@ -125,6 +133,7 @@ public final class CreateExperimentInput implements SerializableStruct {
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.name, that.name)
+               && Objects.equals(this.experimentType, that.experimentType)
                && Objects.equals(this.context, that.context)
                && Objects.equals(this.variants, that.variants)
                && Objects.equals(this.description, that.description)
@@ -133,7 +142,7 @@ public final class CreateExperimentInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, name, context, variants, description, changeReason);
+        return Objects.hash(workspaceId, orgId, name, experimentType, context, variants, description, changeReason);
     }
 
     @Override
@@ -146,6 +155,9 @@ public final class CreateExperimentInput implements SerializableStruct {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         serializer.writeString($SCHEMA_NAME, name);
+        if (experimentType != null) {
+            serializer.writeString($SCHEMA_EXPERIMENT_TYPE, experimentType.value());
+        }
         serializer.writeMap($SCHEMA_CONTEXT, context, context.size(), SharedSerde.ConditionSerializer.INSTANCE);
         serializer.writeList($SCHEMA_VARIANTS, variants, variants.size(), SharedSerde.ListVariantSerializer.INSTANCE);
         serializer.writeString($SCHEMA_DESCRIPTION, description);
@@ -163,6 +175,7 @@ public final class CreateExperimentInput implements SerializableStruct {
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_TYPE, member, experimentType);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -179,6 +192,7 @@ public final class CreateExperimentInput implements SerializableStruct {
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
         builder.name(this.name);
+        builder.experimentType(this.experimentType);
         builder.context(this.context);
         builder.variants(this.variants);
         builder.description(this.description);
@@ -202,6 +216,7 @@ public final class CreateExperimentInput implements SerializableStruct {
         private String workspaceId;
         private String orgId = ORG_ID_DEFAULT;
         private String name;
+        private ExperimentType experimentType;
         private Map<String, Document> context;
         private List<Variant> variants;
         private String description;
@@ -240,6 +255,14 @@ public final class CreateExperimentInput implements SerializableStruct {
         public Builder name(String name) {
             this.name = Objects.requireNonNull(name, "name cannot be null");
             tracker.setMember($SCHEMA_NAME);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder experimentType(ExperimentType experimentType) {
+            this.experimentType = experimentType;
             return this;
         }
 
@@ -300,6 +323,7 @@ public final class CreateExperimentInput implements SerializableStruct {
                 case 4 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 5 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 6 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 7 -> experimentType((ExperimentType) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_TYPE, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -355,6 +379,7 @@ public final class CreateExperimentInput implements SerializableStruct {
                     case 4 -> builder.description(de.readString(member));
                     case 5 -> builder.changeReason(de.readString(member));
                     case 6 -> builder.orgId(de.readString(member));
+                    case 7 -> builder.experimentType(ExperimentType.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

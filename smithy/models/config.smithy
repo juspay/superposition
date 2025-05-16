@@ -166,9 +166,13 @@ operation GetResolvedConfig {
         @notProperty
         show_reasoning: Boolean
 
-        @httpQuery("x-merge-strategy")
+        @httpHeader("x-merge-strategy")
         @notProperty
         merge_strategy: MergeStrategy
+
+        @httpQuery("context_id")
+        @notProperty
+        context_id: String
 
         @notProperty
         context: ContextMap

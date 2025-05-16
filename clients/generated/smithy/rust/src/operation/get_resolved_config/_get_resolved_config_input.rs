@@ -15,6 +15,8 @@ pub struct GetResolvedConfigInput  {
     pub show_reasoning: ::std::option::Option<bool>,
     #[allow(missing_docs)] // documentation missing in model
     pub merge_strategy: ::std::option::Option<crate::types::MergeStrategy>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub context_id: ::std::option::Option<::std::string::String>,
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
@@ -43,6 +45,10 @@ impl  GetResolvedConfigInput  {
     pub fn merge_strategy(&self) -> ::std::option::Option<&crate::types::MergeStrategy> {
         self.merge_strategy.as_ref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn context_id(&self) -> ::std::option::Option<&str> {
+        self.context_id.as_deref()
+    }
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.context.as_ref()
@@ -65,6 +71,7 @@ pub struct GetResolvedConfigInputBuilder {
     pub(crate) version: ::std::option::Option<::std::string::String>,
     pub(crate) show_reasoning: ::std::option::Option<bool>,
     pub(crate) merge_strategy: ::std::option::Option<crate::types::MergeStrategy>,
+    pub(crate) context_id: ::std::option::Option<::std::string::String>,
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
 impl GetResolvedConfigInputBuilder {
@@ -148,6 +155,19 @@ impl GetResolvedConfigInputBuilder {
     pub fn get_merge_strategy(&self) -> &::std::option::Option<crate::types::MergeStrategy> {
         &self.merge_strategy
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn context_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.context_id = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_context_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.context_id = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_context_id(&self) -> &::std::option::Option<::std::string::String> {
+        &self.context_id
+    }
     /// Adds a key-value pair to `context`.
     ///
     /// To override the contents of this collection use [`set_context`](Self::set_context).
@@ -182,6 +202,8 @@ impl GetResolvedConfigInputBuilder {
                 show_reasoning: self.show_reasoning
                 ,
                 merge_strategy: self.merge_strategy
+                ,
+                context_id: self.context_id
                 ,
                 context: self.context
                 ,

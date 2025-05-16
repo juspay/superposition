@@ -57,6 +57,7 @@ export interface PauseExperimentCommandOutput extends ExperimentResponse, __Meta
  * //   created_by: "STRING_VALUE", // required
  * //   last_modified: new Date("TIMESTAMP"), // required
  * //   name: "STRING_VALUE", // required
+ * //   experiment_type: "DEFAULT" || "DELETE_OVERRIDES", // required
  * //   override_keys: [ // ListOverrideKeys // required
  * //     "STRING_VALUE",
  * //   ],

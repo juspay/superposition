@@ -83,6 +83,18 @@ pub fn ser_get_resolved_config_headers(
                             })?;
                             builder = builder.header("x-org-id", header_value);
     }
+    if let ::std::option::Option::Some(inner_5) = &input.merge_strategy {
+        let formatted_6 = inner_5.as_str();
+        let header_value = formatted_6;
+                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                                ::aws_smithy_types::error::operation::BuildError::invalid_field("merge_strategy", format!(
+                                "`{}` cannot be used as a header value: {}",
+                                &header_value,
+                                err
+                            ))
+                            })?;
+                            builder = builder.header("x-merge-strategy", header_value);
+    }
     Ok(builder)
 }
 

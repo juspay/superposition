@@ -35,6 +35,8 @@ public final class ResumeExperimentOutput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("name", PreludeSchemas.STRING,
                 new RequiredTrait())
+        .putMember("experiment_type", ExperimentType.$SCHEMA,
+                new RequiredTrait())
         .putMember("override_keys", SharedSchemas.LIST_OVERRIDE_KEYS,
                 new RequiredTrait())
         .putMember("status", ExperimentStatusType.$SCHEMA,
@@ -59,6 +61,7 @@ public final class ResumeExperimentOutput implements SerializableStruct {
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
     private static final Schema $SCHEMA_LAST_MODIFIED = $SCHEMA.member("last_modified");
     private static final Schema $SCHEMA_NAME = $SCHEMA.member("name");
+    private static final Schema $SCHEMA_EXPERIMENT_TYPE = $SCHEMA.member("experiment_type");
     private static final Schema $SCHEMA_OVERRIDE_KEYS = $SCHEMA.member("override_keys");
     private static final Schema $SCHEMA_STATUS = $SCHEMA.member("status");
     private static final Schema $SCHEMA_TRAFFIC_PERCENTAGE = $SCHEMA.member("traffic_percentage");
@@ -74,6 +77,7 @@ public final class ResumeExperimentOutput implements SerializableStruct {
     private final transient String createdBy;
     private final transient Instant lastModified;
     private final transient String name;
+    private final transient ExperimentType experimentType;
     private final transient List<String> overrideKeys;
     private final transient ExperimentStatusType status;
     private final transient int trafficPercentage;
@@ -90,6 +94,7 @@ public final class ResumeExperimentOutput implements SerializableStruct {
         this.createdBy = builder.createdBy;
         this.lastModified = builder.lastModified;
         this.name = builder.name;
+        this.experimentType = builder.experimentType;
         this.overrideKeys = Collections.unmodifiableList(builder.overrideKeys);
         this.status = builder.status;
         this.trafficPercentage = builder.trafficPercentage;
@@ -119,6 +124,10 @@ public final class ResumeExperimentOutput implements SerializableStruct {
 
     public String name() {
         return name;
+    }
+
+    public ExperimentType experimentType() {
+        return experimentType;
     }
 
     public List<String> overrideKeys() {
@@ -188,6 +197,7 @@ public final class ResumeExperimentOutput implements SerializableStruct {
                && Objects.equals(this.createdBy, that.createdBy)
                && Objects.equals(this.lastModified, that.lastModified)
                && Objects.equals(this.name, that.name)
+               && Objects.equals(this.experimentType, that.experimentType)
                && Objects.equals(this.overrideKeys, that.overrideKeys)
                && Objects.equals(this.status, that.status)
                && this.trafficPercentage == that.trafficPercentage
@@ -201,7 +211,7 @@ public final class ResumeExperimentOutput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, createdAt, createdBy, lastModified, name, overrideKeys, status, trafficPercentage, context, variants, lastModifiedBy, chosenVariant, description, changeReason);
+        return Objects.hash(id, createdAt, createdBy, lastModified, name, experimentType, overrideKeys, status, trafficPercentage, context, variants, lastModifiedBy, chosenVariant, description, changeReason);
     }
 
     @Override
@@ -216,6 +226,7 @@ public final class ResumeExperimentOutput implements SerializableStruct {
         serializer.writeString($SCHEMA_CREATED_BY, createdBy);
         serializer.writeTimestamp($SCHEMA_LAST_MODIFIED, lastModified);
         serializer.writeString($SCHEMA_NAME, name);
+        serializer.writeString($SCHEMA_EXPERIMENT_TYPE, experimentType.value());
         serializer.writeList($SCHEMA_OVERRIDE_KEYS, overrideKeys, overrideKeys.size(), SharedSerde.ListOverrideKeysSerializer.INSTANCE);
         serializer.writeString($SCHEMA_STATUS, status.value());
         serializer.writeInteger($SCHEMA_TRAFFIC_PERCENTAGE, trafficPercentage);
@@ -238,15 +249,16 @@ public final class ResumeExperimentOutput implements SerializableStruct {
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, lastModified);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_OVERRIDE_KEYS, member, overrideKeys);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_STATUS, member, status);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_TRAFFIC_PERCENTAGE, member, trafficPercentage);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_VARIANTS, member, variants);
-            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
-            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
-            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
-            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHOSEN_VARIANT, member, chosenVariant);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_TYPE, member, experimentType);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_OVERRIDE_KEYS, member, overrideKeys);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_STATUS, member, status);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_TRAFFIC_PERCENTAGE, member, trafficPercentage);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_VARIANTS, member, variants);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
+            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
+            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
+            case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHOSEN_VARIANT, member, chosenVariant);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -265,6 +277,7 @@ public final class ResumeExperimentOutput implements SerializableStruct {
         builder.createdBy(this.createdBy);
         builder.lastModified(this.lastModified);
         builder.name(this.name);
+        builder.experimentType(this.experimentType);
         builder.overrideKeys(this.overrideKeys);
         builder.status(this.status);
         builder.trafficPercentage(this.trafficPercentage);
@@ -294,6 +307,7 @@ public final class ResumeExperimentOutput implements SerializableStruct {
         private String createdBy;
         private Instant lastModified;
         private String name;
+        private ExperimentType experimentType;
         private List<String> overrideKeys;
         private ExperimentStatusType status;
         private int trafficPercentage;
@@ -358,6 +372,16 @@ public final class ResumeExperimentOutput implements SerializableStruct {
         public Builder name(String name) {
             this.name = Objects.requireNonNull(name, "name cannot be null");
             tracker.setMember($SCHEMA_NAME);
+            return this;
+        }
+
+        /**
+         * <p><strong>Required</strong>
+         * @return this builder.
+         */
+        public Builder experimentType(ExperimentType experimentType) {
+            this.experimentType = Objects.requireNonNull(experimentType, "experimentType cannot be null");
+            tracker.setMember($SCHEMA_EXPERIMENT_TYPE);
             return this;
         }
 
@@ -464,15 +488,16 @@ public final class ResumeExperimentOutput implements SerializableStruct {
                 case 2 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
                 case 3 -> lastModified((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, value));
                 case 4 -> name((String) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
-                case 5 -> overrideKeys((List<String>) SchemaUtils.validateSameMember($SCHEMA_OVERRIDE_KEYS, member, value));
-                case 6 -> status((ExperimentStatusType) SchemaUtils.validateSameMember($SCHEMA_STATUS, member, value));
-                case 7 -> trafficPercentage((int) SchemaUtils.validateSameMember($SCHEMA_TRAFFIC_PERCENTAGE, member, value));
-                case 8 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
-                case 9 -> variants((List<Variant>) SchemaUtils.validateSameMember($SCHEMA_VARIANTS, member, value));
-                case 10 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
-                case 11 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
-                case 12 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
-                case 13 -> chosenVariant((String) SchemaUtils.validateSameMember($SCHEMA_CHOSEN_VARIANT, member, value));
+                case 5 -> experimentType((ExperimentType) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_TYPE, member, value));
+                case 6 -> overrideKeys((List<String>) SchemaUtils.validateSameMember($SCHEMA_OVERRIDE_KEYS, member, value));
+                case 7 -> status((ExperimentStatusType) SchemaUtils.validateSameMember($SCHEMA_STATUS, member, value));
+                case 8 -> trafficPercentage((int) SchemaUtils.validateSameMember($SCHEMA_TRAFFIC_PERCENTAGE, member, value));
+                case 9 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 10 -> variants((List<Variant>) SchemaUtils.validateSameMember($SCHEMA_VARIANTS, member, value));
+                case 11 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
+                case 12 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
+                case 13 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
+                case 14 -> chosenVariant((String) SchemaUtils.validateSameMember($SCHEMA_CHOSEN_VARIANT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -496,6 +521,9 @@ public final class ResumeExperimentOutput implements SerializableStruct {
             }
             if (!tracker.checkMember($SCHEMA_NAME)) {
                 name("");
+            }
+            if (!tracker.checkMember($SCHEMA_EXPERIMENT_TYPE)) {
+                experimentType(ExperimentType.unknown(""));
             }
             if (!tracker.checkMember($SCHEMA_OVERRIDE_KEYS)) {
                 overrideKeys(Collections.emptyList());
@@ -547,15 +575,16 @@ public final class ResumeExperimentOutput implements SerializableStruct {
                     case 2 -> builder.createdBy(de.readString(member));
                     case 3 -> builder.lastModified(de.readTimestamp(member));
                     case 4 -> builder.name(de.readString(member));
-                    case 5 -> builder.overrideKeys(SharedSerde.deserializeListOverrideKeys(member, de));
-                    case 6 -> builder.status(ExperimentStatusType.builder().deserializeMember(de, member).build());
-                    case 7 -> builder.trafficPercentage(de.readInteger(member));
-                    case 8 -> builder.context(SharedSerde.deserializeCondition(member, de));
-                    case 9 -> builder.variants(SharedSerde.deserializeListVariant(member, de));
-                    case 10 -> builder.lastModifiedBy(de.readString(member));
-                    case 11 -> builder.description(de.readString(member));
-                    case 12 -> builder.changeReason(de.readString(member));
-                    case 13 -> builder.chosenVariant(de.readString(member));
+                    case 5 -> builder.experimentType(ExperimentType.builder().deserializeMember(de, member).build());
+                    case 6 -> builder.overrideKeys(SharedSerde.deserializeListOverrideKeys(member, de));
+                    case 7 -> builder.status(ExperimentStatusType.builder().deserializeMember(de, member).build());
+                    case 8 -> builder.trafficPercentage(de.readInteger(member));
+                    case 9 -> builder.context(SharedSerde.deserializeCondition(member, de));
+                    case 10 -> builder.variants(SharedSerde.deserializeListVariant(member, de));
+                    case 11 -> builder.lastModifiedBy(de.readString(member));
+                    case 12 -> builder.description(de.readString(member));
+                    case 13 -> builder.changeReason(de.readString(member));
+                    case 14 -> builder.chosenVariant(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

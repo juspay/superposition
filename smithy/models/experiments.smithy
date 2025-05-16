@@ -13,6 +13,7 @@ resource Experiments {
         created_by: String
         last_modified: DateTime
         name: String
+        experiment_type: ExperimentType
         override_keys: ListOverrideKeys
         status: ExperimentStatusType
         traffic_percentage: Integer
@@ -47,6 +48,11 @@ enum ExperimentStatusType {
     INPROGRESS
     DISCARDED
     PAUSED
+}
+
+enum ExperimentType {
+    DEFAULT
+    DELETE_OVERRIDES
 }
 
 enum VariantType {
@@ -101,6 +107,9 @@ structure ExperimentResponse for Experiments {
     $name
 
     @required
+    $experiment_type
+
+    @required
     $override_keys
 
     @required
@@ -131,6 +140,8 @@ structure CreateExperimentRequest for Experiments with [WorkspaceMixin] {
     @required
     $name
 
+    $experiment_type
+    
     @required
     $context
 

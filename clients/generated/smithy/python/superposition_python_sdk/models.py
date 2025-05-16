@@ -1567,6 +1567,10 @@ class ConcludeExperimentInput:
         deserializer.read_struct(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT, consumer=_consumer)
         return kwargs
 
+class ExperimentType(StrEnum):
+    DEFAULT = "DEFAULT"
+    DELETE_OVERRIDES = "DELETE_OVERRIDES"
+
 def _serialize_list_override_keys(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
@@ -1605,6 +1609,8 @@ class ConcludeExperimentOutput:
 
     name: str
 
+    experiment_type: str
+
     override_keys: list[str]
 
     status: str
@@ -1632,6 +1638,7 @@ class ConcludeExperimentOutput:
         serializer.write_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["last_modified"], self.last_modified)
         serializer.write_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["experiment_type"], self.experiment_type)
         _serialize_list_override_keys(serializer, _SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["override_keys"], self.override_keys)
         serializer.write_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["status"], self.status)
         serializer.write_integer(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["traffic_percentage"], self.traffic_percentage)
@@ -1670,30 +1677,33 @@ class ConcludeExperimentOutput:
                     kwargs["name"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["name"])
 
                 case 5:
-                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["override_keys"])
+                    kwargs["experiment_type"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["experiment_type"])
 
                 case 6:
-                    kwargs["status"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["status"])
+                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["override_keys"])
 
                 case 7:
-                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["traffic_percentage"])
+                    kwargs["status"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["status"])
 
                 case 8:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["context"])
+                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["traffic_percentage"])
 
                 case 9:
-                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["variants"])
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["context"])
 
                 case 10:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["last_modified_by"])
+                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["variants"])
 
                 case 11:
-                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["chosen_variant"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["last_modified_by"])
 
                 case 12:
-                    kwargs["description"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["description"])
+                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["chosen_variant"])
 
                 case 13:
+                    kwargs["description"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["description"])
+
+                case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["change_reason"])
 
                 case _:
@@ -2097,6 +2107,7 @@ class GetResolvedConfigInput:
     version: str | None = None
     show_reasoning: bool | None = None
     merge_strategy: str | None = None
+    context_id: str | None = None
     context: dict[str, Document] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -2135,6 +2146,9 @@ class GetResolvedConfigInput:
                     kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
 
                 case 6:
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context_id"])
+
+                case 7:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context"])
 
                 case _:
@@ -2631,8 +2645,8 @@ DELETE_CONTEXT = APIOperation(
         input_schema = _SCHEMA_DELETE_CONTEXT_INPUT,
         output_schema = _SCHEMA_DELETE_CONTEXT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -4064,6 +4078,7 @@ class CreateExperimentInput:
     workspace_id: str | None = None
     org_id: str = "juspay"
     name: str | None = None
+    experiment_type: str | None = None
     context: dict[str, Document] | None = None
     variants: list[Variant] | None = None
     description: str | None = None
@@ -4075,6 +4090,9 @@ class CreateExperimentInput:
     def serialize_members(self, serializer: ShapeSerializer):
         if self.name is not None:
             serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["name"], self.name)
+
+        if self.experiment_type is not None:
+            serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["experiment_type"], self.experiment_type)
 
         if self.context is not None:
             _serialize_condition(serializer, _SCHEMA_CREATE_EXPERIMENT_INPUT.members["context"], self.context)
@@ -4108,15 +4126,18 @@ class CreateExperimentInput:
                     kwargs["name"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["name"])
 
                 case 3:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_CREATE_EXPERIMENT_INPUT.members["context"])
+                    kwargs["experiment_type"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["experiment_type"])
 
                 case 4:
-                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_CREATE_EXPERIMENT_INPUT.members["variants"])
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_CREATE_EXPERIMENT_INPUT.members["context"])
 
                 case 5:
-                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["description"])
+                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_CREATE_EXPERIMENT_INPUT.members["variants"])
 
                 case 6:
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["description"])
+
+                case 7:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["change_reason"])
 
                 case _:
@@ -4137,6 +4158,8 @@ class CreateExperimentOutput:
     last_modified: datetime
 
     name: str
+
+    experiment_type: str
 
     override_keys: list[str]
 
@@ -4165,6 +4188,7 @@ class CreateExperimentOutput:
         serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["last_modified"], self.last_modified)
         serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["experiment_type"], self.experiment_type)
         _serialize_list_override_keys(serializer, _SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["override_keys"], self.override_keys)
         serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["status"], self.status)
         serializer.write_integer(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["traffic_percentage"], self.traffic_percentage)
@@ -4203,30 +4227,33 @@ class CreateExperimentOutput:
                     kwargs["name"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["name"])
 
                 case 5:
-                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["override_keys"])
+                    kwargs["experiment_type"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["experiment_type"])
 
                 case 6:
-                    kwargs["status"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["status"])
+                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["override_keys"])
 
                 case 7:
-                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["traffic_percentage"])
+                    kwargs["status"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["status"])
 
                 case 8:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["context"])
+                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["traffic_percentage"])
 
                 case 9:
-                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["variants"])
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["context"])
 
                 case 10:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["last_modified_by"])
+                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["variants"])
 
                 case 11:
-                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["chosen_variant"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["last_modified_by"])
 
                 case 12:
-                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["description"])
+                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["chosen_variant"])
 
                 case 13:
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["description"])
+
+                case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["change_reason"])
 
                 case _:
@@ -5302,8 +5329,8 @@ DELETE_DEFAULT_CONFIG = APIOperation(
         input_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_INPUT,
         output_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -5513,8 +5540,8 @@ LIST_DEFAULT_CONFIGS = APIOperation(
         input_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_INPUT,
         output_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -5770,8 +5797,8 @@ DELETE_DIMENSION = APIOperation(
         input_schema = _SCHEMA_DELETE_DIMENSION_INPUT,
         output_schema = _SCHEMA_DELETE_DIMENSION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -5880,8 +5907,8 @@ DELETE_FUNCTION = APIOperation(
         input_schema = _SCHEMA_DELETE_FUNCTION_INPUT,
         output_schema = _SCHEMA_DELETE_FUNCTION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
+            ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6531,6 +6558,8 @@ class DiscardExperimentOutput:
 
     name: str
 
+    experiment_type: str
+
     override_keys: list[str]
 
     status: str
@@ -6558,6 +6587,7 @@ class DiscardExperimentOutput:
         serializer.write_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["last_modified"], self.last_modified)
         serializer.write_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["experiment_type"], self.experiment_type)
         _serialize_list_override_keys(serializer, _SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["override_keys"], self.override_keys)
         serializer.write_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["status"], self.status)
         serializer.write_integer(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["traffic_percentage"], self.traffic_percentage)
@@ -6596,30 +6626,33 @@ class DiscardExperimentOutput:
                     kwargs["name"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["name"])
 
                 case 5:
-                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["override_keys"])
+                    kwargs["experiment_type"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["experiment_type"])
 
                 case 6:
-                    kwargs["status"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["status"])
+                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["override_keys"])
 
                 case 7:
-                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["traffic_percentage"])
+                    kwargs["status"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["status"])
 
                 case 8:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["context"])
+                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["traffic_percentage"])
 
                 case 9:
-                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["variants"])
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["context"])
 
                 case 10:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["last_modified_by"])
+                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["variants"])
 
                 case 11:
-                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["chosen_variant"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["last_modified_by"])
 
                 case 12:
-                    kwargs["description"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["description"])
+                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["chosen_variant"])
 
                 case 13:
+                    kwargs["description"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["description"])
+
+                case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["change_reason"])
 
                 case _:
@@ -6655,6 +6688,8 @@ class ExperimentResponse:
 
     name: str
 
+    experiment_type: str
+
     override_keys: list[str]
 
     status: str
@@ -6682,6 +6717,7 @@ class ExperimentResponse:
         serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["last_modified"], self.last_modified)
         serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["name"], self.name)
+        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["experiment_type"], self.experiment_type)
         _serialize_list_override_keys(serializer, _SCHEMA_EXPERIMENT_RESPONSE.members["override_keys"], self.override_keys)
         serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["status"], self.status)
         serializer.write_integer(_SCHEMA_EXPERIMENT_RESPONSE.members["traffic_percentage"], self.traffic_percentage)
@@ -6720,30 +6756,33 @@ class ExperimentResponse:
                     kwargs["name"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["name"])
 
                 case 5:
-                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_EXPERIMENT_RESPONSE.members["override_keys"])
+                    kwargs["experiment_type"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["experiment_type"])
 
                 case 6:
-                    kwargs["status"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["status"])
+                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_EXPERIMENT_RESPONSE.members["override_keys"])
 
                 case 7:
-                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_EXPERIMENT_RESPONSE.members["traffic_percentage"])
+                    kwargs["status"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["status"])
 
                 case 8:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_EXPERIMENT_RESPONSE.members["context"])
+                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_EXPERIMENT_RESPONSE.members["traffic_percentage"])
 
                 case 9:
-                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_EXPERIMENT_RESPONSE.members["variants"])
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_EXPERIMENT_RESPONSE.members["context"])
 
                 case 10:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["last_modified_by"])
+                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_EXPERIMENT_RESPONSE.members["variants"])
 
                 case 11:
-                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["chosen_variant"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["last_modified_by"])
 
                 case 12:
-                    kwargs["description"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["description"])
+                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["chosen_variant"])
 
                 case 13:
+                    kwargs["description"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["description"])
+
+                case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["change_reason"])
 
                 case _:
@@ -6820,6 +6859,8 @@ class GetExperimentOutput:
 
     name: str
 
+    experiment_type: str
+
     override_keys: list[str]
 
     status: str
@@ -6847,6 +6888,7 @@ class GetExperimentOutput:
         serializer.write_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["last_modified"], self.last_modified)
         serializer.write_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["experiment_type"], self.experiment_type)
         _serialize_list_override_keys(serializer, _SCHEMA_GET_EXPERIMENT_OUTPUT.members["override_keys"], self.override_keys)
         serializer.write_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["status"], self.status)
         serializer.write_integer(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["traffic_percentage"], self.traffic_percentage)
@@ -6885,30 +6927,33 @@ class GetExperimentOutput:
                     kwargs["name"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["name"])
 
                 case 5:
-                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_GET_EXPERIMENT_OUTPUT.members["override_keys"])
+                    kwargs["experiment_type"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["experiment_type"])
 
                 case 6:
-                    kwargs["status"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["status"])
+                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_GET_EXPERIMENT_OUTPUT.members["override_keys"])
 
                 case 7:
-                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["traffic_percentage"])
+                    kwargs["status"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["status"])
 
                 case 8:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_GET_EXPERIMENT_OUTPUT.members["context"])
+                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["traffic_percentage"])
 
                 case 9:
-                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_GET_EXPERIMENT_OUTPUT.members["variants"])
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_GET_EXPERIMENT_OUTPUT.members["context"])
 
                 case 10:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["last_modified_by"])
+                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_GET_EXPERIMENT_OUTPUT.members["variants"])
 
                 case 11:
-                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["chosen_variant"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["last_modified_by"])
 
                 case 12:
-                    kwargs["description"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["description"])
+                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["chosen_variant"])
 
                 case 13:
+                    kwargs["description"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["description"])
+
+                case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["change_reason"])
 
                 case _:
@@ -7129,6 +7174,8 @@ class PauseExperimentOutput:
 
     name: str
 
+    experiment_type: str
+
     override_keys: list[str]
 
     status: str
@@ -7156,6 +7203,7 @@ class PauseExperimentOutput:
         serializer.write_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["last_modified"], self.last_modified)
         serializer.write_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["experiment_type"], self.experiment_type)
         _serialize_list_override_keys(serializer, _SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["override_keys"], self.override_keys)
         serializer.write_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["status"], self.status)
         serializer.write_integer(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["traffic_percentage"], self.traffic_percentage)
@@ -7194,30 +7242,33 @@ class PauseExperimentOutput:
                     kwargs["name"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["name"])
 
                 case 5:
-                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["override_keys"])
+                    kwargs["experiment_type"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["experiment_type"])
 
                 case 6:
-                    kwargs["status"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["status"])
+                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["override_keys"])
 
                 case 7:
-                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["traffic_percentage"])
+                    kwargs["status"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["status"])
 
                 case 8:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["context"])
+                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["traffic_percentage"])
 
                 case 9:
-                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["variants"])
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["context"])
 
                 case 10:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["last_modified_by"])
+                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["variants"])
 
                 case 11:
-                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["chosen_variant"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["last_modified_by"])
 
                 case 12:
-                    kwargs["description"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["description"])
+                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["chosen_variant"])
 
                 case 13:
+                    kwargs["description"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["description"])
+
+                case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["change_reason"])
 
                 case _:
@@ -7303,6 +7354,8 @@ class RampExperimentOutput:
 
     name: str
 
+    experiment_type: str
+
     override_keys: list[str]
 
     status: str
@@ -7330,6 +7383,7 @@ class RampExperimentOutput:
         serializer.write_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["last_modified"], self.last_modified)
         serializer.write_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["experiment_type"], self.experiment_type)
         _serialize_list_override_keys(serializer, _SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["override_keys"], self.override_keys)
         serializer.write_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["status"], self.status)
         serializer.write_integer(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["traffic_percentage"], self.traffic_percentage)
@@ -7368,30 +7422,33 @@ class RampExperimentOutput:
                     kwargs["name"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["name"])
 
                 case 5:
-                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["override_keys"])
+                    kwargs["experiment_type"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["experiment_type"])
 
                 case 6:
-                    kwargs["status"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["status"])
+                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["override_keys"])
 
                 case 7:
-                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["traffic_percentage"])
+                    kwargs["status"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["status"])
 
                 case 8:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["context"])
+                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["traffic_percentage"])
 
                 case 9:
-                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["variants"])
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["context"])
 
                 case 10:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["last_modified_by"])
+                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["variants"])
 
                 case 11:
-                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["chosen_variant"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["last_modified_by"])
 
                 case 12:
-                    kwargs["description"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["description"])
+                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["chosen_variant"])
 
                 case 13:
+                    kwargs["description"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["description"])
+
+                case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["change_reason"])
 
                 case _:
@@ -7470,6 +7527,8 @@ class ResumeExperimentOutput:
 
     name: str
 
+    experiment_type: str
+
     override_keys: list[str]
 
     status: str
@@ -7497,6 +7556,7 @@ class ResumeExperimentOutput:
         serializer.write_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["last_modified"], self.last_modified)
         serializer.write_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["experiment_type"], self.experiment_type)
         _serialize_list_override_keys(serializer, _SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["override_keys"], self.override_keys)
         serializer.write_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["status"], self.status)
         serializer.write_integer(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["traffic_percentage"], self.traffic_percentage)
@@ -7535,30 +7595,33 @@ class ResumeExperimentOutput:
                     kwargs["name"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["name"])
 
                 case 5:
-                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["override_keys"])
+                    kwargs["experiment_type"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["experiment_type"])
 
                 case 6:
-                    kwargs["status"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["status"])
+                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["override_keys"])
 
                 case 7:
-                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["traffic_percentage"])
+                    kwargs["status"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["status"])
 
                 case 8:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["context"])
+                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["traffic_percentage"])
 
                 case 9:
-                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["variants"])
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["context"])
 
                 case 10:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["last_modified_by"])
+                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["variants"])
 
                 case 11:
-                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["chosen_variant"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["last_modified_by"])
 
                 case 12:
-                    kwargs["description"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["description"])
+                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["chosen_variant"])
 
                 case 13:
+                    kwargs["description"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["description"])
+
+                case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["change_reason"])
 
                 case _:
@@ -7704,6 +7767,8 @@ class UpdateOverridesExperimentOutput:
 
     name: str
 
+    experiment_type: str
+
     override_keys: list[str]
 
     status: str
@@ -7731,6 +7796,7 @@ class UpdateOverridesExperimentOutput:
         serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["last_modified"], self.last_modified)
         serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["experiment_type"], self.experiment_type)
         _serialize_list_override_keys(serializer, _SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["override_keys"], self.override_keys)
         serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["status"], self.status)
         serializer.write_integer(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["traffic_percentage"], self.traffic_percentage)
@@ -7769,30 +7835,33 @@ class UpdateOverridesExperimentOutput:
                     kwargs["name"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["name"])
 
                 case 5:
-                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["override_keys"])
+                    kwargs["experiment_type"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["experiment_type"])
 
                 case 6:
-                    kwargs["status"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["status"])
+                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["override_keys"])
 
                 case 7:
-                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["traffic_percentage"])
+                    kwargs["status"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["status"])
 
                 case 8:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["context"])
+                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["traffic_percentage"])
 
                 case 9:
-                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["variants"])
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["context"])
 
                 case 10:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["last_modified_by"])
+                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["variants"])
 
                 case 11:
-                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["chosen_variant"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["last_modified_by"])
 
                 case 12:
-                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["description"])
+                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["chosen_variant"])
 
                 case 13:
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["description"])
+
+                case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["change_reason"])
 
                 case _:

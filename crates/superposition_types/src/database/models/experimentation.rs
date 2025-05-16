@@ -69,8 +69,8 @@ impl ExperimentStatusType {
 
     pub fn discardable(&self) -> bool {
         match self {
-            Self::CREATED | Self::PAUSED => true,
-            Self::INPROGRESS | Self::CONCLUDED | Self::DISCARDED => false,
+            Self::CREATED | Self::PAUSED | Self::INPROGRESS => true,
+            Self::CONCLUDED | Self::DISCARDED => false,
         }
     }
 
@@ -100,8 +100,38 @@ impl ExperimentStatusType {
 }
 
 #[derive(
-    Serialize, Deserialize, Debug, Copy, Clone, Default, Deref, DerefMut, PartialEq,
+    Debug,
+    Clone,
+    Copy,
+    Eq,
+    Hash,
+    PartialEq,
+    Deserialize,
+    Serialize,
+    Default,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+    strum_macros::EnumString,
 )]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(diesel_derive_enum::DbEnum, QueryId)
+)]
+#[cfg_attr(feature = "diesel_derives", DbValueStyle = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    ExistingTypePath = "crate::database::schema::sql_types::ExperimentType"
+)]
+#[allow(non_camel_case_types)]
+pub enum ExperimentType {
+    #[default]
+    Default,
+    DeleteOverrides,
+}
+
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, Default, Deref, DerefMut)]
 #[serde(try_from = "i32")]
 #[cfg_attr(feature = "diesel_derives", derive(AsExpression, FromSqlRow))]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Integer))]
@@ -215,8 +245,8 @@ pub struct Experiment {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub last_modified: DateTime<Utc>,
-
     pub name: String,
+    pub experiment_type: ExperimentType,
     pub override_keys: Vec<String>,
     pub status: ExperimentStatusType,
     pub traffic_percentage: TrafficPercentage,

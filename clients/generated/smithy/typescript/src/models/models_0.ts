@@ -427,6 +427,19 @@ export interface ConcludeExperimentInput {
  * @public
  * @enum
  */
+export const ExperimentType = {
+  DEFAULT: "DEFAULT",
+  DELETE_OVERRIDES: "DELETE_OVERRIDES",
+} as const
+/**
+ * @public
+ */
+export type ExperimentType = typeof ExperimentType[keyof typeof ExperimentType]
+
+/**
+ * @public
+ * @enum
+ */
 export const ExperimentStatusType = {
   CONCLUDED: "CONCLUDED",
   CREATED: "CREATED",
@@ -448,6 +461,7 @@ export interface ExperimentResponse {
   created_by: string | undefined;
   last_modified: Date | undefined;
   name: string | undefined;
+  experiment_type: ExperimentType | undefined;
   override_keys: (string)[] | undefined;
   status: ExperimentStatusType | undefined;
   traffic_percentage: number | undefined;
@@ -539,6 +553,7 @@ export interface GetResolvedConfigInput {
   version?: string | undefined;
   show_reasoning?: boolean | undefined;
   merge_strategy?: MergeStrategy | undefined;
+  context_id?: string | undefined;
   /**
    * Map representing the context.
    * Keys correspond to the names of the dimensions.
@@ -864,6 +879,7 @@ export interface CreateExperimentRequest {
   workspace_id: string | undefined;
   org_id: string | undefined;
   name: string | undefined;
+  experiment_type?: ExperimentType | undefined;
   context: Record<string, __DocumentType> | undefined;
   variants: (Variant)[] | undefined;
   description: string | undefined;

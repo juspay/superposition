@@ -472,6 +472,7 @@ export const se_CreateExperimentCommand = async(
     'change_reason': [],
     'context': _ => se_Condition(_, context),
     'description': [],
+    'experiment_type': [],
     'name': [],
     'variants': _ => se_ListVariant(_, context),
   }));
@@ -925,13 +926,14 @@ export const se_GetResolvedConfigCommand = async(
     'content-type': 'application/json',
     [_xt]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_xms]: input[_ms]!,
   });
   b.bp("/config/resolve");
   const query: any = map({
     [_p]: [,input[_p]!],
     [_v]: [,input[_v]!],
     [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
-    [_xms]: [,input[_ms]!],
+    [_ci]: [,input[_ci]!],
   });
   let body: any;
   body = JSON.stringify(take(input, {
@@ -1750,6 +1752,7 @@ export const de_ConcludeExperimentCommand = async(
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'experiment_type': __expectString,
     'id': __expectString,
     'last_modified': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -1873,6 +1876,7 @@ export const de_CreateExperimentCommand = async(
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'experiment_type': __expectString,
     'id': __expectString,
     'last_modified': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -2164,6 +2168,7 @@ export const de_DiscardExperimentCommand = async(
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'experiment_type': __expectString,
     'id': __expectString,
     'last_modified': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -2308,6 +2313,7 @@ export const de_GetExperimentCommand = async(
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'experiment_type': __expectString,
     'id': __expectString,
     'last_modified': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -2743,6 +2749,7 @@ export const de_PauseExperimentCommand = async(
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'experiment_type': __expectString,
     'id': __expectString,
     'last_modified': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -2811,6 +2818,7 @@ export const de_RampExperimentCommand = async(
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'experiment_type': __expectString,
     'id': __expectString,
     'last_modified': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -2845,6 +2853,7 @@ export const de_ResumeExperimentCommand = async(
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'experiment_type': __expectString,
     'id': __expectString,
     'last_modified': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -3063,6 +3072,7 @@ export const de_UpdateOverridesExperimentCommand = async(
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'experiment_type': __expectString,
     'id': __expectString,
     'last_modified': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -3851,6 +3861,7 @@ const de_CommandError = async(
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,
       'description': __expectString,
+      'experiment_type': __expectString,
       'id': __expectString,
       'last_modified': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'last_modified_by': __expectString,
@@ -4237,6 +4248,7 @@ const de_CommandError = async(
   const _al = "all";
   const _c = "count";
   const _cb = "created_by";
+  const _ci = "context_id";
   const _co = "context";
   const _cq = "context_query";
   const _ct = "config_tags";
