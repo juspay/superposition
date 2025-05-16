@@ -718,6 +718,22 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    experiment_groups (experiment_group_id) {
+        experiment_group_id -> Text,
+        name -> Text,
+        description -> Text,
+        change_reason -> Text,
+        context -> Json,
+        traffic_percentage -> Int4,
+        member_experiment_ids -> Array<Text>,
+        created_at -> Timestamptz,
+        created_by -> Text,
+        last_modified_at -> Timestamptz,
+        last_modified_by -> Text,
+    }
+}
+
 diesel::joinable!(default_configs -> functions (function_name));
 diesel::joinable!(dimensions -> functions (function_name));
 
@@ -769,6 +785,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     event_log_y2026m11,
     event_log_y2026m12,
     experiments,
+    experiment_groups,
     functions,
     type_templates,
     webhooks,

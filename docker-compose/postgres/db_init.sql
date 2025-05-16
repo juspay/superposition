@@ -1345,4 +1345,32 @@ CREATE TYPE public.experiment_type AS ENUM (
 ALTER TABLE localorg_test.experiments ADD COLUMN experiment_type public.experiment_type NOT NULL DEFAULT 'DEFAULT';
 ALTER TABLE localorg_dev.experiments ADD COLUMN experiment_type public.experiment_type NOT NULL DEFAULT 'DEFAULT';
 
+CREATE TABLE IF NOT EXISTS localorg_dev.experiment_groups(
+    experiment_group_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    change_reason TEXT NOT NULL,
+    context JSON NOT NULL,
+    traffic_percentage integer NOT NULL CONSTRAINT traffic_percentage_range CHECK (traffic_percentage >= 0 AND traffic_percentage <= 100),
+    member_experiment_ids TEXT[] NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by TEXT NOT NULL,
+    last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    last_modified_by TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS localorg_test.experiment_groups(
+    experiment_group_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    change_reason TEXT NOT NULL,
+    context JSON NOT NULL,
+    traffic_percentage integer NOT NULL CONSTRAINT traffic_percentage_range CHECK (traffic_percentage >= 0 AND traffic_percentage <= 100),
+    member_experiment_ids TEXT[] NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by TEXT NOT NULL,
+    last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    last_modified_by TEXT NOT NULL
+);
+
 COMMIT;
