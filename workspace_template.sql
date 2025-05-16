@@ -533,27 +533,23 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-DO $$ BEGIN
-    CREATE TABLE {replaceme}.webhooks (
-        name text PRIMARY KEY,
-        description text NOT NULL,
-        enabled boolean NOT NULL,
-        url text NOT NULL,
-        method public.http_method NOT NULL DEFAULT 'POST',
-        payload_version text NOT NULL,
-        custom_headers json NOT NULL DEFAULT '{}'::json,
-        events text[] NOT NULL,
-        max_retries integer NOT NULL DEFAULT 0,
-        last_triggered_at timestamp,
-        change_reason TEXT NOT NULL,
-        created_by text NOT NULL,
-        created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        last_modified_by text NOT NULL,
-        last_modified_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+CREATE TABLE IF NOT EXISTS {replaceme}.webhooks (
+    name text PRIMARY KEY,
+    description text NOT NULL,
+    enabled boolean NOT NULL,
+    url text NOT NULL,
+    method public.http_method NOT NULL DEFAULT 'POST',
+    payload_version text NOT NULL,
+    custom_headers json NOT NULL DEFAULT '{}'::json,
+    events text[] NOT NULL,
+    max_retries integer NOT NULL DEFAULT 0,
+    last_triggered_at timestamp,
+    change_reason TEXT NOT NULL,
+    created_by text NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_modified_by text NOT NULL,
+    last_modified_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 DO $$ BEGIN
     CREATE TRIGGER webhooks_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.webhooks FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
@@ -573,12 +569,26 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
-    
     CREATE TYPE public.experiment_type AS ENUM (
         'DEFAULT',
         'DELETE_OVERRIDES'
     );
-    ALTER TABLE {replaceme}.experiments ADD COLUMN experiment_type public.experiment_type NOT NULL DEFAULT 'DEFAULT';
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
+
+ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS experiment_type public.experiment_type NOT NULL DEFAULT 'DEFAULT';
+
+CREATE TABLE IF NOT EXISTS {replaceme}.experiment_groups(
+    experiment_group_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    change_reason TEXT NOT NULL,
+    context JSON NOT NULL,
+    traffic_percentage integer NOT NULL CONSTRAINT traffic_percentage_range CHECK (traffic_percentage >= 0 AND traffic_percentage <= 100),
+    member_experiment_ids TEXT[] NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by TEXT NOT NULL,
+    last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    last_modified_by TEXT NOT NULL
+);
