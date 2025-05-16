@@ -25,6 +25,13 @@ pub struct UpdateWorkspaceRequest {
     pub metrics: Option<Metrics>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = workspaces), diesel(treat_none_as_null = true))]
+pub struct SetConfigVersionWorkspaceRequest {
+    pub config_version: Option<String>,
+}
+
 #[derive(Deserialize, Debug)]
 pub struct WorkspaceListFilters {
     pub workspace_name: Option<String>,
