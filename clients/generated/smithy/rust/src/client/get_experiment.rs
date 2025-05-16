@@ -12,6 +12,7 @@ impl super::Client {
     ///   - [`created_by(String)`](crate::operation::get_experiment::GetExperimentOutput::created_by): (undocumented)
     ///   - [`last_modified(DateTime)`](crate::operation::get_experiment::GetExperimentOutput::last_modified): (undocumented)
     ///   - [`name(String)`](crate::operation::get_experiment::GetExperimentOutput::name): (undocumented)
+    ///   - [`experiment_type(ExperimentType)`](crate::operation::get_experiment::GetExperimentOutput::experiment_type): (undocumented)
     ///   - [`override_keys(Vec::<String>)`](crate::operation::get_experiment::GetExperimentOutput::override_keys): (undocumented)
     ///   - [`status(ExperimentStatusType)`](crate::operation::get_experiment::GetExperimentOutput::status): (undocumented)
     ///   - [`traffic_percentage(i32)`](crate::operation::get_experiment::GetExperimentOutput::traffic_percentage): (undocumented)

@@ -135,6 +135,15 @@ pub(crate) fn de_conclude_experiment(value: &[u8], mut builder: crate::operation
                             ).transpose()?
                         );
                     }
+                    "experiment_type" => {
+                        builder = builder.set_experiment_type(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    crate::types::ExperimentType::from(u.as_ref())
+                                )
+                            ).transpose()?
+                        );
+                    }
                     "id" => {
                         builder = builder.set_id(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|

@@ -13,6 +13,7 @@ impl super::Client {
     ///   - [`created_by(String)`](crate::operation::resume_experiment::ResumeExperimentOutput::created_by): (undocumented)
     ///   - [`last_modified(DateTime)`](crate::operation::resume_experiment::ResumeExperimentOutput::last_modified): (undocumented)
     ///   - [`name(String)`](crate::operation::resume_experiment::ResumeExperimentOutput::name): (undocumented)
+    ///   - [`experiment_type(ExperimentType)`](crate::operation::resume_experiment::ResumeExperimentOutput::experiment_type): (undocumented)
     ///   - [`override_keys(Vec::<String>)`](crate::operation::resume_experiment::ResumeExperimentOutput::override_keys): (undocumented)
     ///   - [`status(ExperimentStatusType)`](crate::operation::resume_experiment::ResumeExperimentOutput::status): (undocumented)
     ///   - [`traffic_percentage(i32)`](crate::operation::resume_experiment::ResumeExperimentOutput::traffic_percentage): (undocumented)

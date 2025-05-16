@@ -269,58 +269,58 @@ public interface SuperpositionClient {
     CreateWorkspaceOutput createWorkspace(CreateWorkspaceInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     default DeleteContextOutput deleteContext(DeleteContextInput input) {
         return deleteContext(input, null);
     }
 
     /**
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     DeleteContextOutput deleteContext(DeleteContextInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     default DeleteDefaultConfigOutput deleteDefaultConfig(DeleteDefaultConfigInput input) {
         return deleteDefaultConfig(input, null);
     }
 
     /**
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     DeleteDefaultConfigOutput deleteDefaultConfig(DeleteDefaultConfigInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     default DeleteDimensionOutput deleteDimension(DeleteDimensionInput input) {
         return deleteDimension(input, null);
     }
 
     /**
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     DeleteDimensionOutput deleteDimension(DeleteDimensionInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws InternalServerError
      * @throws FunctionNotFound
+     * @throws InternalServerError
      */
     default DeleteFunctionOutput deleteFunction(DeleteFunctionInput input) {
         return deleteFunction(input, null);
     }
 
     /**
-     * @throws InternalServerError
      * @throws FunctionNotFound
+     * @throws InternalServerError
      */
     DeleteFunctionOutput deleteFunction(DeleteFunctionInput input, RequestOverrideConfig overrideConfig);
 
@@ -503,16 +503,16 @@ public interface SuperpositionClient {
     ListContextsOutput listContexts(ListContextsInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     default ListDefaultConfigsOutput listDefaultConfigs(ListDefaultConfigsInput input) {
         return listDefaultConfigs(input, null);
     }
 
     /**
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     ListDefaultConfigsOutput listDefaultConfigs(ListDefaultConfigsInput input, RequestOverrideConfig overrideConfig);
 

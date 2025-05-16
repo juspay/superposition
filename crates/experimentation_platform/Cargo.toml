@@ -9,6 +9,8 @@ edition = "2021"
 actix-web = { workspace = true }
 actix-http = "3.3.1"
 anyhow = { workspace = true }
+blake3 = "1.3.3"
+cac_client = { path = "../cac_client" }
 chrono = { workspace = true }
 diesel = { workspace = true }
 log = { workspace = true }

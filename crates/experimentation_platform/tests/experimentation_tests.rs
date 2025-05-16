@@ -6,7 +6,8 @@ use service_utils::service::types::ExperimentationFlags;
 use superposition_types::{
     database::models::{
         experimentation::{
-            Experiment, ExperimentStatusType, TrafficPercentage, Variant, Variants,
+            Experiment, ExperimentStatusType, ExperimentType, TrafficPercentage, Variant,
+            Variants,
         },
         ChangeReason, Description, Metrics,
     },
@@ -69,6 +70,7 @@ fn experiment_gen(
         last_modified: Utc::now(),
         last_modified_by: "test".to_string(),
         name: "experiment-test".to_string(),
+        experiment_type: ExperimentType::Default,
         traffic_percentage: TrafficPercentage::default(),
         started_at: None,
         started_by: None,

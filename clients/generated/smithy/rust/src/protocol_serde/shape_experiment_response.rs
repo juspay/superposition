@@ -48,6 +48,15 @@ pub(crate) fn de_experiment_response<'a, I>(tokens: &mut ::std::iter::Peekable<I
                                     ).transpose()?
                                 );
                             }
+                            "experiment_type" => {
+                                builder = builder.set_experiment_type(
+                                    ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                        s.to_unescaped().map(|u|
+                                            crate::types::ExperimentType::from(u.as_ref())
+                                        )
+                                    ).transpose()?
+                                );
+                            }
                             "override_keys" => {
                                 builder = builder.set_override_keys(
                                     crate::protocol_serde::shape_list_override_keys::de_list_override_keys(tokens)?

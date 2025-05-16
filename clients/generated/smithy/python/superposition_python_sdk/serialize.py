@@ -957,8 +957,8 @@ async def _serialize_get_resolved_config(input: GetResolvedConfigInput, config: 
         query_params.append(("version", input.version))
     if input.show_reasoning is not None:
         query_params.append(("show_reasoning", ('true' if input.show_reasoning else 'false')))
-    if input.merge_strategy is not None:
-        query_params.append(("x-merge-strategy", input.merge_strategy))
+    if input.context_id is not None:
+        query_params.append(("context_id", input.context_id))
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -982,6 +982,8 @@ async def _serialize_get_resolved_config(input: GetResolvedConfigInput, config: 
         headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.merge_strategy:
+        headers.extend(Fields([Field(name="x-merge-strategy", values=[input.merge_strategy])]))
     return _HTTPRequest(
         destination=_URI(
             host="",

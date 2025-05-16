@@ -1,15 +1,14 @@
-use actix_http::header::{self, HeaderMap, HeaderName, HeaderValue};
+use actix_http::header;
 use actix_web::web::Data;
+use cac_client::utils::json_to_sorted_string;
 use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::{
-    AppState, ExperimentationFlags, OrganisationId, SchemaName, WorkspaceContext,
-    WorkspaceId,
+    AppState, ExperimentationFlags, SchemaName, WorkspaceContext,
 };
 use std::collections::HashSet;
-use std::str::FromStr;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::User;
 use superposition_types::{
@@ -33,6 +32,9 @@ pub fn get_workspace(
         .get_result::<Workspace>(db_conn)?;
     Ok(workspace)
 }
+use super::cac_api::{
+    construct_header_map, get_context_override, get_partial_resolve_config,
+};
 
 pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()> {
     let mut experimental_variant_cnt = 0;
@@ -73,6 +75,11 @@ pub fn validate_override_keys(override_keys: &Vec<String>) -> superposition::Res
     }
 
     Ok(())
+}
+
+pub fn hash(val: &Value) -> String {
+    let sorted_str: String = json_to_sorted_string(val);
+    blake3::hash(sorted_str.as_bytes()).to_string()
 }
 
 pub fn are_overlapping_contexts(
@@ -134,6 +141,141 @@ pub fn check_variants_override_coverage(
     true
 }
 
+fn validate_variants_delete_keys(
+    control_variant_overrides: &Overrides,
+    variant_delete_overrides: &[Overrides],
+    override_keys: &[String],
+) -> bool {
+    let mut delete_keys = HashSet::new();
+
+    for delete_variant in variant_delete_overrides.iter() {
+        for key in delete_variant.keys() {
+            if !override_keys.contains(key) {
+                return false;
+            }
+            if !control_variant_overrides.contains_key(key) {
+                return false;
+            }
+
+            delete_keys.insert(key);
+        }
+    }
+    if delete_keys.len() != control_variant_overrides.len() {
+        return false;
+    }
+    true
+}
+
+fn validate_keys_from_source(
+    variant_override: &Overrides,
+    source: &Map<String, Value>,
+) -> bool {
+    for (override_key, value) in variant_override.iter() {
+        if let Some(val) = source.get(override_key) {
+            if val != value {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    true
+}
+
+fn validate_variants_delete_override_value(
+    delete_variant_overrides: &Vec<Overrides>,
+    resolved_config: &Map<String, Value>,
+) -> bool {
+    for override_ in delete_variant_overrides {
+        if !validate_keys_from_source(override_, resolved_config) {
+            return false;
+        }
+    }
+    true
+}
+
+fn validate_variants_control_override_value(
+    control_variant_overrides: &Overrides,
+    current_context_overrides: &Map<String, Value>,
+) -> bool {
+    validate_keys_from_source(control_variant_overrides, current_context_overrides)
+}
+
+pub async fn validate_delete_experiment_variants(
+    user: &User,
+    state: &Data<AppState>,
+    exp_context: &Condition,
+    context_id: &str,
+    workspace_request: &WorkspaceContext,
+    variants: &[Variant],
+) -> superposition::Result<()> {
+    let current_context =
+        get_context_override(user, state, workspace_request, context_id.to_owned())
+            .await?;
+
+    let partial_resolved_config = get_partial_resolve_config(
+        user,
+        state,
+        exp_context,
+        context_id,
+        workspace_request,
+    )
+    .await?;
+
+    let control_variant_override = variants
+        .iter()
+        .find(|variant| variant.variant_type == VariantType::CONTROL)
+        .map(|variant| variant.overrides.clone().into_inner())
+        .ok_or_else(|| {
+            log::error!("validate_delete_experiment : No control variant found");
+            bad_argument!("No control variant found")
+        })?;
+
+    let other_variants_overrides = variants
+        .iter()
+        .filter(|variant| variant.variant_type != VariantType::CONTROL)
+        .map(|variant| variant.overrides.clone().into_inner())
+        .collect::<Vec<_>>();
+
+    let are_valid_variants = validate_variants_delete_keys(
+        &control_variant_override,
+        &other_variants_overrides,
+        &current_context
+            .override_
+            .keys()
+            .cloned()
+            .collect::<Vec<String>>(),
+    );
+    if !are_valid_variants {
+        log::error!("validate_delete_experiment : Variant delete keys are not valid");
+        return Err(bad_argument!(
+                "Variant delete keys are not valid. Ensure the keys are present in the context"
+            ));
+    }
+
+    if !(validate_variants_delete_override_value(
+        &other_variants_overrides,
+        &partial_resolved_config,
+    )) {
+        log::error!("validate_delete_experiment: Inconsistent value for variant's overrides delete keys");
+        return Err(bad_argument!(
+            "Inconsistent value for variant's overrides delete keys"
+        ));
+    }
+
+    if !(validate_variants_control_override_value(
+        &control_variant_override,
+        &current_context.override_,
+    )) {
+        log::error!(
+            "validate_delete_experiment: Inconsistent value for variant's overrides keys"
+        );
+        return Err(bad_argument!(
+            "Inconsistent value for variant's overrides keys"
+        ));
+    }
+    Ok(())
+}
 pub fn is_valid_experiment(
     context: &Condition,
     override_keys: &[String],
@@ -291,41 +433,6 @@ pub fn decide_variant(
         .ok_or_else(|| "Unable to fetch variant's index".to_string())?;
 
     Ok(applicable_variants.get(index).cloned())
-}
-
-pub fn construct_header_map(
-    workspace_id: &WorkspaceId,
-    organisation_id: &OrganisationId,
-    other_headers: Vec<(&str, String)>,
-) -> superposition::Result<HeaderMap> {
-    let mut headers = HeaderMap::new();
-    let workspace_val = HeaderValue::from_str(workspace_id).map_err(|err| {
-        log::error!("failed to set header: {}", err);
-        unexpected_error!("Something went wrong")
-    })?;
-    headers.insert(HeaderName::from_static("x-tenant"), workspace_val);
-
-    let org_val = HeaderValue::from_str(organisation_id).map_err(|err| {
-        log::error!("failed to set header: {}", err);
-        unexpected_error!("Something went wrong")
-    })?;
-    headers.insert(HeaderName::from_static("x-org-id"), org_val);
-
-    for (header, value) in other_headers {
-        let header_name = HeaderName::from_str(header).map_err(|err| {
-            log::error!("failed to set header: {}", err);
-            unexpected_error!("Something went wrong")
-        })?;
-
-        HeaderValue::from_str(value.as_str())
-            .map(|header_val| headers.insert(header_name, header_val))
-            .map_err(|err| {
-                log::error!("failed to set header: {}", err);
-                unexpected_error!("Something went wrong")
-            })?;
-    }
-
-    Ok(headers)
 }
 
 pub async fn fetch_cac_config(

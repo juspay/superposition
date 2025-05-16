@@ -571,3 +571,14 @@ DO $$ BEGIN
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
+
+DO $$ BEGIN
+    
+    CREATE TYPE public.experiment_type AS ENUM (
+        'DEFAULT',
+        'DELETE_OVERRIDES'
+    );
+    ALTER TABLE {replaceme}.experiments ADD COLUMN experiment_type public.experiment_type NOT NULL DEFAULT 'DEFAULT';
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;

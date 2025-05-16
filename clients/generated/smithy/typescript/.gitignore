@@ -6,4 +6,3 @@
 *.tsbuildinfo
 *.tgz
 *.log
-package-lock.json

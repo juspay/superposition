@@ -1338,5 +1338,11 @@ ADD COLUMN IF NOT EXISTS started_at TIMESTAMP,
 ADD COLUMN IF NOT EXISTS started_by TEXT;
 
 ALTER TYPE public.experiment_status_type ADD VALUE 'PAUSED';
+CREATE TYPE public.experiment_type AS ENUM (
+    'DEFAULT',
+    'DELETE_OVERRIDES'
+);
+ALTER TABLE localorg_test.experiments ADD COLUMN experiment_type public.experiment_type NOT NULL DEFAULT 'DEFAULT';
+ALTER TABLE localorg_dev.experiments ADD COLUMN experiment_type public.experiment_type NOT NULL DEFAULT 'DEFAULT';
 
 COMMIT;

@@ -179,6 +179,20 @@ impl GetResolvedConfigFluentBuilder {
     pub fn get_merge_strategy(&self) -> &::std::option::Option<crate::types::MergeStrategy> {
                     self.inner.get_merge_strategy()
                 }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn context_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.context_id(input.into());
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_context_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_context_id(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_context_id(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_context_id()
+                }
     /// 
     /// Adds a key-value pair to `context`.
     /// 

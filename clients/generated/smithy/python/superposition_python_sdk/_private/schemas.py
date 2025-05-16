@@ -905,6 +905,31 @@ CONCLUDE_EXPERIMENT_INPUT = Schema.collection(
     }
 )
 
+EXPERIMENT_TYPE = Schema.collection(
+    id=ShapeID("io.superposition#ExperimentType"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "DEFAULT": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="DEFAULT"),
+
+            ],
+        },
+
+        "DELETE_OVERRIDES": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="DELETE_OVERRIDES"),
+
+            ],
+        },
+
+    }
+)
+
 LIST_OVERRIDE_KEYS = Schema.collection(
     id=ShapeID("io.superposition#ListOverrideKeys"),
     shape_type=ShapeType.LIST,
@@ -1023,9 +1048,18 @@ CONCLUDE_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "experiment_type": {
+            "target": EXPERIMENT_TYPE,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "override_keys": {
             "target": LIST_OVERRIDE_KEYS,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -1034,7 +1068,7 @@ CONCLUDE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "status": {
             "target": EXPERIMENT_STATUS_TYPE,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -1043,7 +1077,7 @@ CONCLUDE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "traffic_percentage": {
             "target": INTEGER,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -1052,7 +1086,7 @@ CONCLUDE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "context": {
             "target": CONDITION,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -1061,7 +1095,7 @@ CONCLUDE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "variants": {
             "target": LIST_VARIANT,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -1070,7 +1104,7 @@ CONCLUDE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -1079,12 +1113,12 @@ CONCLUDE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "chosen_variant": {
             "target": STRING,
-            "index": 11,
+            "index": 12,
         },
 
         "description": {
             "target": STRING,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -1093,7 +1127,7 @@ CONCLUDE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -1551,15 +1585,25 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
             "target": MERGE_STRATEGY,
             "index": 5,
             "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-merge-strategy"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
-                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="x-merge-strategy"),
+
+            ],
+        },
+
+        "context_id": {
+            "target": STRING,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="context_id"),
 
             ],
         },
 
         "context": {
             "target": CONTEXT_MAP,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -3486,9 +3530,14 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
+        "experiment_type": {
+            "target": EXPERIMENT_TYPE,
+            "index": 3,
+        },
+
         "context": {
             "target": CONDITION,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3497,7 +3546,7 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
 
         "variants": {
             "target": LIST_VARIANT,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3506,7 +3555,7 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
 
         "description": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3515,7 +3564,7 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3579,9 +3628,18 @@ CREATE_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "experiment_type": {
+            "target": EXPERIMENT_TYPE,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "override_keys": {
             "target": LIST_OVERRIDE_KEYS,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3590,7 +3648,7 @@ CREATE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "status": {
             "target": EXPERIMENT_STATUS_TYPE,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3599,7 +3657,7 @@ CREATE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "traffic_percentage": {
             "target": INTEGER,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3608,7 +3666,7 @@ CREATE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "context": {
             "target": CONDITION,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3617,7 +3675,7 @@ CREATE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "variants": {
             "target": LIST_VARIANT,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3626,7 +3684,7 @@ CREATE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3635,12 +3693,12 @@ CREATE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "chosen_variant": {
             "target": STRING,
-            "index": 11,
+            "index": 12,
         },
 
         "description": {
             "target": STRING,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3649,7 +3707,7 @@ CREATE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6155,9 +6213,18 @@ DISCARD_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "experiment_type": {
+            "target": EXPERIMENT_TYPE,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "override_keys": {
             "target": LIST_OVERRIDE_KEYS,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6166,7 +6233,7 @@ DISCARD_EXPERIMENT_OUTPUT = Schema.collection(
 
         "status": {
             "target": EXPERIMENT_STATUS_TYPE,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6175,7 +6242,7 @@ DISCARD_EXPERIMENT_OUTPUT = Schema.collection(
 
         "traffic_percentage": {
             "target": INTEGER,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6184,7 +6251,7 @@ DISCARD_EXPERIMENT_OUTPUT = Schema.collection(
 
         "context": {
             "target": CONDITION,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6193,7 +6260,7 @@ DISCARD_EXPERIMENT_OUTPUT = Schema.collection(
 
         "variants": {
             "target": LIST_VARIANT,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6202,7 +6269,7 @@ DISCARD_EXPERIMENT_OUTPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6211,12 +6278,12 @@ DISCARD_EXPERIMENT_OUTPUT = Schema.collection(
 
         "chosen_variant": {
             "target": STRING,
-            "index": 11,
+            "index": 12,
         },
 
         "description": {
             "target": STRING,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6225,7 +6292,7 @@ DISCARD_EXPERIMENT_OUTPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6298,9 +6365,18 @@ EXPERIMENT_RESPONSE = Schema.collection(
             ],
         },
 
+        "experiment_type": {
+            "target": EXPERIMENT_TYPE,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "override_keys": {
             "target": LIST_OVERRIDE_KEYS,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6309,7 +6385,7 @@ EXPERIMENT_RESPONSE = Schema.collection(
 
         "status": {
             "target": EXPERIMENT_STATUS_TYPE,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6318,7 +6394,7 @@ EXPERIMENT_RESPONSE = Schema.collection(
 
         "traffic_percentage": {
             "target": INTEGER,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6327,7 +6403,7 @@ EXPERIMENT_RESPONSE = Schema.collection(
 
         "context": {
             "target": CONDITION,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6336,7 +6412,7 @@ EXPERIMENT_RESPONSE = Schema.collection(
 
         "variants": {
             "target": LIST_VARIANT,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6345,7 +6421,7 @@ EXPERIMENT_RESPONSE = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6354,12 +6430,12 @@ EXPERIMENT_RESPONSE = Schema.collection(
 
         "chosen_variant": {
             "target": STRING,
-            "index": 11,
+            "index": 12,
         },
 
         "description": {
             "target": STRING,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6368,7 +6444,7 @@ EXPERIMENT_RESPONSE = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6486,9 +6562,18 @@ GET_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "experiment_type": {
+            "target": EXPERIMENT_TYPE,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "override_keys": {
             "target": LIST_OVERRIDE_KEYS,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6497,7 +6582,7 @@ GET_EXPERIMENT_OUTPUT = Schema.collection(
 
         "status": {
             "target": EXPERIMENT_STATUS_TYPE,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6506,7 +6591,7 @@ GET_EXPERIMENT_OUTPUT = Schema.collection(
 
         "traffic_percentage": {
             "target": INTEGER,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6515,7 +6600,7 @@ GET_EXPERIMENT_OUTPUT = Schema.collection(
 
         "context": {
             "target": CONDITION,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6524,7 +6609,7 @@ GET_EXPERIMENT_OUTPUT = Schema.collection(
 
         "variants": {
             "target": LIST_VARIANT,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6533,7 +6618,7 @@ GET_EXPERIMENT_OUTPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6542,12 +6627,12 @@ GET_EXPERIMENT_OUTPUT = Schema.collection(
 
         "chosen_variant": {
             "target": STRING,
-            "index": 11,
+            "index": 12,
         },
 
         "description": {
             "target": STRING,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6556,7 +6641,7 @@ GET_EXPERIMENT_OUTPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6917,9 +7002,18 @@ PAUSE_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "experiment_type": {
+            "target": EXPERIMENT_TYPE,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "override_keys": {
             "target": LIST_OVERRIDE_KEYS,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6928,7 +7022,7 @@ PAUSE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "status": {
             "target": EXPERIMENT_STATUS_TYPE,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6937,7 +7031,7 @@ PAUSE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "traffic_percentage": {
             "target": INTEGER,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6946,7 +7040,7 @@ PAUSE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "context": {
             "target": CONDITION,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6955,7 +7049,7 @@ PAUSE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "variants": {
             "target": LIST_VARIANT,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6964,7 +7058,7 @@ PAUSE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6973,12 +7067,12 @@ PAUSE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "chosen_variant": {
             "target": STRING,
-            "index": 11,
+            "index": 12,
         },
 
         "description": {
             "target": STRING,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6987,7 +7081,7 @@ PAUSE_EXPERIMENT_OUTPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7125,9 +7219,18 @@ RAMP_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "experiment_type": {
+            "target": EXPERIMENT_TYPE,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "override_keys": {
             "target": LIST_OVERRIDE_KEYS,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7136,7 +7239,7 @@ RAMP_EXPERIMENT_OUTPUT = Schema.collection(
 
         "status": {
             "target": EXPERIMENT_STATUS_TYPE,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7145,7 +7248,7 @@ RAMP_EXPERIMENT_OUTPUT = Schema.collection(
 
         "traffic_percentage": {
             "target": INTEGER,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7154,7 +7257,7 @@ RAMP_EXPERIMENT_OUTPUT = Schema.collection(
 
         "context": {
             "target": CONDITION,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7163,7 +7266,7 @@ RAMP_EXPERIMENT_OUTPUT = Schema.collection(
 
         "variants": {
             "target": LIST_VARIANT,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7172,7 +7275,7 @@ RAMP_EXPERIMENT_OUTPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7181,12 +7284,12 @@ RAMP_EXPERIMENT_OUTPUT = Schema.collection(
 
         "chosen_variant": {
             "target": STRING,
-            "index": 11,
+            "index": 12,
         },
 
         "description": {
             "target": STRING,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7195,7 +7298,7 @@ RAMP_EXPERIMENT_OUTPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7324,9 +7427,18 @@ RESUME_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "experiment_type": {
+            "target": EXPERIMENT_TYPE,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "override_keys": {
             "target": LIST_OVERRIDE_KEYS,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7335,7 +7447,7 @@ RESUME_EXPERIMENT_OUTPUT = Schema.collection(
 
         "status": {
             "target": EXPERIMENT_STATUS_TYPE,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7344,7 +7456,7 @@ RESUME_EXPERIMENT_OUTPUT = Schema.collection(
 
         "traffic_percentage": {
             "target": INTEGER,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7353,7 +7465,7 @@ RESUME_EXPERIMENT_OUTPUT = Schema.collection(
 
         "context": {
             "target": CONDITION,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7362,7 +7474,7 @@ RESUME_EXPERIMENT_OUTPUT = Schema.collection(
 
         "variants": {
             "target": LIST_VARIANT,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7371,7 +7483,7 @@ RESUME_EXPERIMENT_OUTPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7380,12 +7492,12 @@ RESUME_EXPERIMENT_OUTPUT = Schema.collection(
 
         "chosen_variant": {
             "target": STRING,
-            "index": 11,
+            "index": 12,
         },
 
         "description": {
             "target": STRING,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7394,7 +7506,7 @@ RESUME_EXPERIMENT_OUTPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7576,9 +7688,18 @@ UPDATE_OVERRIDES_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "experiment_type": {
+            "target": EXPERIMENT_TYPE,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "override_keys": {
             "target": LIST_OVERRIDE_KEYS,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7587,7 +7708,7 @@ UPDATE_OVERRIDES_EXPERIMENT_OUTPUT = Schema.collection(
 
         "status": {
             "target": EXPERIMENT_STATUS_TYPE,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7596,7 +7717,7 @@ UPDATE_OVERRIDES_EXPERIMENT_OUTPUT = Schema.collection(
 
         "traffic_percentage": {
             "target": INTEGER,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7605,7 +7726,7 @@ UPDATE_OVERRIDES_EXPERIMENT_OUTPUT = Schema.collection(
 
         "context": {
             "target": CONDITION,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7614,7 +7735,7 @@ UPDATE_OVERRIDES_EXPERIMENT_OUTPUT = Schema.collection(
 
         "variants": {
             "target": LIST_VARIANT,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7623,7 +7744,7 @@ UPDATE_OVERRIDES_EXPERIMENT_OUTPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7632,12 +7753,12 @@ UPDATE_OVERRIDES_EXPERIMENT_OUTPUT = Schema.collection(
 
         "chosen_variant": {
             "target": STRING,
-            "index": 11,
+            "index": 12,
         },
 
         "description": {
             "target": STRING,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7646,7 +7767,7 @@ UPDATE_OVERRIDES_EXPERIMENT_OUTPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 

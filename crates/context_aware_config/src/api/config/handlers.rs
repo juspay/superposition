@@ -787,6 +787,24 @@ async fn get_resolved_config(
         query_params_map.get("show_reasoning"),
         Some(Value::String(_))
     );
+
+    if let Some(context_id) = query_params_map.get("context_id") {
+        let c_id = context_id
+            .as_str()
+            .ok_or_else(|| bad_argument!("context_id is not a string"))?
+            .to_string();
+
+        config.contexts =
+            if let Some(index) = config.contexts.iter().position(|ctx| ctx.id == c_id) {
+                config.contexts[..index].to_vec()
+            } else {
+                return Err(bad_argument!(
+                    "context with id {} not found in CAC",
+                    context_id
+                ));
+            };
+    }
+
     let is_smithy: bool;
     let context = if req.method() == actix_web::http::Method::GET {
         is_smithy = false;
