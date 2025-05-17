@@ -27,6 +27,226 @@ use super::table::types::{
     default_column_formatter, default_formatter, ColumnSortable, Expandable,
 };
 
+#[component]
+fn experiment_info(experiment: StoredValue<ExperimentResponse>) -> impl IntoView {
+    view! {
+        <div class="card bg-base-100 max-w-screen shadow">
+            <div class="card-body flex flex-row gap-2 flex-wrap">
+                <div class="h-fit w-[300px]">
+                    <div class="stat-title">Experiment ID</div>
+                    <div class="stat-value text-sm">{experiment.with_value(|v| v.id.clone())}</div>
+                </div>
+                <div class="h-fit w-[300px]">
+                    <div class="stat-title">Description</div>
+                    <div
+                        class="tooltip tooltip-left w-[inherit] text-left"
+                        data-tip=experiment.with_value(|v| String::from(&v.description))
+                    >
+                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
+                            {experiment.with_value(|v| String::from(&v.description))}
+                        </div>
+                    </div>
+                </div>
+                <div class="h-fit w-[300px]">
+                    <div class="stat-title">Created by</div>
+                    <div class="stat-value text-sm">
+                        {experiment.with_value(|v| v.created_by.clone())}
+                    </div>
+                </div>
+                <div class="h-fit w-[300px]">
+                    <div class="stat-title">Created at</div>
+                    <div class="stat-value text-sm">
+                        {format!("{}", experiment.with_value(|v| v.created_at.format("%v %T")))}
+                    </div>
+                </div>
+                <div class="h-fit w-[300px]">
+                    <div class="stat-title">Traffic Percentage</div>
+                    <div class="stat-value text-sm">
+                        {experiment.with_value(|v| *v.traffic_percentage)}
+                    </div>
+                </div>
+                {experiment
+                    .with_value(|e| e.started_by.clone())
+                    .map(|started_by| {
+                        view! {
+                            <div class="h-fit w-[300px]">
+                                <div class="stat-title">Started by</div>
+                                <div class="stat-value text-sm">{started_by}</div>
+                            </div>
+                        }
+                            .into_view()
+                    })
+                    .unwrap_or_default()}
+                {experiment
+                    .with_value(|e| e.started_at)
+                    .map(|started_at| {
+                        view! {
+                            <div class="h-fit w-[300px]">
+                                <div class="stat-title">Started at</div>
+                                <div class="stat-value text-sm">
+                                    {format!("{}", started_at.format("%v %T"))}
+                                </div>
+                            </div>
+                        }
+                            .into_view()
+                    })
+                    .unwrap_or_default()}
+                <div class="h-fit w-[300px]">
+                    <div class="stat-title">Last Modified by</div>
+                    <div class="stat-value text-sm">
+                        {experiment.with_value(|v| v.last_modified_by.clone())}
+                    </div>
+                </div>
+                <div class="h-fit w-[300px]">
+                    <div class="stat-title">Last Modified at</div>
+                    <div class="stat-value text-sm">
+                        {format!("{}", experiment.with_value(|v| v.last_modified.format("%v %T")))}
+                    </div>
+                </div>
+                <div class="h-fit w-[300px]">
+                    <div class="stat-title">Change Reason</div>
+                    <div
+                        class="tooltip tooltip-left w-[inherit] text-left"
+                        data-tip=experiment.with_value(|v| String::from(&v.change_reason))
+                    >
+                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
+                            {experiment.with_value(|v| String::from(&v.change_reason))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+#[component]
+fn create_actions<HS, HD, HE>(
+    handle_start: HS,
+    handle_discard: HD,
+    handle_edit: HE,
+) -> impl IntoView
+where
+    HS: Fn() + 'static + Clone,
+    HD: Fn() + 'static + Clone,
+    HE: Fn() + 'static + Clone,
+{
+    view! {
+        <button
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            on:click=move |_| { handle_edit() }
+        >
+            <i class="ri-edit-line" />
+            Edit
+        </button>
+        <button
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            on:click=move |_| { handle_discard() }
+        >
+            <i class="ri-delete-bin-line" />
+            Discard
+        </button>
+        <button
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            on:click=move |_| { handle_start() }
+        >
+            <i class="ri-guide-line" />
+            Start
+        </button>
+    }
+}
+
+#[component]
+fn inprogress_actions<HR, HC, HD, HP>(
+    handle_ramp: HR,
+    handle_conclude: HC,
+    handle_discard: HD,
+    handle_pause: HP,
+) -> impl IntoView
+where
+    HR: Fn() + 'static + Clone,
+    HC: Fn() + 'static + Clone,
+    HD: Fn() + 'static + Clone,
+    HP: Fn() + 'static + Clone,
+{
+    view! {
+        <button
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            on:click=move |_| { handle_discard() }
+        >
+
+            <i class="ri-delete-bin-line" />
+            Discard
+        </button>
+        <button
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            on:click=move |_| { handle_conclude() }
+        >
+
+            <i class="ri-stop-circle-line" />
+            Conclude
+        </button>
+        <button
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            on:click=move |_| { handle_ramp() }
+        >
+            <i class="ri-flight-takeoff-line" />
+            Ramp
+        </button>
+        <button
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            on:click=move |_| { handle_pause() }
+        >
+            <i class="ri-pause-line" />
+            Pause
+        </button>
+    }
+}
+
+#[component]
+fn conclude_actions(experiment: StoredValue<ExperimentResponse>) -> impl IntoView {
+    view! {
+        <div class="stat">
+            <div class="stat-title">Chosen Variant</div>
+            <div class="stat-value">
+                {match experiment.with_value(|v| v.chosen_variant.clone()) {
+                    Some(ref v) => v.to_string(),
+                    None => String::new(),
+                }}
+            </div>
+        </div>
+    }
+}
+
+#[component]
+fn discard_actions() -> impl IntoView {
+    ().into_view()
+}
+
+#[component]
+fn pause_actions<HR, HD>(handle_resume: HR, handle_discard: HD) -> impl IntoView
+where
+    HR: Fn() + 'static + Clone,
+    HD: Fn() + 'static + Clone,
+{
+    view! {
+        <button
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            on:click=move |_| { handle_resume() }
+        >
+            <i class="ri-play-line" />
+            Resume
+        </button>
+        <button
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            on:click=move |_| { handle_discard() }
+        >
+
+            <i class="ri-delete-bin-line" />
+            Discard
+        </button>
+    }
+}
+
 #[allow(clippy::type_complexity)]
 pub fn gen_variant_table(variants: &[Variant]) -> (Vec<Map<String, Value>>, Vec<Column>) {
     let mut columns = vec![Column::default_no_collapse("Config Key".into())];
@@ -94,12 +314,12 @@ where
         gen_variant_table(&experiment.with_value(|v| v.variants.clone()));
 
     view! {
-        <div class="flex flex-col overflow-x-auto p-2 bg-transparent">
-            <h1 class="text-2xl pt-4 font-extrabold">
+        <div class="flex flex-col gap-10 overflow-x-auto p-7 bg-transparent">
+            <h1 class="text-2xl font-extrabold">
                 {experiment.with_value(|v| v.name.clone())}
                 <span class=badge_class>{experiment.with_value(|v| v.status.to_string())}</span>
             </h1>
-            <div class="flex flex-row justify-end join m-5">
+            <div class="-mt-5 flex flex-row justify-end join">
 
                 {move || {
                     let handle_start = handle_start.clone();
@@ -111,155 +331,29 @@ where
                     let handle_resume = handle_resume.clone();
                     match experiment.with_value(|v| v.status) {
                         ExperimentStatusType::CREATED => {
-                            view! {
-                                <button
-                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                    on:click=move |_| { handle_edit() }
-                                >
-
-                                    <i class="ri-edit-line"></i>
-                                    Edit
-                                </button>
-                                <button
-                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                    on:click=move |_| { handle_discard() }
-                                >
-
-                                    <i class="ri-delete-bin-line"></i>
-                                    Discard
-                                </button>
-                                <button
-                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                    on:click=move |_| {
-                                        handle_start()
-                                    }
-                                >
-
-                                    <i class="ri-guide-line"></i>
-                                    Start
-                                </button>
-                            }
-                                .into_view()
+                            view! { <CreateActions handle_start handle_discard handle_edit /> }
                         }
                         ExperimentStatusType::INPROGRESS => {
                             view! {
-                                <button
-                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                    on:click=move |_| { handle_conclude() }
-                                >
-
-                                    <i class="ri-stop-circle-line"></i>
-                                    Conclude
-                                </button>
-                                <button
-                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                    on:click=move |_| { handle_ramp() }
-                                >
-
-                                    <i class="ri-flight-takeoff-line"></i>
-                                    Ramp
-                                </button>
-                                <button
-                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                    on:click=move |_| {
-                                        handle_pause()
-                                    }
-                                >
-
-                                    <i class="ri-pause-line"></i>
-                                    Pause
-                                </button>
+                                <InprogressActions
+                                    handle_ramp
+                                    handle_conclude
+                                    handle_discard
+                                    handle_pause
+                                />
                             }
-                                .into_view()
                         }
-                        ExperimentStatusType::CONCLUDED => {
-                            view! {
-                                <div class="stat">
-                                    <div class="stat-title">Chosen Variant</div>
-                                    <div class="stat-value">
-                                        {match experiment.with_value(|v| v.chosen_variant.clone()) {
-                                            Some(ref v) => v.to_string(),
-                                            None => String::new(),
-                                        }}
-
-                                    </div>
-                                </div>
-                            }
-                                .into_view()
-                        }
-                        ExperimentStatusType::DISCARDED => view! { <></> }.into_view(),
+                        ExperimentStatusType::CONCLUDED => view! { <ConcludeActions experiment /> },
+                        ExperimentStatusType::DISCARDED => view! { <DiscardActions /> },
                         ExperimentStatusType::PAUSED => {
-                            view! {
-                                <button
-                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                    on:click=move |_| {
-                                        handle_resume()
-                                    }
-                                >
-
-                                    <i class="ri-play-line"></i>
-                                    Resume
-                                </button>
-                                <button
-                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                    on:click=move |_| { handle_discard() }
-                                >
-
-                                    <i class="ri-delete-bin-line"></i>
-                                    Discard
-                                </button>
-                            }
-                                .into_view()
+                            view! { <PauseActions handle_resume handle_discard /> }
                         }
                     }
                 }}
 
             </div>
-            <div class="flex bg-base-100 flex-row gap-2 justify-between flex-wrap shadow m-5">
-                <div class="stat w-2/12">
-                    <div class="stat-title">Experiment ID</div>
-                    <div class="stat-value text-sm">{experiment.with_value(|v| v.id.clone())}</div>
-                </div>
-                <div class="stat w-2/12">
-                    <div class="stat-title">Current Traffic Percentage</div>
-                    <div class="stat-value text-sm">
-                        {experiment.with_value(|v| *v.traffic_percentage)}
-                    </div>
-                </div>
-                <div class="stat w-2/12">
-                    <div class="stat-title">Created by</div>
-                    <div class="stat-value text-sm">
-                        {experiment.with_value(|v| v.created_by.clone())}
-                    </div>
-                </div>
-                <div class="stat w-2/12">
-                    <div class="stat-title">Description</div>
-                    <div class="stat-value text-sm">
-                        {experiment.with_value(|v| String::from(&v.description))}
-                    </div>
-                </div>
-                <div class="stat w-2/12">
-                    <div class="stat-title">Change Reason</div>
-                    <div class="stat-value text-sm">
-                        {experiment.with_value(|v| String::from(&v.change_reason))}
-                    </div>
-                </div>
-                <div class="stat w-2/12">
-                    <div class="stat-title">Created at</div>
-                    <div class="stat-value text-sm">
-                        {format!("{}", experiment.with_value(|v| v.created_at.format("%v %T")))}
-                    </div>
-                </div>
-                <div class="stat w-2/12">
-                    <div class="stat-title">Last Modified</div>
-                    <div class="stat-value text-sm">
-
-                        {format!("{}", experiment.with_value(|v| v.last_modified.format("%v %T")))}
-
-                    </div>
-                </div>
-            </div>
-            <div class="card bg-base-100 max-w-screen shadow m-5">
+            <ExperimentInfo experiment />
+            <div class="card bg-base-100 max-w-screen shadow">
                 <div class="card-body">
                     <h2 class="card-title">Context</h2>
                     <div class="flex flex-row flex-wrap gap-2">
@@ -296,7 +390,7 @@ where
                         v.metrics.enabled || v.status == ExperimentStatusType::CREATED
                     })
             }>
-                <div class="card bg-base-100 max-w-screen shadow m-5">
+                <div class="card bg-base-100 max-w-screen shadow">
                     <div class="card-body collapse collapse-arrow">
                         <input type="checkbox" checked=true />
                         <h2 class="card-title collapse-title h-fit !p-0">Metrics</h2>
@@ -351,7 +445,7 @@ where
                     </div>
                 </div>
             </Show>
-            <div class="card bg-base-100 max-w-screen shadow m-5">
+            <div class="card bg-base-100 max-w-screen shadow">
                 <div class="card-body">
                     <h2 class="card-title">Variants</h2>
                     <Table

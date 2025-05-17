@@ -67,6 +67,8 @@ where
                     create_type(tenant_rws.get().0, payload.clone(), org_rws.get().0)
                         .await
                 };
+
+                req_inprogress_ws.set(false);
                 match result {
                     Ok(_) => {
                         handle_submit();
@@ -86,7 +88,6 @@ where
                         enqueue_alert(e, AlertType::Error, 5000);
                     }
                 }
-                req_inprogress_ws.set(false);
             }
         });
     };

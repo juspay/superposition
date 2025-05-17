@@ -1,4 +1,5 @@
 use leptos::ServerFnError;
+use serde_json::{Map, Value};
 use superposition_types::{
     api::{
         context::ContextListFilters,
@@ -509,24 +510,25 @@ pub async fn resolve_config(
     context: &String,
     org_id: &String,
     show_reasoning: bool,
-) -> Result<serde_json::Value, String> {
+    context_id: Option<&String>,
+) -> Result<Map<String, Value>, String> {
     let client = reqwest::Client::new();
     let host = use_host_server();
-    let url = format!("{host}/config/resolve?{context}");
+    let mut url = format!("{host}/config/resolve?{context}");
+    if let Some(context_id) = context_id {
+        url = format!("{url}&context_id={context_id}");
+    };
+    if show_reasoning {
+        url = format!("{url}&show_reasoning=true");
+    }
     match client
         .get(url)
-        .query(&[("show_reasoning", show_reasoning)])
         .header("x-tenant", tenant)
         .header("x-org-id", org_id)
         .send()
         .await
     {
-        Ok(response) => {
-            let config = parse_json_response::<serde_json::Value>(response)
-                .await
-                .map_err(|e| e.to_string())?;
-            Ok(config)
-        }
+        Ok(response) => parse_json_response(response).await,
         Err(e) => Err(e.to_string()),
     }
 }
@@ -591,6 +593,25 @@ pub async fn get_context(
         url,
         reqwest::Method::GET,
         None::<serde_json::Value>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
+
+pub async fn get_context_from_condition(
+    condition: &Map<String, Value>,
+    tenant: &str,
+    org_id: &str,
+) -> Result<Context, String> {
+    let host = use_host_server();
+    let url = format!("{host}/context/get");
+
+    let response = request(
+        url,
+        reqwest::Method::POST,
+        Some(condition),
         construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
     )
     .await?;

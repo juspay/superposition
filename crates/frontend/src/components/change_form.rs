@@ -9,6 +9,7 @@ pub fn change_form(
     textarea_class: String,
     value: String,
     #[prop(into)] on_change: Callback<String, ()>,
+    #[prop(default = false)] disabled: bool,
 ) -> impl IntoView {
     let handle_change = move |ev| {
         let new_value = event_target_value(&ev);
@@ -19,7 +20,13 @@ pub fn change_form(
             <label class="label">
                 <span class="label-text">{title}</span>
             </label>
-            <textarea type="text" placeholder=placeholder class=textarea_class on:change=handle_change>
+            <textarea
+                type="text"
+                disabled=disabled
+                placeholder=placeholder
+                class=textarea_class
+                on:change=handle_change
+            >
                 {value}
             </textarea>
         </div>

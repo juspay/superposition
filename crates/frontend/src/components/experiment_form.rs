@@ -2,8 +2,9 @@ pub mod types;
 pub mod utils;
 
 use leptos::*;
+use serde_json::{Map, Value};
 use superposition_types::database::{
-    models::{cac::DefaultConfig, Metrics, Workspace},
+    models::{cac::DefaultConfig, experimentation::ExperimentType, Metrics, Workspace},
     types::DimensionWithMandatory,
 };
 use utils::{create_experiment, update_experiment};
@@ -11,8 +12,10 @@ use web_sys::MouseEvent;
 
 use crate::components::change_form::ChangeForm;
 use crate::components::context_form::ContextForm;
-use crate::components::metrics_form::MetricsForm;
-use crate::components::variant_form::VariantForm;
+use crate::components::{
+    metrics_form::MetricsForm,
+    variant_form::{DeleteVariantForm, VariantForm},
+};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::types::{VariantFormT, VariantFormTs};
 use crate::{
@@ -29,13 +32,38 @@ fn get_init_state(variants: &[VariantFormT]) -> Vec<(String, VariantFormT)> {
         .collect::<Vec<(String, VariantFormT)>>()
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub enum ExperimentFormType {
+    Default,
+    Delete(Option<(String, Map<String, Value>)>),
+}
+
+impl From<ExperimentFormType> for ExperimentType {
+    fn from(experiment_form_type: ExperimentFormType) -> Self {
+        match experiment_form_type {
+            ExperimentFormType::Default => ExperimentType::Default,
+            ExperimentFormType::Delete(_) => ExperimentType::DeleteOverrides,
+        }
+    }
+}
+
+impl From<ExperimentType> for ExperimentFormType {
+    fn from(experiment_type: ExperimentType) -> Self {
+        match experiment_type {
+            ExperimentType::Default => ExperimentFormType::Default,
+            ExperimentType::DeleteOverrides => ExperimentFormType::Delete(None),
+        }
+    }
+}
+
 #[component]
 pub fn experiment_form(
-    #[prop(default = false)] edit: bool,
-    #[prop(default = String::new())] id: String,
-    name: String,
+    #[prop(optional)] edit_id: Option<String>,
+    #[prop(default = String::new())] name: String,
     context: Conditions,
-    variants: VariantFormTs,
+    #[prop(default = VariantFormTs::default())] variants: VariantFormTs,
+    #[prop(default = ExperimentFormType::Default)]
+    experiment_form_type: ExperimentFormType,
     #[prop(into)] handle_submit: Callback<String, ()>,
     default_config: Vec<DefaultConfig>,
     dimensions: Vec<DimensionWithMandatory>,
@@ -44,6 +72,9 @@ pub fn experiment_form(
 ) -> impl IntoView {
     let init_variants = get_init_state(&variants);
     let default_config = StoredValue::new(default_config);
+    let edit_id = StoredValue::new(edit_id);
+    let dimensions = StoredValue::new(dimensions);
+    let experiment_form_type = StoredValue::new(experiment_form_type);
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
@@ -66,12 +97,9 @@ pub fn experiment_form(
             set_variants.set_untracked(updated_varaints);
         };
 
-    let dimensions = StoredValue::new(dimensions);
     let on_submit = move |event: MouseEvent| {
         req_inprogress_ws.set(true);
         event.prevent_default();
-        logging::log!("Submitting experiment form");
-        logging::log!("Variant Ids{:?}", f_variants.get());
 
         let f_experiment_name = experiment_name.get();
         let f_context = f_context.get();
@@ -82,14 +110,10 @@ pub fn experiment_form(
             .collect::<Vec<VariantFormT>>();
         let tenant = tenant_rws.get().0;
         let org = org_rws.get().0;
-        let experiment_id = id.clone();
-
-        logging::log!("Experiment name {:?}", f_experiment_name);
-        logging::log!("Context Experiment form {:?}", f_context);
 
         spawn_local({
             async move {
-                let result = if edit {
+                let result = if let Some(ref experiment_id) = edit_id.get_value() {
                     update_experiment(
                         experiment_id,
                         f_variants,
@@ -106,6 +130,7 @@ pub fn experiment_form(
                         f_variants,
                         Some(metrics_rws.get_untracked()),
                         f_experiment_name,
+                        ExperimentType::from(experiment_form_type.get_value()),
                         tenant,
                         description_rs.get_untracked(),
                         change_reason_rs.get_untracked(),
@@ -114,10 +139,11 @@ pub fn experiment_form(
                     .await
                 };
 
+                req_inprogress_ws.set(false);
                 match result {
                     Ok(res) => {
                         handle_submit.call(res.id);
-                        let success_message = if edit {
+                        let success_message = if edit_id.get_value().is_some() {
                             "Experiment updated successfully!"
                         } else {
                             "New Experiment created successfully!"
@@ -134,7 +160,6 @@ pub fn experiment_form(
                         // We can consider logging or displaying the error
                     }
                 }
-                req_inprogress_ws.set(false);
             }
         });
     };
@@ -146,7 +171,7 @@ pub fn experiment_form(
                     <span class="label-text">Experiment Name</span>
                 </label>
                 <input
-                    disabled=edit
+                    disabled=edit_id.get_value().is_some()
                     value=move || experiment_name.get()
                     on:input=move |ev| set_experiment_name.set(event_target_value(&ev))
                     type="text"
@@ -187,7 +212,8 @@ pub fn experiment_form(
                             context=context
                             handle_change=handle_context_form_change
                             resolve_mode=workspace_settings.get_value().strict_mode
-                            disabled=edit
+                            disabled=edit_id.get_value().is_some()
+                                || (experiment_form_type.get_value() != ExperimentFormType::Default)
                             heading_sub_text=String::from(
                                 "Define rules under which this experiment would run",
                             )
@@ -199,13 +225,29 @@ pub fn experiment_form(
 
             {move || {
                 let variants = f_variants.get();
-                view! {
-                    <VariantForm
-                        edit=edit
-                        variants=variants
-                        default_config=default_config.get_value()
-                        handle_change=handle_variant_form_change
-                    />
+                match experiment_form_type.get_value() {
+                    ExperimentFormType::Default => {
+                        view! {
+                            <VariantForm
+                                edit=edit_id.get_value().is_some()
+                                variants
+                                default_config=default_config.get_value()
+                                handle_change=handle_variant_form_change
+                            />
+                        }
+                    }
+                    ExperimentFormType::Delete(data) => {
+                        view! {
+                            <DeleteVariantForm
+                                edit=edit_id.get_value().is_some()
+                                context=f_context.get()
+                                context_data=data
+                                variants
+                                default_config=default_config.get_value()
+                                handle_change=handle_variant_form_change
+                            />
+                        }
+                    }
                 }
             }}
 
@@ -216,7 +258,7 @@ pub fn experiment_form(
                         <Button
                             class="pl-[70px] pr-[70px] w-48 h-12".to_string()
                             text="Submit".to_string()
-                            on_click=on_submit.clone()
+                            on_click=on_submit
                             loading
                         />
                     }

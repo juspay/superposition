@@ -506,7 +506,6 @@ pub fn experiment_list() -> impl IntoView {
 
                             <EditorProvider>
                                 <ExperimentForm
-                                    name="".to_string()
                                     context=Conditions::default()
                                     variants=VariantFormTs::default()
                                     dimensions=dim.clone()

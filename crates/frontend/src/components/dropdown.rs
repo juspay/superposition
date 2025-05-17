@@ -25,7 +25,7 @@ pub enum DropdownDirection {
 #[component]
 pub fn dropdown<T>(
     dropdown_options: Vec<T>,
-    on_select: Callback<T, ()>,
+    #[prop(into)] on_select: Callback<T, ()>,
     #[prop(into, default = false)] multi_select: bool,
     #[prop(into, default = Vec::new())] selected: Vec<T>,
     #[prop(into, default = Callback::from(|_| {}))] on_remove: Callback<T, ()>,
