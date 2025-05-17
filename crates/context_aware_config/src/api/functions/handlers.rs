@@ -200,18 +200,12 @@ async fn delete_function(
     let deleted_row =
         delete(functions::functions.filter(functions::function_name.eq(&f_name)))
             .schema_name(&schema_name)
-            .execute(&mut conn);
+            .execute(&mut conn)?;
     match deleted_row {
-        Ok(0) => Err(not_found!("Function {} doesn't exists", f_name)),
-        Ok(_) => {
+        0 => Err(not_found!("Function {} doesn't exists", f_name)),
+        _ => {
             log::info!("{f_name} function deleted by {}", user.get_email());
             Ok(HttpResponse::NoContent().finish())
-        }
-        Err(e) => {
-            log::error!("function delete query failed with error: {e}");
-            Err(unexpected_error!(
-                "Something went wrong, failed to delete the function"
-            ))
         }
     }
 }

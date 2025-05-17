@@ -5,7 +5,6 @@ members = [
     "crates/service_utils",
     "crates/context_aware_config",
     "crates/experimentation_platform",
-    "crates/service_utils",
     "crates/experimentation_client",
     "crates/cac_client",
     "crates/frontend",
