@@ -1,54 +1,87 @@
 pub mod utils;
 
-use std::rc::Rc;
-
 use leptos::*;
 use superposition_types::{
-    api::experiments::ExperimentResponse,
-    database::models::experimentation::{Variant, VariantType},
+    api::experiments::ExperimentResponse, database::models::experimentation::VariantType,
 };
 use utils::conclude_experiment;
 
 use crate::{
-    components::alert::AlertType,
-    components::change_form::ChangeForm,
+    components::{
+        alert::AlertType, change_form::ChangeForm,
+        experiment_discard_form::utils::discard_experiment,
+    },
     providers::alert_provider::enqueue_alert,
     types::{OrganisationId, Tenant},
 };
 
 #[component]
-pub fn experiment_conclude_form<HS>(
+pub fn experiment_conclude_form(
     experiment: ExperimentResponse,
-    handle_submit: HS,
-) -> impl IntoView
-where
-    HS: Fn() + 'static + Clone,
-{
+    #[prop(into)] handle_submit: Callback<(), ()>,
+) -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
-    let experiment_rc = Rc::new(experiment);
+    let experiment = StoredValue::new(experiment);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
+    let req_inprogess_rws = RwSignal::new(false);
+    let force_discard_rws = RwSignal::new(None as Option<String>);
 
-    let experiment_clone = experiment_rc.clone();
     let handle_conclude_experiment = move |variant_id: String| {
-        let handle_submit_clone = handle_submit.clone();
+        req_inprogess_rws.set(true);
         spawn_local(async move {
-            let experiment = experiment_clone.clone();
             let tenant = tenant_rws.get_untracked().0;
             let org = org_rws.get_untracked().0;
             let result = conclude_experiment(
-                experiment.id.to_string(),
+                experiment.get_value().id,
                 variant_id,
                 &tenant,
                 &org,
                 change_reason_rs.get_untracked(),
             )
             .await;
+
+            req_inprogess_rws.set(false);
             match result {
-                Ok(_) => {
-                    handle_submit_clone();
+                Ok(Ok(_)) => {
+                    handle_submit.call(());
                     enqueue_alert(
                         String::from("Experiment concluded successfully!"),
+                        AlertType::Success,
+                        5000,
+                    );
+                }
+                Ok(Err(e)) => {
+                    change_reason_ws
+                        .set("Discarding, as context no longer exists".to_string());
+                    force_discard_rws.set(Some(e.clone()));
+                    enqueue_alert(e, AlertType::Error, 5000);
+                }
+                Err(e) => {
+                    enqueue_alert(e, AlertType::Error, 5000);
+                }
+            }
+        })
+    };
+
+    let handle_discard_experiment = move |change_reason: String| {
+        req_inprogess_rws.set(true);
+        let tenant = tenant_rws.get_untracked().0;
+        let org = org_rws.get_untracked().0;
+        spawn_local(async move {
+            let result = discard_experiment(
+                &experiment.get_value().id,
+                &tenant,
+                &org,
+                change_reason,
+            )
+            .await;
+            req_inprogess_rws.set(false);
+            match result {
+                Ok(_) => {
+                    handle_submit.call(());
+                    enqueue_alert(
+                        String::from("Experiment discarded successfully!"),
                         AlertType::Success,
                         5000,
                     );
@@ -57,7 +90,7 @@ where
                     enqueue_alert(e, AlertType::Error, 5000);
                 }
             }
-        })
+        });
     };
 
     view! {
@@ -67,72 +100,90 @@ where
             the new default that is served to requests that match this context
         </p>
         <form method="dialog" class="flex flex-col gap-3">
-            <ChangeForm
-                title="Reason for Change".to_string()
-                placeholder="Enter a reason for this change".to_string()
-                value=change_reason_rs.get_untracked()
-                on_change=Callback::new(move |new_change_reason| {
-                    change_reason_ws.set(new_change_reason)
-                })
-            />
-
-            <For
-                each=move || {
-                    experiment_rc
+            {move || {
+                view! {
+                    <ChangeForm
+                        title="Reason for Change".to_string()
+                        placeholder="Enter a reason for this change".to_string()
+                        value=change_reason_rs.get()
+                        disabled=force_discard_rws.get().is_some()
+                        on_change=move |new_change_reason| {
+                            change_reason_ws.set(new_change_reason)
+                        }
+                    />
+                }
+            }}
+            {move || {
+                if let Some(force_discard_message) = force_discard_rws.get() {
+                    let disabled = req_inprogess_rws.get();
+                    view! {
+                        <span class="text-red-500">
+                            {format!("Error: {force_discard_message}")}
+                        </span>
+                        <button
+                            disabled=disabled
+                            class="btn btn-block btn-outline btn-info max-w-md"
+                            class=("cursor-disabled", disabled)
+                            on:click=move |e| {
+                                e.prevent_default();
+                                handle_discard_experiment(change_reason_rs.get_untracked());
+                            }
+                        >
+                            Discard
+                        </button>
+                    }
+                        .into_view()
+                } else {
+                    experiment
+                        .get_value()
                         .variants
                         .iter()
-                        .cloned()
                         .enumerate()
-                        .collect::<Vec<(usize, Variant)>>()
-                }
-
-                key=|(_, variant)| variant.id.to_string()
-                children=move |(idx, variant)| {
-                    let variant = variant.clone();
-                    let variant_type = variant.variant_type;
-                    let variant_id = variant.id;
-                    let handle_conclude_experiment_clone = handle_conclude_experiment.clone();
-                    match variant_type {
-                        VariantType::CONTROL => {
-                            view! {
-                                <button
-                                    class="btn btn-block btn-outline btn-info max-w-md"
-                                    on:click=move |e| {
-                                        e.prevent_default();
-                                        let handle_conclude_experiment_clone = handle_conclude_experiment_clone
-                                            .clone();
-                                        handle_conclude_experiment_clone(variant_id.to_string())
+                        .map(move |(idx, variant)| {
+                            let variant = variant.clone();
+                            let variant_type = variant.variant_type;
+                            let variant_id = variant.id;
+                            let disabled = req_inprogess_rws.get();
+                            match variant_type {
+                                VariantType::CONTROL => {
+                                    view! {
+                                        <button
+                                            disabled=disabled
+                                            class="btn btn-block btn-outline btn-info max-w-md"
+                                            class=("cursor-disabled", disabled)
+                                            on:click=move |e| {
+                                                e.prevent_default();
+                                                handle_conclude_experiment(variant_id.to_string())
+                                            }
+                                        >
+                                            Control
+                                        </button>
                                     }
-                                >
-
-                                    Control
-                                </button>
-                            }
-                                .into_view()
-                        }
-                        VariantType::EXPERIMENTAL => {
-                            {
-                                view! {
-                                    <button
-                                        class="btn btn-block btn-outline btn-success max-w-md"
-                                        on:click=move |e| {
-                                            e.prevent_default();
-                                            let handle_conclude_experiment_clone = handle_conclude_experiment_clone
-                                                .clone();
-                                            handle_conclude_experiment_clone(variant_id.to_string())
+                                        .into_view()
+                                }
+                                VariantType::EXPERIMENTAL => {
+                                    {
+                                        view! {
+                                            <button
+                                                disabled=disabled
+                                                class="btn btn-block btn-outline btn-success max-w-md"
+                                                class=("cursor-disabled", disabled)
+                                                on:click=move |e| {
+                                                    e.prevent_default();
+                                                    handle_conclude_experiment(variant_id.to_string());
+                                                }
+                                            >
+                                                {format!("Variant-{idx}")}
+                                            </button>
                                         }
-                                    >
-
-                                        {format!("Variant-{idx}")}
-                                    </button>
+                                    }
+                                        .into_view()
                                 }
                             }
-                                .into_view()
-                        }
-                    }
+                        })
+                        .collect_view()
                 }
-            />
-
+            }}
         </form>
     }
 }

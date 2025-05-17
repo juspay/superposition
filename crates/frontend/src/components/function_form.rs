@@ -129,6 +129,7 @@ where
                     .await
                 };
 
+                req_inprogress_ws.set(false);
                 match result {
                     Ok(_) => {
                         handle_submit_clone();
@@ -148,7 +149,6 @@ where
                         enqueue_alert(e, AlertType::Error, 5000);
                     }
                 }
-                req_inprogress_ws.set(false);
             }
         });
     };
@@ -306,6 +306,7 @@ pub fn test_form(
                 let result =
                     test_function(f_function_name, f_stage, &f_args, tenant, org).await;
 
+                req_inprogress_ws.set(false);
                 match result {
                     Ok(resp) => {
                         set_error_message.set(String::new());
@@ -316,7 +317,6 @@ pub fn test_form(
                         set_error_message.set(e);
                     }
                 }
-                req_inprogress_ws.set(false);
             }
         });
     };

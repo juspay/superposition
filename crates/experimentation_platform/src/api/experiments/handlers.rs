@@ -480,16 +480,20 @@ pub async fn conclude(
                         context_override.remove(key);
                     }
 
-                    let payload = UpdateRequest {
-                        context: Identifier::Id(exp_context_id.clone()),
-                        override_: Cac::<Overrides>::try_from(context_override).map_err(|err| {
-                            log::error!("failed to convert variant overrides to cac override {err}",);
-                            bad_argument!("failed to convert variant overrides to cac override {err}")
-                        })?,
-                        description: Some(description.clone()),
-                        change_reason: change_reason.clone(),
-                    };
-                    operations.push(ContextAction::REPLACE(payload));
+                    if context_override.is_empty() {
+                        operations.push(ContextAction::DELETE(exp_context_id.clone()));
+                    } else {
+                        let payload = UpdateRequest {
+                            context: Identifier::Id(exp_context_id.clone()),
+                            override_: Cac::<Overrides>::try_from(context_override).map_err(|err| {
+                                log::error!("failed to convert variant overrides to cac override {err}");
+                                bad_argument!("failed to convert variant overrides to cac override")
+                            })?,
+                            description: None,
+                            change_reason: change_reason.clone(),
+                        };
+                        operations.push(ContextAction::REPLACE(payload));
+                    }
                     operations.push(ContextAction::DELETE(context_id));
                 }
             }
@@ -1201,8 +1205,8 @@ async fn update_overrides(
                 unexpected_error!("context id not available for variant {}", variant.id)
             })?),
             override_: Cac::<Overrides>::try_from(overrides).map_err(|err| {
-                log::error!("failed to convert variant overrides to cac override {err}",);
-                bad_argument!("failed to convert variant overrides to cac override {err}")
+                log::error!("failed to convert variant overrides to cac override {err}");
+                bad_argument!("failed to convert variant overrides to cac override")
             })?,
             description: description.clone(),
             change_reason: change_reason.clone(),

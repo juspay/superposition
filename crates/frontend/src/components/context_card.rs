@@ -16,23 +16,29 @@ pub fn context_card(
     context: Context,
     overrides: Map<String, Value>,
     #[prop(default = true)] show_actions: bool,
-    #[prop(default=Callback::new(|_| {}))] handle_create_experiment: Callback<
+    #[prop(into, default=Callback::new(|_| {}))] handle_create_experiment: Callback<
         (Context, Map<String, Value>),
         (),
     >,
-    #[prop(default=Callback::new(|_| {}))] handle_edit: Callback<
+    #[prop(into, default=Callback::new(|_| {}))] handle_delete_experiment: Callback<
         (Context, Map<String, Value>),
         (),
     >,
-    #[prop(default=Callback::new(|_| {}))] handle_clone: Callback<
+    #[prop(into, default=Callback::new(|_| {}))] handle_edit: Callback<
         (Context, Map<String, Value>),
         (),
     >,
-    #[prop(default=Callback::new(|_| {}))] handle_delete: Callback<String, ()>,
+    #[prop(into, default=Callback::new(|_| {}))] handle_clone: Callback<
+        (Context, Map<String, Value>),
+        (),
+    >,
+    #[prop(into, default=Callback::new(|_| {}))] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
     let conditions: Conditions = (&context).try_into().unwrap_or_default();
     let description = context.description.clone();
     let change_reason = context.change_reason.clone();
+
+    let node_ref = create_node_ref::<html::Input>();
 
     let override_table_rows = overrides
         .clone()
@@ -110,32 +116,69 @@ pub fn context_card(
                 <Show when=move || actions_supported>
                     <div class="h-fit flex gap-4 text-right">
                         <Show when=move || !edit_unsupported>
-                            <i
-                                class="ri-test-tube-line ri-lg text-blue-500 cursor-pointer"
-                                on:click=move |_| {
-                                    handle_create_experiment
-                                        .call((context.get_value(), overrides.get_value()));
-                                }
-                            />
-                            <i
-                                class="ri-pencil-line ri-lg text-blue-500 cursor-pointer"
-                                on:click=move |_| {
-                                    handle_edit.call((context.get_value(), overrides.get_value()));
-                                }
-                            />
-                            <i
-                                class="ri-file-copy-line ri-lg text-blue-500 cursor-pointer"
-                                on:click=move |_| {
-                                    handle_clone.call((context.get_value(), overrides.get_value()));
-                                }
-                            />
-                            <i
-                                class="ri-delete-bin-5-line ri-lg text-red-500 cursor-pointer"
-                                on:click=move |_| {
-                                    let context_id = context_id.get_value();
-                                    handle_delete.call(context_id);
-                                }
-                            />
+                            <div class="w-fit dropdown dropdown-left">
+                                <label
+                                    tabindex="0"
+                                    class="btn btn-sm text-xs m-1 w-full"
+                                    on:click:undelegated=move |_| {
+                                        if let Some(element) = node_ref.get() {
+                                            let _ = element.focus();
+                                        }
+                                    }
+                                >
+                                    <i class="ri-more-2-fill" />
+                                </label>
+                                <ul
+                                    tabindex="0"
+                                    class="dropdown-content z-[999999] menu w-[350px] flex-nowrap p-2 shadow bg-base-100 rounded-box overflow-x-hidden"
+                                >
+                                    <li on:click=move |_| {
+                                        handle_create_experiment
+                                            .call((context.get_value(), overrides.get_value()));
+                                    }>
+                                        <div class="flex gap-2">
+                                            <i class="w-fit ri-test-tube-line ri-lg text-blue-500 cursor-pointer" />
+                                            <span>{"Update Overrides via Experiment"}</span>
+                                        </div>
+                                    </li>
+                                    <li on:click=move |_| {
+                                        handle_delete_experiment
+                                            .call((context.get_value(), overrides.get_value()));
+                                    }>
+                                        <div class="flex gap-2">
+                                            <i class="w-fit ri-delete-row ri-lg text-blue-500 cursor-pointer" />
+                                            <span>{"Delete Overrides via Experiment"}</span>
+                                        </div>
+                                    </li>
+                                    <li on:click=move |_| {
+                                        handle_edit
+                                            .call((context.get_value(), overrides.get_value()));
+                                    }>
+                                        <div class="flex gap-2">
+                                            <i class="w-fit ri-pencil-line ri-lg text-blue-500 cursor-pointer" />
+                                            <span>{"Update Overrides"}</span>
+                                        </div>
+                                    </li>
+                                    <li on:click=move |_| {
+                                        handle_clone
+                                            .call((context.get_value(), overrides.get_value()));
+                                    }>
+                                        <div class="flex gap-2">
+                                            <i class="w-fit ri-file-copy-line ri-lg text-blue-500 cursor-pointer" />
+                                            <span>{"Clone Override"}</span>
+                                        </div>
+                                    </li>
+                                    <li on:click=move |_| {
+                                        let context_id = context_id.get_value();
+                                        handle_delete.call(context_id);
+                                    }>
+                                        <div class="flex gap-2">
+                                            <i class="w-fit ri-delete-bin-5-line ri-lg text-red-500 cursor-pointer" />
+                                            <span>{"Delete Override"}</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
                         </Show>
                         <Show when=move || edit_unsupported>
                             <span class="badge badge-warning text-xs ml-2 flex items-center">

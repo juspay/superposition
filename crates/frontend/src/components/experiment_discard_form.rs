@@ -30,21 +30,20 @@ where
     let handle_discard_experiment = move |event: MouseEvent| {
         req_inprogress_ws.set(true);
         event.prevent_default();
-        let experiment_clone = experiment_rc.clone();
+        let experiment_id = experiment_rc.id.clone();
         let handle_submit_clone = handle_submit.clone();
         spawn_local(async move {
             let tenant = tenant_rws.get().0;
             let org = org_rws.get().0;
             let change_reason_value = change_reason.get();
-            let result = discard_experiment(
-                &experiment_clone.id,
-                &tenant,
-                &org,
-                change_reason_value,
-            )
-            .await;
+            let result =
+                discard_experiment(&experiment_id, &tenant, &org, change_reason_value)
+                    .await;
+
+            req_inprogress_ws.set(false);
             match result {
                 Ok(_) => {
+                    handle_submit_clone();
                     enqueue_alert(
                         String::from("Experiment discarded successfully!"),
                         AlertType::Success,
@@ -55,8 +54,6 @@ where
                     enqueue_alert(e, AlertType::Error, 5000);
                 }
             }
-            req_inprogress_ws.set(false);
-            handle_submit_clone()
         });
     };
 
@@ -70,9 +67,7 @@ where
                 title="Reason for Change".to_string()
                 placeholder="Enter a reason for this change".to_string()
                 value=change_reason.get_untracked()
-                on_change=move |new_change_reason| {
-                    set_change_reason.set(new_change_reason)
-                }
+                on_change=move |new_change_reason| { set_change_reason.set(new_change_reason) }
             />
             {move || {
                 view! {

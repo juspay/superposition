@@ -44,6 +44,7 @@ fn override_input(
     on_change: Callback<(String, Value), ()>,
     on_remove: Callback<String, ()>,
     allow_remove: bool,
+    disabled: bool,
 ) -> impl IntoView {
     let key = store_value(key);
 
@@ -68,17 +69,18 @@ fn override_input(
             </div>
 
             <div class="flex gap-4">
-                {if input_type.is_some() {
+                {if let Some(input_type) = input_type {
                     view! {
                         <Input
                             id=id
                             class=input_class
-                            r#type=input_type.unwrap()
+                            r#type=input_type
                             value=value
-                            schema_type=r#type.unwrap()
+                            schema_type=r#type.unwrap_or_default()
                             on_change=Callback::new(move |value| {
                                 on_change.call((key.get_value(), value));
                             })
+                            disabled
                         />
                     }
                         .into_view()
@@ -106,18 +108,17 @@ fn override_input(
 }
 
 #[component]
-pub fn override_form<NF>(
+pub fn override_form(
     overrides: Vec<(String, Value)>,
     default_config: Vec<DefaultConfig>,
-    handle_change: NF,
+    #[prop(into)] handle_change: Callback<Vec<(String, Value)>, ()>,
+    #[prop(default = false)] auto_fill_from_default: bool,
     #[prop(into, default=String::new())] id: String,
     #[prop(default = false)] disable_remove: bool,
     #[prop(default = true)] show_add_override: bool,
-    #[prop(into, default = None)] handle_key_remove: Option<Callback<String, ()>>,
-) -> impl IntoView
-where
-    NF: Fn(Vec<(String, Value)>) + 'static,
-{
+    #[prop(into, optional)] handle_key_remove: Option<Callback<String, ()>>,
+    #[prop(default = false)] disabled: bool,
+) -> impl IntoView {
     let id = store_value(id);
     let default_config = store_value(default_config);
     let (override_keys, set_override_keys) = create_signal(HashSet::<String>::from_iter(
@@ -128,14 +129,18 @@ where
     let default_config_map: HashMap<String, DefaultConfig> = default_config
         .get_value()
         .into_iter()
-        .map(|ele| (ele.clone().key, ele))
+        .map(|ele| (ele.key.clone(), ele))
         .collect();
 
     let handle_config_key_select = Callback::new(move |default_config: DefaultConfig| {
         let config_key = default_config.key;
 
         if let Ok(config_type) = SchemaType::try_from(default_config.schema) {
-            let def_value = config_type.default_value();
+            let def_value = if auto_fill_from_default {
+                default_config.value
+            } else {
+                config_type.default_value()
+            };
             set_overrides.update(|value| {
                 value.push((config_key.clone(), def_value));
             });
@@ -175,7 +180,7 @@ where
 
     create_effect(move |_| {
         let f_override = overrides.get();
-        handle_change(f_override.clone());
+        handle_change.call(f_override.clone());
     });
 
     view! {
@@ -217,20 +222,12 @@ where
 
                             key=|(config_key, _)| config_key.to_string()
                             children=move |(config_key, config_value)| {
-                                let schema_type = SchemaType::try_from(
-                                    default_config_map
-                                        .get(&config_key.clone())
-                                        .unwrap()
-                                        .schema
-                                        .clone(),
-                                );
-                                let enum_variants = EnumVariants::try_from(
-                                    default_config_map
-                                        .get(&config_key.clone())
-                                        .unwrap()
-                                        .schema
-                                        .clone(),
-                                );
+                                let schema = default_config_map
+                                    .get(&config_key)
+                                    .map(|config| config.schema.clone())
+                                    .unwrap_or_default();
+                                let schema_type = SchemaType::try_from(schema.clone());
+                                let enum_variants = EnumVariants::try_from(schema);
                                 view! {
                                     <OverrideInput
                                         id=format!("{}-{}", id.get_value(), config_key)
@@ -241,6 +238,7 @@ where
                                         on_change=on_change
                                         on_remove=on_remove
                                         allow_remove=!disable_remove
+                                        disabled
                                     />
                                 }
                             }

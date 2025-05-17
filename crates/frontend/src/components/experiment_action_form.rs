@@ -57,7 +57,7 @@ pub fn experiment_action_form(
                 "Start",
                 "ri-guide-fill",
             ),
-            PopupType::None => ("", "", "", "", ""),
+            _ => ("", "", "", "", ""),
         };
 
     let handle_experiment_action = move |event: MouseEvent| {
@@ -93,6 +93,7 @@ pub fn experiment_action_form(
                 _ => Err("".to_string()),
             };
 
+            req_inprogress_ws.set(false);
             match result {
                 Ok(_) => {
                     handle_submit.call(());
@@ -103,7 +104,6 @@ pub fn experiment_action_form(
                     enqueue_alert(e, AlertType::Error, 5000);
                 }
             }
-            req_inprogress_ws.set(false);
         });
     };
 

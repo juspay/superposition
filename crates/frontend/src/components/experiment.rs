@@ -130,9 +130,7 @@ where
                                 </button>
                                 <button
                                     class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                    on:click=move |_| {
-                                        handle_start()
-                                    }
+                                    on:click=move |_| { handle_start() }
                                 >
 
                                     <i class="ri-guide-line"></i>
@@ -143,6 +141,14 @@ where
                         }
                         ExperimentStatusType::INPROGRESS => {
                             view! {
+                                <button
+                                    class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                    on:click=move |_| { handle_discard() }
+                                >
+
+                                    <i class="ri-delete-bin-line"></i>
+                                    Discard
+                                </button>
                                 <button
                                     class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
                                     on:click=move |_| { handle_conclude() }
@@ -161,9 +167,7 @@ where
                                 </button>
                                 <button
                                     class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                    on:click=move |_| {
-                                        handle_pause()
-                                    }
+                                    on:click=move |_| { handle_pause() }
                                 >
 
                                     <i class="ri-pause-line"></i>
@@ -192,9 +196,7 @@ where
                             view! {
                                 <button
                                     class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                    on:click=move |_| {
-                                        handle_resume()
-                                    }
+                                    on:click=move |_| { handle_resume() }
                                 >
 
                                     <i class="ri-play-line"></i>
@@ -221,9 +223,9 @@ where
                     <div class="stat-value text-sm">{experiment.with_value(|v| v.id.clone())}</div>
                 </div>
                 <div class="stat w-2/12">
-                    <div class="stat-title">Current Traffic Percentage</div>
+                    <div class="stat-title">Description</div>
                     <div class="stat-value text-sm">
-                        {experiment.with_value(|v| *v.traffic_percentage)}
+                        {experiment.with_value(|v| String::from(&v.description))}
                     </div>
                 </div>
                 <div class="stat w-2/12">
@@ -233,29 +235,59 @@ where
                     </div>
                 </div>
                 <div class="stat w-2/12">
-                    <div class="stat-title">Description</div>
-                    <div class="stat-value text-sm">
-                        {experiment.with_value(|v| String::from(&v.description))}
-                    </div>
-                </div>
-                <div class="stat w-2/12">
-                    <div class="stat-title">Change Reason</div>
-                    <div class="stat-value text-sm">
-                        {experiment.with_value(|v| String::from(&v.change_reason))}
-                    </div>
-                </div>
-                <div class="stat w-2/12">
                     <div class="stat-title">Created at</div>
                     <div class="stat-value text-sm">
                         {format!("{}", experiment.with_value(|v| v.created_at.format("%v %T")))}
                     </div>
                 </div>
                 <div class="stat w-2/12">
-                    <div class="stat-title">Last Modified</div>
+                    <div class="stat-title">Current Traffic Percentage</div>
                     <div class="stat-value text-sm">
-
+                        {experiment.with_value(|v| *v.traffic_percentage)}
+                    </div>
+                </div>
+                {experiment
+                    .with_value(|e| e.started_by.clone())
+                    .map(|started_by| {
+                        view! {
+                            <div class="stat w-2/12">
+                                <div class="stat-title">Started by</div>
+                                <div class="stat-value text-sm">{started_by}</div>
+                            </div>
+                        }
+                            .into_view()
+                    })
+                    .unwrap_or_default()}
+                {experiment
+                    .with_value(|e| e.started_at)
+                    .map(|started_at| {
+                        view! {
+                            <div class="stat w-2/12">
+                                <div class="stat-title">Started by</div>
+                                <div class="stat-value text-sm">
+                                    {format!("{}", started_at.format("%v %T"))}
+                                </div>
+                            </div>
+                        }
+                            .into_view()
+                    })
+                    .unwrap_or_default()}
+                <div class="stat w-2/12">
+                    <div class="stat-title">Last Modified by</div>
+                    <div class="stat-value text-sm">
+                        {experiment.with_value(|v| v.created_by.clone())}
+                    </div>
+                </div>
+                <div class="stat w-2/12">
+                    <div class="stat-title">Last Modified at</div>
+                    <div class="stat-value text-sm">
                         {format!("{}", experiment.with_value(|v| v.last_modified.format("%v %T")))}
-
+                    </div>
+                </div>
+                <div class="stat w-2/12">
+                    <div class="stat-title">Change Reason</div>
+                    <div class="stat-value text-sm">
+                        {experiment.with_value(|v| String::from(&v.change_reason))}
                     </div>
                 </div>
             </div>

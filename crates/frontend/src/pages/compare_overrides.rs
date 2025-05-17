@@ -105,8 +105,8 @@ pub fn compare_overrides() -> impl IntoView {
         create_blocking_resource(source, |(tenant, org_id, contexts)| async move {
             let mut contexts_config_vector_map: ComparisonTable = HashMap::new();
             for context in contexts {
-                match resolve_config(&tenant, &context, &org_id, false).await {
-                    Ok(Value::Object(config)) => {
+                match resolve_config(&tenant, &context, &org_id, false, None).await {
+                    Ok(config) => {
                         for (config_key, resolved_value) in config {
                             let mut row_vector = contexts_config_vector_map
                                 .get(&config_key)
@@ -127,14 +127,6 @@ pub fn compare_overrides() -> impl IntoView {
                             e
                         );
                         enqueue_alert(e.clone(), AlertType::Error, 1000);
-                    }
-                    _ => {
-                        logging::error!("Error resolving config for context {}", context);
-                        enqueue_alert(
-                            "Could not decode the resolved config".into(),
-                            AlertType::Error,
-                            1000,
-                        );
                     }
                 }
             }
