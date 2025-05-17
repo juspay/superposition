@@ -247,18 +247,15 @@ pub fn home() -> impl IntoView {
         // resolve the context and get the config that would apply
         spawn_local(async move {
             let context = context_updated.as_query_string();
-            let mut config = match resolve_config(
+            let mut config = resolve_config(
                 &tenant_rws.get_untracked().0,
                 &context,
                 &org_rws.get_untracked().0,
                 true,
+                None,
             )
             .await
-            .unwrap()
-            {
-                Value::Object(m) => m,
-                _ => Map::new(),
-            };
+            .unwrap_or_default();
             logging::log!("resolved config {:#?}", config);
             // unstrike those that we want to show the user
             // if metadata field is found, unstrike only that override

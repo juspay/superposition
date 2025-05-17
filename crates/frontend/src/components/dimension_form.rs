@@ -172,6 +172,8 @@ where
                     create_dimension(tenant_rws.get().0, create_payload, org_rws.get().0)
                         .await
                 };
+
+                req_inprogress_ws.set(false);
                 match result {
                     Ok(_) => {
                         handle_submit();
@@ -193,7 +195,6 @@ where
                         // Consider logging or displaying the error
                     }
                 }
-                req_inprogress_ws.set(false);
             }
         });
     };

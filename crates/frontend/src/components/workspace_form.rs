@@ -73,6 +73,7 @@ pub fn workspace_form(
                     create_workspace(org_id.get_untracked().0, create_payload).await
                 };
 
+                req_inprogress_ws.set(false);
                 match result {
                     Ok(_) => {
                         handle_submit.call(());
@@ -96,7 +97,6 @@ pub fn workspace_form(
                         enqueue_alert(e, AlertType::Error, 5000);
                     }
                 }
-                req_inprogress_ws.set(false);
             }
         });
     };

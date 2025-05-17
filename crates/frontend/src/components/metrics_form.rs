@@ -184,7 +184,7 @@ pub fn metrics_form(
     view! {
         <div class="pt-2 flex flex-col">
             <label class="label w-fit flex items-center gap-2">
-                <Toggle value=metrics_rws.with(|m| m.enabled) on_change=toggle_enabled />
+                <Toggle value=metrics_rws.with_untracked(|m| m.enabled) on_change=toggle_enabled />
                 <span class="label-text">"Metrics"</span>
                 <div class="group relative inline-block text-[10px] text-gray-700 cursor-pointer">
                     <p class="z-[1000] hidden absolute top-full left-1/2 w-[320px] p-2.5 group-hover:flex flex-col gap-4 bg-black text-white rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal translate-x-[20px] -translate-y-1/2">

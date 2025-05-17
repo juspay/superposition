@@ -56,10 +56,10 @@ impl From<Experiment> for ExperimentResponse {
                 experiment.metrics.source().map(|source| {
                     match source {
                         MetricSource::Grafana { base_url, dashboard_uid, dashboard_slug, variant_id_alias } => {
-                            let to = if experiment.status == ExperimentStatusType::CONCLUDED {
-                                experiment.last_modified.to_string()
-                            } else {
+                            let to = if experiment.status.active() {
                                 "now".to_string()
+                            } else {
+                                experiment.last_modified.to_string()
                             };
                             let from = started_at.timestamp_millis();
 

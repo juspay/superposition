@@ -110,6 +110,8 @@ where
                     )
                     .await
                 };
+
+                req_inprogress_ws.set(false);
                 match result {
                     Ok(_) => {
                         handle_submit();
@@ -128,7 +130,6 @@ where
                         enqueue_alert(e, AlertType::Error, 5000);
                     }
                 }
-                req_inprogress_ws.set(false);
             }
         });
     };

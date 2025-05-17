@@ -212,7 +212,7 @@ pub async fn get_context_override(
         log::error!("Failed to fetch context during cac http call");
         match err {
             superposition::AppError::ResponseError(val) if val.status_code == StatusCode::NOT_FOUND => {
-                response_error!(StatusCode::PRECONDITION_FAILED,format!("Context not found in CAC for given experiment, you should discard this experiment: {}", val.message))
+                response_error!(StatusCode::PRECONDITION_FAILED, "Context not found in CAC for given experiment, you should discard this experiment")
             }
             _ => err,
         }

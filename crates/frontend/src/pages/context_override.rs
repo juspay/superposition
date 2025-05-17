@@ -34,7 +34,7 @@ use crate::components::{
     delete_modal::DeleteModal,
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
     dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-    experiment_form::ExperimentForm,
+    experiment_form::{ExperimentForm, ExperimentFormType},
     override_form::OverrideForm,
     pagination::Pagination,
     skeleton::Skeleton,
@@ -289,6 +289,7 @@ fn form(
 
             let edit = edit_id.get_value().is_some();
 
+            req_inprogress_ws.set(false);
             match result {
                 Ok(_) => {
                     logging::log!("Context and overrides submitted successfully");
@@ -309,7 +310,6 @@ fn form(
                     enqueue_alert(e, AlertType::Error, 5000);
                 }
             }
-            req_inprogress_ws.set(false);
         });
     };
     view! {
@@ -378,6 +378,7 @@ pub fn context_override() -> impl IntoView {
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
     let (delete_modal, set_delete_modal) = create_signal(false);
     let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
+    let experiment_form_type_rws = RwSignal::new(ExperimentFormType::Default);
 
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
@@ -483,10 +484,10 @@ pub fn context_override() -> impl IntoView {
         match Conditions::from_context_json(&context.value.into()) {
             Ok(conditions) => {
                 selected_context_ws.set(Some(Data {
-                    context_id: context.id.clone(),
+                    context_id: context.id,
                     context: conditions,
                     overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
-                    description: context.description.clone(),
+                    description: context.description,
                 }));
                 set_form_mode.set(Some(FormMode::Edit));
                 open_drawer("context_and_override_drawer");
@@ -508,31 +509,53 @@ pub fn context_override() -> impl IntoView {
         navigate(redirect_url.as_str(), Default::default())
     };
 
-    let handle_create_experiment =
-        Callback::new(move |data: (Context, Map<String, Value>)| {
-            let (context, overrides) = data;
+    let handle_create_experiment = move |data: (Context, Map<String, Value>)| {
+        let (context, overrides) = data;
 
-            match Conditions::from_context_json(&context.value.into()) {
-                Ok(conditions) => {
-                    selected_context_ws.set(Some(Data {
-                        context_id: context.id.clone(),
-                        context: conditions,
-                        overrides: overrides
-                            .into_iter()
-                            .collect::<Vec<(String, Value)>>(),
-                        ..Default::default()
-                    }));
+        match Conditions::from_context_json(&context.value.into()) {
+            Ok(conditions) => {
+                selected_context_ws.set(Some(Data {
+                    context_id: context.id,
+                    context: conditions,
+                    overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
+                    ..Default::default()
+                }));
+                experiment_form_type_rws.set(ExperimentFormType::Default);
+                open_drawer("create_exp_drawer");
+            }
+            Err(e) => {
+                logging::error!("Error parsing context: {}", e);
+                enqueue_alert(e.to_string(), AlertType::Error, 5000);
+            }
+        };
+    };
 
-                    open_drawer("create_exp_drawer");
-                }
-                Err(e) => {
-                    logging::error!("Error parsing context: {}", e);
-                    enqueue_alert(e.to_string(), AlertType::Error, 5000);
-                }
-            };
-        });
+    let handle_delete_experiment = move |data: (Context, Map<String, Value>)| {
+        let (context, overrides) = data;
 
-    let on_context_clone = Callback::new(move |data: (Context, Map<String, Value>)| {
+        match Conditions::from_context_json(&context.value.into()) {
+            Ok(conditions) => {
+                experiment_form_type_rws.set(ExperimentFormType::Delete(Some((
+                    context.id.clone(),
+                    overrides,
+                ))));
+                selected_context_ws.set(Some(Data {
+                    context_id: context.id,
+                    context: conditions,
+                    // for delete experiment, we need to pass empty overrides
+                    overrides: vec![],
+                    ..Default::default()
+                }));
+                open_drawer("delete_exp_drawer");
+            }
+            Err(e) => {
+                logging::error!("Error parsing context: {}", e);
+                enqueue_alert(e.to_string(), AlertType::Error, 5000);
+            }
+        };
+    };
+
+    let on_context_clone = move |data: (Context, Map<String, Value>)| {
         let (context, overrides) = data;
 
         match Conditions::from_context_json(&context.value.into()) {
@@ -552,12 +575,12 @@ pub fn context_override() -> impl IntoView {
                 enqueue_alert(e.to_string(), AlertType::Error, 5000);
             }
         };
-    });
+    };
 
-    let on_context_delete = Callback::new(move |id: String| {
+    let on_context_delete = move |id: String| {
         set_delete_id.set(Some(id.clone()));
         set_delete_modal.set(true);
-    });
+    };
 
     let handle_next_click = Callback::new(move |next_page: i64| {
         pagination_params_rws.update(|f| f.page = Some(next_page));
@@ -697,6 +720,7 @@ pub fn context_override() -> impl IntoView {
                                                             handle_edit=on_context_edit
                                                             handle_clone=on_context_clone
                                                             handle_delete=on_context_delete
+                                                            handle_delete_experiment=handle_delete_experiment
                                                         />
                                                     }
                                                 })
@@ -731,12 +755,21 @@ pub fn context_override() -> impl IntoView {
                     .get()
                     .unwrap_or_default();
                 let data = selected_context_rs.get();
+                let experiment_form_type = experiment_form_type_rws.get();
+                let (id, header) = match experiment_form_type {
+                    ExperimentFormType::Default => {
+                        ("create_exp_drawer", "Update Override via Experiment")
+                    }
+                    ExperimentFormType::Delete(_) => {
+                        ("delete_exp_drawer", "Delete Override via Experiment")
+                    }
+                };
                 view! {
                     <Drawer
-                        id="create_exp_drawer".to_string()
-                        header="Create Experiment"
+                        id=id.to_string()
+                        header
                         handle_close=move || {
-                            close_drawer("create_exp_drawer");
+                            close_drawer(id);
                             selected_context_ws.set(None);
                         }
                     >
@@ -745,7 +778,6 @@ pub fn context_override() -> impl IntoView {
                                 Some(data) => {
                                     view! {
                                         <ExperimentForm
-                                            name="".to_string()
                                             context=data.context
                                             variants=VariantFormTs::default_with_overrides(
                                                 data.overrides,
@@ -753,7 +785,7 @@ pub fn context_override() -> impl IntoView {
                                             dimensions=dimensions
                                             default_config=default_config
                                             handle_submit=handle_submit_experiment_form
-                                            description=data.description
+                                            experiment_form_type
                                             metrics=workspace_settings.get_value().metrics
                                         />
                                     }
@@ -761,7 +793,6 @@ pub fn context_override() -> impl IntoView {
                                 }
                                 None => view! {}.into_view(),
                             }}
-
                         </EditorProvider>
                     </Drawer>
                 }

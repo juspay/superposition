@@ -2,7 +2,10 @@ use std::{env, str::FromStr};
 
 use cfg_if::cfg_if;
 use leptos::*;
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use reqwest::{
+    header::{HeaderMap, HeaderName, HeaderValue},
+    StatusCode,
+};
 use serde::de::DeserializeOwned;
 use url::Url;
 use wasm_bindgen::JsCast;
@@ -204,11 +207,12 @@ where
     })
 }
 
-pub async fn request<'a, T>(
+pub async fn request_with_skip_error<'a, T>(
     url: String,
     method: reqwest::Method,
     body: Option<T>,
     headers: HeaderMap,
+    skip_error: &[StatusCode],
 ) -> Result<reqwest::Response, String>
 where
     T: serde::Serialize,
@@ -226,17 +230,16 @@ where
         .map_err(|err| err.to_string())?;
 
     let status = response.status();
+
+    if skip_error.contains(&status) {
+        return Ok(response);
+    }
+
     if status.is_client_error() {
-        let resp_bytes = response
-            .bytes()
+        let error_msg = response
+            .json::<ErrorResponse>()
             .await
-            .map_err(|_| String::from("Something went wrong"))?;
-        let error_msg = serde_json::from_slice::<ErrorResponse>(&resp_bytes).map_or(
-            String::from(
-                std::str::from_utf8(&resp_bytes).unwrap_or("Something went wrong"),
-            ),
-            |error| error.message,
-        );
+            .map_or(String::from("Something went wrong"), |error| error.message);
         logging::error!("{}", error_msg);
         enqueue_alert(error_msg.clone(), AlertType::Error, 5000);
         return Err(error_msg);
@@ -260,6 +263,18 @@ where
     }
 
     Ok(response)
+}
+
+pub async fn request<'a, T>(
+    url: String,
+    method: reqwest::Method,
+    body: Option<T>,
+    headers: HeaderMap,
+) -> Result<reqwest::Response, String>
+where
+    T: serde::Serialize,
+{
+    request_with_skip_error(url, method, body, headers, &[]).await
 }
 
 pub fn unwrap_option_or_default_with_error<T>(option: Option<T>, default: T) -> T {

@@ -33,14 +33,16 @@ where
         let experiment_clone = experiment_rc.clone();
         let handle_submit_clone = handle_submit.clone();
         spawn_local(async move {
-            let tenant = tenant_rws.get().0;
-            let org = org_rws.get().0;
-            let traffic_value = traffic.get();
+            let tenant = tenant_rws.get_untracked().0;
+            let org = org_rws.get_untracked().0;
+            let traffic_value = traffic.get_untracked();
             let result =
                 ramp_experiment(&experiment_clone.id, traffic_value, None, &tenant, &org)
                     .await;
+            req_inprogress_ws.set(false);
             match result {
                 Ok(_) => {
+                    handle_submit_clone();
                     enqueue_alert(
                         String::from("Experiment ramped successfully!"),
                         AlertType::Success,
@@ -51,8 +53,6 @@ where
                     enqueue_alert(e, AlertType::Error, 5000);
                 }
             }
-            req_inprogress_ws.set(false);
-            handle_submit_clone()
         });
     };
     view! {
