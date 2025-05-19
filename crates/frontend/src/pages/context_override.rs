@@ -21,7 +21,6 @@ use superposition_types::{
     PaginatedResponse, SortBy,
 };
 
-use crate::api::{delete_context, fetch_context, fetch_default_config, fetch_dimensions};
 use crate::components::{
     alert::AlertType,
     button::Button,
@@ -48,14 +47,13 @@ use crate::providers::{
 };
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant, VariantFormTs};
-
-#[derive(Clone, Debug, Default)]
-pub struct Data {
-    pub context_id: String,
-    pub context: Conditions,
-    pub overrides: Vec<(String, Value)>,
-    pub description: String,
-}
+use crate::{
+    api::{
+        delete_context, fetch_context, fetch_default_config, fetch_dimensions,
+        get_context,
+    },
+    components::skeleton::SkeletonVariant,
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct PageResource {
@@ -66,8 +64,10 @@ struct PageResource {
 
 #[derive(Debug, Clone)]
 enum FormMode {
-    Edit,
+    Edit(String),
+    Clone(String),
     Create,
+    Experiment(String),
 }
 
 #[component]
@@ -246,7 +246,7 @@ fn form(
     dimensions: Vec<DimensionWithMandatory>,
     #[prop(default = None)] edit_id: Option<String>,
     default_config: Vec<DefaultConfig>,
-    handle_submit: Callback<bool, ()>,
+    #[prop(into)] handle_submit: Callback<bool, ()>,
     #[prop(default = String::new())] description: String,
 ) -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
@@ -370,11 +370,132 @@ fn form(
     }
 }
 
+#[allow(clippy::type_complexity)]
+fn use_context_data(
+    context_id: String,
+) -> Resource<(String, String, String), Result<(Context, Conditions), String>> {
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+
+    create_blocking_resource(
+        move || (tenant_rws.get().0, org_rws.get().0, context_id.clone()),
+        |(tenant, org, context_id)| async move {
+            get_context(&context_id, &tenant, &org)
+                .await
+                .and_then(|context| {
+                    Conditions::from_context_json(&context.value)
+                        .map(|condition| (context, condition))
+                        .map_err(String::from)
+                })
+        },
+    )
+}
+
+#[component]
+fn autofill_form(
+    context_id: String,
+    #[prop(into)] handle_submit: Callback<bool, ()>,
+    dimensions: Vec<DimensionWithMandatory>,
+    default_config: Vec<DefaultConfig>,
+    #[prop(default = false)] edit: bool,
+) -> impl IntoView {
+    let default_config = StoredValue::new(default_config);
+    let dimensions = StoredValue::new(dimensions);
+
+    let context_data = use_context_data(context_id);
+
+    view! {
+        <Suspense fallback=move || {
+            view! { <Skeleton variant=SkeletonVariant::Block /> }
+        }>
+            {move || {
+                match context_data.get() {
+                    Some(Ok((context, condition))) => {
+                        let overrides = context.override_.into_iter().collect::<Vec<_>>();
+                        if edit {
+                            view! {
+                                <Form
+                                    context=condition
+                                    overrides=overrides
+                                    default_config=default_config.get_value()
+                                    dimensions=dimensions.get_value()
+                                    edit_id=Some(context.id)
+                                    handle_submit
+                                    description=context.description
+                                />
+                            }
+                        } else {
+                            view! {
+                                <Form
+                                    context=condition
+                                    overrides=overrides
+                                    default_config=default_config.get_value()
+                                    dimensions=dimensions.get_value()
+                                    handle_submit
+                                />
+                            }
+                        }
+                            .into_view()
+                    }
+                    Some(Err(e)) => {
+                        logging::error!("Error fetching context: {}", e);
+                        view! { <div>Error fetching context</div> }.into_view()
+                    }
+                    None => view! { <div>Loading...</div> }.into_view(),
+                }
+            }}
+        </Suspense>
+    }
+}
+
+#[component]
+fn autofill_experiment_form(
+    context_id: String,
+    #[prop(into)] handle_submit: Callback<String, ()>,
+    dimensions: Vec<DimensionWithMandatory>,
+    default_config: Vec<DefaultConfig>,
+) -> impl IntoView {
+    let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
+    let default_config = StoredValue::new(default_config);
+    let dimensions = StoredValue::new(dimensions);
+
+    let context_data = use_context_data(context_id);
+
+    view! {
+        <Suspense fallback=move || {
+            view! { <Skeleton variant=SkeletonVariant::Block /> }
+        }>
+            {move || {
+                match context_data.get() {
+                    Some(Ok((context, condition))) => {
+                        let overrides = context.override_.into_iter().collect::<Vec<_>>();
+                        view! {
+                            <ExperimentForm
+                                name="".to_string()
+                                context=condition
+                                variants=VariantFormTs::default_with_overrides(overrides)
+                                default_config=default_config.get_value()
+                                dimensions=dimensions.get_value()
+                                handle_submit
+                                metrics=workspace_settings.get_value().metrics
+                            />
+                        }
+                    }
+                    Some(Err(e)) => {
+                        logging::error!("Error fetching context: {}", e);
+                        view! { <div>Error fetching context</div> }.into_view()
+                    }
+                    None => view! { <div>Loading...</div> }.into_view(),
+                }
+            }}
+        </Suspense>
+    }
+}
+
 #[component]
 pub fn context_override() -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
-    let (selected_context_rs, selected_context_ws) = create_signal::<Option<Data>>(None);
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
     let (delete_modal, set_delete_modal) = create_signal(false);
     let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
@@ -388,8 +509,6 @@ pub fn context_override() -> impl IntoView {
     let dimension_params_rws = use_signal_from_query(move |query_string| {
         DimensionQuery::<QueryMap>::extract_non_empty(&query_string)
     });
-
-    let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
 
     use_param_updater(move || {
         box_params![
@@ -462,11 +581,10 @@ pub fn context_override() -> impl IntoView {
 
     let on_create_context_click = Callback::new(move |_| {
         set_form_mode.set(Some(FormMode::Create));
-        selected_context_ws.set(Some(Data::default()));
         open_drawer("context_and_override_drawer");
     });
 
-    let on_submit = Callback::new(move |edit: bool| {
+    let on_submit = move |edit: bool| {
         close_drawer("context_and_override_drawer");
         if !edit {
             context_filters_rws.set(ContextListFilters::default());
@@ -474,29 +592,15 @@ pub fn context_override() -> impl IntoView {
             pagination_params_rws.update(|f| f.reset_page());
         }
         set_form_mode.set(None);
-        selected_context_ws.set(None);
         page_resource.refetch();
-    });
+    };
 
     let on_context_edit = Callback::new(move |data: (Context, Map<String, Value>)| {
-        let (context, overrides) = data;
-        match Conditions::from_context_json(&context.value.into()) {
-            Ok(conditions) => {
-                selected_context_ws.set(Some(Data {
-                    context_id: context.id.clone(),
-                    context: conditions,
-                    overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
-                    description: context.description.clone(),
-                }));
-                set_form_mode.set(Some(FormMode::Edit));
-                open_drawer("context_and_override_drawer");
-            }
-            Err(e) => {
-                logging::error!("Error parsing context: {}", e);
-                enqueue_alert(e.to_string(), AlertType::Error, 5000);
-            }
-        };
+        let (context, _) = data;
+        set_form_mode.set(Some(FormMode::Edit(context.id.clone())));
+        open_drawer("context_and_override_drawer");
     });
+
     let handle_submit_experiment_form = move |experiment_id: String| {
         page_resource.refetch();
         close_drawer("create_exp_drawer");
@@ -510,48 +614,15 @@ pub fn context_override() -> impl IntoView {
 
     let handle_create_experiment =
         Callback::new(move |data: (Context, Map<String, Value>)| {
-            let (context, overrides) = data;
-
-            match Conditions::from_context_json(&context.value.into()) {
-                Ok(conditions) => {
-                    selected_context_ws.set(Some(Data {
-                        context_id: context.id.clone(),
-                        context: conditions,
-                        overrides: overrides
-                            .into_iter()
-                            .collect::<Vec<(String, Value)>>(),
-                        ..Default::default()
-                    }));
-
-                    open_drawer("create_exp_drawer");
-                }
-                Err(e) => {
-                    logging::error!("Error parsing context: {}", e);
-                    enqueue_alert(e.to_string(), AlertType::Error, 5000);
-                }
-            };
+            let (context, _) = data;
+            set_form_mode.set(Some(FormMode::Experiment(context.id)));
+            open_drawer("context_and_override_drawer");
         });
 
     let on_context_clone = Callback::new(move |data: (Context, Map<String, Value>)| {
-        let (context, overrides) = data;
-
-        match Conditions::from_context_json(&context.value.into()) {
-            Ok(conditions) => {
-                selected_context_ws.set(Some(Data {
-                    context_id: context.id.clone(),
-                    context: conditions,
-                    overrides: overrides.into_iter().collect::<Vec<(String, Value)>>(),
-                    description: context.description.clone(),
-                }));
-                set_form_mode.set(Some(FormMode::Create));
-
-                open_drawer("context_and_override_drawer");
-            }
-            Err(e) => {
-                logging::error!("Error parsing context: {}", e);
-                enqueue_alert(e.to_string(), AlertType::Error, 5000);
-            }
-        };
+        let (context, _) = data;
+        set_form_mode.set(Some(FormMode::Clone(context.id.clone())));
+        open_drawer("context_and_override_drawer");
     });
 
     let on_context_delete = Callback::new(move |id: String| {
@@ -730,50 +801,10 @@ pub fn context_override() -> impl IntoView {
                 let PageResource { dimensions, default_config, .. } = page_resource
                     .get()
                     .unwrap_or_default();
-                let data = selected_context_rs.get();
-                view! {
-                    <Drawer
-                        id="create_exp_drawer".to_string()
-                        header="Create Experiment"
-                        handle_close=move || {
-                            close_drawer("create_exp_drawer");
-                            selected_context_ws.set(None);
-                        }
-                    >
-                        <EditorProvider>
-                            {match data {
-                                Some(data) => {
-                                    view! {
-                                        <ExperimentForm
-                                            name="".to_string()
-                                            context=data.context
-                                            variants=VariantFormTs::default_with_overrides(
-                                                data.overrides,
-                                            )
-                                            dimensions=dimensions
-                                            default_config=default_config
-                                            handle_submit=handle_submit_experiment_form
-                                            description=data.description
-                                            metrics=workspace_settings.get_value().metrics
-                                        />
-                                    }
-                                        .into_view()
-                                }
-                                None => view! {}.into_view(),
-                            }}
-
-                        </EditorProvider>
-                    </Drawer>
-                }
-            }}
-            {move || {
-                let PageResource { dimensions, default_config, .. } = page_resource
-                    .get()
-                    .unwrap_or_default();
-                let data = selected_context_rs.get();
                 let drawer_header = match form_mode.get() {
-                    Some(FormMode::Edit) => "Update Overrides",
-                    Some(FormMode::Create) => "Create Overrides",
+                    Some(FormMode::Edit(_)) => "Update Overrides",
+                    Some(FormMode::Create) | Some(FormMode::Clone(_)) => "Create Overrides",
+                    Some(FormMode::Experiment(_)) => "Create Experiment",
                     None => "",
                 };
                 view! {
@@ -783,47 +814,57 @@ pub fn context_override() -> impl IntoView {
                         handle_close=move || {
                             close_drawer("context_and_override_drawer");
                             set_form_mode.set(None);
-                            selected_context_ws.set(None);
                         }
                     >
                         <EditorProvider>
-                            {match (form_mode.get_untracked(), data) {
-                                (Some(FormMode::Edit), Some(data)) => {
+                            {match form_mode.get_untracked() {
+                                Some(FormMode::Edit(context_id)) => {
                                     view! {
-                                        <Form
-                                            context=data.context
-                                            overrides=data.overrides
+                                        <AutofillForm
+                                            context_id
                                             dimensions=dimensions
                                             default_config=default_config
                                             handle_submit=on_submit
-                                            edit_id=Some(data.context_id.clone())
-                                            description=data.description
+                                            edit=true
                                         />
                                     }
                                         .into_view()
                                 }
-                                (Some(FormMode::Create), data) => {
-                                    let Data { context, overrides, .. } = data.unwrap_or_default();
+                                Some(FormMode::Clone(context_id)) => {
                                     view! {
-                                        <Form
-                                            context=context
-                                            overrides=overrides
-                                            dimensions=dimensions
-                                            default_config=default_config
+                                        <AutofillForm
+                                            context_id
+                                            dimensions
+                                            default_config
                                             handle_submit=on_submit
                                         />
                                     }
                                         .into_view()
                                 }
-                                (Some(FormMode::Edit), None) => {
-                                    enqueue_alert(
-                                        String::from("Something went wrong, failed to load form"),
-                                        AlertType::Error,
-                                        5000,
-                                    );
-                                    view! {}.into_view()
+                                Some(FormMode::Create) => {
+                                    view! {
+                                        <Form
+                                            context=Conditions(vec![])
+                                            overrides=vec![]
+                                            dimensions
+                                            default_config
+                                            handle_submit=on_submit
+                                        />
+                                    }
+                                        .into_view()
                                 }
-                                (None, _) => view! {}.into_view(),
+                                Some(FormMode::Experiment(context_id)) => {
+                                    view! {
+                                        <AutofillExperimentForm
+                                            context_id
+                                            dimensions
+                                            default_config
+                                            handle_submit=handle_submit_experiment_form
+                                        />
+                                    }
+                                        .into_view()
+                                }
+                                None => ().into_view(),
                             }}
                         </EditorProvider>
                     </Drawer>

@@ -578,3 +578,22 @@ pub async fn resume_experiment(
 
     parse_json_response(response).await
 }
+
+pub async fn get_context(
+    context_id: &str,
+    tenant: &str,
+    org_id: &str,
+) -> Result<Context, String> {
+    let host = use_host_server();
+    let url = format!("{host}/context/{context_id}");
+
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<serde_json::Value>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
