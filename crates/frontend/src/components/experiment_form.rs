@@ -30,21 +30,18 @@ fn get_init_state(variants: &[VariantFormT]) -> Vec<(String, VariantFormT)> {
 }
 
 #[component]
-pub fn experiment_form<NF>(
+pub fn experiment_form(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] id: String,
     name: String,
     context: Conditions,
     variants: VariantFormTs,
-    handle_submit: NF,
+    #[prop(into)] handle_submit: Callback<String, ()>,
     default_config: Vec<DefaultConfig>,
     dimensions: Vec<DimensionWithMandatory>,
     #[prop(default = String::new())] description: String,
     metrics: Metrics,
-) -> impl IntoView
-where
-    NF: Fn(String) + 'static + Clone,
-{
+) -> impl IntoView {
     let init_variants = get_init_state(&variants);
     let default_config = StoredValue::new(default_config);
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
@@ -86,7 +83,6 @@ where
         let tenant = tenant_rws.get().0;
         let org = org_rws.get().0;
         let experiment_id = id.clone();
-        let handle_submit_clone = handle_submit.clone();
 
         logging::log!("Experiment name {:?}", f_experiment_name);
         logging::log!("Context Experiment form {:?}", f_context);
@@ -120,7 +116,7 @@ where
 
                 match result {
                     Ok(res) => {
-                        handle_submit_clone(res.id);
+                        handle_submit.call(res.id);
                         let success_message = if edit {
                             "Experiment updated successfully!"
                         } else {
