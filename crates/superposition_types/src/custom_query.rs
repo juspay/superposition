@@ -351,7 +351,14 @@ pub type CommaSeparatedStringQParams = CommaSeparatedQParams<String>;
 #[cfg(feature = "experimentation")]
 impl Default for CommaSeparatedQParams<ExperimentStatusType> {
     fn default() -> Self {
-        Self(ExperimentStatusType::iter().collect())
+        Self(
+            ExperimentStatusType::iter()
+                .filter(|s| {
+                    *s != ExperimentStatusType::DISCARDED
+                        && *s != ExperimentStatusType::CONCLUDED
+                })
+                .collect(),
+        )
     }
 }
 

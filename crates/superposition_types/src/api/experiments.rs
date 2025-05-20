@@ -274,7 +274,7 @@ impl Display for ExperimentListFilters {
 impl Default for ExperimentListFilters {
     fn default() -> Self {
         Self {
-            status: None,
+            status: Some(CommaSeparatedQParams::default()),
             from_date: None,
             to_date: None,
             experiment_name: None,
