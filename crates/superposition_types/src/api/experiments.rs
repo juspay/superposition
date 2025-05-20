@@ -274,7 +274,16 @@ impl Display for ExperimentListFilters {
 impl Default for ExperimentListFilters {
     fn default() -> Self {
         Self {
-            status: Some(CommaSeparatedQParams::default()),
+            status: Some(CommaSeparatedQParams(
+                CommaSeparatedQParams::<ExperimentStatusType>::default()
+                    .iter()
+                    .filter(|&s| {
+                        *s != ExperimentStatusType::DISCARDED
+                            && *s != ExperimentStatusType::CONCLUDED
+                    })
+                    .copied()
+                    .collect::<Vec<_>>(),
+            )),
             from_date: None,
             to_date: None,
             experiment_name: None,
