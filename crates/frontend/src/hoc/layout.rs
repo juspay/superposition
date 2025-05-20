@@ -93,6 +93,10 @@ pub fn layout(
     let org_rws = create_rw_signal(use_org());
     provide_context(tenant_rws);
     provide_context(org_rws);
+
+    // Signal for mobile navigation state
+    let (is_mobile_nav_open, set_is_mobile_nav_open) = create_signal(false);
+
     let workspaces = create_blocking_resource(
         move || (org_rws.get().0),
         |org_id| async move {
@@ -112,18 +116,43 @@ pub fn layout(
             route=original_path.get_value()
             workspaces
         >
+            // Hamburger/Close Menu Button (visible on < xl screens if side_nav is shown)
+            <Show when=move || show_side_nav>
+                <button
+                    class="xl:hidden fixed top-4 right-4 z-[1000] btn btn-square btn-ghost bg-base-100 bg-opacity-80" // Changed left-4 to right-4
+                    on:click=move |_| set_is_mobile_nav_open.update(|open| *open = !*open)
+                >
+                    <i class=move || if is_mobile_nav_open.get() { "ri-close-line text-xl" } else { "ri-menu-line text-xl" }></i>
+                </button>
+            </Show>
+
+            // Side Navigation
+            // It will control its own full-screen vs. desktop appearance via is_mobile_open prop
             <Show when=move || show_side_nav>
                 <SideNav
                     resolved_path=path.get_value()
                     original_path=original_path.get_value()
                     workspace_resource=workspaces
+                    is_mobile_open=is_mobile_nav_open
                 />
             </Show>
-            // params_map=params_map
-            <main class=format!(
-                "ease-soft-in-out {} relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto",
-                if show_side_nav { "xl:ml-[350px]" } else { "p-10" },
-            )>{children.get_value()()}</main>
+
+            // Overlay for mobile (visible when mobile nav is open and screen < xl)
+            // Re-adding this for the slide-over sidebar effect
+            <Show when=move || is_mobile_nav_open.get() && show_side_nav>
+                <div
+                    class="xl:hidden fixed inset-0 bg-black bg-opacity-30 z-[980]" // z-index below SideNav
+                    on:click=move |_| set_is_mobile_nav_open.set(false)
+                ></div>
+            </Show>
+
+            // Main content area: no longer hidden by JS, overlay handles interaction blocking
+            <main class=move || {
+                format!(
+                    "ease-soft-in-out {} relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto",
+                    if show_side_nav { "xl:ml-[350px]" } else { "p-4 md:p-10" }
+                )
+            }>{children.get_value()()}</main>
 
             {move || {
                 let alert_queue = use_context::<ReadSignal<AlertQueue>>();
