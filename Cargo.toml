@@ -48,7 +48,7 @@ diesel = { git = "https://github.com/juspay/diesel.git", branch = "dynamic-schem
 fred = { version = "9.2.1" }
 futures-util = "0.3.28"
 itertools = { version = "0.10.5" }
-jsonlogic = { git = "https://github.com/juspay/jsonlogic_rs.git", version = "0.5.3" }
+jsonlogic = { git = "https://github.com/juspay/jsonlogic_rs.git", version = "0.5.5" }
 jsonschema = "~0.17"
 leptos = { version = "0.6.11" }
 log = { version = "0.4.20", features = ["kv_unstable_serde"] }
@@ -57,7 +57,7 @@ regex = "1.9.1"
 reqwest = { version = "0.11.18", features = ["json"] }
 rs-snowflake = "0.6.0"
 serde = { version = "^1", features = ["derive"] }
-serde_json = { version = "1.0" }
+serde_json = { version = "1.0.140" }
 strum = "0.25"
 strum_macros = "0.25"
 toml = { version = "0.8.8", features = ["preserve_order"] }

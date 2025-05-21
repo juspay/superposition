@@ -8,10 +8,11 @@ use service_utils::{
     service::types::{AppState, OrganisationId, WorkspaceContext, WorkspaceId},
 };
 use std::str::FromStr;
-use superposition_macros::{response_error, unexpected_error};
+use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
-    database::models::cac::Context as ContextResp, result as superposition, Condition,
-    User,
+    api::context::ContextValidationRequest,
+    database::models::cac::Context as ContextResp, result as superposition, Cac,
+    Condition, User,
 };
 
 use super::types::ContextBulkResponse;
@@ -139,7 +140,7 @@ pub async fn get_partial_resolve_config(
     context_id: &str,
     workspace_request: &WorkspaceContext,
 ) -> superposition::Result<Map<String, Value>> {
-    let http_client = reqwest::Client::new();
+    let http_client = state.http_client.clone();
     let url = state.cac_host.clone() + "/config/resolve";
     let mut exp_context_dimension_value = extract_dimensions(exp_context)?;
     exp_context_dimension_value.insert(
@@ -182,7 +183,7 @@ pub async fn get_context_override(
     workspace_request: &WorkspaceContext,
     context_id: String,
 ) -> superposition::Result<ContextResp> {
-    let http_client = reqwest::Client::new();
+    let http_client = state.http_client.clone();
     let url = state.cac_host.clone() + "/context/" + &context_id;
     let user_str = serde_json::to_string(user).map_err(|err| {
         log::error!("Something went wrong, failed to stringify user data {err}");
@@ -218,4 +219,70 @@ pub async fn get_context_override(
         }
     })?;
     Ok(resp_contexts)
+}
+
+pub async fn validate_context(
+    state: &Data<AppState>,
+    condition: &Condition,
+    workspace_request: &WorkspaceContext,
+    user: &User,
+) -> superposition::Result<()> {
+    let http_client = state.http_client.clone();
+    let url = state.cac_host.clone() + "/context/validate";
+    let user_str = serde_json::to_string(user).map_err(|err| {
+        log::error!("Something went wrong, failed to stringify user data {err}");
+        unexpected_error!(
+            "Something went wrong, failed to stringify user data {}",
+            err
+        )
+    })?;
+
+    let extra_headers = vec![("x-user", user_str)];
+
+    let headers_map = construct_header_map(
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
+        extra_headers,
+    )?;
+    let payload = Cac::<Condition>::try_from((**condition).clone()).map_err(|err| {
+        log::error!("failed to decode condition with error : {}", err);
+        bad_argument!(err)
+    })?;
+    let payload = ContextValidationRequest { context: payload };
+    let response = http_client
+        .post(&url)
+        .headers(headers_map.into())
+        .header(
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
+        )
+        .json(&payload)
+        .send()
+        .await;
+    match response {
+        Ok(res) if res.status() == StatusCode::OK => {
+            log::info!("Context validation successful");
+            Ok(())
+        }
+        Ok(res) => {
+            let error_message: Map<String, Value> = res.json().await.map_err(|err| {
+                log::error!("failed to parse Context validate error response: {}", err);
+                unexpected_error!("failed to parse Context validate error. Please checks the system logs")
+            })?;
+            let error_message = error_message.get("message")
+                .map(|err| err.as_str()
+                        .unwrap_or("The error message returned by the system could not be understood.")
+                )
+                .ok_or_else(|| unexpected_error!("failed to parse Context validate error. Please checks the system logs"))?;
+            log::error!(
+                "http call to context validate failed with error {}",
+                error_message
+            );
+            Err(bad_argument!(error_message))
+        }
+        Err(err) => {
+            log::error!("Context validation failed with the error: {err}");
+            Err(unexpected_error!(err))
+        }
+    }
 }

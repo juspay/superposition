@@ -93,3 +93,9 @@ pub struct UpdateRequest {
     pub description: Option<Description>,
     pub change_reason: ChangeReason,
 }
+
+#[cfg_attr(test, derive(Debug, PartialEq))]
+#[derive(Serialize, Deserialize, Clone)]
+pub struct ContextValidationRequest {
+    pub context: Cac<Condition>,
+}

@@ -15,12 +15,14 @@ from smithy_json import JSONCodec
 
 from .config import Config
 from .models import (
+    AddMembersToGroupInput,
     ApplicableVariantsInput,
     BulkOperationInput,
     ConcludeExperimentInput,
     CreateContextInput,
     CreateDefaultConfigInput,
     CreateDimensionInput,
+    CreateExperimentGroupInput,
     CreateExperimentInput,
     CreateFunctionInput,
     CreateOrganisationInput,
@@ -30,6 +32,7 @@ from .models import (
     DeleteContextInput,
     DeleteDefaultConfigInput,
     DeleteDimensionInput,
+    DeleteExperimentGroupInput,
     DeleteFunctionInput,
     DeleteTypeTemplatesInput,
     DiscardExperimentInput,
@@ -38,6 +41,7 @@ from .models import (
     GetContextFromConditionInput,
     GetContextInput,
     GetDimensionInput,
+    GetExperimentGroupInput,
     GetExperimentInput,
     GetFunctionInput,
     GetOrganisationInput,
@@ -48,6 +52,7 @@ from .models import (
     ListContextsInput,
     ListDefaultConfigsInput,
     ListDimensionsInput,
+    ListExperimentGroupsInput,
     ListExperimentInput,
     ListFunctionInput,
     ListOrganisationInput,
@@ -58,11 +63,13 @@ from .models import (
     PauseExperimentInput,
     PublishInput,
     RampExperimentInput,
+    RemoveMembersFromGroupInput,
     ResumeExperimentInput,
     ServiceError,
     TestInput,
     UpdateDefaultConfigInput,
     UpdateDimensionInput,
+    UpdateExperimentGroupInput,
     UpdateFunctionInput,
     UpdateOrganisationInput,
     UpdateOverrideInput,
@@ -73,6 +80,47 @@ from .models import (
     WeightRecomputeInput,
 )
 
+
+async def _serialize_add_members_to_group(input: AddMembersToGroupInput, config: Config) -> HTTPRequest:
+    if not input.id:
+        raise ServiceError("id must not be empty.")
+
+    path = "/experiment-groups/{id}/add-members".format(
+        id=urlquote(input.id, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="PATCH",
+        fields=headers,
+        body=body,
+    )
 
 async def _serialize_applicable_variants(input: ApplicableVariantsInput, config: Config) -> HTTPRequest:
     path = "/experiments/applicable-variants"
@@ -305,6 +353,42 @@ async def _serialize_create_dimension(input: CreateDimensionInput, config: Confi
 
 async def _serialize_create_experiment(input: CreateExperimentInput, config: Config) -> HTTPRequest:
     path = "/experiments"
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="POST",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_create_experiment_group(input: CreateExperimentGroupInput, config: Config) -> HTTPRequest:
+    path = "/experiment-groups"
     query: str = f''
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')
@@ -585,6 +669,38 @@ async def _serialize_delete_dimension(input: DeleteDimensionInput, config: Confi
 
     path = "/dimension/{dimension}".format(
         dimension=urlquote(input.dimension, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="DELETE",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_delete_experiment_group(input: DeleteExperimentGroupInput, config: Config) -> HTTPRequest:
+    if not input.id:
+        raise ServiceError("id must not be empty.")
+
+    path = "/experiment-groups/{id}".format(
+        id=urlquote(input.id, safe=''),
     )
     query: str = f''
 
@@ -892,6 +1008,38 @@ async def _serialize_get_experiment(input: GetExperimentInput, config: Config) -
         raise ServiceError("id must not be empty.")
 
     path = "/experiments/{id}".format(
+        id=urlquote(input.id, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_get_experiment_group(input: GetExperimentGroupInput, config: Config) -> HTTPRequest:
+    if not input.id:
+        raise ServiceError("id must not be empty.")
+
+    path = "/experiment-groups/{id}".format(
         id=urlquote(input.id, safe=''),
     )
     query: str = f''
@@ -1313,6 +1461,53 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         body=body,
     )
 
+async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, config: Config) -> HTTPRequest:
+    path = "/experiment-groups"
+    query: str = f''
+
+    query_params: list[tuple[str, str | None]] = []
+    if input.page is not None:
+        query_params.append(("page", str(input.page)))
+    if input.count is not None:
+        query_params.append(("count", str(input.count)))
+    if input.name is not None:
+        query_params.append(("name", input.name))
+    if input.created_by is not None:
+        query_params.append(("created_by", input.created_by))
+    if input.last_modified_by is not None:
+        query_params.append(("last_modified_by", input.last_modified_by))
+    if input.sort_on is not None:
+        query_params.append(("sort_on", input.sort_on))
+    if input.sort_by is not None:
+        query_params.append(("sort_by", input.sort_by))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
+
+    query = join_query_params(params=query_params, prefix=query)
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
+        fields=headers,
+        body=body,
+    )
+
 async def _serialize_list_function(input: ListFunctionInput, config: Config) -> HTTPRequest:
     path = "/function"
     query: str = f''
@@ -1637,6 +1832,47 @@ async def _serialize_ramp_experiment(input: RampExperimentInput, config: Config)
         body=body,
     )
 
+async def _serialize_remove_members_from_group(input: RemoveMembersFromGroupInput, config: Config) -> HTTPRequest:
+    if not input.id:
+        raise ServiceError("id must not be empty.")
+
+    path = "/experiment-groups/{id}/remove-members".format(
+        id=urlquote(input.id, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="PATCH",
+        fields=headers,
+        body=body,
+    )
+
 async def _serialize_resume_experiment(input: ResumeExperimentInput, config: Config) -> HTTPRequest:
     if not input.id:
         raise ServiceError("id must not be empty.")
@@ -1801,6 +2037,47 @@ async def _serialize_update_dimension(input: UpdateDimensionInput, config: Confi
             query=query,
         ),
         method="PUT",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_update_experiment_group(input: UpdateExperimentGroupInput, config: Config) -> HTTPRequest:
+    if not input.id:
+        raise ServiceError("id must not be empty.")
+
+    path = "/experiment-groups/{id}".format(
+        id=urlquote(input.id, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="PATCH",
         fields=headers,
         body=body,
     )
