@@ -13,8 +13,8 @@ use diesel::{
     TextExpressionMethods,
 };
 use regex::Regex;
-use service_utils::service::types::{DbConnection, OrganisationId};
-use superposition_macros::{db_error, unexpected_error, validation_error};
+use service_utils::service::types::{DbConnection, OrganisationId, SchemaName};
+use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 use superposition_types::{
     api::workspace::{
         CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceListFilters,
@@ -22,6 +22,7 @@ use superposition_types::{
     custom_query::PaginationParams,
     database::{
         models::{Organisation, Workspace, WorkspaceStatus},
+        schema::config_versions::dsl as config_versions,
         superposition_schema::superposition::{organisations, workspaces},
     },
     result as superposition, PaginatedResponse, User,
@@ -99,6 +100,7 @@ async fn create_workspace(
         workspace_schema_name: workspace_schema_name.clone(),
         workspace_status: WorkspaceStatus::ENABLED,
         workspace_admin_email: request.workspace_admin_email,
+        config_version: None,
         created_by: email.clone(),
         last_modified_by: email,
         last_modified_at: timestamp,
@@ -128,6 +130,7 @@ async fn update_workspace(
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
+    schema_name: SchemaName,
 ) -> superposition::Result<Json<Workspace>> {
     let request = request.into_inner();
     let workspace_name = workspace_name.into_inner();
@@ -135,6 +138,23 @@ async fn update_workspace(
     // TODO: mandatory dimensions updation needs to be validated
     // for the existance of the dimensions in the workspace
     let DbConnection(mut conn) = db_conn;
+    if let Some(version) = request.config_version.flatten() {
+        let config_count: i64 = config_versions::config_versions
+            .select(config_versions::config)
+            .filter(config_versions::id.eq(version))
+            .count()
+            .schema_name(&schema_name)
+            .get_result::<i64>(&mut conn)
+            .map_err(|err| {
+                log::error!("failed to fetch config with error: {}", err);
+                db_error!(err)
+            })?;
+        if config_count == 0 {
+            log::error!("config version {} does not exist", version);
+            return Err(bad_argument!("config version does not exist"));
+        }
+    }
+
     let updated_workspace =
         conn.transaction::<Workspace, superposition::AppError, _>(|transaction_conn| {
             let updated_workspace = diesel::update(workspaces::table)
@@ -155,7 +175,6 @@ async fn update_workspace(
         })?;
     Ok(Json(updated_workspace))
 }
-
 #[get("")]
 async fn list_workspaces(
     db_conn: DbConnection,

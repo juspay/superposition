@@ -23,7 +23,7 @@ use serde_json::{json, Map, Value};
 use service_utils::service::types::AppState;
 use service_utils::{
     helpers::extract_dimensions,
-    service::types::{AppHeader, DbConnection, SchemaName},
+    service::types::{AppHeader, DbConnection, SchemaName, WorkspaceContext},
 };
 #[cfg(feature = "high-performance-mode")]
 use superposition_macros::response_error;
@@ -36,6 +36,7 @@ use superposition_types::{
     database::{
         models::cac::ConfigVersion,
         schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
+        superposition_schema::superposition::workspaces,
     },
     result as superposition, Cac, Condition, Config, Context, DBConnection, Overrides,
     PaginatedResponse, User,
@@ -701,8 +702,12 @@ async fn get_config(
     db_conn: DbConnection,
     query_map: superposition_query::Query<QueryMap>,
     schema_name: SchemaName,
+    workspace_context: WorkspaceContext,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+
+    let org_id = workspace_context.organisation_id.0;
+    let workspace_id = workspace_context.workspace_id.0;
 
     let max_created_at = get_max_created_at(&mut conn, &schema_name)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log: {e}"))
@@ -717,7 +722,15 @@ async fn get_config(
     }
 
     let mut query_params_map = query_map.into_inner();
-    let mut version = validate_version_in_params(&mut query_params_map)?;
+    let mut version = match validate_version_in_params(&mut query_params_map)? {
+        Some(val) => Some(val),
+        None => workspaces::dsl::workspaces
+            .select(workspaces::config_version)
+            .filter(workspaces::organisation_id.eq(org_id))
+            .filter(workspaces::workspace_name.eq(workspace_id))
+            .get_result::<Option<i64>>(&mut conn)?,
+    };
+
     let mut config = generate_config_from_version(&mut version, &mut conn, &schema_name)?;
 
     config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
