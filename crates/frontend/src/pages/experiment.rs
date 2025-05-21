@@ -16,8 +16,8 @@ use crate::{
         experiment_action_form::ExperimentActionForm,
         experiment_conclude_form::ExperimentConcludeForm,
         experiment_discard_form::ExperimentDiscardForm,
-        experiment_form::ExperimentForm,
-        modal::Modal,
+        experiment_form::{ExperimentForm, ExperimentFormType},
+        modal::{Modal, PortalModal},
         skeleton::{Skeleton, SkeletonVariant},
     },
     logic::Conditions,
@@ -38,6 +38,7 @@ struct CombinedResource {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum PopupType {
     ExperimentStart,
+    ExperimentEdit,
     ExperimentPause,
     ExperimentResume,
     None,
@@ -92,7 +93,7 @@ pub fn experiment_page() -> impl IntoView {
     let handle_start = move || set_show_popup.set(PopupType::ExperimentStart);
     let handle_ramp = move || show_modal("ramp_form_modal");
     let handle_conclude = move || show_modal("conclude_form_modal");
-    let handle_edit = move || show_modal("experiment_edit_form_modal");
+    let handle_edit = move || set_show_popup.set(PopupType::ExperimentEdit);
     let handle_discard = move || show_modal("experiment_discard_form_modal");
     let handle_pause = move || set_show_popup.set(PopupType::ExperimentPause);
     let handle_resume = move || set_show_popup.set(PopupType::ExperimentResume);
@@ -117,9 +118,7 @@ pub fn experiment_page() -> impl IntoView {
                     Some(experiment) => {
                         let experiment_rf = experiment.clone();
                         let experiment_cf = experiment.clone();
-                        let experiment_ef = experiment.clone();
                         let experiment_df = experiment.clone();
-                        let experiment_id = experiment.id.clone();
                         view! {
                             <Experiment
                                 experiment=experiment.clone()
@@ -153,53 +152,71 @@ pub fn experiment_page() -> impl IntoView {
                                 />
 
                             </Modal>
-                            <Show when=move || {show_popup.get() != PopupType::None}>
-                                <ExperimentActionForm
-                                    experiment_id=experiment_id.clone()
-                                    popup_type=show_popup.get()
-                                    handle_submit=move |_| {
-                                        set_show_popup.set(PopupType::None);
-                                        combined_resource.refetch()
+                            {match show_popup.get() {
+                                PopupType::ExperimentEdit => {
+                                    view! {
+                                        <PortalModal
+                                            class="w-full max-w-5xl".to_string()
+                                            handle_close=move |_| set_show_popup.set(PopupType::None)
+                                        >
+                                            {
+                                                let experiment_ef = experiment.clone();
+                                                let default_config = default_config.clone();
+                                                let dimensions = dimensions.clone();
+                                                view! {
+                                                    <EditorProvider>
+                                                        <ExperimentForm
+                                                            edit_id=experiment_ef.id.clone()
+                                                            name=experiment_ef.name
+                                                            context=Conditions::from_context_json(
+                                                                    &experiment_ef.context,
+                                                                )
+                                                                .unwrap_or_default()
+                                                            variants=FromIterator::from_iter(
+                                                                experiment_ef.variants.into_inner(),
+                                                            )
+                                                            default_config
+                                                            dimensions
+                                                            experiment_form_type=ExperimentFormType::from(
+                                                                experiment_ef.experiment_type,
+                                                            )
+                                                            handle_submit=move |_| {
+                                                                set_show_popup.set(PopupType::None);
+                                                                combined_resource.refetch()
+                                                            }
+                                                            description=(*experiment_ef.description).clone()
+                                                            metrics=experiment_ef.metrics
+                                                        />
+                                                    </EditorProvider>
+                                                }
+                                            }
+                                        </PortalModal>
                                     }
-                                    handle_close=move |_| { set_show_popup.set(PopupType::None) }
-                                />
-                            </Show>
+                                }
+                                PopupType::None => ().into_view(),
+                                popup_type => {
+                                    let experiment_id = experiment.id.clone();
+                                    view! {
+                                        <ExperimentActionForm
+                                            experiment_id=experiment_id.clone()
+                                            popup_type
+                                            handle_submit=move |_| {
+                                                set_show_popup.set(PopupType::None);
+                                                combined_resource.refetch()
+                                            }
+                                            handle_close=move |_| set_show_popup.set(PopupType::None)
+                                        />
+                                    }
+                                }
+                            }}
                             <Modal
                                 id="conclude_form_modal".to_string()
                                 handle_close=move || { close_modal("conclude_form_modal") }
                             >
-
                                 <ExperimentConcludeForm
                                     experiment=experiment_cf
-                                    handle_submit=move || { combined_resource.refetch() }
+                                    handle_submit=move |_| { combined_resource.refetch() }
                                 />
-
-                            </Modal>
-                            <Modal
-                                id="experiment_edit_form_modal".to_string()
-                                classnames="w-12/12 max-w-5xl".to_string()
-                                handle_close=move || { close_modal("experiment_edit_form_modal") }
-                            >
-                                <EditorProvider>
-                                    <ExperimentForm
-                                        edit=true
-                                        id=experiment.id
-                                        name=experiment_ef.name
-                                        context=Conditions::from_context_json(
-                                                &experiment_ef.context,
-                                            )
-                                            .unwrap_or_default()
-                                        variants=FromIterator::from_iter(
-                                            experiment_ef.variants.into_inner(),
-                                        )
-                                        default_config=default_config
-                                        dimensions=dimensions
-                                        handle_submit=move |_| { combined_resource.refetch() }
-                                        description=(*experiment_ef.description).clone()
-                                        metrics=experiment_ef.metrics
-                                    />
-                                </EditorProvider>
-
                             </Modal>
                         }
                             .into_view()

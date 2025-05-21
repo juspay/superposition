@@ -12,23 +12,91 @@ use crate::{
 };
 
 #[component]
+fn option(
+    label: String,
+    icon: String,
+    #[prop(into)] on_click: Callback<(), ()>,
+    #[prop(default = "text-blue-500".to_string())] icon_color_class: String,
+) -> impl IntoView {
+    view! {
+        <li on:click=move |_| on_click.call(())>
+            <div class="flex gap-2">
+                <i class=format!("w-fit {icon} ri-lg {icon_color_class}") />
+                <span>{label}</span>
+            </div>
+        </li>
+    }
+}
+
+#[component]
+fn context_options(
+    #[prop(into)] handle_create_experiment: Callback<(), ()>,
+    #[prop(into)] handle_delete_experiment: Callback<(), ()>,
+    #[prop(into)] handle_clone: Callback<(), ()>,
+    #[prop(into)] handle_edit: Callback<(), ()>,
+    #[prop(into)] handle_delete: Callback<(), ()>,
+) -> impl IntoView {
+    let node_ref = create_node_ref::<html::Input>();
+
+    view! {
+        <div class="w-fit dropdown dropdown-left">
+            <label
+                tabindex="0"
+                class="btn btn-sm text-xs m-1 w-full"
+                on:click:undelegated=move |_| {
+                    if let Some(element) = node_ref.get() {
+                        let _ = element.focus();
+                    }
+                }
+            >
+                <i class="ri-more-2-fill" />
+            </label>
+            <ul
+                tabindex="0"
+                class="dropdown-content z-[999999] menu w-[350px] flex-nowrap p-2 shadow bg-base-100 rounded-box overflow-x-hidden"
+            >
+                <Option
+                    label="Update Overrides via Experiment".to_string()
+                    icon="ri-test-tube-line".to_string()
+                    on_click=handle_create_experiment
+                />
+                <Option
+                    label="Delete Overrides via Experiment".to_string()
+                    icon="ri-delete-row".to_string()
+                    on_click=handle_delete_experiment
+                />
+                <Option
+                    label="Update Overrides".to_string()
+                    icon="ri-pencil-line".to_string()
+                    on_click=handle_clone
+                />
+                <Option
+                    label="Clone Overrides".to_string()
+                    icon="ri-file-copy-line".to_string()
+                    on_click=handle_edit
+                />
+                <Option
+                    label="Delete Overrides".to_string()
+                    icon="ri-delete-bin-5-line".to_string()
+                    icon_color_class="text-red-500".to_string()
+                    on_click=handle_delete
+                />
+            </ul>
+
+        </div>
+    }
+}
+
+#[component]
 pub fn context_card(
     context: Context,
     overrides: Map<String, Value>,
     #[prop(default = true)] show_actions: bool,
-    #[prop(default=Callback::new(|_| {}))] handle_create_experiment: Callback<
-        (Context, Map<String, Value>),
-        (),
-    >,
-    #[prop(default=Callback::new(|_| {}))] handle_edit: Callback<
-        (Context, Map<String, Value>),
-        (),
-    >,
-    #[prop(default=Callback::new(|_| {}))] handle_clone: Callback<
-        (Context, Map<String, Value>),
-        (),
-    >,
-    #[prop(default=Callback::new(|_| {}))] handle_delete: Callback<String, ()>,
+    #[prop(into)] handle_create_experiment: Callback<String, ()>,
+    #[prop(into)] handle_delete_experiment: Callback<String, ()>,
+    #[prop(into)] handle_edit: Callback<String, ()>,
+    #[prop(into)] handle_clone: Callback<String, ()>,
+    #[prop(into)] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
     let conditions: Conditions = (&context).try_into().unwrap_or_default();
     let description = context.description.clone();
@@ -45,10 +113,7 @@ pub fn context_card(
         })
         .collect::<Vec<Map<String, Value>>>();
 
-    // Clone context and overrides for use in event handlers
-    let context_id = store_value(context.id.clone());
     let context = store_value(context);
-    let overrides = store_value(overrides);
 
     let table_columns = vec![
         Column::default_no_collapse("KEY".to_string()),
@@ -77,12 +142,13 @@ pub fn context_card(
                                 <div class="font-bold">"Created"</div>
                                 <div class="flex gap-1 items-center">
                                     <i class="ri-user-line text-gray-950" />
-                                    <span>{context.get_value().created_by}</span>
+                                    <span>{context.with_value(|c| c.created_by.clone())}</span>
                                 </div>
                                 <div class="flex gap-1 items-center">
                                     <i class="ri-time-line text-gray-950" />
                                     <span>
-                                        {context.get_value().created_at.format("%v %T").to_string()}
+                                        {context
+                                            .with_value(|c| c.created_at.format("%v %T").to_string())}
                                     </span>
                                 </div>
                             </div>
@@ -90,16 +156,17 @@ pub fn context_card(
                                 <div class="font-bold">"Last Modified"</div>
                                 <div class="flex gap-1 items-center">
                                     <i class="ri-user-line text-gray-950" />
-                                    <span>{context.get_value().last_modified_by}</span>
+                                    <span>
+                                        {context.with_value(|c| c.last_modified_by.clone())}
+                                    </span>
                                 </div>
                                 <div class="flex gap-1 items-center">
                                     <i class="ri-time-line text-gray-950" />
                                     <span>
                                         {context
-                                            .get_value()
-                                            .last_modified_at
-                                            .format("%v %T")
-                                            .to_string()}
+                                            .with_value(|c| {
+                                                c.last_modified_at.format("%v %T").to_string()
+                                            })}
                                     </span>
                                 </div>
                             </div>
@@ -110,30 +177,23 @@ pub fn context_card(
                 <Show when=move || actions_supported>
                     <div class="h-fit flex gap-4 text-right">
                         <Show when=move || !edit_unsupported>
-                            <i
-                                class="ri-test-tube-line ri-lg text-blue-500 cursor-pointer"
-                                on:click=move |_| {
+                            <ContextOptions
+                                handle_create_experiment=move |_| {
                                     handle_create_experiment
-                                        .call((context.get_value(), overrides.get_value()));
+                                        .call(context.with_value(|c| c.id.clone()))
                                 }
-                            />
-                            <i
-                                class="ri-pencil-line ri-lg text-blue-500 cursor-pointer"
-                                on:click=move |_| {
-                                    handle_edit.call((context.get_value(), overrides.get_value()));
+                                handle_delete_experiment=move |_| {
+                                    handle_delete_experiment
+                                        .call(context.with_value(|c| c.id.clone()))
                                 }
-                            />
-                            <i
-                                class="ri-file-copy-line ri-lg text-blue-500 cursor-pointer"
-                                on:click=move |_| {
-                                    handle_clone.call((context.get_value(), overrides.get_value()));
+                                handle_clone=move |_| {
+                                    handle_clone.call(context.with_value(|c| c.id.clone()))
                                 }
-                            />
-                            <i
-                                class="ri-delete-bin-5-line ri-lg text-red-500 cursor-pointer"
-                                on:click=move |_| {
-                                    let context_id = context_id.get_value();
-                                    handle_delete.call(context_id);
+                                handle_edit=move |_| {
+                                    handle_edit.call(context.with_value(|c| c.id.clone()))
+                                }
+                                handle_delete=move |_| {
+                                    handle_delete.call(context.with_value(|c| c.id.clone()))
                                 }
                             />
                         </Show>
@@ -155,7 +215,7 @@ pub fn context_card(
                 <ConditionComponent
                     // Clone only once before reusing in multiple closures
                     conditions=conditions
-                    id=context_id.get_value()
+                    id=context.with_value(|c| c.id.clone())
                     class="xl:w-[400px] h-fit"
                 />
                 <Table

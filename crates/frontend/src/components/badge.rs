@@ -21,7 +21,7 @@ where
                     key=move |option| { option.key() }
                     children=move |option| {
                         let option = StoredValue::new(option.clone());
-                        let label = option.get_value().label();
+                        let label = option.with_value(|o| o.label());
                         view! {
                             <div class="flex justify-between badge badge-primary badge-outline">
                                 {label.to_string()}

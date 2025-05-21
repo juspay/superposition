@@ -28,3 +28,30 @@ where
         </dialog>
     }
 }
+
+#[component]
+pub fn portal_modal(
+    #[prop(default = "w-full max-w-md".to_string())] class: String,
+    #[prop(default = String::new())] heading: String,
+    #[prop(into)] handle_close: Callback<(), ()>,
+    children: ChildrenFn,
+) -> impl IntoView {
+    view! {
+        <Portal>
+            <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                <dialog class=format!(
+                    "modal-box transform-none relative box-content p-6 flex flex-col gap-4 bg-white rounded-lg shadow-lg {class}",
+                )>
+                    <button
+                        class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                        on:click=move |_| { handle_close.call(()) }
+                    >
+                        <i class="ri-close-line"></i>
+                    </button>
+                    <h3 class="font-bold text-lg">{heading.clone()}</h3>
+                    {children()}
+                </dialog>
+            </div>
+        </Portal>
+    }
+}

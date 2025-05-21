@@ -36,7 +36,13 @@ impl HtmlDisplay for String {
 }
 
 #[derive(
-    Debug, Clone, PartialEq, PartialOrd, strum_macros::Display, strum_macros::EnumString,
+    Debug,
+    Clone,
+    PartialEq,
+    PartialOrd,
+    strum_macros::Display,
+    strum_macros::EnumString,
+    Default,
 )]
 #[strum(serialize_all = "lowercase")]
 pub enum JsonSchemaType {
@@ -46,6 +52,7 @@ pub enum JsonSchemaType {
     Integer,
     Array,
     Object,
+    #[default]
     Null,
 }
 
@@ -76,6 +83,12 @@ impl JsonSchemaType {
 pub enum SchemaType {
     Multiple(Vec<JsonSchemaType>),
     Single(JsonSchemaType),
+}
+
+impl Default for SchemaType {
+    fn default() -> Self {
+        Self::Single(JsonSchemaType::default())
+    }
 }
 
 impl SchemaType {

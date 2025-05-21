@@ -27,6 +27,7 @@ pub async fn create_experiment(
     variants: Vec<VariantFormT>,
     metrics: Option<Metrics>,
     name: String,
+    experiment_type: ExperimentType,
     tenant: String,
     description: String,
     change_reason: String,
@@ -34,7 +35,7 @@ pub async fn create_experiment(
 ) -> Result<ExperimentResponse, String> {
     let payload = ExperimentCreateRequest {
         name,
-        experiment_type: ExperimentType::Default,
+        experiment_type,
         variants: Result::<Vec<Variant>, String>::from_iter(variants)?,
         context: Exp::<Condition>::try_from(conditions.as_context_json())?,
         metrics,
@@ -58,7 +59,7 @@ pub async fn create_experiment(
 }
 
 pub async fn update_experiment(
-    experiment_id: String,
+    experiment_id: &String,
     variants: Vec<VariantFormT>,
     metrics: Option<Metrics>,
     tenant: String,
