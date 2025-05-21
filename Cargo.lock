@@ -2699,8 +2699,8 @@ dependencies = [
 
 [[package]]
 name = "jsonlogic"
-version = "0.5.3"
-source = "git+https://github.com/juspay/jsonlogic_rs.git#9e9daf93185996ce4285591cdb415dcdad71d282"
+version = "0.5.5"
+source = "git+https://github.com/juspay/jsonlogic_rs.git#822ee099cc3f40ef0608eda61d2a37e5ad60271d"
 dependencies = [
  "regex",
  "serde_json",
@@ -4267,11 +4267,12 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.113"
+version = "1.0.140"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69801b70b1c3dac963ecb03a364ba0ceda9cf60c71cfe475e99864759c8b8a79"
+checksum = "20068b6e96dc6c9bd23e01df8827e6c7e1f2fddd43c21810382803c136b99373"
 dependencies = [
  "itoa",
+ "memchr",
  "ryu",
  "serde",
 ]

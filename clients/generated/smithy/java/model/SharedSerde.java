@@ -235,6 +235,37 @@ final class SharedSerde {
         }
     }
 
+    static final class ExperimentGroupListSerializer implements BiConsumer<List<ExperimentGroupResponse>, ShapeSerializer> {
+        static final ExperimentGroupListSerializer INSTANCE = new ExperimentGroupListSerializer();
+
+        @Override
+        public void accept(List<ExperimentGroupResponse> values, ShapeSerializer serializer) {
+            for (var value : values) {
+                serializer.writeStruct(SharedSchemas.EXPERIMENT_GROUP_LIST.listMember(), value);
+            }
+        }
+    }
+
+    static List<ExperimentGroupResponse> deserializeExperimentGroupList(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        List<ExperimentGroupResponse> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
+        deserializer.readList(schema, result, ExperimentGroupList$MemberDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class ExperimentGroupList$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<ExperimentGroupResponse>> {
+        static final ExperimentGroupList$MemberDeserializer INSTANCE = new ExperimentGroupList$MemberDeserializer();
+
+        @Override
+        public void accept(List<ExperimentGroupResponse> state, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+
+                return;
+            }
+            state.add(ExperimentGroupResponse.builder().deserializeMember(deserializer, SharedSchemas.EXPERIMENT_GROUP_LIST.listMember()).build());
+        }
+    }
+
     static final class DimensionExtListSerializer implements BiConsumer<List<DimensionExt>, ShapeSerializer> {
         static final DimensionExtListSerializer INSTANCE = new DimensionExtListSerializer();
 
@@ -511,37 +542,6 @@ final class SharedSerde {
                 return;
             }
             state.add(ListVersionsMember.builder().deserializeMember(deserializer, SharedSchemas.LIST_VERSIONS_OUT.listMember()).build());
-        }
-    }
-
-    static final class StringListSerializer implements BiConsumer<List<String>, ShapeSerializer> {
-        static final StringListSerializer INSTANCE = new StringListSerializer();
-
-        @Override
-        public void accept(List<String> values, ShapeSerializer serializer) {
-            for (var value : values) {
-                serializer.writeString(SharedSchemas.STRING_LIST.listMember(), value);
-            }
-        }
-    }
-
-    static List<String> deserializeStringList(Schema schema, ShapeDeserializer deserializer) {
-        var size = deserializer.containerSize();
-        List<String> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
-        deserializer.readList(schema, result, StringList$MemberDeserializer.INSTANCE);
-        return result;
-    }
-
-    private static final class StringList$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<String>> {
-        static final StringList$MemberDeserializer INSTANCE = new StringList$MemberDeserializer();
-
-        @Override
-        public void accept(List<String> state, ShapeDeserializer deserializer) {
-            if (deserializer.isNull()) {
-
-                return;
-            }
-            state.add(deserializer.readString(SharedSchemas.STRING_LIST.listMember()));
         }
     }
 
@@ -984,6 +984,37 @@ final class SharedSerde {
                 return;
             }
             state.put(key, deserializer.readDocument());
+        }
+    }
+
+    static final class StringListSerializer implements BiConsumer<List<String>, ShapeSerializer> {
+        static final StringListSerializer INSTANCE = new StringListSerializer();
+
+        @Override
+        public void accept(List<String> values, ShapeSerializer serializer) {
+            for (var value : values) {
+                serializer.writeString(SharedSchemas.STRING_LIST.listMember(), value);
+            }
+        }
+    }
+
+    static List<String> deserializeStringList(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        List<String> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
+        deserializer.readList(schema, result, StringList$MemberDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class StringList$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<String>> {
+        static final StringList$MemberDeserializer INSTANCE = new StringList$MemberDeserializer();
+
+        @Override
+        public void accept(List<String> state, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+
+                return;
+            }
+            state.add(deserializer.readString(SharedSchemas.STRING_LIST.listMember()));
         }
     }
 

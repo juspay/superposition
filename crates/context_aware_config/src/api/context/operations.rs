@@ -6,7 +6,7 @@ use diesel::{
     Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use serde_json::Value;
-use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
+use service_utils::service::types::SchemaName;
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
     api::context::{Identifier, UpdateRequest},
@@ -18,19 +18,11 @@ use superposition_types::{
 };
 
 use crate::{
-    api::{
-        context::{
-            helpers::{
-                create_ctx_from_put_req, hash, replace_override_of_existing_ctx,
-                update_override_of_existing_ctx,
-                validate_condition_with_mandatory_dimensions,
-                validate_condition_with_strict_mode,
-            },
-            validations::validate_dimensions,
-        },
-        dimension::{get_dimension_data, get_dimension_data_map},
+    api::context::helpers::{
+        create_ctx_from_put_req, hash, replace_override_of_existing_ctx,
+        update_override_of_existing_ctx, validate_ctx,
     },
-    helpers::{calculate_context_weight, get_workspace},
+    helpers::calculate_context_weight,
 };
 
 use super::{
@@ -132,21 +124,9 @@ pub fn r#move(
 
     let new_ctx_id = hash(&ctx_condition_value);
 
-    let dimension_data = get_dimension_data(conn, schema_name)?;
-    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
-    validate_dimensions("context", &ctx_condition_value, &dimension_data_map)?;
+    let dimension_data_map = validate_ctx(conn, schema_name, ctx_condition.clone())?;
     let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
-
-    let workspace_settings = get_workspace(schema_name, conn)?;
-
-    validate_condition_with_strict_mode(&ctx_condition, workspace_settings.strict_mode)?;
-
-    let context_map = extract_dimensions(&req.context.into_inner())?;
-    validate_condition_with_mandatory_dimensions(
-        &context_map,
-        &workspace_settings.mandatory_dimensions.unwrap_or_default(),
-    )?;
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT update_ctx_savepoint").execute(conn)?;

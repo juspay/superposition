@@ -6,6 +6,10 @@ import {
   resolveHttpAuthSchemeConfig,
 } from "./auth/httpAuthSchemeProvider";
 import {
+  AddMembersToGroupCommandInput,
+  AddMembersToGroupCommandOutput,
+} from "./commands/AddMembersToGroupCommand";
+import {
   ApplicableVariantsCommandInput,
   ApplicableVariantsCommandOutput,
 } from "./commands/ApplicableVariantsCommand";
@@ -33,6 +37,10 @@ import {
   CreateExperimentCommandInput,
   CreateExperimentCommandOutput,
 } from "./commands/CreateExperimentCommand";
+import {
+  CreateExperimentGroupCommandInput,
+  CreateExperimentGroupCommandOutput,
+} from "./commands/CreateExperimentGroupCommand";
 import {
   CreateFunctionCommandInput,
   CreateFunctionCommandOutput,
@@ -65,6 +73,10 @@ import {
   DeleteDimensionCommandInput,
   DeleteDimensionCommandOutput,
 } from "./commands/DeleteDimensionCommand";
+import {
+  DeleteExperimentGroupCommandInput,
+  DeleteExperimentGroupCommandOutput,
+} from "./commands/DeleteExperimentGroupCommand";
 import {
   DeleteFunctionCommandInput,
   DeleteFunctionCommandOutput,
@@ -101,6 +113,10 @@ import {
   GetExperimentCommandInput,
   GetExperimentCommandOutput,
 } from "./commands/GetExperimentCommand";
+import {
+  GetExperimentGroupCommandInput,
+  GetExperimentGroupCommandOutput,
+} from "./commands/GetExperimentGroupCommand";
 import {
   GetFunctionCommandInput,
   GetFunctionCommandOutput,
@@ -142,6 +158,10 @@ import {
   ListExperimentCommandOutput,
 } from "./commands/ListExperimentCommand";
 import {
+  ListExperimentGroupsCommandInput,
+  ListExperimentGroupsCommandOutput,
+} from "./commands/ListExperimentGroupsCommand";
+import {
   ListFunctionCommandInput,
   ListFunctionCommandOutput,
 } from "./commands/ListFunctionCommand";
@@ -178,6 +198,10 @@ import {
   RampExperimentCommandOutput,
 } from "./commands/RampExperimentCommand";
 import {
+  RemoveMembersFromGroupCommandInput,
+  RemoveMembersFromGroupCommandOutput,
+} from "./commands/RemoveMembersFromGroupCommand";
+import {
   ResumeExperimentCommandInput,
   ResumeExperimentCommandOutput,
 } from "./commands/ResumeExperimentCommand";
@@ -193,6 +217,10 @@ import {
   UpdateDimensionCommandInput,
   UpdateDimensionCommandOutput,
 } from "./commands/UpdateDimensionCommand";
+import {
+  UpdateExperimentGroupCommandInput,
+  UpdateExperimentGroupCommandOutput,
+} from "./commands/UpdateExperimentGroupCommand";
 import {
   UpdateFunctionCommandInput,
   UpdateFunctionCommandOutput,
@@ -291,6 +319,7 @@ export { __Client }
  * @public
  */
 export type ServiceInputTypes =
+  | AddMembersToGroupCommandInput
   | ApplicableVariantsCommandInput
   | BulkOperationCommandInput
   | ConcludeExperimentCommandInput
@@ -298,6 +327,7 @@ export type ServiceInputTypes =
   | CreateDefaultConfigCommandInput
   | CreateDimensionCommandInput
   | CreateExperimentCommandInput
+  | CreateExperimentGroupCommandInput
   | CreateFunctionCommandInput
   | CreateOrganisationCommandInput
   | CreateTypeTemplatesCommandInput
@@ -306,6 +336,7 @@ export type ServiceInputTypes =
   | DeleteContextCommandInput
   | DeleteDefaultConfigCommandInput
   | DeleteDimensionCommandInput
+  | DeleteExperimentGroupCommandInput
   | DeleteFunctionCommandInput
   | DeleteTypeTemplatesCommandInput
   | DiscardExperimentCommandInput
@@ -315,6 +346,7 @@ export type ServiceInputTypes =
   | GetContextFromConditionCommandInput
   | GetDimensionCommandInput
   | GetExperimentCommandInput
+  | GetExperimentGroupCommandInput
   | GetFunctionCommandInput
   | GetOrganisationCommandInput
   | GetResolvedConfigCommandInput
@@ -325,6 +357,7 @@ export type ServiceInputTypes =
   | ListDefaultConfigsCommandInput
   | ListDimensionsCommandInput
   | ListExperimentCommandInput
+  | ListExperimentGroupsCommandInput
   | ListFunctionCommandInput
   | ListOrganisationCommandInput
   | ListVersionsCommandInput
@@ -334,10 +367,12 @@ export type ServiceInputTypes =
   | PauseExperimentCommandInput
   | PublishCommandInput
   | RampExperimentCommandInput
+  | RemoveMembersFromGroupCommandInput
   | ResumeExperimentCommandInput
   | TestCommandInput
   | UpdateDefaultConfigCommandInput
   | UpdateDimensionCommandInput
+  | UpdateExperimentGroupCommandInput
   | UpdateFunctionCommandInput
   | UpdateOrganisationCommandInput
   | UpdateOverrideCommandInput
@@ -351,6 +386,7 @@ export type ServiceInputTypes =
  * @public
  */
 export type ServiceOutputTypes =
+  | AddMembersToGroupCommandOutput
   | ApplicableVariantsCommandOutput
   | BulkOperationCommandOutput
   | ConcludeExperimentCommandOutput
@@ -358,6 +394,7 @@ export type ServiceOutputTypes =
   | CreateDefaultConfigCommandOutput
   | CreateDimensionCommandOutput
   | CreateExperimentCommandOutput
+  | CreateExperimentGroupCommandOutput
   | CreateFunctionCommandOutput
   | CreateOrganisationCommandOutput
   | CreateTypeTemplatesCommandOutput
@@ -366,6 +403,7 @@ export type ServiceOutputTypes =
   | DeleteContextCommandOutput
   | DeleteDefaultConfigCommandOutput
   | DeleteDimensionCommandOutput
+  | DeleteExperimentGroupCommandOutput
   | DeleteFunctionCommandOutput
   | DeleteTypeTemplatesCommandOutput
   | DiscardExperimentCommandOutput
@@ -375,6 +413,7 @@ export type ServiceOutputTypes =
   | GetContextFromConditionCommandOutput
   | GetDimensionCommandOutput
   | GetExperimentCommandOutput
+  | GetExperimentGroupCommandOutput
   | GetFunctionCommandOutput
   | GetOrganisationCommandOutput
   | GetResolvedConfigCommandOutput
@@ -385,6 +424,7 @@ export type ServiceOutputTypes =
   | ListDefaultConfigsCommandOutput
   | ListDimensionsCommandOutput
   | ListExperimentCommandOutput
+  | ListExperimentGroupsCommandOutput
   | ListFunctionCommandOutput
   | ListOrganisationCommandOutput
   | ListVersionsCommandOutput
@@ -394,10 +434,12 @@ export type ServiceOutputTypes =
   | PauseExperimentCommandOutput
   | PublishCommandOutput
   | RampExperimentCommandOutput
+  | RemoveMembersFromGroupCommandOutput
   | ResumeExperimentCommandOutput
   | TestCommandOutput
   | UpdateDefaultConfigCommandOutput
   | UpdateDimensionCommandOutput
+  | UpdateExperimentGroupCommandOutput
   | UpdateFunctionCommandOutput
   | UpdateOrganisationCommandOutput
   | UpdateOverrideCommandOutput
