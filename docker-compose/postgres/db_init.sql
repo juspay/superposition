@@ -1346,7 +1346,8 @@ ALTER TABLE localorg_test.experiments ADD COLUMN experiment_type public.experime
 ALTER TABLE localorg_dev.experiments ADD COLUMN experiment_type public.experiment_type NOT NULL DEFAULT 'DEFAULT';
 
 CREATE TABLE IF NOT EXISTS localorg_dev.experiment_groups(
-    experiment_group_id TEXT PRIMARY KEY,
+    experiment_group_id bigint PRIMARY KEY,
+    experiment_group_hash TEXT NOT NULL,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     change_reason TEXT NOT NULL,
@@ -1360,7 +1361,8 @@ CREATE TABLE IF NOT EXISTS localorg_dev.experiment_groups(
 );
 
 CREATE TABLE IF NOT EXISTS localorg_test.experiment_groups(
-    experiment_group_id TEXT PRIMARY KEY,
+    experiment_group_id bigint PRIMARY KEY,
+    experiment_group_hash TEXT NOT NULL,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     change_reason TEXT NOT NULL,

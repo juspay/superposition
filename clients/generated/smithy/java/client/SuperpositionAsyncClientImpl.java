@@ -20,6 +20,9 @@ import io.juspay.superposition.model.CreateDimension;
 import io.juspay.superposition.model.CreateDimensionInput;
 import io.juspay.superposition.model.CreateDimensionOutput;
 import io.juspay.superposition.model.CreateExperiment;
+import io.juspay.superposition.model.CreateExperimentGroup;
+import io.juspay.superposition.model.CreateExperimentGroupInput;
+import io.juspay.superposition.model.CreateExperimentGroupOutput;
 import io.juspay.superposition.model.CreateExperimentInput;
 import io.juspay.superposition.model.CreateExperimentOutput;
 import io.juspay.superposition.model.CreateFunction;
@@ -46,6 +49,9 @@ import io.juspay.superposition.model.DeleteDefaultConfigOutput;
 import io.juspay.superposition.model.DeleteDimension;
 import io.juspay.superposition.model.DeleteDimensionInput;
 import io.juspay.superposition.model.DeleteDimensionOutput;
+import io.juspay.superposition.model.DeleteExperimentGroup;
+import io.juspay.superposition.model.DeleteExperimentGroupInput;
+import io.juspay.superposition.model.DeleteExperimentGroupOutput;
 import io.juspay.superposition.model.DeleteFunction;
 import io.juspay.superposition.model.DeleteFunctionInput;
 import io.juspay.superposition.model.DeleteFunctionOutput;
@@ -71,6 +77,9 @@ import io.juspay.superposition.model.GetDimension;
 import io.juspay.superposition.model.GetDimensionInput;
 import io.juspay.superposition.model.GetDimensionOutput;
 import io.juspay.superposition.model.GetExperiment;
+import io.juspay.superposition.model.GetExperimentGroup;
+import io.juspay.superposition.model.GetExperimentGroupInput;
+import io.juspay.superposition.model.GetExperimentGroupOutput;
 import io.juspay.superposition.model.GetExperimentInput;
 import io.juspay.superposition.model.GetExperimentOutput;
 import io.juspay.superposition.model.GetFunction;
@@ -101,6 +110,9 @@ import io.juspay.superposition.model.ListDimensions;
 import io.juspay.superposition.model.ListDimensionsInput;
 import io.juspay.superposition.model.ListDimensionsOutput;
 import io.juspay.superposition.model.ListExperiment;
+import io.juspay.superposition.model.ListExperimentGroups;
+import io.juspay.superposition.model.ListExperimentGroupsInput;
+import io.juspay.superposition.model.ListExperimentGroupsOutput;
 import io.juspay.superposition.model.ListExperimentInput;
 import io.juspay.superposition.model.ListExperimentOutput;
 import io.juspay.superposition.model.ListFunction;
@@ -142,6 +154,9 @@ import io.juspay.superposition.model.UpdateDefaultConfigOutput;
 import io.juspay.superposition.model.UpdateDimension;
 import io.juspay.superposition.model.UpdateDimensionInput;
 import io.juspay.superposition.model.UpdateDimensionOutput;
+import io.juspay.superposition.model.UpdateExperimentGroup;
+import io.juspay.superposition.model.UpdateExperimentGroupInput;
+import io.juspay.superposition.model.UpdateExperimentGroupOutput;
 import io.juspay.superposition.model.UpdateFunction;
 import io.juspay.superposition.model.UpdateFunctionInput;
 import io.juspay.superposition.model.UpdateFunctionOutput;
@@ -224,6 +239,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
     }
 
     @Override
+    public CompletableFuture<CreateExperimentGroupOutput> createExperimentGroup(CreateExperimentGroupInput input, RequestOverrideConfig overrideConfig) {return call(input, CreateExperimentGroup.instance(), overrideConfig);
+    }
+
+    @Override
     public CompletableFuture<CreateFunctionOutput> createFunction(CreateFunctionInput input, RequestOverrideConfig overrideConfig) {return call(input, CreateFunction.instance(), overrideConfig);
     }
 
@@ -253,6 +272,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<DeleteDimensionOutput> deleteDimension(DeleteDimensionInput input, RequestOverrideConfig overrideConfig) {return call(input, DeleteDimension.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<DeleteExperimentGroupOutput> deleteExperimentGroup(DeleteExperimentGroupInput input, RequestOverrideConfig overrideConfig) {return call(input, DeleteExperimentGroup.instance(), overrideConfig);
     }
 
     @Override
@@ -289,6 +312,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<GetExperimentOutput> getExperiment(GetExperimentInput input, RequestOverrideConfig overrideConfig) {return call(input, GetExperiment.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<GetExperimentGroupOutput> getExperimentGroup(GetExperimentGroupInput input, RequestOverrideConfig overrideConfig) {return call(input, GetExperimentGroup.instance(), overrideConfig);
     }
 
     @Override
@@ -329,6 +356,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<ListExperimentOutput> listExperiment(ListExperimentInput input, RequestOverrideConfig overrideConfig) {return call(input, ListExperiment.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<ListExperimentGroupsOutput> listExperimentGroups(ListExperimentGroupsInput input, RequestOverrideConfig overrideConfig) {return call(input, ListExperimentGroups.instance(), overrideConfig);
     }
 
     @Override
@@ -381,6 +412,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<UpdateDimensionOutput> updateDimension(UpdateDimensionInput input, RequestOverrideConfig overrideConfig) {return call(input, UpdateDimension.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<UpdateExperimentGroupOutput> updateExperimentGroup(UpdateExperimentGroupInput input, RequestOverrideConfig overrideConfig) {return call(input, UpdateExperimentGroup.instance(), overrideConfig);
     }
 
     @Override

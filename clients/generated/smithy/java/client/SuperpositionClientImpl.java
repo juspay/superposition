@@ -20,6 +20,9 @@ import io.juspay.superposition.model.CreateDimension;
 import io.juspay.superposition.model.CreateDimensionInput;
 import io.juspay.superposition.model.CreateDimensionOutput;
 import io.juspay.superposition.model.CreateExperiment;
+import io.juspay.superposition.model.CreateExperimentGroup;
+import io.juspay.superposition.model.CreateExperimentGroupInput;
+import io.juspay.superposition.model.CreateExperimentGroupOutput;
 import io.juspay.superposition.model.CreateExperimentInput;
 import io.juspay.superposition.model.CreateExperimentOutput;
 import io.juspay.superposition.model.CreateFunction;
@@ -46,6 +49,9 @@ import io.juspay.superposition.model.DeleteDefaultConfigOutput;
 import io.juspay.superposition.model.DeleteDimension;
 import io.juspay.superposition.model.DeleteDimensionInput;
 import io.juspay.superposition.model.DeleteDimensionOutput;
+import io.juspay.superposition.model.DeleteExperimentGroup;
+import io.juspay.superposition.model.DeleteExperimentGroupInput;
+import io.juspay.superposition.model.DeleteExperimentGroupOutput;
 import io.juspay.superposition.model.DeleteFunction;
 import io.juspay.superposition.model.DeleteFunctionInput;
 import io.juspay.superposition.model.DeleteFunctionOutput;
@@ -71,6 +77,9 @@ import io.juspay.superposition.model.GetDimension;
 import io.juspay.superposition.model.GetDimensionInput;
 import io.juspay.superposition.model.GetDimensionOutput;
 import io.juspay.superposition.model.GetExperiment;
+import io.juspay.superposition.model.GetExperimentGroup;
+import io.juspay.superposition.model.GetExperimentGroupInput;
+import io.juspay.superposition.model.GetExperimentGroupOutput;
 import io.juspay.superposition.model.GetExperimentInput;
 import io.juspay.superposition.model.GetExperimentOutput;
 import io.juspay.superposition.model.GetFunction;
@@ -101,6 +110,9 @@ import io.juspay.superposition.model.ListDimensions;
 import io.juspay.superposition.model.ListDimensionsInput;
 import io.juspay.superposition.model.ListDimensionsOutput;
 import io.juspay.superposition.model.ListExperiment;
+import io.juspay.superposition.model.ListExperimentGroups;
+import io.juspay.superposition.model.ListExperimentGroupsInput;
+import io.juspay.superposition.model.ListExperimentGroupsOutput;
 import io.juspay.superposition.model.ListExperimentInput;
 import io.juspay.superposition.model.ListExperimentOutput;
 import io.juspay.superposition.model.ListFunction;
@@ -142,6 +154,9 @@ import io.juspay.superposition.model.UpdateDefaultConfigOutput;
 import io.juspay.superposition.model.UpdateDimension;
 import io.juspay.superposition.model.UpdateDimensionInput;
 import io.juspay.superposition.model.UpdateDimensionOutput;
+import io.juspay.superposition.model.UpdateExperimentGroup;
+import io.juspay.superposition.model.UpdateExperimentGroupInput;
+import io.juspay.superposition.model.UpdateExperimentGroupOutput;
 import io.juspay.superposition.model.UpdateFunction;
 import io.juspay.superposition.model.UpdateFunctionInput;
 import io.juspay.superposition.model.UpdateFunctionOutput;
@@ -259,6 +274,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     }
 
     @Override
+    public CreateExperimentGroupOutput createExperimentGroup(CreateExperimentGroupInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, CreateExperimentGroup.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
     public CreateFunctionOutput createFunction(CreateFunctionInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, CreateFunction.instance(), overrideConfig).join();
@@ -325,6 +349,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public DeleteDimensionOutput deleteDimension(DeleteDimensionInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, DeleteDimension.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public DeleteExperimentGroupOutput deleteExperimentGroup(DeleteExperimentGroupInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, DeleteExperimentGroup.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }
@@ -406,6 +439,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public GetExperimentOutput getExperiment(GetExperimentInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, GetExperiment.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public GetExperimentGroupOutput getExperimentGroup(GetExperimentGroupInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, GetExperimentGroup.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }
@@ -496,6 +538,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public ListExperimentOutput listExperiment(ListExperimentInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, ListExperiment.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public ListExperimentGroupsOutput listExperimentGroups(ListExperimentGroupsInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, ListExperimentGroups.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }
@@ -613,6 +664,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public UpdateDimensionOutput updateDimension(UpdateDimensionInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, UpdateDimension.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public UpdateExperimentGroupOutput updateExperimentGroup(UpdateExperimentGroupInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, UpdateExperimentGroup.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }

@@ -1,6 +1,7 @@
 -- Your SQL goes here
 CREATE TABLE IF NOT EXISTS public.experiment_groups(
-    experiment_group_id TEXT PRIMARY KEY,
+    experiment_group_id bigint PRIMARY KEY,
+    experiment_group_hash TEXT NOT NULL,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     change_reason TEXT NOT NULL,

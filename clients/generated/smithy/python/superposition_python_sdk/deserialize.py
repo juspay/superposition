@@ -22,6 +22,7 @@ from .models import (
     CreateContextOutput,
     CreateDefaultConfigOutput,
     CreateDimensionOutput,
+    CreateExperimentGroupOutput,
     CreateExperimentOutput,
     CreateFunctionOutput,
     CreateOrganisationOutput,
@@ -31,6 +32,7 @@ from .models import (
     DeleteContextOutput,
     DeleteDefaultConfigOutput,
     DeleteDimensionOutput,
+    DeleteExperimentGroupOutput,
     DeleteFunctionOutput,
     DeleteTypeTemplatesOutput,
     DiscardExperimentOutput,
@@ -40,6 +42,7 @@ from .models import (
     GetContextFromConditionOutput,
     GetContextOutput,
     GetDimensionOutput,
+    GetExperimentGroupOutput,
     GetExperimentOutput,
     GetFunctionOutput,
     GetOrganisationOutput,
@@ -51,6 +54,7 @@ from .models import (
     ListContextsOutput,
     ListDefaultConfigsOutput,
     ListDimensionsOutput,
+    ListExperimentGroupsOutput,
     ListExperimentOutput,
     ListFunctionOutput,
     ListOrganisationOutput,
@@ -69,6 +73,7 @@ from .models import (
     UnknownApiError,
     UpdateDefaultConfigOutput,
     UpdateDimensionOutput,
+    UpdateExperimentGroupOutput,
     UpdateFunctionOutput,
     UpdateOrganisationOutput,
     UpdateOverrideOutput,
@@ -255,6 +260,31 @@ async def _deserialize_error_create_experiment(http_response: HTTPResponse, conf
         case _:
             return UnknownApiError(f"{code}: {message}")
 
+async def _deserialize_create_experiment_group(http_response: HTTPResponse, config: Config) -> CreateExperimentGroupOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_create_experiment_group(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = CreateExperimentGroupOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return CreateExperimentGroupOutput(**kwargs)
+
+async def _deserialize_error_create_experiment_group(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
 async def _deserialize_create_function(http_response: HTTPResponse, config: Config) -> CreateFunctionOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_create_function(http_response, config)
@@ -431,6 +461,34 @@ async def _deserialize_delete_dimension(http_response: HTTPResponse, config: Con
     return DeleteDimensionOutput(**kwargs)
 
 async def _deserialize_error_delete_dimension(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case "resourcenotfound":
+            return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_delete_experiment_group(http_response: HTTPResponse, config: Config) -> DeleteExperimentGroupOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_delete_experiment_group(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = DeleteExperimentGroupOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return DeleteExperimentGroupOutput(**kwargs)
+
+async def _deserialize_error_delete_experiment_group(http_response: HTTPResponse, config: Config) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
@@ -707,6 +765,34 @@ async def _deserialize_error_get_experiment(http_response: HTTPResponse, config:
         case _:
             return UnknownApiError(f"{code}: {message}")
 
+async def _deserialize_get_experiment_group(http_response: HTTPResponse, config: Config) -> GetExperimentGroupOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_get_experiment_group(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = GetExperimentGroupOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return GetExperimentGroupOutput(**kwargs)
+
+async def _deserialize_error_get_experiment_group(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case "resourcenotfound":
+            return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
 async def _deserialize_get_function(http_response: HTTPResponse, config: Config) -> GetFunctionOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_get_function(http_response, config)
@@ -972,6 +1058,31 @@ async def _deserialize_list_experiment(http_response: HTTPResponse, config: Conf
     return ListExperimentOutput(**kwargs)
 
 async def _deserialize_error_list_experiment(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_list_experiment_groups(http_response: HTTPResponse, config: Config) -> ListExperimentGroupsOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_list_experiment_groups(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = ListExperimentGroupsOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return ListExperimentGroupsOutput(**kwargs)
+
+async def _deserialize_error_list_experiment_groups(http_response: HTTPResponse, config: Config) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
@@ -1309,6 +1420,34 @@ async def _deserialize_update_dimension(http_response: HTTPResponse, config: Con
     return UpdateDimensionOutput(**kwargs)
 
 async def _deserialize_error_update_dimension(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case "resourcenotfound":
+            return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_update_experiment_group(http_response: HTTPResponse, config: Config) -> UpdateExperimentGroupOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_update_experiment_group(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = UpdateExperimentGroupOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return UpdateExperimentGroupOutput(**kwargs)
+
+async def _deserialize_error_update_experiment_group(http_response: HTTPResponse, config: Config) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
