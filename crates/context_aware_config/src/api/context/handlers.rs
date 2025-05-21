@@ -10,7 +10,7 @@ use crate::{
             operations,
             types::{
                 BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
-                MoveReq, PutReq, WeightRecomputeResponse,
+                ContextValidationRequest, MoveReq, PutReq, WeightRecomputeResponse,
             },
         },
         dimension::{get_dimension_data, get_dimension_data_map},
