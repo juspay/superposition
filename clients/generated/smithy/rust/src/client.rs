@@ -118,6 +118,8 @@ mod create_dimension;
 
 mod create_experiment;
 
+mod create_experiment_group;
+
 mod create_function;
 
 mod create_organisation;
@@ -161,6 +163,8 @@ mod delete_default_config;
 
 mod delete_dimension;
 
+mod delete_experiment_group;
+
 mod delete_function;
 
 mod delete_type_templates;
@@ -178,6 +182,8 @@ mod get_context_from_condition;
 mod get_dimension;
 
 mod get_experiment;
+
+mod get_experiment_group;
 
 mod get_function;
 
@@ -198,6 +204,8 @@ mod list_default_configs;
 mod list_dimensions;
 
 mod list_experiment;
+
+mod list_experiment_groups;
 
 mod list_function;
 
@@ -224,6 +232,8 @@ mod test;
 mod update_default_config;
 
 mod update_dimension;
+
+mod update_experiment_group;
 
 mod update_function;
 

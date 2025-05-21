@@ -39,6 +39,11 @@ import {
   CreateExperimentCommandOutput,
 } from "./commands/CreateExperimentCommand";
 import {
+  CreateExperimentGroupCommand,
+  CreateExperimentGroupCommandInput,
+  CreateExperimentGroupCommandOutput,
+} from "./commands/CreateExperimentGroupCommand";
+import {
   CreateFunctionCommand,
   CreateFunctionCommandInput,
   CreateFunctionCommandOutput,
@@ -78,6 +83,11 @@ import {
   DeleteDimensionCommandInput,
   DeleteDimensionCommandOutput,
 } from "./commands/DeleteDimensionCommand";
+import {
+  DeleteExperimentGroupCommand,
+  DeleteExperimentGroupCommandInput,
+  DeleteExperimentGroupCommandOutput,
+} from "./commands/DeleteExperimentGroupCommand";
 import {
   DeleteFunctionCommand,
   DeleteFunctionCommandInput,
@@ -123,6 +133,11 @@ import {
   GetExperimentCommandInput,
   GetExperimentCommandOutput,
 } from "./commands/GetExperimentCommand";
+import {
+  GetExperimentGroupCommand,
+  GetExperimentGroupCommandInput,
+  GetExperimentGroupCommandOutput,
+} from "./commands/GetExperimentGroupCommand";
 import {
   GetFunctionCommand,
   GetFunctionCommandInput,
@@ -173,6 +188,11 @@ import {
   ListExperimentCommandInput,
   ListExperimentCommandOutput,
 } from "./commands/ListExperimentCommand";
+import {
+  ListExperimentGroupsCommand,
+  ListExperimentGroupsCommandInput,
+  ListExperimentGroupsCommandOutput,
+} from "./commands/ListExperimentGroupsCommand";
 import {
   ListFunctionCommand,
   ListFunctionCommandInput,
@@ -239,6 +259,11 @@ import {
   UpdateDimensionCommandOutput,
 } from "./commands/UpdateDimensionCommand";
 import {
+  UpdateExperimentGroupCommand,
+  UpdateExperimentGroupCommandInput,
+  UpdateExperimentGroupCommandOutput,
+} from "./commands/UpdateExperimentGroupCommand";
+import {
   UpdateFunctionCommand,
   UpdateFunctionCommandInput,
   UpdateFunctionCommandOutput,
@@ -289,6 +314,7 @@ const commands = {
   CreateDefaultConfigCommand,
   CreateDimensionCommand,
   CreateExperimentCommand,
+  CreateExperimentGroupCommand,
   CreateFunctionCommand,
   CreateOrganisationCommand,
   CreateTypeTemplatesCommand,
@@ -297,6 +323,7 @@ const commands = {
   DeleteContextCommand,
   DeleteDefaultConfigCommand,
   DeleteDimensionCommand,
+  DeleteExperimentGroupCommand,
   DeleteFunctionCommand,
   DeleteTypeTemplatesCommand,
   DiscardExperimentCommand,
@@ -306,6 +333,7 @@ const commands = {
   GetContextFromConditionCommand,
   GetDimensionCommand,
   GetExperimentCommand,
+  GetExperimentGroupCommand,
   GetFunctionCommand,
   GetOrganisationCommand,
   GetResolvedConfigCommand,
@@ -316,6 +344,7 @@ const commands = {
   ListDefaultConfigsCommand,
   ListDimensionsCommand,
   ListExperimentCommand,
+  ListExperimentGroupsCommand,
   ListFunctionCommand,
   ListOrganisationCommand,
   ListVersionsCommand,
@@ -329,6 +358,7 @@ const commands = {
   TestCommand,
   UpdateDefaultConfigCommand,
   UpdateDimensionCommand,
+  UpdateExperimentGroupCommand,
   UpdateFunctionCommand,
   UpdateOrganisationCommand,
   UpdateOverrideCommand,
@@ -457,6 +487,23 @@ export interface Superposition {
     args: CreateExperimentCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: CreateExperimentCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link CreateExperimentGroupCommand}
+   */
+  createExperimentGroup(
+    args: CreateExperimentGroupCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<CreateExperimentGroupCommandOutput>;
+  createExperimentGroup(
+    args: CreateExperimentGroupCommandInput,
+    cb: (err: any, data?: CreateExperimentGroupCommandOutput) => void
+  ): void;
+  createExperimentGroup(
+    args: CreateExperimentGroupCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: CreateExperimentGroupCommandOutput) => void
   ): void;
 
   /**
@@ -593,6 +640,23 @@ export interface Superposition {
     args: DeleteDimensionCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: DeleteDimensionCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link DeleteExperimentGroupCommand}
+   */
+  deleteExperimentGroup(
+    args: DeleteExperimentGroupCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<DeleteExperimentGroupCommandOutput>;
+  deleteExperimentGroup(
+    args: DeleteExperimentGroupCommandInput,
+    cb: (err: any, data?: DeleteExperimentGroupCommandOutput) => void
+  ): void;
+  deleteExperimentGroup(
+    args: DeleteExperimentGroupCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: DeleteExperimentGroupCommandOutput) => void
   ): void;
 
   /**
@@ -746,6 +810,23 @@ export interface Superposition {
     args: GetExperimentCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: GetExperimentCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link GetExperimentGroupCommand}
+   */
+  getExperimentGroup(
+    args: GetExperimentGroupCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetExperimentGroupCommandOutput>;
+  getExperimentGroup(
+    args: GetExperimentGroupCommandInput,
+    cb: (err: any, data?: GetExperimentGroupCommandOutput) => void
+  ): void;
+  getExperimentGroup(
+    args: GetExperimentGroupCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetExperimentGroupCommandOutput) => void
   ): void;
 
   /**
@@ -916,6 +997,23 @@ export interface Superposition {
     args: ListExperimentCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: ListExperimentCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link ListExperimentGroupsCommand}
+   */
+  listExperimentGroups(
+    args: ListExperimentGroupsCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<ListExperimentGroupsCommandOutput>;
+  listExperimentGroups(
+    args: ListExperimentGroupsCommandInput,
+    cb: (err: any, data?: ListExperimentGroupsCommandOutput) => void
+  ): void;
+  listExperimentGroups(
+    args: ListExperimentGroupsCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: ListExperimentGroupsCommandOutput) => void
   ): void;
 
   /**
@@ -1138,6 +1236,23 @@ export interface Superposition {
     args: UpdateDimensionCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: UpdateDimensionCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link UpdateExperimentGroupCommand}
+   */
+  updateExperimentGroup(
+    args: UpdateExperimentGroupCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<UpdateExperimentGroupCommandOutput>;
+  updateExperimentGroup(
+    args: UpdateExperimentGroupCommandInput,
+    cb: (err: any, data?: UpdateExperimentGroupCommandOutput) => void
+  ): void;
+  updateExperimentGroup(
+    args: UpdateExperimentGroupCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: UpdateExperimentGroupCommandOutput) => void
   ): void;
 
   /**

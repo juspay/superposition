@@ -235,6 +235,37 @@ final class SharedSerde {
         }
     }
 
+    static final class ExperimentGroupListSerializer implements BiConsumer<List<ExperimentGroupResponse>, ShapeSerializer> {
+        static final ExperimentGroupListSerializer INSTANCE = new ExperimentGroupListSerializer();
+
+        @Override
+        public void accept(List<ExperimentGroupResponse> values, ShapeSerializer serializer) {
+            for (var value : values) {
+                serializer.writeStruct(SharedSchemas.EXPERIMENT_GROUP_LIST.listMember(), value);
+            }
+        }
+    }
+
+    static List<ExperimentGroupResponse> deserializeExperimentGroupList(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        List<ExperimentGroupResponse> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
+        deserializer.readList(schema, result, ExperimentGroupList$MemberDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class ExperimentGroupList$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<ExperimentGroupResponse>> {
+        static final ExperimentGroupList$MemberDeserializer INSTANCE = new ExperimentGroupList$MemberDeserializer();
+
+        @Override
+        public void accept(List<ExperimentGroupResponse> state, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+
+                return;
+            }
+            state.add(ExperimentGroupResponse.builder().deserializeMember(deserializer, SharedSchemas.EXPERIMENT_GROUP_LIST.listMember()).build());
+        }
+    }
+
     static final class DimensionExtListSerializer implements BiConsumer<List<DimensionExt>, ShapeSerializer> {
         static final DimensionExtListSerializer INSTANCE = new DimensionExtListSerializer();
 
