@@ -887,6 +887,49 @@ export interface CreateExperimentRequest {
 }
 
 /**
+ * Input structure for creating a new experiment group.
+ * @public
+ */
+export interface CreateExperimentGroupRequest {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  name: string | undefined;
+  description: string | undefined;
+  /**
+   * Reason for creating this experiment group.
+   * @public
+   */
+  change_reason: string | undefined;
+
+  context: Record<string, __DocumentType> | undefined;
+  traffic_percentage: number | undefined;
+  /**
+   * List of experiment IDs that are members of this group.
+   * @public
+   */
+  member_experiment_ids?: (string)[] | undefined;
+}
+
+/**
+ * Standard response structure for an experiment group.
+ * @public
+ */
+export interface ExperimentGroupResponse {
+  experiment_group_id: string | undefined;
+  experiment_group_hash: string | undefined;
+  name: string | undefined;
+  description: string | undefined;
+  change_reason: string | undefined;
+  context: Record<string, __DocumentType> | undefined;
+  traffic_percentage: number | undefined;
+  member_experiment_ids: (string)[] | undefined;
+  created_at: Date | undefined;
+  created_by: string | undefined;
+  last_modified_at: Date | undefined;
+  last_modified_by: string | undefined;
+}
+
+/**
  * @public
  * @enum
  */
@@ -1178,6 +1221,15 @@ export interface DeleteDimensionOutput {
 /**
  * @public
  */
+export interface DeleteExperimentGroupInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  experiment_group_id: string | undefined;
+}
+
+/**
+ * @public
+ */
 export interface DeleteFunctionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
@@ -1279,6 +1331,124 @@ export interface DiscardExperimentInput {
   org_id: string | undefined;
   id: string | undefined;
   change_reason: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface GetExperimentGroupInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  experiment_group_id: string | undefined;
+}
+
+/**
+ * @public
+ * @enum
+ */
+export const ExperimentGroupSortOn = {
+  /**
+   * Sort by creation timestamp.
+   */
+  CreatedAt: "created_at",
+  /**
+   * Sort by last modification timestamp.
+   */
+  LastModifiedAt: "last_modified_at",
+  /**
+   * Sort by name.
+   */
+  Name: "name",
+} as const
+/**
+ * @public
+ */
+export type ExperimentGroupSortOn = typeof ExperimentGroupSortOn[keyof typeof ExperimentGroupSortOn]
+
+/**
+ * @public
+ */
+export interface ListExperimentGroupsInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  page?: number | undefined;
+  count?: number | undefined;
+  /**
+   * Filter by experiment group name (exact match or substring, depending on backend implementation).
+   * @public
+   */
+  name?: string | undefined;
+
+  /**
+   * Filter by the user who created the experiment group.
+   * @public
+   */
+  created_by?: string | undefined;
+
+  /**
+   * Filter by the user who last modified the experiment group.
+   * @public
+   */
+  last_modified_by?: string | undefined;
+
+  /**
+   * Field to sort the results by.
+   * @public
+   */
+  sort_on?: ExperimentGroupSortOn | undefined;
+
+  /**
+   * Sort order (ascending or descending).
+   * @public
+   */
+  sort_by?: SortBy | undefined;
+
+  /**
+   * If true, returns all experiment groups, ignoring pagination parameters page and count.
+   * @public
+   */
+  all?: boolean | undefined;
+}
+
+/**
+ * Output structure for the list experiment groups operation, including pagination details.
+ * @public
+ */
+export interface ListExperimentGroupsResponse {
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  /**
+   * A list of experiment group responses.
+   * @public
+   */
+  data: (ExperimentGroupResponse)[] | undefined;
+}
+
+/**
+ * Input structure for updating an existing experiment group.
+ * @public
+ */
+export interface UpdateExperimentGroupRequest {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  experiment_group_id: string | undefined;
+  /**
+   * Reason for this update.
+   * @public
+   */
+  change_reason: string | undefined;
+
+  /**
+   * Optional new traffic percentage for the group.
+   * @public
+   */
+  traffic_percentage?: number | undefined;
+
+  /**
+   * Optional new list of member experiment IDs. Replaces the existing list if provided.
+   * @public
+   */
+  member_experiment_ids?: (string)[] | undefined;
 }
 
 /**

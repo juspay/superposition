@@ -720,7 +720,8 @@ diesel::table! {
 
 diesel::table! {
     experiment_groups (experiment_group_id) {
-        experiment_group_id -> Text,
+        experiment_group_id -> Int8,
+        experiment_group_hash -> Text,
         name -> Text,
         description -> Text,
         change_reason -> Text,

@@ -21,6 +21,9 @@ pub mod create_dimension;
 /// Types for the `CreateExperiment` operation.
 pub mod create_experiment;
 
+/// Types for the `CreateExperimentGroup` operation.
+pub mod create_experiment_group;
+
 /// Types for the `CreateFunction` operation.
 pub mod create_function;
 
@@ -45,6 +48,9 @@ pub mod delete_default_config;
 /// Types for the `DeleteDimension` operation.
 pub mod delete_dimension;
 
+/// Types for the `DeleteExperimentGroup` operation.
+pub mod delete_experiment_group;
+
 /// Types for the `DeleteFunction` operation.
 pub mod delete_function;
 
@@ -68,6 +74,9 @@ pub mod get_context_from_condition;
 
 /// Types for the `GetExperiment` operation.
 pub mod get_experiment;
+
+/// Types for the `GetExperimentGroup` operation.
+pub mod get_experiment_group;
 
 /// Types for the `GetFunction` operation.
 pub mod get_function;
@@ -98,6 +107,9 @@ pub mod list_dimensions;
 
 /// Types for the `ListExperiment` operation.
 pub mod list_experiment;
+
+/// Types for the `ListExperimentGroups` operation.
+pub mod list_experiment_groups;
 
 /// Types for the `ListFunction` operation.
 pub mod list_function;
@@ -137,6 +149,9 @@ pub mod update_default_config;
 
 /// Types for the `UpdateDimension` operation.
 pub mod update_dimension;
+
+/// Types for the `UpdateExperimentGroup` operation.
+pub mod update_experiment_group;
 
 /// Types for the `UpdateFunction` operation.
 pub mod update_function;

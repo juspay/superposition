@@ -34,6 +34,10 @@ import {
   CreateExperimentCommandOutput,
 } from "./commands/CreateExperimentCommand";
 import {
+  CreateExperimentGroupCommandInput,
+  CreateExperimentGroupCommandOutput,
+} from "./commands/CreateExperimentGroupCommand";
+import {
   CreateFunctionCommandInput,
   CreateFunctionCommandOutput,
 } from "./commands/CreateFunctionCommand";
@@ -66,6 +70,10 @@ import {
   DeleteDimensionCommandOutput,
 } from "./commands/DeleteDimensionCommand";
 import {
+  DeleteExperimentGroupCommandInput,
+  DeleteExperimentGroupCommandOutput,
+} from "./commands/DeleteExperimentGroupCommand";
+import {
   DeleteFunctionCommandInput,
   DeleteFunctionCommandOutput,
 } from "./commands/DeleteFunctionCommand";
@@ -97,6 +105,10 @@ import {
   GetExperimentCommandInput,
   GetExperimentCommandOutput,
 } from "./commands/GetExperimentCommand";
+import {
+  GetExperimentGroupCommandInput,
+  GetExperimentGroupCommandOutput,
+} from "./commands/GetExperimentGroupCommand";
 import {
   GetFunctionCommandInput,
   GetFunctionCommandOutput,
@@ -137,6 +149,10 @@ import {
   ListExperimentCommandInput,
   ListExperimentCommandOutput,
 } from "./commands/ListExperimentCommand";
+import {
+  ListExperimentGroupsCommandInput,
+  ListExperimentGroupsCommandOutput,
+} from "./commands/ListExperimentGroupsCommand";
 import {
   ListFunctionCommandInput,
   ListFunctionCommandOutput,
@@ -189,6 +205,10 @@ import {
   UpdateDimensionCommandInput,
   UpdateDimensionCommandOutput,
 } from "./commands/UpdateDimensionCommand";
+import {
+  UpdateExperimentGroupCommandInput,
+  UpdateExperimentGroupCommandOutput,
+} from "./commands/UpdateExperimentGroupCommand";
 import {
   UpdateFunctionCommandInput,
   UpdateFunctionCommandOutput,
@@ -294,6 +314,7 @@ export type ServiceInputTypes =
   | CreateDefaultConfigCommandInput
   | CreateDimensionCommandInput
   | CreateExperimentCommandInput
+  | CreateExperimentGroupCommandInput
   | CreateFunctionCommandInput
   | CreateOrganisationCommandInput
   | CreateTypeTemplatesCommandInput
@@ -302,6 +323,7 @@ export type ServiceInputTypes =
   | DeleteContextCommandInput
   | DeleteDefaultConfigCommandInput
   | DeleteDimensionCommandInput
+  | DeleteExperimentGroupCommandInput
   | DeleteFunctionCommandInput
   | DeleteTypeTemplatesCommandInput
   | DiscardExperimentCommandInput
@@ -310,6 +332,7 @@ export type ServiceInputTypes =
   | GetContextCommandInput
   | GetContextFromConditionCommandInput
   | GetExperimentCommandInput
+  | GetExperimentGroupCommandInput
   | GetFunctionCommandInput
   | GetOrganisationCommandInput
   | GetResolvedConfigCommandInput
@@ -320,6 +343,7 @@ export type ServiceInputTypes =
   | ListDefaultConfigsCommandInput
   | ListDimensionsCommandInput
   | ListExperimentCommandInput
+  | ListExperimentGroupsCommandInput
   | ListFunctionCommandInput
   | ListOrganisationCommandInput
   | ListVersionsCommandInput
@@ -333,6 +357,7 @@ export type ServiceInputTypes =
   | TestCommandInput
   | UpdateDefaultConfigCommandInput
   | UpdateDimensionCommandInput
+  | UpdateExperimentGroupCommandInput
   | UpdateFunctionCommandInput
   | UpdateOrganisationCommandInput
   | UpdateOverrideCommandInput
@@ -353,6 +378,7 @@ export type ServiceOutputTypes =
   | CreateDefaultConfigCommandOutput
   | CreateDimensionCommandOutput
   | CreateExperimentCommandOutput
+  | CreateExperimentGroupCommandOutput
   | CreateFunctionCommandOutput
   | CreateOrganisationCommandOutput
   | CreateTypeTemplatesCommandOutput
@@ -361,6 +387,7 @@ export type ServiceOutputTypes =
   | DeleteContextCommandOutput
   | DeleteDefaultConfigCommandOutput
   | DeleteDimensionCommandOutput
+  | DeleteExperimentGroupCommandOutput
   | DeleteFunctionCommandOutput
   | DeleteTypeTemplatesCommandOutput
   | DiscardExperimentCommandOutput
@@ -369,6 +396,7 @@ export type ServiceOutputTypes =
   | GetContextCommandOutput
   | GetContextFromConditionCommandOutput
   | GetExperimentCommandOutput
+  | GetExperimentGroupCommandOutput
   | GetFunctionCommandOutput
   | GetOrganisationCommandOutput
   | GetResolvedConfigCommandOutput
@@ -379,6 +407,7 @@ export type ServiceOutputTypes =
   | ListDefaultConfigsCommandOutput
   | ListDimensionsCommandOutput
   | ListExperimentCommandOutput
+  | ListExperimentGroupsCommandOutput
   | ListFunctionCommandOutput
   | ListOrganisationCommandOutput
   | ListVersionsCommandOutput
@@ -392,6 +421,7 @@ export type ServiceOutputTypes =
   | TestCommandOutput
   | UpdateDefaultConfigCommandOutput
   | UpdateDimensionCommandOutput
+  | UpdateExperimentGroupCommandOutput
   | UpdateFunctionCommandOutput
   | UpdateOrganisationCommandOutput
   | UpdateOverrideCommandOutput
