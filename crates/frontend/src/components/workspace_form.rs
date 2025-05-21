@@ -27,12 +27,14 @@ pub fn workspace_form(
     #[prop(default = String::new())] workspace_name: String,
     #[prop(default = WorkspaceStatus::ENABLED)] workspace_status: WorkspaceStatus,
     #[prop(default = vec![])] mandatory_dimensions: Vec<String>,
+    #[prop(default = None)] config_version: Option<i64>,
     #[prop(default = Metrics::default())] metrics: Metrics,
     #[prop(into)] handle_submit: Callback<(), ()>,
 ) -> impl IntoView {
     let (workspace_name_rs, workspace_name_ws) = create_signal(workspace_name);
     let (workspace_admin_email_rs, workspace_admin_email_ws) =
         create_signal(workspace_admin_email);
+    let (config_version_rs, config_version_ws) = create_signal(config_version);
     let (workspace_status_rs, workspace_status_ws) = create_signal(workspace_status);
     let (mandatory_dimensions_rs, mandatory_dimensions_ws) =
         create_signal(mandatory_dimensions);
@@ -50,6 +52,7 @@ pub fn workspace_form(
                 let result = if is_edit {
                     let update_payload = UpdateWorkspaceRequest {
                         workspace_admin_email: workspace_admin_email_rs.get_untracked(),
+                        config_version: Some(config_version_rs.get_untracked()),
                         workspace_status: Some(workspace_status_rs.get_untracked()),
                         mandatory_dimensions: Some(
                             mandatory_dimensions_rs.get_untracked(),
@@ -133,6 +136,28 @@ pub fn workspace_form(
                         on:change=move |ev| {
                             let value = event_target_value(&ev);
                             workspace_admin_email_ws.set(value);
+                        }
+                    />
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Config Version</span>
+                    </label>
+                    <input
+                        type="Number"
+                        placeholder="Config Version"
+                        class="input input-bordered w-full max-w-md"
+                        value=config_version_rs.get_untracked()
+                        on:change=move |ev| {
+                            logging::log!("{:?}", event_target_value(& ev).parse::< i64 > ());
+                            match event_target_value(&ev).parse::<i64>() {
+                                Ok(i_prio) => config_version_ws.set(Some(i_prio)),
+                                Err(e) => {
+                                    config_version_ws.set(None);
+                                    logging::log!("{e}");
+                                }
+                            };
                         }
                     />
                 </div>
