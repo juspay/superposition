@@ -44,13 +44,13 @@
 /// # Using the `Client`
 /// 
 /// A client has a function for every operation that can be performed by the service.
-/// For example, the [`ApplicableVariants`](crate::operation::applicable_variants) operation has
-/// a [`Client::applicable_variants`], function which returns a builder for that operation.
+/// For example, the [`AddMembersToGroup`](crate::operation::add_members_to_group) operation has
+/// a [`Client::add_members_to_group`], function which returns a builder for that operation.
 /// The fluent builder ultimately has a `send()` function that returns an async future that
 /// returns a result, as illustrated below:
 /// 
 /// ```rust,ignore
-/// let result = client.applicable_variants()
+/// let result = client.add_members_to_group()
 ///     .workspace_id("example")
 ///     .send()
 ///     .await;
@@ -104,6 +104,8 @@
                     }
                 }
 
+mod add_members_to_group;
+
 mod applicable_variants;
 
 mod bulk_operation;
@@ -117,6 +119,8 @@ mod create_default_config;
 mod create_dimension;
 
 mod create_experiment;
+
+mod create_experiment_group;
 
 mod create_function;
 
@@ -139,7 +143,7 @@ mod create_workspace;
 /// # let client: superposition_rust_sdk::Client = unimplemented!();
 /// use ::http::header::{HeaderName, HeaderValue};
 /// 
-/// let result = client.applicable_variants()
+/// let result = client.add_members_to_group()
 ///     .customize()
 ///     .mutate_request(|req| {
 ///         // Add `x-example-header` with value
@@ -161,6 +165,8 @@ mod delete_default_config;
 
 mod delete_dimension;
 
+mod delete_experiment_group;
+
 mod delete_function;
 
 mod delete_type_templates;
@@ -178,6 +184,8 @@ mod get_context_from_condition;
 mod get_dimension;
 
 mod get_experiment;
+
+mod get_experiment_group;
 
 mod get_function;
 
@@ -199,6 +207,8 @@ mod list_dimensions;
 
 mod list_experiment;
 
+mod list_experiment_groups;
+
 mod list_function;
 
 mod list_organisation;
@@ -217,6 +227,8 @@ mod publish;
 
 mod ramp_experiment;
 
+mod remove_members_from_group;
+
 mod resume_experiment;
 
 mod test;
@@ -224,6 +236,8 @@ mod test;
 mod update_default_config;
 
 mod update_dimension;
+
+mod update_experiment_group;
 
 mod update_function;
 

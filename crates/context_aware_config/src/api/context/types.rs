@@ -43,6 +43,12 @@ pub struct MoveReq {
     pub change_reason: String,
 }
 
+#[cfg_attr(test, derive(Debug, PartialEq))]
+#[derive(Deserialize, Clone)]
+pub struct ContextValidationRequest {
+    pub context: Cac<Condition>,
+}
+
 #[derive(Deserialize, Clone)]
 pub struct DimensionCondition {
     pub var: String,
