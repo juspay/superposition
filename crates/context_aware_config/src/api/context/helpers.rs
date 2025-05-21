@@ -19,6 +19,7 @@ use superposition_types::{
     result as superposition, Cac, Condition, DBConnection, Overrides, User,
 };
 
+use crate::helpers::DimensionData;
 use crate::validation_functions::execute_fn;
 use crate::{
     api::functions::helpers::get_published_functions_by_names, helpers::get_workspace,
@@ -318,25 +319,11 @@ pub fn create_ctx_from_put_req(
     let r_override = req.r#override.clone().into_inner();
     let ctx_override = Value::Object(r_override.clone().into());
 
-    let workspace_settings = get_workspace(schema_name, conn)?;
-
-    validate_condition_with_strict_mode(&ctx_condition, workspace_settings.strict_mode)?;
-
+    let dimension_data_map = validate_ctx(conn, schema_name, ctx_condition.clone())?;
     let change_reason = req.change_reason.clone();
-    let context_map = extract_dimensions(&ctx_condition)?;
 
-    validate_condition_with_mandatory_dimensions(
-        &context_map,
-        &workspace_settings.mandatory_dimensions.unwrap_or_default(),
-    )?;
-    validate_condition_with_dependent_dimensions(conn, &context_map, schema_name)?;
     validate_override_with_default_configs(conn, &r_override, schema_name)?;
-    validate_condition_with_functions(conn, &context_map, schema_name)?;
     validate_override_with_functions(conn, &r_override, schema_name)?;
-
-    let dimension_data = get_dimension_data(conn, schema_name)?;
-    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
-    validate_dimensions("context", &condition_val, &dimension_data_map)?;
 
     let weight = calculate_context_weight(&condition_val, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
@@ -430,4 +417,25 @@ pub fn update_override_of_existing_ctx(
         ..ctx
     };
     db_update_override(conn, new_ctx, user, schema_name)
+}
+
+pub fn validate_ctx(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+    condition: Condition,
+) -> superposition::Result<HashMap<String, DimensionData>> {
+    let workspace_settings = get_workspace(schema_name, conn)?;
+    validate_condition_with_strict_mode(&condition, workspace_settings.strict_mode)?;
+    let context_map = extract_dimensions(&condition)?;
+    let condition_val = Value::Object(condition.clone().into());
+    validate_condition_with_mandatory_dimensions(
+        &context_map,
+        &workspace_settings.mandatory_dimensions.unwrap_or_default(),
+    )?;
+    validate_condition_with_dependent_dimensions(conn, &context_map, schema_name)?;
+    validate_condition_with_functions(conn, &context_map, schema_name)?;
+    let dimension_data = get_dimension_data(conn, schema_name)?;
+    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
+    validate_dimensions("context", &condition_val, &dimension_data_map)?;
+    Ok(dimension_data_map)
 }

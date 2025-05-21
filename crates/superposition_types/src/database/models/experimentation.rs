@@ -9,7 +9,7 @@ use diesel::{
     sql_types::{Integer, Json},
     Insertable, QueryId, Queryable, QueryableByName, Selectable,
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql};
@@ -288,13 +288,16 @@ pub struct EventLog {
 #[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
 #[cfg_attr(feature = "diesel_derives", diesel(primary_key(experiment_group_id)))]
 pub struct ExperimentGroup {
-    pub experiment_group_id: String,
+    #[serde(with = "i64_formatter")]
+    pub id: i64,
+    pub context_hash: String,
     pub name: String,
     pub description: Description,
     pub change_reason: ChangeReason,
     pub context: Condition,
     pub traffic_percentage: TrafficPercentage,
-    pub member_experiment_ids: Vec<String>,
+    #[serde(with = "i64_vec_formatter")]
+    pub member_experiment_ids: Vec<i64>,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub last_modified_at: DateTime<Utc>,
@@ -302,3 +305,76 @@ pub struct ExperimentGroup {
 }
 
 pub type ExperimentGroups = Vec<ExperimentGroup>;
+
+pub mod i64_formatter {
+    use serde::{self, Deserialize, Deserializer, Serializer};
+
+    // Serialize i64 to String
+    pub fn serialize<S>(value: &i64, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&value.to_string())
+    }
+
+    // Deserialize String to i64
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<i64, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        s.parse::<i64>()
+            .map_err(|e| serde::de::Error::custom(format!("Failed to parse i64: {}", e)))
+    }
+}
+
+pub mod i64_vec_formatter {
+    use serde::{self, Deserialize, Deserializer, Serialize, Serializer};
+
+    // Serialize Vec<i64> to Vec<String>
+    pub fn serialize<S>(value: &[i64], serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let string_values: Vec<String> = value.iter().map(|v| v.to_string()).collect();
+        string_values.serialize(serializer)
+    }
+
+    // Deserialize Vec<String> to Vec<i64>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Vec<i64>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let string_values = Vec::<String>::deserialize(deserializer)?;
+        string_values
+            .iter()
+            .map(|s| {
+                s.parse::<i64>().map_err(|e| {
+                    serde::de::Error::custom(format!("Failed to parse i64: {}", e))
+                })
+            })
+            .collect()
+    }
+}
+
+pub fn i64_vec_deserialize<'de, D>(deserializer: D) -> Result<Option<Vec<i64>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let string_values: Option<Vec<String>> = Option::deserialize(deserializer)?;
+    let Some(string_values) = string_values else {
+        return Ok(None);
+    };
+    let numbers: Vec<i64> = string_values
+        .iter()
+        .map(|s| {
+            s.parse::<i64>().map_err(|e| {
+                serde::de::Error::custom(format!(
+                    "the vector field needs to contain strings of numbers : {}",
+                    e
+                ))
+            })
+        })
+        .collect::<Result<Vec<i64>, D::Error>>()?;
+    Ok(Some(numbers))
+}

@@ -6,7 +6,7 @@ use crate::{
     api::{
         context::{
             hash,
-            helpers::query_description,
+            helpers::{query_description, validate_ctx},
             operations,
             types::{
                 BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
@@ -38,7 +38,7 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    api::context::{ContextListFilters, SortOn, UpdateRequest},
+    api::context::{ContextListFilters, ContextValidationRequest, SortOn, UpdateRequest},
     custom_query::{
         self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
         QueryMap,
@@ -62,6 +62,7 @@ pub fn endpoints() -> Scope {
         .service(get_context_from_condition)
         .service(get_context)
         .service(weight_recompute)
+        .service(validate_context)
 }
 
 #[put("")]
@@ -712,4 +713,18 @@ async fn weight_recompute(
         config_version_id.to_string(),
     ));
     Ok(http_resp.json(ListResponse::new(response)))
+}
+
+#[post("/validate")]
+async fn validate_context(
+    db_conn: DbConnection,
+    schema_name: SchemaName,
+    request: Json<ContextValidationRequest>,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let ctx_condition = request.context.to_owned().into_inner();
+    log::debug!("Context {:?} is being checked for validity", ctx_condition);
+    validate_ctx(&mut conn, &schema_name, ctx_condition.clone())?;
+    log::debug!("Context {:?} is valid", ctx_condition);
+    Ok(HttpResponse::Ok().finish())
 }

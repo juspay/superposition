@@ -13,6 +13,8 @@ pub fn parse_http_error_metadata(_response_status: u16, response_headers: &::aws
                     crate::json_errors::parse_error_metadata(response_body, response_headers)
                 }
 
+pub(crate) mod shape_add_members_to_group;
+
 pub(crate) mod shape_applicable_variants;
 
 pub(crate) mod shape_bulk_operation;
@@ -33,6 +35,8 @@ pub(crate) mod shape_create_dimension;
 
 pub(crate) mod shape_create_experiment;
 
+pub(crate) mod shape_create_experiment_group;
+
 pub(crate) mod shape_create_function;
 
 pub(crate) mod shape_create_organisation;
@@ -48,6 +52,8 @@ pub(crate) mod shape_delete_context;
 pub(crate) mod shape_delete_default_config;
 
 pub(crate) mod shape_delete_dimension;
+
+pub(crate) mod shape_delete_experiment_group;
 
 pub(crate) mod shape_delete_function;
 
@@ -75,6 +81,8 @@ pub(crate) mod shape_get_dimension;
 
 pub(crate) mod shape_get_experiment;
 
+pub(crate) mod shape_get_experiment_group;
+
 pub(crate) mod shape_get_function;
 
 pub(crate) mod shape_get_organisation;
@@ -95,6 +103,8 @@ pub(crate) mod shape_list_dimensions;
 
 pub(crate) mod shape_list_experiment;
 
+pub(crate) mod shape_list_experiment_groups;
+
 pub(crate) mod shape_list_function;
 
 pub(crate) mod shape_list_organisation;
@@ -113,6 +123,8 @@ pub(crate) mod shape_publish;
 
 pub(crate) mod shape_ramp_experiment;
 
+pub(crate) mod shape_remove_members_from_group;
+
 pub(crate) mod shape_resume_experiment;
 
 pub(crate) mod shape_test;
@@ -124,6 +136,8 @@ pub(crate) mod shape_test_input;
 pub(crate) mod shape_update_default_config;
 
 pub(crate) mod shape_update_dimension;
+
+pub(crate) mod shape_update_experiment_group;
 
 pub(crate) mod shape_update_function;
 
@@ -151,6 +165,8 @@ pub(crate) fn or_empty_doc(data: &[u8]) -> &[u8] {
                     }
                 }
 
+pub(crate) mod shape_add_members_to_group_input;
+
 pub(crate) mod shape_applicable_variants_input;
 
 pub(crate) mod shape_bulk_operation_output;
@@ -162,6 +178,8 @@ pub(crate) mod shape_create_context_input;
 pub(crate) mod shape_create_default_config_input;
 
 pub(crate) mod shape_create_dimension_input;
+
+pub(crate) mod shape_create_experiment_group_input;
 
 pub(crate) mod shape_create_experiment_input;
 
@@ -199,6 +217,8 @@ pub(crate) mod shape_pause_experiment_input;
 
 pub(crate) mod shape_ramp_experiment_input;
 
+pub(crate) mod shape_remove_members_from_group_input;
+
 pub(crate) mod shape_resource_not_found;
 
 pub(crate) mod shape_resume_experiment_input;
@@ -208,6 +228,8 @@ pub(crate) mod shape_type_templates_not_found;
 pub(crate) mod shape_update_default_config_input;
 
 pub(crate) mod shape_update_dimension_input;
+
+pub(crate) mod shape_update_experiment_group_input;
 
 pub(crate) mod shape_update_function_input;
 
@@ -245,6 +267,8 @@ pub(crate) mod shape_document;
 
 pub(crate) mod shape_events;
 
+pub(crate) mod shape_experiment_group_list;
+
 pub(crate) mod shape_experiment_list;
 
 pub(crate) mod shape_function_execution_request;
@@ -270,6 +294,8 @@ pub(crate) mod shape_organisation_list;
 pub(crate) mod shape_overrides;
 
 pub(crate) mod shape_overrides_map;
+
+pub(crate) mod shape_string_list;
 
 pub(crate) mod shape_type_templates_list;
 
@@ -301,6 +327,8 @@ pub(crate) mod shape_default_config_full;
 
 pub(crate) mod shape_dimension_ext;
 
+pub(crate) mod shape_experiment_group_response;
+
 pub(crate) mod shape_experiment_response;
 
 pub(crate) mod shape_function_response;
@@ -326,8 +354,6 @@ pub(crate) mod shape_context_move;
 pub(crate) mod shape_context_put;
 
 pub(crate) mod shape_override_with_keys;
-
-pub(crate) mod shape_string_list;
 
 pub(crate) mod shape_context_action_out;
 

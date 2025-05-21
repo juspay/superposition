@@ -2815,8 +2815,8 @@ dependencies = [
 
 [[package]]
 name = "jsonlogic"
-version = "0.5.3"
-source = "git+https://github.com/juspay/jsonlogic_rs.git#9e9daf93185996ce4285591cdb415dcdad71d282"
+version = "0.5.5"
+source = "git+https://github.com/juspay/jsonlogic_rs.git#822ee099cc3f40ef0608eda61d2a37e5ad60271d"
 dependencies = [
  "regex",
  "serde_json",

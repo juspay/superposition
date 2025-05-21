@@ -81,13 +81,13 @@ pub use config::Config;
 /// # Using the `Client`
 /// 
 /// A client has a function for every operation that can be performed by the service.
-/// For example, the [`ApplicableVariants`](crate::operation::applicable_variants) operation has
-/// a [`Client::applicable_variants`], function which returns a builder for that operation.
+/// For example, the [`AddMembersToGroup`](crate::operation::add_members_to_group) operation has
+/// a [`Client::add_members_to_group`], function which returns a builder for that operation.
 /// The fluent builder ultimately has a `send()` function that returns an async future that
 /// returns a result, as illustrated below:
 /// 
 /// ```rust,ignore
-/// let result = client.applicable_variants()
+/// let result = client.add_members_to_group()
 ///     .workspace_id("example")
 ///     .send()
 ///     .await;
