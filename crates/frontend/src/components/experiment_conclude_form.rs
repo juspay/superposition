@@ -149,8 +149,7 @@ pub fn experiment_conclude_form(
                             view! {
                                 <button
                                     disabled=disabled
-                                    class="max-w-md btn btn-block btn-outline"
-                                    class=button_type_class
+                                    class=format!("max-w-md btn btn-block btn-outline {button_type_class}")
                                     class=("cursor-disabled", disabled)
                                     on:click=move |e| {
                                         e.prevent_default();
