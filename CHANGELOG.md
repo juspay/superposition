@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.75.0 - 2025-05-22
+### Package updates
+- frontend bumped to frontend-v0.30.0
+- superposition_types bumped to superposition_types-v0.21.0
+- experimentation_platform bumped to experimentation_platform-v0.33.0
+- context_aware_config bumped to context_aware_config-v0.52.1
+### Global changes
+#### Bug Fixes
+- removed explicit err handling for FKValidation & removed redundant crate - (0d1d481) - Solomon
+#### Features
+- introduce experiment groups data model - (10815da) - Kartik
+
+- - -
+
 ## v0.74.0 - 2025-05-16
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.32.0

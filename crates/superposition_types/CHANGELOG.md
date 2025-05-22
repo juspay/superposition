@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.21.0 - 2025-05-22
+#### Bug Fixes
+- Fixing usage of default (#518) - (bc936a7) - vraghunandhan
+- Removing completed and discarded experiments from experiment homescreen (#517) - (f80f250) - vraghunandhan
+#### Features
+- Frontend changes for delete experiment (#511) - (792c4cd) - Ayush Jain
+- introduce experiment groups data model - (10815da) - Kartik
+
+- - -
+
 ## superposition_types-v0.20.0 - 2025-05-16
 #### Features
 - delete overrides by experiment (#500) - (51a20e3) - PRATIK MISHRA

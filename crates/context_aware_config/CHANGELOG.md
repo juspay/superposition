@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.52.1 - 2025-05-22
+#### Bug Fixes
+- removed explicit err handling for FKValidation & removed redundant crate - (0d1d481) - Solomon
+
+- - -
+
 ## context_aware_config-v0.52.0 - 2025-05-16
 #### Features
 - delete overrides by experiment (#500) - (51a20e3) - PRATIK MISHRA

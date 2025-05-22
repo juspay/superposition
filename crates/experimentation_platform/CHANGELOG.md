@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.33.0 - 2025-05-22
+#### Features
+- Frontend changes for delete experiment (#511) - (792c4cd) - Ayush Jain
+
+- - -
+
 ## experimentation_platform-v0.32.0 - 2025-05-16
 #### Features
 - delete overrides by experiment (#500) - (51a20e3) - PRATIK MISHRA

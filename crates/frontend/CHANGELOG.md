@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.30.0 - 2025-05-22
+#### Bug Fixes
+- Fixing usage of default (#518) - (bc936a7) - vraghunandhan
+- Override update/clone/experiment after key filter (#516) - (43cd292) - Ayush Jain
+#### Features
+- Frontend changes for delete experiment (#511) - (792c4cd) - Ayush Jain
+
+- - -
+
 ## frontend-v0.29.0 - 2025-05-16
 #### Bug Fixes
 - String splice in table component (#507) - (2950f3d) - Ayush Jain
