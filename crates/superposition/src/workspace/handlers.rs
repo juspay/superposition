@@ -140,16 +140,11 @@ async fn update_workspace(
     let DbConnection(mut conn) = db_conn;
     if let Some(version) = request.config_version.flatten() {
         let config_count: i64 = config_versions::config_versions
-            .select(config_versions::config)
             .filter(config_versions::id.eq(version))
             .count()
             .schema_name(&schema_name)
-            .get_result::<i64>(&mut conn)
-            .map_err(|err| {
-                log::error!("failed to fetch config with error: {}", err);
-                db_error!(err)
-            })?;
-        if config_count == 0 {
+            .get_result::<i64>(&mut conn)?;
+        if config_count != 1 {
             log::error!("config version {} does not exist", version);
             return Err(bad_argument!("config version does not exist"));
         }

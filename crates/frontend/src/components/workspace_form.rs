@@ -144,6 +144,12 @@ pub fn workspace_form(
                     <label class="label">
                         <span class="label-text">Config Version</span>
                     </label>
+                    <div class="group relative inline-block text-[10px] text-gray-700 cursor-pointer">
+                        <p class="z-[1000] hidden absolute top-full left-1/2 w-[320px] p-2.5 group-hover:flex flex-col gap-4 bg-black text-white rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal translate-x-[20px] -translate-y-1/2">
+                            "This will affect the config resolve since it will use now this version to generate the config"
+                        </p>
+                        <i class="ri-information-line ri-lg" />
+                    </div>
                     <input
                         type="Number"
                         placeholder="Config Version"
