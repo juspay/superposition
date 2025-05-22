@@ -51,12 +51,21 @@ where
                 ))
             }
         }
+        Ok(Value::String(val)) => match val.parse::<i64>() {
+            Ok(config_version) => Ok(Some(Some(config_version))),
+            Err(_) => {
+                log::error!("Expected a bigint or bigint string as the config version.");
+                Err(serde::de::Error::custom(
+                    "Expected a bigint or bigint string as the config version.",
+                ))
+            }
+        },
         Ok(Value::Null) => Ok(Some(None)),
         Err(_) => Ok(None), // If the field is missing, return None instead of throwing an errors
         _ => {
-            log::error!("Expected a string or null literal as the config version.");
+            log::error!("Expected a bigint or null literal as the config version.");
             Err(serde::de::Error::custom(
-                "Expected a string or null literal as the config version.",
+                "Expected a bigint or null literal as the config version.",
             ))
         }
     }

@@ -2645,8 +2645,8 @@ DELETE_CONTEXT = APIOperation(
         input_schema = _SCHEMA_DELETE_CONTEXT_INPUT,
         output_schema = _SCHEMA_DELETE_CONTEXT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -5171,6 +5171,7 @@ class CreateWorkspaceOutput:
 
     workspace_strict_mode: bool
 
+    config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -5183,6 +5184,9 @@ class CreateWorkspaceOutput:
         serializer.write_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["workspace_schema_name"], self.workspace_schema_name)
         serializer.write_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["workspace_status"], self.workspace_status)
         serializer.write_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["workspace_admin_email"], self.workspace_admin_email)
+        if self.config_version is not None:
+            serializer.write_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["config_version"], self.config_version)
+
         serializer.write_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["created_by"], self.created_by)
         serializer.write_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["last_modified_at"], self.last_modified_at)
@@ -5221,21 +5225,24 @@ class CreateWorkspaceOutput:
                     kwargs["workspace_admin_email"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["workspace_admin_email"])
 
                 case 6:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["created_by"])
+                    kwargs["config_version"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["config_version"])
 
                 case 7:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["last_modified_by"])
+                    kwargs["created_by"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["created_by"])
 
                 case 8:
-                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["last_modified_at"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["last_modified_by"])
 
                 case 9:
-                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["created_at"])
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["last_modified_at"])
 
                 case 10:
-                    kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_CREATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"])
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["created_at"])
 
                 case 11:
+                    kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_CREATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"])
+
+                case 12:
                     kwargs["workspace_strict_mode"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["workspace_strict_mode"])
 
                 case _:
@@ -5329,8 +5336,8 @@ DELETE_DEFAULT_CONFIG = APIOperation(
         input_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_INPUT,
         output_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -5540,8 +5547,8 @@ LIST_DEFAULT_CONFIGS = APIOperation(
         input_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_INPUT,
         output_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -5797,8 +5804,8 @@ DELETE_DIMENSION = APIOperation(
         input_schema = _SCHEMA_DELETE_DIMENSION_INPUT,
         output_schema = _SCHEMA_DELETE_DIMENSION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -5907,8 +5914,8 @@ DELETE_FUNCTION = APIOperation(
         input_schema = _SCHEMA_DELETE_FUNCTION_INPUT,
         output_schema = _SCHEMA_DELETE_FUNCTION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -9915,6 +9922,7 @@ class WorkspaceResponse:
 
     workspace_strict_mode: bool
 
+    config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -9927,6 +9935,9 @@ class WorkspaceResponse:
         serializer.write_string(_SCHEMA_WORKSPACE_RESPONSE.members["workspace_schema_name"], self.workspace_schema_name)
         serializer.write_string(_SCHEMA_WORKSPACE_RESPONSE.members["workspace_status"], self.workspace_status)
         serializer.write_string(_SCHEMA_WORKSPACE_RESPONSE.members["workspace_admin_email"], self.workspace_admin_email)
+        if self.config_version is not None:
+            serializer.write_string(_SCHEMA_WORKSPACE_RESPONSE.members["config_version"], self.config_version)
+
         serializer.write_string(_SCHEMA_WORKSPACE_RESPONSE.members["created_by"], self.created_by)
         serializer.write_string(_SCHEMA_WORKSPACE_RESPONSE.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_WORKSPACE_RESPONSE.members["last_modified_at"], self.last_modified_at)
@@ -9965,21 +9976,24 @@ class WorkspaceResponse:
                     kwargs["workspace_admin_email"] = de.read_string(_SCHEMA_WORKSPACE_RESPONSE.members["workspace_admin_email"])
 
                 case 6:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_WORKSPACE_RESPONSE.members["created_by"])
+                    kwargs["config_version"] = de.read_string(_SCHEMA_WORKSPACE_RESPONSE.members["config_version"])
 
                 case 7:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_WORKSPACE_RESPONSE.members["last_modified_by"])
+                    kwargs["created_by"] = de.read_string(_SCHEMA_WORKSPACE_RESPONSE.members["created_by"])
 
                 case 8:
-                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_WORKSPACE_RESPONSE.members["last_modified_at"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_WORKSPACE_RESPONSE.members["last_modified_by"])
 
                 case 9:
-                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_WORKSPACE_RESPONSE.members["created_at"])
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_WORKSPACE_RESPONSE.members["last_modified_at"])
 
                 case 10:
-                    kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_WORKSPACE_RESPONSE.members["mandatory_dimensions"])
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_WORKSPACE_RESPONSE.members["created_at"])
 
                 case 11:
+                    kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_WORKSPACE_RESPONSE.members["mandatory_dimensions"])
+
+                case 12:
                     kwargs["workspace_strict_mode"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["workspace_strict_mode"])
 
                 case _:
@@ -10652,6 +10666,7 @@ class UpdateWorkspaceInput:
     org_id: str = "juspay"
     workspace_name: str | None = None
     workspace_admin_email: str | None = None
+    config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
     workspace_status: str | None = None
 
@@ -10661,6 +10676,9 @@ class UpdateWorkspaceInput:
     def serialize_members(self, serializer: ShapeSerializer):
         if self.workspace_admin_email is not None:
             serializer.write_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["workspace_admin_email"], self.workspace_admin_email)
+
+        if self.config_version is not None:
+            serializer.write_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["config_version"], self.config_version)
 
         if self.mandatory_dimensions is not None:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_UPDATE_WORKSPACE_INPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
@@ -10688,9 +10706,12 @@ class UpdateWorkspaceInput:
                     kwargs["workspace_admin_email"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["workspace_admin_email"])
 
                 case 3:
-                    kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_UPDATE_WORKSPACE_INPUT.members["mandatory_dimensions"])
+                    kwargs["config_version"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["config_version"])
 
                 case 4:
+                    kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_UPDATE_WORKSPACE_INPUT.members["mandatory_dimensions"])
+
+                case 5:
                     kwargs["workspace_status"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["workspace_status"])
 
                 case _:
@@ -10724,6 +10745,7 @@ class UpdateWorkspaceOutput:
 
     workspace_strict_mode: bool
 
+    config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -10736,6 +10758,9 @@ class UpdateWorkspaceOutput:
         serializer.write_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["workspace_schema_name"], self.workspace_schema_name)
         serializer.write_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["workspace_status"], self.workspace_status)
         serializer.write_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["workspace_admin_email"], self.workspace_admin_email)
+        if self.config_version is not None:
+            serializer.write_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["config_version"], self.config_version)
+
         serializer.write_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["created_by"], self.created_by)
         serializer.write_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["last_modified_at"], self.last_modified_at)
@@ -10774,21 +10799,24 @@ class UpdateWorkspaceOutput:
                     kwargs["workspace_admin_email"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["workspace_admin_email"])
 
                 case 6:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["created_by"])
+                    kwargs["config_version"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["config_version"])
 
                 case 7:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["last_modified_by"])
+                    kwargs["created_by"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["created_by"])
 
                 case 8:
-                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["last_modified_at"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["last_modified_by"])
 
                 case 9:
-                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["created_at"])
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["last_modified_at"])
 
                 case 10:
-                    kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"])
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["created_at"])
 
                 case 11:
+                    kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"])
+
+                case 12:
                     kwargs["workspace_strict_mode"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["workspace_strict_mode"])
 
                 case _:

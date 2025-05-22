@@ -15,6 +15,7 @@ impl super::Client {
     ///   - [`workspace_schema_name(String)`](crate::operation::create_workspace::CreateWorkspaceOutput::workspace_schema_name): (undocumented)
     ///   - [`workspace_status(WorkspaceStatus)`](crate::operation::create_workspace::CreateWorkspaceOutput::workspace_status): (undocumented)
     ///   - [`workspace_admin_email(String)`](crate::operation::create_workspace::CreateWorkspaceOutput::workspace_admin_email): (undocumented)
+    ///   - [`config_version(Option<String>)`](crate::operation::create_workspace::CreateWorkspaceOutput::config_version): (undocumented)
     ///   - [`created_by(String)`](crate::operation::create_workspace::CreateWorkspaceOutput::created_by): (undocumented)
     ///   - [`last_modified_by(String)`](crate::operation::create_workspace::CreateWorkspaceOutput::last_modified_by): (undocumented)
     ///   - [`last_modified_at(DateTime)`](crate::operation::create_workspace::CreateWorkspaceOutput::last_modified_at): (undocumented)

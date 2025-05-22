@@ -137,6 +137,20 @@ impl UpdateWorkspaceFluentBuilder {
     pub fn get_workspace_admin_email(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_workspace_admin_email()
                 }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn config_version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.config_version(input.into());
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_config_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_config_version(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_config_version(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_config_version()
+                }
     /// 
     /// Appends an item to `mandatory_dimensions`.
     /// 

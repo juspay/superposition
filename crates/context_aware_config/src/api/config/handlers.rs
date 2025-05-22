@@ -14,7 +14,7 @@ use actix_web::{
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, Timelike, Utc};
-use diesel::{dsl::max, ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{dsl::max, BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
 use itertools::Itertools;
@@ -706,9 +706,6 @@ async fn get_config(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
-    let org_id = workspace_context.organisation_id.0;
-    let workspace_id = workspace_context.workspace_id.0;
-
     let max_created_at = get_max_created_at(&mut conn, &schema_name)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log: {e}"))
         .ok();
@@ -726,8 +723,13 @@ async fn get_config(
         Some(val) => Some(val),
         None => workspaces::dsl::workspaces
             .select(workspaces::config_version)
-            .filter(workspaces::organisation_id.eq(org_id))
-            .filter(workspaces::workspace_name.eq(workspace_id))
+            .filter(
+                workspaces::organisation_id
+                    .eq(&workspace_context.organisation_id.0)
+                    .and(
+                        workspaces::workspace_name.eq(&workspace_context.workspace_id.0),
+                    ),
+            )
             .get_result::<Option<i64>>(&mut conn)?,
     };
 

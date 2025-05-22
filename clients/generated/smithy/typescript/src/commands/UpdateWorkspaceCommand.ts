@@ -47,6 +47,7 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  *   org_id: "STRING_VALUE", // required
  *   workspace_name: "STRING_VALUE", // required
  *   workspace_admin_email: "STRING_VALUE", // required
+ *   config_version: "STRING_VALUE",
  *   mandatory_dimensions: [ // ListMandatoryDimensions
  *     "STRING_VALUE",
  *   ],
@@ -61,6 +62,7 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * //   workspace_schema_name: "STRING_VALUE", // required
  * //   workspace_status: "ENABLED" || "DISABLED", // required
  * //   workspace_admin_email: "STRING_VALUE", // required
+ * //   config_version: "STRING_VALUE",
  * //   created_by: "STRING_VALUE", // required
  * //   last_modified_by: "STRING_VALUE", // required
  * //   last_modified_at: new Date("TIMESTAMP"), // required
