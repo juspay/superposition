@@ -68,12 +68,12 @@ fn context_options(
                 <Option
                     label="Update Overrides".to_string()
                     icon="ri-pencil-line".to_string()
-                    on_click=handle_clone
+                    on_click=handle_edit
                 />
                 <Option
                     label="Clone Overrides".to_string()
                     icon="ri-file-copy-line".to_string()
-                    on_click=handle_edit
+                    on_click=handle_clone
                 />
                 <Option
                     label="Delete Overrides".to_string()
