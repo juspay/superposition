@@ -35,6 +35,16 @@ pub async fn create_experiment(
     org_id: String,
     experiment_group_id: Value,
 ) -> Result<ExperimentResponse, String> {
+    let experiment_group_id = if let Some(exp_group_id) = experiment_group_id {
+        Some(
+            exp_group_id
+                .parse::<i64>()
+                .map_err(|_| format!("Invalid experiment group ID: {exp_group_id}"))?,
+        )
+    } else {
+        None
+    };
+
     let payload = ExperimentCreateRequest {
         name,
         experiment_type,
@@ -73,6 +83,16 @@ pub async fn update_experiment(
     change_reason: String,
     experiment_group_id: Value,
 ) -> Result<ExperimentResponse, String> {
+    let experiment_group_id = if let Some(exp_group_id) = experiment_group_id {
+        Some(
+            exp_group_id
+                .parse::<i64>()
+                .map_err(|_| format!("Invalid experiment group ID: {exp_group_id}"))?,
+        )
+    } else {
+        None
+    };
+
     let payload = OverrideKeysUpdateRequest {
         variants: Result::<Vec<VariantUpdateRequest>, String>::from_iter(variants)?,
         metrics,
