@@ -234,6 +234,7 @@ pub struct Workspace {
     pub workspace_schema_name: String,
     pub workspace_status: WorkspaceStatus,
     pub workspace_admin_email: String,
+    pub config_version: Option<i64>,
     pub created_by: String,
     pub last_modified_by: String,
     pub last_modified_at: DateTime<Utc>,
