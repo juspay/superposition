@@ -14,7 +14,7 @@ use superposition_types::{
     database::{
         models::{
             cac::{Context, DefaultConfig},
-            experimentation::ExperimentType,
+            experimentation::{ExperimentGroup, ExperimentType},
             Workspace,
         },
         types::DimensionWithMandatory,
@@ -25,7 +25,7 @@ use superposition_types::{
 use crate::{
     api::{
         delete_context, fetch_context, fetch_default_config, fetch_dimensions,
-        get_context,
+        fetch_experiment_groups, get_context,
     },
     components::{
         alert::AlertType,
@@ -68,6 +68,7 @@ struct PageResource {
     contexts: PaginatedResponse<Context>,
     dimensions: Vec<DimensionWithMandatory>,
     default_config: Vec<DefaultConfig>,
+    experiment_groups: Vec<ExperimentGroup>,
 }
 
 #[derive(Debug, Clone)]
@@ -486,10 +487,12 @@ fn autofill_experiment_form(
     dimensions: Vec<DimensionWithMandatory>,
     default_config: Vec<DefaultConfig>,
     experiment_type: ExperimentType,
+    experiment_groups: Vec<ExperimentGroup>,
 ) -> impl IntoView {
     let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
     let default_config = StoredValue::new(default_config);
     let dimensions = StoredValue::new(dimensions);
+    let experiment_groups = StoredValue::new(experiment_groups);
 
     let context_data = use_context_data(context_id);
 
@@ -511,6 +514,8 @@ fn autofill_experiment_form(
                                         dimensions=dimensions.get_value()
                                         handle_submit
                                         metrics=workspace_settings.get_value().metrics
+                                        experiment_group_id=None
+                                        experiment_groups=experiment_groups.get_value()
                                     />
                                 }
                             }
@@ -525,6 +530,8 @@ fn autofill_experiment_form(
                                         dimensions=dimensions.get_value()
                                         handle_submit
                                         metrics=workspace_settings.get_value().metrics
+                                        experiment_group_id=None
+                                        experiment_groups=experiment_groups.get_value()
                                     />
                                 }
                             }
@@ -596,7 +603,12 @@ pub fn context_override() -> impl IntoView {
         )| async move {
             let empty_list_filters = PaginationParams::all_entries();
             let default_config_filters = DefaultConfigFilters::default();
-            let (contexts_result, dimensions_result, default_config_result) = join!(
+            let (
+                contexts_result,
+                dimensions_result,
+                default_config_result,
+                experiment_groups_result,
+            ) = join!(
                 fetch_context(
                     current_tenant.to_string(),
                     org_id.clone(),
@@ -614,7 +626,8 @@ pub fn context_override() -> impl IntoView {
                     &default_config_filters,
                     current_tenant.to_string(),
                     org_id.clone()
-                )
+                ),
+                fetch_experiment_groups(current_tenant.to_string(), org_id.clone(),),
             );
             PageResource {
                 contexts: contexts_result.unwrap_or_default(),
@@ -625,6 +638,7 @@ pub fn context_override() -> impl IntoView {
                     .filter(|d| d.dimension != "variantIds")
                     .collect(),
                 default_config: default_config_result.unwrap_or_default().data,
+                experiment_groups: experiment_groups_result.unwrap_or_default().data,
             }
         },
     );
@@ -856,7 +870,7 @@ pub fn context_override() -> impl IntoView {
                 }}
             </div>
             {move || {
-                let PageResource { dimensions, default_config, .. } = page_resource
+                let PageResource { dimensions, default_config, experiment_groups, .. } = page_resource
                     .get()
                     .unwrap_or_default();
                 let drawer_header = match form_mode.get() {
@@ -924,6 +938,7 @@ pub fn context_override() -> impl IntoView {
                                             dimensions
                                             default_config
                                             handle_submit=handle_submit_experiment_form
+                                            experiment_groups
                                         />
                                     }
                                         .into_view()
