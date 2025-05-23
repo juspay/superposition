@@ -1,0 +1,8 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./dist",
+        "module": "ES2020",
+        "target": "ES2020"
+    }
+}

@@ -10,6 +10,7 @@
     "load_cac_tests": "npx newman dir-import postman/cac -o postman/cac.postman_collection.json"
   },
   "devDependencies": {
+    "@tsconfig/node18": "^18.2.4",
     "axios": "^1.8.2",
     "daisyui": "^4.3.1",
     "newman": "git+ssh://git@github.com:knutties/newman.git#feature/newman-dir",
