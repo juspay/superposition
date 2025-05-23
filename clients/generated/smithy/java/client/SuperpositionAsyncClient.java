@@ -13,6 +13,8 @@ import io.juspay.superposition.model.CreateDefaultConfigInput;
 import io.juspay.superposition.model.CreateDefaultConfigOutput;
 import io.juspay.superposition.model.CreateDimensionInput;
 import io.juspay.superposition.model.CreateDimensionOutput;
+import io.juspay.superposition.model.CreateExperimentGroupInput;
+import io.juspay.superposition.model.CreateExperimentGroupOutput;
 import io.juspay.superposition.model.CreateExperimentInput;
 import io.juspay.superposition.model.CreateExperimentOutput;
 import io.juspay.superposition.model.CreateFunctionInput;
@@ -31,6 +33,8 @@ import io.juspay.superposition.model.DeleteDefaultConfigInput;
 import io.juspay.superposition.model.DeleteDefaultConfigOutput;
 import io.juspay.superposition.model.DeleteDimensionInput;
 import io.juspay.superposition.model.DeleteDimensionOutput;
+import io.juspay.superposition.model.DeleteExperimentGroupInput;
+import io.juspay.superposition.model.DeleteExperimentGroupOutput;
 import io.juspay.superposition.model.DeleteFunctionInput;
 import io.juspay.superposition.model.DeleteFunctionOutput;
 import io.juspay.superposition.model.DeleteTypeTemplatesInput;
@@ -46,6 +50,8 @@ import io.juspay.superposition.model.GetContextFromConditionInput;
 import io.juspay.superposition.model.GetContextFromConditionOutput;
 import io.juspay.superposition.model.GetContextInput;
 import io.juspay.superposition.model.GetContextOutput;
+import io.juspay.superposition.model.GetExperimentGroupInput;
+import io.juspay.superposition.model.GetExperimentGroupOutput;
 import io.juspay.superposition.model.GetExperimentInput;
 import io.juspay.superposition.model.GetExperimentOutput;
 import io.juspay.superposition.model.GetFunctionInput;
@@ -67,6 +73,8 @@ import io.juspay.superposition.model.ListDefaultConfigsInput;
 import io.juspay.superposition.model.ListDefaultConfigsOutput;
 import io.juspay.superposition.model.ListDimensionsInput;
 import io.juspay.superposition.model.ListDimensionsOutput;
+import io.juspay.superposition.model.ListExperimentGroupsInput;
+import io.juspay.superposition.model.ListExperimentGroupsOutput;
 import io.juspay.superposition.model.ListExperimentInput;
 import io.juspay.superposition.model.ListExperimentOutput;
 import io.juspay.superposition.model.ListFunctionInput;
@@ -98,6 +106,8 @@ import io.juspay.superposition.model.UpdateDefaultConfigInput;
 import io.juspay.superposition.model.UpdateDefaultConfigOutput;
 import io.juspay.superposition.model.UpdateDimensionInput;
 import io.juspay.superposition.model.UpdateDimensionOutput;
+import io.juspay.superposition.model.UpdateExperimentGroupInput;
+import io.juspay.superposition.model.UpdateExperimentGroupOutput;
 import io.juspay.superposition.model.UpdateFunctionInput;
 import io.juspay.superposition.model.UpdateFunctionOutput;
 import io.juspay.superposition.model.UpdateOrganisationInput;
@@ -210,6 +220,22 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<CreateExperimentOutput> createExperiment(CreateExperimentInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Creates a new experiment group.
+     *
+     * @throws InternalServerError
+     */
+    default CompletableFuture<CreateExperimentGroupOutput> createExperimentGroup(CreateExperimentGroupInput input) {
+        return createExperimentGroup(input, null);
+    }
+
+    /**
+     * Creates a new experiment group.
+     *
+     * @throws InternalServerError
+     */
+    CompletableFuture<CreateExperimentGroupOutput> createExperimentGroup(CreateExperimentGroupInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * @throws InternalServerError
      */
     default CompletableFuture<CreateFunctionOutput> createFunction(CreateFunctionInput input) {
@@ -270,58 +296,76 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<CreateWorkspaceOutput> createWorkspace(CreateWorkspaceInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     default CompletableFuture<DeleteContextOutput> deleteContext(DeleteContextInput input) {
         return deleteContext(input, null);
     }
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     CompletableFuture<DeleteContextOutput> deleteContext(DeleteContextInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     default CompletableFuture<DeleteDefaultConfigOutput> deleteDefaultConfig(DeleteDefaultConfigInput input) {
         return deleteDefaultConfig(input, null);
     }
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     CompletableFuture<DeleteDefaultConfigOutput> deleteDefaultConfig(DeleteDefaultConfigInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     default CompletableFuture<DeleteDimensionOutput> deleteDimension(DeleteDimensionInput input) {
         return deleteDimension(input, null);
     }
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     CompletableFuture<DeleteDimensionOutput> deleteDimension(DeleteDimensionInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws FunctionNotFound
+     * Deletes an experiment group.
+     *
+     * @throws ResourceNotFound
      * @throws InternalServerError
+     */
+    default CompletableFuture<DeleteExperimentGroupOutput> deleteExperimentGroup(DeleteExperimentGroupInput input) {
+        return deleteExperimentGroup(input, null);
+    }
+
+    /**
+     * Deletes an experiment group.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    CompletableFuture<DeleteExperimentGroupOutput> deleteExperimentGroup(DeleteExperimentGroupInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * @throws InternalServerError
+     * @throws FunctionNotFound
      */
     default CompletableFuture<DeleteFunctionOutput> deleteFunction(DeleteFunctionInput input) {
         return deleteFunction(input, null);
     }
 
     /**
-     * @throws FunctionNotFound
      * @throws InternalServerError
+     * @throws FunctionNotFound
      */
     CompletableFuture<DeleteFunctionOutput> deleteFunction(DeleteFunctionInput input, RequestOverrideConfig overrideConfig);
 
@@ -416,6 +460,24 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<GetExperimentOutput> getExperiment(GetExperimentInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves an existing experiment group by its ID.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default CompletableFuture<GetExperimentGroupOutput> getExperimentGroup(GetExperimentGroupInput input) {
+        return getExperimentGroup(input, null);
+    }
+
+    /**
+     * Retrieves an existing experiment group by its ID.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    CompletableFuture<GetExperimentGroupOutput> getExperimentGroup(GetExperimentGroupInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * @throws FunctionNotFound
      * @throws InternalServerError
      */
@@ -504,16 +566,16 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<ListContextsOutput> listContexts(ListContextsInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     default CompletableFuture<ListDefaultConfigsOutput> listDefaultConfigs(ListDefaultConfigsInput input) {
         return listDefaultConfigs(input, null);
     }
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     CompletableFuture<ListDefaultConfigsOutput> listDefaultConfigs(ListDefaultConfigsInput input, RequestOverrideConfig overrideConfig);
 
@@ -540,6 +602,22 @@ public interface SuperpositionAsyncClient {
      * @throws InternalServerError
      */
     CompletableFuture<ListExperimentOutput> listExperiment(ListExperimentInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Lists experiment groups, with support for filtering and pagination.
+     *
+     * @throws InternalServerError
+     */
+    default CompletableFuture<ListExperimentGroupsOutput> listExperimentGroups(ListExperimentGroupsInput input) {
+        return listExperimentGroups(input, null);
+    }
+
+    /**
+     * Lists experiment groups, with support for filtering and pagination.
+     *
+     * @throws InternalServerError
+     */
+    CompletableFuture<ListExperimentGroupsOutput> listExperimentGroups(ListExperimentGroupsInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * @throws InternalServerError
@@ -706,6 +784,24 @@ public interface SuperpositionAsyncClient {
      * @throws InternalServerError
      */
     CompletableFuture<UpdateDimensionOutput> updateDimension(UpdateDimensionInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Updates an existing experiment group. Allows partial updates to specified fields.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default CompletableFuture<UpdateExperimentGroupOutput> updateExperimentGroup(UpdateExperimentGroupInput input) {
+        return updateExperimentGroup(input, null);
+    }
+
+    /**
+     * Updates an existing experiment group. Allows partial updates to specified fields.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    CompletableFuture<UpdateExperimentGroupOutput> updateExperimentGroup(UpdateExperimentGroupInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * @throws FunctionNotFound

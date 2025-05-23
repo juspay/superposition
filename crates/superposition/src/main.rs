@@ -202,6 +202,11 @@ async fn main() -> Result<()> {
                             .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION))
                             .service(webhooks::endpoints()),
                     )
+                    .service(
+                            experiment_groups::endpoints(scope("/experiment_groups"))
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION))
+                    )
                     /***************************** UI Routes ******************************/
                     .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())
                     // serve JS/WASM/CSS from `pkg`

@@ -580,7 +580,8 @@ END $$;
 ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS experiment_type public.experiment_type NOT NULL DEFAULT 'DEFAULT';
 
 CREATE TABLE IF NOT EXISTS {replaceme}.experiment_groups(
-    experiment_group_id TEXT PRIMARY KEY,
+    experiment_group_id bigint PRIMARY KEY,
+    experiment_group_hash TEXT NOT NULL,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     change_reason TEXT NOT NULL,

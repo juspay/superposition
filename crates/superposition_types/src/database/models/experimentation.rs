@@ -288,7 +288,9 @@ pub struct EventLog {
 #[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
 #[cfg_attr(feature = "diesel_derives", diesel(primary_key(experiment_group_id)))]
 pub struct ExperimentGroup {
-    pub experiment_group_id: String,
+    #[serde(with = "i64_formatter")]
+    pub experiment_group_id: i64,
+    pub experiment_group_hash: String,
     pub name: String,
     pub description: Description,
     pub change_reason: ChangeReason,
@@ -302,3 +304,25 @@ pub struct ExperimentGroup {
 }
 
 pub type ExperimentGroups = Vec<ExperimentGroup>;
+
+mod i64_formatter {
+    use serde::{self, Deserialize, Deserializer, Serializer};
+
+    // Serialize i64 to String
+    pub fn serialize<S>(value: &i64, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&value.to_string())
+    }
+
+    // Deserialize String to i64
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<i64, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        s.parse::<i64>()
+            .map_err(|e| serde::de::Error::custom(format!("Failed to parse i64: {}", e)))
+    }
+}

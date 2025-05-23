@@ -111,6 +111,10 @@ final class SharedSchemas {
         .putMember("member", DimensionExt.$SCHEMA)
         .build();
 
+    static final Schema EXPERIMENT_GROUP_LIST = Schema.listBuilder(ShapeId.from("io.superposition#ExperimentGroupList"))
+        .putMember("member", ExperimentGroupResponse.$SCHEMA)
+        .build();
+
     static final Schema EXPERIMENT_LIST = Schema.listBuilder(ShapeId.from("io.superposition#ExperimentList"))
         .putMember("member", ExperimentResponse.$SCHEMA)
         .build();

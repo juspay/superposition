@@ -28,6 +28,10 @@ import {
   CreateExperimentCommandOutput,
 } from "../commands/CreateExperimentCommand";
 import {
+  CreateExperimentGroupCommandInput,
+  CreateExperimentGroupCommandOutput,
+} from "../commands/CreateExperimentGroupCommand";
+import {
   CreateFunctionCommandInput,
   CreateFunctionCommandOutput,
 } from "../commands/CreateFunctionCommand";
@@ -60,6 +64,10 @@ import {
   DeleteDimensionCommandOutput,
 } from "../commands/DeleteDimensionCommand";
 import {
+  DeleteExperimentGroupCommandInput,
+  DeleteExperimentGroupCommandOutput,
+} from "../commands/DeleteExperimentGroupCommand";
+import {
   DeleteFunctionCommandInput,
   DeleteFunctionCommandOutput,
 } from "../commands/DeleteFunctionCommand";
@@ -91,6 +99,10 @@ import {
   GetExperimentCommandInput,
   GetExperimentCommandOutput,
 } from "../commands/GetExperimentCommand";
+import {
+  GetExperimentGroupCommandInput,
+  GetExperimentGroupCommandOutput,
+} from "../commands/GetExperimentGroupCommand";
 import {
   GetFunctionCommandInput,
   GetFunctionCommandOutput,
@@ -131,6 +143,10 @@ import {
   ListExperimentCommandInput,
   ListExperimentCommandOutput,
 } from "../commands/ListExperimentCommand";
+import {
+  ListExperimentGroupsCommandInput,
+  ListExperimentGroupsCommandOutput,
+} from "../commands/ListExperimentGroupsCommand";
 import {
   ListFunctionCommandInput,
   ListFunctionCommandOutput,
@@ -184,6 +200,10 @@ import {
   UpdateDimensionCommandOutput,
 } from "../commands/UpdateDimensionCommand";
 import {
+  UpdateExperimentGroupCommandInput,
+  UpdateExperimentGroupCommandOutput,
+} from "../commands/UpdateExperimentGroupCommand";
+import {
   UpdateFunctionCommandInput,
   UpdateFunctionCommandOutput,
 } from "../commands/UpdateFunctionCommand";
@@ -228,6 +248,7 @@ import {
   ContextPut,
   DefaultConfigFull,
   DimensionExt,
+  ExperimentGroupResponse,
   ExperimentResponse,
   FunctionExecutionRequest,
   FunctionNotFound,
@@ -483,6 +504,35 @@ export const se_CreateExperimentCommand = async(
 }
 
 /**
+ * serializeAws_restJson1CreateExperimentGroupCommand
+ */
+export const se_CreateExperimentGroupCommand = async(
+  input: CreateExperimentGroupCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xt]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/experiment_groups");
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'change_reason': [],
+    'context': _ => se_Condition(_, context),
+    'description': [],
+    'member_experiment_ids': _ => _json(_),
+    'name': [],
+    'traffic_percentage': [],
+  }));
+  b.m("POST")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1CreateFunctionCommand
  */
 export const se_CreateFunctionCommand = async(
@@ -688,6 +738,27 @@ export const se_DeleteDimensionCommand = async(
 }
 
 /**
+ * serializeAws_restJson1DeleteExperimentGroupCommand
+ */
+export const se_DeleteExperimentGroupCommand = async(
+  input: DeleteExperimentGroupCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xt]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/experiment_groups/{experiment_group_id}");
+  b.p('experiment_group_id', () => input.experiment_group_id!, '{experiment_group_id}', false)
+  let body: any;
+  b.m("DELETE")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1DeleteFunctionCommand
  */
 export const se_DeleteFunctionCommand = async(
@@ -867,6 +938,27 @@ export const se_GetExperimentCommand = async(
   });
   b.bp("/experiments/{id}");
   b.p('id', () => input.id!, '{id}', false)
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1GetExperimentGroupCommand
+ */
+export const se_GetExperimentGroupCommand = async(
+  input: GetExperimentGroupCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xt]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/experiment_groups/{experiment_group_id}");
+  b.p('experiment_group_id', () => input.experiment_group_id!, '{experiment_group_id}', false)
   let body: any;
   b.m("GET")
   .h(headers)
@@ -1129,6 +1221,37 @@ export const se_ListExperimentCommand = async(
     [_co]: [,input[_cq]!],
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
+  });
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .q(query)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1ListExperimentGroupsCommand
+ */
+export const se_ListExperimentGroupsCommand = async(
+  input: ListExperimentGroupsCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xt]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/experiment_groups");
+  const query: any = map({
+    [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
+    [_n]: [,input[_n]!],
+    [_cb]: [,input[_cb]!],
+    [_lmb]: [,input[_lmb]!],
+    [_so]: [,input[_so]!],
+    [_sb]: [,input[_sb]!],
+    [_al]: [() => input.all !== void 0, () => (input[_al]!.toString())],
   });
   let body: any;
   b.m("GET")
@@ -1466,6 +1589,33 @@ export const se_UpdateDimensionCommand = async(
     'function_name': [],
     'position': [],
     'schema': _ => se_Document(_, context),
+  }));
+  b.m("PUT")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1UpdateExperimentGroupCommand
+ */
+export const se_UpdateExperimentGroupCommand = async(
+  input: UpdateExperimentGroupCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xt]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/experiment_groups/{experiment_group_id}");
+  b.p('experiment_group_id', () => input.experiment_group_id!, '{experiment_group_id}', false)
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'change_reason': [],
+    'member_experiment_ids': _ => _json(_),
+    'traffic_percentage': [],
   }));
   b.m("PUT")
   .h(headers)
@@ -1891,6 +2041,38 @@ export const de_CreateExperimentCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1CreateExperimentGroupCommand
+ */
+export const de_CreateExperimentGroupCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<CreateExperimentGroupCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'context': _ => de_Condition(_, context),
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'experiment_group_hash': __expectString,
+    'experiment_group_id': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'member_experiment_ids': _json,
+    'name': __expectString,
+    'traffic_percentage': __expectInt32,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1CreateFunctionCommand
  */
 export const de_CreateFunctionCommand = async(
@@ -2099,6 +2281,38 @@ export const de_DeleteDimensionCommand = async(
     $metadata: deserializeMetadata(output),
   });
   await collectBody(output.body, context);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1DeleteExperimentGroupCommand
+ */
+export const de_DeleteExperimentGroupCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<DeleteExperimentGroupCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'context': _ => de_Condition(_, context),
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'experiment_group_hash': __expectString,
+    'experiment_group_id': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'member_experiment_ids': _json,
+    'name': __expectString,
+    'traffic_percentage': __expectInt32,
+  });
+  Object.assign(contents, doc);
   return contents;
 }
 
@@ -2322,6 +2536,38 @@ export const de_GetExperimentCommand = async(
     'status': __expectString,
     'traffic_percentage': __expectInt32,
     'variants': _ => de_ListVariant(_, context),
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1GetExperimentGroupCommand
+ */
+export const de_GetExperimentGroupCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetExperimentGroupCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'context': _ => de_Condition(_, context),
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'experiment_group_hash': __expectString,
+    'experiment_group_id': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'member_experiment_ids': _json,
+    'name': __expectString,
+    'traffic_percentage': __expectInt32,
   });
   Object.assign(contents, doc);
   return contents;
@@ -2581,6 +2827,29 @@ export const de_ListExperimentCommand = async(
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'data': _ => de_ExperimentList(_, context),
+    'total_items': __expectLong,
+    'total_pages': __expectLong,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1ListExperimentGroupsCommand
+ */
+export const de_ListExperimentGroupsCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<ListExperimentGroupsCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'data': _ => de_ExperimentGroupList(_, context),
     'total_items': __expectLong,
     'total_pages': __expectLong,
   });
@@ -2949,6 +3218,38 @@ export const de_UpdateDimensionCommand = async(
     'mandatory': __expectBoolean,
     'position': __expectInt32,
     'schema': _ => de_Document(_, context),
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1UpdateExperimentGroupCommand
+ */
+export const de_UpdateExperimentGroupCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<UpdateExperimentGroupCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'context': _ => de_Condition(_, context),
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'experiment_group_hash': __expectString,
+    'experiment_group_id': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'member_experiment_ids': _json,
+    'name': __expectString,
+    'traffic_percentage': __expectInt32,
   });
   Object.assign(contents, doc);
   return contents;
@@ -3594,6 +3895,8 @@ const de_CommandError = async(
     }, {});
   }
 
+  // se_StringList omitted.
+
   /**
    * serializeAws_restJson1UpdateContextOverrideRequest
    */
@@ -3833,6 +4136,42 @@ const de_CommandError = async(
   }
 
   // de_Events omitted.
+
+  /**
+   * deserializeAws_restJson1ExperimentGroupList
+   */
+  const de_ExperimentGroupList = (
+    output: any,
+    context: __SerdeContext
+  ): (ExperimentGroupResponse)[] => {
+    const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
+      return de_ExperimentGroupResponse(entry, context);
+    });
+    return retVal;
+  }
+
+  /**
+   * deserializeAws_restJson1ExperimentGroupResponse
+   */
+  const de_ExperimentGroupResponse = (
+    output: any,
+    context: __SerdeContext
+  ): ExperimentGroupResponse => {
+    return take(output, {
+      'change_reason': __expectString,
+      'context': (_: any) => de_Condition(_, context),
+      'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'created_by': __expectString,
+      'description': __expectString,
+      'experiment_group_hash': __expectString,
+      'experiment_group_id': __expectString,
+      'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'last_modified_by': __expectString,
+      'member_experiment_ids': _json,
+      'name': __expectString,
+      'traffic_percentage': __expectInt32,
+    }) as any;
+  }
 
   /**
    * deserializeAws_restJson1ExperimentList
@@ -4259,6 +4598,7 @@ const de_CommandError = async(
   const _lm_ = "last_modified";
   const _lmb = "last_modified_by";
   const _ms = "merge_strategy";
+  const _n = "name";
   const _oi = "org_id";
   const _p = "prefix";
   const _pa = "page";
