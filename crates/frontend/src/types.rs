@@ -6,7 +6,7 @@ use superposition_types::{
     database::{
         models::{
             cac::{DefaultConfig, TypeTemplate},
-            experimentation::{Variant, VariantType},
+            experimentation::{ExperimentGroup, Variant, VariantType},
             others::{HttpMethod, PayloadVersion, WebhookEvent},
         },
         types::DimensionWithMandatory,
@@ -206,3 +206,12 @@ impl DropdownOption for PayloadVersion {
 pub type AutoCompleteCallback = leptos::Callback<(String, WriteSignal<Vec<String>>), ()>;
 
 pub type AutoCompleteCallbacks = std::collections::HashMap<String, AutoCompleteCallback>;
+
+impl DropdownOption for ExperimentGroup {
+    fn key(&self) -> String {
+        self.id.to_string()
+    }
+    fn label(&self) -> String {
+        self.name.clone()
+    }
+}

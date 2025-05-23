@@ -9,7 +9,7 @@ use diesel::{
     dsl::sql,
     r2d2::{ConnectionManager, PooledConnection},
     sql_types::{Bool, Text},
-    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
+    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
     TextExpressionMethods,
 };
 use reqwest::{Method, StatusCode};
@@ -29,6 +29,7 @@ use superposition_types::{
     api::{
         context::{Identifier, UpdateRequest},
         default_config::DefaultConfigUpdateRequest,
+        experiment_groups::ExpGroupUpdateRequest,
         experiments::{
             ApplicableVariantsQuery, ApplicableVariantsRequest, AuditQueryFilters,
             ConcludeExperimentRequest, ExperimentCreateRequest, ExperimentListFilters,
@@ -52,12 +53,15 @@ use superposition_types::{
     PaginatedResponse, SortBy, User,
 };
 
-use crate::api::experiments::{
-    helpers::{
-        decide_variant, fetch_webhook_by_event, get_workspace,
-        validate_delete_experiment_variants,
+use crate::api::{
+    experiment_groups::helpers::update_experiment_group,
+    experiments::{
+        helpers::{
+            decide_variant, fetch_webhook_by_event, get_workspace,
+            validate_delete_experiment_variants,
+        },
+        types::StartedByChangeSet,
     },
-    types::StartedByChangeSet,
 };
 
 use super::{
@@ -295,13 +299,33 @@ async fn create(
         description,
         change_reason,
         metrics: req.metrics.clone().unwrap_or(workspace_settings.metrics),
+        experiment_group_id: req.experiment_group_id,
     };
 
-    let mut inserted_experiments = diesel::insert_into(experiments)
-        .values(&new_experiment)
-        .returning(Experiment::as_returning())
-        .schema_name(&workspace_request.schema_name)
-        .get_results(&mut conn)?;
+    let mut inserted_experiments =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            // call update experiment group helper to update the experiment group
+            if let Some(experiment_group_id) = &req.experiment_group_id {
+                update_experiment_group(
+                    *experiment_group_id,
+                    ExpGroupUpdateRequest {
+                        change_reason: req.change_reason.clone(),
+                        traffic_percentage: Some(TrafficPercentage::default()),
+                        member_experiment_ids: Some(vec![experiment_id]),
+                        description: Some(req.description.clone()),
+                    },
+                    transaction_conn,
+                    workspace_request.clone(),
+                    user.clone(),
+                )?;
+            }
+            let inserted_experiments = diesel::insert_into(experiments)
+                .values(&new_experiment)
+                .returning(Experiment::as_returning())
+                .schema_name(&workspace_request.schema_name)
+                .get_results(transaction_conn)?;
+            Ok(inserted_experiments)
+        })?;
 
     let inserted_experiment: Experiment = inserted_experiments.remove(0);
     let response = ExperimentResponse::from(inserted_experiment);
@@ -1065,6 +1089,7 @@ async fn update_overrides(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let experiment_id = params.into_inner();
+    let experiment_group_id = req.experiment_group_id;
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
 
@@ -1288,18 +1313,41 @@ async fn update_overrides(
     /*************************** Updating experiment in DB **************************/
     let updated_metrics = payload.metrics.as_ref().unwrap_or(&experiment.metrics);
 
-    let updated_experiment = diesel::update(experiments::experiments.find(experiment_id))
-        .set((
-            experiments::variants.eq(Variants::new(new_variants)),
-            experiments::override_keys.eq(override_keys),
-            experiments::change_reason.eq(change_reason),
-            experiments::metrics.eq(updated_metrics),
-            experiments::last_modified.eq(Utc::now()),
-            experiments::last_modified_by.eq(user.get_email()),
-        ))
-        .returning(Experiment::as_returning())
-        .schema_name(&workspace_request.schema_name)
-        .get_result::<Experiment>(&mut conn)?;
+    let updated_experiment =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            // call update experiment group helper to update the experiment group
+            if let Some(experiment_group_id) = &experiment_group_id {
+                update_experiment_group(
+                    *experiment_group_id,
+                    ExpGroupUpdateRequest {
+                        change_reason: change_reason.clone(),
+                        traffic_percentage: Some(experiment.traffic_percentage),
+                        member_experiment_ids: Some(vec![experiment_id]),
+                        description,
+                    },
+                    transaction_conn,
+                    workspace_request.clone(),
+                    user.clone(),
+                )?;
+            }
+            let updated_experiment =
+                diesel::update(experiments::experiments.find(experiment_id))
+                    .set((
+                        experiments::variants.eq(Variants::new(new_variants)),
+                        experiments::override_keys.eq(override_keys),
+                        experiments::change_reason.eq(change_reason),
+                        // experiments::description.eq(description),
+                        experiments::metrics.eq(updated_metrics),
+                        experiments::last_modified.eq(Utc::now()),
+                        experiments::last_modified_by.eq(user.get_email()),
+                        experiments::experiment_group_id.eq(experiment_group_id),
+                    ))
+                    .returning(Experiment::as_returning())
+                    .schema_name(&workspace_request.schema_name)
+                    .get_result::<Experiment>(transaction_conn)?;
+
+            Ok(updated_experiment)
+        })?;
 
     let experiment_response = ExperimentResponse::from(updated_experiment);
 

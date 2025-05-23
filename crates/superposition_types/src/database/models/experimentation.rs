@@ -131,7 +131,9 @@ pub enum ExperimentType {
     DeleteOverrides,
 }
 
-#[derive(Serialize, Deserialize, Debug, Copy, Clone, Default, Deref, DerefMut)]
+#[derive(
+    Serialize, Deserialize, Debug, Copy, Clone, Default, Deref, DerefMut, PartialEq,
+)]
 #[serde(try_from = "i32")]
 #[cfg_attr(feature = "diesel_derives", derive(AsExpression, FromSqlRow))]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Integer))]
@@ -260,6 +262,7 @@ pub struct Experiment {
     pub description: Description,
     pub change_reason: ChangeReason,
     pub metrics: Metrics,
+    pub experiment_group_id: Option<i64>,
 }
 
 pub type Experiments = Vec<Experiment>;
@@ -280,7 +283,7 @@ pub struct EventLog {
     pub query: String,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(QueryableByName, Queryable, Selectable, Insertable)

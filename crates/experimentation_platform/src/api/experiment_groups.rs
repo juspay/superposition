@@ -57,7 +57,7 @@ async fn update_experiment_group(
     let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
     let id = exp_group_id.into_inner();
-    helpers::update_experiment_group(id, req, &mut conn, workspace_request, user).await
+    helpers::update_experiment_group(id, req, &mut conn, workspace_request, user)
 }
 
 #[get("")]

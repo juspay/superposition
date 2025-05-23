@@ -4,23 +4,28 @@ pub mod utils;
 use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::database::{
-    models::{cac::DefaultConfig, experimentation::ExperimentType, Metrics, Workspace},
+    models::{
+        cac::DefaultConfig,
+        experimentation::{ExperimentGroup, ExperimentType},
+        Metrics, Workspace,
+    },
     types::DimensionWithMandatory,
 };
 use utils::{create_experiment, update_experiment};
 use web_sys::MouseEvent;
 
-use crate::components::change_form::ChangeForm;
-use crate::components::context_form::ContextForm;
-use crate::components::{
-    metrics_form::MetricsForm,
-    variant_form::{DeleteVariantForm, VariantForm},
-};
-use crate::providers::alert_provider::enqueue_alert;
-use crate::types::{VariantFormT, VariantFormTs};
 use crate::{
-    components::{alert::AlertType, button::Button},
-    types::{OrganisationId, Tenant},
+    components::{
+        alert::AlertType,
+        button::Button,
+        change_form::ChangeForm,
+        context_form::ContextForm,
+        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        metrics_form::MetricsForm,
+        variant_form::{DeleteVariantForm, VariantForm},
+    },
+    providers::alert_provider::enqueue_alert,
+    types::{OrganisationId, Tenant, VariantFormT, VariantFormTs},
 };
 
 use crate::logic::Conditions;
@@ -69,6 +74,8 @@ pub fn experiment_form(
     dimensions: Vec<DimensionWithMandatory>,
     #[prop(default = String::new())] description: String,
     metrics: Metrics,
+    experiment_group_id: Option<String>,
+    experiment_groups: Vec<ExperimentGroup>,
 ) -> impl IntoView {
     let init_variants = get_init_state(&variants);
     let default_config = StoredValue::new(default_config);
@@ -87,6 +94,19 @@ pub fn experiment_form(
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let metrics_rws = RwSignal::new(metrics);
+    let (experiment_group_id_rws, experiment_group_id_ws) =
+        create_signal(experiment_group_id.clone());
+    let (experiment_group_name_rws, experiment_group_name_ws) =
+        create_signal(experiment_group_id.map(|experiment_group_id| {
+            experiment_groups
+                .iter()
+                .filter(|group| {
+                    group.id.to_string() == experiment_group_id
+                })
+                .map(|group| group.name.clone())
+                .next()
+                .unwrap_or_default()
+        }));
 
     let handle_context_form_change = move |updated_ctx: Conditions| {
         context_ws.set_untracked(updated_ctx);
@@ -135,6 +155,7 @@ pub fn experiment_form(
                         org,
                         description_rs.get_untracked(),
                         change_reason_rs.get_untracked(),
+                        experiment_group_id_rws.get_untracked(),
                     )
                     .await
                 } else {
@@ -148,6 +169,7 @@ pub fn experiment_form(
                         description_rs.get_untracked(),
                         change_reason_rs.get_untracked(),
                         org,
+                        experiment_group_id_rws.get_untracked(),
                     )
                     .await
                 };
@@ -207,6 +229,25 @@ pub fn experiment_form(
                 metrics=metrics_rws.get_untracked()
                 on_change=Callback::new(move |metrics| metrics_rws.set(metrics))
             />
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Experiment Group</span>
+                </label>
+                <Dropdown
+                    dropdown_width="w-100"
+                    dropdown_icon="".to_string()
+                    dropdown_direction=DropdownDirection::Down
+                    dropdown_btn_type=DropdownBtnType::Select
+                    dropdown_text=experiment_group_name_rws.get().unwrap_or("Select Experiment Group".to_string())
+                    dropdown_options=experiment_groups
+                    on_select=Callback::new(move |selected: ExperimentGroup| {
+                        experiment_group_id_ws.set(Some(selected.id.to_string()));
+                        experiment_group_name_ws.set(Some(selected.name));
+                    })
+                />
+            </div>
+
             <ChangeForm
                 title="Reason for Change".to_string()
                 placeholder="Enter a reason for this change".to_string()

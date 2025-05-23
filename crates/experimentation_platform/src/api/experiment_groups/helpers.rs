@@ -126,7 +126,7 @@ pub async fn create_experiment_group(
     Ok(Json(new_experiment_group))
 }
 
-pub async fn update_experiment_group(
+pub fn update_experiment_group(
     id: i64,
     req: ExpGroupUpdateRequest,
     conn: &mut DBConnection,

@@ -47,6 +47,7 @@ pub struct ExperimentResponse {
     pub change_reason: ChangeReason,
     pub metrics: Metrics,
     pub metrics_url: Option<String>,
+    pub experiment_group_id: Option<i64>,
 }
 
 impl From<Experiment> for ExperimentResponse {
@@ -96,6 +97,7 @@ impl From<Experiment> for ExperimentResponse {
             change_reason: experiment.change_reason,
             metrics: experiment.metrics,
             metrics_url,
+            experiment_group_id: experiment.experiment_group_id,
         }
     }
 }
@@ -112,6 +114,7 @@ pub struct ExperimentCreateRequest {
     pub description: Description,
     #[serde(default = "ChangeReason::default")]
     pub change_reason: ChangeReason,
+    pub experiment_group_id: Option<i64>,
 }
 
 /********** Experiment Ramp Req Types **********/
@@ -312,6 +315,7 @@ pub struct OverrideKeysUpdateRequest {
     pub description: Option<Description>,
     #[serde(default = "ChangeReason::default")]
     pub change_reason: ChangeReason,
+    pub experiment_group_id: Option<i64>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
