@@ -3,14 +3,18 @@ use leptos::*;
 use leptos_router::use_params_map;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
-    api::default_config::DefaultConfigFilters,
-    api::experiments::ExperimentResponse,
+    api::{default_config::DefaultConfigFilters, experiments::ExperimentResponse},
     custom_query::PaginationParams,
-    database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
+    database::{
+        models::{cac::DefaultConfig, experimentation::ExperimentGroup},
+        types::DimensionWithMandatory,
+    },
 };
 
 use crate::{
-    api::{fetch_default_config, fetch_dimensions, fetch_experiment},
+    api::{
+        fetch_default_config, fetch_dimensions, fetch_experiment, fetch_experiment_groups,
+    },
     components::{
         experiment::Experiment,
         experiment_action_form::ExperimentActionForm,
@@ -33,6 +37,7 @@ struct CombinedResource {
     experiment: Option<ExperimentResponse>,
     dimensions: Vec<DimensionWithMandatory>,
     default_config: Vec<DefaultConfig>,
+    experiment_groups: Vec<ExperimentGroup>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -73,9 +78,15 @@ pub fn experiment_page() -> impl IntoView {
                 tenant.to_string(),
                 org_id.clone(),
             );
+            let experiment_groups_future =
+                fetch_experiment_groups(tenant.to_string(), org_id.clone());
 
-            let (experiments_result, dimensions_result, config_result) =
-                join!(experiments_future, dimensions_future, config_future);
+            let (experiments_result, dimensions_result, config_result, experiment_groups) = join!(
+                experiments_future,
+                dimensions_future,
+                config_future,
+                experiment_groups_future
+            );
 
             // Construct the combined result, handling errors as needed
             CombinedResource {
@@ -87,6 +98,7 @@ pub fn experiment_page() -> impl IntoView {
                     .filter(|d| d.dimension != "variantIds")
                     .collect(),
                 default_config: config_result.unwrap_or_default().data,
+                experiment_groups: experiment_groups.unwrap_or_default().data,
             }
         });
 
@@ -114,6 +126,7 @@ pub fn experiment_page() -> impl IntoView {
                 let experiment = resource.experiment;
                 let default_config = resource.default_config;
                 let dimensions = resource.dimensions;
+                let experiment_groups = resource.experiment_groups;
                 match experiment {
                     Some(experiment) => {
                         let experiment_rf = experiment.clone();
@@ -163,6 +176,7 @@ pub fn experiment_page() -> impl IntoView {
                                                 let experiment_ef = experiment.clone();
                                                 let default_config = default_config.clone();
                                                 let dimensions = dimensions.clone();
+                                                let experiment_groups = experiment_groups.clone();
                                                 view! {
                                                     <EditorProvider>
                                                         <ExperimentForm
@@ -186,6 +200,8 @@ pub fn experiment_page() -> impl IntoView {
                                                             }
                                                             description=(*experiment_ef.description).clone()
                                                             metrics=experiment_ef.metrics
+                                                            experiment_group_id=experiment_ef.experiment_group_id
+                                                            experiment_groups
                                                         />
                                                     </EditorProvider>
                                                 }

@@ -17,7 +17,10 @@ use superposition_types::{
     },
     custom_query::{CommaSeparatedQParams, CustomQuery, PaginationParams, Query},
     database::{
-        models::{cac::DefaultConfig, experimentation::ExperimentStatusType},
+        models::{
+            cac::DefaultConfig,
+            experimentation::{ExperimentGroup, ExperimentStatusType},
+        },
         types::DimensionWithMandatory,
     },
     PaginatedResponse,
@@ -25,7 +28,10 @@ use superposition_types::{
 use utils::experiment_table_columns;
 
 use crate::{
-    api::{fetch_default_config, fetch_dimensions, fetch_experiments},
+    api::{
+        fetch_default_config, fetch_dimensions, fetch_experiment_groups,
+        fetch_experiments,
+    },
     components::{
         button::Button,
         context_form::ContextForm,
@@ -51,6 +57,7 @@ struct CombinedResource {
     experiments: PaginatedResponse<ExperimentResponse>,
     dimensions: Vec<DimensionWithMandatory>,
     default_config: Vec<DefaultConfig>,
+    experiment_groups: Vec<ExperimentGroup>,
 }
 
 #[component]
@@ -374,9 +381,15 @@ pub fn experiment_list() -> impl IntoView {
                 current_tenant.to_string(),
                 org_id.clone(),
             );
+            let experiment_groups_future =
+                fetch_experiment_groups(current_tenant.to_string(), org_id.clone());
 
-            let (experiments_result, dimensions_result, config_result) =
-                join!(experiments_future, dimensions_future, config_future);
+            let (experiments_result, dimensions_result, config_result, experiment_groups) = join!(
+                experiments_future,
+                dimensions_future,
+                config_future,
+                experiment_groups_future
+            );
             // Construct the combined result, handling errors as needed
             CombinedResource {
                 experiments: experiments_result.unwrap_or_default(),
@@ -387,6 +400,7 @@ pub fn experiment_list() -> impl IntoView {
                     .filter(|d| d.dimension != "variantIds")
                     .collect(),
                 default_config: config_result.unwrap_or_default().data,
+                experiment_groups: experiment_groups.unwrap_or_default().data,
             }
         },
     );
@@ -506,6 +520,7 @@ pub fn experiment_list() -> impl IntoView {
                         dimensions: dim,
                         default_config: def_conf,
                         experiments: _,
+                        experiment_groups: exp_groups,
                     } = combined_resource.get().unwrap_or_default();
                     let _ = reset_exp_form.get();
                     view! {
@@ -526,6 +541,8 @@ pub fn experiment_list() -> impl IntoView {
                                     default_config=def_conf.clone()
                                     handle_submit=handle_submit_experiment_form
                                     metrics=workspace_settings.get_value().metrics
+                                    experiment_group_id=None
+                                    experiment_groups=exp_groups.clone()
                                 />
                             </EditorProvider>
                         </Drawer>

@@ -1,7 +1,6 @@
+use crate::types::VariantFormT;
 use serde_json::Map;
 use superposition_types::{api::experiments::VariantUpdateRequest, Exp, Overrides};
-
-use crate::types::VariantFormT;
 
 impl TryFrom<VariantFormT> for VariantUpdateRequest {
     type Error = String;

@@ -32,6 +32,7 @@ pub async fn create_experiment(
     description: String,
     change_reason: String,
     org_id: String,
+    experiment_group_id: Option<i64>,
 ) -> Result<ExperimentResponse, String> {
     let payload = ExperimentCreateRequest {
         name,
@@ -41,6 +42,7 @@ pub async fn create_experiment(
         metrics,
         description: Description::try_from(description)?,
         change_reason: ChangeReason::try_from(change_reason)?,
+        experiment_group_id: Some(experiment_group_id),
     };
 
     validate_experiment(&payload)?;
@@ -58,6 +60,7 @@ pub async fn create_experiment(
     parse_json_response(response).await
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn update_experiment(
     experiment_id: &String,
     variants: Vec<VariantFormT>,
@@ -66,14 +69,15 @@ pub async fn update_experiment(
     org_id: String,
     description: String,
     change_reason: String,
+    experiment_group_id: Option<i64>,
 ) -> Result<ExperimentResponse, String> {
     let payload = OverrideKeysUpdateRequest {
         variants: Result::<Vec<VariantUpdateRequest>, String>::from_iter(variants)?,
         metrics,
         description: Some(Description::try_from(description)?),
         change_reason: ChangeReason::try_from(change_reason)?,
+        experiment_group_id: Some(experiment_group_id),
     };
-
     let host = get_host();
     let url = format!("{}/experiments/{}/overrides", host, experiment_id);
 
