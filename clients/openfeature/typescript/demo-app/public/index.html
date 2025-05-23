@@ -1,0 +1,1603 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenFeature Provider Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .section {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+        .section h2 {
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+
+        .provider-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+
+        .provider-buttons {
+            display: grid;
+            gap: 10px;
+        }
+
+        .provider-btn {
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .provider-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .provider-btn.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+
+        .provider-title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .provider-desc {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        .evaluate-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .evaluate-btn:hover {
+            background: #059669;
+        }
+
+        .results-section {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .flag-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .flag-group {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .flag-group h3 {
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+
+        .flag-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .flag-item:last-child {
+            border-bottom: none;
+        }
+
+        .flag-key {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .flag-value {
+            font-family: 'Monaco', monospace;
+            background: #f1f5f9;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            max-width: 150px;
+            overflow: hidden;
+        }
+
+        .flag-meta {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .error {
+            color: #dc2626;
+            background: #fef2f2;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .main {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 OpenFeature Provider Demo</h1>
+            <p>Switch between Superposition, LaunchDarkly, and Flagsmith providers</p>
+        </div>
+
+        <div class="main">
+            <div class="section">
+                <h2>🔧 Provider Controls</h2>
+
+                <div class="provider-status">
+                    <div class="status-dot" id="statusDot"></div>
+                    <div>
+                        <strong>Current:</strong> <span id="currentProvider">superposition</span><br>
+                        <small>Status: <span id="providerStatus">READY</span></small>
+                    </div>
+                </div>
+
+                <div class="provider-buttons">
+                    <button class="provider-btn active" data-provider="superposition">
+                        <div class="provider-title">🎯 Superposition</div>
+                        <div class="provider-desc">Context-aware configuration</div>
+                    </button>
+                    <button class="provider-btn" data-provider="launchdarkly">
+                        <div class="provider-title">🚀 LaunchDarkly</div>
+                        <div class="provider-desc">User-based targeting</div>
+                    </button>
+                    <button class="provider-btn" data-provider="flagsmith">
+                        <div class="provider-title">🏃 Flagsmith</div>
+                        <div class="provider-desc">Segment-based features</div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>👤 Context Configuration</h2>
+
+                <div class="input-group">
+                    <label>User ID</label>
+                    <input type="text" id="userId" value="user123" placeholder="Enter user ID">
+                </div>
+
+                <div class="input-group">
+                    <label>Operating System</label>
+                    <select id="os">
+                        <option value="android">Android</option>
+                        <option value="ios">iOS</option>
+                        <option value="web">Web</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Client ID</label>
+                    <select id="clientId">
+                        <option value="meesho">Meesho</option>
+                        <option value="flipkart">Flipkart</option>
+                        <option value="amazon">Amazon</option>
+                        <option value="generic">Generic</option>
+                    </select>
+                </div>
+
+                <button class="evaluate-btn" onclick="evaluateFlags()">
+                    🎯 Evaluate Flags
+                </button>
+            </div>
+
+            <div class="section results-section">
+                <h2>📊 Flag Results</h2>
+
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <span>Evaluating flags...</span>
+                </div>
+
+                <div id="error" class="error" style="display: none;"></div>
+                <div id="results" class="flag-results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentProvider = 'superposition';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupProviderButtons();
+            updateProviderStatus();
+            evaluateFlags();
+        });
+
+        function setupProviderButtons() {
+            document.querySelectorAll('.provider-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchProvider(btn.dataset.provider));
+            });
+        }
+
+        async function updateProviderStatus() {
+            try {
+                const response = await fetch('/api/providers');
+                const data = await response.json();
+
+                document.getElementById('currentProvider').textContent = data.current;
+                document.getElementById('providerStatus').textContent = data.status;
+
+                // Update status dot color
+                const statusDot = document.getElementById('statusDot');
+                statusDot.style.background = data.status === 'READY' ? '#10b981' : '#ef4444';
+
+                currentProvider = data.current;
+                updateActiveButton();
+            } catch (error) {
+                console.error('Failed to update status:', error);
+            }
+        }
+
+        function updateActiveButton() {
+            document.querySelectorAll('.provider-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.provider === currentProvider);
+            });
+        }
+
+        async function switchProvider(provider) {
+            if (provider === currentProvider) return;
+
+            try {
+                const response = await fetch('/api/switch-provider', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider })
+                });
+
+                if (response.ok) {
+                    await updateProviderStatus();
+                    await evaluateFlags();
+                    showNotification(`✅ Switched to ${provider}`);
+                } else {
+                    throw new Error('Switch failed');
+                }
+            } catch (error) {
+                showNotification(`❌ Failed to switch to ${provider}`, true);
+            }
+        }
+
+        async function evaluateFlags() {
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const error = document.getElementById('error');
+
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            results.innerHTML = '';
+
+            try {
+                const context = {
+                    userId: document.getElementById('userId').value,
+                    os: document.getElementById('os').value,
+                    clientId: document.getElementById('clientId').value
+                };
+
+                const response = await fetch('/api/evaluate-flags', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ context })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Evaluation failed');
+                }
+
+                displayResults(data);
+            } catch (err) {
+                error.textContent = err.message;
+                error.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+            const results = document.getElementById('results');
+
+            results.innerHTML = `
+                <div class="flag-group">
+                    <h3>🔤 String Flags</h3>
+                    ${Object.entries(data.flags.stringFlags).map(([key, details]) => `
+                        <div class="flag-item">
+                            <div>
+                                <div class="flag-key">${key}</div>
+                                <div class="flag-meta">Reason: ${details.reason} • Variant: ${details.variant || 'N/A'}</div>
+                            </div>
+                            <div class="flag-value">"${details.value}"</div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="flag-group">
+                    <h3>🔘 Boolean Flags</h3>
+                    ${Object.entries(data.flags.booleanFlags).map(([key, details]) => `
+                        <div class="flag-item">
+                            <div>
+                                <div class="flag-key">${key}</div>
+                                <div class="flag-meta">Reason: ${details.reason} • Variant: ${details.variant || 'N/A'}</div>
+                            </div>
+                            <div class="flag-value">${details.value}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="flag-group">
+                    <h3>🔢 Number Flags</h3>
+                    ${Object.entries(data.flags.numberFlags).map(([key, details]) => `
+                        <div class="flag-item">
+                            <div>
+                                <div class="flag-key">${key}</div>
+                                <div class="flag-meta">Reason: ${details.reason} • Variant: ${details.variant || 'N/A'}</div>
+                            </div>
+                            <div class="flag-value">${details.value}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function showNotification(message, isError = false) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed; top: 20px; right: 20px; padding: 15px 20px;
+                border-radius: 8px; color: white; font-weight: 500; z-index: 1000;
+                background: ${isError ? '#ef4444' : '#10b981'};
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => notification.remove(), 3000);
+        }
+    </script>
+</body>
+
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced OpenFeature Provider Demo</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .main {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .section {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .section h2 {
+            margin-bottom: 15px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .provider-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .status-dot.error {
+            background: #ef4444;
+        }
+
+        .status-dot.stale {
+            background: #f59e0b;
+        }
+
+        .provider-buttons {
+            display: grid;
+            gap: 8px;
+        }
+
+        .provider-btn {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .provider-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .provider-btn.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+
+        .provider-title {
+            font-weight: 600;
+        }
+
+        .provider-desc {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 13px;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        .btn {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #059669;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            width: auto;
+            margin: 0;
+        }
+
+        /* Cache Stats */
+        .cache-stats {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-weight: 500;
+            color: #374151;
+            font-size: 13px;
+        }
+
+        .stat-value {
+            font-family: 'Monaco', monospace;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .cache-entries {
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .cache-entry {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 11px;
+        }
+
+        .cache-entry:last-child {
+            border-bottom: none;
+        }
+
+        .cache-key {
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .cache-meta {
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        /* Events */
+        .events-container {
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .event-item {
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 12px;
+        }
+
+        .event-item:last-child {
+            border-bottom: none;
+        }
+
+        .event-item.new {
+            background: #f0f9ff;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .event-type {
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .event-type.ready {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .event-type.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .event-type.stale {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .event-type.config_changed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .event-type.cache_cleared {
+            background: #f3e8ff;
+            color: #6b21a8;
+        }
+
+        .event-time {
+            color: #6b7280;
+            font-size: 10px;
+        }
+
+        .event-provider {
+            font-weight: 500;
+            color: #4f46e5;
+        }
+
+        .event-data {
+            background: #f8fafc;
+            padding: 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+            font-family: 'Monaco', monospace;
+            font-size: 10px;
+            color: #374151;
+            max-height: 60px;
+            overflow-y: auto;
+        }
+
+        /* Results Section */
+        .results-section {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .flag-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .flag-group {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .flag-group h3 {
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+
+        .flag-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .flag-item:last-child {
+            border-bottom: none;
+        }
+
+        .flag-key {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .flag-value {
+            font-family: 'Monaco', monospace;
+            background: #f1f5f9;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            max-width: 150px;
+            overflow: hidden;
+        }
+
+        .flag-meta {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .flag-meta.cached {
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .error {
+            color: #dc2626;
+            background: #fef2f2;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1000;
+        }
+
+        .connection-status.connected {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .connection-status.disconnected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .experiment-indicator {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            margin-left: 4px;
+        }
+
+        .flag-meta.experiment {
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .experiment-override {
+            background: #f0f9ff;
+            border-left: 3px solid #3b82f6;
+        }
+
+        @media (max-width: 1200px) {
+            .main {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="connection-status" id="connectionStatus">🔌 Connecting...</div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Enhanced OpenFeature Provider Demo</h1>
+            <p>Real-time cache monitoring and event tracking for feature flag providers</p>
+        </div>
+
+        <div class="main">
+            <!-- Provider Controls -->
+            <div class="section">
+                <h2>🔧 Provider Controls</h2>
+
+                <div class="provider-status">
+                    <div class="status-dot" id="statusDot"></div>
+                    <div>
+                        <strong>Current:</strong> <span id="currentProvider">superposition</span><br>
+                        <small>Status: <span id="providerStatus">READY</span></small>
+                    </div>
+                </div>
+
+                <div class="provider-buttons">
+                    <button class="provider-btn active" data-provider="superposition">
+                        <div class="provider-title">🎯 Superposition</div>
+                        <div class="provider-desc">Context-aware configuration</div>
+                    </button>
+                    <button class="provider-btn" data-provider="launchdarkly">
+                        <div class="provider-title">🚀 LaunchDarkly</div>
+                        <div class="provider-desc">User-based targeting</div>
+                    </button>
+                    <button class="provider-btn" data-provider="flagsmith">
+                        <div class="provider-title">🏃 Flagsmith</div>
+                        <div class="provider-desc">Segment-based features</div>
+                    </button>
+                </div>
+
+                <button class="btn btn-secondary btn-small" onclick="refreshProvider()"
+                    style="width: 100%; margin-top: 15px;">
+                    🔄 Refresh Provider
+                </button>
+            </div>
+
+            <!-- Context Configuration -->
+            <div class="section">
+                <h2>👤 Context Configuration</h2>
+
+                <div class="input-group">
+                    <label>User ID</label>
+                    <input type="text" id="userId" value="user123" placeholder="Enter user ID">
+                </div>
+
+                <div class="input-group">
+                    <label>Operating System</label>
+                    <select id="os">
+                        <option value="android">Android</option>
+                        <option value="ios">iOS</option>
+                        <option value="web">Web</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Client ID</label>
+                    <select id="clientId">
+                        <option value="meesho">Meesho</option>
+                        <option value="flipkart">Flipkart</option>
+                        <option value="amazon">Amazon</option>
+                        <option value="generic">Generic</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" onclick="evaluateFlags()">
+                    🎯 Evaluate Flags
+                </button>
+            </div>
+
+            <!-- Cache Management -->
+            <div class="section">
+                <h2>💾 Cache Management</h2>
+
+                <div class="cache-stats" id="cacheStats">
+                    <div class="stat-row">
+                        <span class="stat-label">Loading...</span>
+                        <span class="stat-value">...</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary btn-small" onclick="loadCacheStats()">
+                        📊 Refresh Stats
+                    </button>
+                    <button class="btn btn-danger btn-small" onclick="clearCache()">
+                        🗑️ Clear Cache
+                    </button>
+                </div>
+
+                <div id="cacheEntries" class="cache-entries" style="margin-top: 15px; display: none;">
+                    <!-- Cache entries will be populated here -->
+                </div>
+            </div>
+
+            <!-- Event Monitor -->
+            <div class="section" style="grid-column: 1 / -1;">
+                <h2>📡 Event Monitor
+                    <button class="btn btn-danger btn-small" onclick="clearEvents()" style="margin-left: auto;">
+                        🗑️ Clear Events
+                    </button>
+                </h2>
+
+                <div class="events-container" id="eventsContainer">
+                    <div style="padding: 20px; text-align: center; color: #6b7280;">
+                        📡 Waiting for events...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="section results-section">
+                <h2>📊 Flag Results</h2>
+
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <span>Evaluating flags...</span>
+                </div>
+
+                <div id="error" class="error" style="display: none;"></div>
+                <div id="results" class="flag-results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentProvider = 'superposition';
+        let socket = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupProviderButtons();
+            setupWebSocket();
+            updateProviderStatus();
+            loadCacheStats();
+            evaluateFlags();
+        });
+
+        function setupWebSocket() {
+            socket = io();
+
+            socket.on('connect', () => {
+                updateConnectionStatus(true);
+                console.log('Connected to WebSocket');
+            });
+
+            socket.on('disconnect', () => {
+                updateConnectionStatus(false);
+                console.log('Disconnected from WebSocket');
+            });
+
+            socket.on('provider-event', (eventData) => {
+                addEvent(eventData, true);
+            });
+
+            socket.on('event-history', (events) => {
+                displayEvents(events);
+            });
+        }
+
+        function updateConnectionStatus(connected) {
+            const status = document.getElementById('connectionStatus');
+            if (connected) {
+                status.textContent = '🟢 Connected';
+                status.className = 'connection-status connected';
+            } else {
+                status.textContent = '🔴 Disconnected';
+                status.className = 'connection-status disconnected';
+            }
+        }
+
+        function setupProviderButtons() {
+            document.querySelectorAll('.provider-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchProvider(btn.dataset.provider));
+            });
+        }
+
+        async function updateProviderStatus() {
+            try {
+                const response = await fetch('/api/providers');
+                const data = await response.json();
+
+                document.getElementById('currentProvider').textContent = data.current;
+                document.getElementById('providerStatus').textContent = data.status;
+
+                // Update status dot color
+                const statusDot = document.getElementById('statusDot');
+                statusDot.className = 'status-dot';
+                if (data.status === 'READY') statusDot.classList.add('ready');
+                else if (data.status === 'ERROR') statusDot.classList.add('error');
+                else if (data.status === 'STALE') statusDot.classList.add('stale');
+
+                // Show experiment status for superposition
+                const experimentStatus = document.getElementById('experimentStatus');
+                if (data.current === 'superposition') {
+                    experimentStatus.style.display = 'block';
+                    // We'll update this during flag evaluation
+                } else {
+                    experimentStatus.style.display = 'none';
+                }
+
+                currentProvider = data.current;
+                updateActiveButton();
+            } catch (error) {
+                console.error('Failed to update status:', error);
+            }
+        }
+
+        function updateActiveButton() {
+            document.querySelectorAll('.provider-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.provider === currentProvider);
+            });
+        }
+
+        async function switchProvider(provider) {
+            if (provider === currentProvider) return;
+
+            try {
+                const response = await fetch('/api/switch-provider', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider })
+                });
+
+                if (response.ok) {
+                    await updateProviderStatus();
+                    await loadCacheStats();
+                    await evaluateFlags();
+                    showNotification(`✅ Switched to ${provider}`);
+                } else {
+                    throw new Error('Switch failed');
+                }
+            } catch (error) {
+                showNotification(`❌ Failed to switch to ${provider}`, true);
+            }
+        }
+
+        async function loadCacheStats() {
+            try {
+                const response = await fetch('/api/cache-stats');
+                const data = await response.json();
+
+                displayCacheStats(data.stats);
+            } catch (error) {
+                console.error('Failed to load cache stats:', error);
+                document.getElementById('cacheStats').innerHTML =
+                    '<div class="stat-row"><span class="stat-label">Error loading stats</span></div>';
+            }
+        }
+
+        function displayCacheStats(stats) {
+            const container = document.getElementById('cacheStats');
+            const entriesContainer = document.getElementById('cacheEntries');
+
+            if (stats.hits !== undefined) {
+                // Mock providers with detailed stats
+                container.innerHTML = `
+                    <div class="stat-row">
+                        <span class="stat-label">Cache Hits</span>
+                        <span class="stat-value">${stats.hits}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Cache Misses</span>
+                        <span class="stat-value">${stats.misses}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Cache Size</span>
+                        <span class="stat-value">${stats.size} entries</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Hit Rate</span>
+                        <span class="stat-value">${stats.hits + stats.misses > 0 ?
+                        Math.round((stats.hits / (stats.hits + stats.misses)) * 100) : 0}%</span>
+                    </div>
+                `;
+
+                if (stats.entries && stats.entries.length > 0) {
+                    entriesContainer.style.display = 'block';
+                    entriesContainer.innerHTML = stats.entries.map(entry => `
+                        <div class="cache-entry">
+                            <div class="cache-key">${entry.key}</div>
+                            <div class="cache-meta">
+                                Value: ${JSON.stringify(entry.value)} • 
+                                Age: ${Math.round(entry.age / 1000)}s • 
+                                Hits: ${entry.hits}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    entriesContainer.style.display = 'none';
+                }
+            } else {
+                // Superposition or other providers
+                container.innerHTML = `
+                    <div class="stat-row">
+                        <span class="stat-label">Provider</span>
+                        <span class="stat-value">${currentProvider}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Cache Type</span>
+                        <span class="stat-value">${stats.note || 'Internal caching'}</span>
+                    </div>
+                `;
+                entriesContainer.style.display = 'none';
+            }
+        }
+
+        async function clearCache() {
+            try {
+                const response = await fetch('/api/clear-cache', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showNotification(`✅ ${data.message}`);
+                    await loadCacheStats();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                showNotification(`❌ ${error.message}`, true);
+            }
+        }
+
+        async function refreshProvider() {
+            try {
+                const response = await fetch(`/api/provider/${currentProvider}/refresh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showNotification(`✅ ${data.message}`);
+                    await loadCacheStats();
+                    await updateProviderStatus();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                showNotification(`❌ ${error.message}`, true);
+            }
+        }
+
+        async function evaluateFlags() {
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const error = document.getElementById('error');
+
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            results.innerHTML = '';
+
+            try {
+                const context = {
+                    userId: document.getElementById('userId').value,
+                    os: document.getElementById('os').value,
+                    clientId: document.getElementById('clientId').value
+                };
+
+                const response = await fetch('/api/evaluate-flags', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ context })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Evaluation failed');
+                }
+
+                // Update experiment status
+                const experimentEnabled = document.getElementById('experimentEnabled');
+                if (experimentEnabled && data.experimentationEnabled !== undefined) {
+                    experimentEnabled.textContent = data.experimentationEnabled ? 'Enabled' : 'Disabled';
+                }
+
+                displayResults(data);
+                await loadCacheStats(); // Refresh cache stats after evaluation
+            } catch (err) {
+                error.textContent = err.message;
+                error.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+
+            // Add this to displayResults function before the flags section
+            if (data.originalContext && data.context !== data.originalContext) {
+                const contextDiff = `
+        <div class="flag-group">
+            <h3>📋 Context Information</h3>
+            <div class="flag-item">
+                <div>
+                    <div class="flag-key">Original Context</div>
+                    <div class="flag-meta">User-provided context</div>
+                </div>
+                <div class="flag-value">${JSON.stringify(data.originalContext)}</div>
+            </div>
+            <div class="flag-item">
+                <div>
+                    <div class="flag-key">Enhanced Context</div>
+                    <div class="flag-meta">With experiment data</div>
+                </div>
+                <div class="flag-value">${JSON.stringify(data.context)}</div>
+            </div>
+        </div>
+    `;
+                experimentInfo = contextDiff + experimentInfo;
+            }
+            const results = document.getElementById('results');
+
+            // Add experiment information if available
+            let experimentInfo = '';
+            if (data.experimentationEnabled && data.context.__experiment_overrides) {
+                experimentInfo = `
+            <div class="flag-group">
+                <h3>🧪 Experiment Information</h3>
+                <div class="flag-item">
+                    <div>
+                        <div class="flag-key">Experimentation Enabled</div>
+                        <div class="flag-meta">Active experiment overrides detected</div>
+                    </div>
+                    <div class="flag-value">${Object.keys(data.context.__experiment_overrides).length} overrides</div>
+                </div>
+                ${Object.entries(data.context.__experiment_overrides || {}).map(([key, value]) => `
+                    <div class="flag-item">
+                        <div>
+                            <div class="flag-key">${key}</div>
+                            <div class="flag-meta">From experiment</div>
+                        </div>
+                        <div class="flag-value">"${value}"</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+            }
+
+            results.innerHTML = `
+        ${experimentInfo}
+        <div class="flag-group">
+            <h3>🔤 String Flags</h3>
+            ${Object.entries(data.flags.stringFlags).map(([key, details]) => `
+                <div class="flag-item">
+                    <div>
+                        <div class="flag-key">${key}</div>
+                        <div class="flag-meta ${details.reason === 'CACHED' ? 'cached' : ''}">
+                            Reason: ${details.reason} • Variant: ${details.variant || 'N/A'}
+                            ${details.variant === 'experiment' ? ' • 🧪' : ''}
+                        </div>
+                    </div>
+                    <div class="flag-value">"${details.value}"</div>
+                </div>
+            `).join('')}
+        </div>
+        
+        <div class="flag-group">
+            <h3>🔘 Boolean Flags</h3>
+            ${Object.entries(data.flags.booleanFlags).map(([key, details]) => `
+                <div class="flag-item">
+                    <div>
+                        <div class="flag-key">${key}</div>
+                        <div class="flag-meta ${details.reason === 'CACHED' ? 'cached' : ''}">
+                            Reason: ${details.reason} • Variant: ${details.variant || 'N/A'}
+                            ${details.variant === 'experiment' ? ' • 🧪' : ''}
+                        </div>
+                    </div>
+                    <div class="flag-value">${details.value}</div>
+                </div>
+            `).join('')}
+        </div>
+        
+        <div class="flag-group">
+            <h3>🔢 Number Flags</h3>
+            ${Object.entries(data.flags.numberFlags).map(([key, details]) => `
+                <div class="flag-item">
+                    <div>
+                        <div class="flag-key">${key}</div>
+                        <div class="flag-meta ${details.reason === 'CACHED' ? 'cached' : ''}">
+                            Reason: ${details.reason} • Variant: ${details.variant || 'N/A'}
+                            ${details.variant === 'experiment' ? ' • 🧪' : ''}
+                        </div>
+                    </div>
+                    <div class="flag-value">${details.value}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+        }
+
+        function displayEvents(events) {
+            const container = document.getElementById('eventsContainer');
+
+            if (events.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280;">📡 No events yet...</div>';
+                return;
+            }
+
+            container.innerHTML = events.map(event => createEventHTML(event)).join('');
+        }
+
+        function addEvent(eventData, isNew = false) {
+            const container = document.getElementById('eventsContainer');
+
+            // Clear "no events" message if present
+            if (container.innerHTML.includes('No events yet')) {
+                container.innerHTML = '';
+            }
+
+            const eventHTML = createEventHTML(eventData, isNew);
+            container.insertAdjacentHTML('afterbegin', eventHTML);
+
+            // Remove old events if too many
+            const events = container.children;
+            if (events.length > 50) {
+                container.removeChild(events[events.length - 1]);
+            }
+        }
+
+        function createEventHTML(event, isNew = false) {
+            const time = new Date(event.timestamp).toLocaleTimeString();
+            const dataStr = event.data ? JSON.stringify(event.data, null, 2) : '';
+
+            return `
+                <div class="event-item ${isNew ? 'new' : ''}">
+                    <div class="event-header">
+                        <div>
+                            <span class="event-type ${event.event}">${event.event.replace('_', ' ')}</span>
+                            <span class="event-provider">${event.provider}</span>
+                        </div>
+                        <span class="event-time">${time}</span>
+                    </div>
+                    ${dataStr ? `<div class="event-data">${dataStr}</div>` : ''}
+                </div>
+            `;
+        }
+
+        async function clearEvents() {
+            try {
+                const response = await fetch('/api/events', { method: 'DELETE' });
+                if (response.ok) {
+                    document.getElementById('eventsContainer').innerHTML =
+                        '<div style="padding: 20px; text-align: center; color: #6b7280;">📡 Event history cleared</div>';
+                    showNotification('✅ Event history cleared');
+                }
+            } catch (error) {
+                showNotification('❌ Failed to clear events', true);
+            }
+        }
+
+        function showNotification(message, isError = false) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed; top: 60px; right: 20px; padding: 15px 20px;
+                border-radius: 8px; color: white; font-weight: 500; z-index: 1000;
+                background: ${isError ? '#ef4444' : '#10b981'};
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // Auto-refresh cache stats every 30 seconds
+        setInterval(loadCacheStats, 30000);
+    </script>
+</body>
+
+</html>
