@@ -71,6 +71,8 @@ pub fn serialize_document(input: &::aws_smithy_types::Document) -> ::std::vec::V
 
 pub(crate) mod shape_get_context_from_condition_input;
 
+pub(crate) mod shape_get_dimension;
+
 pub(crate) mod shape_get_experiment;
 
 pub(crate) mod shape_get_function;

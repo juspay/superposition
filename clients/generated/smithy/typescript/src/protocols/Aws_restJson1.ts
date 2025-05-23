@@ -88,6 +88,10 @@ import {
   GetContextFromConditionCommandOutput,
 } from "../commands/GetContextFromConditionCommand";
 import {
+  GetDimensionCommandInput,
+  GetDimensionCommandOutput,
+} from "../commands/GetDimensionCommand";
+import {
   GetExperimentCommandInput,
   GetExperimentCommandOutput,
 } from "../commands/GetExperimentCommand";
@@ -848,6 +852,27 @@ export const se_GetContextFromConditionCommand = async(
   }
   body = JSON.stringify(body);
   b.m("POST")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1GetDimensionCommand
+ */
+export const se_GetDimensionCommand = async(
+  input: GetDimensionCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xt]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/dimension/{dimension}");
+  b.p('dimension', () => input.dimension!, '{dimension}', false)
+  let body: any;
+  b.m("GET")
   .h(headers)
   .b(body);
   return b.build();
@@ -2287,6 +2312,40 @@ export const de_GetContextFromConditionCommand = async(
     'override_id': __expectString,
     'value': _ => de_Condition(_, context),
     'weight': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1GetDimensionCommand
+ */
+export const de_GetDimensionCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetDimensionCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'dependencies': _json,
+    'dependency_graph': _ => de_Object(_, context),
+    'dependents': _json,
+    'description': __expectString,
+    'dimension': __expectString,
+    'function_name': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'mandatory': __expectBoolean,
+    'position': __expectInt32,
+    'schema': _ => de_Document(_, context),
   });
   Object.assign(contents, doc);
   return contents;

@@ -188,6 +188,22 @@ pub(crate) fn get_context_from_condition_output_output_correct_errors(mut builde
                 builder
             }
 
+pub(crate) fn get_dimension_output_output_correct_errors(mut builder: crate::operation::get_dimension::builders::GetDimensionOutputBuilder) -> crate::operation::get_dimension::builders::GetDimensionOutputBuilder {
+                if builder.dimension.is_none() { builder.dimension = Some(Default::default()) }
+if builder.position.is_none() { builder.position = Some(Default::default()) }
+if builder.schema.is_none() { builder.schema = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.dependencies.is_none() { builder.dependencies = Some(Default::default()) }
+if builder.dependents.is_none() { builder.dependents = Some(Default::default()) }
+if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn get_experiment_output_output_correct_errors(mut builder: crate::operation::get_experiment::builders::GetExperimentOutputBuilder) -> crate::operation::get_experiment::builders::GetExperimentOutputBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }

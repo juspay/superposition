@@ -1240,6 +1240,15 @@ export class TypeTemplatesNotFound extends __BaseException {
 /**
  * @public
  */
+export interface GetDimensionInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  dimension: string | undefined;
+}
+
+/**
+ * @public
+ */
 export interface ListDimensionsInput {
   count?: number | undefined;
   page?: number | undefined;

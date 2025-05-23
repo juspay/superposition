@@ -66,6 +66,9 @@ pub mod get_context;
 /// Types for the `GetContextFromCondition` operation.
 pub mod get_context_from_condition;
 
+/// Types for the `GetDimension` operation.
+pub mod get_dimension;
+
 /// Types for the `GetExperiment` operation.
 pub mod get_experiment;
 

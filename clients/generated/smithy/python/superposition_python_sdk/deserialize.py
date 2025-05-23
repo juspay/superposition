@@ -39,6 +39,7 @@ from .models import (
     GetConfigOutput,
     GetContextFromConditionOutput,
     GetContextOutput,
+    GetDimensionOutput,
     GetExperimentOutput,
     GetFunctionOutput,
     GetOrganisationOutput,
@@ -641,6 +642,34 @@ async def _deserialize_get_context_from_condition(http_response: HTTPResponse, c
     return GetContextFromConditionOutput(**kwargs)
 
 async def _deserialize_error_get_context_from_condition(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case "resourcenotfound":
+            return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_get_dimension(http_response: HTTPResponse, config: Config) -> GetDimensionOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_get_dimension(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = GetDimensionOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return GetDimensionOutput(**kwargs)
+
+async def _deserialize_error_get_dimension(http_response: HTTPResponse, config: Config) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():

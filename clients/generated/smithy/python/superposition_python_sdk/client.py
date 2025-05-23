@@ -56,6 +56,7 @@ from .deserialize import (
     _deserialize_get_config_fast,
     _deserialize_get_context,
     _deserialize_get_context_from_condition,
+    _deserialize_get_dimension,
     _deserialize_get_experiment,
     _deserialize_get_function,
     _deserialize_get_organisation,
@@ -148,6 +149,7 @@ from .models import (
     GET_CONFIG_FAST,
     GET_CONTEXT,
     GET_CONTEXT_FROM_CONDITION,
+    GET_DIMENSION,
     GET_EXPERIMENT,
     GET_FUNCTION,
     GET_ORGANISATION,
@@ -162,6 +164,8 @@ from .models import (
     GetContextFromConditionOutput,
     GetContextInput,
     GetContextOutput,
+    GetDimensionInput,
+    GetDimensionOutput,
     GetExperimentInput,
     GetExperimentOutput,
     GetFunctionInput,
@@ -277,6 +281,7 @@ from .serialize import (
     _serialize_get_config_fast,
     _serialize_get_context,
     _serialize_get_context_from_condition,
+    _serialize_get_dimension,
     _serialize_get_experiment,
     _serialize_get_function,
     _serialize_get_organisation,
@@ -907,6 +912,32 @@ class Superposition:
             deserialize=_deserialize_get_context_from_condition,
             config=self._config,
             operation=GET_CONTEXT_FROM_CONDITION,
+        )
+
+    async def get_dimension(self, input: GetDimensionInput, plugins: list[Plugin] | None = None) -> GetDimensionOutput:
+        """
+        Invokes the GetDimension operation.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_dimension,
+            deserialize=_deserialize_get_dimension,
+            config=self._config,
+            operation=GET_DIMENSION,
         )
 
     async def get_experiment(self, input: GetExperimentInput, plugins: list[Plugin] | None = None) -> GetExperimentOutput:

@@ -67,6 +67,9 @@ import io.juspay.superposition.model.GetContextFromConditionInput;
 import io.juspay.superposition.model.GetContextFromConditionOutput;
 import io.juspay.superposition.model.GetContextInput;
 import io.juspay.superposition.model.GetContextOutput;
+import io.juspay.superposition.model.GetDimension;
+import io.juspay.superposition.model.GetDimensionInput;
+import io.juspay.superposition.model.GetDimensionOutput;
 import io.juspay.superposition.model.GetExperiment;
 import io.juspay.superposition.model.GetExperimentInput;
 import io.juspay.superposition.model.GetExperimentOutput;
@@ -179,9 +182,9 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionAsyncClientImpl extends Client implements SuperpositionAsyncClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
+        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
         .putType(MalformedRequestException.$ID, MalformedRequestException.class, MalformedRequestException::builder)
@@ -278,6 +281,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<GetContextFromConditionOutput> getContextFromCondition(GetContextFromConditionInput input, RequestOverrideConfig overrideConfig) {return call(input, GetContextFromCondition.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<GetDimensionOutput> getDimension(GetDimensionInput input, RequestOverrideConfig overrideConfig) {return call(input, GetDimension.instance(), overrideConfig);
     }
 
     @Override

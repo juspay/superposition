@@ -21,6 +21,7 @@ export * from "./GetConfigCommand";
 export * from "./GetConfigFastCommand";
 export * from "./GetContextCommand";
 export * from "./GetContextFromConditionCommand";
+export * from "./GetDimensionCommand";
 export * from "./GetExperimentCommand";
 export * from "./GetFunctionCommand";
 export * from "./GetOrganisationCommand";

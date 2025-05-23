@@ -94,6 +94,10 @@ import {
   GetContextFromConditionCommandOutput,
 } from "./commands/GetContextFromConditionCommand";
 import {
+  GetDimensionCommandInput,
+  GetDimensionCommandOutput,
+} from "./commands/GetDimensionCommand";
+import {
   GetExperimentCommandInput,
   GetExperimentCommandOutput,
 } from "./commands/GetExperimentCommand";
@@ -309,6 +313,7 @@ export type ServiceInputTypes =
   | GetConfigFastCommandInput
   | GetContextCommandInput
   | GetContextFromConditionCommandInput
+  | GetDimensionCommandInput
   | GetExperimentCommandInput
   | GetFunctionCommandInput
   | GetOrganisationCommandInput
@@ -368,6 +373,7 @@ export type ServiceOutputTypes =
   | GetConfigFastCommandOutput
   | GetContextCommandOutput
   | GetContextFromConditionCommandOutput
+  | GetDimensionCommandOutput
   | GetExperimentCommandOutput
   | GetFunctionCommandOutput
   | GetOrganisationCommandOutput

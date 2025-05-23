@@ -37,6 +37,7 @@ from .models import (
     GetConfigInput,
     GetContextFromConditionInput,
     GetContextInput,
+    GetDimensionInput,
     GetExperimentInput,
     GetFunctionInput,
     GetOrganisationInput,
@@ -850,6 +851,38 @@ async def _serialize_get_context_from_condition(input: GetContextFromConditionIn
             query=query,
         ),
         method="POST",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_get_dimension(input: GetDimensionInput, config: Config) -> HTTPRequest:
+    if not input.dimension:
+        raise ServiceError("dimension must not be empty.")
+
+    path = "/dimension/{dimension}".format(
+        dimension=urlquote(input.dimension, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
         fields=headers,
         body=body,
     )

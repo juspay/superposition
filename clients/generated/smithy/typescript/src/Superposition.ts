@@ -114,6 +114,11 @@ import {
   GetContextFromConditionCommandOutput,
 } from "./commands/GetContextFromConditionCommand";
 import {
+  GetDimensionCommand,
+  GetDimensionCommandInput,
+  GetDimensionCommandOutput,
+} from "./commands/GetDimensionCommand";
+import {
   GetExperimentCommand,
   GetExperimentCommandInput,
   GetExperimentCommandOutput,
@@ -299,6 +304,7 @@ const commands = {
   GetConfigFastCommand,
   GetContextCommand,
   GetContextFromConditionCommand,
+  GetDimensionCommand,
   GetExperimentCommand,
   GetFunctionCommand,
   GetOrganisationCommand,
@@ -706,6 +712,23 @@ export interface Superposition {
     args: GetContextFromConditionCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: GetContextFromConditionCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link GetDimensionCommand}
+   */
+  getDimension(
+    args: GetDimensionCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetDimensionCommandOutput>;
+  getDimension(
+    args: GetDimensionCommandInput,
+    cb: (err: any, data?: GetDimensionCommandOutput) => void
+  ): void;
+  getDimension(
+    args: GetDimensionCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetDimensionCommandOutput) => void
   ): void;
 
   /**

@@ -1,6 +1,7 @@
 import {
     CreateDimensionCommand,
     DeleteDimensionCommand,
+    GetDimensionCommand,
     ListDimensionsCommand,
     UpdateDimensionCommand,
     CreateFunctionCommand,
@@ -210,6 +211,62 @@ describe("Dimension API", () => {
         }
     });
 
+    // ==================== GET DIMENSION TESTS ====================
+
+    test("GetDimension: should retrieve an existing dimension", async () => {
+        // Fail if dimension wasn't created
+        if (!createdDimension) {
+            throw new Error(
+                "Cannot run get test because the dimension creation test failed"
+            );
+        }
+
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            dimension: createdDimension.dimension,
+        };
+
+        const cmd = new GetDimensionCommand(input);
+
+        try {
+            const response = await superpositionClient.send(cmd);
+            console.log("Retrieved dimension:", response);
+
+            // Assertions
+            expect(response).toBeDefined();
+            expect(response.dimension).toBe(testDimension.dimension);
+            expect(response.position).toBe(testDimension.position);
+            expect(response.description).toBe(testDimension.description);
+            expect(response.created_by).toBeDefined();
+            expect(response.created_at).toBeDefined();
+            expect(response.last_modified_at).toBeDefined();
+            expect(response.last_modified_by).toBeDefined();
+        } catch (e) {
+            console.error(e["$response"]);
+            throw e;
+        }
+    });
+
+    test("GetDimension: should handle non-existent dimension", async () => {
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            dimension: "non-existent-dimension-123456789",
+        };
+
+        const cmd = new GetDimensionCommand(input);
+
+        try {
+            await superpositionClient.send(cmd);
+            // Should not reach here
+            fail("Expected resource not found error but request succeeded");
+        } catch (e: ResourceNotFound) {
+            // Expect an error response
+            expect(e).toBeDefined();
+            console.log("Received expected not found error:", e.message);
+        }
+    });
     // ==================== LIST DIMENSION TESTS ====================
 
     test("ListDimensions: should list all dimensions", async () => {
