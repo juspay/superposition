@@ -29,7 +29,8 @@ public final class Dimension implements ApiResource {
         "dependency_graph", SharedSchemas.OBJECT,
         "last_modified_at", SharedSchemas.DATE_TIME);
 
-    private static final List<Schema> $OPERATIONS = List.of(CreateDimension.$SCHEMA);
+    private static final List<Schema> $OPERATIONS = List.of(GetDimension.$SCHEMA,
+        CreateDimension.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);
 
     /**

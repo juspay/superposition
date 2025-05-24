@@ -43,6 +43,7 @@ pub fn endpoints() -> Scope {
         .service(create)
         .service(update)
         .service(get)
+        .service(list)
         .service(delete_dimension)
 }
 
@@ -148,6 +149,28 @@ async fn create(
             }
         }
     })
+}
+
+#[get("/{name}")]
+async fn get(
+    db_conn: DbConnection,
+    req: Path<String>,
+    schema_name: SchemaName,
+) -> superposition::Result<Json<DimensionWithMandatory>> {
+    let DbConnection(mut conn) = db_conn;
+
+    let result: Dimension = dimensions::dsl::dimensions
+        .filter(dimensions::dimension.eq(req.into_inner()))
+        .schema_name(&schema_name)
+        .get_result::<Dimension>(&mut conn)?;
+
+    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
+    let is_mandatory = workspace_settings
+        .mandatory_dimensions
+        .unwrap_or_default()
+        .contains(&result.dimension);
+
+    Ok(Json(DimensionWithMandatory::new(result, is_mandatory)))
 }
 
 #[put("/{name}")]
@@ -265,7 +288,7 @@ async fn update(
 }
 
 #[get("")]
-async fn get(
+async fn list(
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
     schema_name: SchemaName,

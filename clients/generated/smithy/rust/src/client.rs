@@ -175,6 +175,8 @@ mod get_context;
 
 mod get_context_from_condition;
 
+mod get_dimension;
+
 mod get_experiment;
 
 mod get_function;

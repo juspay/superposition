@@ -27,6 +27,7 @@ resource Dimension {
     put: UpdateDimension
     delete: DeleteDimension
     operations: [
+        GetDimension
         CreateDimension
     ]
 }
@@ -122,6 +123,21 @@ operation ListDimensions {
     output := with [PaginatedResponse] {
         data: DimensionExtList
     }
+}
+
+@http(method: "GET", uri: "/dimension/{dimension}")
+operation GetDimension {
+    input := for Dimension with [WorkspaceMixin] {
+        @httpLabel
+        @required
+        $dimension
+    }
+
+    output: DimensionExt
+
+    errors: [
+        ResourceNotFound
+    ]
 }
 
 @idempotent

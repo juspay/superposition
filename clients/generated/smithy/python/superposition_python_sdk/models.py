@@ -99,6 +99,9 @@ from ._private.schemas import (
     GET_CONTEXT_FROM_CONDITION_OUTPUT as _SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT,
     GET_CONTEXT_INPUT as _SCHEMA_GET_CONTEXT_INPUT,
     GET_CONTEXT_OUTPUT as _SCHEMA_GET_CONTEXT_OUTPUT,
+    GET_DIMENSION as _SCHEMA_GET_DIMENSION,
+    GET_DIMENSION_INPUT as _SCHEMA_GET_DIMENSION_INPUT,
+    GET_DIMENSION_OUTPUT as _SCHEMA_GET_DIMENSION_OUTPUT,
     GET_EXPERIMENT as _SCHEMA_GET_EXPERIMENT,
     GET_EXPERIMENT_INPUT as _SCHEMA_GET_EXPERIMENT_INPUT,
     GET_EXPERIMENT_OUTPUT as _SCHEMA_GET_EXPERIMENT_OUTPUT,
@@ -2645,8 +2648,8 @@ DELETE_CONTEXT = APIOperation(
         input_schema = _SCHEMA_DELETE_CONTEXT_INPUT,
         output_schema = _SCHEMA_DELETE_CONTEXT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -5329,8 +5332,8 @@ DELETE_DEFAULT_CONFIG = APIOperation(
         input_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_INPUT,
         output_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -5540,8 +5543,8 @@ LIST_DEFAULT_CONFIGS = APIOperation(
         input_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_INPUT,
         output_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -5797,8 +5800,8 @@ DELETE_DIMENSION = APIOperation(
         input_schema = _SCHEMA_DELETE_DIMENSION_INPUT,
         output_schema = _SCHEMA_DELETE_DIMENSION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -5907,8 +5910,8 @@ DELETE_FUNCTION = APIOperation(
         input_schema = _SCHEMA_DELETE_FUNCTION_INPUT,
         output_schema = _SCHEMA_DELETE_FUNCTION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6064,6 +6067,169 @@ DELETE_TYPE_TEMPLATES = APIOperation(
         output_schema = _SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#TypeTemplatesNotFound"): TypeTemplatesNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class GetDimensionInput:
+
+    workspace_id: str | None = None
+    org_id: str = "juspay"
+    dimension: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_DIMENSION_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_DIMENSION_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_DIMENSION_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["dimension"] = de.read_string(_SCHEMA_GET_DIMENSION_INPUT.members["dimension"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_DIMENSION_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetDimensionOutput:
+
+    dimension: str
+
+    position: int
+
+    schema: Document
+
+    description: str
+
+    change_reason: str
+
+    last_modified_at: datetime
+
+    last_modified_by: str
+
+    created_at: datetime
+
+    created_by: str
+
+    dependencies: list[str]
+
+    dependents: list[str]
+
+    dependency_graph: dict[str, Document]
+
+    function_name: str | None = None
+    mandatory: bool | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_DIMENSION_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["dimension"], self.dimension)
+        serializer.write_integer(_SCHEMA_GET_DIMENSION_OUTPUT.members["position"], self.position)
+        serializer.write_document(_SCHEMA_GET_DIMENSION_OUTPUT.members["schema"], self.schema)
+        if self.function_name is not None:
+            serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["function_name"], self.function_name)
+
+        serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_timestamp(_SCHEMA_GET_DIMENSION_OUTPUT.members["last_modified_at"], self.last_modified_at)
+        serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_by"], self.created_by)
+        _serialize_dependencies(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependencies"], self.dependencies)
+        _serialize_dependents(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependents"], self.dependents)
+        _serialize_object(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        if self.mandatory is not None:
+            serializer.write_boolean(_SCHEMA_GET_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["dimension"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["dimension"])
+
+                case 1:
+                    kwargs["position"] = de.read_integer(_SCHEMA_GET_DIMENSION_OUTPUT.members["position"])
+
+                case 2:
+                    kwargs["schema"] = de.read_document(_SCHEMA_GET_DIMENSION_OUTPUT.members["schema"])
+
+                case 3:
+                    kwargs["function_name"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["function_name"])
+
+                case 4:
+                    kwargs["description"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["description"])
+
+                case 5:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["change_reason"])
+
+                case 6:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_GET_DIMENSION_OUTPUT.members["last_modified_at"])
+
+                case 7:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["last_modified_by"])
+
+                case 8:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_at"])
+
+                case 9:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_by"])
+
+                case 10:
+                    kwargs["dependencies"] = _deserialize_dependencies(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependencies"])
+
+                case 11:
+                    kwargs["dependents"] = _deserialize_dependents(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependents"])
+
+                case 12:
+                    kwargs["dependency_graph"] = _deserialize_object(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"])
+
+                case 13:
+                    kwargs["mandatory"] = de.read_boolean(_SCHEMA_GET_DIMENSION_OUTPUT.members["mandatory"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_DIMENSION_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_DIMENSION = APIOperation(
+        input = GetDimensionInput,
+        output = GetDimensionOutput,
+        schema = _SCHEMA_GET_DIMENSION,
+        input_schema = _SCHEMA_GET_DIMENSION_INPUT,
+        output_schema = _SCHEMA_GET_DIMENSION_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
