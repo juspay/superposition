@@ -18,6 +18,7 @@ use superposition_macros::{bad_argument, db_error, unexpected_error, validation_
 use superposition_types::{
     api::workspace::{
         CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceListFilters,
+        WorkspaceResponse,
     },
     custom_query::PaginationParams,
     database::{
@@ -67,14 +68,15 @@ async fn get_workspace(
     workspace_name: Path<String>,
     db_conn: DbConnection,
     org_id: OrganisationId,
-) -> superposition::Result<Json<Workspace>> {
+) -> superposition::Result<Json<WorkspaceResponse>> {
     let DbConnection(mut conn) = db_conn;
     let workspace_name = workspace_name.into_inner();
     let workspace: Workspace = workspaces::dsl::workspaces
         .filter(workspaces::organisation_id.eq(&org_id.0))
         .filter(workspaces::workspace_name.eq(workspace_name))
         .get_result(&mut conn)?;
-    Ok(Json(workspace))
+    let response = WorkspaceResponse::from(workspace);
+    Ok(Json(response))
 }
 
 #[post("")]
@@ -83,7 +85,7 @@ async fn create_workspace(
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
-) -> superposition::Result<Json<Workspace>> {
+) -> superposition::Result<Json<WorkspaceResponse>> {
     let DbConnection(mut conn) = db_conn;
     let org_info: Organisation = organisations::dsl::organisations
         .filter(organisations::id.eq(&org_id.0))
@@ -120,7 +122,8 @@ async fn create_workspace(
             setup_workspace_schema(transaction_conn, &workspace_schema_name)?;
             Ok(inserted_workspace.remove(0))
         })?;
-    Ok(Json(created_workspace))
+    let response = WorkspaceResponse::from(created_workspace);
+    Ok(Json(response))
 }
 
 #[put("/{workspace_name}")]
@@ -130,13 +133,17 @@ async fn update_workspace(
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
-    schema_name: SchemaName,
-) -> superposition::Result<Json<Workspace>> {
+) -> superposition::Result<Json<WorkspaceResponse>> {
     let request = request.into_inner();
     let workspace_name = workspace_name.into_inner();
     let timestamp = Utc::now();
+    let schema_name = SchemaName(org_id.clone().0 + "_" + &workspace_name);
     // TODO: mandatory dimensions updation needs to be validated
     // for the existance of the dimensions in the workspace
+    log::error!(
+        "Updating workspace with version: {:?}",
+        &request.config_version
+    );
     let DbConnection(mut conn) = db_conn;
     if let Some(version) = request.config_version.flatten() {
         let config_count: i64 = config_versions::config_versions
@@ -145,7 +152,12 @@ async fn update_workspace(
             .schema_name(&schema_name)
             .get_result::<i64>(&mut conn)?;
         if config_count != 1 {
-            log::error!("config version {} does not exist", version);
+            log::error!(
+                "config version {} does not exist {} {}",
+                version,
+                &schema_name.0,
+                config_count
+            );
             return Err(bad_argument!("config version does not exist"));
         }
     }
@@ -168,7 +180,8 @@ async fn update_workspace(
 
             Ok(updated_workspace)
         })?;
-    Ok(Json(updated_workspace))
+    let response = WorkspaceResponse::from(updated_workspace);
+    Ok(Json(response))
 }
 #[get("")]
 async fn list_workspaces(
@@ -176,12 +189,15 @@ async fn list_workspaces(
     pagination_filters: Query<PaginationParams>,
     filters: Query<WorkspaceListFilters>,
     org_id: OrganisationId,
-) -> superposition::Result<Json<PaginatedResponse<Workspace>>> {
+) -> superposition::Result<Json<PaginatedResponse<WorkspaceResponse>>> {
     let DbConnection(mut conn) = db_conn;
     if let Some(true) = pagination_filters.all {
-        let result: Vec<Workspace> = workspaces::dsl::workspaces
+        let result: Vec<WorkspaceResponse> = workspaces::dsl::workspaces
             .filter(workspaces::organisation_id.eq(&org_id.0))
-            .get_results(&mut conn)?;
+            .get_results(&mut conn)?
+            .into_iter()
+            .map(|x: Workspace| WorkspaceResponse::from(x))
+            .collect();
         return Ok(Json(PaginatedResponse::all(result)));
     };
 
@@ -210,7 +226,11 @@ async fn list_workspaces(
         let offset = (page - 1) * limit;
         builder = builder.offset(offset);
     }
-    let workspaces: Vec<Workspace> = builder.load(&mut conn)?;
+    let workspaces: Vec<WorkspaceResponse> = builder
+        .load(&mut conn)?
+        .into_iter()
+        .map(|x: Workspace| WorkspaceResponse::from(x))
+        .collect();
     let total_pages = (n_types as f64 / limit as f64).ceil() as i64;
     Ok(Json(PaginatedResponse {
         total_pages,

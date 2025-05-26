@@ -166,7 +166,10 @@ pub fn workspace() -> impl IntoView {
             }>
                 {move || {
                     if let Some(selected_workspace_data) = selected_workspace.get() {
-                        let config_version = selected_workspace_data.config_version.parse::<i64>().ok();
+                        let config_version = selected_workspace_data
+                            .config_version
+                            .parse::<i64>()
+                            .ok();
                         view! {
                             <Drawer
                                 id="workspace_drawer".to_string()

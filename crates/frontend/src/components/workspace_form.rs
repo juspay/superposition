@@ -2,18 +2,21 @@ pub mod types;
 pub mod utils;
 
 use leptos::*;
-use serde_json::to_string;
+use serde_json::{to_string, Value};
 use superposition_types::api::workspace::{
     CreateWorkspaceRequest, UpdateWorkspaceRequest,
 };
 use superposition_types::database::models::{Metrics, WorkspaceStatus};
 use web_sys::MouseEvent;
 
-use crate::components::input::Toggle;
 use crate::components::metrics_form::MetricsForm;
 use crate::components::workspace_form::utils::string_to_vec;
 use crate::components::{alert::AlertType, button::Button};
 use crate::types::OrganisationId;
+use crate::{
+    components::input::{Input, InputType, Toggle},
+    schema::{JsonSchemaType, SchemaType},
+};
 use crate::{
     components::workspace_form::utils::{create_workspace, update_workspace},
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
@@ -143,27 +146,25 @@ pub fn workspace_form(
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Config Version</span>
+                        <div class="group relative inline-block text-[10px] text-gray-700 cursor-pointer">
+                            <p class="z-[1000] hidden absolute top-full left-1/2 w-[320px] p-2.5 group-hover:flex flex-col gap-4 bg-black text-white rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal translate-x-[20px] -translate-y-1/2">
+                                "This will affect the config resolve since it will use now this version to generate the config"
+                            </p>
+                            <i class="ri-information-line ri-lg" />
+                        </div>
                     </label>
-                    <div class="group relative inline-block text-[10px] text-gray-700 cursor-pointer">
-                        <p class="z-[1000] hidden absolute top-full left-1/2 w-[320px] p-2.5 group-hover:flex flex-col gap-4 bg-black text-white rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal translate-x-[20px] -translate-y-1/2">
-                            "This will affect the config resolve since it will use now this version to generate the config"
-                        </p>
-                        <i class="ri-information-line ri-lg" />
-                    </div>
-                    <input
-                        type="Number"
+                    <Input
+                        r#type=InputType::Text
                         placeholder="Config Version"
                         class="input input-bordered w-full max-w-md"
-                        value=config_version_rs.get_untracked()
-                        on:change=move |ev| {
-                            logging::log!("{:?}", event_target_value(& ev).parse::< i64 > ());
-                            match event_target_value(&ev).parse::<i64>() {
-                                Ok(i_prio) => config_version_ws.set(Some(i_prio)),
-                                Err(e) => {
-                                    config_version_ws.set(None);
-                                    logging::log!("{e}");
-                                }
-                            };
+                        schema_type=SchemaType::Single(JsonSchemaType::String)
+                        value=match config_version_rs.get_untracked() {
+                            Some(val) => Value::Number(val.into()),
+                            None => Value::Null,
+                        }
+                        on_change=move |val: Value| {
+                            let value = val.as_i64();
+                            config_version_ws.set(value)
                         }
                     />
                 </div>

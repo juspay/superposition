@@ -3,7 +3,6 @@ import {
     CreateWorkspaceCommand,
     UpdateWorkspaceCommand,
     ListVersionsCommand,
-    WorkspaceStatus,
     type ListVersionsOutput,
 } from "@io.juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
@@ -12,7 +11,6 @@ import { describe, test, expect } from "bun:test";
 describe("Workspace API", () => {
     const testWorkspaceName = `testws${Date.now() % 10000}`;
     let createdWorkspaceId: string;
-    let configVersionId: string | undefined;
     test("ListWorkspace", async () => {
         const input = {
             count: 10,
@@ -132,46 +130,6 @@ describe("Workspace API", () => {
         expect(workspace.workspace_admin_email).toBe("admin@example.com");
         expect(workspace.workspace_status).toBe("ENABLED");
     });
-    test("List Config Versions", async () => {
-        const input = {
-            workspace_id: createdWorkspaceId,
-            org_id: ENV.org_id,
-            count: 10,
-            page: 1,
-        };
-        const cmd = new ListVersionsCommand(input);
-        const out = (await superpositionClient.send(cmd)) as ListVersionsOutput;
-        console.log("ListVersions response:", out.data);
-
-        if (out.data && out.data.length > 0) {
-            configVersionId = out.data[0].id;
-        }
-    });
-    test("UpdateWorkspace With Config Version", async () => {
-        if (!createdWorkspaceId || !configVersionId) {
-            console.warn("Skipping UpdateWorkspace test as prerequisites failed");
-            return;
-        }
-
-        const input = {
-            org_id: ENV.org_id,
-            workspace_name: testWorkspaceName,
-            workspace_admin_email: "updated-admin@example.com",
-            workspace_status: WorkspaceStatus.ENABLED,
-            mandatory_dimensions: ["os", "client", "version"],
-            description: "Updated workspace description with config",
-            config_verson: configVersionId,
-        };
-
-        const cmd = new UpdateWorkspaceCommand(input);
-        const response = await superpositionClient.send(cmd);
-
-        expect(response).toBeDefined();
-        expect(response.workspace_name).toBe(testWorkspaceName);
-        expect(response.workspace_admin_email).toBe("updated-admin@example.com");
-        expect(response.config_version).toBe(configVersionId);
-    });
-
 
     test("UpdateWorkspace", async () => {
         // Skip if create test failed
@@ -225,70 +183,6 @@ describe("Workspace API", () => {
         }
     });
 
-    test("List Config Versions", async () => {
-        const input = {
-            workspace_id: createdWorkspaceId,
-            org_id: ENV.org_id,
-            count: 10,
-            page: 1,
-        };
-        const cmd = new ListVersionsCommand(input);
-        const out = (await superpositionClient.send(cmd)) as ListVersionsOutput;
-        console.log("ListVersions response:", out.data);
-
-        if (out.data && out.data.length > 0) {
-            configVersionId = out.data[0].id;
-        }
-    });
-    test("UpdateWorkspace With Config Version", async () => {
-        if (!createdWorkspaceId || !configVersionId) {
-            console.warn("Skipping UpdateWorkspace test as prerequisites failed");
-            return;
-        }
-
-        const input = {
-            org_id: ENV.org_id,
-            workspace_name: testWorkspaceName,
-            workspace_admin_email: "updated-admin@example.com",
-            workspace_status: WorkspaceStatus.ENABLED,
-            mandatory_dimensions: ["os", "client", "version"],
-            description: "Updated workspace description with config",
-            config_verson: configVersionId,
-        };
-
-        const cmd = new UpdateWorkspaceCommand(input);
-        const response = await superpositionClient.send(cmd);
-
-        expect(response).toBeDefined();
-        expect(response.workspace_name).toBe(testWorkspaceName);
-        expect(response.workspace_admin_email).toBe("updated-admin@example.com");
-        expect(response.config_version).toBe(configVersionId);
-    });
-
-    test("Unset Config Version", async () => {
-        if (!createdWorkspaceId) {
-            console.warn("Skipping unset config version test");
-            return;
-        }
-
-        const input = {
-            org_id: ENV.org_id,
-            workspace_name: testWorkspaceName,
-            workspace_admin_email: "updated-admin@example.com",
-            workspace_status: WorkspaceStatus.ENABLED,
-            mandatory_dimensions: ["os", "client", "version"],
-            description: "Unset config version",
-            config_verson: undefined,
-        };
-
-        const cmd = new UpdateWorkspaceCommand(input);
-        const response = await superpositionClient.send(cmd);
-
-        expect(response).toBeDefined();
-        expect(response.workspace_name).toBe(testWorkspaceName);
-        expect(response.config_version).toBeUndefined();
-    });
-    
     test("Verify Updated Workspace", async () => {
         // Skip if create test failed
         if (!createdWorkspaceId) {

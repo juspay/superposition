@@ -2,6 +2,7 @@ import {
     SuperpositionClient,
     UpdateWorkspaceCommand,
     CreateContextCommand,
+    GetConfigCommand,
     UpdateOverrideCommand,
     MoveContextCommand,
     DeleteContextCommand,
@@ -10,9 +11,12 @@ import {
     CreateDimensionCommand,
     DeleteDimensionCommand,
     CreateDefaultConfigCommand,
+    ListVersionsCommand,
     DeleteDefaultConfigCommand,
     type CreateContextCommandOutput,
     type GetContextCommandOutput,
+    type ListVersionsOutput,
+    type WorkspaceResponse,
     WeightRecomputeCommand,
     WorkspaceStatus,
     UpdateDimensionCommand,
@@ -25,6 +29,7 @@ describe("Context API Integration Tests", () => {
     let contextId: string;
     let testWorkspaceId: string;
     let testOrgId: string;
+    let configVersionId: string | undefined;
 
     // Track resources for cleanup
     const createdDimensions: string[] = [];
@@ -370,6 +375,21 @@ describe("Context API Integration Tests", () => {
                 }
             }
         }
+        const input = {
+            workspace_id: testWorkspaceId,
+            org_id: testOrgId,
+            count: 10,
+            page: 1,
+        };
+        const cmd = new ListVersionsCommand(input);
+        const out = (await superpositionClient.send(cmd)) as ListVersionsOutput;
+
+        if (out.data && out.data.length > 1) {
+            configVersionId = out.data[1].id;
+        } else if (out.data && out.data.length > 0) {
+            configVersionId = out.data[0].id;
+        }
+
     }
 
     describe("PUT Context Endpoint", () => {
@@ -1337,5 +1357,8 @@ describe("Context API Integration Tests", () => {
                 }
             }
         });
+
+
     });
+
 });
