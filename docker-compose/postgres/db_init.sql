@@ -1375,4 +1375,8 @@ CREATE TABLE IF NOT EXISTS localorg_test.experiment_groups(
     last_modified_by TEXT NOT NULL
 );
 
+ALTER TABLE localorg_dev.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
+
+ALTER TABLE localorg_test.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
+
 COMMIT;

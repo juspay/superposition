@@ -83,6 +83,7 @@ fn experiment_gen(
         description: Description::try_from(String::from("test")).unwrap(),
         change_reason: ChangeReason::try_from(String::from("test")).unwrap(),
         metrics: Metrics::default(),
+        experiment_group_id: None,
     }
 }
 

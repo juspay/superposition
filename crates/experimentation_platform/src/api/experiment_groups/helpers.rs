@@ -106,7 +106,7 @@ pub async fn create_experiment_group(
     Ok(Json(new_experiment_group))
 }
 
-pub async fn update_experiment_group(
+pub fn update_experiment_group(
     id: i64,
     req: ExpGroupUpdateRequest,
     conn: &mut DBConnection,
@@ -126,7 +126,7 @@ pub async fn update_experiment_group(
         &workspace_request.schema_name,
     )?;
     let new_members: HashSet<String> = HashSet::from_iter(req.member_experiment_ids);
-    req.member_experiment_ids = Vec::from_iter(new_members.into_iter());
+    req.member_experiment_ids = Vec::from_iter(new_members);
     let updated_group = diesel::update(experiment_groups::experiment_groups)
         .filter(experiment_groups::experiment_group_id.eq(&id))
         .set((
