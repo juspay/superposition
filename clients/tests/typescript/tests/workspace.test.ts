@@ -2,6 +2,8 @@ import {
     ListWorkspaceCommand,
     CreateWorkspaceCommand,
     UpdateWorkspaceCommand,
+    ListVersionsCommand,
+    type ListVersionsOutput,
 } from "@io.juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, test, expect } from "bun:test";
@@ -9,7 +11,6 @@ import { describe, test, expect } from "bun:test";
 describe("Workspace API", () => {
     const testWorkspaceName = `testws${Date.now() % 10000}`;
     let createdWorkspaceId: string;
-
     test("ListWorkspace", async () => {
         const input = {
             count: 10,

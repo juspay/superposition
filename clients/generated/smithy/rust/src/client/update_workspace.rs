@@ -6,6 +6,7 @@ impl super::Client {
     ///   - [`org_id(impl Into<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`workspace_name(impl Into<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::workspace_name) / [`set_workspace_name(Option<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_workspace_name):<br>required: **true**<br>(undocumented)<br>
     ///   - [`workspace_admin_email(impl Into<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::workspace_admin_email) / [`set_workspace_admin_email(Option<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_workspace_admin_email):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`config_version(impl Into<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::config_version) / [`set_config_version(Option<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_config_version):<br>required: **false**<br>(undocumented)<br>
     ///   - [`mandatory_dimensions(impl Into<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::mandatory_dimensions) / [`set_mandatory_dimensions(Option<Vec::<String>>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_mandatory_dimensions):<br>required: **false**<br>(undocumented)<br>
     ///   - [`workspace_status(WorkspaceStatus)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::workspace_status) / [`set_workspace_status(Option<WorkspaceStatus>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_workspace_status):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`UpdateWorkspaceOutput`](crate::operation::update_workspace::UpdateWorkspaceOutput) with field(s):
@@ -15,6 +16,7 @@ impl super::Client {
     ///   - [`workspace_schema_name(String)`](crate::operation::update_workspace::UpdateWorkspaceOutput::workspace_schema_name): (undocumented)
     ///   - [`workspace_status(WorkspaceStatus)`](crate::operation::update_workspace::UpdateWorkspaceOutput::workspace_status): (undocumented)
     ///   - [`workspace_admin_email(String)`](crate::operation::update_workspace::UpdateWorkspaceOutput::workspace_admin_email): (undocumented)
+    ///   - [`config_version(Option<String>)`](crate::operation::update_workspace::UpdateWorkspaceOutput::config_version): (undocumented)
     ///   - [`created_by(String)`](crate::operation::update_workspace::UpdateWorkspaceOutput::created_by): (undocumented)
     ///   - [`last_modified_by(String)`](crate::operation::update_workspace::UpdateWorkspaceOutput::last_modified_by): (undocumented)
     ///   - [`last_modified_at(DateTime)`](crate::operation::update_workspace::UpdateWorkspaceOutput::last_modified_at): (undocumented)

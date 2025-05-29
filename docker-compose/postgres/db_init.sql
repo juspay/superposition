@@ -1373,4 +1373,6 @@ CREATE TABLE IF NOT EXISTS localorg_test.experiment_groups(
     last_modified_by TEXT NOT NULL
 );
 
+ALTER TABLE superposition.workspaces add column if not exists config_version bigint;
+
 COMMIT;

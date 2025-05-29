@@ -2,18 +2,21 @@ pub mod types;
 pub mod utils;
 
 use leptos::*;
-use serde_json::to_string;
+use serde_json::{to_string, Value};
 use superposition_types::api::workspace::{
     CreateWorkspaceRequest, UpdateWorkspaceRequest,
 };
 use superposition_types::database::models::{Metrics, WorkspaceStatus};
 use web_sys::MouseEvent;
 
-use crate::components::input::Toggle;
 use crate::components::metrics_form::MetricsForm;
 use crate::components::workspace_form::utils::string_to_vec;
 use crate::components::{alert::AlertType, button::Button};
 use crate::types::OrganisationId;
+use crate::{
+    components::input::{Input, InputType, Toggle},
+    schema::{JsonSchemaType, SchemaType},
+};
 use crate::{
     components::workspace_form::utils::{create_workspace, update_workspace},
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
@@ -27,12 +30,14 @@ pub fn workspace_form(
     #[prop(default = String::new())] workspace_name: String,
     #[prop(default = WorkspaceStatus::ENABLED)] workspace_status: WorkspaceStatus,
     #[prop(default = vec![])] mandatory_dimensions: Vec<String>,
+    #[prop(default = None)] config_version: Option<i64>,
     #[prop(default = Metrics::default())] metrics: Metrics,
     #[prop(into)] handle_submit: Callback<(), ()>,
 ) -> impl IntoView {
     let (workspace_name_rs, workspace_name_ws) = create_signal(workspace_name);
     let (workspace_admin_email_rs, workspace_admin_email_ws) =
         create_signal(workspace_admin_email);
+    let (config_version_rs, config_version_ws) = create_signal(config_version);
     let (workspace_status_rs, workspace_status_ws) = create_signal(workspace_status);
     let (mandatory_dimensions_rs, mandatory_dimensions_ws) =
         create_signal(mandatory_dimensions);
@@ -50,6 +55,7 @@ pub fn workspace_form(
                 let result = if is_edit {
                     let update_payload = UpdateWorkspaceRequest {
                         workspace_admin_email: workspace_admin_email_rs.get_untracked(),
+                        config_version: Some(config_version_rs.get_untracked()),
                         workspace_status: Some(workspace_status_rs.get_untracked()),
                         mandatory_dimensions: Some(
                             mandatory_dimensions_rs.get_untracked(),
@@ -133,6 +139,32 @@ pub fn workspace_form(
                         on:change=move |ev| {
                             let value = event_target_value(&ev);
                             workspace_admin_email_ws.set(value);
+                        }
+                    />
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Config Version</span>
+                        <div class="group relative inline-block text-[10px] text-gray-700 cursor-pointer">
+                            <p class="z-[1000] hidden absolute top-full left-1/2 w-[320px] p-2.5 group-hover:flex flex-col gap-4 bg-black text-white rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal translate-x-[20px] -translate-y-1/2">
+                                "This will affect the config resolve since it will use now this version to generate the config"
+                            </p>
+                            <i class="ri-information-line ri-lg" />
+                        </div>
+                    </label>
+                    <Input
+                        r#type=InputType::Text
+                        placeholder="Config Version"
+                        class="input input-bordered w-full max-w-md"
+                        schema_type=SchemaType::Single(JsonSchemaType::String)
+                        value=match config_version_rs.get_untracked() {
+                            Some(val) => Value::Number(val.into()),
+                            None => Value::Null,
+                        }
+                        on_change=move |val: Value| {
+                            let value = val.as_i64();
+                            config_version_ws.set(value)
                         }
                     />
                 </div>

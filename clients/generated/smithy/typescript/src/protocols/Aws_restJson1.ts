@@ -1686,6 +1686,7 @@ export const se_UpdateWorkspaceCommand = async(
   b.p('workspace_name', () => input.workspace_name!, '{workspace_name}', false)
   let body: any;
   body = JSON.stringify(take(input, {
+    'config_version': [],
     'mandatory_dimensions': _ => _json(_),
     'workspace_admin_email': [],
     'workspace_status': [],
@@ -2059,6 +2060,7 @@ export const de_CreateWorkspaceCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
@@ -3223,6 +3225,7 @@ export const de_UpdateWorkspaceCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
@@ -4267,6 +4270,7 @@ const de_CommandError = async(
     context: __SerdeContext
   ): WorkspaceResponse => {
     return take(output, {
+      'config_version': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,
       'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
