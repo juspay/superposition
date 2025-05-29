@@ -173,10 +173,10 @@ pub fn default_config() -> impl IntoView {
             // keeping the function_name field the same for backwards compatibility
             let validation_function_name = row
                 .get("function_name")
-                .map(|v| v.as_str().unwrap_or_default().to_string());
+                .and_then(|v| v.as_str().map(String::from));
             let autocomplete_function_name = row
                 .get("autocomplete_function_name")
-                .map(|v| v.as_str().unwrap_or_default().to_string());
+                .and_then(|v| v.as_str().map(String::from));
 
             let description = row
                 .get("description")
