@@ -816,15 +816,6 @@ async fn list_experiments(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
-    if let Some(true) = pagination_params.all {
-        let result = experiments::experiments
-            .schema_name(&schema_name)
-            .get_results::<Experiment>(&mut conn)?;
-        return Ok(HttpResponse::Ok().json(PaginatedResponse::all(
-            result.into_iter().map(ExperimentResponse::from).collect(),
-        )));
-    }
-
     let max_event_timestamp: Option<DateTime<Utc>> = event_log::event_log
         .filter(event_log::table_name.eq("experiments"))
         .select(diesel::dsl::max(event_log::timestamp))
@@ -885,16 +876,13 @@ async fn list_experiments(
 
         builder
     };
+
     let filters = filters.into_inner();
     let base_query = query_builder(&filters);
 
-    let count_query = query_builder(&filters);
-    let number_of_experiments = count_query.count().get_result(&mut conn)?;
-    let limit = pagination_params.count.unwrap_or(10);
-    let offset = (pagination_params.page.unwrap_or(1) - 1) * limit;
-
-    let sort_by = filters.sort_by.unwrap_or(SortBy::Desc);
+    let sort_by = filters.sort_by.clone().unwrap_or(SortBy::Desc);
     let sort_on = filters.sort_on.unwrap_or_default();
+
     #[rustfmt::skip]
     let base_query = match (sort_on, sort_by) {
         (ExperimentSortOn::LastModifiedAt, SortBy::Desc) => base_query.order(experiments::last_modified.desc()),
@@ -902,6 +890,19 @@ async fn list_experiments(
         (ExperimentSortOn::CreatedAt, SortBy::Desc)      => base_query.order(experiments::created_at.desc()),
         (ExperimentSortOn::CreatedAt, SortBy::Asc)       => base_query.order(experiments::created_at.asc()),
     };
+
+    if let Some(true) = pagination_params.all {
+        let result = base_query.load::<Experiment>(&mut conn)?;
+        return Ok(HttpResponse::Ok().json(PaginatedResponse::all(
+            result.into_iter().map(ExperimentResponse::from).collect(),
+        )));
+    }
+
+    let count_query = query_builder(&filters);
+    let number_of_experiments = count_query.count().get_result(&mut conn)?;
+    let limit = pagination_params.count.unwrap_or(10);
+    let offset = (pagination_params.page.unwrap_or(1) - 1) * limit;
+
     let query = base_query.limit(limit).offset(offset);
     let experiment_list = query.load::<Experiment>(&mut conn)?;
     let total_pages = (number_of_experiments as f64 / limit as f64).ceil() as i64;
