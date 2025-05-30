@@ -719,14 +719,15 @@ diesel::table! {
 }
 
 diesel::table! {
-    experiment_groups (experiment_group_id) {
-        experiment_group_id -> Text,
+    experiment_groups (id) {
+        id -> Int8,
+        context_hash -> Text,
         name -> Text,
         description -> Text,
         change_reason -> Text,
         context -> Json,
         traffic_percentage -> Int4,
-        member_experiment_ids -> Array<Text>,
+        member_experiment_ids -> Array<Int8>,
         created_at -> Timestamptz,
         created_by -> Text,
         last_modified_at -> Timestamptz,

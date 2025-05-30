@@ -41,6 +41,7 @@ from .deserialize import (
     _deserialize_create_default_config,
     _deserialize_create_dimension,
     _deserialize_create_experiment,
+    _deserialize_create_experiment_group,
     _deserialize_create_function,
     _deserialize_create_organisation,
     _deserialize_create_type_templates,
@@ -49,6 +50,7 @@ from .deserialize import (
     _deserialize_delete_context,
     _deserialize_delete_default_config,
     _deserialize_delete_dimension,
+    _deserialize_delete_experiment_group,
     _deserialize_delete_function,
     _deserialize_delete_type_templates,
     _deserialize_discard_experiment,
@@ -58,6 +60,7 @@ from .deserialize import (
     _deserialize_get_context_from_condition,
     _deserialize_get_dimension,
     _deserialize_get_experiment,
+    _deserialize_get_experiment_group,
     _deserialize_get_function,
     _deserialize_get_organisation,
     _deserialize_get_resolved_config,
@@ -68,6 +71,7 @@ from .deserialize import (
     _deserialize_list_default_configs,
     _deserialize_list_dimensions,
     _deserialize_list_experiment,
+    _deserialize_list_experiment_groups,
     _deserialize_list_function,
     _deserialize_list_organisation,
     _deserialize_list_versions,
@@ -81,6 +85,7 @@ from .deserialize import (
     _deserialize_test,
     _deserialize_update_default_config,
     _deserialize_update_dimension,
+    _deserialize_update_experiment_group,
     _deserialize_update_function,
     _deserialize_update_organisation,
     _deserialize_update_override,
@@ -102,6 +107,7 @@ from .models import (
     CREATE_DEFAULT_CONFIG,
     CREATE_DIMENSION,
     CREATE_EXPERIMENT,
+    CREATE_EXPERIMENT_GROUP,
     CREATE_FUNCTION,
     CREATE_ORGANISATION,
     CREATE_TYPE_TEMPLATES,
@@ -115,6 +121,8 @@ from .models import (
     CreateDefaultConfigOutput,
     CreateDimensionInput,
     CreateDimensionOutput,
+    CreateExperimentGroupInput,
+    CreateExperimentGroupOutput,
     CreateExperimentInput,
     CreateExperimentOutput,
     CreateFunctionInput,
@@ -130,6 +138,7 @@ from .models import (
     DELETE_CONTEXT,
     DELETE_DEFAULT_CONFIG,
     DELETE_DIMENSION,
+    DELETE_EXPERIMENT_GROUP,
     DELETE_FUNCTION,
     DELETE_TYPE_TEMPLATES,
     DISCARD_EXPERIMENT,
@@ -139,6 +148,8 @@ from .models import (
     DeleteDefaultConfigOutput,
     DeleteDimensionInput,
     DeleteDimensionOutput,
+    DeleteExperimentGroupInput,
+    DeleteExperimentGroupOutput,
     DeleteFunctionInput,
     DeleteFunctionOutput,
     DeleteTypeTemplatesInput,
@@ -151,6 +162,7 @@ from .models import (
     GET_CONTEXT_FROM_CONDITION,
     GET_DIMENSION,
     GET_EXPERIMENT,
+    GET_EXPERIMENT_GROUP,
     GET_FUNCTION,
     GET_ORGANISATION,
     GET_RESOLVED_CONFIG,
@@ -166,6 +178,8 @@ from .models import (
     GetContextOutput,
     GetDimensionInput,
     GetDimensionOutput,
+    GetExperimentGroupInput,
+    GetExperimentGroupOutput,
     GetExperimentInput,
     GetExperimentOutput,
     GetFunctionInput,
@@ -183,6 +197,7 @@ from .models import (
     LIST_DEFAULT_CONFIGS,
     LIST_DIMENSIONS,
     LIST_EXPERIMENT,
+    LIST_EXPERIMENT_GROUPS,
     LIST_FUNCTION,
     LIST_ORGANISATION,
     LIST_VERSIONS,
@@ -196,6 +211,8 @@ from .models import (
     ListDefaultConfigsOutput,
     ListDimensionsInput,
     ListDimensionsOutput,
+    ListExperimentGroupsInput,
+    ListExperimentGroupsOutput,
     ListExperimentInput,
     ListExperimentOutput,
     ListFunctionInput,
@@ -229,6 +246,7 @@ from .models import (
     TestOutput,
     UPDATE_DEFAULT_CONFIG,
     UPDATE_DIMENSION,
+    UPDATE_EXPERIMENT_GROUP,
     UPDATE_FUNCTION,
     UPDATE_ORGANISATION,
     UPDATE_OVERRIDE,
@@ -240,6 +258,8 @@ from .models import (
     UpdateDefaultConfigOutput,
     UpdateDimensionInput,
     UpdateDimensionOutput,
+    UpdateExperimentGroupInput,
+    UpdateExperimentGroupOutput,
     UpdateFunctionInput,
     UpdateFunctionOutput,
     UpdateOrganisationInput,
@@ -266,6 +286,7 @@ from .serialize import (
     _serialize_create_default_config,
     _serialize_create_dimension,
     _serialize_create_experiment,
+    _serialize_create_experiment_group,
     _serialize_create_function,
     _serialize_create_organisation,
     _serialize_create_type_templates,
@@ -274,6 +295,7 @@ from .serialize import (
     _serialize_delete_context,
     _serialize_delete_default_config,
     _serialize_delete_dimension,
+    _serialize_delete_experiment_group,
     _serialize_delete_function,
     _serialize_delete_type_templates,
     _serialize_discard_experiment,
@@ -283,6 +305,7 @@ from .serialize import (
     _serialize_get_context_from_condition,
     _serialize_get_dimension,
     _serialize_get_experiment,
+    _serialize_get_experiment_group,
     _serialize_get_function,
     _serialize_get_organisation,
     _serialize_get_resolved_config,
@@ -293,6 +316,7 @@ from .serialize import (
     _serialize_list_default_configs,
     _serialize_list_dimensions,
     _serialize_list_experiment,
+    _serialize_list_experiment_groups,
     _serialize_list_function,
     _serialize_list_organisation,
     _serialize_list_versions,
@@ -306,6 +330,7 @@ from .serialize import (
     _serialize_test,
     _serialize_update_default_config,
     _serialize_update_dimension,
+    _serialize_update_experiment_group,
     _serialize_update_function,
     _serialize_update_organisation,
     _serialize_update_override,
@@ -524,6 +549,32 @@ class Superposition:
             operation=CREATE_EXPERIMENT,
         )
 
+    async def create_experiment_group(self, input: CreateExperimentGroupInput, plugins: list[Plugin] | None = None) -> CreateExperimentGroupOutput:
+        """
+        Creates a new experiment group.
+
+        :param input: Input structure for creating a new experiment group.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_create_experiment_group,
+            deserialize=_deserialize_create_experiment_group,
+            config=self._config,
+            operation=CREATE_EXPERIMENT_GROUP,
+        )
+
     async def create_function(self, input: CreateFunctionInput, plugins: list[Plugin] | None = None) -> CreateFunctionOutput:
         """
         Invokes the CreateFunction operation.
@@ -730,6 +781,32 @@ class Superposition:
             deserialize=_deserialize_delete_dimension,
             config=self._config,
             operation=DELETE_DIMENSION,
+        )
+
+    async def delete_experiment_group(self, input: DeleteExperimentGroupInput, plugins: list[Plugin] | None = None) -> DeleteExperimentGroupOutput:
+        """
+        Deletes an experiment group.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_delete_experiment_group,
+            deserialize=_deserialize_delete_experiment_group,
+            config=self._config,
+            operation=DELETE_EXPERIMENT_GROUP,
         )
 
     async def delete_function(self, input: DeleteFunctionInput, plugins: list[Plugin] | None = None) -> DeleteFunctionOutput:
@@ -964,6 +1041,32 @@ class Superposition:
             deserialize=_deserialize_get_experiment,
             config=self._config,
             operation=GET_EXPERIMENT,
+        )
+
+    async def get_experiment_group(self, input: GetExperimentGroupInput, plugins: list[Plugin] | None = None) -> GetExperimentGroupOutput:
+        """
+        Retrieves an existing experiment group by its ID.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_experiment_group,
+            deserialize=_deserialize_get_experiment_group,
+            config=self._config,
+            operation=GET_EXPERIMENT_GROUP,
         )
 
     async def get_function(self, input: GetFunctionInput, plugins: list[Plugin] | None = None) -> GetFunctionOutput:
@@ -1224,6 +1327,32 @@ class Superposition:
             deserialize=_deserialize_list_experiment,
             config=self._config,
             operation=LIST_EXPERIMENT,
+        )
+
+    async def list_experiment_groups(self, input: ListExperimentGroupsInput, plugins: list[Plugin] | None = None) -> ListExperimentGroupsOutput:
+        """
+        Lists experiment groups, with support for filtering and pagination.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_list_experiment_groups,
+            deserialize=_deserialize_list_experiment_groups,
+            config=self._config,
+            operation=LIST_EXPERIMENT_GROUPS,
         )
 
     async def list_function(self, input: ListFunctionInput, plugins: list[Plugin] | None = None) -> ListFunctionOutput:
@@ -1562,6 +1691,33 @@ class Superposition:
             deserialize=_deserialize_update_dimension,
             config=self._config,
             operation=UPDATE_DIMENSION,
+        )
+
+    async def update_experiment_group(self, input: UpdateExperimentGroupInput, plugins: list[Plugin] | None = None) -> UpdateExperimentGroupOutput:
+        """
+        Updates an existing experiment group. Allows partial updates to specified
+        fields.
+
+        :param input: Input structure for updating an existing experiment group.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_update_experiment_group,
+            deserialize=_deserialize_update_experiment_group,
+            config=self._config,
+            operation=UPDATE_EXPERIMENT_GROUP,
         )
 
     async def update_function(self, input: UpdateFunctionInput, plugins: list[Plugin] | None = None) -> UpdateFunctionOutput:
