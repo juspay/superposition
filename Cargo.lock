@@ -4438,6 +4438,7 @@ dependencies = [
  "jsonschema",
  "log",
  "once_cell",
+ "openidconnect",
  "regex",
  "reqwest",
  "rs-snowflake",
@@ -4445,6 +4446,7 @@ dependencies = [
  "serde_json",
  "strum_macros",
  "superposition_types",
+ "url",
  "urlencoding",
 ]
 
@@ -4630,16 +4632,13 @@ dependencies = [
  "leptos",
  "leptos_actix",
  "log",
- "openidconnect",
  "regex",
  "reqwest",
  "rs-snowflake",
  "serde",
- "serde_json",
  "service_utils",
  "superposition_macros",
  "superposition_types",
- "url",
 ]
 
 [[package]]

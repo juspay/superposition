@@ -19,6 +19,7 @@ futures-util = { workspace = true }
 jsonschema = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }
+openidconnect = "3.5.0"
 regex = { workspace = true }
 reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
@@ -26,6 +27,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 strum_macros = { workspace = true }
 superposition_types = { path = "../superposition_types", features = ["result"] }
+url = { workspace = true }
 urlencoding = "~2.1.2"
 
 [features]

@@ -7,7 +7,10 @@ use actix_web::{
 use futures_util::future::LocalBoxFuture;
 use superposition_types::User;
 
-use super::authenticator::{Authenticator, Login, SwitchOrgParams};
+use super::{
+    authentication::{Authenticator, Login},
+    SwitchOrgParams,
+};
 
 pub struct DisabledAuthenticator {
     organisations: Vec<String>,
