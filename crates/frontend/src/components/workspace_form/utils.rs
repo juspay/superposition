@@ -1,7 +1,8 @@
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
 use serde_json::Value;
-use superposition_types::api::workspace::{
-    CreateWorkspaceRequest, UpdateWorkspaceRequest,
+use superposition_types::{
+    api::workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest},
+    database::models::{Metrics, WorkspaceStatus},
 };
 
 pub async fn create_workspace(
@@ -25,8 +26,22 @@ pub async fn create_workspace(
 pub async fn update_workspace(
     key: String,
     org_id: String,
-    payload: UpdateWorkspaceRequest,
+    workspace_admin_email: String,
+    config_version: Value,
+    workspace_status: WorkspaceStatus,
+    mandatory_dimensions: Vec<String>,
+    metrics: Metrics,
 ) -> Result<serde_json::Value, String> {
+    let payload = UpdateWorkspaceRequest {
+        workspace_admin_email,
+        config_version: Some(
+            serde_json::from_value(config_version)
+                .map_err(|e| format!("Invalid config version: {}", e))?,
+        ),
+        workspace_status: Some(workspace_status),
+        mandatory_dimensions: Some(mandatory_dimensions),
+        metrics: Some(metrics),
+    };
     let host = get_host();
     let url = format!("{host}/workspaces/{key}");
 

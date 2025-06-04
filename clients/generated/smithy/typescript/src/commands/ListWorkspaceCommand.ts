@@ -61,6 +61,7 @@ export interface ListWorkspaceCommandOutput extends WorkspaceListResponse, __Met
  * //       workspace_schema_name: "STRING_VALUE", // required
  * //       workspace_status: "ENABLED" || "DISABLED", // required
  * //       workspace_admin_email: "STRING_VALUE", // required
+ * //       config_version: "STRING_VALUE",
  * //       created_by: "STRING_VALUE", // required
  * //       last_modified_by: "STRING_VALUE", // required
  * //       last_modified_at: new Date("TIMESTAMP"), // required

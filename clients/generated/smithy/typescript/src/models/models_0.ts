@@ -1104,6 +1104,7 @@ export interface WorkspaceResponse {
   workspace_schema_name: string | undefined;
   workspace_status: WorkspaceStatus | undefined;
   workspace_admin_email: string | undefined;
+  config_version?: string | undefined;
   created_by: string | undefined;
   last_modified_by: string | undefined;
   last_modified_at: Date | undefined;
@@ -1711,6 +1712,7 @@ export interface UpdateWorkspaceRequest {
   org_id: string | undefined;
   workspace_name: string | undefined;
   workspace_admin_email: string | undefined;
+  config_version?: string | undefined;
   mandatory_dimensions?: (string)[] | undefined;
   workspace_status?: WorkspaceStatus | undefined;
 }

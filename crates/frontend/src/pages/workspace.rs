@@ -65,6 +65,7 @@ pub fn workspace() -> impl IntoView {
                 .unwrap();
             let workspace_admin_email =
                 row["workspace_admin_email"].to_string().replace('"', "");
+            let config_version = row["config_version"].as_str().map(|s| s.to_string());
             let mandatory_dimensions = match row["mandatory_dimensions"].clone() {
                 Value::Array(arr) => arr
                     .into_iter()
@@ -86,6 +87,9 @@ pub fn workspace() -> impl IntoView {
                     workspace_schema_name: workspace_schema_name.clone(),
                     workspace_status,
                     workspace_admin_email: workspace_admin_email.clone(),
+                    config_version: config_version
+                        .clone()
+                        .map_or(String::from("-"), |x| x.to_string()),
                     mandatory_dimensions: Some(mandatory_dimensions.clone()),
                     created_by: created_by.clone(),
                     created_at: created_at.clone(),
@@ -140,6 +144,7 @@ pub fn workspace() -> impl IntoView {
                 default_column_formatter,
             ),
             Column::default("workspace_admin_email".to_string()),
+            Column::default("config_version".to_string()),
             Column::default("mandatory_dimensions".to_string()),
             Column::default("strict_mode".to_string()),
             Column::default("created_by".to_string()),
@@ -162,6 +167,11 @@ pub fn workspace() -> impl IntoView {
             }>
                 {move || {
                     if let Some(selected_workspace_data) = selected_workspace.get() {
+                        let config_version = if selected_workspace_data.config_version == "-" {
+                            Value::Null
+                        } else {
+                            Value::String(selected_workspace_data.config_version.clone())
+                        };
                         view! {
                             <Drawer
                                 id="workspace_drawer".to_string()
@@ -173,6 +183,7 @@ pub fn workspace() -> impl IntoView {
                                     org_id=org_id
                                     workspace_admin_email=selected_workspace_data
                                         .workspace_admin_email
+                                    config_version
                                     workspace_name=selected_workspace_data.workspace_name
                                     workspace_status=selected_workspace_data.workspace_status
                                     mandatory_dimensions=selected_workspace_data

@@ -49,6 +49,7 @@ pub mod superposition {
             workspace_schema_name -> Text,
             workspace_status -> WorkspaceStatus,
             workspace_admin_email -> Text,
+            config_version -> Nullable<Int8>,
             created_by -> Text,
             last_modified_by -> Text,
             last_modified_at -> Timestamptz,

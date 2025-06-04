@@ -13,10 +13,11 @@ use superposition_types::{
     api::{
         default_config::DefaultConfigFilters,
         experiments::{ExperimentListFilters, ExperimentResponse},
+        workspace::WorkspaceResponse,
     },
     custom_query::{CommaSeparatedQParams, CustomQuery, PaginationParams, Query},
     database::{
-        models::{cac::DefaultConfig, experimentation::ExperimentStatusType, Workspace},
+        models::{cac::DefaultConfig, experimentation::ExperimentStatusType},
         types::DimensionWithMandatory,
     },
     PaginatedResponse,
@@ -337,7 +338,7 @@ pub fn experiment_list() -> impl IntoView {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
 
-    let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
 
     use_param_updater(move || {
         box_params!(pagination_params_rws.get(), filters_rws.get())

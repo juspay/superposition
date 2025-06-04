@@ -35,6 +35,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("workspace_admin_email", PreludeSchemas.STRING,
                 new RequiredTrait())
+        .putMember("config_version", PreludeSchemas.STRING)
         .putMember("mandatory_dimensions", SharedSchemas.LIST_MANDATORY_DIMENSIONS)
         .putMember("workspace_status", WorkspaceStatus.$SCHEMA)
         .build();
@@ -42,12 +43,14 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_WORKSPACE_NAME = $SCHEMA.member("workspace_name");
     private static final Schema $SCHEMA_WORKSPACE_ADMIN_EMAIL = $SCHEMA.member("workspace_admin_email");
+    private static final Schema $SCHEMA_CONFIG_VERSION = $SCHEMA.member("config_version");
     private static final Schema $SCHEMA_MANDATORY_DIMENSIONS = $SCHEMA.member("mandatory_dimensions");
     private static final Schema $SCHEMA_WORKSPACE_STATUS = $SCHEMA.member("workspace_status");
 
     private final transient String orgId;
     private final transient String workspaceName;
     private final transient String workspaceAdminEmail;
+    private final transient String configVersion;
     private final transient List<String> mandatoryDimensions;
     private final transient WorkspaceStatus workspaceStatus;
 
@@ -55,6 +58,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         this.orgId = builder.orgId;
         this.workspaceName = builder.workspaceName;
         this.workspaceAdminEmail = builder.workspaceAdminEmail;
+        this.configVersion = builder.configVersion;
         this.mandatoryDimensions = builder.mandatoryDimensions == null ? null : Collections.unmodifiableList(builder.mandatoryDimensions);
         this.workspaceStatus = builder.workspaceStatus;
     }
@@ -69,6 +73,10 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
 
     public String workspaceAdminEmail() {
         return workspaceAdminEmail;
+    }
+
+    public String configVersion() {
+        return configVersion;
     }
 
     public List<String> mandatoryDimensions() {
@@ -103,13 +111,14 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         return Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.workspaceName, that.workspaceName)
                && Objects.equals(this.workspaceAdminEmail, that.workspaceAdminEmail)
+               && Objects.equals(this.configVersion, that.configVersion)
                && Objects.equals(this.mandatoryDimensions, that.mandatoryDimensions)
                && Objects.equals(this.workspaceStatus, that.workspaceStatus);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(orgId, workspaceName, workspaceAdminEmail, mandatoryDimensions, workspaceStatus);
+        return Objects.hash(orgId, workspaceName, workspaceAdminEmail, configVersion, mandatoryDimensions, workspaceStatus);
     }
 
     @Override
@@ -122,6 +131,9 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         serializer.writeString($SCHEMA_WORKSPACE_NAME, workspaceName);
         serializer.writeString($SCHEMA_WORKSPACE_ADMIN_EMAIL, workspaceAdminEmail);
+        if (configVersion != null) {
+            serializer.writeString($SCHEMA_CONFIG_VERSION, configVersion);
+        }
         if (mandatoryDimensions != null) {
             serializer.writeList($SCHEMA_MANDATORY_DIMENSIONS, mandatoryDimensions, mandatoryDimensions.size(), SharedSerde.ListMandatoryDimensionsSerializer.INSTANCE);
         }
@@ -137,8 +149,9 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_NAME, member, workspaceName);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ADMIN_EMAIL, member, workspaceAdminEmail);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, mandatoryDimensions);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STATUS, member, workspaceStatus);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, configVersion);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, mandatoryDimensions);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STATUS, member, workspaceStatus);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -155,6 +168,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         builder.orgId(this.orgId);
         builder.workspaceName(this.workspaceName);
         builder.workspaceAdminEmail(this.workspaceAdminEmail);
+        builder.configVersion(this.configVersion);
         builder.mandatoryDimensions(this.mandatoryDimensions);
         builder.workspaceStatus(this.workspaceStatus);
         return builder;
@@ -176,6 +190,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         private String orgId = ORG_ID_DEFAULT;
         private String workspaceName;
         private String workspaceAdminEmail;
+        private String configVersion;
         private List<String> mandatoryDimensions;
         private WorkspaceStatus workspaceStatus;
 
@@ -218,6 +233,14 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         /**
          * @return this builder.
          */
+        public Builder configVersion(String configVersion) {
+            this.configVersion = configVersion;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
         public Builder mandatoryDimensions(List<String> mandatoryDimensions) {
             this.mandatoryDimensions = mandatoryDimensions;
             return this;
@@ -244,8 +267,9 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
                 case 0 -> workspaceName((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_NAME, member, value));
                 case 1 -> workspaceAdminEmail((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ADMIN_EMAIL, member, value));
                 case 2 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
-                case 3 -> mandatoryDimensions((List<String>) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, value));
-                case 4 -> workspaceStatus((WorkspaceStatus) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STATUS, member, value));
+                case 3 -> configVersion((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, value));
+                case 4 -> mandatoryDimensions((List<String>) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, value));
+                case 5 -> workspaceStatus((WorkspaceStatus) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STATUS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -285,8 +309,9 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
                     case 0 -> builder.workspaceName(de.readString(member));
                     case 1 -> builder.workspaceAdminEmail(de.readString(member));
                     case 2 -> builder.orgId(de.readString(member));
-                    case 3 -> builder.mandatoryDimensions(SharedSerde.deserializeListMandatoryDimensions(member, de));
-                    case 4 -> builder.workspaceStatus(WorkspaceStatus.builder().deserializeMember(de, member).build());
+                    case 3 -> builder.configVersion(de.readString(member));
+                    case 4 -> builder.mandatoryDimensions(SharedSerde.deserializeListMandatoryDimensions(member, de));
+                    case 5 -> builder.workspaceStatus(WorkspaceStatus.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

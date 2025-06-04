@@ -2,6 +2,7 @@ import {
     ListWorkspaceCommand,
     CreateWorkspaceCommand,
     UpdateWorkspaceCommand,
+    WorkspaceStatus,
 } from "@io.juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, test, expect } from "bun:test";
@@ -9,7 +10,6 @@ import { describe, test, expect } from "bun:test";
 describe("Workspace API", () => {
     const testWorkspaceName = `testws${Date.now() % 10000}`;
     let createdWorkspaceId: string;
-
     test("ListWorkspace", async () => {
         const input = {
             count: 10,
@@ -18,27 +18,27 @@ describe("Workspace API", () => {
         };
 
         const cmd = new ListWorkspaceCommand(input);
-        const response = (await superpositionClient.send(cmd)) as any;
 
-        // Log response to see actual structure
-        console.log(
-            "ListWorkspace response:",
-            JSON.stringify(response).slice(0, 200) + "..."
-        );
+        try {
+            const response = await superpositionClient.send(cmd);
+            // Log response to see actual structure
+            console.log(
+                "ListWorkspace response:",
+                JSON.stringify(response).slice(0, 200) + "..."
+            );
 
-        expect(response).toBeDefined();
-        expect(response.data).toBeDefined();
-        expect(Array.isArray(response.data)).toBe(true);
+            expect(response).toBeDefined();
+            expect(response.data).toBeDefined();
+            expect(Array.isArray(response.data)).toBe(true);
 
-        // Changed pagination check - either it might be called differently or
-        // pagination data might be at the top level
-        if (response.pagination) {
-            expect(typeof response.pagination.total_count).toBe("number");
-        } else if (response.total_count !== undefined) {
-            expect(typeof response.total_count).toBe("number");
-        } else {
-            console.log("Pagination data structure is different than expected");
-            // Don't fail the test on this assertion, just log the issue
+            // Changed pagination check - either it might be called differently or
+            // pagination data might be at the top level
+
+            expect(response.total_items).toBeDefined();
+            expect(typeof response.total_items).toBe("number");
+        } catch (error: any) {
+            console.error("Error in ListWorkspace:", error.$response);
+            throw error; // Re-throw to fail the test
         }
     });
 
@@ -53,7 +53,7 @@ describe("Workspace API", () => {
         };
 
         const cmd = new CreateWorkspaceCommand(input);
-        const response = (await superpositionClient.send(cmd)) as any;
+        const response = await superpositionClient.send(cmd);
 
         // Log response to see actual structure
         console.log(
@@ -65,7 +65,7 @@ describe("Workspace API", () => {
         expect(response.workspace_name).toBe(testWorkspaceName);
         expect(response.organisation_id).toBe(ENV.org_id);
         expect(response.workspace_admin_email).toBe("admin@example.com");
-        expect(response.workspace_status).toBe("ENABLED");
+        expect(response.workspace_status).toBe(WorkspaceStatus.ENABLED);
 
         // Fix mandatory_dimensions check - it might be a string or differently structured
         if (response.mandatory_dimensions) {
@@ -88,7 +88,7 @@ describe("Workspace API", () => {
         }
 
         // Store the workspace ID for subsequent tests
-        createdWorkspaceId = response.workspace_id || testWorkspaceName;
+        createdWorkspaceId = response.workspace_name || testWorkspaceName;
     });
 
     test("GetWorkspace", async () => {
@@ -108,26 +108,31 @@ describe("Workspace API", () => {
         };
 
         const cmd = new ListWorkspaceCommand(input);
-        const response = (await superpositionClient.send(cmd)) as any;
+        try {
+            const response = await superpositionClient.send(cmd);
 
-        // Log response to see actual structure
-        console.log(
-            "ListWorkspace (for GetWorkspace) response:",
-            JSON.stringify(response).slice(0, 200) + "..."
-        );
+            // Log response to see actual structure
+            console.log(
+                "ListWorkspace (for GetWorkspace) response:",
+                JSON.stringify(response).slice(0, 200) + "..."
+            );
 
-        expect(response).toBeDefined();
-        expect(response.data).toBeDefined();
+            expect(response).toBeDefined();
+            expect(response.data).toBeDefined();
 
-        // Find our workspace in the list
-        const workspace = response.data.find(
-            (w: any) => w.workspace_name === testWorkspaceName
-        );
-        expect(workspace).toBeDefined();
-        expect(workspace.workspace_name).toBe(testWorkspaceName);
-        expect(workspace.organisation_id).toBe(ENV.org_id);
-        expect(workspace.workspace_admin_email).toBe("admin@example.com");
-        expect(workspace.workspace_status).toBe("ENABLED");
+            // Find our workspace in the list
+            const workspace = response.data?.find(
+                (w) => w.workspace_name === testWorkspaceName
+            );
+            expect(workspace).toBeDefined();
+            expect(workspace?.workspace_name).toBe(testWorkspaceName);
+            expect(workspace?.organisation_id).toBe(ENV.org_id);
+            expect(workspace?.workspace_admin_email).toBe("admin@example.com");
+            expect(workspace?.workspace_status).toBe(WorkspaceStatus.ENABLED);
+        } catch (error: any) {
+            console.error("Error in GetWorkspace :", error.$response);
+            throw error; // Re-throw to fail the test
+        }
     });
 
     test("UpdateWorkspace", async () => {
@@ -143,42 +148,47 @@ describe("Workspace API", () => {
             org_id: ENV.org_id,
             workspace_name: testWorkspaceName,
             workspace_admin_email: "updated-admin@example.com",
-            workspace_status: "ENABLED",
+            workspace_status: WorkspaceStatus.ENABLED,
             mandatory_dimensions: ["os", "client", "version"],
             description: "Updated workspace description",
-        } as any;
+        };
 
         const cmd = new UpdateWorkspaceCommand(input);
-        const response = (await superpositionClient.send(cmd)) as any;
+        try {
+            const response = await superpositionClient.send(cmd);
 
-        // Log response to see actual structure
-        console.log(
-            "UpdateWorkspace response:",
-            JSON.stringify(response).slice(0, 200) + "..."
-        );
+            // Log response to see actual structure
+            console.log(
+                "UpdateWorkspace response:",
+                JSON.stringify(response).slice(0, 200) + "..."
+            );
 
-        expect(response).toBeDefined();
-        expect(response.workspace_name).toBe(testWorkspaceName);
-        expect(response.workspace_admin_email).toBe(
-            "updated-admin@example.com"
-        );
+            expect(response).toBeDefined();
+            expect(response.workspace_name).toBe(testWorkspaceName);
+            expect(response.workspace_admin_email).toBe(
+                "updated-admin@example.com"
+            );
 
-        // Check mandatory_dimensions with flexible type handling
-        if (response.mandatory_dimensions) {
-            if (Array.isArray(response.mandatory_dimensions)) {
-                expect(response.mandatory_dimensions).toContain("os");
-                expect(response.mandatory_dimensions).toContain("client");
-                expect(response.mandatory_dimensions).toContain("version");
-            } else if (typeof response.mandatory_dimensions === "string") {
-                expect(response.mandatory_dimensions).toContain("os");
-                expect(response.mandatory_dimensions).toContain("client");
-                expect(response.mandatory_dimensions).toContain("version");
-            } else {
-                console.log(
-                    "mandatory_dimensions is in a different format:",
-                    response.mandatory_dimensions
-                );
+            // Check mandatory_dimensions with flexible type handling
+            if (response.mandatory_dimensions) {
+                if (Array.isArray(response.mandatory_dimensions)) {
+                    expect(response.mandatory_dimensions).toContain("os");
+                    expect(response.mandatory_dimensions).toContain("client");
+                    expect(response.mandatory_dimensions).toContain("version");
+                } else if (typeof response.mandatory_dimensions === "string") {
+                    expect(response.mandatory_dimensions).toContain("os");
+                    expect(response.mandatory_dimensions).toContain("client");
+                    expect(response.mandatory_dimensions).toContain("version");
+                } else {
+                    console.log(
+                        "mandatory_dimensions is in a different format:",
+                        response.mandatory_dimensions
+                    );
+                }
             }
+        } catch (error: any) {
+            console.error("Error in UpdateWorkspace:", error.$response);
+            throw error; // Re-throw to fail the test
         }
     });
 
@@ -198,22 +208,22 @@ describe("Workspace API", () => {
         };
 
         const cmd = new ListWorkspaceCommand(input);
-        const response = (await superpositionClient.send(cmd)) as any;
+        const response = await superpositionClient.send(cmd);
 
         expect(response).toBeDefined();
         expect(response.data).toBeDefined();
 
         // Find our workspace in the list
-        const workspace = response.data.find(
-            (w: any) => w.workspace_name === testWorkspaceName
+        const workspace = response.data?.find(
+            (w) => w.workspace_name === testWorkspaceName
         );
         expect(workspace).toBeDefined();
-        expect(workspace.workspace_admin_email).toBe(
+        expect(workspace?.workspace_admin_email).toBe(
             "updated-admin@example.com"
         );
 
         // Check mandatory_dimensions with flexible type handling
-        if (workspace.mandatory_dimensions) {
+        if (workspace?.mandatory_dimensions) {
             if (Array.isArray(workspace.mandatory_dimensions)) {
                 expect(workspace.mandatory_dimensions).toContain("version");
             } else if (typeof workspace.mandatory_dimensions === "string") {
@@ -227,18 +237,23 @@ describe("Workspace API", () => {
             count: 5,
             page: 1,
             org_id: ENV.org_id,
-            status: "ENABLED",
+            status: WorkspaceStatus.ENABLED,
         };
 
         const cmd = new ListWorkspaceCommand(input);
-        const response = (await superpositionClient.send(cmd)) as any;
+        const response = await superpositionClient.send(cmd);
 
         expect(response).toBeDefined();
         expect(response.data).toBeDefined();
+        expect(Array.isArray(response.data)).toBe(true);
 
         // All workspaces should have ENABLED status
-        for (const workspace of response.data) {
-            expect(workspace.workspace_status).toBe("ENABLED");
+        if (response.data) {
+            for (const workspace of response.data) {
+                expect(workspace.workspace_status).toBe(
+                    WorkspaceStatus.ENABLED
+                );
+            }
         }
     });
 

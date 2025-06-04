@@ -10,6 +10,8 @@ pub struct UpdateWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_admin_email: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
+    pub config_version: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
     pub mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_status: ::std::option::Option<crate::types::WorkspaceStatus>,
@@ -26,6 +28,10 @@ impl  UpdateWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_admin_email(&self) -> ::std::option::Option<&str> {
         self.workspace_admin_email.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn config_version(&self) -> ::std::option::Option<&str> {
+        self.config_version.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     /// 
@@ -53,6 +59,7 @@ pub struct UpdateWorkspaceInputBuilder {
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) workspace_name: ::std::option::Option<::std::string::String>,
     pub(crate) workspace_admin_email: ::std::option::Option<::std::string::String>,
+    pub(crate) config_version: ::std::option::Option<::std::string::String>,
     pub(crate) mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) workspace_status: ::std::option::Option<crate::types::WorkspaceStatus>,
 }
@@ -99,6 +106,19 @@ impl UpdateWorkspaceInputBuilder {
     pub fn get_workspace_admin_email(&self) -> &::std::option::Option<::std::string::String> {
         &self.workspace_admin_email
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn config_version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.config_version = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_config_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.config_version = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_config_version(&self) -> &::std::option::Option<::std::string::String> {
+        &self.config_version
+    }
     /// Appends an item to `mandatory_dimensions`.
     ///
     /// To override the contents of this collection use [`set_mandatory_dimensions`](Self::set_mandatory_dimensions).
@@ -139,6 +159,8 @@ impl UpdateWorkspaceInputBuilder {
                 workspace_name: self.workspace_name
                 ,
                 workspace_admin_email: self.workspace_admin_email
+                ,
+                config_version: self.config_version
                 ,
                 mandatory_dimensions: self.mandatory_dimensions
                 ,

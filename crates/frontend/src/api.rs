@@ -14,13 +14,14 @@ use superposition_types::{
             FunctionExecutionRequest, FunctionExecutionResponse, ListFunctionFilters,
         },
         webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
+        workspace::WorkspaceResponse,
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap},
     database::{
         models::{
             cac::{ConfigVersion, Context, DefaultConfig, Function, TypeTemplate},
             others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
-            ChangeReason, Description, NonEmptyString, Workspace,
+            ChangeReason, Description, NonEmptyString,
         },
         types::DimensionWithMandatory,
     },
@@ -371,11 +372,11 @@ pub async fn fetch_types(
 pub async fn fetch_workspaces(
     filters: &PaginationParams,
     org_id: &String,
-) -> Result<PaginatedResponse<Workspace>, ServerFnError> {
+) -> Result<PaginatedResponse<WorkspaceResponse>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
     let url = format!("{}/workspaces?{}", host, filters);
-    let response: PaginatedResponse<Workspace> = client
+    let response: PaginatedResponse<WorkspaceResponse> = client
         .get(url)
         .header("x-org-id", org_id)
         .send()

@@ -23,6 +23,7 @@ public final class Workspace implements ApiResource {
         "organisation_name", PreludeSchemas.STRING,
         "last_modified_by", PreludeSchemas.STRING,
         "created_by", PreludeSchemas.STRING,
+        "config_version", PreludeSchemas.STRING,
         "mandatory_dimensions", SharedSchemas.LIST_MANDATORY_DIMENSIONS,
         "workspace_status", WorkspaceStatus.$SCHEMA,
         "last_modified_at", SharedSchemas.DATE_TIME);
