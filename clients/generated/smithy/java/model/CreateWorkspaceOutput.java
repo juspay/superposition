@@ -35,6 +35,7 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("workspace_admin_email", PreludeSchemas.STRING,
                 new RequiredTrait())
+        .putMember("config_version", PreludeSchemas.STRING)
         .putMember("created_by", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("last_modified_by", PreludeSchemas.STRING,
@@ -54,6 +55,7 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
     private static final Schema $SCHEMA_WORKSPACE_SCHEMA_NAME = $SCHEMA.member("workspace_schema_name");
     private static final Schema $SCHEMA_WORKSPACE_STATUS = $SCHEMA.member("workspace_status");
     private static final Schema $SCHEMA_WORKSPACE_ADMIN_EMAIL = $SCHEMA.member("workspace_admin_email");
+    private static final Schema $SCHEMA_CONFIG_VERSION = $SCHEMA.member("config_version");
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
     private static final Schema $SCHEMA_LAST_MODIFIED_BY = $SCHEMA.member("last_modified_by");
     private static final Schema $SCHEMA_LAST_MODIFIED_AT = $SCHEMA.member("last_modified_at");
@@ -67,6 +69,7 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
     private final transient String workspaceSchemaName;
     private final transient WorkspaceStatus workspaceStatus;
     private final transient String workspaceAdminEmail;
+    private final transient String configVersion;
     private final transient String createdBy;
     private final transient String lastModifiedBy;
     private final transient Instant lastModifiedAt;
@@ -81,6 +84,7 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
         this.workspaceSchemaName = builder.workspaceSchemaName;
         this.workspaceStatus = builder.workspaceStatus;
         this.workspaceAdminEmail = builder.workspaceAdminEmail;
+        this.configVersion = builder.configVersion;
         this.createdBy = builder.createdBy;
         this.lastModifiedBy = builder.lastModifiedBy;
         this.lastModifiedAt = builder.lastModifiedAt;
@@ -111,6 +115,10 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
 
     public String workspaceAdminEmail() {
         return workspaceAdminEmail;
+    }
+
+    public String configVersion() {
+        return configVersion;
     }
 
     public String createdBy() {
@@ -164,6 +172,7 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
                && Objects.equals(this.workspaceSchemaName, that.workspaceSchemaName)
                && Objects.equals(this.workspaceStatus, that.workspaceStatus)
                && Objects.equals(this.workspaceAdminEmail, that.workspaceAdminEmail)
+               && Objects.equals(this.configVersion, that.configVersion)
                && Objects.equals(this.createdBy, that.createdBy)
                && Objects.equals(this.lastModifiedBy, that.lastModifiedBy)
                && Objects.equals(this.lastModifiedAt, that.lastModifiedAt)
@@ -174,7 +183,7 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceName, organisationId, organisationName, workspaceSchemaName, workspaceStatus, workspaceAdminEmail, createdBy, lastModifiedBy, lastModifiedAt, createdAt, mandatoryDimensions, workspaceStrictMode);
+        return Objects.hash(workspaceName, organisationId, organisationName, workspaceSchemaName, workspaceStatus, workspaceAdminEmail, configVersion, createdBy, lastModifiedBy, lastModifiedAt, createdAt, mandatoryDimensions, workspaceStrictMode);
     }
 
     @Override
@@ -190,6 +199,9 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
         serializer.writeString($SCHEMA_WORKSPACE_SCHEMA_NAME, workspaceSchemaName);
         serializer.writeString($SCHEMA_WORKSPACE_STATUS, workspaceStatus.value());
         serializer.writeString($SCHEMA_WORKSPACE_ADMIN_EMAIL, workspaceAdminEmail);
+        if (configVersion != null) {
+            serializer.writeString($SCHEMA_CONFIG_VERSION, configVersion);
+        }
         serializer.writeString($SCHEMA_CREATED_BY, createdBy);
         serializer.writeString($SCHEMA_LAST_MODIFIED_BY, lastModifiedBy);
         serializer.writeTimestamp($SCHEMA_LAST_MODIFIED_AT, lastModifiedAt);
@@ -215,7 +227,8 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, lastModifiedAt);
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_AT, member, createdAt);
             case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STRICT_MODE, member, workspaceStrictMode);
-            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, mandatoryDimensions);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, configVersion);
+            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, mandatoryDimensions);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -235,6 +248,7 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
         builder.workspaceSchemaName(this.workspaceSchemaName);
         builder.workspaceStatus(this.workspaceStatus);
         builder.workspaceAdminEmail(this.workspaceAdminEmail);
+        builder.configVersion(this.configVersion);
         builder.createdBy(this.createdBy);
         builder.lastModifiedBy(this.lastModifiedBy);
         builder.lastModifiedAt(this.lastModifiedAt);
@@ -262,6 +276,7 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
         private String workspaceSchemaName;
         private WorkspaceStatus workspaceStatus;
         private String workspaceAdminEmail;
+        private String configVersion;
         private String createdBy;
         private String lastModifiedBy;
         private Instant lastModifiedAt;
@@ -333,6 +348,14 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
         public Builder workspaceAdminEmail(String workspaceAdminEmail) {
             this.workspaceAdminEmail = Objects.requireNonNull(workspaceAdminEmail, "workspaceAdminEmail cannot be null");
             tracker.setMember($SCHEMA_WORKSPACE_ADMIN_EMAIL);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder configVersion(String configVersion) {
+            this.configVersion = configVersion;
             return this;
         }
 
@@ -415,7 +438,8 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
                 case 8 -> lastModifiedAt((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, value));
                 case 9 -> createdAt((Instant) SchemaUtils.validateSameMember($SCHEMA_CREATED_AT, member, value));
                 case 10 -> workspaceStrictMode((boolean) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STRICT_MODE, member, value));
-                case 11 -> mandatoryDimensions((List<String>) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, value));
+                case 11 -> configVersion((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, value));
+                case 12 -> mandatoryDimensions((List<String>) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -490,7 +514,8 @@ public final class CreateWorkspaceOutput implements SerializableStruct {
                     case 8 -> builder.lastModifiedAt(de.readTimestamp(member));
                     case 9 -> builder.createdAt(de.readTimestamp(member));
                     case 10 -> builder.workspaceStrictMode(de.readBoolean(member));
-                    case 11 -> builder.mandatoryDimensions(SharedSerde.deserializeListMandatoryDimensions(member, de));
+                    case 11 -> builder.configVersion(de.readString(member));
+                    case 12 -> builder.mandatoryDimensions(SharedSerde.deserializeListMandatoryDimensions(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -9,13 +9,13 @@ use superposition_types::{
     api::{
         context::{ContextListFilters, SortOn},
         default_config::DefaultConfigFilters,
+        workspace::WorkspaceResponse,
     },
     custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
     database::{
         models::{
             cac::{Context, DefaultConfig},
             experimentation::ExperimentType,
-            Workspace,
         },
         types::DimensionWithMandatory,
     },
@@ -270,7 +270,7 @@ fn form(
 ) -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
-    let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let (context_rs, context_ws) = create_signal(context);
     let (overrides_rs, overrides_ws) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
@@ -487,7 +487,7 @@ fn autofill_experiment_form(
     default_config: Vec<DefaultConfig>,
     experiment_type: ExperimentType,
 ) -> impl IntoView {
-    let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let default_config = StoredValue::new(default_config);
     let dimensions = StoredValue::new(dimensions);
 

@@ -5,7 +5,7 @@ use crate::utils::use_url_base;
 
 use leptos::*;
 use leptos_router::{use_location, use_navigate, A};
-use superposition_types::{database::models::Workspace, PaginatedResponse};
+use superposition_types::{api::workspace::WorkspaceResponse, PaginatedResponse};
 use web_sys::Event;
 
 fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
@@ -78,7 +78,7 @@ fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
 pub fn side_nav(
     resolved_path: String,
     original_path: String,
-    workspace_resource: Resource<String, PaginatedResponse<Workspace>>,
+    workspace_resource: Resource<String, PaginatedResponse<WorkspaceResponse>>,
 ) -> impl IntoView {
     let location = use_location();
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();

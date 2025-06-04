@@ -14,7 +14,7 @@ use actix_web::{
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, Timelike, Utc};
-use diesel::{dsl::max, ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{dsl::max, BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
 use itertools::Itertools;
@@ -23,7 +23,7 @@ use serde_json::{json, Map, Value};
 use service_utils::service::types::AppState;
 use service_utils::{
     helpers::extract_dimensions,
-    service::types::{AppHeader, DbConnection, SchemaName},
+    service::types::{AppHeader, DbConnection, SchemaName, WorkspaceContext},
 };
 #[cfg(feature = "high-performance-mode")]
 use superposition_macros::response_error;
@@ -36,6 +36,7 @@ use superposition_types::{
     database::{
         models::cac::ConfigVersion,
         schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
+        superposition_schema::superposition::workspaces,
     },
     result as superposition, Cac, Condition, Config, Context, DBConnection, Overrides,
     PaginatedResponse, User,
@@ -701,6 +702,7 @@ async fn get_config(
     db_conn: DbConnection,
     query_map: superposition_query::Query<QueryMap>,
     schema_name: SchemaName,
+    workspace_context: WorkspaceContext,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
@@ -717,7 +719,20 @@ async fn get_config(
     }
 
     let mut query_params_map = query_map.into_inner();
-    let mut version = validate_version_in_params(&mut query_params_map)?;
+    let mut version = match validate_version_in_params(&mut query_params_map)? {
+        Some(val) => Some(val),
+        None => workspaces::dsl::workspaces
+            .select(workspaces::config_version)
+            .filter(
+                workspaces::organisation_id
+                    .eq(&workspace_context.organisation_id.0)
+                    .and(
+                        workspaces::workspace_name.eq(&workspace_context.workspace_id.0),
+                    ),
+            )
+            .get_result::<Option<i64>>(&mut conn)?,
+    };
+
     let mut config = generate_config_from_version(&mut version, &mut conn, &schema_name)?;
 
     config = apply_prefix_filter_to_config(&mut query_params_map, config)?;

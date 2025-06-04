@@ -13,6 +13,7 @@ resource Workspace {
         workspace_schema_name: String
         workspace_status: WorkspaceStatus
         workspace_admin_email: String
+        config_version: String
         created_by: String
         last_modified_by: String
         last_modified_at: DateTime
@@ -57,6 +58,8 @@ structure UpdateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     @required
     $workspace_admin_email
 
+    $config_version
+
     $mandatory_dimensions
 
     $workspace_status
@@ -80,6 +83,8 @@ structure WorkspaceResponse for Workspace {
 
     @required
     $workspace_admin_email
+
+    $config_version
 
     @required
     $created_by

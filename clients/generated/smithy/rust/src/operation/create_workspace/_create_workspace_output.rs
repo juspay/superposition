@@ -16,6 +16,8 @@ pub struct CreateWorkspaceOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_admin_email: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
+    pub config_version: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
     pub created_by: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified_by: ::std::string::String,
@@ -52,6 +54,10 @@ impl  CreateWorkspaceOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_admin_email(&self) -> &str {
         use std::ops::Deref; self.workspace_admin_email.deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn config_version(&self) -> ::std::option::Option<&str> {
+        self.config_version.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(&self) -> &str {
@@ -98,6 +104,7 @@ pub struct CreateWorkspaceOutputBuilder {
     pub(crate) workspace_schema_name: ::std::option::Option<::std::string::String>,
     pub(crate) workspace_status: ::std::option::Option<crate::types::WorkspaceStatus>,
     pub(crate) workspace_admin_email: ::std::option::Option<::std::string::String>,
+    pub(crate) config_version: ::std::option::Option<::std::string::String>,
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
@@ -189,6 +196,19 @@ impl CreateWorkspaceOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_admin_email(&self) -> &::std::option::Option<::std::string::String> {
         &self.workspace_admin_email
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn config_version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.config_version = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_config_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.config_version = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_config_version(&self) -> &::std::option::Option<::std::string::String> {
+        &self.config_version
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
@@ -323,6 +343,8 @@ impl CreateWorkspaceOutputBuilder {
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("workspace_admin_email", "workspace_admin_email was not specified but it is required when building CreateWorkspaceOutput")
                     )?
+                ,
+                config_version: self.config_version
                 ,
                 created_by: self.created_by
                     .ok_or_else(||

@@ -3,9 +3,12 @@ pub mod utils;
 
 use leptos::*;
 use serde_json::{json, Map, Value};
-use superposition_types::database::{
-    models::{cac::DefaultConfig, experimentation::ExperimentType, Metrics, Workspace},
-    types::DimensionWithMandatory,
+use superposition_types::{
+    api::workspace::WorkspaceResponse,
+    database::{
+        models::{cac::DefaultConfig, experimentation::ExperimentType, Metrics},
+        types::DimensionWithMandatory,
+    },
 };
 use utils::{create_experiment, update_experiment};
 use web_sys::MouseEvent;
@@ -77,7 +80,7 @@ pub fn experiment_form(
     let experiment_form_type = StoredValue::new(experiment_form_type);
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
-    let workspace_settings = use_context::<StoredValue<Workspace>>().unwrap();
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
 
     let (experiment_name, set_experiment_name) = create_signal(name);
     let (context_rs, context_ws) = create_signal(context.clone());

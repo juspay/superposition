@@ -65,6 +65,15 @@ pub(crate) fn de_workspace_response<'a, I>(tokens: &mut ::std::iter::Peekable<I>
                                     ).transpose()?
                                 );
                             }
+                            "config_version" => {
+                                builder = builder.set_config_version(
+                                    ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                        s.to_unescaped().map(|u|
+                                            u.into_owned()
+                                        )
+                                    ).transpose()?
+                                );
+                            }
                             "created_by" => {
                                 builder = builder.set_created_by(
                                     ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|

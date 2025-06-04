@@ -11,7 +11,7 @@ use crate::{
 use leptos::*;
 use leptos_router::*;
 use superposition_types::{
-    custom_query::PaginationParams, database::models::Workspace, PaginatedResponse,
+    api::workspace::WorkspaceResponse, custom_query::PaginationParams, PaginatedResponse,
 };
 
 pub fn use_tenant() -> Tenant {
@@ -50,7 +50,7 @@ pub fn use_org() -> OrganisationId {
 fn workspace_provider(
     workspace: String,
     route: String,
-    workspaces: Resource<String, PaginatedResponse<Workspace>>,
+    workspaces: Resource<String, PaginatedResponse<WorkspaceResponse>>,
     children: ChildrenFn,
 ) -> impl IntoView {
     let children = StoredValue::new(children);

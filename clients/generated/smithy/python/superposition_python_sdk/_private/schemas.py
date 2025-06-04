@@ -4847,16 +4847,12 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
             ],
         },
 
-        "created_by": {
+        "config_version": {
             "target": STRING,
             "index": 6,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
         },
 
-        "last_modified_by": {
+        "created_by": {
             "target": STRING,
             "index": 7,
             "traits": [
@@ -4865,8 +4861,8 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
             ],
         },
 
-        "last_modified_at": {
-            "target": DATE_TIME,
+        "last_modified_by": {
+            "target": STRING,
             "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -4874,7 +4870,7 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
             ],
         },
 
-        "created_at": {
+        "last_modified_at": {
             "target": DATE_TIME,
             "index": 9,
             "traits": [
@@ -4883,14 +4879,23 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
             ],
         },
 
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 10,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "mandatory_dimensions": {
             "target": LIST_MANDATORY_DIMENSIONS,
-            "index": 10,
+            "index": 11,
         },
 
         "workspace_strict_mode": {
             "target": BOOLEAN,
-            "index": 11,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -10004,16 +10009,12 @@ WORKSPACE_RESPONSE = Schema.collection(
             ],
         },
 
-        "created_by": {
+        "config_version": {
             "target": STRING,
             "index": 6,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
         },
 
-        "last_modified_by": {
+        "created_by": {
             "target": STRING,
             "index": 7,
             "traits": [
@@ -10022,8 +10023,8 @@ WORKSPACE_RESPONSE = Schema.collection(
             ],
         },
 
-        "last_modified_at": {
-            "target": DATE_TIME,
+        "last_modified_by": {
+            "target": STRING,
             "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -10031,7 +10032,7 @@ WORKSPACE_RESPONSE = Schema.collection(
             ],
         },
 
-        "created_at": {
+        "last_modified_at": {
             "target": DATE_TIME,
             "index": 9,
             "traits": [
@@ -10040,14 +10041,23 @@ WORKSPACE_RESPONSE = Schema.collection(
             ],
         },
 
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 10,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "mandatory_dimensions": {
             "target": LIST_MANDATORY_DIMENSIONS,
-            "index": 10,
+            "index": 11,
         },
 
         "workspace_strict_mode": {
             "target": BOOLEAN,
-            "index": 11,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -10765,14 +10775,19 @@ UPDATE_WORKSPACE_INPUT = Schema.collection(
             ],
         },
 
+        "config_version": {
+            "target": STRING,
+            "index": 3,
+        },
+
         "mandatory_dimensions": {
             "target": LIST_MANDATORY_DIMENSIONS,
-            "index": 3,
+            "index": 4,
         },
 
         "workspace_status": {
             "target": WORKSPACE_STATUS,
-            "index": 4,
+            "index": 5,
         },
 
     }
@@ -10841,16 +10856,12 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
             ],
         },
 
-        "created_by": {
+        "config_version": {
             "target": STRING,
             "index": 6,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
         },
 
-        "last_modified_by": {
+        "created_by": {
             "target": STRING,
             "index": 7,
             "traits": [
@@ -10859,8 +10870,8 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
             ],
         },
 
-        "last_modified_at": {
-            "target": DATE_TIME,
+        "last_modified_by": {
+            "target": STRING,
             "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -10868,7 +10879,7 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
             ],
         },
 
-        "created_at": {
+        "last_modified_at": {
             "target": DATE_TIME,
             "index": 9,
             "traits": [
@@ -10877,14 +10888,23 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
             ],
         },
 
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 10,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "mandatory_dimensions": {
             "target": LIST_MANDATORY_DIMENSIONS,
-            "index": 10,
+            "index": 11,
         },
 
         "workspace_strict_mode": {
             "target": BOOLEAN,
-            "index": 11,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
