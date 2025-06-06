@@ -115,6 +115,16 @@ impl Condition {
         }
         Ok(Self(condition_map))
     }
+
+    pub fn contains(&self, other_condition: &Condition) -> Result<bool, String> {
+        let condition1 = Value::Object(self.0.clone());
+        let condition1 = jsonlogic::expression::Expression::from_json(&condition1)?
+            .get_variable_names_and_values()?;
+        let condition2 = Value::Object(other_condition.0.clone());
+        let condition2 = jsonlogic::expression::Expression::from_json(&condition2)?
+            .get_variable_names_and_values()?;
+        Ok(condition1.is_superset(&condition2))
+    }
 }
 
 impl_try_from_map!(Cac, Condition, Condition::validate_data_for_cac);

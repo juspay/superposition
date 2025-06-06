@@ -16,6 +16,8 @@ from smithy_http.interfaces import HTTPRequestConfiguration
 
 from .auth import HTTPAuthSchemeResolver
 from .models import (
+    AddMembersToGroupInput,
+    AddMembersToGroupOutput,
     ApplicableVariantsInput,
     ApplicableVariantsOutput,
     BulkOperationInput,
@@ -28,6 +30,8 @@ from .models import (
     CreateDefaultConfigOutput,
     CreateDimensionInput,
     CreateDimensionOutput,
+    CreateExperimentGroupInput,
+    CreateExperimentGroupOutput,
     CreateExperimentInput,
     CreateExperimentOutput,
     CreateFunctionInput,
@@ -46,6 +50,8 @@ from .models import (
     DeleteDefaultConfigOutput,
     DeleteDimensionInput,
     DeleteDimensionOutput,
+    DeleteExperimentGroupInput,
+    DeleteExperimentGroupOutput,
     DeleteFunctionInput,
     DeleteFunctionOutput,
     DeleteTypeTemplatesInput,
@@ -62,6 +68,8 @@ from .models import (
     GetContextOutput,
     GetDimensionInput,
     GetDimensionOutput,
+    GetExperimentGroupInput,
+    GetExperimentGroupOutput,
     GetExperimentInput,
     GetExperimentOutput,
     GetFunctionInput,
@@ -82,6 +90,8 @@ from .models import (
     ListDefaultConfigsOutput,
     ListDimensionsInput,
     ListDimensionsOutput,
+    ListExperimentGroupsInput,
+    ListExperimentGroupsOutput,
     ListExperimentInput,
     ListExperimentOutput,
     ListFunctionInput,
@@ -102,6 +112,8 @@ from .models import (
     PublishOutput,
     RampExperimentInput,
     RampExperimentOutput,
+    RemoveMembersFromGroupInput,
+    RemoveMembersFromGroupOutput,
     ResumeExperimentInput,
     ResumeExperimentOutput,
     TestInput,
@@ -110,6 +122,8 @@ from .models import (
     UpdateDefaultConfigOutput,
     UpdateDimensionInput,
     UpdateDimensionOutput,
+    UpdateExperimentGroupInput,
+    UpdateExperimentGroupOutput,
     UpdateFunctionInput,
     UpdateFunctionOutput,
     UpdateOrganisationInput,
@@ -129,7 +143,7 @@ from .models import (
 )
 
 
-_ServiceInterceptor = Union[Interceptor[ApplicableVariantsInput, ApplicableVariantsOutput, Any, Any], Interceptor[BulkOperationInput, BulkOperationOutput, Any, Any], Interceptor[ConcludeExperimentInput, ConcludeExperimentOutput, Any, Any], Interceptor[CreateContextInput, CreateContextOutput, Any, Any], Interceptor[CreateDefaultConfigInput, CreateDefaultConfigOutput, Any, Any], Interceptor[CreateDimensionInput, CreateDimensionOutput, Any, Any], Interceptor[CreateExperimentInput, CreateExperimentOutput, Any, Any], Interceptor[CreateFunctionInput, CreateFunctionOutput, Any, Any], Interceptor[CreateOrganisationInput, CreateOrganisationOutput, Any, Any], Interceptor[CreateTypeTemplatesInput, CreateTypeTemplatesOutput, Any, Any], Interceptor[CreateWebhookInput, CreateWebhookOutput, Any, Any], Interceptor[CreateWorkspaceInput, CreateWorkspaceOutput, Any, Any], Interceptor[DeleteContextInput, DeleteContextOutput, Any, Any], Interceptor[DeleteDefaultConfigInput, DeleteDefaultConfigOutput, Any, Any], Interceptor[DeleteDimensionInput, DeleteDimensionOutput, Any, Any], Interceptor[DeleteFunctionInput, DeleteFunctionOutput, Any, Any], Interceptor[DeleteTypeTemplatesInput, DeleteTypeTemplatesOutput, Any, Any], Interceptor[DiscardExperimentInput, DiscardExperimentOutput, Any, Any], Interceptor[GetConfigInput, GetConfigOutput, Any, Any], Interceptor[GetConfigFastInput, GetConfigFastOutput, Any, Any], Interceptor[GetContextInput, GetContextOutput, Any, Any], Interceptor[GetContextFromConditionInput, GetContextFromConditionOutput, Any, Any], Interceptor[GetDimensionInput, GetDimensionOutput, Any, Any], Interceptor[GetExperimentInput, GetExperimentOutput, Any, Any], Interceptor[GetFunctionInput, GetFunctionOutput, Any, Any], Interceptor[GetOrganisationInput, GetOrganisationOutput, Any, Any], Interceptor[GetResolvedConfigInput, GetResolvedConfigOutput, Any, Any], Interceptor[GetTypeTemplatesListInput, GetTypeTemplatesListOutput, Any, Any], Interceptor[GetWebhookInput, GetWebhookOutput, Any, Any], Interceptor[ListAuditLogsInput, ListAuditLogsOutput, Any, Any], Interceptor[ListContextsInput, ListContextsOutput, Any, Any], Interceptor[ListDefaultConfigsInput, ListDefaultConfigsOutput, Any, Any], Interceptor[ListDimensionsInput, ListDimensionsOutput, Any, Any], Interceptor[ListExperimentInput, ListExperimentOutput, Any, Any], Interceptor[ListFunctionInput, ListFunctionOutput, Any, Any], Interceptor[ListOrganisationInput, ListOrganisationOutput, Any, Any], Interceptor[ListVersionsInput, ListVersionsOutput, Any, Any], Interceptor[ListWebhookInput, ListWebhookOutput, Any, Any], Interceptor[ListWorkspaceInput, ListWorkspaceOutput, Any, Any], Interceptor[MoveContextInput, MoveContextOutput, Any, Any], Interceptor[PauseExperimentInput, PauseExperimentOutput, Any, Any], Interceptor[PublishInput, PublishOutput, Any, Any], Interceptor[RampExperimentInput, RampExperimentOutput, Any, Any], Interceptor[ResumeExperimentInput, ResumeExperimentOutput, Any, Any], Interceptor[TestInput, TestOutput, Any, Any], Interceptor[UpdateDefaultConfigInput, UpdateDefaultConfigOutput, Any, Any], Interceptor[UpdateDimensionInput, UpdateDimensionOutput, Any, Any], Interceptor[UpdateFunctionInput, UpdateFunctionOutput, Any, Any], Interceptor[UpdateOrganisationInput, UpdateOrganisationOutput, Any, Any], Interceptor[UpdateOverrideInput, UpdateOverrideOutput, Any, Any], Interceptor[UpdateOverridesExperimentInput, UpdateOverridesExperimentOutput, Any, Any], Interceptor[UpdateTypeTemplatesInput, UpdateTypeTemplatesOutput, Any, Any], Interceptor[UpdateWebhookInput, UpdateWebhookOutput, Any, Any], Interceptor[UpdateWorkspaceInput, UpdateWorkspaceOutput, Any, Any], Interceptor[WeightRecomputeInput, WeightRecomputeOutput, Any, Any]]
+_ServiceInterceptor = Union[Interceptor[AddMembersToGroupInput, AddMembersToGroupOutput, Any, Any], Interceptor[ApplicableVariantsInput, ApplicableVariantsOutput, Any, Any], Interceptor[BulkOperationInput, BulkOperationOutput, Any, Any], Interceptor[ConcludeExperimentInput, ConcludeExperimentOutput, Any, Any], Interceptor[CreateContextInput, CreateContextOutput, Any, Any], Interceptor[CreateDefaultConfigInput, CreateDefaultConfigOutput, Any, Any], Interceptor[CreateDimensionInput, CreateDimensionOutput, Any, Any], Interceptor[CreateExperimentInput, CreateExperimentOutput, Any, Any], Interceptor[CreateExperimentGroupInput, CreateExperimentGroupOutput, Any, Any], Interceptor[CreateFunctionInput, CreateFunctionOutput, Any, Any], Interceptor[CreateOrganisationInput, CreateOrganisationOutput, Any, Any], Interceptor[CreateTypeTemplatesInput, CreateTypeTemplatesOutput, Any, Any], Interceptor[CreateWebhookInput, CreateWebhookOutput, Any, Any], Interceptor[CreateWorkspaceInput, CreateWorkspaceOutput, Any, Any], Interceptor[DeleteContextInput, DeleteContextOutput, Any, Any], Interceptor[DeleteDefaultConfigInput, DeleteDefaultConfigOutput, Any, Any], Interceptor[DeleteDimensionInput, DeleteDimensionOutput, Any, Any], Interceptor[DeleteExperimentGroupInput, DeleteExperimentGroupOutput, Any, Any], Interceptor[DeleteFunctionInput, DeleteFunctionOutput, Any, Any], Interceptor[DeleteTypeTemplatesInput, DeleteTypeTemplatesOutput, Any, Any], Interceptor[DiscardExperimentInput, DiscardExperimentOutput, Any, Any], Interceptor[GetConfigInput, GetConfigOutput, Any, Any], Interceptor[GetConfigFastInput, GetConfigFastOutput, Any, Any], Interceptor[GetContextInput, GetContextOutput, Any, Any], Interceptor[GetContextFromConditionInput, GetContextFromConditionOutput, Any, Any], Interceptor[GetDimensionInput, GetDimensionOutput, Any, Any], Interceptor[GetExperimentInput, GetExperimentOutput, Any, Any], Interceptor[GetExperimentGroupInput, GetExperimentGroupOutput, Any, Any], Interceptor[GetFunctionInput, GetFunctionOutput, Any, Any], Interceptor[GetOrganisationInput, GetOrganisationOutput, Any, Any], Interceptor[GetResolvedConfigInput, GetResolvedConfigOutput, Any, Any], Interceptor[GetTypeTemplatesListInput, GetTypeTemplatesListOutput, Any, Any], Interceptor[GetWebhookInput, GetWebhookOutput, Any, Any], Interceptor[ListAuditLogsInput, ListAuditLogsOutput, Any, Any], Interceptor[ListContextsInput, ListContextsOutput, Any, Any], Interceptor[ListDefaultConfigsInput, ListDefaultConfigsOutput, Any, Any], Interceptor[ListDimensionsInput, ListDimensionsOutput, Any, Any], Interceptor[ListExperimentInput, ListExperimentOutput, Any, Any], Interceptor[ListExperimentGroupsInput, ListExperimentGroupsOutput, Any, Any], Interceptor[ListFunctionInput, ListFunctionOutput, Any, Any], Interceptor[ListOrganisationInput, ListOrganisationOutput, Any, Any], Interceptor[ListVersionsInput, ListVersionsOutput, Any, Any], Interceptor[ListWebhookInput, ListWebhookOutput, Any, Any], Interceptor[ListWorkspaceInput, ListWorkspaceOutput, Any, Any], Interceptor[MoveContextInput, MoveContextOutput, Any, Any], Interceptor[PauseExperimentInput, PauseExperimentOutput, Any, Any], Interceptor[PublishInput, PublishOutput, Any, Any], Interceptor[RampExperimentInput, RampExperimentOutput, Any, Any], Interceptor[RemoveMembersFromGroupInput, RemoveMembersFromGroupOutput, Any, Any], Interceptor[ResumeExperimentInput, ResumeExperimentOutput, Any, Any], Interceptor[TestInput, TestOutput, Any, Any], Interceptor[UpdateDefaultConfigInput, UpdateDefaultConfigOutput, Any, Any], Interceptor[UpdateDimensionInput, UpdateDimensionOutput, Any, Any], Interceptor[UpdateExperimentGroupInput, UpdateExperimentGroupOutput, Any, Any], Interceptor[UpdateFunctionInput, UpdateFunctionOutput, Any, Any], Interceptor[UpdateOrganisationInput, UpdateOrganisationOutput, Any, Any], Interceptor[UpdateOverrideInput, UpdateOverrideOutput, Any, Any], Interceptor[UpdateOverridesExperimentInput, UpdateOverridesExperimentOutput, Any, Any], Interceptor[UpdateTypeTemplatesInput, UpdateTypeTemplatesOutput, Any, Any], Interceptor[UpdateWebhookInput, UpdateWebhookOutput, Any, Any], Interceptor[UpdateWorkspaceInput, UpdateWorkspaceOutput, Any, Any], Interceptor[WeightRecomputeInput, WeightRecomputeOutput, Any, Any]]
 @dataclass(init=False)
 class Config:
     """Configuration for Superposition."""

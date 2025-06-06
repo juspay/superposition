@@ -12,17 +12,21 @@ import software.amazon.smithy.model.traits.TimestampFormatTrait;
  */
 final class SharedSchemas {
 
+    static final Schema STRING_LIST = Schema.listBuilder(ShapeId.from("io.superposition#StringList"))
+        .putMember("member", PreludeSchemas.STRING)
+        .build();
+
     static final Schema CONDITION = Schema.mapBuilder(ShapeId.from("io.superposition#Condition"))
         .putMember("key", PreludeSchemas.STRING)
         .putMember("value", PreludeSchemas.DOCUMENT)
         .build();
 
+    static final Schema DATE_TIME = Schema.createTimestamp(ShapeId.from("io.superposition#DateTime"),
+            new TimestampFormatTrait("date-time"));
+
     static final Schema LIST_VARIANT = Schema.listBuilder(ShapeId.from("io.superposition#ListVariant"))
         .putMember("member", Variant.$SCHEMA)
         .build();
-
-    static final Schema DATE_TIME = Schema.createTimestamp(ShapeId.from("io.superposition#DateTime"),
-            new TimestampFormatTrait("date-time"));
 
     static final Schema AUDIT_LOG_LIST = Schema.listBuilder(ShapeId.from("io.superposition#AuditLogList"))
         .putMember("member", AuditLogFull.$SCHEMA)
@@ -71,10 +75,6 @@ final class SharedSchemas {
         .putMember("value", SharedSchemas.OVERRIDES)
         .build();
 
-    static final Schema STRING_LIST = Schema.listBuilder(ShapeId.from("io.superposition#StringList"))
-        .putMember("member", PreludeSchemas.STRING)
-        .build();
-
     static final Schema LIST_VERSIONS_OUT = Schema.listBuilder(ShapeId.from("io.superposition#ListVersionsOut"))
         .putMember("member", ListVersionsMember.$SCHEMA)
         .build();
@@ -109,6 +109,10 @@ final class SharedSchemas {
 
     static final Schema DIMENSION_EXT_LIST = Schema.listBuilder(ShapeId.from("io.superposition#DimensionExtList"))
         .putMember("member", DimensionExt.$SCHEMA)
+        .build();
+
+    static final Schema EXPERIMENT_GROUP_LIST = Schema.listBuilder(ShapeId.from("io.superposition#ExperimentGroupList"))
+        .putMember("member", ExperimentGroupResponse.$SCHEMA)
         .build();
 
     static final Schema EXPERIMENT_LIST = Schema.listBuilder(ShapeId.from("io.superposition#ExperimentList"))

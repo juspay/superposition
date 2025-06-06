@@ -187,6 +187,11 @@ async fn main() -> Result<()> {
                         .wrap(OrgWorkspaceMiddlewareFactory::new(true, true)),
                     )
                     .service(
+                            experiment_groups::endpoints(scope("/experiment-groups"))
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION))
+                    )
+                    .service(
                         scope("/superposition/organisations")
                             .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION))
                             .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))

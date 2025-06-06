@@ -63,6 +63,28 @@ Self::WorkspaceNotFound(inner) => inner.meta(),
                     }
                 }
             }
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::add_members_to_group::AddMembersToGroupError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::add_members_to_group::AddMembersToGroupError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::add_members_to_group::AddMembersToGroupError> for Error {
+    fn from(err: crate::operation::add_members_to_group::AddMembersToGroupError) -> Self {
+        match err {
+            crate::operation::add_members_to_group::AddMembersToGroupError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::add_members_to_group::AddMembersToGroupError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::add_members_to_group::AddMembersToGroupError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::applicable_variants::ApplicableVariantsError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::applicable_variants::ApplicableVariantsError, R>) -> Self {
         match err {
@@ -207,6 +229,27 @@ impl From<crate::operation::create_experiment::CreateExperimentError> for Error 
         match err {
             crate::operation::create_experiment::CreateExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_experiment::CreateExperimentError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::create_experiment_group::CreateExperimentGroupError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::create_experiment_group::CreateExperimentGroupError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::create_experiment_group::CreateExperimentGroupError> for Error {
+    fn from(err: crate::operation::create_experiment_group::CreateExperimentGroupError) -> Self {
+        match err {
+            crate::operation::create_experiment_group::CreateExperimentGroupError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::create_experiment_group::CreateExperimentGroupError::Unhandled(inner) => Error::Unhandled(inner),
         }
     }
 }
@@ -378,6 +421,28 @@ impl From<crate::operation::delete_dimension::DeleteDimensionError> for Error {
             crate::operation::delete_dimension::DeleteDimensionError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::delete_dimension::DeleteDimensionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_dimension::DeleteDimensionError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::delete_experiment_group::DeleteExperimentGroupError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::delete_experiment_group::DeleteExperimentGroupError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::delete_experiment_group::DeleteExperimentGroupError> for Error {
+    fn from(err: crate::operation::delete_experiment_group::DeleteExperimentGroupError) -> Self {
+        match err {
+            crate::operation::delete_experiment_group::DeleteExperimentGroupError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::delete_experiment_group::DeleteExperimentGroupError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::delete_experiment_group::DeleteExperimentGroupError::Unhandled(inner) => Error::Unhandled(inner),
         }
     }
 }
@@ -572,6 +637,28 @@ impl From<crate::operation::get_experiment::GetExperimentError> for Error {
         match err {
             crate::operation::get_experiment::GetExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::get_experiment::GetExperimentError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_experiment_group::GetExperimentGroupError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_experiment_group::GetExperimentGroupError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::get_experiment_group::GetExperimentGroupError> for Error {
+    fn from(err: crate::operation::get_experiment_group::GetExperimentGroupError) -> Self {
+        match err {
+            crate::operation::get_experiment_group::GetExperimentGroupError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::get_experiment_group::GetExperimentGroupError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::get_experiment_group::GetExperimentGroupError::Unhandled(inner) => Error::Unhandled(inner),
         }
     }
 }
@@ -788,6 +875,27 @@ impl From<crate::operation::list_experiment::ListExperimentError> for Error {
         }
     }
 }
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_experiment_groups::ListExperimentGroupsError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_experiment_groups::ListExperimentGroupsError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::list_experiment_groups::ListExperimentGroupsError> for Error {
+    fn from(err: crate::operation::list_experiment_groups::ListExperimentGroupsError) -> Self {
+        match err {
+            crate::operation::list_experiment_groups::ListExperimentGroupsError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::list_experiment_groups::ListExperimentGroupsError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_function::ListFunctionError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_function::ListFunctionError, R>) -> Self {
         match err {
@@ -979,6 +1087,28 @@ impl From<crate::operation::ramp_experiment::RampExperimentError> for Error {
         }
     }
 }
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::remove_members_from_group::RemoveMembersFromGroupError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::remove_members_from_group::RemoveMembersFromGroupError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::remove_members_from_group::RemoveMembersFromGroupError> for Error {
+    fn from(err: crate::operation::remove_members_from_group::RemoveMembersFromGroupError) -> Self {
+        match err {
+            crate::operation::remove_members_from_group::RemoveMembersFromGroupError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::remove_members_from_group::RemoveMembersFromGroupError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::remove_members_from_group::RemoveMembersFromGroupError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::resume_experiment::ResumeExperimentError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::resume_experiment::ResumeExperimentError, R>) -> Self {
         match err {
@@ -1063,6 +1193,28 @@ impl From<crate::operation::update_dimension::UpdateDimensionError> for Error {
             crate::operation::update_dimension::UpdateDimensionError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::update_dimension::UpdateDimensionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_dimension::UpdateDimensionError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::update_experiment_group::UpdateExperimentGroupError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::update_experiment_group::UpdateExperimentGroupError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::update_experiment_group::UpdateExperimentGroupError> for Error {
+    fn from(err: crate::operation::update_experiment_group::UpdateExperimentGroupError) -> Self {
+        match err {
+            crate::operation::update_experiment_group::UpdateExperimentGroupError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::update_experiment_group::UpdateExperimentGroupError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::update_experiment_group::UpdateExperimentGroupError::Unhandled(inner) => Error::Unhandled(inner),
         }
     }
 }
