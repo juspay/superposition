@@ -14,7 +14,7 @@ cryptography==44.0.1
 distro==1.8.0
 docutils==0.20.1
 Flask==3.0.3
-Flask-Cors==5.0.0
+Flask-Cors==6.0.0
 Flask-Login==0.6.3
 gevent==24.2.1
 geventhttpclient==2.3.1
