@@ -1,24 +1,20 @@
-use std::time::Duration;
-
 use leptos::*;
-use serde_json::{json, Map, Value};
+use serde_json::{json, Value}; // Removed Map
 use strum::EnumProperty;
 use strum_macros::Display;
-use superposition_types::{custom_query::PaginationParams, Config};
-use wasm_bindgen::JsCast;
-use web_sys::{HtmlButtonElement, HtmlSpanElement, MouseEvent};
+use superposition_types::custom_query::PaginationParams; // Removed Config
+                                                         // Removed wasm_bindgen::JsCast;
+use web_sys::MouseEvent; // Removed HtmlButtonElement
 
-use crate::components::condition_pills::Condition as ConditionComponent;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::logic::Conditions;
-use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::{OrganisationId, Tenant};
 use crate::{
     api::{fetch_config, fetch_dimensions, resolve_config},
     components::{
         button::Button, context_form::ContextForm, dropdown::DropdownDirection,
     },
-    utils::{check_url_and_return_val, get_element_by_id},
+    utils::check_url_and_return_val, // Removed get_element_by_id
 };
 
 #[derive(Clone, Debug, Copy, Display, strum_macros::EnumProperty, PartialEq)]
@@ -27,121 +23,8 @@ enum ResolveTab {
     ResolvedConfig,
     // #[strum(props(id = "selected_configs_tab"))]
     // SelectedConfig,
-    #[strum(props(id = "all_configs_tab"))]
-    AllConfig,
-}
-
-fn gen_name_id(s0: &String, s1: &String, s2: &String) -> String {
-    format!("{s0}::{s1}::{s2}")
-}
-
-#[component]
-fn all_context_view(config: Config) -> impl IntoView {
-    let Config {
-        contexts,
-        overrides,
-        default_configs,
-    } = config;
-    let rows = |m: &Map<String, Value>, striked: bool| {
-        m.iter()
-            .map(|(key, value)| {
-                let value = value
-                    .as_str()
-                    .unwrap_or(value.to_string().trim_matches('"'))
-                    .into();
-                let unique_name = gen_name_id(key, key, &value);
-                view! {
-                    <tr>
-                        <td class="min-w-48 max-w-72 font-mono">
-                            <span
-                                name=format!("{unique_name}-1")
-                                class="config-name"
-                                class:text-black=!striked
-                                class:font-bold=!striked
-                                class:text-gray-300=striked
-                            >
-                                {key}
-                            </span>
-                        </td>
-                        <td class="min-w-48 max-w-72 font-mono" style="word-break: break-word;">
-                            <span
-                                name=format!("{unique_name}-2")
-                                class="config-value"
-                                class:text-black=!striked
-                                class:font-bold=!striked
-                                class:text-gray-300=striked
-                            >
-                                {check_url_and_return_val(value)}
-                            </span>
-                        </td>
-                    </tr>
-                }
-            }).collect_view()
-    };
-
-    view! {
-        <div class="flex flex-col w-full gap-y-6 p-6">
-            <ConditionCollapseProvider>
-
-                {contexts
-                    .iter()
-                    .map(|context| {
-                        let rows: Vec<_> = context
-                            .override_with_keys
-                            .iter()
-                            .filter_map(|key| overrides.get(key).map(|o| rows(o, true)))
-                            .collect();
-                        let conditions: Conditions = context.try_into().unwrap_or_default();
-                        view! {
-                            <div class="card bg-base-100 shadow gap-4 p-6">
-                                <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
-                                    "Condition"
-                                </h3>
-                                <div class="pl-5">
-                                    <ConditionComponent
-                                        conditions=conditions
-                                        id=context.id.clone()
-                                        class="xl:w-[400px] h-fit"
-                                    />
-                                    <div class="overflow-auto pt-5">
-                                        <table class="table table-zebra">
-                                            <thead>
-                                                <tr>
-                                                    <th>Key</th>
-                                                    <th>Value</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>{rows}</tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    })
-                    .rev()
-                    .collect::<Vec<_>>()}
-
-            </ConditionCollapseProvider>
-            <div class="card bg-base-100 shadow m-6">
-                <div class="card-body">
-                    <h2 class="card-title">Default Configuration</h2>
-                    <table class="table table-zebra">
-                        <thead>
-                            <tr>
-                                <th>Key</th>
-                                <th>Value</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-
-                            {rows(&default_configs, false)}
-
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    }
+    // #[strum(props(id = "all_configs_tab"))]
+    // AllConfig, // Removed AllConfig
 }
 
 #[component]
@@ -162,7 +45,7 @@ pub fn home() -> impl IntoView {
     );
 
     let (context_rs, context_ws) = create_signal::<Conditions>(Conditions::default());
-    let (selected_tab_rs, selected_tab_ws) = create_signal(ResolveTab::AllConfig);
+    let (selected_tab_rs, selected_tab_ws) = create_signal(ResolveTab::ResolvedConfig); // Default to ResolvedConfig
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
     let fn_environment = create_memo(move |_| {
@@ -173,130 +56,27 @@ pub fn home() -> impl IntoView {
         })
     });
 
-    let unstrike = |search_field_prefix: &String, config: &Map<String, Value>| {
-        for (dimension, value) in config.into_iter() {
-            let search_field_prefix = if search_field_prefix.is_empty() {
-                dimension
-            } else {
-                search_field_prefix
-            };
-            let search_field_prefix = gen_name_id(
-                search_field_prefix,
-                dimension,
-                &value
-                    .as_str()
-                    .unwrap_or(value.to_string().trim_matches('"'))
-                    .to_string(),
-            );
-            logging::log!("search field prefix {:#?}", search_field_prefix);
-            let config_name_elements = document()
-                .get_elements_by_name(format!("{search_field_prefix}-1").as_str());
-            let config_value_elements = document()
-                .get_elements_by_name(format!("{search_field_prefix}-2").as_str());
-            logging::log!("config_name_elements {:#?}", config_name_elements.length());
-            logging::log!(
-                "config_value_elements {:#?}",
-                config_value_elements.length()
-            );
-            for i in 0..config_name_elements.length() {
-                let item_one = config_name_elements.item(i).expect("missing span");
-                let item_two = config_value_elements.item(i).expect("missing span");
-
-                let (config_name_element, config_value_element) = (
-                    item_one.dyn_ref::<HtmlSpanElement>().unwrap(),
-                    item_two.dyn_ref::<HtmlSpanElement>().unwrap(),
-                );
-                let _ = config_name_element
-                    .class_list()
-                    .add_2("text-black", "font-bold");
-                let _ = config_name_element
-                    .class_list()
-                    .remove_2("text-gray-300", "line-through");
-                let _ = config_value_element
-                    .class_list()
-                    .add_2("text-black", "font-bold");
-                let _ = config_value_element
-                    .class_list()
-                    .remove_2("text-gray-300", "line-through");
-                logging::log!(
-                    "config name after replace {} and value {}",
-                    config_name_element.to_string(),
-                    config_value_element.to_string()
-                );
-            }
-        }
-    };
-
     let resolve_click = move |ev: MouseEvent| {
         ev.prevent_default();
         req_inprogress_ws.set(true);
-        // strike out all config elements on the page
-        let config_name_elements = document().get_elements_by_class_name("config-name");
-        let config_value_elements = document().get_elements_by_class_name("config-value");
-        for i in 0..config_name_elements.length() {
-            let (config_name_element, config_value_element) = (
-                config_name_elements.item(i).unwrap(),
-                config_value_elements.item(i).unwrap(),
-            );
-            let _ = config_name_element
-                .class_list()
-                .remove_2("text-black", "font-bold");
-            let _ = config_name_element
-                .class_list()
-                .add_2("text-gray-300", "line-through");
-            let _ = config_value_element
-                .class_list()
-                .remove_2("text-black", "font-bold");
-            let _ = config_value_element
-                .class_list()
-                .add_2("text-gray-300", "line-through");
-        }
         let context_updated = context_rs.get();
         // resolve the context and get the config that would apply
         spawn_local(async move {
             let context = context_updated.as_query_string();
-            let mut config = resolve_config(
+            // Calling resolve_config with 5 arguments as per rustc error
+            let config = resolve_config(
                 &tenant_rws.get_untracked().0,
                 &context,
                 &org_rws.get_untracked().0,
-                true,
-                None,
+                true, // show_reasoning: bool
+                None, // context_id: Option<&String>
             )
             .await
             .unwrap_or_default();
             logging::log!("resolved config {:#?}", config);
-            // unstrike those that we want to show the user
-            // if metadata field is found, unstrike only that override
-            match config.remove("metadata") {
-                Some(Value::Array(metadata)) => {
-                    if metadata.is_empty() {
-                        logging::log!("unstrike default config");
-                        unstrike(&String::new(), &config);
-                    }
-                    for applied in metadata.iter() {
-                        logging::log!("applied config {:#?}", applied);
-                        applied["override"]
-                            .as_array()
-                            .unwrap_or(&vec![])
-                            .iter()
-                            .for_each(|override_id| {
-                                logging::log!("unstrike {:#?}", override_id);
-                                unstrike(
-                                    &override_id.as_str().unwrap().to_string(),
-                                    &config,
-                                )
-                            });
-                    }
-                }
-                _ => {
-                    logging::log!(
-                        "no metadata recieved, default config is the config to be used"
-                    );
-                }
-            }
-            logging::log!("unstrike default config if needed");
-            unstrike(&String::new(), &config);
 
+            // The logic for unstriking elements has been removed as AllContextView is gone.
+            // The selected_tab_rs check is still relevant for updating the correct table.
             if selected_tab_rs.get_untracked() == ResolveTab::ResolvedConfig {
                 let resolution_card = document()
                     .get_element_by_id("resolved_table_body")
@@ -375,55 +155,14 @@ pub fn home() -> impl IntoView {
             <div role="tablist" class="tabs m-6 w-30 self-start tabs-lifted tabs-md">
                 <a
                     role="tab"
-                    id=ResolveTab::AllConfig.get_str("id").expect("ID not defined for Resolve tab")
-                    class=move || match selected_tab_rs.get() {
-                        ResolveTab::AllConfig => {
-                            "tab tab-active [--tab-border-color:#a651f5] text-center"
-                        }
-                        _ => "tab",
-                    }
-
-                    on:click=move |_| {
-                        selected_tab_ws.set(ResolveTab::AllConfig);
-                        set_timeout(
-                            || {
-                                if let Some(btn) = get_element_by_id::<
-                                    HtmlButtonElement,
-                                >("resolve_btn") {
-                                    btn.click()
-                                }
-                            },
-                            Duration::new(1, 0),
-                        );
-                    }
-                >
-
-                    All Contexts
-                </a>
-                <a
-                    role="tab"
                     id=ResolveTab::ResolvedConfig
                         .get_str("id")
                         .expect("ID not defined for Resolve tab")
-                    class=move || match selected_tab_rs.get() {
-                        ResolveTab::ResolvedConfig => {
-                            "tab tab-active [--tab-border-color:orange] text-center"
-                        }
-                        _ => "tab",
-                    }
+                    class="tab tab-active [--tab-border-color:orange] text-center" // Simplified class, always active
 
                     on:click=move |_| {
                         selected_tab_ws.set(ResolveTab::ResolvedConfig);
-                        set_timeout(
-                            || {
-                                if let Some(btn) = get_element_by_id::<
-                                    HtmlButtonElement,
-                                >("resolve_btn") {
-                                    btn.click()
-                                }
-                            },
-                            Duration::new(1, 0),
-                        );
+                        // Removed automatic click on tab select
                     }
                 >
 
@@ -431,52 +170,14 @@ pub fn home() -> impl IntoView {
                 </a>
             </div>
             {move || {
-                selected_tab_rs
-                    .with(|tab| {
-                        match tab {
-                            ResolveTab::AllConfig => {
-                                view! {
-                                    <Suspense fallback=move || {
-                                        view! {
-                                            <div class="m-6">
-                                                <Skeleton variant=SkeletonVariant::Content />
-                                            </div>
-                                        }
-                                    }>
-                                        {config_data
-                                            .with(move |result| {
-                                                match result {
-                                                    Some(Ok(config)) => {
-                                                        vec![
-                                                            view! { <AllContextView config=config.clone() /> }
-                                                                .into_view(),
-                                                        ]
-                                                    }
-                                                    Some(Err(error)) => {
-                                                        vec![
-                                                            view! {
-                                                                <div class="error">
-                                                                    Failed to fetch config data: {error.to_string()}
-                                                                </div>
-                                                            }
-                                                                .into_view(),
-                                                        ]
-                                                    }
-                                                    None => {
-                                                        vec![
-                                                            view! { <div class="error">No config data fetched</div> }
-                                                                .into_view(),
-                                                        ]
-                                                    }
-                                                }
-                                            })}
-
-                                    </Suspense>
-                                }
-                            }
-                            ResolveTab::ResolvedConfig => {
-                                view! {
-                                    <Suspense fallback=move || {
+                // Since AllConfig is removed, this match is simpler.
+                // It will always be ResolveTab::ResolvedConfig.
+                // Consider removing the selected_tab_rs signal and match if this is the only view.
+                // For now, keeping the structure for minimal changes.
+                match selected_tab_rs.get() {
+                    ResolveTab::ResolvedConfig => {
+                        view! {
+                            <Suspense fallback=move || {
                                         view! {
                                             <div class="m-6">
                                                 <Skeleton variant=SkeletonVariant::Content />
@@ -549,7 +250,6 @@ pub fn home() -> impl IntoView {
                                 }
                             }
                         }
-                    })
             }}
 
         </div>
