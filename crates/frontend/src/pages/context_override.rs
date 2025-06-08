@@ -1,3 +1,6 @@
+pub mod filter;
+
+use filter::{ContextFilterDrawer, ContextFilterSummary};
 use futures::join;
 use leptos::*;
 use leptos_router::use_navigate;
@@ -21,6 +24,8 @@ use superposition_types::{
     },
     PaginatedResponse, SortBy,
 };
+use wasm_bindgen::JsCast;
+use web_sys::{Element, Event};
 
 use crate::{
     api::{
@@ -38,14 +43,14 @@ use crate::{
         },
         delete_modal::DeleteModal,
         drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
-        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        dropdown::{Dropdown, DropdownBtnType},
         experiment_form::{ExperimentForm, ExperimentFormType},
         override_form::OverrideForm,
         pagination::Pagination,
         skeleton::{Skeleton, SkeletonVariant},
         stat::Stat,
     },
-    logic::{Condition, Conditions, Expression},
+    logic::Conditions,
     providers::{
         alert_provider::enqueue_alert,
         condition_collapse_provider::ConditionCollapseProvider,
@@ -76,186 +81,6 @@ enum FormMode {
     Clone(String),
     Create,
     Experiment(ExperimentType, String),
-}
-
-#[component]
-fn context_filter_drawer(
-    pagination_params_rws: RwSignal<PaginationParams>,
-    context_filters_rws: RwSignal<ContextListFilters>,
-    dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
-    dimensions: Vec<DimensionWithMandatory>,
-) -> impl IntoView {
-    let filters_buffer_rws = RwSignal::new(context_filters_rws.get_untracked());
-    let dimension_buffer_rws = RwSignal::new(dimension_params_rws.get_untracked());
-    let (context_rs, context_ws) = create_signal(
-        dimension_params_rws
-            .get_untracked()
-            .into_inner()
-            .iter()
-            .map(|(k, v)| Condition {
-                variable: k.clone(),
-                expression: Expression::Is(v.clone()),
-            })
-            .collect::<Conditions>(),
-    );
-
-    let fn_environment = create_memo(move |_| {
-        let context = context_rs.get();
-        json!({
-            "context": context,
-            "overrides": [],
-        })
-    });
-    view! {
-        <Drawer
-            id="context_filter_drawer".to_string()
-            header="Context Filters"
-            drawer_width="w-[50vw]"
-            handle_close=move || close_drawer("context_filter_drawer")
-        >
-            <div class="flex flex-col gap-4">
-                <ContextForm
-                    dimensions
-                    context_rs
-                    context_ws
-                    fn_environment
-                    dropdown_direction=DropdownDirection::Down
-                    resolve_mode=true
-                    handle_change=move |context: Conditions| {
-                        let map = context
-                            .iter()
-                            .filter_map(|condition| {
-                                match condition.expression.clone() {
-                                    Expression::Is(value) => {
-                                        Some((condition.variable.clone(), value))
-                                    }
-                                    _ => None,
-                                }
-                            })
-                            .collect::<Map<_, _>>();
-                        dimension_buffer_rws.set(DimensionQuery::from(map));
-                    }
-                    heading_sub_text="Search By Context".to_string()
-                />
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">{"Key Prefix (Seperate by Comma)"}</span>
-                    </label>
-                    <input
-                        type="text"
-                        id="context-key-prefix"
-                        class="input input-bordered rounded-md resize-y w-full max-w-md"
-                        placeholder="eg: key1,key2"
-                        value=move || {
-                            context_filters_rws.with(|f| f.prefix.clone().map(|d| d.to_string()))
-                        }
-                        on:change=move |event| {
-                            let prefixes = event_target_value(&event);
-                            let prefixes = (!prefixes.is_empty())
-                                .then(|| serde_json::from_value(Value::String(prefixes)).ok())
-                                .flatten();
-                            filters_buffer_rws.update(|filter| filter.prefix = prefixes);
-                        }
-                    />
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">{"Created By (Seperate by Comma)"}</span>
-                    </label>
-                    <input
-                        type="text"
-                        id="context-creator-filter"
-                        class="input input-bordered rounded-md resize-y w-full max-w-md"
-                        placeholder="eg: user@superposition.io"
-                        value=move || {
-                            context_filters_rws
-                                .with(|f| f.created_by.clone().map(|d| d.to_string()))
-                        }
-                        on:change=move |event| {
-                            let user_names = event_target_value(&event);
-                            let user_names = (!user_names.is_empty())
-                                .then(|| serde_json::from_value(Value::String(user_names)).ok())
-                                .flatten();
-                            filters_buffer_rws.update(|filter| filter.created_by = user_names);
-                        }
-                    />
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">{"Last Modified By (Seperate by Comma)"}</span>
-                    </label>
-                    <input
-                        type="text"
-                        id="context-modifier-filter"
-                        class="input input-bordered rounded-md resize-y w-full max-w-md"
-                        placeholder="eg: user@superposition.io"
-                        value=move || {
-                            context_filters_rws
-                                .with(|f| f.last_modified_by.clone().map(|d| d.to_string()))
-                        }
-                        on:change=move |event| {
-                            let user_names = event_target_value(&event);
-                            let user_names = (!user_names.is_empty())
-                                .then(|| serde_json::from_value(Value::String(user_names)).ok())
-                                .flatten();
-                            filters_buffer_rws
-                                .update(|filter| filter.last_modified_by = user_names);
-                        }
-                    />
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">{"Override (Plaintext search)"}</span>
-                    </label>
-                    {move || {
-                        view! {
-                            <textarea
-                                id="context-plaintext-filter"
-                                placeholder="Search overrides with plaintext"
-                                class="textarea textarea-bordered w-full max-w-md"
-                                on:change=move |event| {
-                                    let plaintext = event_target_value(&event);
-                                    let plaintext = (!plaintext.is_empty()).then_some(plaintext);
-                                    filters_buffer_rws
-                                        .update(|filter| filter.plaintext = plaintext);
-                                }
-                            >
-                                {context_filters_rws
-                                    .with(|f| f.plaintext.clone())
-                                    .unwrap_or_default()}
-                            </textarea>
-                        }
-                    }}
-                </div>
-                <div class="flex justify-end">
-                    <Button
-                        class="h-12 w-48".to_string()
-                        text="Submit".to_string()
-                        on_click=move |event| {
-                            event.prevent_default();
-                            context_filters_rws.set(filters_buffer_rws.get());
-                            dimension_params_rws.set(dimension_buffer_rws.get());
-                            pagination_params_rws.update(|f| f.reset_page());
-                            close_drawer("context_filter_drawer")
-                        }
-                    />
-                    <Button
-                        class="h-12 w-48".to_string()
-                        text="Reset".to_string()
-                        icon_class="ri-restart-line".into()
-                        on_click=move |event| {
-                            event.prevent_default();
-                            context_filters_rws.set(ContextListFilters::default());
-                            dimension_params_rws.set(DimensionQuery::default());
-                            pagination_params_rws.update(|f| f.reset_page());
-                            close_drawer("context_filter_drawer")
-                        }
-                    />
-
-                </div>
-            </div>
-        </Drawer>
-    }
 }
 
 #[component]
@@ -549,6 +374,7 @@ pub fn context_override() -> impl IntoView {
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
     let (delete_modal, set_delete_modal) = create_signal(false);
     let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
+    let scrolled_to_top_rws = RwSignal::new(false);
 
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
@@ -724,10 +550,31 @@ pub fn context_override() -> impl IntoView {
         context_filters_rws.update(|filters| filters.sort_by = Some(sort_by));
     });
 
+    let filter_node_ref = create_node_ref::<html::Div>();
+    let on_scroll = move |ev: Event| {
+        let filter_element_top = filter_node_ref.get().map(|ele| {
+            let element: &Element = (**ele).unchecked_ref();
+            element.get_bounding_client_rect().top()
+        });
+
+        let scroll_element_top = ev
+            .target()
+            .and_then(|e| e.dyn_into::<Element>().ok())
+            .map(|e| e.get_bounding_client_rect().top());
+
+        if let Some(scroll_top) = scroll_element_top {
+            scrolled_to_top_rws.set(
+                filter_element_top
+                    .map(|p| p <= scroll_top)
+                    .unwrap_or_default(),
+            );
+        }
+    };
+
     view! {
         <Suspense fallback=move || view! { <Skeleton /> }>
-            <div class="h-screen p-8 flex flex-col gap-8">
-                <div class="flex flex-col gap-6 flex-1 overflow-y-scroll">
+            <div class="relative h-screen p-8 flex flex-col gap-8">
+                <div class="flex flex-col gap-6 flex-1 overflow-y-scroll" on:scroll=on_scroll>
                     <div class="flex justify-between">
                         {move || {
                             let total_items = page_resource
@@ -796,6 +643,12 @@ pub fn context_override() -> impl IntoView {
                             }
                         }}
                     </div>
+                    <ContextFilterSummary
+                        context_filters_rws
+                        dimension_params_rws
+                        scrolled_to_top=scrolled_to_top_rws
+                        filter_node_ref
+                    />
                     {move || {
                         match page_resource.get().map(|v| v.contexts) {
                             Some(contexts) => {
