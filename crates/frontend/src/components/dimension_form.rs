@@ -341,8 +341,12 @@ where
             <Suspense>
                 {move || {
                     let mut functions = functions_resource.get().unwrap_or_default();
-                    let mut validation_function_names: Vec<FunctionsName> = vec!["None".to_string()];
-                    let mut autocomplete_function_names: Vec<FunctionsName> = vec!["None".to_string()];
+                    let mut validation_function_names: Vec<FunctionsName> = vec![
+                        "None".to_string(),
+                    ];
+                    let mut autocomplete_function_names: Vec<FunctionsName> = vec![
+                        "None".to_string(),
+                    ];
                     functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
                     functions
                         .iter()
