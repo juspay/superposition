@@ -300,7 +300,6 @@ pub fn default_config() -> impl IntoView {
             <Suspense fallback=move || {
                 view! { <Skeleton /> }
             }>
-
                 {move || {
                     let prefix = key_prefix.get();
                     if let Some(selected_config_data) = selected_config.get() {
@@ -316,8 +315,10 @@ pub fn default_config() -> impl IntoView {
                                     config_value=selected_config_data.value
                                     type_schema=selected_config_data.schema
                                     description=selected_config_data.description
-                                    validation_function_name=selected_config_data.validation_function_name
-                                    autocomplete_function_name=selected_config_data.autocomplete_function_name
+                                    validation_function_name=selected_config_data
+                                        .validation_function_name
+                                    autocomplete_function_name=selected_config_data
+                                        .autocomplete_function_name
                                     prefix
                                     handle_submit=move || {
                                         default_config_resource.refetch();

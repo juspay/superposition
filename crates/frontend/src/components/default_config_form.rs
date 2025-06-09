@@ -358,10 +358,15 @@ where
                 <Suspense>
                     {move || {
                         let mut functions = validation_functions_resource.get().unwrap_or_default();
-                        let mut validation_function_names: Vec<FunctionsName> = vec!["None".to_string()];
-                        let mut autocomplete_function_names: Vec<FunctionsName> = vec!["None".to_string()];
+                        let mut validation_function_names: Vec<FunctionsName> = vec![
+                            "None".to_string(),
+                        ];
+                        let mut autocomplete_function_names: Vec<FunctionsName> = vec![
+                            "None".to_string(),
+                        ];
                         functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
-                        functions.iter()
+                        functions
+                            .iter()
                             .for_each(|ele| {
                                 if ele.function_type == FunctionType::Validation {
                                     validation_function_names.push(ele.function_name.clone());
