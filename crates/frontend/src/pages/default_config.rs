@@ -312,7 +312,6 @@ pub fn default_config() -> impl IntoView {
                                             handle_close();
                                         }
                                     />
-
                                 </Drawer>
                             }
                         }
