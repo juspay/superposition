@@ -1,4 +1,7 @@
 pub mod filter;
+pub mod utils;
+
+use std::ops::Deref;
 
 use filter::{ContextFilterDrawer, ContextFilterSummary};
 use futures::join;
@@ -10,7 +13,7 @@ use strum::IntoEnumIterator;
 use superposition_macros::box_params;
 use superposition_types::{
     api::{
-        context::{ContextListFilters, SortOn},
+        context::{ContextListFilters, SortOn, UpdateRequest},
         default_config::DefaultConfigFilters,
         workspace::WorkspaceResponse,
     },
@@ -24,6 +27,7 @@ use superposition_types::{
     },
     PaginatedResponse, SortBy,
 };
+use utils::{create_context, try_update_context_payload, update_context};
 use wasm_bindgen::JsCast;
 use web_sys::{Element, Event};
 
@@ -36,12 +40,9 @@ use crate::{
         alert::AlertType,
         button::Button,
         change_form::ChangeForm,
+        change_summary::{ChangeLogPopup, ChangeSummary},
         context_card::ContextCard,
-        context_form::{
-            utils::{create_context, update_context},
-            ContextForm,
-        },
-        delete_modal::DeleteModal,
+        context_form::ContextForm,
         drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
         dropdown::{Dropdown, DropdownBtnType},
         experiment_form::{ExperimentForm, ExperimentFormType},
@@ -104,6 +105,7 @@ fn form(
 
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
+    let update_request_rws = RwSignal::new(None);
 
     let fn_environment = create_memo(move |_| {
         let context = context_rs.get();
@@ -114,22 +116,34 @@ fn form(
         })
     });
 
-    let on_submit = move |_| {
+    let on_submit = move || {
         req_inprogress_ws.set(true);
         spawn_local(async move {
             let f_overrides = overrides_rs.get_untracked();
-            let result = if let Some(context_id) = edit_id.get_value() {
-                update_context(
+            let result = match (edit_id.get_value(), update_request_rws.get_untracked()) {
+                (Some(_), Some((_, payload))) => update_context(
+                    payload,
                     workspace.get_untracked().0,
-                    context_id,
-                    Map::from_iter(f_overrides),
-                    description_rs.get_untracked(),
-                    change_reason_rs.get_untracked(),
                     org.get_untracked().0,
                 )
                 .await
-            } else {
-                create_context(
+                .map(|_| ResponseType::Response),
+                (Some(context_id), None) => {
+                    let request_payload = try_update_context_payload(
+                        context_id.clone(),
+                        Map::from_iter(f_overrides),
+                        description_rs.get_untracked(),
+                        change_reason_rs.get_untracked(),
+                    );
+                    match request_payload {
+                        Ok(payload) => {
+                            update_request_rws.set(Some((context_id, payload)));
+                            Ok(ResponseType::UpdatePrecheck)
+                        }
+                        Err(e) => Err(e),
+                    }
+                }
+                _ => create_context(
                     workspace.get_untracked().0,
                     Map::from_iter(f_overrides),
                     context_rs.get_untracked(),
@@ -138,13 +152,15 @@ fn form(
                     org.get_untracked().0,
                 )
                 .await
+                .map(|_| ResponseType::Response),
             };
 
             let edit = edit_id.get_value().is_some();
 
             req_inprogress_ws.set(false);
             match result {
-                Ok(_) => {
+                Ok(ResponseType::UpdatePrecheck) => (),
+                Ok(ResponseType::Response) => {
                     logging::log!("Context and overrides submitted successfully");
                     handle_submit.call(edit);
                     let success_message = if edit {
@@ -165,6 +181,7 @@ fn form(
             }
         });
     };
+
     view! {
         <div class="flex flex-col gap-5">
             <ContextForm
@@ -204,12 +221,25 @@ fn form(
                         class="self-end h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=on_submit
+                        on_click=move |_| on_submit()
                         loading
                     />
                 }
             }}
         </div>
+        {move || match update_request_rws.get() {
+            None => ().into_view(),
+            Some((context_id, update_request)) => {
+                view! {
+                    <ChangeLogSummary
+                        context_id
+                        change_type=ChangeType::Update(update_request)
+                        on_confirm=move |_| on_submit()
+                        on_close=move |_| update_request_rws.set(None)
+                    />
+                }
+            }
+        }}
     }
 }
 
@@ -220,7 +250,7 @@ fn use_context_data(
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
-    create_blocking_resource(
+    create_local_resource(
         move || (workspace.get().0, org.get().0, context_id.clone()),
         |(tenant, org, context_id)| async move {
             get_context(&context_id, &tenant, &org)
@@ -359,8 +389,6 @@ pub fn context_override() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
-    let (delete_modal, set_delete_modal) = create_signal(false);
-    let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
     let scrolled_to_top_rws = RwSignal::new(false);
 
     let pagination_params_rws = use_signal_from_query(move |query_string| {
@@ -496,33 +524,30 @@ pub fn context_override() -> impl IntoView {
     };
 
     let on_context_delete = move |context_id| {
-        set_delete_id.set(Some(context_id));
-        set_delete_modal.set(true);
+        set_form_mode.set(Some(FormMode::Delete(context_id)));
     };
 
     let handle_page_change = move |page: i64| {
         pagination_params_rws.update(|f| f.page = Some(page));
     };
 
-    let on_delete_confirm = Callback::new(move |_| {
-        if let Some(id) = delete_id.get().clone() {
-            spawn_local(async move {
-                let result = delete_context(workspace.get().0, id, org.get().0).await;
+    let on_delete_confirm = move |context_id| {
+        spawn_local(async move {
+            let result =
+                delete_context(workspace.get().0, context_id, org_rws.get().0).await;
 
-                match result {
-                    Ok(_) => {
-                        logging::log!("Context and overrides deleted successfully");
-                        page_resource.refetch();
-                    }
-                    Err(e) => {
-                        logging::log!("Error deleting context and overrides: {:?}", e);
-                    }
+            match result {
+                Ok(_) => {
+                    set_form_mode.set(None);
+                    logging::log!("Context and overrides deleted successfully");
+                    page_resource.refetch();
                 }
-            });
-        }
-        set_delete_id.set(None);
-        set_delete_modal.set(false);
-    });
+                Err(e) => {
+                    logging::log!("Error deleting context and overrides: {:?}", e);
+                }
+            }
+        });
+    };
 
     let on_sort_on_select = Callback::new(move |sort_on: SortOn| {
         context_filters_rws.update(|filters| filters.sort_on = Some(sort_on));
@@ -693,6 +718,17 @@ pub fn context_override() -> impl IntoView {
                 let PageResource { dimensions, default_config, .. } = page_resource
                     .get()
                     .unwrap_or_default();
+                if let Some(FormMode::Delete(context_id)) = form_mode.get() {
+                    return view! {
+                        <ChangeLogSummary
+                            context_id=context_id.clone()
+                            change_type=ChangeType::Delete
+                            on_confirm=move |_| on_delete_confirm(context_id.clone())
+                            on_close=move |_| set_form_mode.set(None)
+                        />
+                    }
+                        .into_view();
+                }
                 let drawer_header = match form_mode.get() {
                     Some(FormMode::Edit(_)) => "Update Overrides",
                     Some(FormMode::Create) | Some(FormMode::Clone(_)) => "Create Overrides",
@@ -702,7 +738,7 @@ pub fn context_override() -> impl IntoView {
                     Some(FormMode::Experiment(ExperimentType::DeleteOverrides, _)) => {
                         "Delete Override via Experiment"
                     }
-                    None => "",
+                    Some(FormMode::Delete(_)) | None => "",
                 };
                 view! {
                     <Drawer
@@ -762,7 +798,7 @@ pub fn context_override() -> impl IntoView {
                                     }
                                         .into_view()
                                 }
-                                None => ().into_view(),
+                                Some(FormMode::Delete(_)) | None => ().into_view(),
                             }}
                         </EditorProvider>
                     </Drawer>
@@ -778,13 +814,111 @@ pub fn context_override() -> impl IntoView {
                     />
                 }
             }}
-            <DeleteModal
-                modal_visible=delete_modal
-                confirm_delete=on_delete_confirm
-                set_modal_visible=set_delete_modal
-                header_text="Are you sure you want to delete this context? Action is irreversible."
-                    .to_string()
-            />
         </Suspense>
+    }
+}
+
+#[derive(Clone)]
+enum ChangeType {
+    Delete,
+    Update(UpdateRequest),
+}
+
+#[component]
+fn change_log_summary(
+    context_id: String,
+    change_type: ChangeType,
+    #[prop(into)] on_confirm: Callback<()>,
+    #[prop(into)] on_close: Callback<()>,
+) -> impl IntoView {
+    let context_data = use_context_data(context_id.clone());
+
+    let disabled_rws = RwSignal::new(true);
+    let change_type = StoredValue::new(change_type);
+
+    let (title, description, confirm_text) = match change_type.get_value() {
+        ChangeType::Update(_) => (
+            "Confirm Update",
+            "Are you sure you want to update this context?",
+            "Yes, Update",
+        ),
+        ChangeType::Delete => (
+            "Confirm Delete",
+            "Are you sure you want to delete this context? Action is irreversible.",
+            "Yes, Delete",
+        ),
+    };
+
+    view! {
+        <ChangeLogPopup
+            title
+            description
+            confirm_text
+            on_confirm
+            on_close
+            disabled=disabled_rws.read_only()
+        >
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
+            }>
+                {
+                    Effect::new(move |_| {
+                        if let Some(Ok(_)) = context_data.get() {
+                            disabled_rws.set(false);
+                        } else if let Some(Err(e)) = context_data.get() {
+                            logging::error!("Error fetching context: {}", e);
+                        }
+                    });
+                }
+                {move || match context_data.get() {
+                    Some(Ok((context, _))) => {
+                        let (new_overrides, title, description) = match change_type.get_value() {
+                            ChangeType::Update(update_request) => {
+                                (
+                                    update_request.override_.clone().into_inner().into(),
+                                    "Override changes",
+                                    update_request
+                                        .description
+                                        .as_ref()
+                                        .map(|d| d.deref().to_string())
+                                        .unwrap_or_else(|| context.description.clone()),
+                                )
+                            }
+                            ChangeType::Delete => {
+                                (Map::new(), "Overrides to be deleted", context.description.clone())
+                            }
+                        };
+                        view! {
+                            <ChangeSummary
+                                title
+                                old_values=context.override_.clone().into()
+                                new_values=new_overrides
+                            />
+                            <ChangeSummary
+                                title="Other changes"
+                                key_column="Property"
+                                old_values=Map::from_iter(
+                                    vec![
+                                        (
+                                            "Description".to_string(),
+                                            Value::String(context.description.clone()),
+                                        ),
+                                    ],
+                                )
+                                new_values=Map::from_iter(
+                                    vec![("Description".to_string(), Value::String(description))],
+                                )
+                            />
+                        }
+                            .into_view()
+                    }
+                    Some(Err(e)) => {
+                        logging::error!("Error fetching context: {}", e);
+                        view! { <div>Error fetching context</div> }.into_view()
+                    }
+                    None => view! { <div>Loading...</div> }.into_view(),
+                }}
+            </Suspense>
+        </ChangeLogPopup>
     }
 }

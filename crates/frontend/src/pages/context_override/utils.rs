@@ -50,22 +50,27 @@ pub async fn create_context(
     parse_json_response(response).await
 }
 
-pub async fn update_context(
-    tenant: String,
+pub fn try_update_context_payload(
     context_id: String,
     overrides: Map<String, Value>,
     description: String,
     change_reason: String,
+) -> Result<UpdateRequest, String> {
+    Ok(UpdateRequest {
+        context: Identifier::Id(context_id),
+        override_: Cac::<Overrides>::try_from(overrides)?,
+        description: Some(Description::try_from(description)?),
+        change_reason: ChangeReason::try_from(change_reason)?,
+    })
+}
+
+pub async fn update_context(
+    request_payload: UpdateRequest,
+    tenant: String,
     org_id: String,
 ) -> Result<Value, String> {
     let host = get_host();
     let url = format!("{host}/context/overrides");
-    let request_payload = UpdateRequest {
-        context: Identifier::Id(context_id),
-        override_: Cac::<Overrides>::try_from(overrides)?,
-        description: Description::try_from(description).map(Some)?,
-        change_reason: ChangeReason::try_from(change_reason)?,
-    };
     let response = request(
         url,
         reqwest::Method::PUT,
