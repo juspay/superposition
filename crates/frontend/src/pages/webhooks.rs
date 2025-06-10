@@ -10,7 +10,6 @@ use crate::{
     api::{delete_webhooks, fetch_webhooks},
     components::{
         badge::Badge,
-        delete_modal::DeleteModal,
         description_icon::InfoDescription,
         drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
         skeleton::Skeleton,
@@ -22,7 +21,7 @@ use crate::{
             },
             Table,
         },
-        webhook_form::WebhookForm,
+        webhook_form::{ChangeLogSummary, ChangeType, WebhookForm},
     },
     query_updater::{use_param_updater, use_signal_from_query},
     types::{OrganisationId, Tenant},
@@ -44,7 +43,6 @@ pub struct RowData {
 pub fn webhooks() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
@@ -78,7 +76,6 @@ pub fn webhooks() -> impl IntoView {
             });
         }
         delete_id_ws.set(None);
-        delete_modal_visible_ws.set(false);
     });
     let handle_page_change = Callback::new(move |page: i64| {
         pagination_params_rws.update(|f| f.page = Some(page));
@@ -88,20 +85,22 @@ pub fn webhooks() -> impl IntoView {
 
     let table_columns = create_memo(move |_| {
         let action_col_formatter = move |_: &str, row: &Map<String, Value>| {
-            let row_name = row["name"].to_string().replace('"', "");
+            let row_name = row["name"].as_str().map(String::from).unwrap_or_default();
 
-            let row_description = row["description"].to_string().replace('"', "");
+            let row_description = row["description"]
+                .as_str()
+                .map(String::from)
+                .unwrap_or_default();
 
-            let enabled = row["enabled"].as_bool().unwrap_or(false);
+            let enabled = row["enabled"].as_bool().unwrap_or_default();
 
-            let url = row["url"].to_string().replace('"', "");
+            let url = row["url"].as_str().map(String::from).unwrap_or_default();
 
-            let method = row["method"].to_string().replace('"', "");
-            let method = serde_json::from_str::<HttpMethod>(&method).unwrap_or_default();
+            let method = serde_json::from_value::<HttpMethod>(row["method"].clone())
+                .unwrap_or_default();
 
-            let payload_version = row["payload_version"].to_string().replace('"', "");
             let payload_version =
-                serde_json::from_str::<PayloadVersion>(&payload_version)
+                serde_json::from_value::<PayloadVersion>(row["payload_version"].clone())
                     .unwrap_or_default();
 
             let custom_headers = row
@@ -116,7 +115,7 @@ pub fn webhooks() -> impl IntoView {
                 .unwrap_or(&vec![])
                 .iter()
                 .filter_map(|event| {
-                    serde_json::from_str::<WebhookEvent>(&event.to_string()).ok()
+                    serde_json::from_value::<WebhookEvent>(event.clone()).ok()
                 })
                 .collect::<Vec<WebhookEvent>>();
 
@@ -138,10 +137,9 @@ pub fn webhooks() -> impl IntoView {
                 open_drawer("webhook_drawer");
             };
 
-            let handle_webhook_delete = move |_| {
-                delete_id_ws.set(Some(webhook_name.clone()));
-                delete_modal_visible_ws.set(true);
-            };
+            let handle_webhook_delete =
+                move |_| delete_id_ws.set(Some(webhook_name.clone()));
+
             view! {
                 <div class="join">
                     <span class="cursor-pointer" on:click=edit_click_handler>
@@ -249,7 +247,7 @@ pub fn webhooks() -> impl IntoView {
                                     payload_version=selected_webhook_data.payload_version
                                     custom_headers=selected_webhook_data.custom_headers
                                     events=selected_webhook_data.events
-                                    handle_submit=move || {
+                                    handle_submit=move |_| {
                                         webhooks_resource.refetch();
                                         selected_webhook.set(None);
                                         close_drawer("webhook_drawer");
@@ -265,7 +263,7 @@ pub fn webhooks() -> impl IntoView {
                                 header="Create New Webhook"
                                 handle_close=handle_close
                             >
-                                <WebhookForm handle_submit=move || {
+                                <WebhookForm handle_submit=move |_| {
                                     pagination_params_rws.update(|f| f.reset_page());
                                     webhooks_resource.refetch();
                                     selected_webhook.set(None);
@@ -321,13 +319,20 @@ pub fn webhooks() -> impl IntoView {
                         </div>
                     }
                 }}
-                <DeleteModal
-                    modal_visible=delete_modal_visible_rs
-                    confirm_delete=confirm_delete
-                    set_modal_visible=delete_modal_visible_ws
-                    header_text="Are you sure you want to delete this Webhook? Action is irreversible."
-                        .to_string()
-                />
+                {move || {
+                    if let Some(webhook_name) = delete_id_rs.get() {
+                        view! {
+                            <ChangeLogSummary
+                                webhook_name
+                                change_type=ChangeType::Delete
+                                on_close=move |_| delete_id_ws.set(None)
+                                on_confirm=confirm_delete
+                            />
+                        }
+                    } else {
+                        ().into_view()
+                    }
+                }}
             </Suspense>
         </div>
     }

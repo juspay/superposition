@@ -429,30 +429,12 @@ pub async fn create_webhook(
     parse_json_response(response).await
 }
 
-#[allow(clippy::too_many_arguments)]
 pub async fn update_webhook(
     webhook_name: String,
-    enabled: bool,
-    url: String,
-    method: HttpMethod,
-    payload_version: PayloadVersion,
-    custom_headers: CustomHeaders,
-    events: Vec<WebhookEvent>,
-    description: String,
-    change_reason: String,
+    payload: UpdateWebhookRequest,
     tenant: String,
     org_id: String,
 ) -> Result<Webhook, String> {
-    let payload = UpdateWebhookRequest {
-        enabled: Some(enabled),
-        url: Some(NonEmptyString::try_from(url)?),
-        method: Some(method),
-        payload_version: Some(payload_version),
-        custom_headers: Some(custom_headers),
-        events: Some(events),
-        description: Some(Description::try_from(description)?),
-        change_reason: ChangeReason::try_from(change_reason)?,
-    };
     let host = get_host();
     let url = format!("{host}/webhook/{webhook_name}");
 
@@ -708,6 +690,25 @@ pub async fn get_type_template(
 ) -> Result<TypeTemplate, String> {
     let host = use_host_server();
     let url = format!("{host}/types/{name}");
+
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<serde_json::Value>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
+
+pub async fn get_webhook(
+    name: &str,
+    tenant: &str,
+    org_id: &str,
+) -> Result<Webhook, String> {
+    let host = use_host_server();
+    let url = format!("{host}/webhook/{name}");
 
     let response = request(
         url,
