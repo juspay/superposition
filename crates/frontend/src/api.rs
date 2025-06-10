@@ -701,6 +701,25 @@ pub async fn get_dimension(
     parse_json_response(response).await
 }
 
+pub async fn get_type_template(
+    name: &str,
+    tenant: &str,
+    org_id: &str,
+) -> Result<TypeTemplate, String> {
+    let host = use_host_server();
+    let url = format!("{host}/types/{name}");
+
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<serde_json::Value>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
+
 pub mod experiment_groups {
     use super::*;
 

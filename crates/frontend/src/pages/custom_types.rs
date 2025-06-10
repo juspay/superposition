@@ -7,9 +7,9 @@ use crate::components::table::types::{
     default_column_formatter, ColumnSortable, Expandable,
 };
 use crate::components::type_template_form::utils::delete_type;
+use crate::components::type_template_form::{ChangeLogSummary, ChangeType};
 use crate::components::{
     alert::AlertType,
-    delete_modal::DeleteModal,
     description_icon::InfoDescription,
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
     skeleton::Skeleton,
@@ -50,16 +50,14 @@ pub fn types_page() -> impl IntoView {
         },
     );
 
-    let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
-    let (delete_row_rs, delete_row_ws) = create_signal::<Option<TypeTemplateRow>>(None);
+    let (delete_type_rs, delete_type_ws) = create_signal(None);
 
-    let confirm_delete = Callback::new(move |_| {
-        if let Some(row_data) = delete_row_rs.get().clone() {
+    let confirm_delete = move |_| {
+        if let Some(type_name) = delete_type_rs.get().clone() {
             spawn_local(async move {
                 let tenant = workspace.get().0;
                 let org = org.get().0;
-                let api_response =
-                    delete_type(tenant, row_data.clone().type_name, org).await;
+                let api_response = delete_type(tenant, type_name, org).await;
                 match api_response {
                     Ok(_) => {
                         enqueue_alert(
@@ -74,9 +72,8 @@ pub fn types_page() -> impl IntoView {
                 types_resource.refetch();
             });
         }
-        delete_row_ws.set(None);
-        delete_modal_visible_ws.set(false);
-    });
+        delete_type_ws.set(None);
+    };
 
     let expand = move |type_name: &str, row: &Map<String, Value>| {
         let description = row
@@ -133,8 +130,7 @@ pub fn types_page() -> impl IntoView {
                             delete_row_json.clone(),
                         )
                         .unwrap();
-                        delete_row_ws.set(Some(row_data));
-                        delete_modal_visible_ws.set(true);
+                        delete_type_ws.set(Some(row_data.type_name));
                     };
                     view! {
                         <div class="join">
@@ -169,7 +165,7 @@ pub fn types_page() -> impl IntoView {
                             edit=true
                             type_name=selected_type_data.type_name
                             type_schema=selected_type_data.type_schema
-                            handle_submit=move || {
+                            handle_submit=move |_| {
                                 types_resource.refetch();
                                 selected_type.set(None);
                                 close_drawer(TYPE_DRAWER_ID);
@@ -186,7 +182,7 @@ pub fn types_page() -> impl IntoView {
                         header="Create New Type Template"
                         handle_close=handle_close
                     >
-                        <TypeTemplateForm handle_submit=move || {
+                        <TypeTemplateForm handle_submit=move |_| {
                             types_resource.refetch();
                             selected_type.set(None);
                             close_drawer(TYPE_DRAWER_ID);
@@ -249,15 +245,22 @@ pub fn types_page() -> impl IntoView {
                             </div>
                         }
                     }}
-                    <DeleteModal
-                        modal_visible=delete_modal_visible_rs
-                        confirm_delete=confirm_delete
-                        set_modal_visible=delete_modal_visible_ws
-                        header_text="Are you sure you want to delete this type template? Action is irreversible."
-                            .to_string()
-                    />
-
                 </div>
+
+                {move || {
+                    if let Some(type_name) = delete_type_rs.get() {
+                        view! {
+                            <ChangeLogSummary
+                                type_name
+                                change_type=ChangeType::Delete
+                                on_close=move |_| delete_type_ws.set(None)
+                                on_confirm=confirm_delete
+                            />
+                        }
+                    } else {
+                        ().into_view()
+                    }
+                }}
             </Suspense>
         </div>
     }

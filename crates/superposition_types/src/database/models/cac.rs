@@ -225,8 +225,8 @@ pub struct TypeTemplate {
     pub created_at: DateTime<Utc>,
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
-    pub description: String,
-    pub change_reason: String,
+    pub description: Description,
+    pub change_reason: ChangeReason,
 }
 
 #[derive(
