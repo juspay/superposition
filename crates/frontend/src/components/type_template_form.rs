@@ -5,7 +5,7 @@ use std::ops::Deref;
 use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::api::type_templates::TypeTemplateUpdateRequest;
-use utils::try_update_paylaod;
+use utils::try_update_payload;
 
 use crate::api::get_type_template;
 use crate::components::change_summary::{
@@ -70,7 +70,7 @@ pub fn type_template_form(
                     }
                     (true, None) => {
                         let update_payload =
-                            try_update_paylaod(type_schema, description, change_reason);
+                            try_update_payload(type_schema, description, change_reason);
                         match update_payload {
                             Ok(payload) => {
                                 update_request_rws.set(Some((type_name, payload)));
@@ -256,7 +256,7 @@ pub fn change_log_summary(
                         if let Some(Ok(_)) = type_template.get() {
                             disabled_rws.set(false);
                         } else if let Some(Err(e)) = type_template.get() {
-                            logging::error!("Error fetching dimension: {}", e);
+                            logging::error!("Error fetching type template: {}", e);
                         }
                     });
                 }

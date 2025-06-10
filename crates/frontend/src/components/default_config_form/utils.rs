@@ -46,7 +46,7 @@ pub async fn create_default_config(
     parse_json_response(response).await
 }
 
-pub fn try_update_paylaod(
+pub fn try_update_payload(
     value: Value,
     schema: Value,
     function_name: Option<String>,

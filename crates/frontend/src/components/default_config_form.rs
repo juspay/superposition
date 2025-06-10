@@ -9,7 +9,7 @@ use superposition_types::{
     custom_query::PaginationParams,
     database::models::cac::{Function, FunctionType, TypeTemplate},
 };
-use utils::try_update_paylaod;
+use utils::try_update_payload;
 use wasm_bindgen::JsCast;
 
 use crate::{
@@ -144,7 +144,7 @@ pub fn default_config_form(
                 .await
                 .map(|_| ResponseType::Response),
                 (true, None) => {
-                    let request_payload = try_update_paylaod(
+                    let request_payload = try_update_payload(
                         f_value,
                         f_schema,
                         fun_name,
@@ -553,7 +553,7 @@ pub fn change_log_summary(
                 }
                 {move || match default_config.get() {
                     Some(Ok(default)) => {
-                        let (new_default_value, new_sceham, new_values) = match change_type.get_value() {
+                        let (new_default_value, new_schema, new_values) = match change_type.get_value() {
                             ChangeType::Update(update_request) => {
                                 let description = update_request
                                     .description
@@ -608,7 +608,7 @@ pub fn change_log_summary(
                             <JsonChangeSummary
                                 title="Schema changes"
                                 old_values=Some(default.schema)
-                                new_values=new_sceham
+                                new_values=new_schema
                             />
                             <ChangeSummary
                                 title="Other changes"

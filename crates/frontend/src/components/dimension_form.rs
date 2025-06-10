@@ -147,10 +147,8 @@ pub fn dimension_form(
         let autocomplete_fn_name = autocomplete_fn_name_rs.get_untracked();
         let function_schema = dimension_schema_rs.get_untracked();
         let dependencies = dependencies_rs.get_untracked();
-        let handle_submit_clone = handle_submit.clone();
 
         spawn_local({
-            let handle_submit = handle_submit_clone;
             async move {
                 let result = match (edit, update_request_rws.get_untracked()) {
                     (true, Some((_, update_payload))) => update_dimension(
@@ -509,7 +507,7 @@ pub fn change_log_summary(
                 }
                 {move || match dimension.get() {
                     Some(Ok(dim)) => {
-                        let (new_sceham, new_values) = match change_type.get_value() {
+                        let (new_schema, new_values) = match change_type.get_value() {
                             ChangeType::Update(update_request) => {
                                 let description = update_request
                                     .description
@@ -575,7 +573,7 @@ pub fn change_log_summary(
                             <JsonChangeSummary
                                 title="Schema changes"
                                 old_values=Some(dim.schema)
-                                new_values=new_sceham
+                                new_values=new_schema
                             />
                             <ChangeSummary
                                 title="Other changes"
