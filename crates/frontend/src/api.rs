@@ -679,3 +679,22 @@ pub async fn get_default_config(
 
     parse_json_response(response).await
 }
+
+pub async fn get_dimension(
+    name: &str,
+    tenant: &str,
+    org_id: &str,
+) -> Result<DimensionWithMandatory, String> {
+    let host = use_host_server();
+    let url = format!("{host}/dimension/{name}");
+
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<serde_json::Value>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
