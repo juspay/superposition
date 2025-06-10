@@ -176,6 +176,10 @@ pub fn webhook_form(
         });
     };
 
+    let http_methods = HttpMethod::iter().collect::<Vec<HttpMethod>>();
+    let payload_versions = PayloadVersion::iter().collect::<Vec<PayloadVersion>>();
+    let webhook_events = WebhookEvent::iter().collect::<Vec<WebhookEvent>>();
+
     view! {
         <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
             <div class="form-control">
@@ -256,7 +260,7 @@ pub fn webhook_form(
                     dropdown_text=method_rs.get_untracked().to_string()
                     dropdown_direction=DropdownDirection::Down
                     dropdown_btn_type=DropdownBtnType::Select
-                    dropdown_options={HttpMethod::iter().collect::<Vec<HttpMethod>>()}
+                    dropdown_options=http_methods
                     on_select=Callback::new(move |selected_item: HttpMethod| {
                         logging::log!("selected item {:?}", selected_item);
                         method_ws.set(selected_item);
@@ -274,7 +278,7 @@ pub fn webhook_form(
                     dropdown_text=payload_version_rs.get_untracked().to_string()
                     dropdown_direction=DropdownDirection::Down
                     dropdown_btn_type=DropdownBtnType::Select
-                    dropdown_options={PayloadVersion::iter().collect::<Vec<PayloadVersion>>()}
+                    dropdown_options=payload_versions
                     on_select=Callback::new(move |selected_item: PayloadVersion| {
                         logging::log!("selected item {:?}", selected_item);
                         payload_version_ws.set(selected_item);
@@ -290,7 +294,7 @@ pub fn webhook_form(
                     dropdown_text="Add Events".to_string()
                     dropdown_direction=DropdownDirection::Down
                     dropdown_btn_type=DropdownBtnType::Select
-                    dropdown_options={WebhookEvent::iter().collect::<Vec<WebhookEvent>>()}
+                    dropdown_options=webhook_events
                     selected=events_rs.get_untracked()
                     multi_select=true
                     on_select=handle_select_webhook_event_dropdown_option
@@ -310,7 +314,7 @@ pub fn webhook_form(
                         schema_type=Single(JsonSchemaType::Object)
                         r#type=InputType::Monaco(vec![])
                         on_change=Callback::new(move |value: Value| {
-                            if let Some(val)= value.as_object() {
+                            if let Some(val) = value.as_object() {
                                 custom_headers_ws.set(CustomHeaders::from(val.clone()));
                             }
                         })
@@ -416,55 +420,46 @@ pub fn change_log_summary(
                                 let description = update_request
                                     .description
                                     .unwrap_or_else(|| webhook.description.clone())
-                                    .deref().to_string();
-                                let enabled = update_request
-                                    .enabled
-                                    .unwrap_or( webhook.enabled);
-                                let url = update_request
-                                    .url
-                                    .unwrap_or_else(|| webhook.url.clone());
-                                let method = update_request
-                                    .method
-                                    .unwrap_or(webhook.method);
-                                    let payload_version = update_request
+                                    .deref()
+                                    .to_string();
+                                let enabled = update_request.enabled.unwrap_or(webhook.enabled);
+                                let url = update_request.url.unwrap_or_else(|| webhook.url.clone());
+                                let method = update_request.method.unwrap_or(webhook.method);
+                                let payload_version = update_request
                                     .payload_version
                                     .unwrap_or(webhook.payload_version);
                                 let events = update_request
                                     .events
                                     .unwrap_or_else(|| webhook.events.clone());
-
                                 (
-                                    Some(Value::Object(update_request
-                                        .custom_headers
-                                        .unwrap_or_else(|| webhook.custom_headers.clone())
-                                        .deref().clone())),
-
+                                    Some(
+                                        Value::Object(
+                                            update_request
+                                                .custom_headers
+                                                .unwrap_or_else(|| webhook.custom_headers.clone())
+                                                .deref()
+                                                .clone(),
+                                        ),
+                                    ),
                                     Map::from_iter(
                                         vec![
-                                            (
-                                                "Description".to_string(),
-                                                Value::String(description),
-                                            ),
-
-                                            (
-                                                "Enabled".to_string(),
-                                                Value::Bool(enabled),
-                                            ),
-                                            (
-                                                "Url".to_string(),
-                                                Value::String(url.to_string()),
-                                            ),
-                                            (
-                                                "Method".to_string(),
-                                                Value::String(method.to_string()),
-                                            ),
+                                            ("Description".to_string(), Value::String(description)),
+                                            ("Enabled".to_string(), Value::Bool(enabled)),
+                                            ("Url".to_string(), Value::String(url.to_string())),
+                                            ("Method".to_string(), Value::String(method.to_string())),
                                             (
                                                 "Payload Version".to_string(),
                                                 Value::String(payload_version.to_string()),
                                             ),
                                             (
                                                 "Events".to_string(),
-                                                Value::Array(events.into_iter().map(|e| e.to_string()).map(Value::String).collect()),
+                                                Value::Array(
+                                                    events
+                                                        .into_iter()
+                                                        .map(|e| e.to_string())
+                                                        .map(Value::String)
+                                                        .collect(),
+                                                ),
                                             ),
                                         ],
                                     ),
@@ -482,14 +477,8 @@ pub fn change_log_summary(
                                             "Description".to_string(),
                                             Value::String(webhook.description.deref().to_string()),
                                         ),
-                                        (
-                                            "Enabled".to_string(),
-                                            Value::Bool(webhook.enabled),
-                                        ),
-                                        (
-                                            "Url".to_string(),
-                                            Value::String(webhook.url.to_string()),
-                                        ),
+                                        ("Enabled".to_string(), Value::Bool(webhook.enabled)),
+                                        ("Url".to_string(), Value::String(webhook.url.to_string())),
                                         (
                                             "Method".to_string(),
                                             Value::String(webhook.method.to_string()),
@@ -500,23 +489,32 @@ pub fn change_log_summary(
                                         ),
                                         (
                                             "Events".to_string(),
-                                            Value::Array(webhook.events.into_iter().map(|e| e.to_string()).map(Value::String).collect()),
+                                            Value::Array(
+                                                webhook
+                                                    .events
+                                                    .into_iter()
+                                                    .map(|e| e.to_string())
+                                                    .map(Value::String)
+                                                    .collect(),
+                                            ),
                                         ),
-                                    ]
+                                    ],
                                 )
                                 new_values
                             />
                             <JsonChangeSummary
                                 title="Custom Header changes"
-                                old_values=Some(Value::Object(webhook.custom_headers.deref().clone()))
+                                old_values=Some(
+                                    Value::Object(webhook.custom_headers.deref().clone()),
+                                )
                                 new_values=new_headers
                             />
                         }
                             .into_view()
                     }
                     Some(Err(e)) => {
-                        logging::error!("Error fetching dimension: {}", e);
-                        view! { <div>Error fetching dimension</div> }.into_view()
+                        logging::error!("Error fetching webhook: {}", e);
+                        view! { <div>Error fetching webhook</div> }.into_view()
                     }
                     None => view! { <div>Loading...</div> }.into_view(),
                 }}

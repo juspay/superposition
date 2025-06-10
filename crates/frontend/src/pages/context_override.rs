@@ -82,6 +82,12 @@ enum FormMode {
     Clone(String),
     Create,
     Experiment(ExperimentType, String),
+    Delete(String),
+}
+
+enum ResponseType {
+    Response,
+    UpdatePrecheck,
 }
 
 #[component]

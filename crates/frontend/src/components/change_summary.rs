@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use leptos::*;
 use serde_json::{Map, Value};
 
@@ -48,7 +50,7 @@ pub fn gen_change_table(
     let keys = old_values
         .keys()
         .chain(new_values.keys())
-        .collect::<std::collections::HashSet<_>>();
+        .collect::<HashSet<_>>();
 
     let changes = keys
         .into_iter()
@@ -214,26 +216,24 @@ pub fn change_log_popup(
         <Portal>
             <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-[99999999]">
                 <dialog class="modal" open=true>
-                    <div class="modal-box max-h-[80%] !max-w-[90%] !w-fit p-6 overflow-hidden  bg-white rounded-lg shadow-xl border-2 border-lightgray">
-                        <div class="flex flex-col gap-4">
-                            <h4 class="text-xl font-semibold text-gray-800">{title.clone()}</h4>
-                            <p class="text-sm text-gray-600">{description.clone()}</p>
-                            {children()}
-                            <div class="flex justify-end gap-4">
-                                <button
-                                    disabled=disabled
-                                    class=format!("btn bg-purple-500 {style} hover:bg-purple-500")
-                                    on:click=move |_| on_confirm.call(())
-                                >
-                                    {confirm_text.clone()}
-                                </button>
-                                <button
-                                    class=format!("btn bg-gray-400 {style} hover:bg-gray-300")
-                                    on:click=move |_| on_close.call(())
-                                >
-                                    {close_text.clone()}
-                                </button>
-                            </div>
+                    <div class="modal-box max-h-[80%] !max-w-[90%] !w-fit p-6 flex flex-col gap-4 overflow-hidden bg-white rounded-lg shadow-xl border-2 border-lightgray">
+                        <h4 class="flex-0 text-xl font-semibold text-gray-800">{title.clone()}</h4>
+                        <p class="flex-0 text-sm text-gray-600">{description.clone()}</p>
+                        <div class="flex-1 flex flex-col gap-4 overflow-scroll">{children()}</div>
+                        <div class="flex-0 flex justify-end gap-4">
+                            <button
+                                disabled=disabled
+                                class=format!("btn bg-purple-500 {style} hover:bg-purple-500")
+                                on:click=move |_| on_confirm.call(())
+                            >
+                                {confirm_text.clone()}
+                            </button>
+                            <button
+                                class=format!("btn bg-gray-400 {style} hover:bg-gray-300")
+                                on:click=move |_| on_close.call(())
+                            >
+                                {close_text.clone()}
+                            </button>
                         </div>
                     </div>
                 </dialog>

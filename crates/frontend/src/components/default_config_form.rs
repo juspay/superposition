@@ -542,7 +542,9 @@ pub fn change_log_summary(
                 }
                 {move || match default_config.get() {
                     Some(Ok(default)) => {
-                        let (new_default_value, new_schema, new_values) = match change_type.get_value() {
+                        let (new_default_value, new_schema, new_values) = match change_type
+                            .get_value()
+                        {
                             ChangeType::Update(update_request) => {
                                 let description = update_request
                                     .description
@@ -560,10 +562,16 @@ pub fn change_log_summary(
                                         default.autocomplete_function_name.clone()
                                     });
                                 (
-                                    Some(update_request.value.unwrap_or_else(|| default.value.clone())),
-                                    Some(update_request
-                                        .schema
-                                        .unwrap_or_else(|| default.schema.clone())),
+                                    Some(
+                                        update_request
+                                            .value
+                                            .unwrap_or_else(|| default.value.clone()),
+                                    ),
+                                    Some(
+                                        update_request
+                                            .schema
+                                            .unwrap_or_else(|| default.schema.clone()),
+                                    ),
                                     Map::from_iter(
                                         vec![
                                             Some((

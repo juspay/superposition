@@ -275,15 +275,15 @@ pub fn change_log_summary(
                             ChangeType::Update(update_request) => {
                                 (
                                     "Schema update",
-                                    Some(update_request
-                                        .type_schema
-                                        .clone()),
+                                    Some(update_request.type_schema.clone()),
                                     update_request
                                         .description
-                                        .unwrap_or_else(|| type_temp.description.clone())
+                                        .unwrap_or_else(|| type_temp.description.clone()),
                                 )
                             }
-                            ChangeType::Delete => ("Schema to be deleted", None, type_temp.description.clone()),
+                            ChangeType::Delete => {
+                                ("Schema to be deleted", None, type_temp.description.clone())
+                            }
                         };
                         view! {
                             <JsonChangeSummary
@@ -303,15 +303,20 @@ pub fn change_log_summary(
                                     ],
                                 )
                                 new_values=Map::from_iter(
-                                    vec![("Description".to_string(), Value::String(description.deref().to_string()))],
+                                    vec![
+                                        (
+                                            "Description".to_string(),
+                                            Value::String(description.deref().to_string()),
+                                        ),
+                                    ],
                                 )
                             />
                         }
                             .into_view()
                     }
                     Some(Err(e)) => {
-                        logging::error!("Error fetching dimension: {}", e);
-                        view! { <div>Error fetching dimension</div> }.into_view()
+                        logging::error!("Error fetching type template: {}", e);
+                        view! { <div>{"Error fetching type template"}</div> }.into_view()
                     }
                     None => view! { <div>Loading...</div> }.into_view(),
                 }}
