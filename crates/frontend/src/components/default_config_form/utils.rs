@@ -67,8 +67,8 @@ pub fn try_update_payload(
 pub async fn update_default_config(
     key: String,
     update_payload: DefaultConfigUpdateRequest,
-    tenant: String,
-    org_id: String,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<serde_json::Value, String> {
     let host = get_host();
     let url = format!("{host}/default-config/{key}");
@@ -77,7 +77,7 @@ pub async fn update_default_config(
         url,
         reqwest::Method::PUT,
         Some(update_payload),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
     )
     .await?;
 

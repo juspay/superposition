@@ -14,6 +14,7 @@ use superposition_types::{
 use types::{DimensionCreateReq, DimensionUpdateReq};
 use utils::{create_dimension, update_dimension};
 
+use crate::components::skeleton::SkeletonVariant;
 use crate::{
     api::fetch_functions,
     components::{
@@ -31,15 +32,7 @@ use crate::{
 };
 use crate::{components::change_summary::ChangeLogPopup, types::FunctionsName};
 use crate::{components::form::label::Label, providers::alert_provider::enqueue_alert};
-use crate::{components::skeleton::Skeleton, providers::alert_provider::enqueue_alert};
 use crate::{components::skeleton::Skeleton, providers::editor_provider::EditorProvider};
-use crate::{
-    components::skeleton::SkeletonVariant, providers::editor_provider::EditorProvider,
-};
-use crate::{
-    components::skeleton::SkeletonVariant,
-    schema::{JsonSchemaType, SchemaType},
-};
 use crate::{
     components::{
         alert::AlertType,
@@ -286,7 +279,9 @@ pub fn dimension_form(
                                     class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
                                     schema_type=dimension_type_schema
                                     value=dimension_schema_rs.get_untracked()
-                                    on_change=move |new_type_schema| dimension_schema_ws.set(new_type_schema)
+                                    on_change=move |new_type_schema| {
+                                        dimension_schema_ws.set(new_type_schema)
+                                    }
                                     r#type=InputType::Monaco(vec![])
                                 />
                             </EditorProvider>
@@ -420,7 +415,10 @@ pub fn dimension_form(
                         class="self-end h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=on_submit.clone()
+                        on_click=move |ev| {
+                            ev.prevent_default();
+                            on_submit(());
+                        }
                         loading
                     />
                 }
@@ -458,13 +456,13 @@ pub fn change_log_summary(
     #[prop(into)] on_confirm: Callback<()>,
     #[prop(into)] on_close: Callback<()>,
 ) -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let dimension = create_local_resource(
-        move || (dimension_name.clone(), tenant_rws.get().0, org_rws.get().0),
-        |(dimension_name, tenant, org)| async move {
-            get_dimension(&dimension_name, &tenant, &org).await
+        move || (dimension_name.clone(), workspace.get().0, org.get().0),
+        |(dimension_name, workspace, org)| async move {
+            get_dimension(&dimension_name, &workspace, &org).await
         },
     );
 
@@ -474,33 +472,27 @@ pub fn change_log_summary(
     let (title, description, confirm_text) = match change_type.get_value() {
         ChangeType::Update(_) => (
             "Confirm Update",
-            "Are you sure you want to update this context?",
+            "Are you sure you want to update this dimension?",
             "Yes, Update",
         ),
         ChangeType::Delete => (
             "Confirm Delete",
-            "Are you sure you want to delete this context? Action is irreversible.",
+            "Are you sure you want to delete this dimension? Action is irreversible.",
             "Yes, Delete",
         ),
     };
 
     view! {
-        <ChangeLogPopup
-            title
-            description
-            confirm_text
-            on_confirm
-            on_close
-            disabled=disabled_rws.read_only()
-        >
+        <ChangeLogPopup title description confirm_text on_confirm on_close disabled=disabled_rws>
             <Suspense fallback=move || {
                 view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
             }>
                 {
                     Effect::new(move |_| {
-                        if let Some(Ok(_)) = dimension.get() {
+                        let dimension = dimension.get();
+                        if let Some(Ok(_)) = dimension {
                             disabled_rws.set(false);
-                        } else if let Some(Err(e)) = dimension.get() {
+                        } else if let Some(Err(e)) = dimension {
                             logging::error!("Error fetching dimension: {}", e);
                         }
                     });
@@ -522,14 +514,11 @@ pub fn change_log_summary(
                                 let autocomplete_fn = update_request
                                     .autocomplete_function_name
                                     .clone()
-                                    .unwrap_or_else(|| {
-                                        dim.autocomplete_function_name.clone()
-                                    });
+                                    .unwrap_or_else(|| { dim.autocomplete_function_name.clone() });
                                 (
-                                    Some(update_request
-                                        .schema
-                                        .unwrap_or_else(|| dim.schema.clone())),
-
+                                    Some(
+                                        update_request.schema.unwrap_or_else(|| dim.schema.clone()),
+                                    ),
                                     Map::from_iter(
                                         vec![
                                             Some((
@@ -591,10 +580,7 @@ pub fn change_log_summary(
                                         Some((
                                             "Dependencies".to_string(),
                                             Value::Array(
-                                                dim.dependencies
-                                                    .into_iter()
-                                                    .map(Value::String)
-                                                    .collect(),
+                                                dim.dependencies.into_iter().map(Value::String).collect(),
                                             ),
                                         )),
                                         dim

@@ -17,7 +17,7 @@ use types::PageParams;
 use crate::api::{delete_default_config, fetch_default_config};
 use crate::components::{
     alert::AlertType,
-    default_config_form::DefaultConfigForm,
+    default_config_form::{ChangeLogSummary, ChangeType, DefaultConfigForm},
     description_icon::InfoDescription,
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
     skeleton::Skeleton,
@@ -30,10 +30,6 @@ use crate::components::{
         Table,
     },
 };
-use crate::components::{
-    default_config_form::ChangeLogSummary, drawer::DrawerButtonStyle,
-};
-use crate::components::{default_config_form::ChangeType, table::types::Expandable};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{BreadCrums, OrganisationId, Tenant};
@@ -105,8 +101,7 @@ pub fn default_config() -> impl IntoView {
     let confirm_delete = move |_| {
         let tenant = workspace.get_untracked().0;
         let org = org.get_untracked().0;
-        let prefix =
-            page_params_rws.with(|p| p.prefix.clone_untracked().unwrap_or_default());
+        let prefix = page_params_rws.with(|p| p.prefix.clone().unwrap_or_default());
         if let Some(key_name) = delete_key_rs.get_untracked() {
             spawn_local({
                 async move {
@@ -123,6 +118,7 @@ pub fn default_config() -> impl IntoView {
                                 AlertType::Success,
                                 5000,
                             );
+                            delete_key_ws.set(None);
                             default_config_resource.refetch();
                         }
                         Err(err) => enqueue_alert(err, AlertType::Error, 5000),
@@ -130,7 +126,6 @@ pub fn default_config() -> impl IntoView {
                 }
             });
         }
-        delete_key_ws.set(None);
     };
 
     let handle_page_change = Callback::new(move |page: i64| {

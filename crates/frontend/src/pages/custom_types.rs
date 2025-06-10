@@ -65,6 +65,7 @@ pub fn types_page() -> impl IntoView {
                             AlertType::Success,
                             5000,
                         );
+                        delete_type_ws.set(None);
                         types_resource.refetch();
                     }
                     Err(err) => enqueue_alert(err, AlertType::Error, 5000),
@@ -72,7 +73,6 @@ pub fn types_page() -> impl IntoView {
                 types_resource.refetch();
             });
         }
-        delete_type_ws.set(None);
     };
 
     let expand = move |type_name: &str, row: &Map<String, Value>| {

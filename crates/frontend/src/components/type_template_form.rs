@@ -64,7 +64,7 @@ pub fn type_template_form(
             async move {
                 let result = match (edit, update_request_rws.get_untracked()) {
                     (true, Some((_, update_payload))) => {
-                        update_type(type_name, update_payload, tenant_id, org_id)
+                        update_type(type_name, update_payload, workspace, org_id)
                             .await
                             .map(|_| ResponseType::Response)
                     }
@@ -84,7 +84,7 @@ pub fn type_template_form(
                         type_schema,
                         description,
                         change_reason,
-                        tenant_id,
+                        workspace,
                         org_id,
                     )
                     .await
@@ -175,7 +175,10 @@ pub fn type_template_form(
                         class="self-end h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=on_submit.clone()
+                        on_click=move |ev| {
+                            ev.prevent_default();
+                            on_submit(())
+                        }
                         loading
                     />
                 }
@@ -213,13 +216,13 @@ pub fn change_log_summary(
     #[prop(into)] on_confirm: Callback<()>,
     #[prop(into)] on_close: Callback<()>,
 ) -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let type_template = create_local_resource(
-        move || (type_name.clone(), tenant_rws.get().0, org_rws.get().0),
-        |(type_name, tenant, org)| async move {
-            get_type_template(&type_name, &tenant, &org).await
+        move || (type_name.clone(), workspace.get().0, org.get().0),
+        |(type_name, workspace, org)| async move {
+            get_type_template(&type_name, &workspace, &org).await
         },
     );
 
@@ -229,33 +232,27 @@ pub fn change_log_summary(
     let (title, description, confirm_text) = match change_type.get_value() {
         ChangeType::Update(_) => (
             "Confirm Update",
-            "Are you sure you want to update this context?",
+            "Are you sure you want to update this type template?",
             "Yes, Update",
         ),
         ChangeType::Delete => (
             "Confirm Delete",
-            "Are you sure you want to delete this context? Action is irreversible.",
+            "Are you sure you want to delete this type template? Action is irreversible.",
             "Yes, Delete",
         ),
     };
 
     view! {
-        <ChangeLogPopup
-            title
-            description
-            confirm_text
-            on_confirm
-            on_close
-            disabled=disabled_rws.read_only()
-        >
+        <ChangeLogPopup title description confirm_text on_confirm on_close disabled=disabled_rws>
             <Suspense fallback=move || {
                 view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
             }>
                 {
                     Effect::new(move |_| {
-                        if let Some(Ok(_)) = type_template.get() {
+                        let type_template = type_template.get();
+                        if let Some(Ok(_)) = type_template {
                             disabled_rws.set(false);
-                        } else if let Some(Err(e)) = type_template.get() {
+                        } else if let Some(Err(e)) = type_template {
                             logging::error!("Error fetching type template: {}", e);
                         }
                     });
@@ -266,15 +263,15 @@ pub fn change_log_summary(
                             ChangeType::Update(update_request) => {
                                 (
                                     "Schema update",
-                                    Some(update_request
-                                        .type_schema
-                                        .clone()),
+                                    Some(update_request.type_schema.clone()),
                                     update_request
                                         .description
-                                        .unwrap_or_else(|| type_temp.description.clone())
+                                        .unwrap_or_else(|| type_temp.description.clone()),
                                 )
                             }
-                            ChangeType::Delete => ("Schema to be deleted", None, type_temp.description.clone()),
+                            ChangeType::Delete => {
+                                ("Schema to be deleted", None, type_temp.description.clone())
+                            }
                         };
                         view! {
                             <JsonChangeSummary
@@ -294,15 +291,20 @@ pub fn change_log_summary(
                                     ],
                                 )
                                 new_values=Map::from_iter(
-                                    vec![("Description".to_string(), Value::String(description.deref().to_string()))],
+                                    vec![
+                                        (
+                                            "Description".to_string(),
+                                            Value::String(description.deref().to_string()),
+                                        ),
+                                    ],
                                 )
                             />
                         }
                             .into_view()
                     }
                     Some(Err(e)) => {
-                        logging::error!("Error fetching dimension: {}", e);
-                        view! { <div>Error fetching dimension</div> }.into_view()
+                        logging::error!("Error fetching type template: {}", e);
+                        view! { <div>{"Error fetching type template"}</div> }.into_view()
                     }
                     None => view! { <div>Loading...</div> }.into_view(),
                 }}

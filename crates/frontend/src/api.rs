@@ -105,9 +105,9 @@ pub async fn fetch_snapshots(
 }
 
 pub async fn delete_context(
-    tenant: String,
     context_id: String,
-    org_id: String,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<(), ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();

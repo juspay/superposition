@@ -1,10 +1,16 @@
 pub mod types;
 pub mod utils;
 
+use std::{collections::HashSet, ops::Deref};
+
 use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::{
-    api::{experiment_groups::ExpGroupFilters, workspace::WorkspaceResponse},
+    api::{
+        experiment_groups::ExpGroupFilters,
+        experiments::{ExperimentResponse, OverrideKeysUpdateRequest},
+        workspace::WorkspaceResponse,
+    },
     custom_query::PaginationParams,
     database::{
         models::{
@@ -15,27 +21,24 @@ use superposition_types::{
         types::DimensionWithMandatory,
     },
 };
-use utils::{create_experiment, update_experiment};
-use web_sys::MouseEvent;
+use utils::{create_experiment, try_update_payload, update_experiment};
 
-use crate::{
-    api::experiment_groups,
-    components::{
-        alert::AlertType,
-        button::Button,
-        change_form::ChangeForm,
-        context_form::ContextForm,
-        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-        form::label::Label,
-        metrics_form::MetricsForm,
-        skeleton::{Skeleton, SkeletonVariant},
-        variant_form::{DeleteVariantForm, VariantForm},
-    },
-    providers::alert_provider::enqueue_alert,
-    types::{OrganisationId, Tenant, VariantFormT, VariantFormTs},
+use crate::api::{experiment_groups, fetch_experiment};
+use crate::components::{
+    alert::AlertType,
+    button::Button,
+    change_form::ChangeForm,
+    change_summary::{ChangeLogPopup, ChangeSummary, JsonChangeSummary},
+    context_form::ContextForm,
+    dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+    form::label::Label,
+    metrics_form::MetricsForm,
+    skeleton::{Skeleton, SkeletonVariant},
+    variant_form::{DeleteVariantForm, VariantForm},
 };
-
 use crate::logic::Conditions;
+use crate::providers::alert_provider::enqueue_alert;
+use crate::types::{OrganisationId, Tenant, VariantFormT, VariantFormTs};
 
 fn get_init_state(variants: &[VariantFormT]) -> Vec<(String, VariantFormT)> {
     variants
@@ -66,6 +69,11 @@ impl From<ExperimentType> for ExperimentFormType {
             ExperimentType::DeleteOverrides => ExperimentFormType::Delete(None),
         }
     }
+}
+
+enum ResponseType {
+    UpdatePrecheck,
+    Response(ExperimentResponse),
 }
 
 #[component]
@@ -100,6 +108,7 @@ pub fn experiment_form(
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let metrics_rws = RwSignal::new(metrics);
+    let update_request_rws = RwSignal::new(None);
     let (experiment_group_id_rs, experiment_group_id_ws) =
         create_signal(experiment_group_id);
 
@@ -141,19 +150,19 @@ pub fn experiment_form(
         })
     });
 
-    let on_submit = move |event: MouseEvent| {
+    let on_submit = move || {
         req_inprogress_ws.set(true);
-        event.prevent_default();
 
-        let f_experiment_name = experiment_name.get();
-        let f_context = context_rs.get();
+        let f_experiment_name = experiment_name.get_untracked();
+        let f_context = context_rs.get_untracked();
         let f_variants = variants_rs
-            .get()
+            .get_untracked()
             .into_iter()
             .map(|(_, variant)| variant)
             .collect::<Vec<VariantFormT>>();
-        let tenant = workspace.get().0;
-        let org = org.get().0;
+        let tenant = workspace.get_untracked().0;
+        let org: String = org.get_untracked().0;
+        let edit_id = edit_id.get_value();
 
         spawn_local({
             async move {
@@ -164,20 +173,29 @@ pub fn experiment_form(
                 } else {
                     Value::Null
                 };
-                let result = if let Some(ref experiment_id) = edit_id.get_value() {
-                    update_experiment(
-                        experiment_id,
-                        f_variants,
-                        Some(metrics_rws.get_untracked()),
-                        tenant,
-                        org,
-                        description_rs.get_untracked(),
-                        change_reason_rs.get_untracked(),
-                        experiment_group_id,
-                    )
-                    .await
-                } else {
-                    create_experiment(
+                let result = match (edit_id.clone(), update_request_rws.get_untracked()) {
+                    (Some(ref experiment_id), Some((_, payload))) => {
+                        update_experiment(experiment_id, payload, tenant, org)
+                            .await
+                            .map(ResponseType::Response)
+                    }
+                    (Some(experiment_id), None) => {
+                        let request_payload = try_update_payload(
+                            f_variants,
+                            Some(metrics_rws.get_untracked()),
+                            description_rs.get_untracked(),
+                            change_reason_rs.get_untracked(),
+                            experiment_group_id,
+                        );
+                        match request_payload {
+                            Ok(payload) => {
+                                update_request_rws.set(Some((experiment_id, payload)));
+                                Ok(ResponseType::UpdatePrecheck)
+                            }
+                            Err(e) => Err(e),
+                        }
+                    }
+                    _ => create_experiment(
                         f_context,
                         f_variants,
                         Some(metrics_rws.get_untracked()),
@@ -190,13 +208,15 @@ pub fn experiment_form(
                         experiment_group_id,
                     )
                     .await
+                    .map(ResponseType::Response),
                 };
 
                 req_inprogress_ws.set(false);
                 match result {
-                    Ok(res) => {
+                    Ok(ResponseType::UpdatePrecheck) => (),
+                    Ok(ResponseType::Response(res)) => {
                         handle_submit.call(res.id);
-                        let success_message = if edit_id.get_value().is_some() {
+                        let success_message = if edit_id.is_some() {
                             "Experiment updated successfully!"
                         } else {
                             "New Experiment created successfully!"
@@ -237,9 +257,7 @@ pub fn experiment_form(
                 title="Description".to_string()
                 placeholder="Enter a description".to_string()
                 value=description_rs.get_untracked()
-                on_change=Callback::new(move |new_description| {
-                    description_ws.set(new_description)
-                })
+                on_change=move |new_description| description_ws.set(new_description)
             />
             <MetricsForm
                 metrics=metrics_rws.get_untracked()
@@ -282,9 +300,7 @@ pub fn experiment_form(
                 title="Reason for Change".to_string()
                 placeholder="Enter a reason for this change".to_string()
                 value=change_reason_rs.get_untracked()
-                on_change=Callback::new(move |new_change_reason| {
-                    change_reason_ws.set(new_change_reason)
-                })
+                on_change=move |new_change_reason| change_reason_ws.set(new_change_reason)
             />
 
             {move || {
@@ -342,11 +358,178 @@ pub fn experiment_form(
                         class="self-end h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=on_submit
+                        on_click=move |ev| {
+                            ev.prevent_default();
+                            on_submit();
+                        }
                         loading
                     />
                 }
             }}
         </div>
+        {move || match update_request_rws.get() {
+            None => ().into_view(),
+            Some((experiment_id, update_request)) => {
+                view! {
+                    <ChangeLogSummary
+                        experiment_id
+                        update_request
+                        on_confirm=move |_| on_submit()
+                        on_close=move |_| update_request_rws.set(None)
+                    />
+                }
+            }
+        }}
+    }
+}
+
+#[component]
+fn change_log_summary(
+    experiment_id: String,
+    update_request: OverrideKeysUpdateRequest,
+    #[prop(into)] on_confirm: Callback<()>,
+    #[prop(into)] on_close: Callback<()>,
+) -> impl IntoView {
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
+
+    let experiment = create_local_resource(
+        move || (experiment_id.clone(), workspace.get().0, org.get().0),
+        |(experiment_id, workspace, org)| async move {
+            fetch_experiment(experiment_id, workspace, org).await
+        },
+    );
+
+    let disabled_rws = RwSignal::new(true);
+    let update_request = StoredValue::new(update_request);
+
+    view! {
+        <ChangeLogPopup
+            title="Confirm Update"
+            description="Are you sure you want to update this experiment?"
+            confirm_text="Yes, Update"
+            on_confirm
+            on_close
+            disabled=disabled_rws
+        >
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
+            }>
+                {
+                    Effect::new(move |_| {
+                        let experiment = experiment.get();
+                        if let Some(Ok(_)) = experiment {
+                            disabled_rws.set(false);
+                        } else if let Some(Err(e)) = experiment {
+                            logging::error!("Error fetching context: {}", e);
+                        }
+                    });
+                }
+                {move || match experiment.get() {
+                    Some(Ok(experiment)) => {
+                        let update_request = update_request.get_value();
+                        let description = update_request
+                            .description
+                            .unwrap_or_else(|| experiment.description.clone())
+                            .to_string();
+                        let experiment_group_id = update_request
+                            .experiment_group_id
+                            .map(|r| r.get_value().map(|v| v.to_string()))
+                            .unwrap_or_else(|| experiment.experiment_group_id.clone());
+                        let variant_ids = experiment
+                            .variants
+                            .iter()
+                            .map(|v| v.id.clone())
+                            .chain(update_request.variants.iter().map(|v| v.id.clone()))
+                            .collect::<HashSet<_>>();
+                        let variant_data = variant_ids
+                            .iter()
+                            .map(|id| {
+                                (
+                                    id.clone(),
+                                    experiment
+                                        .variants
+                                        .iter()
+                                        .find(|v| v.id == *id)
+                                        .map(|v| {
+                                            (*v.overrides.clone().into_inner().clone()).clone()
+                                        })
+                                        .unwrap_or_default(),
+                                    update_request
+                                        .variants
+                                        .iter()
+                                        .find(|v| v.id == *id)
+                                        .map(|v| {
+                                            (*v.overrides.clone().into_inner().clone()).clone()
+                                        })
+                                        .unwrap_or_default(),
+                                )
+                            })
+                            .collect::<Vec<_>>();
+                        view! {
+                            {variant_data
+                                .into_iter()
+                                .map(|(variant_id, old_overrides, new_overrides)| {
+                                    view! {
+                                        <ChangeSummary
+                                            title=format!("Override changes for {variant_id}")
+                                            old_values=old_overrides
+                                            new_values=new_overrides
+                                        />
+                                    }
+                                })
+                                .collect_view()}
+                            <JsonChangeSummary
+                                title="Metrics changes"
+                                old_values=serde_json::to_value(experiment.metrics).ok()
+                                new_values=serde_json::to_value(update_request.metrics).ok()
+                            />
+                            <ChangeSummary
+                                title="Other changes"
+                                key_column="Property"
+                                old_values=Map::from_iter(
+                                    vec![
+                                        Some((
+                                            "Description".to_string(),
+                                            Value::String(experiment.description.deref().to_string()),
+                                        )),
+                                        experiment
+                                            .experiment_group_id
+                                            .as_ref()
+                                            .map(|id| (
+                                                "Experiment Group".to_string(),
+                                                Value::String(id.clone()),
+                                            )),
+                                    ]
+                                        .into_iter()
+                                        .flatten(),
+                                )
+                                new_values=Map::from_iter(
+                                    vec![
+                                        Some((
+                                            "Description".to_string(),
+                                            Value::String(description),
+                                        )),
+                                        experiment_group_id
+                                            .map(|id| (
+                                                "Experiment Group".to_string(),
+                                                Value::String(id.clone()),
+                                            )),
+                                    ]
+                                        .into_iter()
+                                        .flatten(),
+                                )
+                            />
+                        }
+                            .into_view()
+                    }
+                    Some(Err(e)) => {
+                        logging::error!("Error fetching experiment: {}", e);
+                        view! { <div>Error fetching experiment</div> }.into_view()
+                    }
+                    None => view! { <div>Loading...</div> }.into_view(),
+                }}
+            </Suspense>
+        </ChangeLogPopup>
     }
 }

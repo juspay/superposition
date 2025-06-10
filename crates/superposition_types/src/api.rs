@@ -28,6 +28,15 @@ pub enum I64Update {
     Remove,
 }
 
+impl I64Update {
+    pub fn get_value(&self) -> Option<i64> {
+        match self {
+            I64Update::Add(value) => Some(*value),
+            I64Update::Remove => None,
+        }
+    }
+}
+
 pub fn deserialize_option_i64<'de, D>(
     deserializer: D,
 ) -> Result<Option<I64Update>, D::Error>
