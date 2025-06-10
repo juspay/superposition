@@ -1,32 +1,25 @@
 use derive_more::{AsRef, Deref, DerefMut, Into};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use superposition_types::RegexEnum;
+
+use crate::{
+    database::models::{ChangeReason, Description},
+    RegexEnum,
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TypeTemplateCreateRequest {
     pub type_schema: Value,
     pub type_name: TypeTemplateName,
-    pub description: String,
-    pub change_reason: String,
+    pub description: Description,
+    pub change_reason: ChangeReason,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TypeTemplateUpdateRequest {
     pub type_schema: Value,
-    pub description: Option<String>,
-    pub change_reason: String,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct TypeTemplateResponse {
-    pub type_schema: Value,
-    pub type_name: TypeTemplateName,
-    pub created_at: String,
-    pub last_modified: String,
-    pub created_by: String,
-    pub description: String,
-    pub change_reason: String,
+    pub description: Option<Description>,
+    pub change_reason: ChangeReason,
 }
 
 #[derive(Debug, Deserialize, Serialize, AsRef, Deref, DerefMut, Into, Clone)]
