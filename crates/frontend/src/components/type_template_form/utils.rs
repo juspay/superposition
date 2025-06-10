@@ -36,7 +36,7 @@ pub async fn create_type(
     response.json().await.map_err(|e| e.to_string())
 }
 
-pub fn try_update_paylaod(
+pub fn try_update_payload(
     schema: Value,
     description: String,
     change_reason: String,
