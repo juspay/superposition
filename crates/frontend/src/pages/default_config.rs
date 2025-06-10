@@ -8,13 +8,10 @@ use superposition_types::{
     custom_query::{CustomQuery, PaginationParams, Query},
 };
 
-use crate::components::drawer::DrawerButtonStyle;
-use crate::components::table::types::Expandable;
 use crate::components::{
     alert::AlertType,
     button::Button,
     default_config_form::DefaultConfigForm,
-    delete_modal::DeleteModal,
     description_icon::InfoDescription,
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
     skeleton::Skeleton,
@@ -24,6 +21,10 @@ use crate::components::{
         Table,
     },
 };
+use crate::components::{
+    default_config_form::ChangeLogSummary, drawer::DrawerButtonStyle,
+};
+use crate::components::{default_config_form::ChangeType, table::types::Expandable};
 use crate::providers::alert_provider::enqueue_alert;
 use crate::query_updater::use_signal_from_query;
 use crate::types::{BreadCrums, OrganisationId, Tenant};
@@ -51,7 +52,6 @@ pub fn default_config() -> impl IntoView {
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let enable_grouping = create_rw_signal(false);
     let filters_rws = create_rw_signal(DefaultConfigFilters::default());
-    let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_key_rs, delete_key_ws) = create_signal::<Option<String>>(None);
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
@@ -86,11 +86,11 @@ pub fn default_config() -> impl IntoView {
     let set_filters_default =
         move || pagination_params_rws.set(PaginationParams::default());
 
-    let confirm_delete = Callback::new(move |_| {
-        let tenant = tenant_rws.get().0;
-        let org = org_rws.get().0;
-        let prefix = key_prefix.get().unwrap_or_default();
-        if let Some(key_name) = delete_key_rs.get() {
+    let confirm_delete = move |_| {
+        let tenant = tenant_rws.get_untracked().0;
+        let org = org_rws.get_untracked().0;
+        let prefix = key_prefix.get_untracked().unwrap_or_default();
+        if let Some(key_name) = delete_key_rs.get_untracked() {
             spawn_local({
                 async move {
                     let api_response = delete_default_config(
@@ -114,8 +114,7 @@ pub fn default_config() -> impl IntoView {
             });
         }
         delete_key_ws.set(None);
-        delete_modal_visible_ws.set(false);
-    });
+    };
 
     create_effect(move |_| {
         let enable_grouping_val =
@@ -200,10 +199,7 @@ pub fn default_config() -> impl IntoView {
                 open_drawer("default_config_drawer");
             };
 
-            let handle_delete = move |_| {
-                delete_key_ws.set(Some(key_name.get_value()));
-                delete_modal_visible_ws.set(true);
-            };
+            let handle_delete = move |_| delete_key_ws.set(Some(key_name.get_value()));
 
             if is_folder && grouping_enabled {
                 view! { <span>{"-"}</span> }.into_view()
@@ -320,7 +316,7 @@ pub fn default_config() -> impl IntoView {
                                     autocomplete_function_name=selected_config_data
                                         .autocomplete_function_name
                                     prefix
-                                    handle_submit=move || {
+                                    handle_submit=move |_| {
                                         default_config_resource.refetch();
                                         selected_config.set(None);
                                         close_drawer("default_config_drawer");
@@ -338,7 +334,7 @@ pub fn default_config() -> impl IntoView {
                             >
                                 <DefaultConfigForm
                                     prefix
-                                    handle_submit=move || {
+                                    handle_submit=move |_| {
                                         default_config_resource.refetch();
                                         selected_config.set(None);
                                         close_drawer("default_config_drawer");
@@ -447,14 +443,21 @@ pub fn default_config() -> impl IntoView {
                         </div>
                     }
                 }}
-                <DeleteModal
-                    modal_visible=delete_modal_visible_rs
-                    confirm_delete=confirm_delete
-                    set_modal_visible=delete_modal_visible_ws
-                    header_text="Are you sure you want to delete this config? Action is irreversible."
-                        .to_string()
-                />
             </Suspense>
+            {move || {
+                if let Some(delete_key) = delete_key_rs.get() {
+                    view! {
+                        <ChangeLogSummary
+                            key_name=delete_key
+                            change_type=ChangeType::Delete
+                            on_close=move |_| delete_key_ws.set(None)
+                            on_confirm=confirm_delete
+                        />
+                    }
+                } else {
+                    ().into_view()
+                }
+            }}
         </div>
     }
 }
