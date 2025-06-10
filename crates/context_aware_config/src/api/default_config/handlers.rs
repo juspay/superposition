@@ -44,6 +44,7 @@ pub fn endpoints() -> Scope {
     Scope::new("")
         .service(create_default_config)
         .service(update_default_config)
+        .service(get_default_config)
         .service(list_default_configs)
         .service(delete)
 }
@@ -149,6 +150,17 @@ async fn create_default_config(
     ));
 
     Ok(http_resp.json(default_config))
+}
+
+#[get("/{key}")]
+async fn get_default_config(
+    key: Path<DefaultConfigKey>,
+    schema_name: SchemaName,
+    db_conn: DbConnection,
+) -> superposition::Result<Json<DefaultConfig>> {
+    let DbConnection(mut conn) = db_conn;
+    let res = fetch_default_key(&key, &mut conn, &schema_name)?;
+    Ok(Json(res))
 }
 
 #[put("/{key}")]

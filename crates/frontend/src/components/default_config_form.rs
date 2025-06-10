@@ -1,24 +1,28 @@
 pub mod utils;
 
+use std::ops::Deref;
+
 use leptos::{html::Div, *};
-use serde_json::Value;
+use serde_json::{Map, Value};
 use superposition_types::{
-    api::functions::ListFunctionFilters,
+    api::{default_config::DefaultConfigUpdateRequest, functions::ListFunctionFilters},
     custom_query::PaginationParams,
     database::models::cac::{Function, FunctionType, TypeTemplate},
 };
+use utils::try_update_paylaod;
 use wasm_bindgen::JsCast;
-use web_sys::MouseEvent;
 
 use crate::{
-    api::{fetch_functions, fetch_types},
+    api::{fetch_functions, fetch_types, get_default_config},
     components::{
         alert::AlertType,
         button::Button,
         change_form::ChangeForm,
+        change_summary::{ChangeLogPopup, ChangeSummary, JsonChangeSummary},
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         form::label::Label,
         input::{Input, InputType},
+        skeleton::{Skeleton, SkeletonVariant},
     },
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
     types::FunctionsName,
@@ -31,8 +35,13 @@ use crate::{
 
 use self::utils::{create_default_config, update_default_config};
 
+enum ResponseType {
+    UpdatePrecheck,
+    Response,
+}
+
 #[component]
-pub fn default_config_form<NF>(
+pub fn default_config_form(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] config_key: String,
     #[prop(default = String::new())] config_type: String,
@@ -42,11 +51,8 @@ pub fn default_config_form<NF>(
     #[prop(default = None)] autocomplete_function_name: Option<String>,
     #[prop(default = None)] prefix: Option<String>,
     #[prop(default = String::new())] description: String,
-    handle_submit: NF,
-) -> impl IntoView
-where
-    NF: Fn() + 'static + Clone,
-{
+    #[prop(into)] handle_submit: Callback<()>,
+) -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
@@ -65,6 +71,7 @@ where
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
+    let update_request_rws = RwSignal::new(None);
 
     let schema_type_s = Signal::derive(move || {
         SchemaType::try_from(config_schema_rs.get())
@@ -112,79 +119,89 @@ where
             autocomplete_fn_name_ws.update(|v| set_function(selected_function, v));
         });
 
-    let on_submit = move |ev: MouseEvent| {
+    let on_submit = Callback::new(move |_| {
         req_inprogress_ws.set(true);
-        ev.prevent_default();
         let f_name = config_key_rs.get_untracked();
         let f_schema = config_schema_rs.get_untracked();
         let f_value = config_value_rs.get_untracked();
 
-        let fun_name = validation_fn_name_rs.get_untracked();
-        let description = description_rs.get_untracked();
-        let change_reason = change_reason_rs.get_untracked();
+        let fun_name = validation_fn_name_rs.get_untracked_untracked();
+        let autocomplete_fn = autocomplete_fn_name_rs.get_untracked();
 
-        let handle_submit_clone = handle_submit.clone();
+        let description = description_rs.get_untracked_untracked();
+        let change_reason = change_reason_rs.get_untracked_untracked();
+
         let is_edit = edit;
-        spawn_local({
-            let handle_submit = handle_submit_clone;
-            async move {
-                let result = if is_edit {
-                    // Call update_default_config when edit is true
-                    update_default_config(
-                        f_name,
-                        workspace.get_untracked().0,
-                        org.get_untracked().0,
-                        f_value,
-                        f_schema,
-                        fun_name,
-                        None,
-                        description,
-                        change_reason,
-                    )
-                    .await
-                } else {
-                    // Call create_default_config when edit is false
-                    create_default_config(
-                        workspace.get_untracked().0,
-                        org.get_untracked().0,
-                        config_key_rs.get_untracked(),
-                        f_value,
-                        f_schema,
-                        fun_name,
-                        None,
-                        description,
-                        change_reason,
-                    )
-                    .await
-                };
 
-                req_inprogress_ws.set(false);
-                match result {
-                    Ok(_) => {
-                        handle_submit();
-                        let success_message = if is_edit {
-                            "Default config updated successfully!"
-                        } else {
-                            "New default config created successfully!"
-                        };
-                        enqueue_alert(
-                            String::from(success_message),
-                            AlertType::Success,
-                            5000,
-                        );
+        spawn_local(async move {
+            let result = match (is_edit, update_request_rws.get_untracked()) {
+                (true, Some((_, payload))) => update_default_config(
+                    key_name,
+                    payload,
+                    tenant_rws.get_untracked().0,
+                    org_rws.get_untracked().0,
+                )
+                .await
+                .map(|_| ResponseType::Response),
+                (true, None) => {
+                    let request_payload = try_update_paylaod(
+                        f_value,
+                        f_schema,
+                        fun_name,
+                        autocomplete_fn,
+                        description,
+                        change_reason,
+                    );
+                    match request_payload {
+                        Ok(payload) => {
+                            update_request_rws.set(Some((key_name, payload)));
+                            Ok(ResponseType::UpdatePrecheck)
+                        }
+                        Err(e) => Err(e),
                     }
-                    Err(e) => {
-                        logging::error!(
-                            "An error occurred while trying to {} the default config: {}",
-                            if is_edit { "update" } else { "create" },
-                            e
-                        );
-                        enqueue_alert(e, AlertType::Error, 5000);
-                    }
+                }
+                _ => create_default_config(
+                    workspace.get_untracked_untracked().0,
+                    org.get_untracked_untracked().0,
+                    config_key_rs.get_untracked(),
+                    f_value,
+                    f_schema,
+                    fun_name,
+                    autocomplete_fn,
+                    description,
+                    change_reason,
+                )
+                .await
+                .map(|_| ResponseType::Response),
+            };
+
+            req_inprogress_ws.set(false);
+            match result {
+                Ok(ResponseType::UpdatePrecheck) => (),
+                Ok(ResponseType::Response) => {
+                    handle_submit.call(());
+                    let success_message = if is_edit {
+                        "Default config updated successfully!"
+                    } else {
+                        "New default config created successfully!"
+                    };
+                    enqueue_alert(
+                        String::from(success_message),
+                        AlertType::Success,
+                        5000,
+                    );
+                }
+                Err(e) => {
+                    logging::error!(
+                        "An error occurred while trying to {} the default config: {}",
+                        if is_edit { "update" } else { "create" },
+                        e
+                    );
+                    enqueue_alert(e, AlertType::Error, 5000);
                 }
             }
         });
-    };
+    });
 
     let scroll_ref = create_node_ref::<Div>();
 
@@ -457,5 +474,179 @@ where
                 }}
             </form>
         </EditorProvider>
+        {move || match update_request_rws.get() {
+            None => ().into_view(),
+            Some((key_name, update_request)) => {
+                view! {
+                    <ChangeLogSummary
+                        key_name
+                        change_type=ChangeType::Update(update_request)
+                        on_confirm=on_submit
+                        on_close=move |_| update_request_rws.set(None)
+                    />
+                }
+                    .into_view()
+            }
+        }}
+    }
+}
+
+#[derive(Clone)]
+pub enum ChangeType {
+    Delete,
+    Update(DefaultConfigUpdateRequest),
+}
+
+#[component]
+pub fn change_log_summary(
+    key_name: String,
+    change_type: ChangeType,
+    #[prop(into)] on_confirm: Callback<()>,
+    #[prop(into)] on_close: Callback<()>,
+) -> impl IntoView {
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+
+    let default_config = create_local_resource(
+        move || (key_name.clone(), tenant_rws.get().0, org_rws.get().0),
+        |(key_name, tenant, org)| async move {
+            get_default_config(&key_name, &tenant, &org).await
+        },
+    );
+
+    let disabled_rws = RwSignal::new(true);
+    let change_type = StoredValue::new(change_type);
+
+    let (title, description, confirm_text) = match change_type.get_value() {
+        ChangeType::Update(_) => (
+            "Confirm Update",
+            "Are you sure you want to update this context?",
+            "Yes, Update",
+        ),
+        ChangeType::Delete => (
+            "Confirm Delete",
+            "Are you sure you want to delete this context? Action is irreversible.",
+            "Yes, Delete",
+        ),
+    };
+
+    view! {
+        <ChangeLogPopup
+            title
+            description
+            confirm_text
+            on_confirm
+            on_close
+            disabled=disabled_rws.read_only()
+        >
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
+            }>
+                {
+                    Effect::new(move |_| {
+                        if let Some(Ok(_)) = default_config.get() {
+                            disabled_rws.set(false);
+                        } else if let Some(Err(e)) = default_config.get() {
+                            logging::error!("Error fetching default config: {}", e);
+                        }
+                    });
+                }
+                {move || match default_config.get() {
+                    Some(Ok(default)) => {
+                        let (new_default_value, new_sceham, new_values) = match change_type.get_value() {
+                            ChangeType::Update(update_request) => {
+                                let description = update_request
+                                    .description
+                                    .unwrap_or_else(|| default.description.clone())
+                                    .deref()
+                                    .to_string();
+                                let valdiate_fn = update_request
+                                    .function_name
+                                    .clone()
+                                    .unwrap_or_else(|| default.function_name.clone());
+                                let autocomplete_fn = update_request
+                                    .autocomplete_function_name
+                                    .clone()
+                                    .unwrap_or_else(|| {
+                                        default.autocomplete_function_name.clone()
+                                    });
+                                (
+                                    Some(update_request.value.unwrap_or_else(|| default.value.clone())),
+                                    Some(update_request
+                                        .schema
+                                        .unwrap_or_else(|| default.schema.clone())),
+                                    Map::from_iter(
+                                        vec![
+                                            Some((
+                                                "Description".to_string(),
+                                                Value::String(description),
+                                            )),
+                                            valdiate_fn
+                                                .map(|f| (
+                                                    "Validation Function".to_string(),
+                                                    Value::String(f.clone()),
+                                                )),
+                                            autocomplete_fn
+                                                .map(|f| (
+                                                    "Autocomplete Function".to_string(),
+                                                    Value::String(f.clone()),
+                                                )),
+                                        ]
+                                            .into_iter()
+                                            .flatten(),
+                                    ),
+                                )
+                            }
+                            ChangeType::Delete => (None, None, Map::new()),
+                        };
+                        view! {
+                            <JsonChangeSummary
+                                title="Default Value changes"
+                                old_values=Some(default.value)
+                                new_values=new_default_value
+                            />
+                            <JsonChangeSummary
+                                title="Schema changes"
+                                old_values=Some(default.schema)
+                                new_values=new_sceham
+                            />
+                            <ChangeSummary
+                                title="Other changes"
+                                key_column="Property"
+                                old_values=Map::from_iter(
+                                    vec![
+                                        Some((
+                                            "Description".to_string(),
+                                            Value::String(default.description.deref().to_string()),
+                                        )),
+                                        default
+                                            .function_name
+                                            .map(|f| (
+                                                "Validation Function".to_string(),
+                                                Value::String(f.clone()),
+                                            )),
+                                        default
+                                            .autocomplete_function_name
+                                            .map(|f| (
+                                                "Autocomplete Function".to_string(),
+                                                Value::String(f.clone()),
+                                            )),
+                                    ]
+                                        .into_iter()
+                                        .flatten(),
+                                )
+                                new_values
+                            />
+                        }
+                            .into_view()
+                    }
+                    Some(Err(e)) => {
+                        logging::error!("Error fetching default config: {}", e);
+                        view! { <div>Error fetching default config</div> }.into_view()
+                    }
+                    None => view! { <div>Loading...</div> }.into_view(),
+                }}
+            </Suspense>
+        </ChangeLogPopup>
     }
 }
