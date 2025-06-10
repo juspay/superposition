@@ -289,7 +289,9 @@ pub fn dimension_form(
                                     class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
                                     schema_type=dimension_type_schema
                                     value=dimension_schema_rs.get_untracked()
-                                    on_change=move |new_type_schema| dimension_schema_ws.set(new_type_schema)
+                                    on_change=move |new_type_schema| {
+                                        dimension_schema_ws.set(new_type_schema)
+                                    }
                                     r#type=InputType::Monaco(vec![])
                                 />
                             </EditorProvider>
@@ -441,7 +443,7 @@ pub fn dimension_form(
                         <Button
                             class="pl-[70px] pr-[70px] w-48 h-12".to_string()
                             text="Submit".to_string()
-                            on_click=move|ev| {
+                            on_click=move |ev| {
                                 ev.prevent_default();
                                 on_submit(());
                             }
@@ -548,14 +550,11 @@ pub fn change_log_summary(
                                 let autocomplete_fn = update_request
                                     .autocomplete_function_name
                                     .clone()
-                                    .unwrap_or_else(|| {
-                                        dim.autocomplete_function_name.clone()
-                                    });
+                                    .unwrap_or_else(|| { dim.autocomplete_function_name.clone() });
                                 (
-                                    Some(update_request
-                                        .schema
-                                        .unwrap_or_else(|| dim.schema.clone())),
-
+                                    Some(
+                                        update_request.schema.unwrap_or_else(|| dim.schema.clone()),
+                                    ),
                                     Map::from_iter(
                                         vec![
                                             Some((
@@ -617,10 +616,7 @@ pub fn change_log_summary(
                                         Some((
                                             "Dependencies".to_string(),
                                             Value::Array(
-                                                dim.dependencies
-                                                    .into_iter()
-                                                    .map(Value::String)
-                                                    .collect(),
+                                                dim.dependencies.into_iter().map(Value::String).collect(),
                                             ),
                                         )),
                                         dim

@@ -58,22 +58,26 @@ pub async fn create_experiment(
     parse_json_response(response).await
 }
 
-pub async fn update_experiment(
-    experiment_id: &String,
+pub fn try_update_payload(
     variants: Vec<VariantFormT>,
     metrics: Option<Metrics>,
-    tenant: String,
-    org_id: String,
     description: String,
     change_reason: String,
-) -> Result<ExperimentResponse, String> {
-    let payload = OverrideKeysUpdateRequest {
+) -> Result<OverrideKeysUpdateRequest, String> {
+    Ok(OverrideKeysUpdateRequest {
         variants: Result::<Vec<VariantUpdateRequest>, String>::from_iter(variants)?,
         metrics,
         description: Some(Description::try_from(description)?),
         change_reason: ChangeReason::try_from(change_reason)?,
-    };
+    })
+}
 
+pub async fn update_experiment(
+    experiment_id: &String,
+    payload: OverrideKeysUpdateRequest,
+    tenant: String,
+    org_id: String,
+) -> Result<ExperimentResponse, String> {
     let host = get_host();
     let url = format!("{}/experiments/{}/overrides", host, experiment_id);
 
