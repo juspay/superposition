@@ -60,7 +60,7 @@ impl TryFrom<String> for DefaultConfigKey {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
 #[cfg_attr(feature = "diesel_derives", diesel(table_name = default_configs))]
 pub struct DefaultConfigUpdateRequest {
