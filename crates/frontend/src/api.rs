@@ -660,3 +660,22 @@ pub async fn execute_autocomplete_function(
         .collect();
     Ok(result)
 }
+
+pub async fn get_default_config(
+    key_name: &str,
+    tenant: &str,
+    org_id: &str,
+) -> Result<DefaultConfig, String> {
+    let host = use_host_server();
+    let url = format!("{host}/default-config/{key_name}");
+
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<serde_json::Value>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
