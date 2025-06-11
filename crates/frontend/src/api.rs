@@ -7,6 +7,7 @@ use superposition_types::{
     api::{
         context::ContextListFilters,
         default_config::DefaultConfigFilters,
+        experiment_groups::ExpGroupFilters,
         experiments::{
             ExperimentListFilters, ExperimentResponse, ExperimentStateChangeRequest,
         },
@@ -663,17 +664,19 @@ pub async fn execute_autocomplete_function(
 }
 
 pub async fn fetch_experiment_groups(
-    tenant: String,
-    org_id: String,
+    pagination: &PaginationParams,
+    filters: &ExpGroupFilters,
+    tenant: &String,
+    org_id: &String,
 ) -> Result<PaginatedResponse<ExperimentGroup>, String> {
     let host = use_host_server();
-    let url = format!("{}/experiment-groups", host);
+    let url = format!("{}/experiment-groups?{}&{}", host, pagination, filters);
 
     let response = request(
         url,
         reqwest::Method::GET,
         None::<serde_json::Value>,
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
     )
     .await?;
     parse_json_response(response).await

@@ -81,6 +81,35 @@ ADD_MEMBERS_TO_GROUP_INPUT = Schema.collection(
     }
 )
 
+BUCKET = Schema.collection(
+    id=ShapeID("io.superposition#Bucket"),
+
+    members={
+        "experiment_id": {
+            "target": STRING,
+            "index": 0,
+        },
+
+        "variant": {
+            "target": STRING,
+            "index": 1,
+        },
+
+    }
+)
+
+BUCKETS = Schema.collection(
+    id=ShapeID("io.superposition#Buckets"),
+    shape_type=ShapeType.LIST,
+    members={
+        "member": {
+            "target": BUCKET,
+            "index": 0,
+        },
+
+    }
+)
+
 CONDITION = Schema.collection(
     id=ShapeID("io.superposition#Condition"),
     shape_type=ShapeType.MAP,
@@ -106,6 +135,31 @@ DATE_TIME = Schema(
 
     ],
 
+)
+
+GROUP_TYPE = Schema.collection(
+    id=ShapeID("io.superposition#GroupType"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "UserCreated": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="UserCreated"),
+
+            ],
+        },
+
+        "SystemGenerated": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="SystemGenerated"),
+
+            ],
+        },
+
+    }
 )
 
 ADD_MEMBERS_TO_GROUP_OUTPUT = Schema.collection(
@@ -223,6 +277,24 @@ ADD_MEMBERS_TO_GROUP_OUTPUT = Schema.collection(
         "last_modified_by": {
             "target": STRING,
             "index": 11,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "buckets": {
+            "target": BUCKETS,
+            "index": 12,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "group_type": {
+            "target": GROUP_TYPE,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -4151,6 +4223,24 @@ CREATE_EXPERIMENT_GROUP_OUTPUT = Schema.collection(
             ],
         },
 
+        "buckets": {
+            "target": BUCKETS,
+            "index": 12,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "group_type": {
+            "target": GROUP_TYPE,
+            "index": 13,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -6030,6 +6120,24 @@ DELETE_EXPERIMENT_GROUP_OUTPUT = Schema.collection(
             ],
         },
 
+        "buckets": {
+            "target": BUCKETS,
+            "index": 12,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "group_type": {
+            "target": GROUP_TYPE,
+            "index": 13,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -7294,6 +7402,24 @@ GET_EXPERIMENT_GROUP_OUTPUT = Schema.collection(
             ],
         },
 
+        "buckets": {
+            "target": BUCKETS,
+            "index": 12,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "group_type": {
+            "target": GROUP_TYPE,
+            "index": 13,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -7570,6 +7696,24 @@ EXPERIMENT_GROUP_RESPONSE = Schema.collection(
             ],
         },
 
+        "buckets": {
+            "target": BUCKETS,
+            "index": 12,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "group_type": {
+            "target": GROUP_TYPE,
+            "index": 13,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -7823,6 +7967,24 @@ REMOVE_MEMBERS_FROM_GROUP_OUTPUT = Schema.collection(
             ],
         },
 
+        "buckets": {
+            "target": BUCKETS,
+            "index": 12,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "group_type": {
+            "target": GROUP_TYPE,
+            "index": 13,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -8023,6 +8185,24 @@ UPDATE_EXPERIMENT_GROUP_OUTPUT = Schema.collection(
         "last_modified_by": {
             "target": STRING,
             "index": 11,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "buckets": {
+            "target": BUCKETS,
+            "index": 12,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "group_type": {
+            "target": GROUP_TYPE,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 

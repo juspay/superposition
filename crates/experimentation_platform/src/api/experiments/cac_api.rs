@@ -2,7 +2,7 @@ use actix_http::header::{self, HeaderMap, HeaderName, HeaderValue};
 use actix_web::web::Data;
 use reqwest::{Response, StatusCode};
 use serde::de::DeserializeOwned;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use service_utils::{
     helpers::extract_dimensions,
     service::types::{AppState, OrganisationId, WorkspaceContext, WorkspaceId},

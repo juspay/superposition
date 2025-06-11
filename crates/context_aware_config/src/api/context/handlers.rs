@@ -38,7 +38,7 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    api::context::{ContextListFilters, ContextValidationRequest, SortOn, UpdateRequest},
+    api::context::{ContextListFilters, SortOn, UpdateRequest},
     custom_query::{
         self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
         QueryMap,

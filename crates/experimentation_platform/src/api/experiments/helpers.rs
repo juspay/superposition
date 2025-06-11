@@ -1,26 +1,30 @@
+use std::collections::{hash_map::DefaultHasher, HashSet};
+use std::hash::{Hash, Hasher};
+
 use actix_http::header;
 use actix_web::web::Data;
-use cac_client::utils::json_to_sorted_string;
 use diesel::pg::PgConnection;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
-use service_utils::helpers::extract_dimensions;
-use service_utils::service::types::{
-    AppState, ExperimentationFlags, SchemaName, WorkspaceContext,
+
+use cac_client::utils::json_to_sorted_string;
+use service_utils::{
+    helpers::extract_dimensions,
+    service::types::{AppState, ExperimentationFlags, SchemaName, WorkspaceContext},
 };
-use std::collections::HashSet;
 use superposition_macros::{bad_argument, unexpected_error};
-use superposition_types::User;
 use superposition_types::{
     database::{
         models::{
-            experimentation::{Experiment, ExperimentStatusType, Variant, VariantType},
+            experimentation::{
+                Experiment, ExperimentGroup, ExperimentStatusType, Variant, VariantType,
+            },
             others::{Webhook, WebhookEvent},
             Workspace,
         },
         superposition_schema::superposition::workspaces,
     },
-    result as superposition, Condition, Config, DBConnection, Exp, Overrides,
+    result as superposition, Condition, Config, DBConnection, Exp, Overrides, User,
 };
 
 pub fn get_workspace(
@@ -408,31 +412,55 @@ pub fn extract_override_keys(overrides: &Map<String, Value>) -> HashSet<String> 
 }
 
 pub fn decide_variant(
-    traffic: u8,
-    applicable_variants: Vec<Variant>,
+    experiment_group: &ExperimentGroup,
     toss: i8,
-) -> Result<Option<Variant>, String> {
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Option<Variant>> {
+    // Early return for invalid toss
     if toss < 0 {
-        for variant in applicable_variants.iter() {
-            if variant.variant_type == VariantType::EXPERIMENTAL {
-                return Ok(Some(variant.clone()));
-            }
-        }
-    }
-    let variant_count = applicable_variants.len() as u8;
-    let range = (traffic * variant_count) as i32;
-    if (toss as i32) >= range {
         return Ok(None);
     }
-    let buckets = (1..=variant_count)
-        .map(|i| (traffic * i) as i8)
-        .collect::<Vec<i8>>();
-    let index = buckets
-        .into_iter()
-        .position(|x| toss < x)
-        .ok_or_else(|| "Unable to fetch variant's index".to_string())?;
 
-    Ok(applicable_variants.get(index).cloned())
+    // Calculate bucket index using hash
+    let bucket_index = calculate_bucket_index(toss, experiment_group.id);
+
+    // Get bucket safely with bounds checking
+    let bucket = experiment_group.buckets
+        .get(bucket_index)
+        .ok_or_else(|| {
+            bad_argument!(
+                "Bucket index out of bounds. Ensure the bucket index is within the range of available buckets."
+            )
+        })?;
+
+    // Extract experiment_id and variant_id, return None if either is missing
+    let (experiment_id, variant_id) = match (&bucket.experiment_id, &bucket.variant) {
+        (Some(exp_id), Some(var_id)) => (*exp_id, var_id.clone()),
+        _ => return Ok(None),
+    };
+
+    // Get experiment and check if active
+    let experiment = get_experiment(experiment_id, conn, schema_name)?;
+    if !experiment.status.active() {
+        return Ok(None);
+    }
+
+    // Find and return the variant
+    let variant = experiment
+        .variants
+        .iter()
+        .find(|v| v.id == variant_id)
+        .cloned();
+
+    Ok(variant)
+}
+
+#[inline]
+fn calculate_bucket_index(toss: i8, group_id: i64) -> usize {
+    let mut hasher = DefaultHasher::new();
+    (toss, group_id).hash(&mut hasher);
+    (hasher.finish() % 100) as usize
 }
 
 pub async fn fetch_cac_config(
@@ -525,4 +553,18 @@ pub async fn fetch_webhook_by_event(
             Err(unexpected_error!(error))
         }
     }
+}
+
+pub fn get_experiment(
+    experiment_id: i64,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Experiment> {
+    use superposition_types::database::schema::experiments::dsl::*;
+    let result: Experiment = experiments
+        .find(experiment_id)
+        .schema_name(schema_name)
+        .get_result::<Experiment>(conn)?;
+
+    Ok(result)
 }

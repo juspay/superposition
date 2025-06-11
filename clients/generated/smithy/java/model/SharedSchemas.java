@@ -16,6 +16,10 @@ final class SharedSchemas {
         .putMember("member", PreludeSchemas.STRING)
         .build();
 
+    static final Schema BUCKETS = Schema.listBuilder(ShapeId.from("io.superposition#Buckets"))
+        .putMember("member", Bucket.$SCHEMA)
+        .build();
+
     static final Schema CONDITION = Schema.mapBuilder(ShapeId.from("io.superposition#Condition"))
         .putMember("key", PreludeSchemas.STRING)
         .putMember("value", PreludeSchemas.DOCUMENT)
