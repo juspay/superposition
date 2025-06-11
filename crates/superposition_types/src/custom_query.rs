@@ -75,7 +75,7 @@ pub trait CustomQuery: Sized {
 }
 
 /// Provides struct to extract those query params from the request which are `wrapped` in `dimension[param_name]`
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Deref)]
 pub struct DimensionQuery<T: DeserializeOwned>(pub T);
 
 impl<T> CustomQuery for DimensionQuery<T>
