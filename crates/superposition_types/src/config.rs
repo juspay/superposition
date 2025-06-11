@@ -125,6 +125,11 @@ impl Condition {
             .get_variable_names_and_values()?;
         Ok(condition1.is_superset(&condition2))
     }
+
+    pub fn default() -> Self {
+        Self(Map::new())
+    }
+
 }
 
 impl_try_from_map!(Cac, Condition, Condition::validate_data_for_cac);

@@ -3,14 +3,16 @@ pub mod cac;
 pub mod experimentation;
 pub mod others;
 
-use std::str::FromStr;
+use std::{io::Write, str::FromStr};
 
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
 #[cfg(feature = "diesel_derives")]
+use diesel::{deserialize::{self, FromSql}, pg::PgValue, serialize::{self, Output, ToSql}};
+#[cfg(feature = "diesel_derives")]
 use diesel::{
-    sql_types::{Json, Text},
-    AsChangeset, AsExpression, FromSqlRow, Insertable, QueryId, Queryable, Selectable,
+    sql_types::{Json, Text, Array},
+    AsChangeset, AsExpression, FromSqlRow, Insertable, QueryId, Queryable, Selectable, pg::Pg,
 };
 use serde::{Deserialize, Deserializer, Serialize};
 #[cfg(all(
@@ -22,6 +24,8 @@ use superposition_derives::TextFromSql;
 use superposition_derives::TextFromSqlNoValidation;
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql, TextToSql};
+
+use crate::api::experiment_groups::Bucket;
 
 #[cfg(feature = "diesel_derives")]
 use super::superposition_schema::superposition::*;
@@ -356,5 +360,70 @@ impl TryFrom<String> for NonEmptyString {
             return Err(String::from("Empty reason not allowed"));
         }
         Ok(Self(value))
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Deref, DerefMut)]
+#[serde(try_from = "Vec<Bucket>")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Array<Json>))]
+pub struct Buckets(Vec<Bucket>);
+
+impl Buckets {
+    pub fn new() -> Self {
+        Buckets(vec![Bucket::default(); 100])
+    }
+
+    pub fn from_array(arr: [Bucket; 100]) -> Self {
+        Buckets(arr.to_vec())
+    }
+}
+
+impl TryFrom<Vec<Bucket>> for Buckets {
+    type Error = String;
+
+    fn try_from(value: Vec<Bucket>) -> Result<Self, Self::Error> {
+        if value.len() != 100 {
+            return Err(format!("Buckets must contain exactly 100 elements, got {}", value.len()));
+        }
+        Ok(Buckets(value))
+    }
+}
+
+#[cfg(feature = "diesel_derives")]
+impl FromSql<Array<Json>, Pg> for Buckets {
+    fn from_sql(bytes: PgValue<'_>) -> deserialize::Result<Self> {
+        let json_array: Vec<serde_json::Value> = FromSql::<Array<Json>, Pg>::from_sql(bytes)?;
+        let mut buckets = Vec::with_capacity(json_array.len());
+        
+        for json_value in json_array {
+            let bucket: Bucket = serde_json::from_value(json_value)?;
+            buckets.push(bucket);
+        }
+        
+        Buckets::try_from(buckets).map_err(Into::into)
+    }
+}
+
+// #[cfg(feature = "diesel_derives")]
+// impl diesel::deserialize::FromSqlRow<Array<Json>, Pg> for Buckets {
+//     fn build_from_row<'a>(row: &impl Row<'a, Pg>) -> deserialize::Result<Self> {
+//         FromSql::<Array<Json>, Pg>::from_sql(row.get(0)?)
+//     }
+// }
+
+#[cfg(feature = "diesel_derives")]
+impl ToSql<Array<Json>, Pg> for Buckets {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> serialize::Result {
+        let json_values: Result<Vec<serde_json::Value>, _> = self.0
+            .iter()
+            .map(|bucket| serde_json::to_value(bucket))
+            .collect();
+        
+        let json_array = json_values?;
+        <Vec<serde_json::Value> as ToSql<Array<Json>, Pg>>::to_sql(&json_array, &mut out.reborrow())
     }
 }

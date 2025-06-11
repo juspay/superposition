@@ -85,3 +85,19 @@ impl Display for ExpGroupFilters {
         write!(f, "{}", query_params.join("&"))
     }
 }
+
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+pub struct Bucket {
+    pub experiment_id: Option<i64>,
+    pub variant: Option<String>,
+}
+
+impl Default for Bucket {
+    fn default() -> Self {
+        Self {
+            experiment_id: None,
+            variant: None,
+        }
+    }
+}

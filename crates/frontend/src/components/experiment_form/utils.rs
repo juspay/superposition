@@ -32,18 +32,14 @@ pub async fn create_experiment(
     description: String,
     change_reason: String,
     org_id: String,
-    experiment_group_id: Option<String>,
+    experiment_group_id: Option<i64>,
 ) -> Result<ExperimentResponse, String> {
-    let experiment_group_id = if let Some(exp_group_id) = experiment_group_id {
-        Some(
-            exp_group_id
-                .parse::<i64>()
-                .map_err(|_| format!("Invalid experiment group ID: {exp_group_id}"))?,
-        )
-    } else {
+    let experiment_group_id = if experiment_group_id == Some(-1) {
         None
+    } else {
+        experiment_group_id
     };
-
+    
     let payload = ExperimentCreateRequest {
         name,
         experiment_type,
@@ -79,16 +75,12 @@ pub async fn update_experiment(
     org_id: String,
     description: String,
     change_reason: String,
-    experiment_group_id: Option<String>,
+    experiment_group_id: Option<i64>,
 ) -> Result<ExperimentResponse, String> {
-    let experiment_group_id = if let Some(exp_group_id) = experiment_group_id {
-        Some(
-            exp_group_id
-                .parse::<i64>()
-                .map_err(|_| format!("Invalid experiment group ID: {exp_group_id}"))?,
-        )
-    } else {
+    let experiment_group_id = if experiment_group_id == Some(-1) {
         None
+    } else {
+        experiment_group_id
     };
 
     let payload = OverrideKeysUpdateRequest {
@@ -96,7 +88,7 @@ pub async fn update_experiment(
         metrics,
         description: Some(Description::try_from(description)?),
         change_reason: ChangeReason::try_from(change_reason)?,
-        experiment_group_id,
+        experiment_group_id: Some(experiment_group_id),
     };
 
     let host = get_host();

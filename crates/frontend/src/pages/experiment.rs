@@ -200,7 +200,7 @@ pub fn experiment_page() -> impl IntoView {
                                                             }
                                                             description=(*experiment_ef.description).clone()
                                                             metrics=experiment_ef.metrics
-                                                            experiment_group_id=Some(experiment_ef.experiment_group_id.unwrap_or_default().to_string())
+                                                            experiment_group_id=experiment_ef.experiment_group_id
                                                             experiment_groups
                                                         />
                                                     </EditorProvider>

@@ -27,8 +27,15 @@ use crate::{
     providers::alert_provider::enqueue_alert,
     types::{OrganisationId, Tenant, VariantFormT, VariantFormTs},
 };
-
+use superposition_types::database::models::Description;
+use superposition_types::database::models::ChangeReason;
+use superposition_types::Condition;
 use crate::logic::Conditions;
+use superposition_types::database::models::experimentation::TrafficPercentage;
+use superposition_types::database::models::Buckets;
+use chrono::Utc;
+use superposition_types::database::models::experimentation::GroupType;
+use crate::components::experiment_form::types::default_experiment_group;
 
 fn get_init_state(variants: &[VariantFormT]) -> Vec<(String, VariantFormT)> {
     variants
@@ -74,7 +81,7 @@ pub fn experiment_form(
     dimensions: Vec<DimensionWithMandatory>,
     #[prop(default = String::new())] description: String,
     metrics: Metrics,
-    experiment_group_id: Option<String>,
+    experiment_group_id: Option<i64>,
     experiment_groups: Vec<ExperimentGroup>,
 ) -> impl IntoView {
     let init_variants = get_init_state(&variants);
@@ -94,14 +101,14 @@ pub fn experiment_form(
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let metrics_rws = RwSignal::new(metrics);
-    let (experiment_group_id_rws, experiment_group_id_ws) =
+    let (experiment_group_id_rs, experiment_group_id_ws) =
         create_signal(experiment_group_id.clone());
     let (experiment_group_name_rws, experiment_group_name_ws) =
         create_signal(experiment_group_id.map(|experiment_group_id| {
             experiment_groups
                 .iter()
                 .filter(|group| {
-                    group.id.to_string() == experiment_group_id
+                    group.id == experiment_group_id
                 })
                 .map(|group| group.name.clone())
                 .next()
@@ -155,7 +162,7 @@ pub fn experiment_form(
                         org,
                         description_rs.get_untracked(),
                         change_reason_rs.get_untracked(),
-                        experiment_group_id_rws.get_untracked(),
+                        experiment_group_id_rs.get_untracked(),
                     )
                     .await
                 } else {
@@ -169,7 +176,7 @@ pub fn experiment_form(
                         description_rs.get_untracked(),
                         change_reason_rs.get_untracked(),
                         org,
-                        experiment_group_id_rws.get_untracked(),
+                        experiment_group_id_rs.get_untracked(),
                     )
                     .await
                 };
@@ -230,23 +237,32 @@ pub fn experiment_form(
                 on_change=Callback::new(move |metrics| metrics_rws.set(metrics))
             />
 
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Experiment Group</span>
-                </label>
-                <Dropdown
-                    dropdown_width="w-100"
-                    dropdown_icon="".to_string()
-                    dropdown_direction=DropdownDirection::Down
-                    dropdown_btn_type=DropdownBtnType::Select
-                    dropdown_text=experiment_group_name_rws.get().unwrap_or("Select Experiment Group".to_string())
-                    dropdown_options=experiment_groups
-                    on_select=Callback::new(move |selected: ExperimentGroup| {
-                        experiment_group_id_ws.set(Some(selected.id.to_string()));
-                        experiment_group_name_ws.set(Some(selected.name));
-                    })
-                />
-            </div>
+            
+            {move || {
+                let mut experiment_groups = experiment_groups.clone();
+                let experiment_group_none = default_experiment_group();
+                experiment_groups.push(experiment_group_none);
+                view! {
+                    <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Experiment Group</span>
+                    </label>
+                    <Dropdown
+                        dropdown_width="w-100"
+                        dropdown_icon="".to_string()
+                        dropdown_direction=DropdownDirection::Down
+                        dropdown_btn_type=DropdownBtnType::Select
+                        dropdown_text=experiment_group_name_rws.get().unwrap_or("Select Experiment Group".to_string())
+                        dropdown_options=experiment_groups
+                        on_select=Callback::new(move |selected: ExperimentGroup| {
+                            experiment_group_id_ws.set(Some(selected.id));
+                            experiment_group_name_ws.set(Some(selected.name));
+                        })
+                    />
+                    </div>
+                }
+            }} 
+            
 
             <ChangeForm
                 title="Reason for Change".to_string()

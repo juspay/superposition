@@ -595,3 +595,16 @@ CREATE TABLE IF NOT EXISTS {replaceme}.experiment_groups(
 );
 
 ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
+
+ALTER TABLE {replaceme}.experiment_groups 
+ADD COLUMN buckets JSON[] 
+DEFAULT array_fill('{"experiment_id": null, "variant": ""}'::jsonb, ARRAY[100]) 
+NOT NULL;
+
+CREATE TYPE public.GROUP_TYPE AS ENUM (
+    'USER_CREATED',
+    'SYSTEM_GENERATED'
+);
+
+ALTER TABLE {replaceme}.experiment_groups 
+ADD COLUMN group_type public.GROUP_TYPE DEFAULT 'USER_CREATED';
