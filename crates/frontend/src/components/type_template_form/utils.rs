@@ -1,12 +1,28 @@
 use serde_json::Value;
+use superposition_types::{
+    api::type_templates::{
+        TypeTemplateCreateRequest, TypeTemplateName, TypeTemplateUpdateRequest,
+    },
+    database::models::{cac::TypeTemplate, ChangeReason, Description},
+};
 
 use crate::utils::{construct_request_headers, get_host, request};
 
 pub async fn create_type(
+    type_name: String,
+    type_schema: Value,
+    description: String,
+    change_reason: String,
     tenant: String,
-    payload: Value,
     org_id: String,
-) -> Result<Value, String> {
+) -> Result<TypeTemplate, String> {
+    let payload = TypeTemplateCreateRequest {
+        type_name: TypeTemplateName::try_from(type_name)?,
+        type_schema,
+        description: Description::try_from(description)?,
+        change_reason: ChangeReason::try_from(change_reason)?,
+    };
+
     let host = get_host();
     let url = format!("{host}/types");
 
@@ -20,12 +36,23 @@ pub async fn create_type(
     response.json().await.map_err(|e| e.to_string())
 }
 
+pub fn try_update_payload(
+    schema: Value,
+    description: String,
+    change_reason: String,
+) -> Result<TypeTemplateUpdateRequest, String> {
+    Ok(TypeTemplateUpdateRequest {
+        type_schema: schema,
+        description: Some(Description::try_from(description)?),
+        change_reason: ChangeReason::try_from(change_reason)?,
+    })
+}
 pub async fn update_type(
-    tenant: String,
     type_name: String,
-    payload: Value,
+    payload: TypeTemplateUpdateRequest,
+    tenant: String,
     org_id: String,
-) -> Result<Value, String> {
+) -> Result<TypeTemplate, String> {
     let host = get_host();
     let url = format!("{host}/types/{type_name}");
 
