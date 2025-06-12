@@ -20,6 +20,7 @@ use superposition_types::{
     database::{
         models::{
             cac::{ConfigVersion, Context, DefaultConfig, Function, TypeTemplate},
+            experimentation::ExperimentGroup,
             others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
             ChangeReason, Description, NonEmptyString,
         },
@@ -659,4 +660,26 @@ pub async fn execute_autocomplete_function(
         })
         .collect();
     Ok(result)
+}
+
+pub async fn fetch_experiment_groups(
+    tenant: String,
+    org_id: String,
+) -> Result<PaginatedResponse<ExperimentGroup>, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = use_host_server();
+
+    let url = format!("{}/experiment-groups", host);
+    let response: PaginatedResponse<ExperimentGroup> = client
+        .get(url)
+        .header("x-tenant", &tenant)
+        .header("x-org-id", org_id)
+        .send()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?
+        .json()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(response)
 }

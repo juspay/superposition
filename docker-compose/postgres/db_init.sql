@@ -1377,4 +1377,8 @@ CREATE TABLE IF NOT EXISTS localorg_test.experiment_groups(
 
 ALTER TABLE superposition.workspaces add column if not exists config_version bigint;
 
+ALTER TABLE localorg_dev.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
+
+ALTER TABLE localorg_test.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
+
 COMMIT;

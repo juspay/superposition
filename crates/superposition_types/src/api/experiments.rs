@@ -47,6 +47,7 @@ pub struct ExperimentResponse {
     pub change_reason: ChangeReason,
     pub metrics: Metrics,
     pub metrics_url: Option<String>,
+    pub experiment_group_id: Option<i64>,
 }
 
 impl From<Experiment> for ExperimentResponse {
@@ -96,6 +97,7 @@ impl From<Experiment> for ExperimentResponse {
             change_reason: experiment.change_reason,
             metrics: experiment.metrics,
             metrics_url,
+            experiment_group_id: experiment.experiment_group_id,
         }
     }
 }
@@ -112,6 +114,7 @@ pub struct ExperimentCreateRequest {
     pub description: Description,
     #[serde(default = "ChangeReason::default")]
     pub change_reason: ChangeReason,
+    pub experiment_group_id: Option<Option<i64>>,
 }
 
 /********** Experiment Ramp Req Types **********/
@@ -312,6 +315,28 @@ pub struct OverrideKeysUpdateRequest {
     pub description: Option<Description>,
     #[serde(default = "ChangeReason::default")]
     pub change_reason: ChangeReason,
+    #[serde(default, deserialize_with = "deserialize_experiment_group_id")]
+    pub experiment_group_id: Option<Option<i64>>,
+}
+
+pub fn deserialize_experiment_group_id<'de, D>(
+    deserializer: D,
+) -> Result<Option<Option<i64>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let opt: Result<Value, _> = Deserialize::deserialize(deserializer);
+    match opt {
+        Ok(Value::Number(func_name)) => Ok(Some(Some(func_name.as_i64().unwrap()))),
+        Ok(Value::Null) => Ok(Some(None)),
+        Err(_) => Ok(None), // If the field is missing, return None instead of throwing an errors
+        _ => {
+            log::error!("Expected a Number or null literal as the experiment group id.");
+            Err(serde::de::Error::custom(
+                "Expected a Null or null literal as the experiment group id.",
+            ))
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
