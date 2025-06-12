@@ -7,6 +7,10 @@ use superposition_types::{
     api::{
         context::ContextListFilters,
         default_config::DefaultConfigFilters,
+        experiment_groups::{
+            ExpGroupCreateRequest, ExpGroupFilters, ExpGroupMemberRequest,
+            ExpGroupUpdateRequest,
+        },
         experiments::{
             ExperimentListFilters, ExperimentResponse, ExperimentStateChangeRequest,
         },
@@ -662,19 +666,151 @@ pub async fn execute_autocomplete_function(
     Ok(result)
 }
 
-pub async fn fetch_experiment_groups(
-    tenant: String,
-    org_id: String,
-) -> Result<PaginatedResponse<ExperimentGroup>, String> {
-    let host = use_host_server();
-    let url = format!("{}/experiment-groups", host);
+pub mod experiment_groups {
+    use super::*;
 
-    let response = request(
-        url,
-        reqwest::Method::GET,
-        None::<serde_json::Value>,
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
-    )
-    .await?;
-    parse_json_response(response).await
+    pub async fn fetch_all(
+        filters: &ExpGroupFilters,
+        pagination: &PaginationParams,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<ExperimentGroup>, ServerFnError> {
+        let host = use_host_server();
+        let pagination = pagination.to_string();
+
+        let url = format!("{}/experiment-groups?{}&{}", host, filters, pagination);
+        let response = request::<()>(
+            url,
+            reqwest::Method::GET,
+            None,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])
+                .map_err(|e| ServerFnError::new(e.to_string()))?,
+        )
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+        let response: PaginatedResponse<ExperimentGroup> = parse_json_response(response)
+            .await
+            .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+        Ok(response)
+    }
+
+    pub async fn fetch(
+        group_id: &str,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<ExperimentGroup, ServerFnError> {
+        let host = use_host_server();
+        let url = format!("{}/experiment-groups/{}", host, group_id);
+
+        let headers =
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])
+                .map_err(ServerFnError::new)?;
+
+        let response = request(url, reqwest::Method::GET, None::<()>, headers)
+            .await
+            .map_err(ServerFnError::new)?;
+
+        parse_json_response(response)
+            .await
+            .map_err(ServerFnError::new)
+    }
+
+    pub async fn create(
+        payload: ExpGroupCreateRequest,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<ExperimentGroup, String> {
+        let host = use_host_server();
+        let url = format!("{host}/experiment-groups");
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn update(
+        group_id: &str,
+        payload: ExpGroupUpdateRequest,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<ExperimentGroup, String> {
+        let host = use_host_server();
+        let url = format!("{}/experiment-groups/{}", host, group_id);
+
+        let response = request(
+            url,
+            reqwest::Method::PATCH,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn delete(
+        group_id: &str,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<ExperimentGroup, String> {
+        let host = use_host_server();
+        let url = format!("{}/experiment-groups/{}", host, group_id);
+
+        let response = request(
+            url,
+            reqwest::Method::DELETE,
+            None::<Value>,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn add_members(
+        group_id: &str,
+        payload: ExpGroupMemberRequest,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<ExperimentGroup, String> {
+        let host = use_host_server();
+        let url = format!("{}/experiment-groups/{}/add-members", host, group_id);
+
+        let response = request(
+            url,
+            reqwest::Method::PATCH,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn remove_members(
+        group_id: &str,
+        payload: &ExpGroupMemberRequest,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<ExperimentGroup, String> {
+        let host = use_host_server();
+        let url = format!("{}/experiment-groups/{}/remove-members", host, group_id);
+
+        let response = request(
+            url,
+            reqwest::Method::PATCH,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
 }

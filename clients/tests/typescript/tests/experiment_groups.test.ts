@@ -714,7 +714,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     new AddMembersToGroupCommand(input),
                 ),
             ).rejects.toThrow(
-                "No records found. Please refine or correct your search parameters",
+                "Please provide at least one experiment ID to add to the group",
             );
         });
     });

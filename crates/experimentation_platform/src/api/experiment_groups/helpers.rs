@@ -95,7 +95,8 @@ pub fn validate_experiment_group_constraints(
             traffic_percentage_sum += *member_experiment.traffic_percentage;
         } else {
             return Err(bad_argument!(
-                "Experiment with id {} does not fit in with the experiment group. The contexts do not match.", member_experiment.id
+                "Experiment with id {} does not fit in with the experiment group. The contexts do not match.",
+                member_experiment.id
             ));
         }
     }
@@ -122,6 +123,11 @@ pub fn add_members(
     schema_name: &SchemaName,
     user: &User,
 ) -> superposition::Result<Json<ExperimentGroup>> {
+    if req.member_experiment_ids.is_empty() {
+        return Err(bad_argument!(
+            "Please provide at least one experiment ID to add to the group"
+        ));
+    }
     let exp_context = experiment_groups::experiment_groups
         .filter(experiment_groups::id.eq(exp_group_id))
         .schema_name(schema_name)
@@ -153,6 +159,11 @@ pub fn remove_members(
     schema_name: &SchemaName,
     user: &User,
 ) -> superposition::Result<Json<ExperimentGroup>> {
+    if req.member_experiment_ids.is_empty() {
+        return Err(bad_argument!(
+            "Please provide at least one experiment ID to remove from the group"
+        ));
+    }
     let exp_context = experiment_groups::experiment_groups
         .filter(experiment_groups::id.eq(&id))
         .schema_name(schema_name)

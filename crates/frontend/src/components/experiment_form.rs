@@ -4,7 +4,8 @@ pub mod utils;
 use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::{
-    api::workspace::WorkspaceResponse,
+    api::{experiment_groups::ExpGroupFilters, workspace::WorkspaceResponse},
+    custom_query::PaginationParams,
     database::{
         models::{
             cac::DefaultConfig,
@@ -18,7 +19,7 @@ use utils::{create_experiment, update_experiment};
 use web_sys::MouseEvent;
 
 use crate::{
-    api::fetch_experiment_groups,
+    api::experiment_groups,
     components::{
         alert::AlertType,
         button::Button,
@@ -105,10 +106,15 @@ pub fn experiment_form(
         create_blocking_resource(
             move || (tenant_rws.get().0, org_rws.get().0),
             |(current_tenant, org)| async move {
-                fetch_experiment_groups(current_tenant.to_string(), org.clone())
-                    .await
-                    .map(|data| data.data)
-                    .unwrap_or_default()
+                experiment_groups::fetch_all(
+                    &ExpGroupFilters::default(),
+                    &PaginationParams::all_entries(),
+                    &current_tenant,
+                    &org,
+                )
+                .await
+                .map(|data| data.data)
+                .unwrap_or_default()
             },
         );
 
