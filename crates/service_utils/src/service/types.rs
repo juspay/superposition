@@ -67,14 +67,6 @@ impl FromStr for AppEnv {
     }
 }
 
-#[derive(Copy, Clone, Debug, strum_macros::Display)]
-#[strum(serialize_all = "lowercase")]
-pub enum AppScope {
-    CAC,
-    EXPERIMENTATION,
-    SUPERPOSITION,
-}
-
 #[derive(Deref, DerefMut, Clone, Debug)]
 pub struct WorkspaceId(pub String);
 

@@ -1319,7 +1319,6 @@ dependencies = [
  "derive_more",
  "diesel",
  "fred",
- "futures-util",
  "itertools 0.10.5",
  "jsonlogic",
  "jsonschema",
