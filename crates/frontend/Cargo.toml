@@ -22,6 +22,7 @@ monaco = { git = "https://github.com/datron/rust-monaco.git", rev = "5c9c93a" }
 once_cell = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+serde-wasm-bindgen = "0.6.5"
 reqwest = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
@@ -39,14 +40,14 @@ web-sys = { version = "0.3.64", features = [
     "Window",
     "Storage",
     "Element",
+    "DomRect",
     "HtmlElement",
     "UiEvent",
     "MouseEvent",
     "KeyboardEvent",
     "Document",
-    "Node"
+    "Node",
 ] }
-serde-wasm-bindgen = "0.6.5"
 
 [features]
 csr = ["leptos/csr", "leptos_meta/csr", "leptos_router/csr"]
