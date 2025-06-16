@@ -28,6 +28,10 @@ strum_macros = { workspace = true }
 superposition_derives = { path = "../superposition_derives" }
 thiserror = { version = "1.0.57", optional = true }
 uuid = { workspace = true }
+uniffi = { workspace = true }
+
+[dev-dependencies]
+uniffi = { workspace = true }
 
 [features]
 default = ["server"]
@@ -45,3 +49,7 @@ api = []
 
 [lints]
 workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+name = "superposition_types"

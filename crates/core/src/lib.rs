@@ -1,5 +1,7 @@
 // This crate provides efficient , cached resolution of configurations based on context conditions and overrides
 // , with FFI bindings fir use in non-Rust applications
+uniffi::setup_scaffolding!();
+
 pub mod config;
 pub mod experiment;
 pub mod ffi;

@@ -41,7 +41,7 @@
         crates = {
           "cac_client" = {
             imports = [ globalCrateConfig ];
-            autoWire = true; # Used by Haskell client
+            autoWire = [ "crate" "clippy" "doc" ]; # Used by Haskell client
             crane = {
               args = {
                 buildInputs =
@@ -51,7 +51,7 @@
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
-                    pkgs.postgresql_12
+                    pkgs.postgresql_15
                     pkgs.openssl
                   ];
               };
@@ -64,7 +64,7 @@
             };
           };
           "experimentation_client" = {
-            autoWire = true; # Used by Haskell client
+            autoWire = [ "crate" "clippy" "doc" ]; # Used by Haskell client
             crane = {
               args = {
                 buildInputs =
@@ -74,7 +74,7 @@
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
-                    pkgs.postgresql_12
+                    pkgs.postgresql_15
                     pkgs.openssl
                   ];
               };
@@ -111,7 +111,7 @@
                   ])
                   ++ [
                     pkgs.openssl
-                    pkgs.postgresql_12
+                    pkgs.postgresql_15
                   ];
               };
             };
@@ -129,7 +129,7 @@
                   ++ [
                     pkgs.libiconv
                     pkgs.openssl
-                    pkgs.postgresql_12
+                    pkgs.postgresql_15
                   ];
                 nativeBuildInputs = with pkgs; [
                   pkg-config

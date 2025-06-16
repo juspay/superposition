@@ -19,9 +19,14 @@ strum_macros = { workspace = true }
 superposition_types = { path = "../superposition_types" }
 tokio = { version = "1.29.1", features = ["full"] }
 serde = { workspace = true }
+uniffi = { workspace = true }
+
+[dev-dependencies]
+uniffi = { workspace = true }
 
 [lints]
 workspace = true
 
 [lib]
-crate-type = ["cdylib"]  
+crate-type = ["cdylib"]
+name = "superposition"

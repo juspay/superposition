@@ -1,4 +1,7 @@
 #![deny(unused_crate_dependencies)]
+
+uniffi::setup_scaffolding!();
+
 #[cfg(feature = "api")]
 pub mod api;
 mod config;
@@ -8,6 +11,7 @@ pub mod database;
 mod overridden;
 #[cfg(feature = "result")]
 pub mod result;
+
 
 use std::fmt::Display;
 #[cfg(feature = "server")]

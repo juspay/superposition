@@ -51,7 +51,7 @@
               stdenv.cc
               awscli2
               jq
-              nodejs_18
+              nodejs_24
               nixpkgs-fmt
               bacon
               cargo-watch

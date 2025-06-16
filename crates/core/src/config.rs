@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use superposition_types::{Config, Context, Overrides};
 
 // Merge strategy for configuration resolution
-#[derive(Clone, Debug, PartialEq, strum_macros::Display)]
+#[derive(Clone, Debug, PartialEq, strum_macros::Display, uniffi::Enum)]
 pub enum MergeStrategy {
     #[strum(to_string = "merge")]
     MERGE,
@@ -27,6 +27,7 @@ impl From<&str> for MergeStrategy {
     }
 }
 
+#[uniffi::export]
 pub fn eval_config(
     default_config: Map<String, Value>,
     contexts: &[Context],
