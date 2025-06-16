@@ -188,7 +188,10 @@ pub struct ApplicableVariantsRequest {
 
 impl From<ApplicableVariantsRequest> for ApplicableVariantsQuery {
     fn from(value: ApplicableVariantsRequest) -> Self {
-        value.into()
+        Self {
+            context: value.context,
+            toss: value.toss,
+        }
     }
 }
 

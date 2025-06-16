@@ -21,7 +21,7 @@
   "plugins": {
     "rust-client-codegen": {
         "runtimeConfig": {
-            "relativePath": "smithy/repository/rust/software/amazon/rustruntime"
+            "version": "1.2.5"
         },
         "codegen": {
           "addMessageToErrors": true,
