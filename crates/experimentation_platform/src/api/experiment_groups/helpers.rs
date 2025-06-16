@@ -117,7 +117,7 @@ pub fn add_members(
     mut req: ExpGroupMemberRequest,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
-    user: User,
+    user: &User,
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let exp_context = experiment_groups::experiment_groups
         .filter(experiment_groups::id.eq(exp_group_id))
@@ -134,7 +134,7 @@ pub fn add_members(
         .filter(experiment_groups::id.eq(exp_group_id))
         .set((
             req,
-            experiment_groups::last_modified_by.eq(user.email),
+            experiment_groups::last_modified_by.eq(user.email.clone()),
             experiment_groups::last_modified_at.eq(chrono::Utc::now()),
         ))
         .returning(ExperimentGroup::as_returning())
@@ -148,7 +148,7 @@ pub fn remove_members(
     mut req: ExpGroupMemberRequest,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
-    user: User,
+    user: &User,
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let exp_context = experiment_groups::experiment_groups
         .filter(experiment_groups::id.eq(&id))
@@ -165,7 +165,7 @@ pub fn remove_members(
         .filter(experiment_groups::id.eq(&id))
         .set((
             req,
-            experiment_groups::last_modified_by.eq(user.email),
+            experiment_groups::last_modified_by.eq(user.email.clone()),
             experiment_groups::last_modified_at.eq(chrono::Utc::now()),
         ))
         .returning(ExperimentGroup::as_returning())

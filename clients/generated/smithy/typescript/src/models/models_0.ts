@@ -530,6 +530,7 @@ export interface ExperimentResponse {
   chosen_variant?: string | undefined;
   description: string | undefined;
   change_reason: string | undefined;
+  experiment_group_id?: string | undefined;
 }
 
 /**
@@ -924,6 +925,7 @@ export interface CreateExperimentRequest {
   variants: (Variant)[] | undefined;
   description: string | undefined;
   change_reason: string | undefined;
+  experiment_group_id?: string | undefined;
 }
 
 /**
@@ -1582,6 +1584,7 @@ export interface UpdateOverrideRequest {
   variant_list: (VariantUpdateRequest)[] | undefined;
   description?: string | undefined;
   change_reason: string | undefined;
+  experiment_group_id?: string | undefined;
 }
 
 /**

@@ -27,6 +27,7 @@ public final class Experiments implements ApiResource {
         "traffic_percentage", PreludeSchemas.INTEGER,
         "name", PreludeSchemas.STRING,
         "context", SharedSchemas.CONDITION,
+        "experiment_group_id", PreludeSchemas.STRING,
         "id", PreludeSchemas.STRING,
         "last_modified", SharedSchemas.DATE_TIME,
         "status", ExperimentStatusType.$SCHEMA);

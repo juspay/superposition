@@ -1877,6 +1877,7 @@ class ConcludeExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    experiment_group_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT, self)
@@ -1899,6 +1900,8 @@ class ConcludeExperimentOutput:
 
         serializer.write_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.experiment_group_id is not None:
+            serializer.write_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["experiment_group_id"], self.experiment_group_id)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1954,6 +1957,9 @@ class ConcludeExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["experiment_group_id"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -4283,6 +4289,7 @@ class CreateExperimentInput:
     variants: list[Variant] | None = None
     description: str | None = None
     change_reason: str | None = None
+    experiment_group_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_EXPERIMENT_INPUT, self)
@@ -4305,6 +4312,9 @@ class CreateExperimentInput:
 
         if self.change_reason is not None:
             serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["change_reason"], self.change_reason)
+
+        if self.experiment_group_id is not None:
+            serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["experiment_group_id"], self.experiment_group_id)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4339,6 +4349,9 @@ class CreateExperimentInput:
 
                 case 7:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["change_reason"])
+
+                case 8:
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["experiment_group_id"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -4378,6 +4391,7 @@ class CreateExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    experiment_group_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_EXPERIMENT_OUTPUT, self)
@@ -4400,6 +4414,8 @@ class CreateExperimentOutput:
 
         serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.experiment_group_id is not None:
+            serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["experiment_group_id"], self.experiment_group_id)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4455,6 +4471,9 @@ class CreateExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["experiment_group_id"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -7298,6 +7317,7 @@ class DiscardExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    experiment_group_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT, self)
@@ -7320,6 +7340,8 @@ class DiscardExperimentOutput:
 
         serializer.write_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.experiment_group_id is not None:
+            serializer.write_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["experiment_group_id"], self.experiment_group_id)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7375,6 +7397,9 @@ class DiscardExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["experiment_group_id"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8228,6 +8253,7 @@ class ExperimentResponse:
     change_reason: str
 
     chosen_variant: str | None = None
+    experiment_group_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_EXPERIMENT_RESPONSE, self)
@@ -8250,6 +8276,8 @@ class ExperimentResponse:
 
         serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["description"], self.description)
         serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["change_reason"], self.change_reason)
+        if self.experiment_group_id is not None:
+            serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["experiment_group_id"], self.experiment_group_id)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8305,6 +8333,9 @@ class ExperimentResponse:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["change_reason"])
+
+                case 15:
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["experiment_group_id"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8399,6 +8430,7 @@ class GetExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    experiment_group_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_EXPERIMENT_OUTPUT, self)
@@ -8421,6 +8453,8 @@ class GetExperimentOutput:
 
         serializer.write_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.experiment_group_id is not None:
+            serializer.write_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["experiment_group_id"], self.experiment_group_id)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8476,6 +8510,9 @@ class GetExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["experiment_group_id"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8714,6 +8751,7 @@ class PauseExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    experiment_group_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT, self)
@@ -8736,6 +8774,8 @@ class PauseExperimentOutput:
 
         serializer.write_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.experiment_group_id is not None:
+            serializer.write_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["experiment_group_id"], self.experiment_group_id)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8791,6 +8831,9 @@ class PauseExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["experiment_group_id"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8894,6 +8937,7 @@ class RampExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    experiment_group_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_RAMP_EXPERIMENT_OUTPUT, self)
@@ -8916,6 +8960,8 @@ class RampExperimentOutput:
 
         serializer.write_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.experiment_group_id is not None:
+            serializer.write_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["experiment_group_id"], self.experiment_group_id)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8971,6 +9017,9 @@ class RampExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["experiment_group_id"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9067,6 +9116,7 @@ class ResumeExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    experiment_group_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_RESUME_EXPERIMENT_OUTPUT, self)
@@ -9089,6 +9139,8 @@ class ResumeExperimentOutput:
 
         serializer.write_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.experiment_group_id is not None:
+            serializer.write_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["experiment_group_id"], self.experiment_group_id)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -9144,6 +9196,9 @@ class ResumeExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["experiment_group_id"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9227,6 +9282,7 @@ class UpdateOverridesExperimentInput:
     variant_list: list[VariantUpdateRequest] | None = None
     description: str | None = None
     change_reason: str | None = None
+    experiment_group_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT, self)
@@ -9240,6 +9296,9 @@ class UpdateOverridesExperimentInput:
 
         if self.change_reason is not None:
             serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["change_reason"], self.change_reason)
+
+        if self.experiment_group_id is not None:
+            serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["experiment_group_id"], self.experiment_group_id)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -9268,6 +9327,9 @@ class UpdateOverridesExperimentInput:
 
                 case 5:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["change_reason"])
+
+                case 6:
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["experiment_group_id"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9307,6 +9369,7 @@ class UpdateOverridesExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    experiment_group_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT, self)
@@ -9329,6 +9392,8 @@ class UpdateOverridesExperimentOutput:
 
         serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.experiment_group_id is not None:
+            serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["experiment_group_id"], self.experiment_group_id)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -9384,6 +9449,9 @@ class UpdateOverridesExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["experiment_group_id"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

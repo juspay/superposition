@@ -156,6 +156,24 @@ pub fn experiment_table_columns(
             Expandable::Enabled(100),
             default_column_formatter,
         ),
+        Column::new(
+            "experiment_group_id".to_string(),
+            false,
+            |value: &str, _| {
+                let label = match value {
+                    "null" => "¯\\_(ツ)_/¯".to_string(),
+                    other => other.to_string(),
+                };
+
+                view! {
+                    <span>{label}</span>
+                }
+                .into_view()
+            },
+            ColumnSortable::No,
+            Expandable::Disabled,
+            default_column_formatter,
+        ),
         Column::default_with_sort(
             "created_at".to_string(),
             ColumnSortable::Yes {

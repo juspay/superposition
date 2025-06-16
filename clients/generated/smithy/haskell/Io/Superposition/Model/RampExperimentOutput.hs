@@ -14,6 +14,7 @@ module Io.Superposition.Model.RampExperimentOutput (
     setChosenVariant,
     setDescription,
     setChangeReason,
+    setExperimentGroupId,
     build,
     RampExperimentOutputBuilder,
     RampExperimentOutput,
@@ -31,7 +32,8 @@ module Io.Superposition.Model.RampExperimentOutput (
     last_modified_by,
     chosen_variant,
     description,
-    change_reason
+    change_reason,
+    experiment_group_id
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -64,7 +66,8 @@ data RampExperimentOutput = RampExperimentOutput {
     last_modified_by :: Data.Text.Text,
     chosen_variant :: Data.Maybe.Maybe Data.Text.Text,
     description :: Data.Text.Text,
-    change_reason :: Data.Text.Text
+    change_reason :: Data.Text.Text,
+    experiment_group_id :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -87,7 +90,8 @@ instance Data.Aeson.ToJSON RampExperimentOutput where
         "last_modified_by" Data.Aeson..= last_modified_by a,
         "chosen_variant" Data.Aeson..= chosen_variant a,
         "description" Data.Aeson..= description a,
-        "change_reason" Data.Aeson..= change_reason a
+        "change_reason" Data.Aeson..= change_reason a,
+        "experiment_group_id" Data.Aeson..= experiment_group_id a
         ]
     
 
@@ -109,6 +113,7 @@ instance Data.Aeson.FromJSON RampExperimentOutput where
         Control.Applicative.<*> (v Data.Aeson..: "chosen_variant")
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
+        Control.Applicative.<*> (v Data.Aeson..: "experiment_group_id")
     
 
 
@@ -128,7 +133,8 @@ data RampExperimentOutputBuilderState = RampExperimentOutputBuilderState {
     last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     chosen_variantBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    experiment_group_idBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -149,7 +155,8 @@ defaultBuilderState = RampExperimentOutputBuilderState {
     last_modified_byBuilderState = Data.Maybe.Nothing,
     chosen_variantBuilderState = Data.Maybe.Nothing,
     descriptionBuilderState = Data.Maybe.Nothing,
-    change_reasonBuilderState = Data.Maybe.Nothing
+    change_reasonBuilderState = Data.Maybe.Nothing,
+    experiment_group_idBuilderState = Data.Maybe.Nothing
 }
 
 newtype RampExperimentOutputBuilder a = RampExperimentOutputBuilder {
@@ -233,6 +240,10 @@ setChangeReason :: Data.Text.Text -> RampExperimentOutputBuilder ()
 setChangeReason value =
    RampExperimentOutputBuilder (\s -> (s { change_reasonBuilderState = Data.Maybe.Just value }, ()))
 
+setExperimentGroupId :: Data.Maybe.Maybe Data.Text.Text -> RampExperimentOutputBuilder ()
+setExperimentGroupId value =
+   RampExperimentOutputBuilder (\s -> (s { experiment_group_idBuilderState = value }, ()))
+
 build :: RampExperimentOutputBuilder () -> Data.Either.Either Data.Text.Text RampExperimentOutput
 build builder = do
     let (st, _) = runRampExperimentOutputBuilder builder defaultBuilderState
@@ -251,6 +262,7 @@ build builder = do
     chosen_variant' <- Data.Either.Right (chosen_variantBuilderState st)
     description' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.RampExperimentOutput.RampExperimentOutput.description is a required property.") Data.Either.Right (descriptionBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.RampExperimentOutput.RampExperimentOutput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
+    experiment_group_id' <- Data.Either.Right (experiment_group_idBuilderState st)
     Data.Either.Right (RampExperimentOutput { 
         id' = id'',
         created_at = created_at',
@@ -266,7 +278,8 @@ build builder = do
         last_modified_by = last_modified_by',
         chosen_variant = chosen_variant',
         description = description',
-        change_reason = change_reason'
+        change_reason = change_reason',
+        experiment_group_id = experiment_group_id'
     })
 
 

@@ -23,6 +23,7 @@ impl super::Client {
     ///   - [`chosen_variant(Option<String>)`](crate::operation::pause_experiment::PauseExperimentOutput::chosen_variant): (undocumented)
     ///   - [`description(String)`](crate::operation::pause_experiment::PauseExperimentOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::pause_experiment::PauseExperimentOutput::change_reason): (undocumented)
+    ///   - [`experiment_group_id(Option<String>)`](crate::operation::pause_experiment::PauseExperimentOutput::experiment_group_id): (undocumented)
                             /// - On failure, responds with [`SdkError<PauseExperimentError>`](crate::operation::pause_experiment::PauseExperimentError)
     pub fn pause_experiment(&self) -> crate::operation::pause_experiment::builders::PauseExperimentFluentBuilder {
                                 crate::operation::pause_experiment::builders::PauseExperimentFluentBuilder::new(self.handle.clone())

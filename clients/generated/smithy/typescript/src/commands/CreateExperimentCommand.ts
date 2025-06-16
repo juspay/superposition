@@ -62,6 +62,7 @@ export interface CreateExperimentCommandOutput extends ExperimentResponse, __Met
  *   ],
  *   description: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
+ *   experiment_group_id: "STRING_VALUE",
  * };
  * const command = new CreateExperimentCommand(input);
  * const response = await client.send(command);
@@ -93,6 +94,7 @@ export interface CreateExperimentCommandOutput extends ExperimentResponse, __Met
  * //   chosen_variant: "STRING_VALUE",
  * //   description: "STRING_VALUE", // required
  * //   change_reason: "STRING_VALUE", // required
+ * //   experiment_group_id: "STRING_VALUE",
  * // };
  *
  * ```

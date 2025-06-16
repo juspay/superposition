@@ -25,6 +25,7 @@ impl super::Client {
     ///   - [`chosen_variant(Option<String>)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::chosen_variant): (undocumented)
     ///   - [`description(String)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::change_reason): (undocumented)
+    ///   - [`experiment_group_id(Option<String>)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::experiment_group_id): (undocumented)
                             /// - On failure, responds with [`SdkError<ConcludeExperimentError>`](crate::operation::conclude_experiment::ConcludeExperimentError)
     pub fn conclude_experiment(&self) -> crate::operation::conclude_experiment::builders::ConcludeExperimentFluentBuilder {
                                 crate::operation::conclude_experiment::builders::ConcludeExperimentFluentBuilder::new(self.handle.clone())

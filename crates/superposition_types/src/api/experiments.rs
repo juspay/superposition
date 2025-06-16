@@ -19,6 +19,8 @@ use crate::{
     Condition, Exp, IsEmpty, Overrides, SortBy,
 };
 
+use super::{deserialize_option_i64, I64Update};
+
 /********** Experiment Response Type **************/
 // Same as models::Experiments but `id` field is String
 // JS have limitation of 53-bit integers, so on
@@ -47,6 +49,7 @@ pub struct ExperimentResponse {
     pub change_reason: ChangeReason,
     pub metrics: Metrics,
     pub metrics_url: Option<String>,
+    pub experiment_group_id: Option<String>,
 }
 
 impl From<Experiment> for ExperimentResponse {
@@ -96,6 +99,7 @@ impl From<Experiment> for ExperimentResponse {
             change_reason: experiment.change_reason,
             metrics: experiment.metrics,
             metrics_url,
+            experiment_group_id: experiment.experiment_group_id.map(|id| id.to_string()),
         }
     }
 }
@@ -112,6 +116,8 @@ pub struct ExperimentCreateRequest {
     pub description: Description,
     #[serde(default = "ChangeReason::default")]
     pub change_reason: ChangeReason,
+    #[serde(default, deserialize_with = "i64_option_deserialize")]
+    pub experiment_group_id: Option<i64>,
 }
 
 /********** Experiment Ramp Req Types **********/
@@ -315,6 +321,8 @@ pub struct OverrideKeysUpdateRequest {
     pub description: Option<Description>,
     #[serde(default = "ChangeReason::default")]
     pub change_reason: ChangeReason,
+    #[serde(default, deserialize_with = "deserialize_option_i64")]
+    pub experiment_group_id: Option<I64Update>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -326,4 +334,47 @@ pub struct AuditQueryFilters {
     pub username: Option<String>,
     pub count: Option<i64>,
     pub page: Option<i64>,
+}
+
+pub fn option_i64_from_value(value: Value) -> Result<Option<i64>, String> {
+    match value {
+        Value::Number(config_version) => {
+            if let Some(config_version) = config_version.as_i64() {
+                Ok(Some(config_version))
+            } else {
+                log::error!("Expected a bigint as the value.");
+                Err("Expected a bigint as the value.".to_string())
+            }
+        }
+        Value::String(val) => {
+            if &val == "null" {
+                Ok(None)
+            } else {
+                match val.parse::<i64>() {
+                    Ok(config_version) => Ok(Some(config_version)),
+                    Err(_) => {
+                        log::error!("Expected a bigint or bigint string as the value.");
+                        Err("Expected a bigint or bigint string as the value."
+                            .to_string())
+                    }
+                }
+            }
+        }
+        Value::Null => Ok(None),
+        _ => {
+            log::error!("Expected a bigint, bigint string or null literal as the value.");
+            Err(
+                "Expected a bigint, bigint string or null literal as the value."
+                    .to_string(),
+            )
+        }
+    }
+}
+
+pub fn i64_option_deserialize<'de, D>(deserializer: D) -> Result<Option<i64>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let opt: Value = Deserialize::deserialize(deserializer)?;
+    option_i64_from_value(opt).map_err(serde::de::Error::custom)
 }

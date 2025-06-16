@@ -23,6 +23,7 @@ resource Experiments {
         chosen_variant: String
         description: String
         change_reason: String
+        experiment_group_id: String
     }
     read: GetExperiment
     operations: [
@@ -134,6 +135,8 @@ structure ExperimentResponse for Experiments {
 
     @required
     $change_reason
+
+    $experiment_group_id
 }
 
 structure CreateExperimentRequest for Experiments with [WorkspaceMixin] {
@@ -153,6 +156,8 @@ structure CreateExperimentRequest for Experiments with [WorkspaceMixin] {
 
     @required
     $change_reason
+
+    $experiment_group_id
 }
 
 structure VariantUpdateRequest {
@@ -181,6 +186,8 @@ structure UpdateOverrideRequest for Experiments with [WorkspaceMixin] {
 
     @required
     $change_reason
+
+    $experiment_group_id
 }
 
 list ExperimentList {

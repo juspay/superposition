@@ -15,6 +15,8 @@ pub struct UpdateOverridesExperimentInput  {
     pub description: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub experiment_group_id: ::std::option::Option<::std::string::String>,
 }
 impl  UpdateOverridesExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -44,6 +46,10 @@ impl  UpdateOverridesExperimentInput  {
     pub fn change_reason(&self) -> ::std::option::Option<&str> {
         self.change_reason.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn experiment_group_id(&self) -> ::std::option::Option<&str> {
+        self.experiment_group_id.as_deref()
+    }
 }
 impl UpdateOverridesExperimentInput {
     /// Creates a new builder-style object to manufacture [`UpdateOverridesExperimentInput`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentInput).
@@ -62,6 +68,7 @@ pub struct UpdateOverridesExperimentInputBuilder {
     pub(crate) variant_list: ::std::option::Option<::std::vec::Vec::<crate::types::VariantUpdateRequest>>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
+    pub(crate) experiment_group_id: ::std::option::Option<::std::string::String>,
 }
 impl UpdateOverridesExperimentInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -151,6 +158,19 @@ impl UpdateOverridesExperimentInputBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn experiment_group_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.experiment_group_id = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_experiment_group_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.experiment_group_id = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_experiment_group_id(&self) -> &::std::option::Option<::std::string::String> {
+        &self.experiment_group_id
+    }
     /// Consumes the builder and constructs a [`UpdateOverridesExperimentInput`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::update_overrides_experiment::UpdateOverridesExperimentInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -166,6 +186,8 @@ impl UpdateOverridesExperimentInputBuilder {
                 description: self.description
                 ,
                 change_reason: self.change_reason
+                ,
+                experiment_group_id: self.experiment_group_id
                 ,
             }
         )

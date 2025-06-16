@@ -33,6 +33,8 @@ pub struct ResumeExperimentOutput  {
     pub description: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::string::String,
+    #[allow(missing_docs)] // documentation missing in model
+    pub experiment_group_id: ::std::option::Option<::std::string::String>,
 }
 impl  ResumeExperimentOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -95,6 +97,10 @@ impl  ResumeExperimentOutput  {
     pub fn change_reason(&self) -> &str {
         use std::ops::Deref; self.change_reason.deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn experiment_group_id(&self) -> ::std::option::Option<&str> {
+        self.experiment_group_id.as_deref()
+    }
 }
 impl ResumeExperimentOutput {
     /// Creates a new builder-style object to manufacture [`ResumeExperimentOutput`](crate::operation::resume_experiment::ResumeExperimentOutput).
@@ -122,6 +128,7 @@ pub struct ResumeExperimentOutputBuilder {
     pub(crate) chosen_variant: ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
+    pub(crate) experiment_group_id: ::std::option::Option<::std::string::String>,
 }
 impl ResumeExperimentOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -345,6 +352,19 @@ impl ResumeExperimentOutputBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn experiment_group_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.experiment_group_id = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_experiment_group_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.experiment_group_id = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_experiment_group_id(&self) -> &::std::option::Option<::std::string::String> {
+        &self.experiment_group_id
+    }
     /// Consumes the builder and constructs a [`ResumeExperimentOutput`](crate::operation::resume_experiment::ResumeExperimentOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`id`](crate::operation::resume_experiment::builders::ResumeExperimentOutputBuilder::id)
@@ -435,6 +455,8 @@ impl ResumeExperimentOutputBuilder {
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("change_reason", "change_reason was not specified but it is required when building ResumeExperimentOutput")
                     )?
+                ,
+                experiment_group_id: self.experiment_group_id
                 ,
             }
         )

@@ -54,6 +54,7 @@ public final class UpdateOverridesExperimentOutput implements SerializableStruct
                 new RequiredTrait())
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
+        .putMember("experiment_group_id", PreludeSchemas.STRING)
         .build();
 
     private static final Schema $SCHEMA_ID = $SCHEMA.member("id");
@@ -71,6 +72,7 @@ public final class UpdateOverridesExperimentOutput implements SerializableStruct
     private static final Schema $SCHEMA_CHOSEN_VARIANT = $SCHEMA.member("chosen_variant");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
+    private static final Schema $SCHEMA_EXPERIMENT_GROUP_ID = $SCHEMA.member("experiment_group_id");
 
     private final transient String id;
     private final transient Instant createdAt;
@@ -87,6 +89,7 @@ public final class UpdateOverridesExperimentOutput implements SerializableStruct
     private final transient String chosenVariant;
     private final transient String description;
     private final transient String changeReason;
+    private final transient String experimentGroupId;
 
     private UpdateOverridesExperimentOutput(Builder builder) {
         this.id = builder.id;
@@ -104,6 +107,7 @@ public final class UpdateOverridesExperimentOutput implements SerializableStruct
         this.chosenVariant = builder.chosenVariant;
         this.description = builder.description;
         this.changeReason = builder.changeReason;
+        this.experimentGroupId = builder.experimentGroupId;
     }
 
     public String id() {
@@ -178,6 +182,10 @@ public final class UpdateOverridesExperimentOutput implements SerializableStruct
         return changeReason;
     }
 
+    public String experimentGroupId() {
+        return experimentGroupId;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -206,12 +214,13 @@ public final class UpdateOverridesExperimentOutput implements SerializableStruct
                && Objects.equals(this.lastModifiedBy, that.lastModifiedBy)
                && Objects.equals(this.chosenVariant, that.chosenVariant)
                && Objects.equals(this.description, that.description)
-               && Objects.equals(this.changeReason, that.changeReason);
+               && Objects.equals(this.changeReason, that.changeReason)
+               && Objects.equals(this.experimentGroupId, that.experimentGroupId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, createdAt, createdBy, lastModified, name, experimentType, overrideKeys, status, trafficPercentage, context, variants, lastModifiedBy, chosenVariant, description, changeReason);
+        return Objects.hash(id, createdAt, createdBy, lastModified, name, experimentType, overrideKeys, status, trafficPercentage, context, variants, lastModifiedBy, chosenVariant, description, changeReason, experimentGroupId);
     }
 
     @Override
@@ -238,6 +247,9 @@ public final class UpdateOverridesExperimentOutput implements SerializableStruct
         }
         serializer.writeString($SCHEMA_DESCRIPTION, description);
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
+        if (experimentGroupId != null) {
+            serializer.writeString($SCHEMA_EXPERIMENT_GROUP_ID, experimentGroupId);
+        }
     }
 
     @Override
@@ -259,6 +271,7 @@ public final class UpdateOverridesExperimentOutput implements SerializableStruct
             case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
             case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
             case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHOSEN_VARIANT, member, chosenVariant);
+            case 15 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, experimentGroupId);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -287,6 +300,7 @@ public final class UpdateOverridesExperimentOutput implements SerializableStruct
         builder.chosenVariant(this.chosenVariant);
         builder.description(this.description);
         builder.changeReason(this.changeReason);
+        builder.experimentGroupId(this.experimentGroupId);
         return builder;
     }
 
@@ -317,6 +331,7 @@ public final class UpdateOverridesExperimentOutput implements SerializableStruct
         private String chosenVariant;
         private String description;
         private String changeReason;
+        private String experimentGroupId;
 
         private Builder() {}
 
@@ -473,6 +488,14 @@ public final class UpdateOverridesExperimentOutput implements SerializableStruct
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder experimentGroupId(String experimentGroupId) {
+            this.experimentGroupId = experimentGroupId;
+            return this;
+        }
+
         @Override
         public UpdateOverridesExperimentOutput build() {
             tracker.validate();
@@ -498,6 +521,7 @@ public final class UpdateOverridesExperimentOutput implements SerializableStruct
                 case 12 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 13 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 14 -> chosenVariant((String) SchemaUtils.validateSameMember($SCHEMA_CHOSEN_VARIANT, member, value));
+                case 15 -> experimentGroupId((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -585,6 +609,7 @@ public final class UpdateOverridesExperimentOutput implements SerializableStruct
                     case 12 -> builder.description(de.readString(member));
                     case 13 -> builder.changeReason(de.readString(member));
                     case 14 -> builder.chosenVariant(de.readString(member));
+                    case 15 -> builder.experimentGroupId(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }
