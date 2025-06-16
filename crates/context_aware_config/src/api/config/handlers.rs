@@ -1,4 +1,7 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{
+    collections::{BTreeMap, HashMap},
+    str::FromStr,
+};
 
 use actix_http::header::HeaderValue;
 #[cfg(feature = "high-performance-mode")]
@@ -54,6 +57,14 @@ use crate::{
 };
 
 use super::helpers::apply_prefix_filter_to_config;
+
+// Struct for serializing config with sorted overrides
+#[derive(serde::Serialize)]
+struct SerializableConfig {
+    contexts: Vec<Context>,
+    overrides: BTreeMap<String, Overrides>,
+    default_configs: Map<String, Value>,
+}
 
 #[allow(clippy::let_and_return)]
 pub fn endpoints() -> Scope {
@@ -757,7 +768,19 @@ async fn get_config(
     add_last_modified_to_header(max_created_at, is_smithy, &mut response);
     add_audit_id_to_header(&mut conn, &mut response, &schema_name);
     add_config_version_to_header(&version, &mut response);
-    Ok(response.json(config))
+
+    let sorted_overrides = config
+        .overrides
+        .into_iter()
+        .collect::<BTreeMap<String, Overrides>>();
+
+    let serializable_config = SerializableConfig {
+        contexts: config.contexts,
+        overrides: sorted_overrides,
+        default_configs: config.default_configs,
+    };
+
+    Ok(response.json(serializable_config))
 }
 
 #[route("/resolve", method = "GET", method = "POST")]
