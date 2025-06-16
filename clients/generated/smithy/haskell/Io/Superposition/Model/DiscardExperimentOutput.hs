@@ -18,6 +18,7 @@ module Io.Superposition.Model.DiscardExperimentOutput (
     setStartedBy,
     setMetricsUrl,
     setMetrics,
+    setExperimentGroupId,
     build,
     DiscardExperimentOutputBuilder,
     DiscardExperimentOutput,
@@ -39,7 +40,8 @@ module Io.Superposition.Model.DiscardExperimentOutput (
     started_at,
     started_by,
     metrics_url,
-    metrics
+    metrics,
+    experiment_group_id
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -76,7 +78,8 @@ data DiscardExperimentOutput = DiscardExperimentOutput {
     started_at :: Data.Maybe.Maybe Data.Time.UTCTime,
     started_by :: Data.Maybe.Maybe Data.Text.Text,
     metrics_url :: Data.Maybe.Maybe Data.Text.Text,
-    metrics :: Data.Maybe.Maybe Data.Aeson.Value
+    metrics :: Data.Maybe.Maybe Data.Aeson.Value,
+    experiment_group_id :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -103,7 +106,8 @@ instance Data.Aeson.ToJSON DiscardExperimentOutput where
         "started_at" Data.Aeson..= started_at a,
         "started_by" Data.Aeson..= started_by a,
         "metrics_url" Data.Aeson..= metrics_url a,
-        "metrics" Data.Aeson..= metrics a
+        "metrics" Data.Aeson..= metrics a,
+        "experiment_group_id" Data.Aeson..= experiment_group_id a
         ]
     
 
@@ -129,6 +133,7 @@ instance Data.Aeson.FromJSON DiscardExperimentOutput where
         Control.Applicative.<*> (v Data.Aeson..: "started_by")
         Control.Applicative.<*> (v Data.Aeson..: "metrics_url")
         Control.Applicative.<*> (v Data.Aeson..: "metrics")
+        Control.Applicative.<*> (v Data.Aeson..: "experiment_group_id")
     
 
 
@@ -152,7 +157,8 @@ data DiscardExperimentOutputBuilderState = DiscardExperimentOutputBuilderState {
     started_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     started_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     metrics_urlBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value
+    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
+    experiment_group_idBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -177,7 +183,8 @@ defaultBuilderState = DiscardExperimentOutputBuilderState {
     started_atBuilderState = Data.Maybe.Nothing,
     started_byBuilderState = Data.Maybe.Nothing,
     metrics_urlBuilderState = Data.Maybe.Nothing,
-    metricsBuilderState = Data.Maybe.Nothing
+    metricsBuilderState = Data.Maybe.Nothing,
+    experiment_group_idBuilderState = Data.Maybe.Nothing
 }
 
 newtype DiscardExperimentOutputBuilder a = DiscardExperimentOutputBuilder {
@@ -277,6 +284,10 @@ setMetrics :: Data.Maybe.Maybe Data.Aeson.Value -> DiscardExperimentOutputBuilde
 setMetrics value =
    DiscardExperimentOutputBuilder (\s -> (s { metricsBuilderState = value }, ()))
 
+setExperimentGroupId :: Data.Maybe.Maybe Data.Text.Text -> DiscardExperimentOutputBuilder ()
+setExperimentGroupId value =
+   DiscardExperimentOutputBuilder (\s -> (s { experiment_group_idBuilderState = value }, ()))
+
 build :: DiscardExperimentOutputBuilder () -> Data.Either.Either Data.Text.Text DiscardExperimentOutput
 build builder = do
     let (st, _) = runDiscardExperimentOutputBuilder builder defaultBuilderState
@@ -299,6 +310,7 @@ build builder = do
     started_by' <- Data.Either.Right (started_byBuilderState st)
     metrics_url' <- Data.Either.Right (metrics_urlBuilderState st)
     metrics' <- Data.Either.Right (metricsBuilderState st)
+    experiment_group_id' <- Data.Either.Right (experiment_group_idBuilderState st)
     Data.Either.Right (DiscardExperimentOutput { 
         id' = id'',
         created_at = created_at',
@@ -318,7 +330,8 @@ build builder = do
         started_at = started_at',
         started_by = started_by',
         metrics_url = metrics_url',
-        metrics = metrics'
+        metrics = metrics',
+        experiment_group_id = experiment_group_id'
     })
 
 

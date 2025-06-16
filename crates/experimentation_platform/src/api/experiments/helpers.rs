@@ -1,8 +1,12 @@
 use actix_http::header;
 use actix_web::web::Data;
 use cac_client::utils::json_to_sorted_string;
-use diesel::pg::PgConnection;
-use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
+use chrono::Utc;
+use diesel::{
+    pg::PgConnection,
+    r2d2::{ConnectionManager, PooledConnection},
+    BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
+};
 use serde_json::{Map, Value};
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::{
@@ -10,17 +14,18 @@ use service_utils::service::types::{
 };
 use std::collections::HashSet;
 use superposition_macros::{bad_argument, unexpected_error};
-use superposition_types::User;
 use superposition_types::{
+    api::{experiment_groups::ExpGroupMemberRequest, I64Update},
     database::{
         models::{
             experimentation::{Experiment, ExperimentStatusType, Variant, VariantType},
             others::{Webhook, WebhookEvent},
-            Workspace,
+            ChangeReason, Workspace,
         },
+        schema::experiments::dsl as experiments,
         superposition_schema::superposition::workspaces,
     },
-    result as superposition, Condition, Config, DBConnection, Exp, Overrides,
+    result as superposition, Condition, Config, DBConnection, Exp, Overrides, User,
 };
 
 pub fn get_workspace(
@@ -32,6 +37,8 @@ pub fn get_workspace(
         .get_result::<Workspace>(db_conn)?;
     Ok(workspace)
 }
+use crate::api::experiment_groups::helpers::{add_members, remove_members};
+
 use super::cac_api::{
     construct_header_map, get_context_override, get_partial_resolve_config,
 };
@@ -525,4 +532,221 @@ pub async fn fetch_webhook_by_event(
             Err(unexpected_error!(error))
         }
     }
+}
+
+pub fn handle_experiment_group_membership(
+    experiment: &Experiment,
+    new_group_id: &Option<I64Update>,
+    current_group_id: &Option<i64>,
+    transaction_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    schema_name: &SchemaName,
+    user: &User,
+) -> superposition::Result<Option<i64>> {
+    let experiment_id = experiment.id;
+
+    fn create_member_request(
+        action: &str,
+        experiment_id: i64,
+    ) -> superposition::Result<ExpGroupMemberRequest> {
+        Ok(ExpGroupMemberRequest {
+            change_reason: ChangeReason::try_from(format!(
+                "{} experiment {} to/from the group, while updating the experiment.",
+                action, experiment_id
+            ))
+            .map_err(|err| {
+                log::error!("Failed to convert change reason: {}", err);
+                unexpected_error!("Failed to convert change reason")
+            })?,
+            member_experiment_ids: vec![experiment_id],
+        })
+    }
+
+    match (new_group_id, current_group_id) {
+        // Case 1: Adding to a new group (group specified and experiment not currently in any group)
+        (Some(I64Update::Add(experiment_group_id)), None) => {
+            add_members(
+                experiment_group_id,
+                &[experiment.clone()],
+                create_member_request("Adding", experiment_id)?,
+                transaction_conn,
+                schema_name,
+                user,
+            )?;
+            Ok(Some(*experiment_group_id))
+        }
+
+        // Case 2: Moving to a different group
+        (Some(I64Update::Add(experiment_group_id)), Some(current_group_id))
+            if experiment_group_id != current_group_id =>
+        {
+            // Remove from current group
+            remove_members(
+                current_group_id,
+                create_member_request("Removing", experiment_id)?,
+                transaction_conn,
+                schema_name,
+                user,
+            )?;
+
+            // Add to new group
+            add_members(
+                experiment_group_id,
+                &[experiment.clone()],
+                create_member_request("Adding", experiment_id)?,
+                transaction_conn,
+                schema_name,
+                user,
+            )?;
+            Ok(Some(*experiment_group_id))
+        }
+
+        // Case 3: Removing from group (explicitly set to None)
+        (Some(I64Update::Remove), Some(current_group_id)) => {
+            remove_members(
+                current_group_id,
+                create_member_request("Removing", experiment_id)?,
+                transaction_conn,
+                schema_name,
+                user,
+            )?;
+            Ok(None)
+        }
+        // Case 4: All other cases (no change needed)
+        _ => Ok(*current_group_id),
+    }
+}
+
+pub fn validate_and_add_experiment_group_id(
+    member_experiments: &[Experiment],
+    new_experiment_group_id: &i64,
+    schema_name: &SchemaName,
+    transaction_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    user: &User,
+) -> superposition::Result<()> {
+    let now = Utc::now();
+
+    for experiment in member_experiments {
+        let experiment_id = experiment.id;
+
+        if let Some(existing_group_id) = experiment.experiment_group_id {
+            if existing_group_id != *new_experiment_group_id {
+                return Err(bad_argument!(
+                    "Experiment {} is already a part of a different experiment group {}",
+                    experiment_id,
+                    existing_group_id
+                ));
+            }
+        }
+
+        let change_reason = ChangeReason::try_from(format!(
+            "Adding experiment {} to group {}",
+            experiment_id, new_experiment_group_id
+        ))
+        .map_err(|err| {
+            log::error!("Failed to convert change reason: {}", err);
+            unexpected_error!("Failed to convert change reason")
+        })?;
+
+        // Update experiment
+        diesel::update(experiments::experiments.find(experiment_id))
+            .set((
+                experiments::experiment_group_id
+                    .eq(I64Update::Add(*new_experiment_group_id)),
+                experiments::last_modified_by.eq(&user.get_email()),
+                experiments::last_modified.eq(now),
+                experiments::change_reason.eq(change_reason),
+            ))
+            .returning(Experiment::as_returning())
+            .schema_name(schema_name)
+            .execute(transaction_conn)?;
+    }
+
+    Ok(())
+}
+
+pub fn validate_and_remove_experiment_group_id(
+    member_experiment_ids: &[i64],
+    experiment_group_id: &i64,
+    schema_name: &SchemaName,
+    transaction_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    user: &User,
+) -> superposition::Result<()> {
+    let member_experiments: Vec<Experiment> = experiments::experiments
+        .filter(experiments::id.eq_any(member_experiment_ids))
+        .schema_name(schema_name)
+        .get_results::<Experiment>(transaction_conn)?;
+
+    ensure_experiments_exist(
+        &HashSet::from_iter(member_experiment_ids.to_owned()),
+        &member_experiments,
+        "The following experiment IDs are not present in the database",
+    )?;
+    let now = Utc::now();
+
+    for experiment in member_experiments {
+        let experiment_id = experiment.id;
+        match experiment.experiment_group_id {
+            None => {
+                return Err(bad_argument!(
+                    "Experiment with id {} is not part of any experiment group",
+                    experiment_id
+                ));
+            }
+            Some(existing_group_id) if existing_group_id != *experiment_group_id => {
+                return Err(bad_argument!(
+                    "Experiment with id {} is part of a different experiment group: {}. Cannot remove from group {}",
+                    experiment_id,
+                    existing_group_id,
+                    experiment_group_id
+                ));
+            }
+            _ => {}
+        }
+
+        let change_reason = ChangeReason::try_from(format!(
+            "Removing experiment {} from group {}",
+            experiment_id, experiment_group_id
+        ))
+        .map_err(|err| {
+            log::error!("Failed to convert change reason: {}", err);
+            unexpected_error!("Failed to convert change reason")
+        })?;
+
+        diesel::update(experiments::experiments.find(experiment_id))
+            .set((
+                experiments::experiment_group_id.eq(I64Update::Remove),
+                experiments::last_modified_by.eq(&user.get_email()),
+                experiments::last_modified.eq(now),
+                experiments::change_reason.eq(change_reason),
+            ))
+            .returning(Experiment::as_returning())
+            .schema_name(schema_name)
+            .execute(transaction_conn)?;
+    }
+
+    Ok(())
+}
+
+pub fn ensure_experiments_exist(
+    requested_ids: &HashSet<i64>,
+    found_experiments: &[Experiment],
+    error_message: &str,
+) -> superposition::Result<()> {
+    let found_ids: HashSet<i64> = found_experiments.iter().map(|e| e.id).collect();
+    let requested_ids: HashSet<i64> = requested_ids.iter().copied().collect();
+
+    let missing_experiment_ids: Vec<i64> =
+        requested_ids.difference(&found_ids).copied().collect();
+    if !missing_experiment_ids.is_empty() {
+        return Err(bad_argument!(
+            "{}: {}",
+            error_message,
+            missing_experiment_ids
+                .iter()
+                .map(|id| id.to_string())
+                .collect::<Vec<_>>()
+                .join(", ")
+        ));
+    }
+    Ok(())
 }

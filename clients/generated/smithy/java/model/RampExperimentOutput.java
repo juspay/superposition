@@ -58,6 +58,7 @@ public final class RampExperimentOutput implements SerializableStruct {
         .putMember("started_by", PreludeSchemas.STRING)
         .putMember("metrics_url", PreludeSchemas.STRING)
         .putMember("metrics", PreludeSchemas.DOCUMENT)
+        .putMember("experiment_group_id", PreludeSchemas.STRING)
         .build();
 
     private static final Schema $SCHEMA_ID = $SCHEMA.member("id");
@@ -79,6 +80,7 @@ public final class RampExperimentOutput implements SerializableStruct {
     private static final Schema $SCHEMA_STARTED_BY = $SCHEMA.member("started_by");
     private static final Schema $SCHEMA_METRICS_URL = $SCHEMA.member("metrics_url");
     private static final Schema $SCHEMA_METRICS = $SCHEMA.member("metrics");
+    private static final Schema $SCHEMA_EXPERIMENT_GROUP_ID = $SCHEMA.member("experiment_group_id");
 
     private final transient String id;
     private final transient Instant createdAt;
@@ -99,6 +101,7 @@ public final class RampExperimentOutput implements SerializableStruct {
     private final transient String startedBy;
     private final transient String metricsUrl;
     private final transient Document metrics;
+    private final transient String experimentGroupId;
 
     private RampExperimentOutput(Builder builder) {
         this.id = builder.id;
@@ -120,6 +123,7 @@ public final class RampExperimentOutput implements SerializableStruct {
         this.startedBy = builder.startedBy;
         this.metricsUrl = builder.metricsUrl;
         this.metrics = builder.metrics;
+        this.experimentGroupId = builder.experimentGroupId;
     }
 
     public String id() {
@@ -210,6 +214,10 @@ public final class RampExperimentOutput implements SerializableStruct {
         return metrics;
     }
 
+    public String experimentGroupId() {
+        return experimentGroupId;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -242,12 +250,13 @@ public final class RampExperimentOutput implements SerializableStruct {
                && Objects.equals(this.startedAt, that.startedAt)
                && Objects.equals(this.startedBy, that.startedBy)
                && Objects.equals(this.metricsUrl, that.metricsUrl)
-               && Objects.equals(this.metrics, that.metrics);
+               && Objects.equals(this.metrics, that.metrics)
+               && Objects.equals(this.experimentGroupId, that.experimentGroupId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, createdAt, createdBy, lastModified, name, experimentType, overrideKeys, status, trafficPercentage, context, variants, lastModifiedBy, chosenVariant, description, changeReason, startedAt, startedBy, metricsUrl, metrics);
+        return Objects.hash(id, createdAt, createdBy, lastModified, name, experimentType, overrideKeys, status, trafficPercentage, context, variants, lastModifiedBy, chosenVariant, description, changeReason, startedAt, startedBy, metricsUrl, metrics, experimentGroupId);
     }
 
     @Override
@@ -286,6 +295,9 @@ public final class RampExperimentOutput implements SerializableStruct {
         if (metrics != null) {
             serializer.writeDocument($SCHEMA_METRICS, metrics);
         }
+        if (experimentGroupId != null) {
+            serializer.writeString($SCHEMA_EXPERIMENT_GROUP_ID, experimentGroupId);
+        }
     }
 
     @Override
@@ -311,6 +323,7 @@ public final class RampExperimentOutput implements SerializableStruct {
             case 16 -> (T) SchemaUtils.validateSameMember($SCHEMA_STARTED_BY, member, startedBy);
             case 17 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS_URL, member, metricsUrl);
             case 18 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
+            case 19 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, experimentGroupId);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -343,6 +356,7 @@ public final class RampExperimentOutput implements SerializableStruct {
         builder.startedBy(this.startedBy);
         builder.metricsUrl(this.metricsUrl);
         builder.metrics(this.metrics);
+        builder.experimentGroupId(this.experimentGroupId);
         return builder;
     }
 
@@ -377,6 +391,7 @@ public final class RampExperimentOutput implements SerializableStruct {
         private String startedBy;
         private String metricsUrl;
         private Document metrics;
+        private String experimentGroupId;
 
         private Builder() {}
 
@@ -565,6 +580,14 @@ public final class RampExperimentOutput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder experimentGroupId(String experimentGroupId) {
+            this.experimentGroupId = experimentGroupId;
+            return this;
+        }
+
         @Override
         public RampExperimentOutput build() {
             tracker.validate();
@@ -594,6 +617,7 @@ public final class RampExperimentOutput implements SerializableStruct {
                 case 16 -> startedBy((String) SchemaUtils.validateSameMember($SCHEMA_STARTED_BY, member, value));
                 case 17 -> metricsUrl((String) SchemaUtils.validateSameMember($SCHEMA_METRICS_URL, member, value));
                 case 18 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
+                case 19 -> experimentGroupId((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -685,6 +709,7 @@ public final class RampExperimentOutput implements SerializableStruct {
                     case 16 -> builder.startedBy(de.readString(member));
                     case 17 -> builder.metricsUrl(de.readString(member));
                     case 18 -> builder.metrics(de.readDocument());
+                    case 19 -> builder.experimentGroupId(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

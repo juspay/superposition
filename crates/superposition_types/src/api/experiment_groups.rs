@@ -35,7 +35,7 @@ pub struct ExpGroupUpdateRequest {
     pub traffic_percentage: Option<TrafficPercentage>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Serialize, Debug, Clone, Deserialize)]
 #[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
 #[cfg_attr(feature = "diesel_derives", diesel(table_name = experiment_groups))]
 pub struct ExpGroupMemberRequest {

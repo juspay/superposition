@@ -152,6 +152,15 @@ pub(crate) fn de_experiment_response<'a, I>(tokens: &mut ::std::iter::Peekable<I
                                     Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
                                 );
                             }
+                            "experiment_group_id" => {
+                                builder = builder.set_experiment_group_id(
+                                    ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                        s.to_unescaped().map(|u|
+                                            u.into_owned()
+                                        )
+                                    ).transpose()?
+                                );
+                            }
                             _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                         }
                     }

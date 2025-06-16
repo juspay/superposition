@@ -19,26 +19,29 @@ pub fn ser_create_experiment_input_input(
     if let Some(var_6) = &input.description {
         object.key("description").string(var_6.as_str());
     }
-    if let Some(var_7) = &input.experiment_type {
-        object.key("experiment_type").string(var_7.as_str());
+    if let Some(var_7) = &input.experiment_group_id {
+        object.key("experiment_group_id").string(var_7.as_str());
     }
-    if let Some(var_8) = &input.metrics {
-        object.key("metrics").document(var_8);
+    if let Some(var_8) = &input.experiment_type {
+        object.key("experiment_type").string(var_8.as_str());
     }
-    if let Some(var_9) = &input.name {
-        object.key("name").string(var_9.as_str());
+    if let Some(var_9) = &input.metrics {
+        object.key("metrics").document(var_9);
     }
-    if let Some(var_10) = &input.variants {
-        let mut array_11 = object.key("variants").start_array();
-        for item_12 in var_10 {
+    if let Some(var_10) = &input.name {
+        object.key("name").string(var_10.as_str());
+    }
+    if let Some(var_11) = &input.variants {
+        let mut array_12 = object.key("variants").start_array();
+        for item_13 in var_11 {
              {
                 #[allow(unused_mut)]
-                let mut object_13 = array_11.value().start_object();
-                crate::protocol_serde::shape_variant::ser_variant(&mut object_13, item_12)?;
-                object_13.finish();
+                let mut object_14 = array_12.value().start_object();
+                crate::protocol_serde::shape_variant::ser_variant(&mut object_14, item_13)?;
+                object_14.finish();
             }
         }
-        array_11.finish();
+        array_12.finish();
     }
     Ok(())
 }

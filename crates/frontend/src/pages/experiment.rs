@@ -3,8 +3,7 @@ use leptos::*;
 use leptos_router::use_params_map;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
-    api::default_config::DefaultConfigFilters,
-    api::experiments::ExperimentResponse,
+    api::{default_config::DefaultConfigFilters, experiments::ExperimentResponse},
     custom_query::PaginationParams,
     database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
 };
@@ -186,6 +185,7 @@ pub fn experiment_page() -> impl IntoView {
                                                             }
                                                             description=(*experiment_ef.description).clone()
                                                             metrics=experiment_ef.metrics
+                                                            experiment_group_id=experiment_ef.experiment_group_id
                                                         />
                                                     </EditorProvider>
                                                 }

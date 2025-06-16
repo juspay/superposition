@@ -10,6 +10,7 @@ impl super::Client {
     ///   - [`description(impl Into<String>)`](crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentFluentBuilder::description) / [`set_description(Option<String>)`](crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentFluentBuilder::set_description):<br>required: **false**<br>(undocumented)<br>
     ///   - [`change_reason(impl Into<String>)`](crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
     ///   - [`metrics(Document)`](crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentFluentBuilder::metrics) / [`set_metrics(Option<Document>)`](crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentFluentBuilder::set_metrics):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`experiment_group_id(impl Into<String>)`](crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentFluentBuilder::experiment_group_id) / [`set_experiment_group_id(Option<String>)`](crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentFluentBuilder::set_experiment_group_id):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`UpdateOverridesExperimentOutput`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput) with field(s):
     ///   - [`id(String)`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput::id): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput::created_at): (undocumented)
@@ -30,6 +31,7 @@ impl super::Client {
     ///   - [`started_by(Option<String>)`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput::started_by): (undocumented)
     ///   - [`metrics_url(Option<String>)`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput::metrics_url): (undocumented)
     ///   - [`metrics(Option<Document>)`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput::metrics): (undocumented)
+    ///   - [`experiment_group_id(Option<String>)`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput::experiment_group_id): (undocumented)
                             /// - On failure, responds with [`SdkError<UpdateOverridesExperimentError>`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentError)
     pub fn update_overrides_experiment(&self) -> crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentFluentBuilder {
                                 crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentFluentBuilder::new(self.handle.clone())

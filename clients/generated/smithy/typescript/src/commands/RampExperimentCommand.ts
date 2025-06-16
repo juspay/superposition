@@ -84,6 +84,7 @@ export interface RampExperimentCommandOutput extends ExperimentResponse, __Metad
  * //   started_by: "STRING_VALUE",
  * //   metrics_url: "STRING_VALUE",
  * //   metrics: "DOCUMENT_VALUE",
+ * //   experiment_group_id: "STRING_VALUE",
  * // };
  *
  * ```

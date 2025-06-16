@@ -206,3 +206,18 @@ impl DropdownOption for PayloadVersion {
 pub type AutoCompleteCallback = leptos::Callback<(String, WriteSignal<Vec<String>>), ()>;
 
 pub type AutoCompleteCallbacks = std::collections::HashMap<String, AutoCompleteCallback>;
+
+impl DropdownOption for Option<String> {
+    fn key(&self) -> String {
+        match self {
+            Some(id) => id.clone(),
+            None => "None".to_string(),
+        }
+    }
+    fn label(&self) -> String {
+        match self {
+            Some(id) => id.clone(),
+            None => "None".to_string(),
+        }
+    }
+}

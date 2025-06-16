@@ -1384,6 +1384,11 @@ CONCLUDE_EXPERIMENT_OUTPUT = Schema.collection(
             "index": 18,
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 19,
+        },
+
     }
 )
 
@@ -3823,6 +3828,11 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
             "index": 8,
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 9,
+        },
+
     }
 )
 
@@ -3984,6 +3994,11 @@ CREATE_EXPERIMENT_OUTPUT = Schema.collection(
         "metrics": {
             "target": DOCUMENT,
             "index": 18,
+        },
+
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 19,
         },
 
     }
@@ -7269,6 +7284,11 @@ DISCARD_EXPERIMENT_OUTPUT = Schema.collection(
             "index": 18,
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 19,
+        },
+
     }
 )
 
@@ -8355,6 +8375,11 @@ EXPERIMENT_RESPONSE = Schema.collection(
             "index": 18,
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 19,
+        },
+
     }
 )
 
@@ -8570,6 +8595,11 @@ GET_EXPERIMENT_OUTPUT = Schema.collection(
         "metrics": {
             "target": DOCUMENT,
             "index": 18,
+        },
+
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 19,
         },
 
     }
@@ -9032,6 +9062,11 @@ PAUSE_EXPERIMENT_OUTPUT = Schema.collection(
             "index": 18,
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 19,
+        },
+
     }
 )
 
@@ -9269,6 +9304,11 @@ RAMP_EXPERIMENT_OUTPUT = Schema.collection(
             "index": 18,
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 19,
+        },
+
     }
 )
 
@@ -9497,6 +9537,11 @@ RESUME_EXPERIMENT_OUTPUT = Schema.collection(
             "index": 18,
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 19,
+        },
+
     }
 )
 
@@ -9618,6 +9663,11 @@ UPDATE_OVERRIDES_EXPERIMENT_INPUT = Schema.collection(
         "metrics": {
             "target": DOCUMENT,
             "index": 6,
+        },
+
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 7,
         },
 
     }
@@ -9781,6 +9831,11 @@ UPDATE_OVERRIDES_EXPERIMENT_OUTPUT = Schema.collection(
         "metrics": {
             "target": DOCUMENT,
             "index": 18,
+        },
+
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 19,
         },
 
     }

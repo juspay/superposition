@@ -215,6 +215,13 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    experiment_group_idDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "experiment_group_id") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     id'DocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "id") responseObject
         Data.Function.& \case
@@ -265,6 +272,7 @@ deserializeResponse response = do
         Io.Superposition.Model.DiscardExperimentOutput.setName nameDocumentE
         Io.Superposition.Model.DiscardExperimentOutput.setContext contextDocumentE
         Io.Superposition.Model.DiscardExperimentOutput.setStartedAt started_atDocumentE
+        Io.Superposition.Model.DiscardExperimentOutput.setExperimentGroupId experiment_group_idDocumentE
         Io.Superposition.Model.DiscardExperimentOutput.setId' id'DocumentE
         Io.Superposition.Model.DiscardExperimentOutput.setMetrics metricsDocumentE
         Io.Superposition.Model.DiscardExperimentOutput.setLastModified last_modifiedDocumentE

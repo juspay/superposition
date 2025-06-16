@@ -28,6 +28,7 @@ impl super::Client {
     ///   - [`started_by(Option<String>)`](crate::operation::ramp_experiment::RampExperimentOutput::started_by): (undocumented)
     ///   - [`metrics_url(Option<String>)`](crate::operation::ramp_experiment::RampExperimentOutput::metrics_url): (undocumented)
     ///   - [`metrics(Option<Document>)`](crate::operation::ramp_experiment::RampExperimentOutput::metrics): (undocumented)
+    ///   - [`experiment_group_id(Option<String>)`](crate::operation::ramp_experiment::RampExperimentOutput::experiment_group_id): (undocumented)
                             /// - On failure, responds with [`SdkError<RampExperimentError>`](crate::operation::ramp_experiment::RampExperimentError)
     pub fn ramp_experiment(&self) -> crate::operation::ramp_experiment::builders::RampExperimentFluentBuilder {
                                 crate::operation::ramp_experiment::builders::RampExperimentFluentBuilder::new(self.handle.clone())

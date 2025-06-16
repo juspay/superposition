@@ -374,9 +374,8 @@ pub fn experiment_list() -> impl IntoView {
                 current_tenant.to_string(),
                 org_id.clone(),
             );
-
             let (experiments_result, dimensions_result, config_result) =
-                join!(experiments_future, dimensions_future, config_future);
+                join!(experiments_future, dimensions_future, config_future,);
             // Construct the combined result, handling errors as needed
             CombinedResource {
                 experiments: experiments_result.unwrap_or_default(),

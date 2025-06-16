@@ -27,6 +27,7 @@ impl super::Client {
     ///   - [`started_by(Option<String>)`](crate::operation::discard_experiment::DiscardExperimentOutput::started_by): (undocumented)
     ///   - [`metrics_url(Option<String>)`](crate::operation::discard_experiment::DiscardExperimentOutput::metrics_url): (undocumented)
     ///   - [`metrics(Option<Document>)`](crate::operation::discard_experiment::DiscardExperimentOutput::metrics): (undocumented)
+    ///   - [`experiment_group_id(Option<String>)`](crate::operation::discard_experiment::DiscardExperimentOutput::experiment_group_id): (undocumented)
                             /// - On failure, responds with [`SdkError<DiscardExperimentError>`](crate::operation::discard_experiment::DiscardExperimentError)
     pub fn discard_experiment(&self) -> crate::operation::discard_experiment::builders::DiscardExperimentFluentBuilder {
                                 crate::operation::discard_experiment::builders::DiscardExperimentFluentBuilder::new(self.handle.clone())

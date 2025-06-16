@@ -535,6 +535,7 @@ export interface ExperimentResponse {
   started_by?: string | undefined;
   metrics_url?: string | undefined;
   metrics?: __DocumentType | undefined;
+  experiment_group_id?: string | undefined;
 }
 
 /**
@@ -934,6 +935,7 @@ export interface CreateExperimentRequest {
   description: string | undefined;
   change_reason: string | undefined;
   metrics?: __DocumentType | undefined;
+  experiment_group_id?: string | undefined;
 }
 
 /**
@@ -1601,6 +1603,7 @@ export interface UpdateOverrideRequest {
   description?: string | undefined;
   change_reason: string | undefined;
   metrics?: __DocumentType | undefined;
+  experiment_group_id?: string | undefined;
 }
 
 /**

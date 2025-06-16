@@ -41,6 +41,8 @@ pub struct RampExperimentOutput  {
     pub metrics_url: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub experiment_group_id: ::std::option::Option<::std::string::String>,
 }
 impl  RampExperimentOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -119,6 +121,10 @@ impl  RampExperimentOutput  {
     pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
         self.metrics.as_ref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn experiment_group_id(&self) -> ::std::option::Option<&str> {
+        self.experiment_group_id.as_deref()
+    }
 }
 impl RampExperimentOutput {
     /// Creates a new builder-style object to manufacture [`RampExperimentOutput`](crate::operation::ramp_experiment::RampExperimentOutput).
@@ -150,6 +156,7 @@ pub struct RampExperimentOutputBuilder {
     pub(crate) started_by: ::std::option::Option<::std::string::String>,
     pub(crate) metrics_url: ::std::option::Option<::std::string::String>,
     pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
+    pub(crate) experiment_group_id: ::std::option::Option<::std::string::String>,
 }
 impl RampExperimentOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -425,6 +432,19 @@ impl RampExperimentOutputBuilder {
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.metrics
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn experiment_group_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.experiment_group_id = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_experiment_group_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.experiment_group_id = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_experiment_group_id(&self) -> &::std::option::Option<::std::string::String> {
+        &self.experiment_group_id
+    }
     /// Consumes the builder and constructs a [`RampExperimentOutput`](crate::operation::ramp_experiment::RampExperimentOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`id`](crate::operation::ramp_experiment::builders::RampExperimentOutputBuilder::id)
@@ -523,6 +543,8 @@ impl RampExperimentOutputBuilder {
                 metrics_url: self.metrics_url
                 ,
                 metrics: self.metrics
+                ,
+                experiment_group_id: self.experiment_group_id
                 ,
             }
         )

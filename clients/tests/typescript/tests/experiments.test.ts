@@ -5,11 +5,15 @@ import {
     UpdateOverridesExperimentCommand,
     RampExperimentCommand,
     ConcludeExperimentCommand,
+    CreateExperimentGroupCommand,
+    DeleteExperimentGroupCommand,
+    RemoveMembersFromGroupCommand,
     type ExperimentResponse,
     type Variant,
     VariantType,
     ExperimentStatusType,
     type VariantUpdateRequest,
+    type CreateExperimentGroupCommandInput,
     CreateDimensionCommand,
     ListDimensionsCommand,
     CreateDefaultConfigCommand,
@@ -25,10 +29,15 @@ import {
 } from "@io.juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { expect, describe, test, beforeAll, afterAll } from "bun:test";
+import { nanoid } from "nanoid";
+
+// Helper function to create unique names/IDs
+const uniqueName = (prefix: string) => `${prefix}-${nanoid(8)}`;
 
 describe("Experiments API", () => {
     let experimentId1: string | undefined;
     let experiment1Variants: Variant[] | undefined;
+    let experimentGroupId: string | undefined;
     let created_dimensions: string[] = [];
 
     const defaultChangeReason = "Automated Test";
@@ -79,6 +88,14 @@ describe("Experiments API", () => {
             overrides: { pmTestKey3: "value4-test", pmTestKey4: "value4-test" },
         },
     ];
+
+    // Experiment group context (common base for both experiments)
+    const experimentGroupContext = {
+        and: [
+            { "==": [{ var: "os" }, "ios"] },
+            { "==": [{ var: "clientId" }, "testClientCac1"] },
+        ],
+    };
 
     beforeAll(async () => {
         const cmd = new ListDimensionsCommand({
@@ -159,10 +176,31 @@ describe("Experiments API", () => {
                 console.log(`Default config for key "${key}" already exists.`);
             }
         }
+
+        // Create experiment group
+        console.log("Creating experiment group...");
+        const groupName = uniqueName("test-exp-group");
+        const createGroupInput: CreateExperimentGroupCommandInput = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            name: groupName,
+            description: "Test experiment group for automated tests",
+            change_reason: "Automated Test - Creating experiment group",
+            context: experimentGroupContext,
+            traffic_percentage: 100,
+            member_experiment_ids: [], // Start with empty, will add experiments later
+        };
+        
+        const groupResponse = await superpositionClient.send(
+            new CreateExperimentGroupCommand(createGroupInput)
+        );
+        experimentGroupId = groupResponse.id!;
+        console.log(`Created experiment group: ${experimentGroupId}`);
     });
 
     afterAll(async () => {
         try {
+            // Clean up experiments
             const experimentsCmd = new ListExperimentCommand({
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
@@ -197,6 +235,53 @@ describe("Experiments API", () => {
                     }
                 }
             }
+
+            // Clean up experiment group
+            if (experimentGroupId) {
+                try {
+                    // First remove all members if any
+                    console.log(`Cleaning up experiment group: ${experimentGroupId}`);
+                    
+                    // Remove all members from the group first
+                    if (experimentId1 || experimentId2) {
+                        const membersToRemove = [];
+                        if (experimentId1) membersToRemove.push(experimentId1);
+                        if (experimentId2) membersToRemove.push(experimentId2);
+                        
+                        if (membersToRemove.length > 0) {
+                            await superpositionClient.send(
+                                new RemoveMembersFromGroupCommand({
+                                    workspace_id: ENV.workspace_id,
+                                    org_id: ENV.org_id,
+                                    id: experimentGroupId,
+                                    member_experiment_ids: membersToRemove,
+                                    change_reason: "Cleanup - removing members before deleting group",
+                                })
+                            );
+                            console.log(`Removed members from experiment group: ${experimentGroupId}`);
+                        }
+                    }
+                    
+                    // Now delete the empty group
+                    await superpositionClient.send(
+                        new DeleteExperimentGroupCommand({
+                            workspace_id: ENV.workspace_id,
+                            org_id: ENV.org_id,
+                            id: experimentGroupId,
+                        })
+                    );
+                    console.log(`Deleted experiment group: ${experimentGroupId}`);
+                } catch (error: any) {
+                    if (error.name !== "ResourceNotFound") {
+                        console.error(
+                            `Failed to clean up experiment group ${experimentGroupId}:`,
+                            error.message
+                        );
+                    }
+                }
+            }
+
+            // Clean up contexts
             const contextsCmd = new ListContextsCommand({
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
@@ -214,6 +299,8 @@ describe("Experiments API", () => {
                 });
                 await superpositionClient.send(deleteCmd);
             }
+
+            // Clean up default configs
             const defaultConfigsCmd = new ListDefaultConfigsCommand({
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
@@ -232,6 +319,8 @@ describe("Experiments API", () => {
                 });
                 await superpositionClient.send(deleteCmd);
             }
+
+            // Clean up dimensions
             console.log("Created dimensions to delete:", created_dimensions);
             for (const dimension of created_dimensions) {
                 const deleteCmd = new DeleteDimensionCommand({
@@ -377,6 +466,7 @@ describe("Experiments API", () => {
                 })),
                 description: defaultDescription,
                 change_reason: defaultChangeReason,
+                experiment_group_id: experimentGroupId, // Add experiment group ID
             });
 
             const out: ExperimentResponse = await superpositionClient.send(cmd);
@@ -385,6 +475,7 @@ describe("Experiments API", () => {
             expect(out.name).toBe("experiment-1-from-test");
             expect(out.status).toBe(ExperimentStatusType.CREATED);
             expect(out.traffic_percentage).toBe(0);
+            expect(out.experiment_group_id).toBe(experimentGroupId); // Verify group ID is set
             const allInitialOverrideKeys1 = new Set<string>();
             experiment1InitialVariants.forEach((v) =>
                 Object.keys(v.overrides).forEach((k) =>
@@ -458,6 +549,7 @@ describe("Experiments API", () => {
             expect(out).toBeDefined();
             expect(out.id).toBe(experimentId1);
             expect(out.name).toBe("experiment-1-from-test");
+            expect(out.experiment_group_id).toBe(experimentGroupId); // Verify group ID is preserved
             expect(out.variants).toHaveLength(
                 experiment1InitialVariants.length
             );
@@ -465,6 +557,84 @@ describe("Experiments API", () => {
         } catch (e: any) {
             console.error(
                 "Error in test '2. Get Experiment 1':",
+                e?.$response || e.message
+            );
+            throw e;
+        }
+    });
+
+    // write a test for updating experiment 1 overrides and updating the experiment group as null
+
+    test("3.1 Update Experiment 1 Overrides", async () => {
+        try {
+            if (!experimentId1 || !experiment1Variants) {
+                throw new Error(
+                    "Experiment 1 ID or variants not set, cannot update overrides."
+                );
+            }
+
+            const controlVariant = experiment1Variants.find(
+                (v) => v.variant_type === VariantType.CONTROL
+            );
+            const testVariant = experiment1Variants.find(
+                (v) => v.variant_type === VariantType.EXPERIMENTAL
+            );
+
+            if (!controlVariant?.id || !testVariant?.id) {
+                throw new Error("Could not find variant IDs for Experiment 1.");
+            }
+
+            const updatedVariants: VariantUpdateRequest[] = [
+                {
+                    id: controlVariant.id,
+                    overrides: {
+                        pmTestKey1: "value-7910-an-control",
+                        pmTestKey2: "value-6910-an-control",
+                    },
+                },
+                {
+                    id: testVariant.id,
+                    overrides: {
+                        pmTestKey1: "value-7920-an-test",
+                        pmTestKey2: "value-6930-an-test",
+                    },
+                },
+            ];
+
+            const cmd = new UpdateOverridesExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                id: experimentId1,
+                variant_list: updatedVariants,
+                experiment_group_id: "null",
+                description: "Updating override keys and values",
+                change_reason: "Testing override update",
+            });
+
+            const out: ExperimentResponse = await superpositionClient.send(cmd);
+            expect(out).toBeDefined();
+            expect(out.id).toBe(experimentId1);
+
+            const allUpdatedOverrideKeys = new Set<string>();
+            updatedVariants.forEach((uv) =>
+                Object.keys(uv.overrides).forEach((k) =>
+                    allUpdatedOverrideKeys.add(k)
+                )
+            );
+            expect(out.override_keys?.sort()).toEqual(
+                Array.from(allUpdatedOverrideKeys).sort()
+            );
+
+            expect(out.variants).toHaveLength(experiment1Variants.length);
+            expect(out.status).toBe(ExperimentStatusType.CREATED);
+            expect(out.chosen_variant).toBeUndefined();
+            expect(out.experiment_group_id).toBeUndefined(); 
+            expect(out.context).toEqual(experiment1Context);
+            expect(out.name).toBe("experiment-1-from-test");
+
+        } catch (e: any) {
+            console.error(
+                "Error in test '3.1 Update Experiment 1 Overrides':",
                 e?.$response || e.message
             );
             throw e;
@@ -489,6 +659,7 @@ describe("Experiments API", () => {
             expect(out.id).toBe(experimentId1);
             expect(out.traffic_percentage).toBe(rampPercentage);
             expect(out.status).toBe(ExperimentStatusType.INPROGRESS);
+            expect(out.experiment_group_id).toBeUndefined();
 
             const getCmd = new GetExperimentCommand({
                 workspace_id: ENV.workspace_id,
@@ -498,6 +669,7 @@ describe("Experiments API", () => {
             const updatedExp = await superpositionClient.send(getCmd);
             expect(updatedExp.traffic_percentage).toBe(rampPercentage);
             expect(updatedExp.status).toBe(ExperimentStatusType.INPROGRESS);
+            expect(updatedExp.experiment_group_id).toBeUndefined();
         } catch (e: any) {
             console.error(
                 "Error in test '3. Ramp Experiment 1':",
@@ -537,6 +709,7 @@ describe("Experiments API", () => {
             expect(out.id).toBe(experimentId1);
             expect(out.status).toBe(ExperimentStatusType.CONCLUDED);
             expect(out.chosen_variant).toBe(winnerVariantId);
+            expect(out.experiment_group_id).toBeUndefined();
 
             const getCmd = new GetExperimentCommand({
                 workspace_id: ENV.workspace_id,
@@ -546,6 +719,7 @@ describe("Experiments API", () => {
             const updatedExp = await superpositionClient.send(getCmd);
             expect(updatedExp.status).toBe(ExperimentStatusType.CONCLUDED);
             expect(updatedExp.chosen_variant).toBe(winnerVariantId);
+            expect(updatedExp.experiment_group_id).toBeUndefined();
         } catch (e: any) {
             console.error(
                 "Error in test '4. Conclude Experiment 1':",
@@ -753,6 +927,9 @@ describe("Experiments API", () => {
             const foundExp2 = out.data?.some((exp) => exp.id === experimentId2);
             expect(foundExp1).toBe(true);
             expect(foundExp2).toBe(true);
+            
+            const exp1 = out.data?.find((exp) => exp.id === experimentId1);
+            expect(exp1?.experiment_group_id).toBeUndefined();
         } catch (e: any) {
             console.error(
                 "Error in test '7. List Experiments (Basic)':",

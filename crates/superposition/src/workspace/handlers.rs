@@ -16,9 +16,12 @@ use regex::Regex;
 use service_utils::service::types::{DbConnection, OrganisationId, SchemaName};
 use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::{
-    api::workspace::{
-        ConfigVersionUpdate, CreateWorkspaceRequest, UpdateWorkspaceRequest,
-        WorkspaceListFilters, WorkspaceResponse,
+    api::{
+        workspace::{
+            CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceListFilters,
+            WorkspaceResponse,
+        },
+        I64Update,
     },
     custom_query::PaginationParams,
     database::{
@@ -142,7 +145,7 @@ async fn update_workspace(
     // TODO: mandatory dimensions updation needs to be validated
     // for the existance of the dimensions in the workspace
     let DbConnection(mut conn) = db_conn;
-    if let Some(ConfigVersionUpdate::Add(version)) = request.config_version {
+    if let Some(I64Update::Add(version)) = request.config_version {
         let _ = config_versions::config_versions
             .select(config_versions::id)
             .filter(config_versions::id.eq(version))

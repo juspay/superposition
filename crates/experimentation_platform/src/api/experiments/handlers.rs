@@ -1,3 +1,8 @@
+use std::{
+    collections::{HashMap, HashSet},
+    vec,
+};
+
 use actix_http::header::{self};
 use actix_web::{
     get, patch, post, put, route,
@@ -9,7 +14,7 @@ use diesel::{
     dsl::sql,
     r2d2::{ConnectionManager, PooledConnection},
     sql_types::{Bool, Text},
-    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
+    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
     TextExpressionMethods,
 };
 use reqwest::{Method, StatusCode};
@@ -22,12 +27,12 @@ use service_utils::{
         AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
     },
 };
-use std::collections::{HashMap, HashSet};
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     api::{
         context::{Identifier, UpdateRequest},
         default_config::DefaultConfigUpdateRequest,
+        experiment_groups::ExpGroupMemberRequest,
         experiments::{
             ApplicableVariantsQuery, ApplicableVariantsRequest, AuditQueryFilters,
             ConcludeExperimentRequest, ExperimentCreateRequest, ExperimentListFilters,
@@ -51,12 +56,15 @@ use superposition_types::{
     PaginatedResponse, SortBy, User,
 };
 
-use crate::api::experiments::{
-    helpers::{
-        decide_variant, fetch_webhook_by_event, get_workspace,
-        validate_delete_experiment_variants,
+use crate::api::{
+    experiment_groups::helpers::add_members,
+    experiments::{
+        helpers::{
+            decide_variant, fetch_webhook_by_event, get_workspace,
+            validate_delete_experiment_variants,
+        },
+        types::StartedByChangeSet,
     },
-    types::StartedByChangeSet,
 };
 
 use super::{
@@ -66,8 +74,9 @@ use super::{
     },
     helpers::{
         add_variant_dimension_to_ctx, check_variant_types,
-        check_variants_override_coverage, extract_override_keys, fetch_cac_config, hash,
-        validate_experiment, validate_override_keys,
+        check_variants_override_coverage, extract_override_keys, fetch_cac_config,
+        handle_experiment_group_membership, hash, validate_experiment,
+        validate_override_keys,
     },
     types::{ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq},
 };
@@ -294,15 +303,37 @@ async fn create(
         description,
         change_reason,
         metrics: req.metrics.clone().unwrap_or(workspace_settings.metrics),
+        experiment_group_id: req.experiment_group_id,
     };
 
-    let mut inserted_experiments = diesel::insert_into(experiments)
-        .values(&new_experiment)
-        .returning(Experiment::as_returning())
-        .schema_name(&workspace_request.schema_name)
-        .get_results(&mut conn)?;
+    let inserted_experiment: Experiment =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let inserted_experiment = diesel::insert_into(experiments)
+                .values(&new_experiment)
+                .returning(Experiment::as_returning())
+                .schema_name(&workspace_request.schema_name)
+                .get_result(transaction_conn)?;
 
-    let inserted_experiment: Experiment = inserted_experiments.remove(0);
+            if let Some(experiment_group_id) = &req.experiment_group_id {
+                add_members(
+                    experiment_group_id,
+                    &[inserted_experiment.clone()],
+                    ExpGroupMemberRequest {
+                        change_reason: ChangeReason::try_from(format!("Adding experiment {experiment_id} to the group, while creating the experiment.")).map_err(|err| {
+                            log::error!("Failed to convert change reason: {}", err);
+                            unexpected_error!("Failed to convert change reason")
+                        })?,
+                        member_experiment_ids: vec![experiment_id],
+                    },
+                    transaction_conn,
+                    &workspace_request.schema_name,
+                    &user,
+                )?;
+            }
+
+            Ok(inserted_experiment)
+        })?;
+
     let response = ExperimentResponse::from(inserted_experiment);
     let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
         &state,
@@ -1072,6 +1103,7 @@ async fn update_overrides(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let experiment_id = params.into_inner();
+    let experiment_group_id = req.experiment_group_id.clone();
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
 
@@ -1098,7 +1130,7 @@ async fn update_overrides(
         ));
     }
 
-    let experiment_variants: Vec<Variant> = experiment.variants.into_inner();
+    let experiment_variants: Vec<Variant> = experiment.variants.clone().into_inner();
 
     let id_to_existing_variant: HashMap<String, &Variant> = HashMap::from_iter(
         experiment_variants
@@ -1151,7 +1183,7 @@ async fn update_overrides(
         .collect::<Vec<Overrides>>();
 
     let experiment_condition =
-        Exp::<Condition>::validate_db_data(experiment.context.into())
+        Exp::<Condition>::validate_db_data(experiment.context.clone().into())
             .map_err(|err| {
                 log::error!(
                     "update_overrides : failed to decode condition from db with error {}",
@@ -1293,20 +1325,39 @@ async fn update_overrides(
     }
 
     /*************************** Updating experiment in DB **************************/
-    let updated_metrics = payload.metrics.as_ref().unwrap_or(&experiment.metrics);
+    let existing_metrics = &experiment.metrics.clone();
+    let updated_metrics = payload.metrics.as_ref().unwrap_or(existing_metrics);
 
-    let updated_experiment = diesel::update(experiments::experiments.find(experiment_id))
-        .set((
-            experiments::variants.eq(Variants::new(new_variants)),
-            experiments::override_keys.eq(override_keys),
-            experiments::change_reason.eq(change_reason),
-            experiments::metrics.eq(updated_metrics),
-            experiments::last_modified.eq(Utc::now()),
-            experiments::last_modified_by.eq(user.get_email()),
-        ))
-        .returning(Experiment::as_returning())
-        .schema_name(&workspace_request.schema_name)
-        .get_result::<Experiment>(&mut conn)?;
+    let updated_experiment =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let experiment_group_id_result = handle_experiment_group_membership(
+                &experiment,
+                &experiment_group_id,
+                &experiment.experiment_group_id,
+                transaction_conn,
+                &workspace_request.schema_name,
+                &user,
+            )?;
+
+            let updated_experiment =
+                diesel::update(experiments::experiments.find(experiment_id))
+                    .set((
+                        experiments::variants.eq(Variants::new(new_variants)),
+                        experiments::override_keys.eq(override_keys),
+                        experiments::change_reason.eq(change_reason),
+                        experiments::description
+                            .eq(description.unwrap_or(experiment.description)),
+                        experiments::metrics.eq(updated_metrics),
+                        experiments::last_modified.eq(Utc::now()),
+                        experiments::last_modified_by.eq(user.get_email()),
+                        experiments::experiment_group_id.eq(experiment_group_id_result),
+                    ))
+                    .returning(Experiment::as_returning())
+                    .schema_name(&workspace_request.schema_name)
+                    .get_result::<Experiment>(transaction_conn)?;
+
+            Ok(updated_experiment)
+        })?;
 
     let experiment_response = ExperimentResponse::from(updated_experiment);
 

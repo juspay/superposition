@@ -231,5 +231,19 @@ impl CreateExperimentFluentBuilder {
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
                     self.inner.get_metrics()
                 }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn experiment_group_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.experiment_group_id(input.into());
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_experiment_group_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_experiment_group_id(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_experiment_group_id(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_experiment_group_id()
+                }
 }
 

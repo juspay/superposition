@@ -97,6 +97,7 @@ export interface ListExperimentCommandOutput extends ExperimentListResponse, __M
  * //       started_by: "STRING_VALUE",
  * //       metrics_url: "STRING_VALUE",
  * //       metrics: "DOCUMENT_VALUE",
+ * //       experiment_group_id: "STRING_VALUE",
  * //     },
  * //   ],
  * // };
