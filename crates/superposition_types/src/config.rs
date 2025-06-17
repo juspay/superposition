@@ -7,6 +7,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{json, Map, Value};
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql};
+use uniffi::deps::anyhow;
 
 use crate::{overridden::filter_config_keys_by_prefix, Cac, Contextual, Exp};
 

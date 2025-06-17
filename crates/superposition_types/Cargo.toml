@@ -50,6 +50,3 @@ api = []
 [lints]
 workspace = true
 
-[lib]
-crate-type = ["cdylib"]
-name = "superposition_types"

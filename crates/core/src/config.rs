@@ -27,14 +27,13 @@ impl From<&str> for MergeStrategy {
     }
 }
 
-#[uniffi::export]
 pub fn eval_config(
     default_config: Map<String, Value>,
     contexts: &[Context],
     overrides: &HashMap<String, Overrides>,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
-    filter_prefixes: Option<&[String]>,
+    filter_prefixes: Option<Vec<String>>,
 ) -> Result<Map<String, Value>, String> {
     // Create Config struct to use existing filtering logic
     let mut config = Config {
@@ -71,7 +70,7 @@ pub fn eval_config_with_reasoning(
     overrides: &HashMap<String, Overrides>,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
-    filter_prefixes: Option<&[String]>, // Optional prefix filtering
+    filter_prefixes: Option<Vec<String>>, // Optional prefix filtering
 ) -> Result<Map<String, Value>, String> {
     let mut reasoning: Vec<Value> = vec![];
 
