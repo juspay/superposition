@@ -176,6 +176,10 @@ impl AuthNHandler {
         };
         Self(ap)
     }
+
+    pub fn new(auth_n_handler: Arc<dyn Authenticator>) -> Self {
+        Self(auth_n_handler)
+    }
 }
 
 pub fn routes(auth: AuthNHandler) -> Scope {

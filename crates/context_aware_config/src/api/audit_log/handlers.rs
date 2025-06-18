@@ -2,6 +2,7 @@ use actix_web::{get, web::Json, Scope};
 use chrono::{Duration, Utc};
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::{DbConnection, SchemaName};
+use superposition_derives::auth_action;
 use superposition_types::{
     api::audit_log::AuditQueryFilters,
     custom_query::{self as superposition_query, PaginationParams},
@@ -13,6 +14,7 @@ pub fn endpoints() -> Scope {
     Scope::new("").service(get_audit_logs)
 }
 
+#[auth_action("read")]
 #[get("")]
 async fn get_audit_logs(
     filters: superposition_query::Query<AuditQueryFilters>,
