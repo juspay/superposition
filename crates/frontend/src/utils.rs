@@ -16,7 +16,10 @@ use crate::{
     api::execute_autocomplete_function,
     components::alert::AlertType,
     providers::alert_provider::enqueue_alert,
-    types::{AutoCompleteCallback, Envs, ErrorResponse, FunctionsName},
+    types::{
+        AutoCompleteCallback, Envs, ErrorResponse, FunctionsName,
+        SsrSharedHttpRequestHeaders,
+    },
 };
 
 #[allow(dead_code)]
@@ -233,6 +236,9 @@ pub async fn request_with_skip_error<T>(
 where
     T: serde::Serialize,
 {
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
+
     let mut request_builder = HTTP_CLIENT.request(method.clone(), url).headers(headers);
     request_builder = match (method, body) {
         (reqwest::Method::GET | reqwest::Method::DELETE, _) => request_builder,
@@ -241,6 +247,7 @@ where
     };
 
     let response = request_builder
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
         .send()
         .await
         .map_err(|err| err.to_string())?;
