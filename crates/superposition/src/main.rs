@@ -22,13 +22,8 @@ use frontend::types::Envs as UIEnvs;
 use leptos::*;
 use leptos_actix::{generate_route_list, LeptosRoutes};
 use service_utils::{
-    aws::kms,
-    helpers::get_from_env_unsafe,
-    middlewares::{
-        app_scope::AppExecutionScopeMiddlewareFactory,
-        tenant::OrgWorkspaceMiddlewareFactory,
-    },
-    service::types::{AppEnv, AppScope},
+    aws::kms, helpers::get_from_env_unsafe,
+    middlewares::tenant::OrgWorkspaceMiddlewareFactory, service::types::AppEnv,
 };
 
 #[actix_web::get("favicon.ico")]
@@ -140,71 +135,57 @@ async fn main() -> Result<()> {
                     .service(
                         scope("/context")
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(context::endpoints()),
                     )
                     .service(
                         scope("/dimension")
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(dimension::endpoints()),
                     )
                     .service(
                         scope("/default-config")
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(default_config::endpoints()),
                     )
                     .service(
                         scope("/config")
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(config::endpoints()),
                     )
                     .service(
                         scope("/audit")
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(audit_log::endpoints()),
                     )
                     .service(
                         scope("/function")
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(functions::endpoints()),
                     )
                     .service(
                         scope("/types")
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::CAC))
                             .service(type_templates::endpoints()),
                     )
                     .service(
                         experiments::endpoints(scope("/experiments"))
-                        .wrap(
-                            AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION),
-                        )
                         .wrap(OrgWorkspaceMiddlewareFactory::new(true, true)),
                     )
                     .service(
                             experiment_groups::endpoints(scope("/experiment-groups"))
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::EXPERIMENTATION))
                     )
                     .service(
                         scope("/superposition/organisations")
-                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION))
                             .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
                             .service(organisation::endpoints()),
                     )
                     .service(workspace::endpoints(scope("/workspaces"))
                         .wrap(OrgWorkspaceMiddlewareFactory::new(true, false))
-                        .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION))
                     )
                     .service(
                         scope("/webhook")
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(AppExecutionScopeMiddlewareFactory::new(AppScope::SUPERPOSITION))
                             .service(webhooks::endpoints()),
                     )
                     /***************************** UI Routes ******************************/
