@@ -6,6 +6,7 @@ use diesel::{
 };
 use jsonschema::JSONSchema;
 use service_utils::service::types::{DbConnection, SchemaName};
+use superposition_derives::auth_action;
 use superposition_macros::{bad_argument, db_error};
 use superposition_types::{
     api::type_templates::{
@@ -28,6 +29,7 @@ pub fn endpoints() -> Scope {
         .service(delete_type)
 }
 
+#[auth_action("create")]
 #[post("")]
 async fn create_type(
     request: Json<TypeTemplateCreateRequest>,
@@ -83,6 +85,7 @@ async fn get_type(
     Ok(Json(type_template))
 }
 
+#[auth_action("update")]
 #[put("/{type_name}")]
 async fn update_type(
     request: Json<TypeTemplateUpdateRequest>,
@@ -150,6 +153,7 @@ async fn update_type(
     Ok(Json(updated_type))
 }
 
+#[auth_action("delete")]
 #[delete("/{type_name}")]
 async fn delete_type(
     path: Path<TypeTemplateName>,
@@ -175,6 +179,7 @@ async fn delete_type(
     Ok(Json(deleted_type))
 }
 
+#[auth_action("read")]
 #[get("")]
 async fn list_types(
     db_conn: DbConnection,
