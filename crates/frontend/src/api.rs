@@ -1,7 +1,11 @@
-use crate::utils::{
-    construct_request_headers, get_host, parse_json_response, request, use_host_server,
+use crate::{
+    types::SsrSharedHttpRequestHeaders,
+    utils::{
+        construct_request_headers, get_host, parse_json_response, request,
+        use_host_server,
+    },
 };
-use leptos::ServerFnError;
+use leptos::{use_context, ServerFnError};
 use serde_json::{Map, Value};
 use superposition_types::{
     api::{
@@ -38,6 +42,8 @@ pub async fn fetch_dimensions(
     org_id: String,
 ) -> Result<PaginatedResponse<DimensionResponse>, ServerFnError> {
     let client = reqwest::Client::new();
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
     let host = use_host_server();
 
     let url = format!("{}/dimension?{}", host, filters);
@@ -45,6 +51,7 @@ pub async fn fetch_dimensions(
         .get(url)
         .header("x-tenant", &tenant)
         .header("x-org-id", org_id)
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -63,6 +70,8 @@ pub async fn fetch_default_config(
     org_id: String,
 ) -> Result<PaginatedResponse<DefaultConfig>, ServerFnError> {
     let client = reqwest::Client::new();
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
     let host = use_host_server();
 
     let url = format!("{}/default-config?{}&{}", host, pagination, filters);
@@ -70,6 +79,7 @@ pub async fn fetch_default_config(
         .get(url)
         .header("x-tenant", tenant)
         .header("x-org-id", org_id)
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -85,6 +95,8 @@ pub async fn fetch_snapshots(
     org_id: String,
 ) -> Result<PaginatedResponse<ConfigVersion>, ServerFnError> {
     let client = reqwest::Client::new();
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
     let host = use_host_server();
 
     let url = format!("{host}/config/versions?{}", filters);
@@ -92,6 +104,7 @@ pub async fn fetch_snapshots(
         .get(url)
         .header("x-tenant", tenant)
         .header("x-org-id", org_id)
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -139,6 +152,8 @@ pub async fn fetch_experiments(
     org_id: &str,
 ) -> Result<PaginatedResponse<ExperimentResponse>, ServerFnError> {
     let client = reqwest::Client::new();
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
     let host = use_host_server();
     let pagination = pagination.to_string();
 
@@ -147,6 +162,7 @@ pub async fn fetch_experiments(
         .get(url)
         .header("x-tenant", tenant)
         .header("x-org-id", org_id)
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -164,12 +180,15 @@ pub async fn fetch_functions(
     org_id: String,
 ) -> Result<PaginatedResponse<Function>, ServerFnError> {
     let client = reqwest::Client::new();
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
     let host = use_host_server();
     let url = format!("{}/function?{}&{}", host, filters, pagination);
     let response: PaginatedResponse<Function> = client
         .get(url)
         .header("x-tenant", tenant)
         .header("x-org-id", org_id)
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -186,6 +205,8 @@ pub async fn fetch_function(
     org_id: String,
 ) -> Result<Function, ServerFnError> {
     let client = reqwest::Client::new();
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
     let host = use_host_server();
 
     let url = format!("{}/function/{}", host, function_name);
@@ -193,6 +214,7 @@ pub async fn fetch_function(
         .get(url)
         .header("x-tenant", tenant)
         .header("x-org-id", org_id)
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -210,6 +232,8 @@ pub async fn fetch_config(
     org_id: String,
 ) -> Result<Config, ServerFnError> {
     let client = reqwest::Client::new();
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
     let host = use_host_server();
 
     let url = match version {
@@ -220,6 +244,7 @@ pub async fn fetch_config(
         .get(url)
         .header("x-tenant", tenant)
         .header("x-org-id", org_id)
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
         .send()
         .await
     {
@@ -241,6 +266,8 @@ pub async fn fetch_context(
     context_filters: &ContextListFilters,
     dimension_params: &DimensionQuery<QueryMap>,
 ) -> Result<PaginatedResponse<Context>, ServerFnError> {
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
     let client = reqwest::Client::new();
     let host = use_host_server();
     let url =
@@ -250,6 +277,7 @@ pub async fn fetch_context(
         .get(url)
         .header("x-tenant", tenant)
         .header("x-org-id", org_id)
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
         .send()
         .await
     {
@@ -271,6 +299,8 @@ pub async fn fetch_experiment(
     org_id: String,
 ) -> Result<ExperimentResponse, ServerFnError> {
     let client = reqwest::Client::new();
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
     let host = use_host_server();
     let url = format!("{}/experiments/{}", host, exp_id);
 
@@ -278,6 +308,7 @@ pub async fn fetch_experiment(
         .get(url)
         .header("x-tenant", tenant)
         .header("x-org-id", org_id)
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
         .send()
         .await
     {
@@ -332,10 +363,17 @@ pub async fn delete_dimension(
 
 pub async fn fetch_organisations() -> Result<Vec<String>, ServerFnError> {
     let client = reqwest::Client::new();
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
     let host = use_host_server();
     let url = format!("{host}/organisations");
 
-    match client.get(url).send().await {
+    match client
+        .get(url)
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
+        .send()
+        .await
+    {
         Ok(organisations) => {
             let organisations = organisations
                 .json()
@@ -374,11 +412,14 @@ pub async fn fetch_workspaces(
     org_id: &String,
 ) -> Result<PaginatedResponse<WorkspaceResponse>, ServerFnError> {
     let client = reqwest::Client::new();
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
     let host = use_host_server();
     let url = format!("{}/workspaces?{}", host, filters);
     let response: PaginatedResponse<WorkspaceResponse> = client
         .get(url)
         .header("x-org-id", org_id)
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -453,6 +494,8 @@ pub async fn fetch_webhooks(
     org_id: String,
 ) -> Result<PaginatedResponse<Webhook>, ServerFnError> {
     let client = reqwest::Client::new();
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
     let host = use_host_server();
 
     let url = format!("{}/webhook?{}", host, filters);
@@ -460,6 +503,7 @@ pub async fn fetch_webhooks(
         .get(url)
         .header("x-tenant", &tenant)
         .header("x-org-id", org_id)
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
         .send()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -497,6 +541,8 @@ pub async fn resolve_config(
     org_id: &str,
 ) -> Result<Map<String, Value>, String> {
     let client = reqwest::Client::new();
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
     let host = use_host_server();
     let mut url = format!("{host}/config/resolve?{context}");
     if let Some(context_id) = context_id {
@@ -509,6 +555,7 @@ pub async fn resolve_config(
         .get(url)
         .header("x-tenant", tenant)
         .header("x-org-id", org_id)
+        .header("cookie", cookie.unwrap_or("No Cookie found".to_string()))
         .send()
         .await
     {

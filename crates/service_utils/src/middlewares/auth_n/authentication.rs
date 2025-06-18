@@ -6,8 +6,8 @@ use serde::Deserialize;
 use superposition_types::User;
 
 #[derive(Deserialize)]
-pub(super) struct SwitchOrgParams {
-    pub(super) organisation_id: String,
+pub struct SwitchOrgParams {
+    pub organisation_id: String,
 }
 
 #[derive(Debug)]

@@ -14,6 +14,7 @@ use service_utils::{
     helpers::{parse_config_tags, validation_err_to_str},
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
 };
+use superposition_derives::auth_action;
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
@@ -49,6 +50,7 @@ pub fn endpoints() -> Scope {
         .service(delete)
 }
 
+#[auth_action("create")]
 #[post("")]
 async fn create_default_config(
     state: Data<AppState>,
@@ -152,6 +154,7 @@ async fn create_default_config(
     Ok(http_resp.json(default_config))
 }
 
+#[auth_action("read")]
 #[get("/{key}")]
 async fn get_default_config(
     key: Path<DefaultConfigKey>,
@@ -163,6 +166,8 @@ async fn get_default_config(
     Ok(Json(res))
 }
 
+#[allow(clippy::too_many_arguments)]
+#[auth_action("update")]
 #[put("/{key}")]
 async fn update_default_config(
     state: Data<AppState>,
@@ -302,6 +307,7 @@ fn fetch_default_key(
     Ok(res)
 }
 
+#[auth_action("read")]
 #[get("")]
 async fn list_default_configs(
     db_conn: DbConnection,
@@ -371,6 +377,7 @@ pub fn get_key_usage_context_ids(
     Ok(context_ids)
 }
 
+#[auth_action("delete")]
 #[delete("/{key}")]
 async fn delete(
     state: Data<AppState>,
