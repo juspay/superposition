@@ -13,6 +13,7 @@ use service_utils::{
     helpers::{generate_snowflake_id, get_from_env_or_default},
     service::types::{AppState, DbConnection, SchemaName, WorkspaceContext},
 };
+use superposition_derives::auth_action;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     api::experiment_groups::{
@@ -62,6 +63,7 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(backfill_experiment_groups)
 }
 
+#[auth_action("create")]
 #[post("")]
 async fn create_experiment_group(
     state: Data<AppState>,
@@ -132,6 +134,7 @@ async fn create_experiment_group(
     Ok(Json(new_experiment_group))
 }
 
+#[auth_action("update")]
 #[patch("/{exp_group_id}")]
 async fn update_experiment_group(
     exp_group_id: web::Path<i64>,
@@ -164,6 +167,7 @@ async fn update_experiment_group(
     Ok(Json(updated_group))
 }
 
+#[auth_action("add-members")]
 #[patch("/{exp_group_id}/add-members")]
 async fn add_members_to_group(
     exp_group_id: web::Path<i64>,
@@ -203,6 +207,7 @@ async fn add_members_to_group(
     Ok(experiment_group)
 }
 
+#[auth_action("remove-members")]
 #[patch("/{exp_group_id}/remove-members")]
 async fn remove_members_to_group(
     exp_group_id: web::Path<i64>,
@@ -231,6 +236,7 @@ async fn remove_members_to_group(
     Ok(experiment_group)
 }
 
+#[auth_action("read")]
 #[get("")]
 async fn list_experiment_groups(
     pagination_params: superposition_query::Query<PaginationParams>,
@@ -293,6 +299,7 @@ async fn list_experiment_groups(
     }))
 }
 
+#[auth_action("read")]
 #[get("/{exp_group_id}")]
 async fn get_experiment_group(
     exp_group_id: web::Path<i64>,
@@ -308,6 +315,7 @@ async fn get_experiment_group(
     Ok(Json(result))
 }
 
+#[auth_action("delete")]
 #[delete("/{exp_group_id}")]
 async fn delete_experiment_group(
     exp_group_id: web::Path<i64>,
@@ -341,6 +349,7 @@ async fn delete_experiment_group(
 }
 
 // Remove this after backfilling experiment groups
+#[auth_action("backfill")]
 #[post("/backfill")]
 async fn backfill_experiment_groups(
     state: Data<AppState>,
