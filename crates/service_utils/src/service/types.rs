@@ -11,6 +11,7 @@ use derive_more::{Deref, DerefMut};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use diesel::{Connection, PgConnection};
 use jsonschema::JSONSchema;
+use serde::{Deserialize, Serialize};
 use snowflake::SnowflakeIdGenerator;
 
 use crate::db::PgSchemaConnectionPool;
@@ -65,6 +66,25 @@ impl FromStr for AppEnv {
             _ => Err("invalid app env!!".to_string()),
         }
     }
+}
+
+#[derive(Copy, Clone, Debug, strum_macros::Display, Deserialize, Serialize)]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub enum Resource {
+    DefaultConfig,
+    Dimension,
+    Context,
+    Function,
+    TypeTemplate,
+    Config,
+    Experiment,
+    ExperimentGroup,
+    Workspace,
+    Organisation,
+    Webhook,
+    AuditLog,
+    Auth,
 }
 
 #[derive(Deref, DerefMut, Clone, Debug)]

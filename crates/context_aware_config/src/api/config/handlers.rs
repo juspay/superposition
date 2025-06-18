@@ -25,6 +25,7 @@ use service_utils::{
     helpers::extract_dimensions,
     service::types::{AppHeader, DbConnection, SchemaName, WorkspaceContext},
 };
+use superposition_derives::auth_action;
 #[cfg(feature = "high-performance-mode")]
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
@@ -564,6 +565,7 @@ async fn reduce_config_key(
     })
 }
 
+#[auth_action("reduce")]
 #[put("/reduce")]
 async fn reduce_config(
     req: HttpRequest,
@@ -607,6 +609,7 @@ async fn reduce_config(
 }
 
 #[cfg(feature = "high-performance-mode")]
+#[auth_action("read")]
 #[get("/fast")]
 async fn get_config_fast(
     schema_name: SchemaName,
@@ -695,6 +698,7 @@ async fn get_config_fast(
     }
 }
 
+#[auth_action("read")]
 #[route("", method = "GET", method = "POST")]
 async fn get_config(
     req: HttpRequest,
@@ -760,6 +764,7 @@ async fn get_config(
     Ok(response.json(config))
 }
 
+#[auth_action("read")]
 #[route("/resolve", method = "GET", method = "POST")]
 async fn get_resolved_config(
     req: HttpRequest,
@@ -866,6 +871,7 @@ async fn get_resolved_config(
     Ok(resp.json(response))
 }
 
+#[auth_action("read")]
 #[get("/versions")]
 async fn get_config_versions(
     db_conn: DbConnection,
