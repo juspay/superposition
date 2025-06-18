@@ -36,6 +36,7 @@ use service_utils::{
     helpers::parse_config_tags,
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
 };
+use superposition_derives::auth_action;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     api::context::{ContextListFilters, ContextValidationRequest, SortOn, UpdateRequest},
@@ -65,6 +66,7 @@ pub fn endpoints() -> Scope {
         .service(validate_context)
 }
 
+#[auth_action("create")]
 #[put("")]
 async fn put_handler(
     state: Data<AppState>,
@@ -128,6 +130,7 @@ async fn put_handler(
     Ok(http_resp.json(put_response))
 }
 
+#[auth_action("update")]
 #[put("/overrides")]
 async fn update_override_handler(
     state: Data<AppState>,
@@ -175,6 +178,7 @@ async fn update_override_handler(
     Ok(http_resp.json(override_resp))
 }
 
+#[auth_action("move")]
 #[allow(clippy::too_many_arguments)]
 #[put("/move/{ctx_id}")]
 async fn move_handler(
@@ -237,6 +241,7 @@ async fn move_handler(
     Ok(http_resp.json(move_response))
 }
 
+#[auth_action("read")]
 #[post("/get")]
 async fn get_context_from_condition(
     db_conn: DbConnection,
@@ -256,6 +261,7 @@ async fn get_context_from_condition(
     Ok(Json(ctx))
 }
 
+#[auth_action("read")]
 #[get("/{ctx_id}")]
 async fn get_context(
     path: Path<String>,
@@ -275,6 +281,7 @@ async fn get_context(
     Ok(Json(ctx))
 }
 
+#[auth_action("read")]
 #[get("/list")]
 async fn list_contexts(
     filter_params: superposition_query::Query<ContextListFilters>,
@@ -391,6 +398,7 @@ async fn list_contexts(
     Ok(Json(paginated_response))
 }
 
+#[auth_action("delete")]
 #[delete("/{ctx_id}")]
 async fn delete_context_handler(
     state: Data<AppState>,
@@ -436,6 +444,7 @@ async fn delete_context_handler(
         .finish())
 }
 
+#[auth_action("bulk")]
 #[put("/bulk-operations")]
 async fn bulk_operations(
     state: Data<AppState>,
@@ -627,6 +636,7 @@ async fn bulk_operations(
     Ok(http_resp)
 }
 
+#[auth_action("weight-recompute")]
 #[put("/weight/recompute")]
 async fn weight_recompute(
     state: Data<AppState>,
@@ -715,6 +725,7 @@ async fn weight_recompute(
     Ok(http_resp.json(ListResponse::new(response)))
 }
 
+#[auth_action("read")]
 #[post("/validate")]
 async fn validate_context(
     db_conn: DbConnection,
