@@ -14,6 +14,7 @@ use service_utils::{
     helpers::{parse_config_tags, validation_err_to_str},
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
 };
+use superposition_derives::authorized;
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
@@ -48,15 +49,16 @@ use crate::{
 
 pub fn endpoints() -> Scope {
     Scope::new("")
-        .service(create_default_config)
-        .service(update_default_config)
-        .service(get_default_config)
-        .service(list_default_configs)
-        .service(delete)
+        .service(create_handler)
+        .service(update_handler)
+        .service(get_handler)
+        .service(list_handler)
+        .service(delete_handler)
 }
 
+#[authorized]
 #[post("")]
-async fn create_default_config(
+async fn create_handler(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     request: Json<DefaultConfigCreateRequest>,
@@ -161,8 +163,9 @@ async fn create_default_config(
     Ok(http_resp.json(default_config))
 }
 
+#[authorized]
 #[get("/{key}")]
-async fn get_default_config(
+async fn get_handler(
     key: Path<DefaultConfigKey>,
     schema_name: SchemaName,
     db_conn: DbConnection,
@@ -172,10 +175,12 @@ async fn get_default_config(
     Ok(Json(res))
 }
 
+#[allow(clippy::too_many_arguments)]
+#[authorized]
 #[routes]
 #[put("/{key}")]
 #[patch("/{key}")]
-async fn update_default_config(
+async fn update_handler(
     state: Data<AppState>,
     key: Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
@@ -351,8 +356,9 @@ fn fetch_default_key(
     Ok(res)
 }
 
+#[authorized]
 #[get("")]
-async fn list_default_configs(
+async fn list_handler(
     db_conn: DbConnection,
     pagination: Query<PaginationParams>,
     filters: Query<DefaultConfigFilters>,
@@ -420,8 +426,9 @@ pub fn get_key_usage_context_ids(
     Ok(context_ids)
 }
 
+#[authorized]
 #[delete("/{key}")]
-async fn delete(
+async fn delete_handler(
     state: Data<AppState>,
     path: Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,

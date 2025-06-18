@@ -7,7 +7,7 @@ use superposition_types::{
     ExtendedMap,
 };
 
-use crate::utils::{construct_request_headers, get_host, request};
+use crate::utils::{construct_request_headers, request, use_host_server};
 
 pub async fn create_type(
     type_name: String,
@@ -24,7 +24,7 @@ pub async fn create_type(
         change_reason: ChangeReason::try_from(change_reason)?,
     };
 
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/types");
 
     let response = request(
@@ -54,7 +54,7 @@ pub async fn update_type(
     tenant: String,
     org_id: String,
 ) -> Result<TypeTemplate, String> {
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/types/{type_name}");
 
     let response = request(
@@ -72,7 +72,7 @@ pub async fn delete_type(
     tenant: String,
     org_id: String,
 ) -> Result<Value, String> {
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/types/{type_name}");
 
     let payload: Option<()> = None;

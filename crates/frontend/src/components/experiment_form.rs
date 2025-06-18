@@ -389,7 +389,7 @@ fn change_log_summary(
     let experiment = create_local_resource(
         move || (experiment_id.clone(), workspace.get().0, org.get().0),
         |(experiment_id, workspace, org)| async move {
-            fetch_experiment(experiment_id, workspace, org).await
+            fetch_experiment(experiment_id, &workspace, &org).await
         },
     );
 

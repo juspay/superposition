@@ -223,7 +223,7 @@ pub async fn get_context_override(
     context_id: String,
 ) -> superposition::Result<ContextResp> {
     let http_client = state.http_client.clone();
-    let url = state.cac_host.clone() + "/context/" + &context_id;
+    let url = state.cac_host.clone() + "/context/" + context_id.as_ref();
     let user_str = serde_json::to_string(user).map_err(|err| {
         log::error!("Something went wrong, failed to stringify user data {err}");
         unexpected_error!(

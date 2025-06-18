@@ -426,33 +426,23 @@ pub fn context_override() -> impl IntoView {
                 dimension_params_rws.get(),
             )
         },
-        |(
-            current_tenant,
-            org_id,
-            pagination_params,
-            context_filters,
-            dimension_params,
-        )| async move {
+        |(workspace, org_id, pagination_params, context_filters, dimension_params)| async move {
             let empty_list_filters = PaginationParams::all_entries();
             let default_config_filters = DefaultConfigFilters::default();
             let (contexts_result, dimensions_result, default_config_result) = join!(
                 fetch_context(
-                    current_tenant.to_string(),
-                    org_id.clone(),
+                    &workspace,
+                    &org_id,
                     &pagination_params,
                     &context_filters,
                     &dimension_params
                 ),
-                dimensions::fetch(
-                    &empty_list_filters,
-                    current_tenant.to_string(),
-                    org_id.clone()
-                ),
+                dimensions::fetch(&empty_list_filters, &workspace, &org_id),
                 fetch_default_config(
                     &empty_list_filters,
                     &default_config_filters,
-                    current_tenant.to_string(),
-                    org_id.clone()
+                    &workspace,
+                    &org_id
                 ),
             );
             PageResource {

@@ -15,6 +15,11 @@ use superposition_types::{
 use crate::components::dropdown::utils::DropdownOption;
 
 #[derive(Clone, Debug)]
+pub struct SsrSharedHttpRequestHeaders {
+    pub cookie: Option<String>,
+}
+
+#[derive(Clone, Debug)]
 pub struct AppRoute {
     pub key: String,
     pub path: String,

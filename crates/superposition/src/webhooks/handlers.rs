@@ -6,10 +6,9 @@ use actix_web::{
 };
 use chrono::Utc;
 use context_aware_config::helpers::{get_workspace, validate_change_reason};
-use diesel::{
-    delete, ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl,
-};
+use diesel::{ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::{DbConnection, SchemaName, WorkspaceContext};
+use superposition_derives::authorized;
 use superposition_types::{
     api::webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
     custom_query::PaginationParams,
@@ -21,16 +20,17 @@ use superposition_types::{
 };
 pub fn endpoints() -> Scope {
     Scope::new("")
-        .service(create)
-        .service(list_webhooks)
-        .service(get)
-        .service(update)
-        .service(delete_webhook)
-        .service(get_webhook_by_event)
+        .service(create_handler)
+        .service(list_handler)
+        .service(get_handler)
+        .service(update_handler)
+        .service(delete_handler)
+        .service(get_by_event_handler)
 }
 
+#[authorized]
 #[post("")]
-async fn create(
+async fn create_handler(
     request: Json<CreateWebhookRequest>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -72,8 +72,9 @@ async fn create(
     Ok(Json(webhook_data))
 }
 
+#[authorized]
 #[patch("/{webhook_name}")]
-async fn update(
+async fn update_handler(
     params: web::Path<WebhookName>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -106,8 +107,9 @@ async fn update(
     Ok(Json(update))
 }
 
+#[authorized]
 #[get("/{webhook_name}")]
-async fn get(
+async fn get_handler(
     params: web::Path<WebhookName>,
     schema_name: SchemaName,
     db_conn: DbConnection,
@@ -117,8 +119,9 @@ async fn get(
     Ok(Json(webhook_row))
 }
 
+#[authorized]
 #[get("")]
-async fn list_webhooks(
+async fn list_handler(
     db_conn: DbConnection,
     schema_name: SchemaName,
     pagination: Query<PaginationParams>,
@@ -155,8 +158,9 @@ async fn list_webhooks(
     }))
 }
 
+#[authorized]
 #[delete("/{webhook_name}")]
-async fn delete_webhook(
+async fn delete_handler(
     params: web::Path<WebhookName>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -173,14 +177,15 @@ async fn delete_webhook(
         ))
         .schema_name(&schema_name)
         .execute(&mut conn)?;
-    delete(webhooks.filter(webhooks::name.eq(&w_name)))
+    diesel::delete(webhooks.filter(webhooks::name.eq(&w_name)))
         .schema_name(&schema_name)
         .execute(&mut conn)?;
     Ok(HttpResponse::NoContent().finish())
 }
 
+#[authorized]
 #[get("/event/{event}")]
-async fn get_webhook_by_event(
+async fn get_by_event_handler(
     params: web::Path<WebhookEvent>,
     schema_name: SchemaName,
     db_conn: DbConnection,

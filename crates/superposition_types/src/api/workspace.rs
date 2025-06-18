@@ -1,10 +1,11 @@
-use crate::database::models::{Metrics, NonEmptyString, Workspace, WorkspaceStatus};
-#[cfg(feature = "diesel_derives")]
-use crate::database::superposition_schema::superposition::workspaces;
 use chrono::{DateTime, Utc};
 #[cfg(feature = "diesel_derives")]
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
+
+use crate::database::models::{Metrics, NonEmptyString, Workspace, WorkspaceStatus};
+#[cfg(feature = "diesel_derives")]
+use crate::database::superposition_schema::superposition::workspaces;
 
 use super::{deserialize_option_i64, I64Update};
 

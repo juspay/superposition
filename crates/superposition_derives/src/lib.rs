@@ -1,8 +1,8 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use quote::quote;
-use syn::{parse_macro_input, Data, DeriveInput, Fields, Type};
+use quote::{format_ident, quote};
+use syn::{parse_macro_input, Data, DeriveInput, Fields, ItemFn, LitStr, Type};
 
 /// Implements `FromSql` trait for converting `Json` type to the type for `Pg` backend
 ///
@@ -335,4 +335,70 @@ pub fn derive_query_param(input: TokenStream) -> TokenStream {
     };
 
     TokenStream::from(expanded)
+}
+
+/// For an action `act` on a resource, on a function `act_handler`, this macro generates a struct
+/// `AuthZActionAct` that implements the `Action` trait from `service_utils::middlewares::auth_z`.
+/// It injects an additional parameter `_auth_z: AuthZ<AuthZActionAct>` into the function signature.
+/// `AuthZ` struct implements `FromRequest` trait to handle authorization checks.
+///
+/// The struct is used to represent the action and is generated based on the action name and function name.
+/// The handler function name must end with `_handler` to derive the struct name correctly and should not have
+/// the resource part in its name, the name should represent the action only.
+#[proc_macro_attribute]
+pub fn authorized(attr: TokenStream, item: TokenStream) -> TokenStream {
+    // Parse the function
+    let mut input_fn = parse_macro_input!(item as ItemFn);
+    let fn_name = input_fn.sig.ident.to_string();
+
+    // Use provided action name or derive from function name
+    let action_name = if attr.is_empty() {
+        // Ensure the function name ends with '_handler'
+        let Some(name) = fn_name.strip_suffix("_handler") else {
+            return syn::Error::new_spanned(
+                input_fn.sig.ident,
+                "Function name must end with '_handler' to derive action name automatically",
+            )
+            .to_compile_error()
+            .into();
+        };
+        name.to_string()
+    } else {
+        let lit = parse_macro_input!(attr as LitStr);
+        lit.value()
+    };
+
+    // Generate mangled struct name: AuthZActionAct
+    let struct_name = format_ident!("AuthZAction{}", pascal_case(&action_name));
+
+    // Inject parameter: _auth_z: AuthZ<AuthZActionAct>
+    input_fn.sig.inputs.insert(
+        0,
+        syn::parse_quote!(_auth_z: service_utils::middlewares::auth_z::AuthZ<#struct_name>),
+    );
+
+    quote! {
+        struct #struct_name;
+
+        impl service_utils::middlewares::auth_z::Action for #struct_name {
+            fn get() -> String {
+                #action_name.to_string()
+            }
+        }
+
+        #input_fn
+    }
+    .into()
+}
+
+fn pascal_case(s: &str) -> String {
+    s.split(&['-', '_'])
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                None => String::new(),
+            }
+        })
+        .collect()
 }

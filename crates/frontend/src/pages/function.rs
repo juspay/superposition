@@ -107,7 +107,8 @@ pub fn function_page() -> impl IntoView {
     let function_resource = create_blocking_resource(
         move || (function_name.get(), workspace.get().0, org.get().0),
         |(function_name, workspace, org_id)| async move {
-            let function_result = fetch_function(function_name, workspace, org_id).await;
+            let function_result =
+                fetch_function(function_name, &workspace, &org_id).await;
 
             function_result.ok()
         },

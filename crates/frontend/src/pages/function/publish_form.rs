@@ -32,8 +32,8 @@ pub fn publish_form(
             let result = publish_function(
                 function_name.get_value(),
                 change_reason_rws.get_untracked(),
-                workspace,
-                org,
+                &workspace,
+                &org,
             )
             .await;
 

@@ -9,7 +9,9 @@ use superposition_types::{
     },
 };
 
-use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
+use crate::utils::{
+    construct_request_headers, parse_json_response, request, use_host_server,
+};
 
 #[allow(clippy::too_many_arguments)]
 pub async fn create_function(
@@ -31,7 +33,7 @@ pub async fn create_function(
         function_type,
     };
 
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/function");
     let response = request(
         url,
@@ -61,7 +63,7 @@ pub async fn update_function(
         change_reason: ChangeReason::try_from(change_reason)?,
     };
 
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/function/{function_name}");
 
     let response = request(
@@ -81,7 +83,7 @@ pub async fn test_function(
     tenant: String,
     org_id: String,
 ) -> Result<FunctionExecutionResponse, String> {
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/function/{function_name}/{stage}/test");
 
     let response = request(

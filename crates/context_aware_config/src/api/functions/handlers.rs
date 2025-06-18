@@ -4,8 +4,9 @@ use actix_web::{
     HttpResponse, Result, Scope,
 };
 use chrono::Utc;
-use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use service_utils::service::types::{DbConnection, SchemaName};
+use superposition_derives::authorized;
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
     api::functions::{
@@ -30,17 +31,18 @@ use super::helpers::fetch_function;
 
 pub fn endpoints() -> Scope {
     Scope::new("")
-        .service(create)
-        .service(update)
-        .service(get)
-        .service(list_functions)
-        .service(delete_function)
-        .service(test)
-        .service(publish)
+        .service(create_handler)
+        .service(update_handler)
+        .service(get_handler)
+        .service(list_handler)
+        .service(delete_handler)
+        .service(test_handler)
+        .service(publish_handler)
 }
 
+#[authorized]
 #[post("")]
-async fn create(
+async fn create_handler(
     request: Json<CreateFunctionRequest>,
     db_conn: DbConnection,
     user: User,
@@ -117,8 +119,9 @@ async fn create(
     }
 }
 
+#[authorized]
 #[patch("/{function_name}")]
-async fn update(
+async fn update_handler(
     params: Path<FunctionName>,
     request: Json<UpdateFunctionRequest>,
     db_conn: DbConnection,
@@ -160,8 +163,9 @@ async fn update(
     Ok(Json(updated_function))
 }
 
+#[authorized]
 #[get("/{function_name}")]
-async fn get(
+async fn get_handler(
     params: Path<FunctionName>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -173,8 +177,9 @@ async fn get(
     Ok(Json(function))
 }
 
+#[authorized]
 #[get("")]
-async fn list_functions(
+async fn list_handler(
     db_conn: DbConnection,
     pagination: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ListFunctionFilters>,
@@ -208,8 +213,9 @@ async fn list_functions(
     }))
 }
 
+#[authorized]
 #[delete("/{function_name}")]
-async fn delete_function(
+async fn delete_handler(
     params: Path<FunctionName>,
     db_conn: DbConnection,
     user: User,
@@ -239,7 +245,7 @@ async fn delete_function(
         .schema_name(&schema_name)
         .execute(&mut conn)?;
     let deleted_row =
-        delete(functions::functions.filter(functions::function_name.eq(&f_name)))
+        diesel::delete(functions::functions.filter(functions::function_name.eq(&f_name)))
             .schema_name(&schema_name)
             .execute(&mut conn)?;
     match deleted_row {
@@ -251,8 +257,9 @@ async fn delete_function(
     }
 }
 
+#[authorized]
 #[post("/{function_name}/{stage}/test")]
-async fn test(
+async fn test_handler(
     params: Path<TestParam>,
     request: Json<FunctionExecutionRequest>,
     db_conn: DbConnection,
@@ -291,8 +298,9 @@ async fn test(
     Ok(Json(result))
 }
 
+#[authorized]
 #[patch("/{function_name}/publish")]
-async fn publish(
+async fn publish_handler(
     params: Path<FunctionName>,
     request: Json<FunctionStateChangeRequest>,
     db_conn: DbConnection,

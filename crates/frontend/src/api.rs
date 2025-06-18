@@ -1,7 +1,4 @@
-use crate::utils::{
-    construct_request_headers, get_host, parse_json_response, request, use_host_server,
-};
-use leptos::ServerFnError;
+use reqwest::header::HeaderMap;
 use serde_json::{Map, Value};
 use superposition_types::{
     api::{
@@ -35,33 +32,34 @@ use superposition_types::{
     Config, PaginatedResponse,
 };
 
+use crate::utils::{
+    construct_request_headers, parse_json_response, request, use_host_server,
+};
+
 // #[server(GetDefaultConfig, "/fxn", "GetJson")]
 pub async fn fetch_default_config(
     pagination: &PaginationParams,
     filters: &DefaultConfigFilters,
-    tenant: String,
-    org_id: String,
-) -> Result<PaginatedResponse<DefaultConfig>, ServerFnError> {
-    let client = reqwest::Client::new();
+    tenant: &str,
+    org_id: &str,
+) -> Result<PaginatedResponse<DefaultConfig>, String> {
     let host = use_host_server();
-
     let url = format!(
         "{}/default-config?{}&{}",
         host,
         pagination.to_query_param(),
         filters.to_query_param()
     );
-    let response: PaginatedResponse<DefaultConfig> = client
-        .get(url)
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .json()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-    Ok(response)
+
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<()>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
 }
 
 pub mod snapshots {
@@ -73,48 +71,40 @@ pub mod snapshots {
 
     pub async fn fetch_all(
         filters: &PaginationParams,
-        tenant: String,
-        org_id: String,
-    ) -> Result<PaginatedResponse<ConfigVersionListItem>, ServerFnError> {
-        let client = reqwest::Client::new();
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<ConfigVersionListItem>, String> {
         let host = use_host_server();
-
         let url = format!("{host}/config/versions?{}", filters.to_query_param());
-        let response = client
-            .get(url)
-            .header("x-tenant", tenant)
-            .header("x-org-id", org_id)
-            .send()
-            .await
-            .map_err(|e| ServerFnError::new(e.to_string()))?
-            .json()
-            .await
-            .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-        Ok(response)
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
     }
 
     pub async fn fetch(
         id: &str,
-        tenant: String,
-        org_id: String,
-    ) -> Result<ConfigVersion, ServerFnError> {
-        let client = reqwest::Client::new();
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<ConfigVersion, String> {
         let host = use_host_server();
-
         let url = format!("{host}/config/version/{id}");
-        let response = client
-            .get(url)
-            .header("x-tenant", tenant)
-            .header("x-org-id", org_id)
-            .send()
-            .await
-            .map_err(|e| ServerFnError::new(e.to_string()))?
-            .json()
-            .await
-            .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-        Ok(response)
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
     }
 }
 
@@ -129,25 +119,21 @@ pub mod dimensions {
 
     pub async fn fetch(
         filters: &PaginationParams,
-        tenant: String,
-        org_id: String,
-    ) -> Result<PaginatedResponse<DimensionResponse>, ServerFnError> {
-        let client = reqwest::Client::new();
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<DimensionResponse>, String> {
         let host = use_host_server();
-
         let url = format!("{}/dimension?{}", host, filters.to_query_param());
-        let response: PaginatedResponse<DimensionResponse> = client
-            .get(url)
-            .header("x-tenant", &tenant)
-            .header("x-org-id", org_id)
-            .send()
-            .await
-            .map_err(|e| ServerFnError::new(e.to_string()))?
-            .json()
-            .await
-            .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-        Ok(response)
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
     }
 
     pub async fn get(
@@ -161,7 +147,7 @@ pub mod dimensions {
         let response = request(
             url,
             reqwest::Method::GET,
-            None::<serde_json::Value>,
+            None::<()>,
             construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
         )
         .await?;
@@ -193,7 +179,7 @@ pub mod dimensions {
             dimension_type,
         };
 
-        let host = get_host();
+        let host = use_host_server();
         let url = format!("{host}/dimension");
 
         let response = request(
@@ -213,7 +199,7 @@ pub mod dimensions {
         payload: UpdateRequest,
         org_id: String,
     ) -> Result<DimensionResponse, String> {
-        let host = get_host();
+        let host = use_host_server();
         let url = format!("{host}/dimension/{dimension_name}");
 
         let response = request(
@@ -232,13 +218,13 @@ pub mod dimensions {
         tenant: String,
         org_id: String,
     ) -> Result<(), String> {
-        let host = get_host();
+        let host = use_host_server();
         let url = format!("{host}/dimension/{name}");
 
         request(
             url,
             reqwest::Method::DELETE,
-            None::<serde_json::Value>,
+            None::<()>,
             construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
         )
         .await?;
@@ -251,29 +237,19 @@ pub async fn delete_context(
     context_id: String,
     tenant: &str,
     org_id: &str,
-) -> Result<(), ServerFnError> {
-    let client = reqwest::Client::new();
+) -> Result<(), String> {
     let host = use_host_server();
-
-    // Use the first element of the context_id array in the URL
     let url = format!("{}/context/{}", host, context_id);
 
-    let response = client
-        .delete(&url) // Make sure to pass the URL by reference here
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    request(
+        url,
+        reqwest::Method::DELETE,
+        None::<()>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
 
-    if response.status().is_success() {
-        Ok(())
-    } else {
-        Err(ServerFnError::new(format!(
-            "Failed to delete context with status: {}",
-            response.status()
-        )))
-    }
+    Ok(())
 }
 
 pub async fn fetch_experiments(
@@ -282,10 +258,8 @@ pub async fn fetch_experiments(
     dimension_params: &DimensionQuery<QueryMap>,
     tenant: &str,
     org_id: &str,
-) -> Result<PaginatedResponse<ExperimentResponse>, ServerFnError> {
-    let client = reqwest::Client::new();
+) -> Result<PaginatedResponse<ExperimentResponse>, String> {
     let host = use_host_server();
-
     let url = format!(
         "{}/experiments?{}&{}&{}",
         host,
@@ -293,27 +267,24 @@ pub async fn fetch_experiments(
         pagination.to_query_param(),
         dimension_params.to_query_param()
     );
-    let response: PaginatedResponse<ExperimentResponse> = client
-        .get(url)
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .json()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    Ok(response)
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<()>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
 }
 
 pub async fn fetch_functions(
     pagination: &PaginationParams,
     filters: &ListFunctionFilters,
-    tenant: String,
-    org_id: String,
-) -> Result<PaginatedResponse<Function>, ServerFnError> {
-    let client = reqwest::Client::new();
+    tenant: &str,
+    org_id: &str,
+) -> Result<PaginatedResponse<Function>, String> {
     let host = use_host_server();
     let url = format!(
         "{}/function?{}&{}",
@@ -321,41 +292,35 @@ pub async fn fetch_functions(
         filters.to_query_param(),
         pagination.to_query_param()
     );
-    let response: PaginatedResponse<Function> = client
-        .get(url)
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .json()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    Ok(response)
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<()>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
 }
 
 pub async fn fetch_function(
     function_name: String,
-    tenant: String,
-    org_id: String,
-) -> Result<Function, ServerFnError> {
-    let client = reqwest::Client::new();
+    tenant: &str,
+    org_id: &str,
+) -> Result<Function, String> {
     let host = use_host_server();
-
     let url = format!("{}/function/{}", host, function_name);
-    let response: Function = client
-        .get(url)
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .json()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    Ok(response)
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<()>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
 }
 
 // #[server(GetConfig, "/fxn", "GetJson")]
@@ -364,8 +329,7 @@ pub async fn fetch_config(
     config_params: &ConfigQuery,
     tenant: &str,
     org_id: &str,
-) -> Result<Config, ServerFnError> {
-    let client = reqwest::Client::new();
+) -> Result<Config, String> {
     let host = use_host_server();
     let url = format!(
         "{host}/config?{}&{}",
@@ -373,32 +337,24 @@ pub async fn fetch_config(
         config_params.to_query_param()
     );
 
-    match client
-        .get(url)
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-    {
-        Ok(response) => {
-            let config: Config = response
-                .json()
-                .await
-                .map_err(|e| ServerFnError::new(e.to_string()))?;
-            Ok(config)
-        }
-        Err(e) => Err(ServerFnError::new(e.to_string())),
-    }
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<()>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
 }
 
 pub async fn fetch_context(
-    tenant: String,
-    org_id: String,
+    tenant: &str,
+    org_id: &str,
     pagination: &PaginationParams,
     context_filters: &ContextListFilters,
     dimension_params: &DimensionQuery<QueryMap>,
-) -> Result<PaginatedResponse<Context>, ServerFnError> {
-    let client = reqwest::Client::new();
+) -> Result<PaginatedResponse<Context>, String> {
     let host = use_host_server();
     let url = format!(
         "{host}/context?{}&{}&{}",
@@ -407,50 +363,35 @@ pub async fn fetch_context(
         dimension_params.to_query_param()
     );
 
-    match client
-        .get(url)
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-    {
-        Ok(response) => {
-            let config = response
-                .json()
-                .await
-                .map_err(|e| ServerFnError::new(e.to_string()))?;
-            Ok(config)
-        }
-        Err(e) => Err(ServerFnError::new(e.to_string())),
-    }
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<()>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
 }
 
 // #[server(GetExperiment, "/fxn", "GetJson")]
 pub async fn fetch_experiment(
     exp_id: String,
-    tenant: String,
-    org_id: String,
-) -> Result<ExperimentResponse, ServerFnError> {
-    let client = reqwest::Client::new();
+    tenant: &str,
+    org_id: &str,
+) -> Result<ExperimentResponse, String> {
     let host = use_host_server();
     let url = format!("{}/experiments/{}", host, exp_id);
 
-    match client
-        .get(url)
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-    {
-        Ok(experiment) => {
-            let experiment = experiment
-                .json()
-                .await
-                .map_err(|err| ServerFnError::new(err.to_string()))?;
-            Ok(experiment)
-        }
-        Err(e) => Err(ServerFnError::new(e.to_string())),
-    }
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<()>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
 }
 
 pub async fn delete_default_config(
@@ -458,13 +399,13 @@ pub async fn delete_default_config(
     tenant: String,
     org_id: String,
 ) -> Result<(), String> {
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/default-config/{key}");
 
     request(
         url,
         reqwest::Method::DELETE,
-        None::<serde_json::Value>,
+        None::<()>,
         construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;
@@ -472,43 +413,33 @@ pub async fn delete_default_config(
     Ok(())
 }
 
-pub async fn fetch_organisations() -> Result<Vec<String>, ServerFnError> {
-    let client = reqwest::Client::new();
+pub async fn fetch_organisations() -> Result<Vec<String>, String> {
     let host = use_host_server();
     let url = format!("{host}/organisations");
 
-    match client.get(url).send().await {
-        Ok(organisations) => {
-            let organisations = organisations
-                .json()
-                .await
-                .map_err(|err| ServerFnError::new(err.to_string()))?;
-            Ok(organisations)
-        }
-        Err(e) => Err(ServerFnError::new(e.to_string())),
-    }
+    let response =
+        request(url, reqwest::Method::GET, None::<()>, HeaderMap::new()).await?;
+
+    parse_json_response(response).await
 }
 
 pub async fn fetch_types(
     filters: &PaginationParams,
-    tenant: String,
-    org_id: String,
-) -> Result<PaginatedResponse<TypeTemplate>, ServerFnError> {
+    tenant: &str,
+    org_id: &str,
+) -> Result<PaginatedResponse<TypeTemplate>, String> {
     let host = use_host_server();
     let url = format!("{host}/types?{}", filters.to_query_param());
-    let err_handler = |e: String| ServerFnError::new(e.to_string());
+
     let response = request::<()>(
         url,
         reqwest::Method::GET,
         None,
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])
-            .map_err(err_handler)?,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
     )
-    .await
-    .map_err(err_handler)?;
-    parse_json_response::<PaginatedResponse<TypeTemplate>>(response)
-        .await
-        .map_err(err_handler)
+    .await?;
+
+    parse_json_response(response).await
 }
 
 pub mod workspaces {
@@ -517,7 +448,7 @@ pub mod workspaces {
     pub async fn fetch_all(
         filters: &PaginationParams,
         org_id: &str,
-    ) -> Result<PaginatedResponse<WorkspaceResponse>, ServerFnError> {
+    ) -> Result<PaginatedResponse<WorkspaceResponse>, String> {
         let host = use_host_server();
         let url = format!("{}/workspaces?{}", host, filters.to_query_param());
 
@@ -525,18 +456,11 @@ pub mod workspaces {
             url,
             reqwest::Method::GET,
             None,
-            construct_request_headers(&[("x-org-id", org_id)])
-                .map_err(|e| ServerFnError::new(e.to_string()))?,
+            construct_request_headers(&[("x-org-id", org_id)])?,
         )
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+        .await?;
 
-        let response: PaginatedResponse<WorkspaceResponse> =
-            parse_json_response(response)
-                .await
-                .map_err(|e| ServerFnError::new(e.to_string()))?;
-
-        Ok(response)
+        parse_json_response(response).await
     }
 
     pub async fn create(
@@ -630,7 +554,7 @@ pub async fn create_webhook(
         events,
         change_reason: ChangeReason::try_from(change_reason)?,
     };
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/webhook");
 
     let response = request(
@@ -650,7 +574,7 @@ pub async fn update_webhook(
     tenant: String,
     org_id: String,
 ) -> Result<Webhook, String> {
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/webhook/{webhook_name}");
 
     let response = request(
@@ -666,25 +590,21 @@ pub async fn update_webhook(
 
 pub async fn fetch_webhooks(
     filters: &PaginationParams,
-    tenant: String,
-    org_id: String,
-) -> Result<PaginatedResponse<Webhook>, ServerFnError> {
-    let client = reqwest::Client::new();
+    tenant: &str,
+    org_id: &str,
+) -> Result<PaginatedResponse<Webhook>, String> {
     let host = use_host_server();
-
     let url = format!("{}/webhook?{}", host, filters.to_query_param());
-    let response: PaginatedResponse<Webhook> = client
-        .get(url)
-        .header("x-tenant", &tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .json()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    Ok(response)
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<()>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
 }
 
 pub async fn delete_webhooks(
@@ -692,13 +612,13 @@ pub async fn delete_webhooks(
     tenant: String,
     org_id: String,
 ) -> Result<(), String> {
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/webhook/{name}");
 
     request(
         url,
         reqwest::Method::DELETE,
-        None::<serde_json::Value>,
+        None::<()>,
         construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
     .await?;
@@ -712,7 +632,6 @@ pub async fn resolve_config(
     tenant: &str,
     org_id: &str,
 ) -> Result<Map<String, Value>, String> {
-    let client = reqwest::Client::new();
     let host = use_host_server();
     let url = format!(
         "{host}/config/resolve?{}&{}",
@@ -720,16 +639,15 @@ pub async fn resolve_config(
         resolve_params.to_query_param()
     );
 
-    match client
-        .get(url)
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-    {
-        Ok(response) => parse_json_response(response).await,
-        Err(e) => Err(e.to_string()),
-    }
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<()>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
 }
 
 pub async fn pause_experiment(
@@ -742,7 +660,7 @@ pub async fn pause_experiment(
         change_reason: ChangeReason::try_from(change_reason)?,
     };
 
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/experiments/{exp_id}/pause");
 
     let response = request(
@@ -766,7 +684,7 @@ pub async fn resume_experiment(
         change_reason: ChangeReason::try_from(change_reason)?,
     };
 
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/experiments/{exp_id}/resume");
 
     let response = request(
@@ -790,7 +708,7 @@ pub async fn discard_experiment(
         change_reason: ChangeReason::try_from(change_reason)?,
     };
 
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/experiments/{exp_id}/discard");
 
     let response = request(
@@ -815,7 +733,7 @@ pub async fn get_context(
     let response = request(
         url,
         reqwest::Method::GET,
-        None::<serde_json::Value>,
+        None::<()>,
         construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
     )
     .await?;
@@ -843,10 +761,10 @@ pub async fn get_context_from_condition(
 }
 
 pub async fn execute_value_compute_function(
-    name: &str,
-    value: &str,
-    r#type: &KeyType,
-    environment: &FunctionEnvironment,
+    name: String,
+    value: String,
+    r#type: KeyType,
+    environment: FunctionEnvironment,
     fn_name: &str,
     tenant: &str,
     org_id: &str,
@@ -854,15 +772,15 @@ pub async fn execute_value_compute_function(
     let host = use_host_server();
     let url = format!("{}/function/{}/{}/test", host, fn_name, Stage::Published);
     let payload = FunctionExecutionRequest::ValueComputeFunctionRequest {
-        name: name.to_owned(),
-        prefix: value.to_owned(),
-        r#type: r#type.clone(),
-        environment: environment.clone(),
+        name,
+        prefix: value,
+        r#type,
+        environment,
     };
     let resp = request(
-        url.clone(),
+        url,
         reqwest::Method::POST,
-        Some(payload.clone()),
+        Some(payload),
         construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
     )
     .await?;
@@ -895,7 +813,7 @@ pub async fn get_default_config(
     let response = request(
         url,
         reqwest::Method::GET,
-        None::<serde_json::Value>,
+        None::<()>,
         construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
     )
     .await?;
@@ -914,7 +832,7 @@ pub async fn get_type_template(
     let response = request(
         url,
         reqwest::Method::GET,
-        None::<serde_json::Value>,
+        None::<()>,
         construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
     )
     .await?;
@@ -933,7 +851,7 @@ pub async fn get_webhook(
     let response = request(
         url,
         reqwest::Method::GET,
-        None::<serde_json::Value>,
+        None::<()>,
         construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
     )
     .await?;
@@ -953,7 +871,7 @@ pub mod variables {
         tenant: &str,
         org_id: &str,
     ) -> Result<PaginatedResponse<Variable>, String> {
-        let host = get_host();
+        let host = use_host_server();
         let url = format!(
             "{host}/variables?{}&{}",
             filters.to_query_param(),
@@ -986,7 +904,7 @@ pub mod variables {
             change_reason: ChangeReason::try_from(change_reason)?,
         };
 
-        let host = get_host();
+        let host = use_host_server();
         let url = format!("{host}/variables");
 
         let response = request(
@@ -1005,7 +923,7 @@ pub mod variables {
         tenant: &str,
         org_id: &str,
     ) -> Result<Variable, String> {
-        let host = get_host();
+        let host = use_host_server();
         let url = format!("{host}/variables/{}", variable_name);
 
         let response = request(
@@ -1025,7 +943,7 @@ pub mod variables {
         tenant: &str,
         org_id: &str,
     ) -> Result<Variable, String> {
-        let host = get_host();
+        let host = use_host_server();
         let url = format!("{host}/variables/{variable_name}");
 
         let response = request(
@@ -1044,7 +962,7 @@ pub mod variables {
         tenant: &str,
         org_id: &str,
     ) -> Result<(), String> {
-        let host = get_host();
+        let host = use_host_server();
         let url = format!("{host}/variables/{variable_name}");
 
         request(
@@ -1073,7 +991,7 @@ pub mod experiment_groups {
         pagination: &PaginationParams,
         tenant: &str,
         org_id: &str,
-    ) -> Result<PaginatedResponse<ExperimentGroup>, ServerFnError> {
+    ) -> Result<PaginatedResponse<ExperimentGroup>, String> {
         let host = use_host_server();
 
         let url = format!(
@@ -1086,37 +1004,27 @@ pub mod experiment_groups {
             url,
             reqwest::Method::GET,
             None,
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])
-                .map_err(|e| ServerFnError::new(e.to_string()))?,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
         )
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-        let response: PaginatedResponse<ExperimentGroup> = parse_json_response(response)
-            .await
-            .map_err(|e| ServerFnError::new(e.to_string()))?;
+        .await?;
 
-        Ok(response)
+        parse_json_response(response).await
     }
 
     pub async fn fetch(
         group_id: &str,
         tenant: &str,
         org_id: &str,
-    ) -> Result<ExperimentGroup, ServerFnError> {
+    ) -> Result<ExperimentGroup, String> {
         let host = use_host_server();
         let url = format!("{}/experiment-groups/{}", host, group_id);
 
         let headers =
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])
-                .map_err(ServerFnError::new)?;
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?;
 
-        let response = request(url, reqwest::Method::GET, None::<()>, headers)
-            .await
-            .map_err(ServerFnError::new)?;
+        let response = request(url, reqwest::Method::GET, None::<()>, headers).await?;
 
-        parse_json_response(response)
-            .await
-            .map_err(ServerFnError::new)
+        parse_json_response(response).await
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -1196,7 +1104,7 @@ pub mod experiment_groups {
         let response = request(
             url,
             reqwest::Method::DELETE,
-            None::<Value>,
+            None::<()>,
             construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
         )
         .await?;
@@ -1269,7 +1177,7 @@ pub mod audit_log {
         let response = request(
             url,
             reqwest::Method::GET,
-            None::<Value>,
+            None::<()>,
             construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
         )
         .await?;

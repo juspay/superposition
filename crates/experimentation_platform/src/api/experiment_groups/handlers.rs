@@ -13,6 +13,7 @@ use service_utils::{
     helpers::{generate_snowflake_id, get_from_env_or_default},
     service::types::{AppState, DbConnection, SchemaName, WorkspaceContext},
 };
+use superposition_derives::authorized;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     api::experiment_groups::{
@@ -53,18 +54,19 @@ use crate::api::{
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
-        .service(create_experiment_group)
-        .service(update_experiment_group)
-        .service(list_experiment_groups)
-        .service(get_experiment_group)
-        .service(delete_experiment_group)
-        .service(add_members_to_group)
-        .service(remove_members_to_group)
-        .service(backfill_experiment_groups)
+        .service(create_handler)
+        .service(update_handler)
+        .service(list_handler)
+        .service(get_handler)
+        .service(delete_handler)
+        .service(add_members_handler)
+        .service(remove_members_handler)
+        .service(backfill_handler)
 }
 
+#[authorized]
 #[post("")]
-async fn create_experiment_group(
+async fn create_handler(
     state: Data<AppState>,
     req: Json<ExpGroupCreateRequest>,
     db_conn: DbConnection,
@@ -142,12 +144,12 @@ async fn create_experiment_group(
     Ok(Json(new_experiment_group))
 }
 
+#[authorized]
 #[patch("/{exp_group_id}")]
-async fn update_experiment_group(
+async fn update_handler(
     exp_group_id: web::Path<i64>,
     req: Json<ExpGroupUpdateRequest>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
     user: User,
     workspace_request: WorkspaceContext,
     state: Data<AppState>,
@@ -155,7 +157,8 @@ async fn update_experiment_group(
     let DbConnection(mut conn) = db_conn;
     let id = exp_group_id.into_inner();
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
-    let experiment_group = fetch_experiment_group(&id, &mut conn, &schema_name)?;
+    let experiment_group =
+        fetch_experiment_group(&id, &mut conn, &workspace_request.schema_name)?;
     if experiment_group.group_type == GroupType::SystemGenerated {
         return Err(bad_argument!(
             "Cannot update system generated experiment group with id {}",
@@ -180,17 +183,17 @@ async fn update_experiment_group(
             experiment_groups::last_modified_at.eq(chrono::Utc::now()),
         ))
         .returning(ExperimentGroup::as_returning())
-        .schema_name(&schema_name)
+        .schema_name(&workspace_request.schema_name)
         .get_result(&mut conn)?;
     Ok(Json(updated_group))
 }
 
+#[authorized]
 #[patch("/{exp_group_id}/add-members")]
-async fn add_members_to_group(
+async fn add_members_handler(
     exp_group_id: web::Path<i64>,
     req: Json<ExpGroupMemberRequest>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
     user: User,
     workspace_request: WorkspaceContext,
     state: Data<AppState>,
@@ -211,7 +214,7 @@ async fn add_members_to_group(
         &req.member_experiment_ids,
         &[],
         &mut conn,
-        &schema_name,
+        &workspace_request.schema_name,
     )?;
 
     let experiment_group =
@@ -219,7 +222,7 @@ async fn add_members_to_group(
             validate_and_add_experiment_group_id(
                 &member_experiments,
                 &id,
-                &schema_name,
+                &workspace_request.schema_name,
                 transaction_conn,
                 &user,
             )?;
@@ -228,20 +231,20 @@ async fn add_members_to_group(
                 &member_experiments,
                 req,
                 transaction_conn,
-                &schema_name,
+                &workspace_request.schema_name,
                 &user,
             )
         })?;
     Ok(experiment_group)
 }
 
+#[authorized]
 #[patch("/{exp_group_id}/remove-members")]
-async fn remove_members_to_group(
+async fn remove_members_handler(
     exp_group_id: web::Path<i64>,
     req: Json<ExpGroupMemberRequest>,
     state: Data<AppState>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
     user: User,
     workspace_request: WorkspaceContext,
 ) -> superposition::Result<Json<ExperimentGroup>> {
@@ -264,18 +267,25 @@ async fn remove_members_to_group(
             validate_and_remove_experiment_group_id(
                 &req.member_experiment_ids,
                 &id,
-                &schema_name,
+                &workspace_request.schema_name,
                 &state,
                 transaction_conn,
                 &user,
             )?;
-            remove_members(&id, req, transaction_conn, &schema_name, &user)
+            remove_members(
+                &id,
+                req,
+                transaction_conn,
+                &workspace_request.schema_name,
+                &user,
+            )
         })?;
     Ok(experiment_group)
 }
 
+#[authorized]
 #[get("")]
-async fn list_experiment_groups(
+async fn list_handler(
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExpGroupFilters>,
     db_conn: DbConnection,
@@ -336,8 +346,9 @@ async fn list_experiment_groups(
     }))
 }
 
+#[authorized]
 #[get("/{exp_group_id}")]
-async fn get_experiment_group(
+async fn get_handler(
     exp_group_id: web::Path<i64>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -351,8 +362,9 @@ async fn get_experiment_group(
     Ok(Json(result))
 }
 
+#[authorized]
 #[delete("/{exp_group_id}")]
-async fn delete_experiment_group(
+async fn delete_handler(
     exp_group_id: web::Path<i64>,
     mut db_conn: DbConnection,
     schema_name: SchemaName,
@@ -384,8 +396,9 @@ async fn delete_experiment_group(
 }
 
 // Remove this after backfilling experiment groups
+#[authorized]
 #[post("/backfill")]
-async fn backfill_experiment_groups(
+async fn backfill_handler(
     state: Data<AppState>,
     db_conn: DbConnection,
     schema_name: SchemaName,

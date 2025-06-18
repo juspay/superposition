@@ -81,8 +81,8 @@ pub fn default_config_list() -> impl IntoView {
                 filters_rws.get(),
             )
         },
-        |(current_tenant, pagination_params, org_id, filters)| async move {
-            fetch_default_config(&pagination_params, &filters, current_tenant, org_id)
+        |(workspace, pagination_params, org_id, filters)| async move {
+            fetch_default_config(&pagination_params, &filters, &workspace, &org_id)
                 .await
                 .unwrap_or_default()
         },

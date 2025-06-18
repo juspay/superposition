@@ -18,6 +18,7 @@ use service_utils::{
     helpers::parse_config_tags,
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
 };
+use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     api::{
@@ -57,20 +58,21 @@ use crate::{
 
 pub fn endpoints() -> Scope {
     Scope::new("")
-        .service(put_handler)
-        .service(update_override_handler)
+        .service(create_handler)
+        .service(update_handler)
         .service(move_handler)
-        .service(delete_context_handler)
-        .service(bulk_operations)
-        .service(list_contexts)
-        .service(get_context_from_condition)
-        .service(get_context)
-        .service(weight_recompute)
-        .service(validate_context)
+        .service(delete_handler)
+        .service(bulk_operations_handler)
+        .service(list_handler)
+        .service(get_from_condition_handler)
+        .service(get_handler)
+        .service(weight_recompute_handler)
+        .service(validate_handler)
 }
 
+#[authorized]
 #[put("")]
-async fn put_handler(
+async fn create_handler(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Json<PutRequest>,
@@ -133,10 +135,11 @@ async fn put_handler(
     Ok(http_resp.json(put_response))
 }
 
+#[authorized]
 #[routes]
 #[put("/overrides")]
 #[patch("/overrides")]
-async fn update_override_handler(
+async fn update_handler(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Json<UpdateRequest>,
@@ -187,6 +190,7 @@ async fn update_override_handler(
     Ok(http_resp.json(override_resp))
 }
 
+#[authorized]
 #[allow(clippy::too_many_arguments)]
 #[put("/move/{ctx_id}")]
 async fn move_handler(
@@ -252,8 +256,9 @@ async fn move_handler(
     Ok(http_resp.json(move_response))
 }
 
+#[authorized]
 #[post("/get")]
-async fn get_context_from_condition(
+async fn get_from_condition_handler(
     db_conn: DbConnection,
     req: Json<Map<String, Value>>,
     schema_name: SchemaName,
@@ -271,8 +276,9 @@ async fn get_context_from_condition(
     Ok(Json(ctx))
 }
 
+#[authorized]
 #[get("/{ctx_id}")]
-async fn get_context(
+async fn get_handler(
     path: Path<String>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -290,10 +296,11 @@ async fn get_context(
     Ok(Json(ctx))
 }
 
+#[authorized]
 #[routes]
 #[get("/list")]
 #[get("")]
-async fn list_contexts(
+async fn list_handler(
     filter_params: superposition_query::Query<ContextListFilters>,
     pagination_params: superposition_query::Query<PaginationParams>,
     dimension_params: DimensionQuery<QueryMap>,
@@ -413,8 +420,9 @@ async fn list_contexts(
     Ok(Json(paginated_response))
 }
 
+#[authorized]
 #[delete("/{ctx_id}")]
-async fn delete_context_handler(
+async fn delete_handler(
     state: Data<AppState>,
     path: Path<String>,
     custom_headers: CustomHeaders,
@@ -461,8 +469,9 @@ async fn delete_context_handler(
         .finish())
 }
 
+#[authorized]
 #[put("/bulk-operations")]
-async fn bulk_operations(
+async fn bulk_operations_handler(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Either<Json<Vec<ContextAction>>, Json<BulkOperation>>,
@@ -662,8 +671,9 @@ async fn bulk_operations(
     Ok(http_resp)
 }
 
+#[authorized]
 #[put("/weight/recompute")]
-async fn weight_recompute(
+async fn weight_recompute_handler(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
@@ -749,8 +759,9 @@ async fn weight_recompute(
     Ok(http_resp.json(ListResponse::new(response)))
 }
 
+#[authorized]
 #[post("/validate")]
-async fn validate_context(
+async fn validate_handler(
     db_conn: DbConnection,
     schema_name: SchemaName,
     request: Json<ContextValidationRequest>,

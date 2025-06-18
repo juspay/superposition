@@ -8,7 +8,7 @@ use superposition_types::{
 use crate::components::table::types::{
     default_column_formatter, Column, ColumnSortable, Expandable,
 };
-use crate::utils::get_host;
+use crate::utils::{construct_request_headers, request, use_host_server};
 
 pub fn function_table_columns() -> Vec<Column> {
     vec![
@@ -38,23 +38,24 @@ pub fn function_table_columns() -> Vec<Column> {
 pub async fn publish_function(
     function_name: String,
     change_reason: String,
-    tenant: String,
-    org_id: String,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<String, String> {
     let payload = FunctionStateChangeRequest {
         change_reason: ChangeReason::try_from(change_reason)?,
     };
-    let client = reqwest::Client::new();
-    let host = get_host();
+
+    let host = use_host_server();
     let url = format!("{host}/function/{function_name}/publish");
-    let response = client
-        .patch(url)
-        .json(&payload)
-        .header("x-tenant", tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
+
+    let response = request(
+        url,
+        reqwest::Method::PATCH,
+        Some(payload),
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
     let status = response.status();
     let resp_data = response
         .text()

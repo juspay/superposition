@@ -18,6 +18,7 @@ pub mod experiment_groups;
 #[cfg(feature = "experimentation")]
 pub mod experiments;
 pub mod functions;
+pub mod organisation;
 pub mod type_templates;
 pub mod variables;
 pub mod webhook;

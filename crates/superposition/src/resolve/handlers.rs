@@ -11,6 +11,7 @@ use context_aware_config::api::config::helpers::{
 use experimentation_platform::api::experiments::handlers::get_applicable_variants_helper;
 use serde_json::{Map, Value};
 use service_utils::service::types::{DbConnection, WorkspaceContext};
+use superposition_derives::authorized;
 use superposition_types::{
     api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
     custom_query::{self as superposition_query, CustomQuery, DimensionQuery, QueryMap},
@@ -20,14 +21,15 @@ use superposition_types::{
 use super::types::IdentifierQuery;
 
 pub fn endpoints() -> Scope {
-    Scope::new("").service(evaluate)
+    Scope::new("").service(resolve_with_exp_handler)
 }
 
+#[allow(clippy::too_many_arguments)]
+#[authorized]
 #[routes]
 #[get("")]
 #[post("")]
-#[allow(clippy::too_many_arguments)]
-async fn evaluate(
+async fn resolve_with_exp_handler(
     req: HttpRequest,
     body: Option<Json<ContextPayload>>,
     merge_strategy: Header<MergeStrategy>,

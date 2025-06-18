@@ -49,9 +49,7 @@ impl<S> AuthNMiddleware<S> {
             .map(|a| a.replace(&path_prefix, ""))
             .unwrap_or_else(|| request.uri().path().replace(&path_prefix, ""));
 
-        let excep = exception.contains(&request_pattern)
-                        // Implies it's a local/un-forwarded request.
-                        || !request.headers().contains_key(header::USER_AGENT);
+        let excep = exception.contains(&request_pattern);
         let org_request = request.path().matches("/organisations").count() > 0;
 
         match (excep, org_request) {

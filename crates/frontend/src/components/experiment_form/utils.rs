@@ -16,7 +16,9 @@ use superposition_types::{
 
 use crate::logic::Conditions;
 use crate::types::VariantFormT;
-use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
+use crate::utils::{
+    construct_request_headers, parse_json_response, request, use_host_server,
+};
 
 pub fn validate_experiment(experiment: &ExperimentCreateRequest) -> Result<(), String> {
     if experiment.name.is_empty() {
@@ -52,7 +54,7 @@ pub async fn create_experiment(
 
     validate_experiment(&payload)?;
 
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/experiments");
     let response = request(
         url,
@@ -91,7 +93,7 @@ pub async fn update_experiment(
     tenant: String,
     org_id: String,
 ) -> Result<ExperimentResponse, String> {
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{}/experiments/{}/overrides", host, experiment_id);
 
     let response = request(
