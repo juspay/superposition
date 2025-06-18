@@ -1,6 +1,5 @@
 #![deny(unused_crate_dependencies)]
 mod app_state;
-mod auth;
 mod organisation;
 mod webhooks;
 mod workspace;
@@ -14,7 +13,6 @@ use actix_web::{
     web::{self, get, scope, Data, PathConfig},
     App, HttpResponse, HttpServer,
 };
-use auth::AuthHandler;
 use context_aware_config::api::*;
 use experimentation_platform::api::*;
 use frontend::app::*;
@@ -22,8 +20,10 @@ use frontend::types::Envs as UIEnvs;
 use leptos::*;
 use leptos_actix::{generate_route_list, LeptosRoutes};
 use service_utils::{
-    aws::kms, helpers::get_from_env_unsafe,
-    middlewares::tenant::OrgWorkspaceMiddlewareFactory, service::types::AppEnv,
+    aws::kms,
+    helpers::get_from_env_unsafe,
+    middlewares::{auth_n::AuthNHandler, tenant::OrgWorkspaceMiddlewareFactory},
+    service::types::AppEnv,
 };
 
 #[actix_web::get("favicon.ico")]
@@ -98,7 +98,7 @@ async fn main() -> Result<()> {
         app_state::get(app_env, &kms_client, service_prefix_str.to_owned(), &base).await,
     );
 
-    let auth = AuthHandler::init(&kms_client, &app_env, base.clone()).await;
+    let auth_n = AuthNHandler::init(&kms_client, &app_env, base.clone()).await;
 
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
@@ -129,8 +129,8 @@ async fn main() -> Result<()> {
                         "/health",
                         get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
                     )
-                    .service(auth.routes())
-                    .service(auth.org_routes())
+                    .service(auth_n.routes())
+                    .service(auth_n.org_routes())
                     /***************************** V1 Routes *****************************/
                     .service(
                         scope("/context")
@@ -201,7 +201,7 @@ async fn main() -> Result<()> {
                 get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
             )
             .app_data(Data::new(leptos_options.to_owned()))
-            .wrap(auth.clone())
+            .wrap(auth_n.clone())
     })
     .bind(("0.0.0.0", cac_port))?
     .workers(5)

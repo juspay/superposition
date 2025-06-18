@@ -24,16 +24,16 @@ idgenerator = "2.0.0"
 leptos = { workspace = true }
 leptos_actix = { version = "0.6.11" }
 log = { workspace = true }
-openidconnect = "3.5.0"
 regex = { workspace = true }
 reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 service_utils = { path = "../service_utils" }
 superposition_macros = { path = "../superposition_macros" }
-superposition_types = { path = "../superposition_types", features = ["api", "diesel_derives"]}
-url = { workspace = true }
+superposition_types = { path = "../superposition_types", features = [
+    "api",
+    "diesel_derives",
+] }
 
 [features]
 high-performance-mode = [

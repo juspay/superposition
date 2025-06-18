@@ -17,7 +17,6 @@ use openidconnect::{
     AuthenticationFlow, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce, RedirectUrl,
     ResourceOwnerPassword, ResourceOwnerUsername, Scope, TokenResponse, TokenUrl,
 };
-use service_utils::{extensions::ServiceRequestExt, helpers::get_from_env_unsafe};
 use superposition_types::User;
 use types::{
     GlobalUserClaims, GlobalUserTokenResponse, LoginParams, OrgUserClaims,
@@ -25,9 +24,12 @@ use types::{
 };
 use utils::{presence_no_check, try_user_from, verify_presence};
 
-use crate::auth::authenticator::SwitchOrgParams;
+use crate::{extensions::ServiceRequestExt, helpers::get_from_env_unsafe};
 
-use super::authenticator::{Authenticator, Login};
+use super::{
+    authentication::{Authenticator, Login},
+    SwitchOrgParams,
+};
 
 #[derive(Clone)]
 pub struct OIDCAuthenticator {

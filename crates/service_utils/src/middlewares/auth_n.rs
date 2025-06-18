@@ -1,4 +1,4 @@
-mod authenticator;
+mod authentication;
 mod no_auth;
 mod oidc;
 
@@ -16,30 +16,32 @@ use actix_web::{
     web::{self, Data, Path},
     Error, HttpMessage, HttpRequest, HttpResponse, Scope,
 };
-use authenticator::{Authenticator, Login, SwitchOrgParams};
+use authentication::{Authenticator, Login, SwitchOrgParams};
 use aws_sdk_kms::Client;
 use futures_util::future::LocalBoxFuture;
 use no_auth::DisabledAuthenticator;
-use service_utils::{
+use oidc::OIDCAuthenticator;
+use superposition_types::User;
+use url::Url;
+
+use crate::{
     db::utils::get_oidc_client_secret,
     helpers::get_from_env_unsafe,
     service::types::{AppEnv, AppState},
 };
-use superposition_types::User;
-use url::Url;
 
-pub struct AuthMiddleware<S> {
+pub struct AuthNMiddleware<S> {
     service: S,
-    auth_handler: AuthHandler,
+    auth_n_handler: AuthNHandler,
 }
 
-impl<S> AuthMiddleware<S> {
+impl<S> AuthNMiddleware<S> {
     fn get_login_type(
         &self,
         request: &ServiceRequest,
         exception: &HashSet<String>,
     ) -> Login {
-        let path_prefix = self.auth_handler.0.get_path_prefix();
+        let path_prefix = self.auth_n_handler.0.get_path_prefix();
         let request_pattern = request
             .match_pattern()
             .map(|a| a.replace(&path_prefix, ""))
@@ -58,7 +60,7 @@ impl<S> AuthMiddleware<S> {
     }
 }
 
-impl<S, B> Service<ServiceRequest> for AuthMiddleware<S>
+impl<S, B> Service<ServiceRequest> for AuthNMiddleware<S>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
@@ -99,7 +101,7 @@ where
                 let login_type = self
                     .get_login_type(&request, &state.tenant_middleware_exclusion_list);
 
-                self.auth_handler.0.authenticate(&request, &login_type)
+                self.auth_n_handler.0.authenticate(&request, &login_type)
             });
 
         match result {
@@ -119,9 +121,9 @@ where
 }
 
 #[derive(Clone)]
-pub struct AuthHandler(Arc<dyn Authenticator>);
+pub struct AuthNHandler(Arc<dyn Authenticator>);
 
-impl AuthHandler {
+impl AuthNHandler {
     pub fn routes(&self) -> Scope {
         self.0.routes()
     }
@@ -155,15 +157,9 @@ impl AuthHandler {
                 let cid = get_from_env_unsafe("OIDC_CLIENT_ID").unwrap();
                 let csecret = get_oidc_client_secret(kms_client, app_env).await;
                 Arc::new(
-                    oidc::OIDCAuthenticator::new(
-                        url,
-                        base_url,
-                        path_prefix,
-                        cid,
-                        csecret,
-                    )
-                    .await
-                    .unwrap(),
+                    OIDCAuthenticator::new(url, base_url, path_prefix, cid, csecret)
+                        .await
+                        .unwrap(),
                 )
             }
             _ => panic!("Missing/Unknown authenticator."),
@@ -172,7 +168,7 @@ impl AuthHandler {
     }
 }
 
-pub fn routes(auth: AuthHandler) -> Scope {
+pub fn routes(auth: AuthNHandler) -> Scope {
     web::scope("organisations")
         .app_data(Data::new(auth))
         .service(get_organisations)
@@ -180,34 +176,34 @@ pub fn routes(auth: AuthHandler) -> Scope {
 }
 
 #[get("")]
-async fn get_organisations(data: Data<AuthHandler>, req: HttpRequest) -> HttpResponse {
+async fn get_organisations(data: Data<AuthNHandler>, req: HttpRequest) -> HttpResponse {
     data.0.get_organisations(&req)
 }
 
 #[get("/switch/{organisation_id}")]
 async fn switch_organisation(
-    data: Data<AuthHandler>,
+    data: Data<AuthNHandler>,
     req: HttpRequest,
     path: Path<SwitchOrgParams>,
 ) -> actix_web::Result<HttpResponse> {
     data.0.switch_organisation(&req, &path).await
 }
 
-impl<S, B> Transform<S, ServiceRequest> for AuthHandler
+impl<S, B> Transform<S, ServiceRequest> for AuthNHandler
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
 {
     type Response = ServiceResponse<EitherBody<B>>;
     type Error = Error;
-    type Transform = AuthMiddleware<S>;
+    type Transform = AuthNMiddleware<S>;
     type InitError = ();
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ready(Ok(AuthMiddleware {
+        ready(Ok(AuthNMiddleware {
             service,
-            auth_handler: self.clone(),
+            auth_n_handler: self.clone(),
         }))
     }
 }
