@@ -1,6 +1,6 @@
 // This crate provides efficient , cached resolution of configurations based on context conditions and overrides
 // , with FFI bindings fir use in non-Rust applications
-uniffi::setup_scaffolding!("superposition_client");
+uniffi::setup_scaffolding!("superposition_core");
 
 pub mod config;
 pub mod experiment;

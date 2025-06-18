@@ -1,0 +1,2 @@
+[build]
+rustflags = ["--cfg", "aws_sdk_unstable"]

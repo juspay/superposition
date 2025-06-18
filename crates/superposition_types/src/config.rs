@@ -42,7 +42,16 @@ macro_rules! impl_try_from_map {
     };
 }
 
-#[derive(Deserialize, Serialize, Clone, Deref, DerefMut, Debug, PartialEq, Into)]
+#[derive(
+    Deserialize,
+    Serialize,
+    Clone,
+    Deref,
+    DerefMut,
+    Debug,
+    PartialEq,
+    Into,
+)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
@@ -66,7 +75,7 @@ uniffi::custom_type!(Overrides, HashMap<String, String>, {
 });
 
 impl Overrides {
-    fn validate_data(override_map: Map<String, Value>) -> Result<Self, String> {
+    pub fn validate_data(override_map: Map<String, Value>) -> Result<Self, String> {
         if override_map.is_empty() {
             log::error!("Override validation error: Override is empty");
             return Err("Override should not be empty".to_owned());
@@ -111,7 +120,7 @@ uniffi::custom_type!(Condition, HashMap<String, String>, {
 });
 
 impl Condition {
-    fn validate_data_for_cac(condition_map: Map<String, Value>) -> Result<Self, String> {
+    pub fn validate_data_for_cac(condition_map: Map<String, Value>) -> Result<Self, String> {
         if condition_map.is_empty() {
             log::error!("Condition validation error: Context is empty");
             return Err("Context should not be empty".to_owned());

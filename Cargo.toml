@@ -19,6 +19,11 @@ members = [
     "crates/core"
 ]
 
+exclude = [
+    "clients/rust",
+    "clients/generated/smithy/rust"
+]
+
 [[workspace.metadata.leptos]]
 name = "cac"
 bin-package = "juspay_superposition"

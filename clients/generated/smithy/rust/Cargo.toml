@@ -9,19 +9,20 @@ edition = "2021"
 [package.metadata.smithy]
 codegen-version = "18e06e0a61e4ce792a2b17271d25a1f524d90ed4"
 [dependencies.aws-smithy-async]
-path = "smithy/repository/rust/software/amazon/rustruntime/aws-smithy-async"
+version = "^1.2.4"
 [dependencies.aws-smithy-http]
-path = "smithy/repository/rust/software/amazon/rustruntime/aws-smithy-http"
+version = "0.62.1"
 [dependencies.aws-smithy-json]
-path = "smithy/repository/rust/software/amazon/rustruntime/aws-smithy-json"
+version = "0.61.4"
 [dependencies.aws-smithy-runtime]
-path = "smithy/repository/rust/software/amazon/rustruntime/aws-smithy-runtime"
+version = "1.8.3"
 features = ["client", "http-auth"]
 [dependencies.aws-smithy-runtime-api]
-path = "smithy/repository/rust/software/amazon/rustruntime/aws-smithy-runtime-api"
+version = "1.8.1"
 features = ["client", "http-02x", "http-auth"]
 [dependencies.aws-smithy-types]
-path = "smithy/repository/rust/software/amazon/rustruntime/aws-smithy-types"
+version = "1.3.2"
+features = ["serde-deserialize", "serde-serialize"]
 [dependencies.bytes]
 version = "1.4.0"
 [dependencies.fastrand]
