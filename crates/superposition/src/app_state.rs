@@ -27,7 +27,7 @@ pub async fn get(
     app_env: AppEnv,
     kms_client: &Option<aws_sdk_kms::Client>,
     service_prefix: String,
-    base: &String,
+    base: &str,
 ) -> AppState {
     let cac_host =
         get_from_env_unsafe::<String>("CAC_HOST").expect("CAC host is not set") + base;

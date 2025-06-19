@@ -6,6 +6,7 @@ use diesel::{
 };
 use jsonschema::JSONSchema;
 use service_utils::service::types::{DbConnection, SchemaName};
+use superposition_derives::auth_action;
 use superposition_macros::{bad_argument, db_error};
 use superposition_types::{
     custom_query::PaginationParams,
@@ -28,6 +29,7 @@ pub fn endpoints() -> Scope {
         .service(delete_type)
 }
 
+#[auth_action("create")]
 #[post("")]
 async fn create_type(
     request: Json<TypeTemplateCreateRequest>,
@@ -67,6 +69,7 @@ async fn create_type(
     Ok(HttpResponse::Ok().json(type_template))
 }
 
+#[auth_action("update")]
 #[put("/{type_name}")]
 async fn update_type(
     request: Json<TypeTemplateUpdateRequest>,
@@ -134,6 +137,7 @@ async fn update_type(
     Ok(HttpResponse::Ok().json(updated_type))
 }
 
+#[auth_action("delete")]
 #[delete("/{type_name}")]
 async fn delete_type(
     path: Path<TypeTemplateName>,
@@ -159,6 +163,7 @@ async fn delete_type(
     Ok(HttpResponse::Ok().json(deleted_type))
 }
 
+#[auth_action("read")]
 #[get("")]
 async fn list_types(
     db_conn: DbConnection,

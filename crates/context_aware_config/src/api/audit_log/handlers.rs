@@ -6,6 +6,7 @@ use actix_web::{
 use chrono::{Duration, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::{DbConnection, SchemaName};
+use superposition_derives::auth_action;
 use superposition_types::{
     database::{models::cac::EventLog, schema::event_log::dsl as event_log},
     result as superposition, PaginatedResponse,
@@ -17,6 +18,7 @@ pub fn endpoints() -> Scope {
     Scope::new("").service(get_audit_logs)
 }
 
+#[auth_action("read")]
 #[get("")]
 async fn get_audit_logs(
     filters: Query<AuditQueryFilters>,
