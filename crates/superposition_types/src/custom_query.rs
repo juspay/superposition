@@ -180,6 +180,12 @@ impl IsEmpty for QueryMap {
     }
 }
 
+impl From<Map<String, Value>> for QueryMap {
+    fn from(value: Map<String, Value>) -> Self {
+        Self(value)
+    }
+}
+
 impl From<HashMap<String, String>> for QueryMap {
     fn from(value: HashMap<String, String>) -> Self {
         let value = value

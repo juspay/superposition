@@ -1,8 +1,7 @@
 use serde::Deserialize;
-
-use crate::custom_query::QueryMap;
+use serde_json::{Map, Value};
 
 #[derive(Deserialize)]
 pub struct ContextPayload {
-    pub context: QueryMap,
+    pub context: Map<String, Value>,
 }

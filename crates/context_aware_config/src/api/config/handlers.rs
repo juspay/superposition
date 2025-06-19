@@ -748,6 +748,7 @@ async fn get_config(
         ))?
         .into_inner()
         .context
+        .into()
     };
     if !context.is_empty() {
         config = config.filter_by_dimensions(&context)
@@ -832,6 +833,7 @@ async fn get_resolved_config(
         ))?
         .into_inner()
         .context
+        .into()
     };
     let response = if show_reason {
         eval_cac_with_reasoning(
