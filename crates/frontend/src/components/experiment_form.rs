@@ -1,26 +1,34 @@
 pub mod types;
 pub mod utils;
 
+use std::{collections::HashSet, ops::Deref};
+
 use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::{
-    api::workspace::WorkspaceResponse,
+    api::{
+        experiments::{ExperimentResponse, OverrideKeysUpdateRequest},
+        workspace::WorkspaceResponse,
+    },
     database::{
         models::{cac::DefaultConfig, experimentation::ExperimentType, Metrics},
         types::DimensionWithMandatory,
     },
 };
-use utils::{create_experiment, update_experiment};
-use web_sys::MouseEvent;
+use utils::{create_experiment, try_update_payload, update_experiment};
 
-use crate::components::change_form::ChangeForm;
-use crate::components::context_form::ContextForm;
+use crate::components::{
+    change_summary::{ChangeLogPopup, ChangeSummary, JsonChangeSummary},
+    context_form::ContextForm,
+    skeleton::{Skeleton, SkeletonVariant},
+};
 use crate::components::{
     metrics_form::MetricsForm,
     variant_form::{DeleteVariantForm, VariantForm},
 };
 use crate::providers::alert_provider::enqueue_alert;
 use crate::types::{VariantFormT, VariantFormTs};
+use crate::{api::fetch_experiment, components::change_form::ChangeForm};
 use crate::{
     components::{alert::AlertType, button::Button},
     types::{OrganisationId, Tenant},
@@ -59,6 +67,11 @@ impl From<ExperimentType> for ExperimentFormType {
     }
 }
 
+enum ResponseType {
+    UpdatePrecheck,
+    Response(ExperimentResponse),
+}
+
 #[component]
 pub fn experiment_form(
     #[prop(optional)] edit_id: Option<String>,
@@ -90,6 +103,7 @@ pub fn experiment_form(
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let metrics_rws = RwSignal::new(metrics);
+    let update_request_rws = RwSignal::new(None);
 
     let handle_context_form_change = move |updated_ctx: Conditions| {
         context_ws.set_untracked(updated_ctx);
@@ -113,51 +127,63 @@ pub fn experiment_form(
         })
     });
 
-    let on_submit = move |event: MouseEvent| {
+    let on_submit = move || {
         req_inprogress_ws.set(true);
-        event.prevent_default();
 
-        let f_experiment_name = experiment_name.get();
-        let f_context = context_rs.get();
+        let f_experiment_name = experiment_name.get_untracked();
+        let f_context = context_rs.get_untracked();
         let f_variants = variants_rs
-            .get()
+            .get_untracked()
             .into_iter()
             .map(|(_, variant)| variant)
             .collect::<Vec<VariantFormT>>();
-        let tenant = tenant_rws.get().0;
-        let org = org_rws.get().0;
+        let tenant = tenant_rws.get_untracked().0;
+        let org = org_rws.get_untracked().0;
 
         spawn_local({
             async move {
-                let result = if let Some(ref experiment_id) = edit_id.get_value() {
-                    update_experiment(
-                        experiment_id,
-                        f_variants,
-                        Some(metrics_rws.get_untracked()),
-                        tenant,
-                        org,
-                        description_rs.get_untracked(),
-                        change_reason_rs.get_untracked(),
-                    )
-                    .await
-                } else {
-                    create_experiment(
-                        f_context,
-                        f_variants,
-                        Some(metrics_rws.get_untracked()),
-                        f_experiment_name,
-                        ExperimentType::from(experiment_form_type.get_value()),
-                        tenant,
-                        description_rs.get_untracked(),
-                        change_reason_rs.get_untracked(),
-                        org,
-                    )
-                    .await
-                };
+                let result =
+                    match (edit_id.get_value(), update_request_rws.get_untracked()) {
+                        (Some(ref experiment_id), Some((_, payload))) => {
+                            update_experiment(experiment_id, payload, tenant, org)
+                                .await
+                                .map(ResponseType::Response)
+                        }
+                        (Some(experiment_id), None) => {
+                            let request_payload = try_update_payload(
+                                f_variants,
+                                Some(metrics_rws.get_untracked()),
+                                description_rs.get_untracked(),
+                                change_reason_rs.get_untracked(),
+                            );
+                            match request_payload {
+                                Ok(payload) => {
+                                    update_request_rws
+                                        .set(Some((experiment_id, payload)));
+                                    Ok(ResponseType::UpdatePrecheck)
+                                }
+                                Err(e) => Err(e),
+                            }
+                        }
+                        _ => create_experiment(
+                            f_context,
+                            f_variants,
+                            Some(metrics_rws.get_untracked()),
+                            f_experiment_name,
+                            ExperimentType::from(experiment_form_type.get_value()),
+                            tenant,
+                            description_rs.get_untracked(),
+                            change_reason_rs.get_untracked(),
+                            org,
+                        )
+                        .await
+                        .map(ResponseType::Response),
+                    };
 
                 req_inprogress_ws.set(false);
                 match result {
-                    Ok(res) => {
+                    Ok(ResponseType::UpdatePrecheck) => (),
+                    Ok(ResponseType::Response(res)) => {
                         handle_submit.call(res.id);
                         let success_message = if edit_id.get_value().is_some() {
                             "Experiment updated successfully!"
@@ -202,9 +228,7 @@ pub fn experiment_form(
                 title="Description".to_string()
                 placeholder="Enter a description".to_string()
                 value=description_rs.get_untracked()
-                on_change=Callback::new(move |new_description| {
-                    description_ws.set(new_description)
-                })
+                on_change=move |new_description| description_ws.set(new_description)
             />
             <MetricsForm
                 metrics=metrics_rws.get_untracked()
@@ -214,9 +238,7 @@ pub fn experiment_form(
                 title="Reason for Change".to_string()
                 placeholder="Enter a reason for this change".to_string()
                 value=change_reason_rs.get_untracked()
-                on_change=Callback::new(move |new_change_reason| {
-                    change_reason_ws.set(new_change_reason)
-                })
+                on_change=move |new_change_reason| change_reason_ws.set(new_change_reason)
             />
 
             <div class="my-4">
@@ -270,20 +292,158 @@ pub fn experiment_form(
                 }
             }}
 
-            <div class="flex justify-start mt-8">
-                {move || {
-                    let loading = req_inprogess_rs.get();
-                    view! {
-                        <Button
-                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                            text="Submit".to_string()
-                            on_click=on_submit
-                            loading
-                        />
-                    }
-                }}
-
-            </div>
+            {move || {
+                let loading = req_inprogess_rs.get();
+                view! {
+                    <Button
+                        class="w-48 h-12 mt-8 px-[70px]".to_string()
+                        text="Submit".to_string()
+                        on_click=move |ev| {
+                            ev.prevent_default();
+                            on_submit();
+                        }
+                        loading
+                    />
+                }
+            }}
         </div>
+        {move || match update_request_rws.get() {
+            None => ().into_view(),
+            Some((experiment_id, update_request)) => {
+                view! {
+                    <ChangeLogSummary
+                        experiment_id
+                        update_request
+                        on_confirm=move |_| on_submit()
+                        on_close=move |_| update_request_rws.set(None)
+                    />
+                }
+            }
+        }}
+    }
+}
+
+#[component]
+fn change_log_summary(
+    experiment_id: String,
+    update_request: OverrideKeysUpdateRequest,
+    #[prop(into)] on_confirm: Callback<()>,
+    #[prop(into)] on_close: Callback<()>,
+) -> impl IntoView {
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+
+    let experiment = create_local_resource(
+        move || (experiment_id.clone(), tenant_rws.get().0, org_rws.get().0),
+        |(experiment_id, tenant, org)| async move {
+            fetch_experiment(experiment_id, tenant, org).await
+        },
+    );
+
+    let disabled_rws = RwSignal::new(true);
+    let update_request = StoredValue::new(update_request);
+
+    view! {
+        <ChangeLogPopup
+            title="Confirm Update"
+            description="Are you sure you want to update this context?"
+            confirm_text="Yes, Update"
+            on_confirm
+            on_close
+            disabled=disabled_rws.read_only()
+        >
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
+            }>
+                {
+                    Effect::new(move |_| {
+                        if let Some(Ok(_)) = experiment.get() {
+                            disabled_rws.set(false);
+                        } else if let Some(Err(e)) = experiment.get() {
+                            logging::error!("Error fetching context: {}", e);
+                        }
+                    });
+                }
+                {move || match experiment.get() {
+                    Some(Ok(experiment)) => {
+                        let update_request = update_request.get_value();
+                        let description = update_request
+                            .description
+                            .unwrap_or_else(|| experiment.description.clone())
+                            .to_string();
+                        let variant_ids = experiment
+                            .variants
+                            .iter()
+                            .map(|v| v.id.clone())
+                            .chain(update_request.variants.iter().map(|v| v.id.clone()))
+                            .collect::<HashSet<_>>();
+                        let variant_data = variant_ids
+                            .iter()
+                            .map(|id| {
+                                (
+                                    id.clone(),
+                                    experiment
+                                        .variants
+                                        .iter()
+                                        .find(|v| v.id == *id)
+                                        .map(|v| {
+                                            (*v.overrides.clone().into_inner().clone()).clone()
+                                        })
+                                        .unwrap_or_default(),
+                                    update_request
+                                        .variants
+                                        .iter()
+                                        .find(|v| v.id == *id)
+                                        .map(|v| {
+                                            (*v.overrides.clone().into_inner().clone()).clone()
+                                        })
+                                        .unwrap_or_default(),
+                                )
+                            })
+                            .collect::<Vec<_>>();
+                        view! {
+                            {variant_data
+                                .into_iter()
+                                .map(|(variant_id, old_overrides, new_overrides)| {
+                                    view! {
+                                        <ChangeSummary
+                                            title=format!("Override changes for {variant_id}")
+                                            old_values=old_overrides
+                                            new_values=new_overrides
+                                        />
+                                    }
+                                })
+                                .collect_view()}
+                            <ChangeSummary
+                                title="Other changes"
+                                key_column="Property"
+                                old_values=Map::from_iter(
+                                    vec![
+                                        (
+                                            "Description".to_string(),
+                                            Value::String(experiment.description.deref().to_string()),
+                                        ),
+                                    ],
+                                )
+                                new_values=Map::from_iter(
+                                    vec![("Description".to_string(), Value::String(description))],
+                                )
+                            />
+                            <JsonChangeSummary
+                                title="Metrics changes"
+                                old_values=serde_json::to_value(experiment.metrics).ok()
+                                new_values=serde_json::to_value(update_request.metrics).ok()
+                            />
+                        }
+                            .into_view()
+                    }
+                    Some(Err(e)) => {
+                        logging::error!("Error fetching experiment: {}", e);
+                        view! { <div>Error fetching experiment</div> }.into_view()
+                    }
+                    None => view! { <div>Loading...</div> }.into_view(),
+                }}
+            </Suspense>
+        </ChangeLogPopup>
     }
 }
