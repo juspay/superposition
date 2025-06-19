@@ -19,6 +19,9 @@ import {
     DeleteContextCommand,
     GetContextCommand,
     DeleteDefaultConfigCommand,
+    WorkspaceStatus,
+    UpdateWorkspaceCommand,
+    SuperpositionClient,
 } from "@io.juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { expect, describe, test, beforeAll, afterAll } from "bun:test";
@@ -243,6 +246,118 @@ describe("Experiments API", () => {
                 "Error in afterAll cleanup:",
                 e?.$response || e.message
             );
+        }
+    });
+
+    async function addMandatoryDimension(client: SuperpositionClient) {
+        const input = {
+            org_id: ENV.org_id,
+            workspace_name: ENV.workspace_id,
+            workspace_admin_email: 'updated-admin@example.com',
+            workspace_status: WorkspaceStatus.ENABLED,
+            mandatory_dimensions: ['clientId'],
+        }
+
+        const cmd = new UpdateWorkspaceCommand(input)
+        const response = await client.send(cmd)
+    }
+
+    async function removeMandatoryDimension(client: SuperpositionClient) {
+        const input = {
+            org_id: ENV.org_id,
+            workspace_name: ENV.workspace_id,
+            workspace_admin_email: 'updated-admin@example.com',
+            workspace_status: WorkspaceStatus.ENABLED,
+            mandatory_dimensions: [],
+        }
+
+        const cmd = new UpdateWorkspaceCommand(input)
+        const response = await client.send(cmd)
+    }
+
+    test("0. Create experiment for default config", async () => {
+        try {
+            await removeMandatoryDimension(superpositionClient);
+            const cmd = new CreateExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                name: "experiment-0-for-default-config",
+                context: {},
+                variants: experiment1InitialVariants.map((v, index) => ({
+                    id: index === 0 ? "control" : `test${index}`,
+                    variant_type: v.variant_type,
+                    overrides: v.overrides,
+                    description: defaultDescription,
+                    change_reason: defaultChangeReason,
+                })),
+                description: defaultDescription,
+                change_reason: defaultChangeReason,
+            });
+
+            const out: ExperimentResponse = await superpositionClient.send(cmd);
+            expect(out).toBeDefined();
+            expect(out.id).toBeString();
+            expect(out.name).toBe("experiment-0-for-default-config");
+            expect(out.status).toBe(ExperimentStatusType.CREATED);
+            expect(out.traffic_percentage).toBe(0);
+            const allInitialOverrideKeys1 = new Set<string>();
+            experiment1InitialVariants.forEach((v) =>
+                Object.keys(v.overrides).forEach((k) =>
+                    allInitialOverrideKeys1.add(k)
+                )
+            );
+            expect(out.override_keys?.sort()).toEqual(
+                Array.from(allInitialOverrideKeys1).sort()
+            );
+            expect(out.chosen_variant).toBeUndefined();
+            expect(out.context).toEqual({});
+            expect(out.variants).toHaveLength(
+                experiment1InitialVariants.length
+            );
+            expect(out.variants?.[0].variant_type).toBe(VariantType.CONTROL);
+            expect(out.variants?.[1].variant_type).toBe(
+                VariantType.EXPERIMENTAL
+            );
+            expect(out.variants?.[0].overrides).toEqual(
+                experiment1InitialVariants[0].overrides
+            );
+            expect(out.variants?.[1].overrides).toEqual(
+                experiment1InitialVariants[1].overrides
+            );
+            expect(out.variants?.[0].context_id).toBeString();
+            expect(out.variants?.[1].context_id).toBeString();
+
+            experimentId1 = out.id;
+            experiment1Variants = out.variants;
+
+            if (experiment1Variants) {
+                for (const variant of experiment1Variants) {
+                    if (variant.context_id) {
+                        const getContextCmd = new GetContextCommand({
+                            workspace_id: ENV.workspace_id,
+                            org_id: ENV.org_id,
+                            id: variant.context_id,
+                        });
+                        const contextOut = await superpositionClient.send(
+                            getContextCmd
+                        );
+                        expect(contextOut).toBeDefined();
+                        expect(contextOut.override).toEqual(variant.overrides);
+                    } else {
+                        throw new Error(
+                            `Variant ${variant.id} created without a context_id`
+                        );
+                    }
+                }
+            }
+        } catch (e: any) {
+            console.error(
+                "Error in test '0. Create experiment for default config':",
+                e?.$response || e.message
+            );
+            throw e;
+        } finally {
+            await addMandatoryDimension(superpositionClient)
         }
     });
 

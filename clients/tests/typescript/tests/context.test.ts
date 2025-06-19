@@ -461,7 +461,6 @@ describe('Context API Integration Tests', () => {
         })
 
         test('should reject empty context objects', async () => {
-            // Attempt to create an empty context (should fail)
             const emptyInput = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
