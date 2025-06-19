@@ -1355,6 +1355,11 @@ CONCLUDE_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 15,
+        },
+
     }
 )
 
@@ -3769,6 +3774,11 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 8,
+        },
+
     }
 )
 
@@ -3910,6 +3920,11 @@ CREATE_EXPERIMENT_OUTPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 15,
         },
 
     }
@@ -7094,6 +7109,11 @@ DISCARD_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 15,
+        },
+
     }
 )
 
@@ -8160,6 +8180,11 @@ EXPERIMENT_RESPONSE = Schema.collection(
             ],
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 15,
+        },
+
     }
 )
 
@@ -8355,6 +8380,11 @@ GET_EXPERIMENT_OUTPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 15,
         },
 
     }
@@ -8797,6 +8827,11 @@ PAUSE_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 15,
+        },
+
     }
 )
 
@@ -9014,6 +9049,11 @@ RAMP_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 15,
+        },
+
     }
 )
 
@@ -9222,6 +9262,11 @@ RESUME_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 15,
+        },
+
     }
 )
 
@@ -9338,6 +9383,11 @@ UPDATE_OVERRIDES_EXPERIMENT_INPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 6,
         },
 
     }
@@ -9481,6 +9531,11 @@ UPDATE_OVERRIDES_EXPERIMENT_OUTPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "experiment_group_id": {
+            "target": STRING,
+            "index": 15,
         },
 
     }

@@ -79,6 +79,7 @@ export interface DiscardExperimentCommandOutput extends ExperimentResponse, __Me
  * //   chosen_variant: "STRING_VALUE",
  * //   description: "STRING_VALUE", // required
  * //   change_reason: "STRING_VALUE", // required
+ * //   experiment_group_id: "STRING_VALUE",
  * // };
  *
  * ```

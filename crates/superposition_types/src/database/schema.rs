@@ -653,6 +653,7 @@ diesel::table! {
         description -> Text,
         change_reason -> Text,
         metrics -> Json,
+        experiment_group_id -> Nullable<Int8>,
     }
 }
 

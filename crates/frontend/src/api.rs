@@ -20,6 +20,7 @@ use superposition_types::{
     database::{
         models::{
             cac::{ConfigVersion, Context, DefaultConfig, Function, TypeTemplate},
+            experimentation::ExperimentGroup,
             others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
             ChangeReason, Description, NonEmptyString,
         },
@@ -659,4 +660,21 @@ pub async fn execute_autocomplete_function(
         })
         .collect();
     Ok(result)
+}
+
+pub async fn fetch_experiment_groups(
+    tenant: String,
+    org_id: String,
+) -> Result<PaginatedResponse<ExperimentGroup>, String> {
+    let host = use_host_server();
+    let url = format!("{}/experiment-groups", host);
+
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<serde_json::Value>,
+        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+    )
+    .await?;
+    parse_json_response(response).await
 }

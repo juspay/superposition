@@ -79,6 +79,7 @@ export interface ResumeExperimentCommandOutput extends ExperimentResponse, __Met
  * //   chosen_variant: "STRING_VALUE",
  * //   description: "STRING_VALUE", // required
  * //   change_reason: "STRING_VALUE", // required
+ * //   experiment_group_id: "STRING_VALUE",
  * // };
  *
  * ```

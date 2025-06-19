@@ -126,7 +126,7 @@ async fn add_members_to_group(
     let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
     let id = exp_group_id.into_inner();
-    add_members(&id, req, &mut conn, &schema_name, user)
+    add_members(&id, req, &mut conn, &schema_name, &user)
 }
 
 #[patch("/{exp_group_id}/remove-members")]
@@ -140,7 +140,7 @@ async fn remove_members_to_group(
     let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
     let id = exp_group_id.into_inner();
-    remove_members(&id, req, &mut conn, &schema_name, user)
+    remove_members(&id, req, &mut conn, &schema_name, &user)
 }
 
 #[get("")]
