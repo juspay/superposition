@@ -6,6 +6,8 @@ pub mod custom_types;
 pub mod default_config;
 pub mod dimensions;
 pub mod experiment;
+pub mod experiment_group_listing;
+pub mod experiment_groups;
 pub mod experiment_list;
 pub mod function;
 pub mod home;

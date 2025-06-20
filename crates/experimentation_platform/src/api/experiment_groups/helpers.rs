@@ -119,6 +119,11 @@ pub fn add_members(
     schema_name: &SchemaName,
     user: User,
 ) -> superposition::Result<Json<ExperimentGroup>> {
+    if req.member_experiment_ids.is_empty() {
+        return Err(bad_argument!(
+            "Please provide at least one experiment ID to add to the group"
+        ));
+    }
     let exp_context = experiment_groups::experiment_groups
         .filter(experiment_groups::id.eq(exp_group_id))
         .schema_name(schema_name)
