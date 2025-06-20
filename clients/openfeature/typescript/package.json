@@ -1,0 +1,32 @@
+{
+    "name": "@superposition/core-clients-typescript",
+    "description": "Core TypeScript clients for Superposition",
+    "version": "0.0.1",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "module": "./dist/index.esm.js",
+    "scripts": {
+        "build": "tsc && tsc -p tsconfig.esm.json",
+        "dev": "tsc --watch",
+        "clean": "rimraf dist",
+        "prepack": "npm run clean && npm run build"
+    },
+    "dependencies": {
+        "@io.juspay/superposition-sdk": "../../generated/smithy/typescript",
+        "@openfeature/server-sdk": "^1.13.0",
+        "koffi": "^2.11.0",
+        "tslib": "^2.6.2"
+    },
+    "devDependencies": {
+        "@tsconfig/node18": "^18.2.4",
+        "@types/node": "^18.19.69",
+        "rimraf": "^3.0.0",
+        "typescript": "~5.2.2"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "files": [
+        "dist/**/*"
+    ]
+}
