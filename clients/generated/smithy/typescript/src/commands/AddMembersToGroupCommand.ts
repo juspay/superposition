@@ -70,6 +70,13 @@ export interface AddMembersToGroupCommandOutput extends ExperimentGroupResponse,
  * //   created_by: "STRING_VALUE", // required
  * //   last_modified_at: new Date("TIMESTAMP"), // required
  * //   last_modified_by: "STRING_VALUE", // required
+ * //   buckets: [ // Buckets // required
+ * //     { // Bucket
+ * //       experiment_id: "STRING_VALUE",
+ * //       variant: "STRING_VALUE",
+ * //     },
+ * //   ],
+ * //   group_type: "UserCreated" || "SystemGenerated", // required
  * // };
  *
  * ```

@@ -544,7 +544,7 @@ describe("Experiments API", () => {
             expect(out.id).toBe(experimentId1);
             expect(out.traffic_percentage).toBe(rampPercentage);
             expect(out.status).toBe(ExperimentStatusType.INPROGRESS);
-            expect(out.experiment_group_id).toBeUndefined();
+            experimentGroupId = out.experiment_group_id;
 
             const getCmd = new GetExperimentCommand({
                 workspace_id: ENV.workspace_id,
@@ -554,7 +554,7 @@ describe("Experiments API", () => {
             const updatedExp = await superpositionClient.send(getCmd);
             expect(updatedExp.traffic_percentage).toBe(rampPercentage);
             expect(updatedExp.status).toBe(ExperimentStatusType.INPROGRESS);
-            expect(updatedExp.experiment_group_id).toBeUndefined();
+            expect(updatedExp.experiment_group_id).toBe(experimentGroupId);
         } catch (e: any) {
             console.error(
                 "Error in test '3. Ramp Experiment 1':",
@@ -594,7 +594,7 @@ describe("Experiments API", () => {
             expect(out.id).toBe(experimentId1);
             expect(out.status).toBe(ExperimentStatusType.CONCLUDED);
             expect(out.chosen_variant).toBe(winnerVariantId);
-            expect(out.experiment_group_id).toBeUndefined();
+            expect(out.experiment_group_id).toBe(experimentGroupId);
 
             const getCmd = new GetExperimentCommand({
                 workspace_id: ENV.workspace_id,
@@ -604,7 +604,7 @@ describe("Experiments API", () => {
             const updatedExp = await superpositionClient.send(getCmd);
             expect(updatedExp.status).toBe(ExperimentStatusType.CONCLUDED);
             expect(updatedExp.chosen_variant).toBe(winnerVariantId);
-            expect(updatedExp.experiment_group_id).toBeUndefined();
+            expect(updatedExp.experiment_group_id).toBe(experimentGroupId);
         } catch (e: any) {
             console.error(
                 "Error in test '4. Conclude Experiment 1':",
@@ -814,7 +814,7 @@ describe("Experiments API", () => {
             expect(foundExp2).toBe(true);
             
             const exp1 = out.data?.find((exp) => exp.id === experimentId1);
-            expect(exp1?.experiment_group_id).toBeUndefined();
+            expect(exp1?.experiment_group_id).toBe(experimentGroupId);
         } catch (e: any) {
             console.error(
                 "Error in test '7. List Experiments (Basic)':",

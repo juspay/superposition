@@ -457,6 +457,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     expect.arrayContaining([expValid1Id, expValid2Id]),
                 );
                 expect(response.traffic_percentage).toBe(100);
+                expect(response.group_type).toBe("USER_CREATED");
             } catch (error) {
                 console.error("Error creating experiment group:", error);
                 throw error;
@@ -477,6 +478,7 @@ describe("Experiment Groups API Integration Tests", () => {
             expGroupId = response.id!;
             expect(response.name).toBe(groupName);
             expect(response.member_experiment_ids).toEqual([]);
+            expect(response.group_type).toBe("USER_CREATED");
         });
 
         test("should fail to create with an in-progress experiment member", async () => {
@@ -595,6 +597,7 @@ describe("Experiment Groups API Integration Tests", () => {
             expect(response.member_experiment_ids).toEqual(
                 currentGroup.member_experiment_ids || [],
             );
+            expect(response.group_type).toBe("USER_CREATED");
         });
 
         test("should successfully update description", async () => {

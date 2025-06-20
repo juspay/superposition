@@ -1945,12 +1945,14 @@ export const de_AddMembersToGroupCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'buckets': _json,
     'change_reason': __expectString,
     'context': _ => de_Condition(_, context),
     'context_hash': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'group_type': __expectString,
     'id': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -2177,12 +2179,14 @@ export const de_CreateExperimentGroupCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'buckets': _json,
     'change_reason': __expectString,
     'context': _ => de_Condition(_, context),
     'context_hash': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'group_type': __expectString,
     'id': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -2422,12 +2426,14 @@ export const de_DeleteExperimentGroupCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'buckets': _json,
     'change_reason': __expectString,
     'context': _ => de_Condition(_, context),
     'context_hash': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'group_type': __expectString,
     'id': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -2715,12 +2721,14 @@ export const de_GetExperimentGroupCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'buckets': _json,
     'change_reason': __expectString,
     'context': _ => de_Condition(_, context),
     'context_hash': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'group_type': __expectString,
     'id': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -3277,12 +3285,14 @@ export const de_RemoveMembersFromGroupCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'buckets': _json,
     'change_reason': __expectString,
     'context': _ => de_Condition(_, context),
     'context_hash': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'group_type': __expectString,
     'id': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -3432,12 +3442,14 @@ export const de_UpdateExperimentGroupCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'buckets': _json,
     'change_reason': __expectString,
     'context': _ => de_Condition(_, context),
     'context_hash': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
+    'group_type': __expectString,
     'id': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -4191,6 +4203,10 @@ const de_CommandError = async(
     return retVal;
   }
 
+  // de_Bucket omitted.
+
+  // de_Buckets omitted.
+
   // de_BulkOperationOut omitted.
 
   // de_BulkOperationOutList omitted.
@@ -4354,12 +4370,14 @@ const de_CommandError = async(
     context: __SerdeContext
   ): ExperimentGroupResponse => {
     return take(output, {
+      'buckets': _json,
       'change_reason': __expectString,
       'context': (_: any) => de_Condition(_, context),
       'context_hash': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,
       'description': __expectString,
+      'group_type': __expectString,
       'id': __expectString,
       'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'last_modified_by': __expectString,

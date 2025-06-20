@@ -17,6 +17,19 @@ enum ExperimentGroupSortOn {
 @error("client")
 structure ExperimentGroupNotFound {}
 
+enum GroupType {
+    UserCreated
+    SystemGenerated
+}
+
+structure Bucket {
+    experiment_id: String
+    variant: String
+}
+
+list Buckets {
+    member: Bucket
+}
 
 @documentation("Represents a group of experiments that can be managed together.")
 resource ExperimentGroup {
@@ -37,6 +50,8 @@ resource ExperimentGroup {
         created_by: String
         last_modified_at: DateTime
         last_modified_by: String
+        buckets: Buckets,
+        group_type: GroupType,
     }
     operations: [
         ListExperimentGroups,
@@ -87,6 +102,12 @@ structure ExperimentGroupResponse for ExperimentGroup {
 
     @required
     $last_modified_by
+
+    @required
+    $buckets
+
+    @required
+    $group_type
 }
 
 @documentation("Input structure for creating a new experiment group.")

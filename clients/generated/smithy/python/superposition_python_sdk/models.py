@@ -22,6 +22,7 @@ from ._private.schemas import (
     APPLICABLE_VARIANTS_OUTPUT as _SCHEMA_APPLICABLE_VARIANTS_OUTPUT,
     AUDIT_LOG_FULL as _SCHEMA_AUDIT_LOG_FULL,
     AUTOCOMPLETE_FUNCTION_REQUEST as _SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST,
+    BUCKET as _SCHEMA_BUCKET,
     BULK_OPERATION as _SCHEMA_BULK_OPERATION,
     BULK_OPERATION_INPUT as _SCHEMA_BULK_OPERATION_INPUT,
     BULK_OPERATION_OUT as _SCHEMA_BULK_OPERATION_OUT,
@@ -341,6 +342,61 @@ class AddMembersToGroupInput:
         deserializer.read_struct(_SCHEMA_ADD_MEMBERS_TO_GROUP_INPUT, consumer=_consumer)
         return kwargs
 
+@dataclass(kw_only=True)
+class Bucket:
+
+    experiment_id: str | None = None
+    variant: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_BUCKET, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.experiment_id is not None:
+            serializer.write_string(_SCHEMA_BUCKET.members["experiment_id"], self.experiment_id)
+
+        if self.variant is not None:
+            serializer.write_string(_SCHEMA_BUCKET.members["variant"], self.variant)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["experiment_id"] = de.read_string(_SCHEMA_BUCKET.members["experiment_id"])
+
+                case 1:
+                    kwargs["variant"] = de.read_string(_SCHEMA_BUCKET.members["variant"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_BUCKET, consumer=_consumer)
+        return kwargs
+
+def _serialize_buckets(serializer: ShapeSerializer, schema: Schema, value: list[Bucket]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+def _deserialize_buckets(deserializer: ShapeDeserializer, schema: Schema) -> list[Bucket]:
+    result: list[Bucket] = []
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(Bucket.deserialize(d))
+    deserializer.read_list(schema, _read_value)
+    return result
+
 def _serialize_condition(serializer: ShapeSerializer, schema: Schema, value: dict[str, Document]) -> None:
     with serializer.begin_map(schema, len(value)) as m:
         value_schema = schema.members["value"]
@@ -358,6 +414,10 @@ def _deserialize_condition(deserializer: ShapeDeserializer, schema: Schema) -> d
             result[k] = d.read_document(value_schema)
     deserializer.read_map(schema, _read_value)
     return result
+
+class GroupType(StrEnum):
+    USER_CREATED = "UserCreated"
+    SYSTEM_GENERATED = "SystemGenerated"
 
 @dataclass(kw_only=True)
 class AddMembersToGroupOutput:
@@ -390,6 +450,10 @@ class AddMembersToGroupOutput:
 
     last_modified_by: str
 
+    buckets: list[Bucket]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT, self)
 
@@ -406,6 +470,8 @@ class AddMembersToGroupOutput:
         serializer.write_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -452,6 +518,12 @@ class AddMembersToGroupOutput:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -4610,6 +4682,10 @@ class CreateExperimentGroupOutput:
 
     last_modified_by: str
 
+    buckets: list[Bucket]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT, self)
 
@@ -4626,6 +4702,8 @@ class CreateExperimentGroupOutput:
         serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4672,6 +4750,12 @@ class CreateExperimentGroupOutput:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -6298,6 +6382,10 @@ class DeleteExperimentGroupOutput:
 
     last_modified_by: str
 
+    buckets: list[Bucket]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT, self)
 
@@ -6314,6 +6402,8 @@ class DeleteExperimentGroupOutput:
         serializer.write_string(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6360,6 +6450,12 @@ class DeleteExperimentGroupOutput:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -7490,6 +7586,10 @@ class GetExperimentGroupOutput:
 
     last_modified_by: str
 
+    buckets: list[Bucket]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT, self)
 
@@ -7506,6 +7606,8 @@ class GetExperimentGroupOutput:
         serializer.write_string(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7552,6 +7654,12 @@ class GetExperimentGroupOutput:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -7711,6 +7819,10 @@ class ExperimentGroupResponse:
 
     last_modified_by: str
 
+    buckets: list[Bucket]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_EXPERIMENT_GROUP_RESPONSE, self)
 
@@ -7727,6 +7839,8 @@ class ExperimentGroupResponse:
         serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7773,6 +7887,12 @@ class ExperimentGroupResponse:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -7952,6 +8072,10 @@ class RemoveMembersFromGroupOutput:
 
     last_modified_by: str
 
+    buckets: list[Bucket]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT, self)
 
@@ -7968,6 +8092,8 @@ class RemoveMembersFromGroupOutput:
         serializer.write_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8014,6 +8140,12 @@ class RemoveMembersFromGroupOutput:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8137,6 +8269,10 @@ class UpdateExperimentGroupOutput:
 
     last_modified_by: str
 
+    buckets: list[Bucket]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT, self)
 
@@ -8153,6 +8289,8 @@ class UpdateExperimentGroupOutput:
         serializer.write_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8199,6 +8337,12 @@ class UpdateExperimentGroupOutput:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

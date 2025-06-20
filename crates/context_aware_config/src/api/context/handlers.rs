@@ -10,7 +10,7 @@ use crate::{
             operations,
             types::{
                 BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
-                MoveReq, PutReq, WeightRecomputeResponse,
+                ContextValidationRequest, MoveReq, PutReq, WeightRecomputeResponse,
             },
         },
         dimension::{get_dimension_data, get_dimension_data_map},
@@ -38,7 +38,7 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    api::context::{ContextListFilters, ContextValidationRequest, SortOn, UpdateRequest},
+    api::context::{ContextListFilters, SortOn, UpdateRequest},
     custom_query::{
         self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
         QueryMap,

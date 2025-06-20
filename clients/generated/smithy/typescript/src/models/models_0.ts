@@ -4,6 +4,27 @@ import { ExceptionOptionType as __ExceptionOptionType } from "@smithy/smithy-cli
 import { DocumentType as __DocumentType } from "@smithy/types";
 
 /**
+ * @public
+ */
+export interface Bucket {
+  experiment_id?: string | undefined;
+  variant?: string | undefined;
+}
+
+/**
+ * @public
+ * @enum
+ */
+export const GroupType = {
+  SystemGenerated: "SystemGenerated",
+  UserCreated: "UserCreated",
+} as const
+/**
+ * @public
+ */
+export type GroupType = typeof GroupType[keyof typeof GroupType]
+
+/**
  * Standard response structure for an experiment group.
  * @public
  */
@@ -20,6 +41,8 @@ export interface ExperimentGroupResponse {
   created_by: string | undefined;
   last_modified_at: Date | undefined;
   last_modified_by: string | undefined;
+  buckets: (Bucket)[] | undefined;
+  group_type: GroupType | undefined;
 }
 
 /**

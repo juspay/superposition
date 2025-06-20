@@ -14,7 +14,9 @@ use strum::IntoEnumIterator;
 use superposition_types::{
     api::experiments::ExperimentListFilters,
     custom_query::{CommaSeparatedQParams, PaginationParams},
-    database::models::experimentation::{ExperimentStatusType, Variant, VariantType},
+    database::models::experimentation::{
+        ExperimentGroup, ExperimentGroups, ExperimentStatusType, Variant,
+    },
     Overridden, PaginatedResponse,
 };
 pub use superposition_types::{
@@ -24,14 +26,15 @@ use tokio::{
     sync::RwLock,
     time::{self, Duration},
 };
-use types::ExperimentStore;
 pub use types::{Config, Experiments};
+use types::{ExperimentGroupStore, ExperimentStore};
 use utils::MapError;
 
 #[derive(Clone, Debug)]
 pub struct Client {
     pub client_config: Arc<Config>,
     pub(crate) experiments: Arc<RwLock<ExperimentStore>>,
+    pub(crate) experiment_groups: Arc<RwLock<ExperimentGroupStore>>,
     pub(crate) http_client: reqwest::Client,
     last_polled: Arc<RwLock<DateTime<Utc>>>,
 }
@@ -44,6 +47,7 @@ impl Client {
         Self {
             client_config: Arc::new(config),
             experiments: Arc::new(RwLock::new(HashMap::new())),
+            experiment_groups: Arc::new(RwLock::new(HashMap::new())),
             http_client: reqwest::Client::new(),
             last_polled: Arc::new(RwLock::new(
                 Utc.with_ymd_and_hms(2023, 1, 1, 0, 0, 0).unwrap(),
@@ -70,6 +74,14 @@ impl Client {
                 .await
                 .unwrap_or(HashMap::new());
 
+                let experiment_groups = get_experiment_groups(
+                    hostname.clone(),
+                    self.http_client.clone(),
+                    self.client_config.tenant.to_string(),
+                )
+                .await
+                .unwrap_or(HashMap::new());
+
                 let mut exp_store = self.experiments.write().await;
                 for (exp_id, experiment) in experiments.into_iter() {
                     if experiment.status.active() {
@@ -77,6 +89,10 @@ impl Client {
                     } else {
                         exp_store.remove(&exp_id)
                     };
+                }
+                let mut exp_group_store = self.experiment_groups.write().await;
+                for (exp_group_id, exp_group) in experiment_groups.into_iter() {
+                    exp_group_store.insert(exp_group_id, exp_group);
                 }
             } // write lock on exp store releases here
             *start_date = Utc::now();
@@ -89,17 +105,37 @@ impl Client {
         context: &Value,
         toss: i8,
     ) -> Result<Vec<String>, String> {
-        let experiments: Experiments =
-            self.get_satisfied_experiments(context, None).await?;
+        let experiments: ExperimentGroups =
+            self.get_satisfied_experiment_groups(context).await?;
         let mut variants: Vec<String> = Vec::new();
         for exp in experiments {
-            if let Some(v) =
-                self.decide_variant(*exp.traffic_percentage, exp.variants, toss)?
-            {
+            if let Some(v) = self.decide_variant(exp, toss).await? {
                 variants.push(v.id)
             }
         }
         Ok(variants)
+    }
+
+    pub async fn get_satisfied_experiment_groups(
+        &self,
+        context: &Value,
+    ) -> Result<ExperimentGroups, String> {
+        let running_experiment_groups = self
+            .experiment_groups
+            .read()
+            .await
+            .iter()
+            .filter(|(_, exp_group)| {
+                exp_group.context.is_empty()
+                    || jsonlogic::apply(
+                        &Value::Object(exp_group.context.clone().into()),
+                        context,
+                    ) == Ok(Value::Bool(true))
+            })
+            .map(|(_, exp_group)| exp_group.clone())
+            .collect::<ExperimentGroups>();
+
+        Ok(running_experiment_groups)
     }
 
     pub async fn get_satisfied_experiments(
@@ -211,34 +247,39 @@ impl Client {
             .collect()
     }
 
-    // decide which variant to return among all applicable experiments
-    fn decide_variant(
+    // decide which variant to return among all applicable experiment_groups
+    async fn decide_variant(
         &self,
-        traffic: u8,
-        applicable_variants: Variants,
+        experiment_groups: ExperimentGroup,
         toss: i8,
     ) -> Result<Option<Variant>, String> {
         if toss < 0 {
-            for variant in applicable_variants.iter() {
-                if variant.variant_type == VariantType::EXPERIMENTAL {
-                    return Ok(Some(variant.clone()));
-                }
-            }
-        }
-        let variant_count = applicable_variants.len() as u8;
-        let range = (traffic * variant_count) as i32;
-        if (toss as i32) >= range {
             return Ok(None);
         }
-        let buckets = (1..=variant_count)
-            .map(|i| (traffic * i) as i8)
-            .collect::<Vec<i8>>();
-        let index = buckets
-            .into_iter()
-            .position(|x| toss < x)
-            .ok_or_else(|| "Unable to fetch variant's index".to_string())
-            .map_err_to_string()?;
-        Ok(applicable_variants.get(index).cloned())
+        let buckets = experiment_groups.buckets.clone();
+        let bucket = &buckets[toss as usize];
+        match (bucket.experiment_id, bucket.variant.clone()) {
+            (Some(experiment_id), Some(variant_id)) => {
+                let experiments = self.experiments.read().await;
+                let experiment = match experiments.get(&experiment_id.to_string()) {
+                    Some(exp) => exp,
+                    None => return Ok(None),
+                };
+
+                if !experiment.status.active() {
+                    return Ok(None);
+                }
+
+                let variant = experiment
+                    .variants
+                    .iter()
+                    .find(|v| v.id == variant_id)
+                    .cloned();
+
+                Ok(variant)
+            }
+            _ => Ok(None),
+        }
     }
 }
 
@@ -296,6 +337,47 @@ async fn get_experiments(
     }
 
     Ok(curr_exp_store)
+}
+
+async fn get_experiment_groups(
+    hostname: String,
+    http_client: reqwest::Client,
+    tenant: String,
+) -> Result<ExperimentGroupStore, String> {
+    let mut curr_exp_group_store: ExperimentGroupStore = HashMap::new();
+    let mut pagination_params = PaginationParams::default();
+    let mut page = 1;
+
+    loop {
+        pagination_params = PaginationParams {
+            page: Some(page),
+            ..pagination_params
+        };
+        let endpoint = format!("{hostname}/experiment-groups?{pagination_params}");
+        let list_experiment_groups_response = http_client
+            .get(endpoint)
+            .header("x-tenant", tenant.to_string())
+            .send()
+            .await
+            .map_err_to_string()?
+            .json::<PaginatedResponse<ExperimentGroup>>()
+            .await
+            .map_err_to_string()?;
+
+        let experiment_groups = list_experiment_groups_response.data;
+
+        for experiment_group in experiment_groups.into_iter() {
+            curr_exp_group_store
+                .insert(experiment_group.id.to_string(), experiment_group);
+        }
+        if page < list_experiment_groups_response.total_pages {
+            page += 1;
+        } else {
+            break;
+        }
+    }
+
+    Ok(curr_exp_group_store)
 }
 
 #[derive(Deref, DerefMut)]

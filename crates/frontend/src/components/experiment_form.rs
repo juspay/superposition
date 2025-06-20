@@ -4,11 +4,12 @@ pub mod utils;
 use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::{
-    api::workspace::WorkspaceResponse,
+    api::{experiment_groups::ExpGroupFilters, workspace::WorkspaceResponse},
+    custom_query::PaginationParams,
     database::{
         models::{
             cac::DefaultConfig,
-            experimentation::{ExperimentGroup, ExperimentType},
+            experimentation::{ExperimentGroup, ExperimentType, GroupType},
             Metrics,
         },
         types::DimensionWithMandatory,
@@ -17,6 +18,7 @@ use superposition_types::{
 use utils::{create_experiment, update_experiment};
 use web_sys::MouseEvent;
 
+use crate::logic::Conditions;
 use crate::{
     api::fetch_experiment_groups,
     components::{
@@ -32,8 +34,6 @@ use crate::{
     providers::alert_provider::enqueue_alert,
     types::{OrganisationId, Tenant, VariantFormT, VariantFormTs},
 };
-
-use crate::logic::Conditions;
 
 fn get_init_state(variants: &[VariantFormT]) -> Vec<(String, VariantFormT)> {
     variants
@@ -105,10 +105,28 @@ pub fn experiment_form(
         create_blocking_resource(
             move || (tenant_rws.get().0, org_rws.get().0),
             |(current_tenant, org)| async move {
-                fetch_experiment_groups(current_tenant.to_string(), org.clone())
-                    .await
-                    .map(|data| data.data)
-                    .unwrap_or_default()
+                let exp_group_filters = ExpGroupFilters {
+                    name: None,
+                    created_by: None,
+                    last_modified_by: None,
+                    sort_on: None,
+                    sort_by: None,
+                    group_type: Some(GroupType::UserCreated),
+                };
+                let pagination_params = PaginationParams {
+                    count: None,
+                    page: None,
+                    all: Some(true),
+                };
+                fetch_experiment_groups(
+                    &pagination_params,
+                    &exp_group_filters,
+                    &current_tenant,
+                    &org,
+                )
+                .await
+                .map(|data| data.data)
+                .unwrap_or_default()
             },
         );
 

@@ -18,18 +18,20 @@ public final class ExperimentGroup implements ApiResource {
     private static final ExperimentGroup $INSTANCE = new ExperimentGroup();
     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
         "org_id", PreludeSchemas.STRING);
-    private static final Map<String, Schema> $PROPERTIES = Map.of("change_reason", PreludeSchemas.STRING,
+    private static final Map<String, Schema> $PROPERTIES = Map.of("buckets", SharedSchemas.BUCKETS,
+        "description", PreludeSchemas.STRING,
+        "created_at", SharedSchemas.DATE_TIME,
+        "last_modified_by", PreludeSchemas.STRING,
+        "group_type", GroupType.$SCHEMA,
+        "created_by", PreludeSchemas.STRING,
+        "last_modified_at", SharedSchemas.DATE_TIME,
+        "change_reason", PreludeSchemas.STRING,
         "context_hash", PreludeSchemas.STRING,
         "traffic_percentage", PreludeSchemas.INTEGER,
         "name", PreludeSchemas.STRING,
         "context", SharedSchemas.CONDITION,
-        "description", PreludeSchemas.STRING,
         "member_experiment_ids", SharedSchemas.STRING_LIST,
-        "created_at", SharedSchemas.DATE_TIME,
-        "id", PreludeSchemas.STRING,
-        "last_modified_by", PreludeSchemas.STRING,
-        "created_by", PreludeSchemas.STRING,
-        "last_modified_at", SharedSchemas.DATE_TIME);
+        "id", PreludeSchemas.STRING);
 
     private static final List<Schema> $OPERATIONS = List.of(ListExperimentGroups.$SCHEMA,
         CreateExperimentGroup.$SCHEMA,

@@ -5,7 +5,9 @@ use std::fmt::Display;
 use crate::database::schema::experiment_groups;
 use crate::{
     database::models::{
-        experimentation::{i64_vec_deserialize, i64_vec_formatter, TrafficPercentage},
+        experimentation::{
+            i64_vec_deserialize, i64_vec_formatter, GroupType, TrafficPercentage,
+        },
         ChangeReason, Description,
     },
     Cac, Condition, IsEmpty, SortBy,
@@ -70,6 +72,7 @@ pub struct ExpGroupFilters {
     pub last_modified_by: Option<String>,
     pub sort_on: Option<SortOn>,
     pub sort_by: Option<SortBy>,
+    pub group_type: Option<GroupType>,
 }
 
 impl Display for ExpGroupFilters {
@@ -90,6 +93,15 @@ impl Display for ExpGroupFilters {
         if let Some(sort_by) = &self.sort_by {
             query_params.push(format!("sort_by={}", sort_by));
         }
+        if let Some(group_type) = &self.group_type {
+            query_params.push(format!("group_type={}", group_type));
+        }
         write!(f, "{}", query_params.join("&"))
     }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
+pub struct Bucket {
+    pub experiment_id: Option<i64>,
+    pub variant: Option<String>,
 }
