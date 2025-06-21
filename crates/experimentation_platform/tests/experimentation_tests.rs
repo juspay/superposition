@@ -115,7 +115,7 @@ fn test_extract_dimensions() -> Result<(), superposition::AppError> {
         .into_inner();
 
     let context_b =
-        single_dimension_ctx_gen(Dimensions::Client("testclient1".to_string()));
+        multiple_dimension_ctx_gen(vec![Dimensions::Client("testclient1".to_string())]);
     let context_b = Cac::<Condition>::try_from(context_b.clone())
         .map_err(superposition::AppError::BadArgument)?
         .into_inner();
@@ -152,8 +152,8 @@ fn test_are_overlapping_contexts() -> Result<(), superposition::AppError> {
         .map_err(superposition::AppError::BadArgument)?
         .into_inner();
 
-    let context_c = single_dimension_ctx_gen(Dimensions::Os("os1".to_string()));
-    let context_d = single_dimension_ctx_gen(Dimensions::Os("os2".to_string()));
+    let context_c = multiple_dimension_ctx_gen(vec![Dimensions::Os("os1".to_string())]);
+    let context_d = multiple_dimension_ctx_gen(vec![Dimensions::Os("os2".to_string())]);
     let context_c = Exp::<Condition>::try_from(context_c.clone())
         .map_err(superposition::AppError::BadArgument)?
         .into_inner();

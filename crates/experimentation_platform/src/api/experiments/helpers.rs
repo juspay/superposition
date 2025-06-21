@@ -377,7 +377,7 @@ pub fn add_variant_dimension_to_ctx(
     let context: Map<String, Value> = context.clone().into();
 
     if context.is_empty() {
-        Ok(variant_condition)
+        Ok(serde_json::json!({"and" : [variant_condition]}))
     } else {
         let mut conditions = match context.get("and") {
             Some(conditions_json) => conditions_json
