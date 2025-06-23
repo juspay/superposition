@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.53.0 - 2025-06-23
+#### Bug Fixes
+- latest support in config params (#530) - (e280515) - PRATIK MISHRA
+- corrected decode for post in resolve config (#545) - (892092e) - George James
+#### Features
+- add experiment groups API - (c09cef1) - Kartik
+- set config version (#512) - (bc662bd) - PRATIK MISHRA
+- Get dimension by name (#524) - (bb7cbd4) - Ayush Jain
+- add support for predicting inputs in forms - (fc4e63c) - Kartik
+#### Miscellaneous Chores
+- **(deps)** bump brace-expansion in /crates/context_aware_config - (c2d0ad1) - dependabot[bot]
+- Remove dead code (#536) - (621b516) - Ayush Jain
+
+- - -
+
 ## context_aware_config-v0.52.1 - 2025-05-22
 #### Bug Fixes
 - removed explicit err handling for FKValidation & removed redundant crate - (0d1d481) - Solomon

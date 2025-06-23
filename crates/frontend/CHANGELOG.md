@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.31.0 - 2025-06-23
+#### Bug Fixes
+- Show context filters (#531) - (a0ad626) - Ayush Jain
+- Function name prefill issue (#529) - (9e91d4f) - Ayush Jain
+- Fix UI issues (#521) - (5df9aaa) - Ayush Jain
+#### Features
+- set config version (#512) - (bc662bd) - PRATIK MISHRA
+- add support for predicting inputs in forms - (fc4e63c) - Kartik
+- add support to link autocomplete functions to default configs - (e6f5ffa) - Kartik
+- add support to link autocomplete functions to dimensions - (ae6bbaa) - Kartik
+
+- - -
+
 ## frontend-v0.30.0 - 2025-05-22
 #### Bug Fixes
 - Fixing usage of default (#518) - (bc936a7) - vraghunandhan

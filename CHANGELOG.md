@@ -2,6 +2,33 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.76.0 - 2025-06-23
+### Package updates
+- frontend bumped to frontend-v0.31.0
+- superposition_types bumped to superposition_types-v0.22.0
+- context_aware_config bumped to context_aware_config-v0.53.0
+- experimentation_platform bumped to experimentation_platform-v0.34.0
+### Global changes
+#### Bug Fixes
+- stack overflow in applicable variants and updated versions for the smithy client (#538) - (477e402) - George James
+- Removed copy of superposition.cac.toml, since the file was removed in an earlier revision (#541) - (a560181) - George James
+#### Features
+- add support to link autocomplete functions to dimensions - (ae6bbaa) - Kartik
+- add support for predicting inputs in forms - (fc4e63c) - Kartik
+- Get dimension by name (#524) - (bb7cbd4) - Ayush Jain
+- set config version (#512) - (bc662bd) - PRATIK MISHRA
+- add experiment groups API - (c09cef1) - Kartik
+- Superposition hs SDK. - (6d11228) - Shrey Bana
+#### Miscellaneous Chores
+- **(deps)** bump flask-cors from 5.0.0 to 6.0.0 in /locust - (6f941ee) - dependabot[bot]
+- **(deps)** bump requests from 2.32.3 to 2.32.4 in /locust - (d468ef1) - dependabot[bot]
+- **(deps)** bump urllib3 from 1.26.19 to 2.5.0 in /locust - (f32c9c4) - dependabot[bot]
+- Remove dead code (#536) - (621b516) - Ayush Jain
+- Rename auth to auth_n (#542) - (fbf4e1a) - Ayush Jain
+- add cline memory-bank & rules (#520) - (8f925a7) - Naman Agarwal
+
+- - -
+
 ## v0.75.0 - 2025-05-22
 ### Package updates
 - frontend bumped to frontend-v0.30.0

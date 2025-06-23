@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.34.0 - 2025-06-23
+#### Bug Fixes
+- List exp behaviour for list all (#528) - (24d287d) - Ayush Jain
+#### Features
+- add experiment groups API - (c09cef1) - Kartik
+
+- - -
+
 ## experimentation_platform-v0.33.0 - 2025-05-22
 #### Features
 - Frontend changes for delete experiment (#511) - (792c4cd) - Ayush Jain

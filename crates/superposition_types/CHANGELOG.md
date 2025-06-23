@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.22.0 - 2025-06-23
+#### Bug Fixes
+- corrected decode for post in resolve config (#545) - (892092e) - George James
+- Show context filters (#531) - (a0ad626) - Ayush Jain
+- stack overflow in applicable variants and updated versions for the smithy client (#538) - (477e402) - George James
+#### Features
+- add experiment groups API - (c09cef1) - Kartik
+- set config version (#512) - (bc662bd) - PRATIK MISHRA
+
+- - -
+
 ## superposition_types-v0.21.0 - 2025-05-22
 #### Bug Fixes
 - Fixing usage of default (#518) - (bc936a7) - vraghunandhan
