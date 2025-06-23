@@ -4,6 +4,7 @@ module Io.Superposition.Model.CreateWorkspaceInput (
     setWorkspaceName,
     setWorkspaceStatus,
     setWorkspaceStrictMode,
+    setMetrics,
     build,
     CreateWorkspaceInputBuilder,
     CreateWorkspaceInput,
@@ -11,7 +12,8 @@ module Io.Superposition.Model.CreateWorkspaceInput (
     workspace_admin_email,
     workspace_name,
     workspace_status,
-    workspace_strict_mode
+    workspace_strict_mode,
+    metrics
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -30,7 +32,8 @@ data CreateWorkspaceInput = CreateWorkspaceInput {
     workspace_admin_email :: Data.Text.Text,
     workspace_name :: Data.Text.Text,
     workspace_status :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
-    workspace_strict_mode :: Bool
+    workspace_strict_mode :: Bool,
+    metrics :: Data.Maybe.Maybe Data.Aeson.Value
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -43,7 +46,8 @@ instance Data.Aeson.ToJSON CreateWorkspaceInput where
         "workspace_admin_email" Data.Aeson..= workspace_admin_email a,
         "workspace_name" Data.Aeson..= workspace_name a,
         "workspace_status" Data.Aeson..= workspace_status a,
-        "workspace_strict_mode" Data.Aeson..= workspace_strict_mode a
+        "workspace_strict_mode" Data.Aeson..= workspace_strict_mode a,
+        "metrics" Data.Aeson..= metrics a
         ]
     
 
@@ -55,6 +59,7 @@ instance Data.Aeson.FromJSON CreateWorkspaceInput where
         Control.Applicative.<*> (v Data.Aeson..: "workspace_name")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_status")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_strict_mode")
+        Control.Applicative.<*> (v Data.Aeson..: "metrics")
     
 
 
@@ -64,7 +69,8 @@ data CreateWorkspaceInputBuilderState = CreateWorkspaceInputBuilderState {
     workspace_admin_emailBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     workspace_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     workspace_statusBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
-    workspace_strict_modeBuilderState :: Data.Maybe.Maybe Bool
+    workspace_strict_modeBuilderState :: Data.Maybe.Maybe Bool,
+    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value
 } deriving (
   GHC.Generics.Generic
   )
@@ -75,7 +81,8 @@ defaultBuilderState = CreateWorkspaceInputBuilderState {
     workspace_admin_emailBuilderState = Data.Maybe.Nothing,
     workspace_nameBuilderState = Data.Maybe.Nothing,
     workspace_statusBuilderState = Data.Maybe.Nothing,
-    workspace_strict_modeBuilderState = Data.Maybe.Nothing
+    workspace_strict_modeBuilderState = Data.Maybe.Nothing,
+    metricsBuilderState = Data.Maybe.Nothing
 }
 
 newtype CreateWorkspaceInputBuilder a = CreateWorkspaceInputBuilder {
@@ -119,6 +126,10 @@ setWorkspaceStrictMode :: Bool -> CreateWorkspaceInputBuilder ()
 setWorkspaceStrictMode value =
    CreateWorkspaceInputBuilder (\s -> (s { workspace_strict_modeBuilderState = Data.Maybe.Just value }, ()))
 
+setMetrics :: Data.Maybe.Maybe Data.Aeson.Value -> CreateWorkspaceInputBuilder ()
+setMetrics value =
+   CreateWorkspaceInputBuilder (\s -> (s { metricsBuilderState = value }, ()))
+
 build :: CreateWorkspaceInputBuilder () -> Data.Either.Either Data.Text.Text CreateWorkspaceInput
 build builder = do
     let (st, _) = runCreateWorkspaceInputBuilder builder defaultBuilderState
@@ -127,12 +138,14 @@ build builder = do
     workspace_name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.workspace_name is a required property.") Data.Either.Right (workspace_nameBuilderState st)
     workspace_status' <- Data.Either.Right (workspace_statusBuilderState st)
     workspace_strict_mode' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.workspace_strict_mode is a required property.") Data.Either.Right (workspace_strict_modeBuilderState st)
+    metrics' <- Data.Either.Right (metricsBuilderState st)
     Data.Either.Right (CreateWorkspaceInput { 
         org_id = org_id',
         workspace_admin_email = workspace_admin_email',
         workspace_name = workspace_name',
         workspace_status = workspace_status',
-        workspace_strict_mode = workspace_strict_mode'
+        workspace_strict_mode = workspace_strict_mode',
+        metrics = metrics'
     })
 
 

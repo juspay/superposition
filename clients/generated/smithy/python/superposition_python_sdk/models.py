@@ -1877,6 +1877,10 @@ class ConcludeExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    started_at: datetime | None = None
+    started_by: str | None = None
+    metrics_url: str | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT, self)
@@ -1899,6 +1903,17 @@ class ConcludeExperimentOutput:
 
         serializer.write_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.started_at is not None:
+            serializer.write_timestamp(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["started_at"], self.started_at)
+
+        if self.started_by is not None:
+            serializer.write_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["started_by"], self.started_by)
+
+        if self.metrics_url is not None:
+            serializer.write_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["metrics_url"], self.metrics_url)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1954,6 +1969,18 @@ class ConcludeExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["started_at"] = de.read_timestamp(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["started_at"])
+
+                case 16:
+                    kwargs["started_by"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["started_by"])
+
+                case 17:
+                    kwargs["metrics_url"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["metrics_url"])
+
+                case 18:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -4283,6 +4310,7 @@ class CreateExperimentInput:
     variants: list[Variant] | None = None
     description: str | None = None
     change_reason: str | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_EXPERIMENT_INPUT, self)
@@ -4305,6 +4333,9 @@ class CreateExperimentInput:
 
         if self.change_reason is not None:
             serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["change_reason"], self.change_reason)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4339,6 +4370,9 @@ class CreateExperimentInput:
 
                 case 7:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["change_reason"])
+
+                case 8:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -4378,6 +4412,10 @@ class CreateExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    started_at: datetime | None = None
+    started_by: str | None = None
+    metrics_url: str | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_EXPERIMENT_OUTPUT, self)
@@ -4400,6 +4438,17 @@ class CreateExperimentOutput:
 
         serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.started_at is not None:
+            serializer.write_timestamp(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["started_at"], self.started_at)
+
+        if self.started_by is not None:
+            serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["started_by"], self.started_by)
+
+        if self.metrics_url is not None:
+            serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["metrics_url"], self.metrics_url)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4455,6 +4504,18 @@ class CreateExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["started_at"] = de.read_timestamp(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["started_at"])
+
+                case 16:
+                    kwargs["started_by"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["started_by"])
+
+                case 17:
+                    kwargs["metrics_url"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["metrics_url"])
+
+                case 18:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_CREATE_EXPERIMENT_OUTPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -5478,6 +5539,7 @@ class CreateWorkspaceInput:
     workspace_name: str | None = None
     workspace_status: str | None = None
     workspace_strict_mode: bool | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_WORKSPACE_INPUT, self)
@@ -5494,6 +5556,9 @@ class CreateWorkspaceInput:
 
         if self.workspace_strict_mode is not None:
             serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_strict_mode"], self.workspace_strict_mode)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_CREATE_WORKSPACE_INPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5519,6 +5584,9 @@ class CreateWorkspaceInput:
 
                 case 4:
                     kwargs["workspace_strict_mode"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_strict_mode"])
+
+                case 5:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_CREATE_WORKSPACE_INPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -5571,6 +5639,7 @@ class CreateWorkspaceOutput:
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_WORKSPACE_OUTPUT, self)
@@ -5593,6 +5662,8 @@ class CreateWorkspaceOutput:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_CREATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
 
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["workspace_strict_mode"], self.workspace_strict_mode)
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5642,6 +5713,9 @@ class CreateWorkspaceOutput:
 
                 case 12:
                     kwargs["workspace_strict_mode"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["workspace_strict_mode"])
+
+                case 13:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -7298,6 +7372,10 @@ class DiscardExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    started_at: datetime | None = None
+    started_by: str | None = None
+    metrics_url: str | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT, self)
@@ -7320,6 +7398,17 @@ class DiscardExperimentOutput:
 
         serializer.write_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.started_at is not None:
+            serializer.write_timestamp(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["started_at"], self.started_at)
+
+        if self.started_by is not None:
+            serializer.write_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["started_by"], self.started_by)
+
+        if self.metrics_url is not None:
+            serializer.write_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["metrics_url"], self.metrics_url)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7375,6 +7464,18 @@ class DiscardExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["started_at"] = de.read_timestamp(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["started_at"])
+
+                case 16:
+                    kwargs["started_by"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["started_by"])
+
+                case 17:
+                    kwargs["metrics_url"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["metrics_url"])
+
+                case 18:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_DISCARD_EXPERIMENT_OUTPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8228,6 +8329,10 @@ class ExperimentResponse:
     change_reason: str
 
     chosen_variant: str | None = None
+    started_at: datetime | None = None
+    started_by: str | None = None
+    metrics_url: str | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_EXPERIMENT_RESPONSE, self)
@@ -8250,6 +8355,17 @@ class ExperimentResponse:
 
         serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["description"], self.description)
         serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["change_reason"], self.change_reason)
+        if self.started_at is not None:
+            serializer.write_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["started_at"], self.started_at)
+
+        if self.started_by is not None:
+            serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["started_by"], self.started_by)
+
+        if self.metrics_url is not None:
+            serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["metrics_url"], self.metrics_url)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_EXPERIMENT_RESPONSE.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8305,6 +8421,18 @@ class ExperimentResponse:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["change_reason"])
+
+                case 15:
+                    kwargs["started_at"] = de.read_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["started_at"])
+
+                case 16:
+                    kwargs["started_by"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["started_by"])
+
+                case 17:
+                    kwargs["metrics_url"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["metrics_url"])
+
+                case 18:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_EXPERIMENT_RESPONSE.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8399,6 +8527,10 @@ class GetExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    started_at: datetime | None = None
+    started_by: str | None = None
+    metrics_url: str | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_EXPERIMENT_OUTPUT, self)
@@ -8421,6 +8553,17 @@ class GetExperimentOutput:
 
         serializer.write_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.started_at is not None:
+            serializer.write_timestamp(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["started_at"], self.started_at)
+
+        if self.started_by is not None:
+            serializer.write_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["started_by"], self.started_by)
+
+        if self.metrics_url is not None:
+            serializer.write_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["metrics_url"], self.metrics_url)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8476,6 +8619,18 @@ class GetExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["started_at"] = de.read_timestamp(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["started_at"])
+
+                case 16:
+                    kwargs["started_by"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["started_by"])
+
+                case 17:
+                    kwargs["metrics_url"] = de.read_string(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["metrics_url"])
+
+                case 18:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_GET_EXPERIMENT_OUTPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8714,6 +8869,10 @@ class PauseExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    started_at: datetime | None = None
+    started_by: str | None = None
+    metrics_url: str | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT, self)
@@ -8736,6 +8895,17 @@ class PauseExperimentOutput:
 
         serializer.write_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.started_at is not None:
+            serializer.write_timestamp(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["started_at"], self.started_at)
+
+        if self.started_by is not None:
+            serializer.write_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["started_by"], self.started_by)
+
+        if self.metrics_url is not None:
+            serializer.write_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["metrics_url"], self.metrics_url)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8791,6 +8961,18 @@ class PauseExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["started_at"] = de.read_timestamp(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["started_at"])
+
+                case 16:
+                    kwargs["started_by"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["started_by"])
+
+                case 17:
+                    kwargs["metrics_url"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["metrics_url"])
+
+                case 18:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_PAUSE_EXPERIMENT_OUTPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8894,6 +9076,10 @@ class RampExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    started_at: datetime | None = None
+    started_by: str | None = None
+    metrics_url: str | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_RAMP_EXPERIMENT_OUTPUT, self)
@@ -8916,6 +9102,17 @@ class RampExperimentOutput:
 
         serializer.write_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.started_at is not None:
+            serializer.write_timestamp(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["started_at"], self.started_at)
+
+        if self.started_by is not None:
+            serializer.write_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["started_by"], self.started_by)
+
+        if self.metrics_url is not None:
+            serializer.write_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["metrics_url"], self.metrics_url)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8971,6 +9168,18 @@ class RampExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["started_at"] = de.read_timestamp(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["started_at"])
+
+                case 16:
+                    kwargs["started_by"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["started_by"])
+
+                case 17:
+                    kwargs["metrics_url"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["metrics_url"])
+
+                case 18:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_RAMP_EXPERIMENT_OUTPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9067,6 +9276,10 @@ class ResumeExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    started_at: datetime | None = None
+    started_by: str | None = None
+    metrics_url: str | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_RESUME_EXPERIMENT_OUTPUT, self)
@@ -9089,6 +9302,17 @@ class ResumeExperimentOutput:
 
         serializer.write_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.started_at is not None:
+            serializer.write_timestamp(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["started_at"], self.started_at)
+
+        if self.started_by is not None:
+            serializer.write_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["started_by"], self.started_by)
+
+        if self.metrics_url is not None:
+            serializer.write_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["metrics_url"], self.metrics_url)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -9144,6 +9368,18 @@ class ResumeExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["started_at"] = de.read_timestamp(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["started_at"])
+
+                case 16:
+                    kwargs["started_by"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["started_by"])
+
+                case 17:
+                    kwargs["metrics_url"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["metrics_url"])
+
+                case 18:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_RESUME_EXPERIMENT_OUTPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9227,6 +9463,7 @@ class UpdateOverridesExperimentInput:
     variant_list: list[VariantUpdateRequest] | None = None
     description: str | None = None
     change_reason: str | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT, self)
@@ -9240,6 +9477,9 @@ class UpdateOverridesExperimentInput:
 
         if self.change_reason is not None:
             serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["change_reason"], self.change_reason)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -9268,6 +9508,9 @@ class UpdateOverridesExperimentInput:
 
                 case 5:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["change_reason"])
+
+                case 6:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9307,6 +9550,10 @@ class UpdateOverridesExperimentOutput:
     change_reason: str
 
     chosen_variant: str | None = None
+    started_at: datetime | None = None
+    started_by: str | None = None
+    metrics_url: str | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT, self)
@@ -9329,6 +9576,17 @@ class UpdateOverridesExperimentOutput:
 
         serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["change_reason"], self.change_reason)
+        if self.started_at is not None:
+            serializer.write_timestamp(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["started_at"], self.started_at)
+
+        if self.started_by is not None:
+            serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["started_by"], self.started_by)
+
+        if self.metrics_url is not None:
+            serializer.write_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["metrics_url"], self.metrics_url)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -9384,6 +9642,18 @@ class UpdateOverridesExperimentOutput:
 
                 case 14:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["change_reason"])
+
+                case 15:
+                    kwargs["started_at"] = de.read_timestamp(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["started_at"])
+
+                case 16:
+                    kwargs["started_by"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["started_by"])
+
+                case 17:
+                    kwargs["metrics_url"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["metrics_url"])
+
+                case 18:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -11438,6 +11708,7 @@ class WorkspaceResponse:
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_WORKSPACE_RESPONSE, self)
@@ -11460,6 +11731,8 @@ class WorkspaceResponse:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_WORKSPACE_RESPONSE.members["mandatory_dimensions"], self.mandatory_dimensions)
 
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["workspace_strict_mode"], self.workspace_strict_mode)
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_WORKSPACE_RESPONSE.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -11509,6 +11782,9 @@ class WorkspaceResponse:
 
                 case 12:
                     kwargs["workspace_strict_mode"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["workspace_strict_mode"])
+
+                case 13:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_WORKSPACE_RESPONSE.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -12183,6 +12459,7 @@ class UpdateWorkspaceInput:
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
     workspace_status: str | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_WORKSPACE_INPUT, self)
@@ -12199,6 +12476,9 @@ class UpdateWorkspaceInput:
 
         if self.workspace_status is not None:
             serializer.write_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["workspace_status"], self.workspace_status)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -12227,6 +12507,9 @@ class UpdateWorkspaceInput:
 
                 case 5:
                     kwargs["workspace_status"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["workspace_status"])
+
+                case 6:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -12261,6 +12544,7 @@ class UpdateWorkspaceOutput:
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
+    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_WORKSPACE_OUTPUT, self)
@@ -12283,6 +12567,8 @@ class UpdateWorkspaceOutput:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
 
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["workspace_strict_mode"], self.workspace_strict_mode)
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -12332,6 +12618,9 @@ class UpdateWorkspaceOutput:
 
                 case 12:
                     kwargs["workspace_strict_mode"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["workspace_strict_mode"])
+
+                case 13:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["metrics"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

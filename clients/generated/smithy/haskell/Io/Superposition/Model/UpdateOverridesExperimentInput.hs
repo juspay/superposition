@@ -5,6 +5,7 @@ module Io.Superposition.Model.UpdateOverridesExperimentInput (
     setVariantList,
     setDescription,
     setChangeReason,
+    setMetrics,
     build,
     UpdateOverridesExperimentInputBuilder,
     UpdateOverridesExperimentInput,
@@ -13,7 +14,8 @@ module Io.Superposition.Model.UpdateOverridesExperimentInput (
     id',
     variant_list,
     description,
-    change_reason
+    change_reason,
+    metrics
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -33,7 +35,8 @@ data UpdateOverridesExperimentInput = UpdateOverridesExperimentInput {
     id' :: Data.Text.Text,
     variant_list :: [] Io.Superposition.Model.VariantUpdateRequest.VariantUpdateRequest,
     description :: Data.Maybe.Maybe Data.Text.Text,
-    change_reason :: Data.Text.Text
+    change_reason :: Data.Text.Text,
+    metrics :: Data.Maybe.Maybe Data.Aeson.Value
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -47,7 +50,8 @@ instance Data.Aeson.ToJSON UpdateOverridesExperimentInput where
         "id" Data.Aeson..= id' a,
         "variant_list" Data.Aeson..= variant_list a,
         "description" Data.Aeson..= description a,
-        "change_reason" Data.Aeson..= change_reason a
+        "change_reason" Data.Aeson..= change_reason a,
+        "metrics" Data.Aeson..= metrics a
         ]
     
 
@@ -60,6 +64,7 @@ instance Data.Aeson.FromJSON UpdateOverridesExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..: "variant_list")
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
+        Control.Applicative.<*> (v Data.Aeson..: "metrics")
     
 
 
@@ -70,7 +75,8 @@ data UpdateOverridesExperimentInputBuilderState = UpdateOverridesExperimentInput
     id'BuilderState :: Data.Maybe.Maybe Data.Text.Text,
     variant_listBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.VariantUpdateRequest.VariantUpdateRequest),
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value
 } deriving (
   GHC.Generics.Generic
   )
@@ -82,7 +88,8 @@ defaultBuilderState = UpdateOverridesExperimentInputBuilderState {
     id'BuilderState = Data.Maybe.Nothing,
     variant_listBuilderState = Data.Maybe.Nothing,
     descriptionBuilderState = Data.Maybe.Nothing,
-    change_reasonBuilderState = Data.Maybe.Nothing
+    change_reasonBuilderState = Data.Maybe.Nothing,
+    metricsBuilderState = Data.Maybe.Nothing
 }
 
 newtype UpdateOverridesExperimentInputBuilder a = UpdateOverridesExperimentInputBuilder {
@@ -130,6 +137,10 @@ setChangeReason :: Data.Text.Text -> UpdateOverridesExperimentInputBuilder ()
 setChangeReason value =
    UpdateOverridesExperimentInputBuilder (\s -> (s { change_reasonBuilderState = Data.Maybe.Just value }, ()))
 
+setMetrics :: Data.Maybe.Maybe Data.Aeson.Value -> UpdateOverridesExperimentInputBuilder ()
+setMetrics value =
+   UpdateOverridesExperimentInputBuilder (\s -> (s { metricsBuilderState = value }, ()))
+
 build :: UpdateOverridesExperimentInputBuilder () -> Data.Either.Either Data.Text.Text UpdateOverridesExperimentInput
 build builder = do
     let (st, _) = runUpdateOverridesExperimentInputBuilder builder defaultBuilderState
@@ -139,13 +150,15 @@ build builder = do
     variant_list' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateOverridesExperimentInput.UpdateOverridesExperimentInput.variant_list is a required property.") Data.Either.Right (variant_listBuilderState st)
     description' <- Data.Either.Right (descriptionBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateOverridesExperimentInput.UpdateOverridesExperimentInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
+    metrics' <- Data.Either.Right (metricsBuilderState st)
     Data.Either.Right (UpdateOverridesExperimentInput { 
         workspace_id = workspace_id',
         org_id = org_id',
         id' = id'',
         variant_list = variant_list',
         description = description',
-        change_reason = change_reason'
+        change_reason = change_reason',
+        metrics = metrics'
     })
 
 

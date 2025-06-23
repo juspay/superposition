@@ -530,6 +530,10 @@ export interface ExperimentResponse {
   chosen_variant?: string | undefined;
   description: string | undefined;
   change_reason: string | undefined;
+  started_at?: Date | undefined;
+  started_by?: string | undefined;
+  metrics_url?: string | undefined;
+  metrics?: __DocumentType | undefined;
 }
 
 /**
@@ -924,6 +928,7 @@ export interface CreateExperimentRequest {
   variants: (Variant)[] | undefined;
   description: string | undefined;
   change_reason: string | undefined;
+  metrics?: __DocumentType | undefined;
 }
 
 /**
@@ -1156,6 +1161,7 @@ export interface CreateWorkspaceRequest {
   workspace_name: string | undefined;
   workspace_status?: WorkspaceStatus | undefined;
   workspace_strict_mode: boolean | undefined;
+  metrics?: __DocumentType | undefined;
 }
 
 /**
@@ -1175,6 +1181,7 @@ export interface WorkspaceResponse {
   created_at: Date | undefined;
   mandatory_dimensions?: (string)[] | undefined;
   workspace_strict_mode: boolean | undefined;
+  metrics?: __DocumentType | undefined;
 }
 
 /**
@@ -1582,6 +1589,7 @@ export interface UpdateOverrideRequest {
   variant_list: (VariantUpdateRequest)[] | undefined;
   description?: string | undefined;
   change_reason: string | undefined;
+  metrics?: __DocumentType | undefined;
 }
 
 /**
@@ -1906,6 +1914,7 @@ export interface UpdateWorkspaceRequest {
   config_version?: string | undefined;
   mandatory_dimensions?: (string)[] | undefined;
   workspace_status?: WorkspaceStatus | undefined;
+  metrics?: __DocumentType | undefined;
 }
 
 /**

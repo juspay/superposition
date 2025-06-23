@@ -23,6 +23,10 @@ impl super::Client {
     ///   - [`chosen_variant(Option<String>)`](crate::operation::discard_experiment::DiscardExperimentOutput::chosen_variant): (undocumented)
     ///   - [`description(String)`](crate::operation::discard_experiment::DiscardExperimentOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::discard_experiment::DiscardExperimentOutput::change_reason): (undocumented)
+    ///   - [`started_at(Option<DateTime>)`](crate::operation::discard_experiment::DiscardExperimentOutput::started_at): (undocumented)
+    ///   - [`started_by(Option<String>)`](crate::operation::discard_experiment::DiscardExperimentOutput::started_by): (undocumented)
+    ///   - [`metrics_url(Option<String>)`](crate::operation::discard_experiment::DiscardExperimentOutput::metrics_url): (undocumented)
+    ///   - [`metrics(Option<Document>)`](crate::operation::discard_experiment::DiscardExperimentOutput::metrics): (undocumented)
                             /// - On failure, responds with [`SdkError<DiscardExperimentError>`](crate::operation::discard_experiment::DiscardExperimentError)
     pub fn discard_experiment(&self) -> crate::operation::discard_experiment::builders::DiscardExperimentFluentBuilder {
                                 crate::operation::discard_experiment::builders::DiscardExperimentFluentBuilder::new(self.handle.clone())

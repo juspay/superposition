@@ -54,6 +54,10 @@ public final class GetExperimentOutput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
+        .putMember("started_at", SharedSchemas.DATE_TIME)
+        .putMember("started_by", PreludeSchemas.STRING)
+        .putMember("metrics_url", PreludeSchemas.STRING)
+        .putMember("metrics", PreludeSchemas.DOCUMENT)
         .build();
 
     private static final Schema $SCHEMA_ID = $SCHEMA.member("id");
@@ -71,6 +75,10 @@ public final class GetExperimentOutput implements SerializableStruct {
     private static final Schema $SCHEMA_CHOSEN_VARIANT = $SCHEMA.member("chosen_variant");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
+    private static final Schema $SCHEMA_STARTED_AT = $SCHEMA.member("started_at");
+    private static final Schema $SCHEMA_STARTED_BY = $SCHEMA.member("started_by");
+    private static final Schema $SCHEMA_METRICS_URL = $SCHEMA.member("metrics_url");
+    private static final Schema $SCHEMA_METRICS = $SCHEMA.member("metrics");
 
     private final transient String id;
     private final transient Instant createdAt;
@@ -87,6 +95,10 @@ public final class GetExperimentOutput implements SerializableStruct {
     private final transient String chosenVariant;
     private final transient String description;
     private final transient String changeReason;
+    private final transient Instant startedAt;
+    private final transient String startedBy;
+    private final transient String metricsUrl;
+    private final transient Document metrics;
 
     private GetExperimentOutput(Builder builder) {
         this.id = builder.id;
@@ -104,6 +116,10 @@ public final class GetExperimentOutput implements SerializableStruct {
         this.chosenVariant = builder.chosenVariant;
         this.description = builder.description;
         this.changeReason = builder.changeReason;
+        this.startedAt = builder.startedAt;
+        this.startedBy = builder.startedBy;
+        this.metricsUrl = builder.metricsUrl;
+        this.metrics = builder.metrics;
     }
 
     public String id() {
@@ -178,6 +194,22 @@ public final class GetExperimentOutput implements SerializableStruct {
         return changeReason;
     }
 
+    public Instant startedAt() {
+        return startedAt;
+    }
+
+    public String startedBy() {
+        return startedBy;
+    }
+
+    public String metricsUrl() {
+        return metricsUrl;
+    }
+
+    public Document metrics() {
+        return metrics;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -206,12 +238,16 @@ public final class GetExperimentOutput implements SerializableStruct {
                && Objects.equals(this.lastModifiedBy, that.lastModifiedBy)
                && Objects.equals(this.chosenVariant, that.chosenVariant)
                && Objects.equals(this.description, that.description)
-               && Objects.equals(this.changeReason, that.changeReason);
+               && Objects.equals(this.changeReason, that.changeReason)
+               && Objects.equals(this.startedAt, that.startedAt)
+               && Objects.equals(this.startedBy, that.startedBy)
+               && Objects.equals(this.metricsUrl, that.metricsUrl)
+               && Objects.equals(this.metrics, that.metrics);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, createdAt, createdBy, lastModified, name, experimentType, overrideKeys, status, trafficPercentage, context, variants, lastModifiedBy, chosenVariant, description, changeReason);
+        return Objects.hash(id, createdAt, createdBy, lastModified, name, experimentType, overrideKeys, status, trafficPercentage, context, variants, lastModifiedBy, chosenVariant, description, changeReason, startedAt, startedBy, metricsUrl, metrics);
     }
 
     @Override
@@ -238,6 +274,18 @@ public final class GetExperimentOutput implements SerializableStruct {
         }
         serializer.writeString($SCHEMA_DESCRIPTION, description);
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
+        if (startedAt != null) {
+            serializer.writeTimestamp($SCHEMA_STARTED_AT, startedAt);
+        }
+        if (startedBy != null) {
+            serializer.writeString($SCHEMA_STARTED_BY, startedBy);
+        }
+        if (metricsUrl != null) {
+            serializer.writeString($SCHEMA_METRICS_URL, metricsUrl);
+        }
+        if (metrics != null) {
+            serializer.writeDocument($SCHEMA_METRICS, metrics);
+        }
     }
 
     @Override
@@ -259,6 +307,10 @@ public final class GetExperimentOutput implements SerializableStruct {
             case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
             case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
             case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHOSEN_VARIANT, member, chosenVariant);
+            case 15 -> (T) SchemaUtils.validateSameMember($SCHEMA_STARTED_AT, member, startedAt);
+            case 16 -> (T) SchemaUtils.validateSameMember($SCHEMA_STARTED_BY, member, startedBy);
+            case 17 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS_URL, member, metricsUrl);
+            case 18 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -287,6 +339,10 @@ public final class GetExperimentOutput implements SerializableStruct {
         builder.chosenVariant(this.chosenVariant);
         builder.description(this.description);
         builder.changeReason(this.changeReason);
+        builder.startedAt(this.startedAt);
+        builder.startedBy(this.startedBy);
+        builder.metricsUrl(this.metricsUrl);
+        builder.metrics(this.metrics);
         return builder;
     }
 
@@ -317,6 +373,10 @@ public final class GetExperimentOutput implements SerializableStruct {
         private String chosenVariant;
         private String description;
         private String changeReason;
+        private Instant startedAt;
+        private String startedBy;
+        private String metricsUrl;
+        private Document metrics;
 
         private Builder() {}
 
@@ -473,6 +533,38 @@ public final class GetExperimentOutput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder startedAt(Instant startedAt) {
+            this.startedAt = startedAt;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder startedBy(String startedBy) {
+            this.startedBy = startedBy;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder metricsUrl(String metricsUrl) {
+            this.metricsUrl = metricsUrl;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder metrics(Document metrics) {
+            this.metrics = metrics;
+            return this;
+        }
+
         @Override
         public GetExperimentOutput build() {
             tracker.validate();
@@ -498,6 +590,10 @@ public final class GetExperimentOutput implements SerializableStruct {
                 case 12 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 13 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 14 -> chosenVariant((String) SchemaUtils.validateSameMember($SCHEMA_CHOSEN_VARIANT, member, value));
+                case 15 -> startedAt((Instant) SchemaUtils.validateSameMember($SCHEMA_STARTED_AT, member, value));
+                case 16 -> startedBy((String) SchemaUtils.validateSameMember($SCHEMA_STARTED_BY, member, value));
+                case 17 -> metricsUrl((String) SchemaUtils.validateSameMember($SCHEMA_METRICS_URL, member, value));
+                case 18 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -585,6 +681,10 @@ public final class GetExperimentOutput implements SerializableStruct {
                     case 12 -> builder.description(de.readString(member));
                     case 13 -> builder.changeReason(de.readString(member));
                     case 14 -> builder.chosenVariant(de.readString(member));
+                    case 15 -> builder.startedAt(de.readTimestamp(member));
+                    case 16 -> builder.startedBy(de.readString(member));
+                    case 17 -> builder.metricsUrl(de.readString(member));
+                    case 18 -> builder.metrics(de.readDocument());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

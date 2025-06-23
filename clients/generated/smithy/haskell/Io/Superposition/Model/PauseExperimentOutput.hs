@@ -14,6 +14,10 @@ module Io.Superposition.Model.PauseExperimentOutput (
     setChosenVariant,
     setDescription,
     setChangeReason,
+    setStartedAt,
+    setStartedBy,
+    setMetricsUrl,
+    setMetrics,
     build,
     PauseExperimentOutputBuilder,
     PauseExperimentOutput,
@@ -31,7 +35,11 @@ module Io.Superposition.Model.PauseExperimentOutput (
     last_modified_by,
     chosen_variant,
     description,
-    change_reason
+    change_reason,
+    started_at,
+    started_by,
+    metrics_url,
+    metrics
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -64,7 +72,11 @@ data PauseExperimentOutput = PauseExperimentOutput {
     last_modified_by :: Data.Text.Text,
     chosen_variant :: Data.Maybe.Maybe Data.Text.Text,
     description :: Data.Text.Text,
-    change_reason :: Data.Text.Text
+    change_reason :: Data.Text.Text,
+    started_at :: Data.Maybe.Maybe Data.Time.UTCTime,
+    started_by :: Data.Maybe.Maybe Data.Text.Text,
+    metrics_url :: Data.Maybe.Maybe Data.Text.Text,
+    metrics :: Data.Maybe.Maybe Data.Aeson.Value
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -87,7 +99,11 @@ instance Data.Aeson.ToJSON PauseExperimentOutput where
         "last_modified_by" Data.Aeson..= last_modified_by a,
         "chosen_variant" Data.Aeson..= chosen_variant a,
         "description" Data.Aeson..= description a,
-        "change_reason" Data.Aeson..= change_reason a
+        "change_reason" Data.Aeson..= change_reason a,
+        "started_at" Data.Aeson..= started_at a,
+        "started_by" Data.Aeson..= started_by a,
+        "metrics_url" Data.Aeson..= metrics_url a,
+        "metrics" Data.Aeson..= metrics a
         ]
     
 
@@ -109,6 +125,10 @@ instance Data.Aeson.FromJSON PauseExperimentOutput where
         Control.Applicative.<*> (v Data.Aeson..: "chosen_variant")
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
+        Control.Applicative.<*> (v Data.Aeson..: "started_at")
+        Control.Applicative.<*> (v Data.Aeson..: "started_by")
+        Control.Applicative.<*> (v Data.Aeson..: "metrics_url")
+        Control.Applicative.<*> (v Data.Aeson..: "metrics")
     
 
 
@@ -128,7 +148,11 @@ data PauseExperimentOutputBuilderState = PauseExperimentOutputBuilderState {
     last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     chosen_variantBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    started_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
+    started_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    metrics_urlBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value
 } deriving (
   GHC.Generics.Generic
   )
@@ -149,7 +173,11 @@ defaultBuilderState = PauseExperimentOutputBuilderState {
     last_modified_byBuilderState = Data.Maybe.Nothing,
     chosen_variantBuilderState = Data.Maybe.Nothing,
     descriptionBuilderState = Data.Maybe.Nothing,
-    change_reasonBuilderState = Data.Maybe.Nothing
+    change_reasonBuilderState = Data.Maybe.Nothing,
+    started_atBuilderState = Data.Maybe.Nothing,
+    started_byBuilderState = Data.Maybe.Nothing,
+    metrics_urlBuilderState = Data.Maybe.Nothing,
+    metricsBuilderState = Data.Maybe.Nothing
 }
 
 newtype PauseExperimentOutputBuilder a = PauseExperimentOutputBuilder {
@@ -233,6 +261,22 @@ setChangeReason :: Data.Text.Text -> PauseExperimentOutputBuilder ()
 setChangeReason value =
    PauseExperimentOutputBuilder (\s -> (s { change_reasonBuilderState = Data.Maybe.Just value }, ()))
 
+setStartedAt :: Data.Maybe.Maybe Data.Time.UTCTime -> PauseExperimentOutputBuilder ()
+setStartedAt value =
+   PauseExperimentOutputBuilder (\s -> (s { started_atBuilderState = value }, ()))
+
+setStartedBy :: Data.Maybe.Maybe Data.Text.Text -> PauseExperimentOutputBuilder ()
+setStartedBy value =
+   PauseExperimentOutputBuilder (\s -> (s { started_byBuilderState = value }, ()))
+
+setMetricsUrl :: Data.Maybe.Maybe Data.Text.Text -> PauseExperimentOutputBuilder ()
+setMetricsUrl value =
+   PauseExperimentOutputBuilder (\s -> (s { metrics_urlBuilderState = value }, ()))
+
+setMetrics :: Data.Maybe.Maybe Data.Aeson.Value -> PauseExperimentOutputBuilder ()
+setMetrics value =
+   PauseExperimentOutputBuilder (\s -> (s { metricsBuilderState = value }, ()))
+
 build :: PauseExperimentOutputBuilder () -> Data.Either.Either Data.Text.Text PauseExperimentOutput
 build builder = do
     let (st, _) = runPauseExperimentOutputBuilder builder defaultBuilderState
@@ -251,6 +295,10 @@ build builder = do
     chosen_variant' <- Data.Either.Right (chosen_variantBuilderState st)
     description' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.PauseExperimentOutput.PauseExperimentOutput.description is a required property.") Data.Either.Right (descriptionBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.PauseExperimentOutput.PauseExperimentOutput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
+    started_at' <- Data.Either.Right (started_atBuilderState st)
+    started_by' <- Data.Either.Right (started_byBuilderState st)
+    metrics_url' <- Data.Either.Right (metrics_urlBuilderState st)
+    metrics' <- Data.Either.Right (metricsBuilderState st)
     Data.Either.Right (PauseExperimentOutput { 
         id' = id'',
         created_at = created_at',
@@ -266,7 +314,11 @@ build builder = do
         last_modified_by = last_modified_by',
         chosen_variant = chosen_variant',
         description = description',
-        change_reason = change_reason'
+        change_reason = change_reason',
+        started_at = started_at',
+        started_by = started_by',
+        metrics_url = metrics_url',
+        metrics = metrics'
     })
 
 

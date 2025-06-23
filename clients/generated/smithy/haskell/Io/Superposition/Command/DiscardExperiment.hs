@@ -180,6 +180,13 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    metrics_urlDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "metrics_url") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     traffic_percentageDocumentE :: Integer <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "traffic_percentage") responseObject
         Data.Function.& \case
@@ -201,6 +208,13 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    started_atDocumentE :: Data.Maybe.Maybe Data.Time.UTCTime <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "started_at") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     id'DocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "id") responseObject
         Data.Function.& \case
@@ -208,8 +222,22 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    metricsDocumentE :: Data.Maybe.Maybe Data.Aeson.Value <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "metrics") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     last_modifiedDocumentE :: Data.Time.UTCTime <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "last_modified") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    started_byDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "started_by") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
@@ -232,11 +260,15 @@ deserializeResponse response = do
         Io.Superposition.Model.DiscardExperimentOutput.setCreatedBy created_byDocumentE
         Io.Superposition.Model.DiscardExperimentOutput.setExperimentType experiment_typeDocumentE
         Io.Superposition.Model.DiscardExperimentOutput.setChangeReason change_reasonDocumentE
+        Io.Superposition.Model.DiscardExperimentOutput.setMetricsUrl metrics_urlDocumentE
         Io.Superposition.Model.DiscardExperimentOutput.setTrafficPercentage traffic_percentageDocumentE
         Io.Superposition.Model.DiscardExperimentOutput.setName nameDocumentE
         Io.Superposition.Model.DiscardExperimentOutput.setContext contextDocumentE
+        Io.Superposition.Model.DiscardExperimentOutput.setStartedAt started_atDocumentE
         Io.Superposition.Model.DiscardExperimentOutput.setId' id'DocumentE
+        Io.Superposition.Model.DiscardExperimentOutput.setMetrics metricsDocumentE
         Io.Superposition.Model.DiscardExperimentOutput.setLastModified last_modifiedDocumentE
+        Io.Superposition.Model.DiscardExperimentOutput.setStartedBy started_byDocumentE
         Io.Superposition.Model.DiscardExperimentOutput.setStatus statusDocumentE
     
     where

@@ -29,6 +29,8 @@ pub struct UpdateWorkspaceOutput  {
     pub mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_strict_mode: bool,
+    #[allow(missing_docs)] // documentation missing in model
+    pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
 }
 impl  UpdateWorkspaceOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -86,6 +88,10 @@ impl  UpdateWorkspaceOutput  {
     pub fn workspace_strict_mode(&self) -> bool {
         self.workspace_strict_mode
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
+        self.metrics.as_ref()
+    }
 }
 impl UpdateWorkspaceOutput {
     /// Creates a new builder-style object to manufacture [`UpdateWorkspaceOutput`](crate::operation::update_workspace::UpdateWorkspaceOutput).
@@ -111,6 +117,7 @@ pub struct UpdateWorkspaceOutputBuilder {
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) workspace_strict_mode: ::std::option::Option<bool>,
+    pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
 }
 impl UpdateWorkspaceOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -298,6 +305,19 @@ impl UpdateWorkspaceOutputBuilder {
     pub fn get_workspace_strict_mode(&self) -> &::std::option::Option<bool> {
         &self.workspace_strict_mode
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
+        self.metrics = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
+        self.metrics = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+        &self.metrics
+    }
     /// Consumes the builder and constructs a [`UpdateWorkspaceOutput`](crate::operation::update_workspace::UpdateWorkspaceOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`workspace_name`](crate::operation::update_workspace::builders::UpdateWorkspaceOutputBuilder::workspace_name)
@@ -372,6 +392,8 @@ impl UpdateWorkspaceOutputBuilder {
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("workspace_strict_mode", "workspace_strict_mode was not specified but it is required when building UpdateWorkspaceOutput")
                     )?
+                ,
+                metrics: self.metrics
                 ,
             }
         )

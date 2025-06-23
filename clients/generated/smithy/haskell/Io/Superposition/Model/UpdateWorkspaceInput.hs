@@ -5,6 +5,7 @@ module Io.Superposition.Model.UpdateWorkspaceInput (
     setConfigVersion,
     setMandatoryDimensions,
     setWorkspaceStatus,
+    setMetrics,
     build,
     UpdateWorkspaceInputBuilder,
     UpdateWorkspaceInput,
@@ -13,7 +14,8 @@ module Io.Superposition.Model.UpdateWorkspaceInput (
     workspace_admin_email,
     config_version,
     mandatory_dimensions,
-    workspace_status
+    workspace_status,
+    metrics
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -33,7 +35,8 @@ data UpdateWorkspaceInput = UpdateWorkspaceInput {
     workspace_admin_email :: Data.Text.Text,
     config_version :: Data.Maybe.Maybe Data.Text.Text,
     mandatory_dimensions :: Data.Maybe.Maybe ([] Data.Text.Text),
-    workspace_status :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus
+    workspace_status :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
+    metrics :: Data.Maybe.Maybe Data.Aeson.Value
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -47,7 +50,8 @@ instance Data.Aeson.ToJSON UpdateWorkspaceInput where
         "workspace_admin_email" Data.Aeson..= workspace_admin_email a,
         "config_version" Data.Aeson..= config_version a,
         "mandatory_dimensions" Data.Aeson..= mandatory_dimensions a,
-        "workspace_status" Data.Aeson..= workspace_status a
+        "workspace_status" Data.Aeson..= workspace_status a,
+        "metrics" Data.Aeson..= metrics a
         ]
     
 
@@ -60,6 +64,7 @@ instance Data.Aeson.FromJSON UpdateWorkspaceInput where
         Control.Applicative.<*> (v Data.Aeson..: "config_version")
         Control.Applicative.<*> (v Data.Aeson..: "mandatory_dimensions")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_status")
+        Control.Applicative.<*> (v Data.Aeson..: "metrics")
     
 
 
@@ -70,7 +75,8 @@ data UpdateWorkspaceInputBuilderState = UpdateWorkspaceInputBuilderState {
     workspace_admin_emailBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     config_versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     mandatory_dimensionsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
-    workspace_statusBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus
+    workspace_statusBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
+    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value
 } deriving (
   GHC.Generics.Generic
   )
@@ -82,7 +88,8 @@ defaultBuilderState = UpdateWorkspaceInputBuilderState {
     workspace_admin_emailBuilderState = Data.Maybe.Nothing,
     config_versionBuilderState = Data.Maybe.Nothing,
     mandatory_dimensionsBuilderState = Data.Maybe.Nothing,
-    workspace_statusBuilderState = Data.Maybe.Nothing
+    workspace_statusBuilderState = Data.Maybe.Nothing,
+    metricsBuilderState = Data.Maybe.Nothing
 }
 
 newtype UpdateWorkspaceInputBuilder a = UpdateWorkspaceInputBuilder {
@@ -130,6 +137,10 @@ setWorkspaceStatus :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.Wo
 setWorkspaceStatus value =
    UpdateWorkspaceInputBuilder (\s -> (s { workspace_statusBuilderState = value }, ()))
 
+setMetrics :: Data.Maybe.Maybe Data.Aeson.Value -> UpdateWorkspaceInputBuilder ()
+setMetrics value =
+   UpdateWorkspaceInputBuilder (\s -> (s { metricsBuilderState = value }, ()))
+
 build :: UpdateWorkspaceInputBuilder () -> Data.Either.Either Data.Text.Text UpdateWorkspaceInput
 build builder = do
     let (st, _) = runUpdateWorkspaceInputBuilder builder defaultBuilderState
@@ -139,13 +150,15 @@ build builder = do
     config_version' <- Data.Either.Right (config_versionBuilderState st)
     mandatory_dimensions' <- Data.Either.Right (mandatory_dimensionsBuilderState st)
     workspace_status' <- Data.Either.Right (workspace_statusBuilderState st)
+    metrics' <- Data.Either.Right (metricsBuilderState st)
     Data.Either.Right (UpdateWorkspaceInput { 
         org_id = org_id',
         workspace_name = workspace_name',
         workspace_admin_email = workspace_admin_email',
         config_version = config_version',
         mandatory_dimensions = mandatory_dimensions',
-        workspace_status = workspace_status'
+        workspace_status = workspace_status',
+        metrics = metrics'
     })
 
 

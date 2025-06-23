@@ -19,6 +19,8 @@ pub struct CreateExperimentInput  {
     pub description: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
 }
 impl  CreateExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -56,6 +58,10 @@ impl  CreateExperimentInput  {
     pub fn change_reason(&self) -> ::std::option::Option<&str> {
         self.change_reason.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
+        self.metrics.as_ref()
+    }
 }
 impl CreateExperimentInput {
     /// Creates a new builder-style object to manufacture [`CreateExperimentInput`](crate::operation::create_experiment::CreateExperimentInput).
@@ -76,6 +82,7 @@ pub struct CreateExperimentInputBuilder {
     pub(crate) variants: ::std::option::Option<::std::vec::Vec::<crate::types::Variant>>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
+    pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
 }
 impl CreateExperimentInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -197,6 +204,19 @@ impl CreateExperimentInputBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
+        self.metrics = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
+        self.metrics = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+        &self.metrics
+    }
     /// Consumes the builder and constructs a [`CreateExperimentInput`](crate::operation::create_experiment::CreateExperimentInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::create_experiment::CreateExperimentInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -216,6 +236,8 @@ impl CreateExperimentInputBuilder {
                 description: self.description
                 ,
                 change_reason: self.change_reason
+                ,
+                metrics: self.metrics
                 ,
             }
         )

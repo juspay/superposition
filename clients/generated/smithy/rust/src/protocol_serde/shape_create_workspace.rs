@@ -119,6 +119,11 @@ pub(crate) fn de_create_workspace(value: &[u8], mut builder: crate::operation::c
                             crate::protocol_serde::shape_list_mandatory_dimensions::de_list_mandatory_dimensions(tokens)?
                         );
                     }
+                    "metrics" => {
+                        builder = builder.set_metrics(
+                            Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
+                        );
+                    }
                     "organisation_id" => {
                         builder = builder.set_organisation_id(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|

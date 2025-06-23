@@ -13,6 +13,8 @@ pub struct CreateWorkspaceInput  {
     pub workspace_status: ::std::option::Option<crate::types::WorkspaceStatus>,
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_strict_mode: ::std::option::Option<bool>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
 }
 impl  CreateWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -35,6 +37,10 @@ impl  CreateWorkspaceInput  {
     pub fn workspace_strict_mode(&self) -> ::std::option::Option<bool> {
         self.workspace_strict_mode
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
+        self.metrics.as_ref()
+    }
 }
 impl CreateWorkspaceInput {
     /// Creates a new builder-style object to manufacture [`CreateWorkspaceInput`](crate::operation::create_workspace::CreateWorkspaceInput).
@@ -52,6 +58,7 @@ pub struct CreateWorkspaceInputBuilder {
     pub(crate) workspace_name: ::std::option::Option<::std::string::String>,
     pub(crate) workspace_status: ::std::option::Option<crate::types::WorkspaceStatus>,
     pub(crate) workspace_strict_mode: ::std::option::Option<bool>,
+    pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
 }
 impl CreateWorkspaceInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -123,6 +130,19 @@ impl CreateWorkspaceInputBuilder {
     pub fn get_workspace_strict_mode(&self) -> &::std::option::Option<bool> {
         &self.workspace_strict_mode
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
+        self.metrics = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
+        self.metrics = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+        &self.metrics
+    }
     /// Consumes the builder and constructs a [`CreateWorkspaceInput`](crate::operation::create_workspace::CreateWorkspaceInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::create_workspace::CreateWorkspaceInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -136,6 +156,8 @@ impl CreateWorkspaceInputBuilder {
                 workspace_status: self.workspace_status
                 ,
                 workspace_strict_mode: self.workspace_strict_mode
+                ,
+                metrics: self.metrics
                 ,
             }
         )

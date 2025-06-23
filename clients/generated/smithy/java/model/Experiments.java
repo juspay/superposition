@@ -24,11 +24,15 @@ public final class Experiments implements ApiResource {
         "created_by", PreludeSchemas.STRING,
         "experiment_type", ExperimentType.$SCHEMA,
         "change_reason", PreludeSchemas.STRING,
+        "metrics_url", PreludeSchemas.STRING,
         "traffic_percentage", PreludeSchemas.INTEGER,
         "name", PreludeSchemas.STRING,
         "context", SharedSchemas.CONDITION,
+        "started_at", SharedSchemas.DATE_TIME,
         "id", PreludeSchemas.STRING,
+        "metrics", PreludeSchemas.DOCUMENT,
         "last_modified", SharedSchemas.DATE_TIME,
+        "started_by", PreludeSchemas.STRING,
         "status", ExperimentStatusType.$SCHEMA);
 
     private static final List<Schema> $OPERATIONS = List.of(ListExperiment.$SCHEMA,

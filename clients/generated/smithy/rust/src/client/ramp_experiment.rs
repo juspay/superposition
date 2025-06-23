@@ -24,6 +24,10 @@ impl super::Client {
     ///   - [`chosen_variant(Option<String>)`](crate::operation::ramp_experiment::RampExperimentOutput::chosen_variant): (undocumented)
     ///   - [`description(String)`](crate::operation::ramp_experiment::RampExperimentOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::ramp_experiment::RampExperimentOutput::change_reason): (undocumented)
+    ///   - [`started_at(Option<DateTime>)`](crate::operation::ramp_experiment::RampExperimentOutput::started_at): (undocumented)
+    ///   - [`started_by(Option<String>)`](crate::operation::ramp_experiment::RampExperimentOutput::started_by): (undocumented)
+    ///   - [`metrics_url(Option<String>)`](crate::operation::ramp_experiment::RampExperimentOutput::metrics_url): (undocumented)
+    ///   - [`metrics(Option<Document>)`](crate::operation::ramp_experiment::RampExperimentOutput::metrics): (undocumented)
                             /// - On failure, responds with [`SdkError<RampExperimentError>`](crate::operation::ramp_experiment::RampExperimentError)
     pub fn ramp_experiment(&self) -> crate::operation::ramp_experiment::builders::RampExperimentFluentBuilder {
                                 crate::operation::ramp_experiment::builders::RampExperimentFluentBuilder::new(self.handle.clone())

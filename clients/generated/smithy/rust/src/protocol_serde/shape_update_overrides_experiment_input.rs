@@ -9,17 +9,20 @@ pub fn ser_update_overrides_experiment_input_input(
     if let Some(var_2) = &input.description {
         object.key("description").string(var_2.as_str());
     }
-    if let Some(var_3) = &input.variant_list {
-        let mut array_4 = object.key("variant_list").start_array();
-        for item_5 in var_3 {
+    if let Some(var_3) = &input.metrics {
+        object.key("metrics").document(var_3);
+    }
+    if let Some(var_4) = &input.variant_list {
+        let mut array_5 = object.key("variant_list").start_array();
+        for item_6 in var_4 {
              {
                 #[allow(unused_mut)]
-                let mut object_6 = array_4.value().start_object();
-                crate::protocol_serde::shape_variant_update_request::ser_variant_update_request(&mut object_6, item_5)?;
-                object_6.finish();
+                let mut object_7 = array_5.value().start_object();
+                crate::protocol_serde::shape_variant_update_request::ser_variant_update_request(&mut object_7, item_6)?;
+                object_7.finish();
             }
         }
-        array_4.finish();
+        array_5.finish();
     }
     Ok(())
 }

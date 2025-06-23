@@ -22,6 +22,10 @@ impl super::Client {
     ///   - [`chosen_variant(Option<String>)`](crate::operation::get_experiment::GetExperimentOutput::chosen_variant): (undocumented)
     ///   - [`description(String)`](crate::operation::get_experiment::GetExperimentOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::get_experiment::GetExperimentOutput::change_reason): (undocumented)
+    ///   - [`started_at(Option<DateTime>)`](crate::operation::get_experiment::GetExperimentOutput::started_at): (undocumented)
+    ///   - [`started_by(Option<String>)`](crate::operation::get_experiment::GetExperimentOutput::started_by): (undocumented)
+    ///   - [`metrics_url(Option<String>)`](crate::operation::get_experiment::GetExperimentOutput::metrics_url): (undocumented)
+    ///   - [`metrics(Option<Document>)`](crate::operation::get_experiment::GetExperimentOutput::metrics): (undocumented)
                             /// - On failure, responds with [`SdkError<GetExperimentError>`](crate::operation::get_experiment::GetExperimentError)
     pub fn get_experiment(&self) -> crate::operation::get_experiment::builders::GetExperimentFluentBuilder {
                                 crate::operation::get_experiment::builders::GetExperimentFluentBuilder::new(self.handle.clone())

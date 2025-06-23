@@ -45,6 +45,7 @@ public final class CreateExperimentInput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
+        .putMember("metrics", PreludeSchemas.DOCUMENT)
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -55,6 +56,7 @@ public final class CreateExperimentInput implements SerializableStruct {
     private static final Schema $SCHEMA_VARIANTS = $SCHEMA.member("variants");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
+    private static final Schema $SCHEMA_METRICS = $SCHEMA.member("metrics");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -64,6 +66,7 @@ public final class CreateExperimentInput implements SerializableStruct {
     private final transient List<Variant> variants;
     private final transient String description;
     private final transient String changeReason;
+    private final transient Document metrics;
 
     private CreateExperimentInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -74,6 +77,7 @@ public final class CreateExperimentInput implements SerializableStruct {
         this.variants = Collections.unmodifiableList(builder.variants);
         this.description = builder.description;
         this.changeReason = builder.changeReason;
+        this.metrics = builder.metrics;
     }
 
     public String workspaceId() {
@@ -116,6 +120,10 @@ public final class CreateExperimentInput implements SerializableStruct {
         return changeReason;
     }
 
+    public Document metrics() {
+        return metrics;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -137,12 +145,13 @@ public final class CreateExperimentInput implements SerializableStruct {
                && Objects.equals(this.context, that.context)
                && Objects.equals(this.variants, that.variants)
                && Objects.equals(this.description, that.description)
-               && Objects.equals(this.changeReason, that.changeReason);
+               && Objects.equals(this.changeReason, that.changeReason)
+               && Objects.equals(this.metrics, that.metrics);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, name, experimentType, context, variants, description, changeReason);
+        return Objects.hash(workspaceId, orgId, name, experimentType, context, variants, description, changeReason, metrics);
     }
 
     @Override
@@ -162,6 +171,9 @@ public final class CreateExperimentInput implements SerializableStruct {
         serializer.writeList($SCHEMA_VARIANTS, variants, variants.size(), SharedSerde.ListVariantSerializer.INSTANCE);
         serializer.writeString($SCHEMA_DESCRIPTION, description);
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
+        if (metrics != null) {
+            serializer.writeDocument($SCHEMA_METRICS, metrics);
+        }
     }
 
     @Override
@@ -176,6 +188,7 @@ public final class CreateExperimentInput implements SerializableStruct {
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_TYPE, member, experimentType);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -197,6 +210,7 @@ public final class CreateExperimentInput implements SerializableStruct {
         builder.variants(this.variants);
         builder.description(this.description);
         builder.changeReason(this.changeReason);
+        builder.metrics(this.metrics);
         return builder;
     }
 
@@ -221,6 +235,7 @@ public final class CreateExperimentInput implements SerializableStruct {
         private List<Variant> variants;
         private String description;
         private String changeReason;
+        private Document metrics;
 
         private Builder() {}
 
@@ -306,6 +321,14 @@ public final class CreateExperimentInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder metrics(Document metrics) {
+            this.metrics = metrics;
+            return this;
+        }
+
         @Override
         public CreateExperimentInput build() {
             tracker.validate();
@@ -324,6 +347,7 @@ public final class CreateExperimentInput implements SerializableStruct {
                 case 5 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 6 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 7 -> experimentType((ExperimentType) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_TYPE, member, value));
+                case 8 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -380,6 +404,7 @@ public final class CreateExperimentInput implements SerializableStruct {
                     case 5 -> builder.changeReason(de.readString(member));
                     case 6 -> builder.orgId(de.readString(member));
                     case 7 -> builder.experimentType(ExperimentType.builder().deserializeMember(de, member).build());
+                    case 8 -> builder.metrics(de.readDocument());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

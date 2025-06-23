@@ -14,6 +14,7 @@ import software.amazon.smithy.java.core.schema.ShapeBuilder;
 import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
+import software.amazon.smithy.java.core.serde.document.Document;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
@@ -47,6 +48,7 @@ public final class WorkspaceResponse implements SerializableStruct {
         .putMember("mandatory_dimensions", SharedSchemas.LIST_MANDATORY_DIMENSIONS)
         .putMember("workspace_strict_mode", PreludeSchemas.BOOLEAN,
                 new RequiredTrait())
+        .putMember("metrics", PreludeSchemas.DOCUMENT)
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_NAME = $SCHEMA.member("workspace_name");
@@ -62,6 +64,7 @@ public final class WorkspaceResponse implements SerializableStruct {
     private static final Schema $SCHEMA_CREATED_AT = $SCHEMA.member("created_at");
     private static final Schema $SCHEMA_MANDATORY_DIMENSIONS = $SCHEMA.member("mandatory_dimensions");
     private static final Schema $SCHEMA_WORKSPACE_STRICT_MODE = $SCHEMA.member("workspace_strict_mode");
+    private static final Schema $SCHEMA_METRICS = $SCHEMA.member("metrics");
 
     private final transient String workspaceName;
     private final transient String organisationId;
@@ -76,6 +79,7 @@ public final class WorkspaceResponse implements SerializableStruct {
     private final transient Instant createdAt;
     private final transient List<String> mandatoryDimensions;
     private final transient boolean workspaceStrictMode;
+    private final transient Document metrics;
 
     private WorkspaceResponse(Builder builder) {
         this.workspaceName = builder.workspaceName;
@@ -91,6 +95,7 @@ public final class WorkspaceResponse implements SerializableStruct {
         this.createdAt = builder.createdAt;
         this.mandatoryDimensions = builder.mandatoryDimensions == null ? null : Collections.unmodifiableList(builder.mandatoryDimensions);
         this.workspaceStrictMode = builder.workspaceStrictMode;
+        this.metrics = builder.metrics;
     }
 
     public String workspaceName() {
@@ -152,6 +157,10 @@ public final class WorkspaceResponse implements SerializableStruct {
         return workspaceStrictMode;
     }
 
+    public Document metrics() {
+        return metrics;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -178,12 +187,13 @@ public final class WorkspaceResponse implements SerializableStruct {
                && Objects.equals(this.lastModifiedAt, that.lastModifiedAt)
                && Objects.equals(this.createdAt, that.createdAt)
                && Objects.equals(this.mandatoryDimensions, that.mandatoryDimensions)
-               && this.workspaceStrictMode == that.workspaceStrictMode;
+               && this.workspaceStrictMode == that.workspaceStrictMode
+               && Objects.equals(this.metrics, that.metrics);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceName, organisationId, organisationName, workspaceSchemaName, workspaceStatus, workspaceAdminEmail, configVersion, createdBy, lastModifiedBy, lastModifiedAt, createdAt, mandatoryDimensions, workspaceStrictMode);
+        return Objects.hash(workspaceName, organisationId, organisationName, workspaceSchemaName, workspaceStatus, workspaceAdminEmail, configVersion, createdBy, lastModifiedBy, lastModifiedAt, createdAt, mandatoryDimensions, workspaceStrictMode, metrics);
     }
 
     @Override
@@ -210,6 +220,9 @@ public final class WorkspaceResponse implements SerializableStruct {
             serializer.writeList($SCHEMA_MANDATORY_DIMENSIONS, mandatoryDimensions, mandatoryDimensions.size(), SharedSerde.ListMandatoryDimensionsSerializer.INSTANCE);
         }
         serializer.writeBoolean($SCHEMA_WORKSPACE_STRICT_MODE, workspaceStrictMode);
+        if (metrics != null) {
+            serializer.writeDocument($SCHEMA_METRICS, metrics);
+        }
     }
 
     @Override
@@ -229,6 +242,7 @@ public final class WorkspaceResponse implements SerializableStruct {
             case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STRICT_MODE, member, workspaceStrictMode);
             case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, configVersion);
             case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, mandatoryDimensions);
+            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -255,6 +269,7 @@ public final class WorkspaceResponse implements SerializableStruct {
         builder.createdAt(this.createdAt);
         builder.mandatoryDimensions(this.mandatoryDimensions);
         builder.workspaceStrictMode(this.workspaceStrictMode);
+        builder.metrics(this.metrics);
         return builder;
     }
 
@@ -283,6 +298,7 @@ public final class WorkspaceResponse implements SerializableStruct {
         private Instant createdAt;
         private List<String> mandatoryDimensions;
         private boolean workspaceStrictMode;
+        private Document metrics;
 
         private Builder() {}
 
@@ -417,6 +433,14 @@ public final class WorkspaceResponse implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder metrics(Document metrics) {
+            this.metrics = metrics;
+            return this;
+        }
+
         @Override
         public WorkspaceResponse build() {
             tracker.validate();
@@ -440,6 +464,7 @@ public final class WorkspaceResponse implements SerializableStruct {
                 case 10 -> workspaceStrictMode((boolean) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STRICT_MODE, member, value));
                 case 11 -> configVersion((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, value));
                 case 12 -> mandatoryDimensions((List<String>) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, value));
+                case 13 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -516,6 +541,7 @@ public final class WorkspaceResponse implements SerializableStruct {
                     case 10 -> builder.workspaceStrictMode(de.readBoolean(member));
                     case 11 -> builder.configVersion(de.readString(member));
                     case 12 -> builder.mandatoryDimensions(SharedSerde.deserializeListMandatoryDimensions(member, de));
+                    case 13 -> builder.metrics(de.readDocument());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }
